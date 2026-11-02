@@ -52,9 +52,11 @@ func run(ctx context.Context, o options) (summary object, runFailure error) {
 	if provider != "codex" && provider != "claude" {
 		return nil, errors.New("materials must identify codex or claude")
 	}
-	o.Output, err = createOutput(o.Output, o.Mode)
-	if err != nil {
-		return nil, err
+	if !o.OutputPrepared {
+		o.Output, err = createOutput(o.Output, o.Mode)
+		if err != nil {
+			return nil, err
+		}
 	}
 	o.Output, err = filepath.EvalSymlinks(o.Output)
 	if err != nil {
@@ -207,6 +209,13 @@ func run(ctx context.Context, o options) (summary object, runFailure error) {
 	}
 	runErr = errors.Join(runErr, resultErr, transportErr, scrubNative(root))
 	summary = object{"case": req.Case, "provider": provider, "mode": o.Mode, "result": outcome, "output": o.Output}
+	if o.Mode == "verify" {
+		process := object{"started": cmd.Process != nil, "reaped": cmd.ProcessState != nil}
+		if cmd.ProcessState != nil {
+			process["exitCode"] = cmd.ProcessState.ExitCode()
+		}
+		summary["driverProcess"] = process
+	}
 	if o.Mode != "record" {
 		summary["source"] = source
 		if digest, e := fileDigest(filepath.Join(root, "materialization.json")); e == nil {

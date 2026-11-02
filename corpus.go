@@ -308,7 +308,28 @@ func (v *corpusValidation) summary(root, mode string, plan object) object {
 }
 
 func (v *corpusValidation) replay(source, replay string, plan object, mode string) {
-	s := v.summary(replay, mode, plan)
+	actualMode := mode
+	if mode == "replay" {
+		var summary object
+		if readJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
+			actualMode = "verify"
+			attestation := v.read(replay, "verification.json")
+			v.check(attestation["schemaVersion"] == float64(1) && attestation["status"] == "passed" && attestation["error"] == nil, "official verification did not pass")
+			v.hashes(replay, obj(attestation["files"]))
+			for _, name := range []string{"summary.json", "result.json", "replay-report.json"} {
+				v.check(obj(attestation["files"])[name] != nil, "verification omits evidence hash")
+			}
+			for _, phase := range corpusPhases(plan, "verify") {
+				name := "main"
+				if phase[0] != "" {
+					name = "probe"
+				}
+				lifecycle := "peer-" + name + "-lifecycle.json"
+				v.check(obj(attestation["files"])[phase[0]+"replay-peer.json"] != nil && obj(attestation["files"])[lifecycle] != nil, "verification omits selected connection")
+			}
+		}
+	}
+	s := v.summary(replay, actualMode, plan)
 	original := object{}
 	for _, name := range sourceEvidence {
 		original[name] = v.digest(source, name)
@@ -346,6 +367,17 @@ func (v *corpusValidation) replay(source, replay string, plan object, mode strin
 
 func (v *corpusValidation) replayEvidence(replay string, plan object) object {
 	names := corpusSet([]string{"summary.json", "result.json", "replay-report.json"})
+	var summary object
+	if readJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
+		names["verification.json"] = true
+		for _, phase := range corpusPhases(plan, "verify") {
+			name := "main"
+			if phase[0] != "" {
+				name = "probe"
+			}
+			names["peer-"+name+"-lifecycle.json"] = true
+		}
+	}
 	for _, phase := range corpusPhases(plan, "replay") {
 		names[phase[0]+"replay-peer.json"] = true
 	}
