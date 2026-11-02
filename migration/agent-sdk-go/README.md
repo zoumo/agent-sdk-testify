@@ -1,4 +1,4 @@
-# SDK-owned assertions pending T7
+# SDK-owned assertion migration
 
 These `.pending` files are byte-for-byte originals from extraction baseline
 `867a671`, imported from agent-sdk-go revision
@@ -31,3 +31,25 @@ Go driver: merely renaming them to `_test.go` here is not a valid restoration.
 T7 must adapt ownership and obtain those SDK inputs from the SDK repository,
 preserving every assertion and its evidence level. Do not import the SDK into
 the tool, weaken matching, or count this pending transfer as SDK acceptance.
+
+## T7 restoration
+
+The SDK branch `codex-testify-sdk-t7` ports the three assertion groups to
+`tests/simulation/simulate/{process,history}_test.go`, with additional cancellation,
+unsupported-schema, missing-tool, source-corruption and remote peer cleanup checks.
+See `manifest.json.restoration` for the exact assertion mapping and SDK revision.
+The SDK now consumes describe/prepare/finish; its transitional fixture projections
+are INTERNAL SDK data from the explicit assertion API. Runtime paths are separate
+from original plan bytes. Policy runs have independent prepares/SDK hosts.
+
+The local process checks were executed, and representative compatible builtin
+materials were replayed through current public SDK APIs. Full required coverage,
+source official verification and remote CI are independent gates; no release pin,
+new recording or production SDK change is implied. The original source SDK main
+is untouched and remains the usable legacy fallback until release cutover.
+
+Keep these `.pending` originals and their source hashes as immutable provenance.
+They are restored mappings now, not active tool tests or a claim that full corpus
+acceptance passed. SDK adoption/qualification setup is intentionally not copied;
+tool corpus tests retain that ownership. Final verification artifacts are retained
+outside disposable worktrees by the T7 caller.

@@ -83,11 +83,18 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 		return bad(errors.New("invalid mock timeout"))
 	}
 	// Resolve parents before opening so report aliases cannot overwrite evidence.
-	if *progress != -1 && *progress < 3 { return bad(errors.New("progress-fd must be >=3")) }
+	if *progress != -1 && *progress < 3 {
+		return bad(errors.New("progress-fd must be >=3"))
+	}
 	var notification *os.File
 	if *progress >= 3 {
-	 fd, e := syscall.Dup(*progress); if e != nil { return bad(e) }; syscall.CloseOnExec(fd)
-	 notification = os.NewFile(uintptr(fd), "consumption-notification"); defer notification.Close()
+		fd, e := syscall.Dup(*progress)
+		if e != nil {
+			return bad(e)
+		}
+		syscall.CloseOnExec(fd)
+		notification = os.NewFile(uintptr(fd), "consumption-notification")
+		defer notification.Close()
 	}
 	sourceRoot, e := filepath.EvalSymlinks(*root)
 	if e != nil {
@@ -173,7 +180,7 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 // The engine's dedicated progress descriptor distinguishes full consumption
 // from successful EOF. Run closes it and all protocol duplicates before return.
 func mockProtocol(ctx context.Context, document *recording.Document) (bool, error) {
- return mockProtocolNotifying(ctx, document, nil)
+	return mockProtocolNotifying(ctx, document, nil)
 }
 
 func mockProtocolNotifying(ctx context.Context, document *recording.Document, notification *os.File) (bool, error) {
@@ -192,18 +199,27 @@ func mockProtocolNotifying(ctx context.Context, document *recording.Document, no
 		return false, errors.Join(dupErr, closeErr, r.Close())
 	}
 	syscall.CloseOnExec(fd)
-	type progressResult struct { consumed bool; err error }
- done := make(chan progressResult, 1)
- go func() {
-  var marker [1]byte
-  n, e := r.Read(marker[:]); consumed := n == 1 && marker[0] == '1'
-  if errors.Is(e, io.EOF) { e = nil }
-  if consumed && notification != nil { _, writeErr := notification.Write(marker[:]); e = errors.Join(e, writeErr) }
-  done <- progressResult{consumed,e}
- }()
- err = replay.Run(ctx, document, recording.Limits{}, "", os.Stdin, os.Stdout, fd)
- progress := <-done
- return progress.consumed, errors.Join(err, progress.err, r.Close())
+	type progressResult struct {
+		consumed bool
+		err      error
+	}
+	done := make(chan progressResult, 1)
+	go func() {
+		var marker [1]byte
+		n, e := r.Read(marker[:])
+		consumed := n == 1 && marker[0] == '1'
+		if errors.Is(e, io.EOF) {
+			e = nil
+		}
+		if consumed && notification != nil {
+			_, writeErr := notification.Write(marker[:])
+			e = errors.Join(e, writeErr)
+		}
+		done <- progressResult{consumed, e}
+	}()
+	err = replay.Run(ctx, document, recording.Limits{}, "", os.Stdin, os.Stdout, fd)
+	progress := <-done
+	return progress.consumed, errors.Join(err, progress.err, r.Close())
 }
 
 // loadMockSource is shared by direct and prepared mock. It requires the same

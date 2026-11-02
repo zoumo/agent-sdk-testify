@@ -26,5 +26,58 @@
       "bytes": 30633,
       "migrate": "func (s *corpusSuite) TestAdoptedMaterialsRunCurrentSDKAndRetainFailures"
     }
-  ]
+  ],
+  "restoration": {
+    "repository": "https://github.com/zoumo/agent-sdk-go",
+    "branch": "codex-testify-sdk-t7",
+    "revision": "b156ee8",
+    "status": "ported and locally executed through SDK/public mock process seam; full required corpus remains a separate failing gate",
+    "tests": [
+      {
+        "sourceAssertion": "TestSDKRequestUsesRunnerPeers",
+        "sdkTests": [
+          "tests/simulation/simulate/process_test.go:TestSDKRequestUsesRunnerPeers",
+          "tests/simulation/simulate/process_test.go:TestSelectedRunsAndIndependentPolicies"
+        ],
+        "preserved": [
+          "structured input",
+          "independent preserve/suppress hosts",
+          "remote main/probe",
+          "missing probe/suppress receipts",
+          "invalid receipt despite removed SDK raw projection",
+          "remote postprocessing failure retains business passed",
+          "immutable source contract without private runtime fields"
+        ]
+      },
+      {
+        "sourceAssertion": "TestClaudeMovedMaterialsUseCurrentSDKAndDerivedHistory",
+        "sdkTests": [
+          "tests/simulation/simulate/history_test.go:TestClaudeMovedMaterialsUseCurrentSDKAndDerivedHistory"
+        ],
+        "preserved": [
+          "relocated external synthetic source",
+          "absent original cwd",
+          "real SDK history API",
+          "unchanged source/raw",
+          "original copied history bytes",
+          "permitted derived cwd and source/derived hashes before finish",
+          "finish history validation and resource cleanup"
+        ]
+      },
+      {
+        "sourceAssertion": "corpusSuite.TestAdoptedMaterialsRunCurrentSDKAndRetainFailures",
+        "sdkTests": [
+          "tests/simulation/simulate/process_test.go:TestAdoptedMaterialsRunCurrentSDKAndRetainFailures"
+        ],
+        "preserved": [
+          "current SDK public flow",
+          "initial numbers.txt",
+          "failed host summary survives",
+          "72-combination synthetic scope: one passed and 71 unverified",
+          "unchanged external source inventory after SDK failure"
+        ],
+        "ownership": "Tool adoption/qualification stays in tool corpus tests. SDK consumes explicitly synthetic process fixtures and complete catalog; no copied corpus machinery."
+      }
+    ]
+  }
 }
