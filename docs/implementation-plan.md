@@ -132,17 +132,24 @@
 用户已明确配置 GitHub 为 issue tracker；本项目使用 `zoumo/agent-sdk-testify` 的 GitHub Issues，
 规格标签为 `ready-for-agent`。发布时使用此规格正文，完成后读取正文与标签确认。
 
-### 待确认的 ticket 依赖图
+### 已确认的 ticket 依赖图
 
-父规格：[GitHub #1](https://github.com/zoumo/agent-sdk-testify/issues/1)。以下仅为草稿，确认前不发布子任务、不继续实施。
+父规格：[GitHub #1](https://github.com/zoumo/agent-sdk-testify/issues/1)。用户随后调用 implement-spec 确认执行；子任务已发布并建立原生阻塞关系。
 
 | Ticket | 交付 | Blocked by |
 | --- | --- | --- |
-| T1 | 独立构建与测试归属整理 | 无 |
-| T2 | 外部录制可直接作为 mock 进程使用 | T1 |
-| T3 | record 通过官方 driver 完成录制 | T1 |
-| T4 | verify 官方验证与材料采用 | T2, T3 |
-| T5 | 内置材料可查询并直接 mock | T4 |
-| T6 | mock 环境准备与多连接收尾 | T2 |
-| T7 | agent-sdk-go simulate 消费独立 mock | T5, T6 |
-| T8 | 三命令收敛与独立交付验收 | T7 |
+| [T1 / #2](https://github.com/zoumo/agent-sdk-testify/issues/2) | 独立构建与测试归属整理 | 无 |
+| [T2 / #3](https://github.com/zoumo/agent-sdk-testify/issues/3) | 外部录制可直接作为 mock 进程使用 | [T1 / #2](https://github.com/zoumo/agent-sdk-testify/issues/2) |
+| [T3 / #4](https://github.com/zoumo/agent-sdk-testify/issues/4) | record 通过官方 driver 完成录制 | [T1 / #2](https://github.com/zoumo/agent-sdk-testify/issues/2) |
+| [T4 / #5](https://github.com/zoumo/agent-sdk-testify/issues/5) | verify 官方验证与材料采用 | T2, T3 |
+| [T5 / #6](https://github.com/zoumo/agent-sdk-testify/issues/6) | 内置材料可查询并直接 mock | [T4 / #5](https://github.com/zoumo/agent-sdk-testify/issues/5) |
+| [T6 / #7](https://github.com/zoumo/agent-sdk-testify/issues/7) | mock 环境准备与多连接收尾 | [T2 / #3](https://github.com/zoumo/agent-sdk-testify/issues/3) |
+| [T7 / #8](https://github.com/zoumo/agent-sdk-testify/issues/8) | agent-sdk-go simulate 消费独立 mock | T5, T6 |
+| [T8 / #9](https://github.com/zoumo/agent-sdk-testify/issues/9) | 三命令收敛与独立交付验收 | [T7 / #8](https://github.com/zoumo/agent-sdk-testify/issues/8) |
+
+### 实施启动授权
+
+用户在确认拆分后调用 implement-spec，授权按任务图使用独立 worktree、子代理、TDD、
+本地提交与集成分支实施。集成分支为 `codex-testify-integration`，审查基线为 `867a671`。
+首次复制阶段的不提交约束不再阻止技能要求的本地实现提交；推送、发布版本及真实录制仍未执行。
+父规格保持开放，不因某个子任务完成而关闭；工作仅在实际验收完成后记为完成。
