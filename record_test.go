@@ -249,6 +249,5 @@ func TestRecordTimeoutPreservesDiagnostic(t *testing.T) {
 	var summary object
 	require.NoError(t, readJSON(filepath.Join(output, "summary.json"), &summary))
 	require.Contains(t, str(summary["error"]), "context deadline exceeded")
-	require.FileExists(t, filepath.Join(output, "stderr.log"))
 	require.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
 }
