@@ -45,6 +45,7 @@ type result struct {
 }
 type options struct {
 	Mode, Materials, Case, Provider, Output, Driver, Peer, CLI, Config, Model string
+	OutputPrepared                                                            bool
 	HistorySeed                                                               string
 	InitialModel                                                              string
 	CasesFile                                                                 string
@@ -72,7 +73,7 @@ func main() {
 			fmt.Println("agent-sdk-testify " + protocolcmd.Version)
 			return
 		case "--help", "-h":
-			fmt.Println("Usage: agent-sdk-testify mock --recording /absolute/capture --report FILE [--provider codex|claude]\n       agent-sdk-testify record|replay|simulate [flags]\n       agent-sdk-testify corpus review|qualify|adopt|gate [flags]\n       agent-sdk-testify protocol record|mock|connect [flags]\n       agent-sdk-testify version")
+			fmt.Println("Usage: agent-sdk-testify mock --recording /absolute/capture --report FILE [--provider codex|claude]\n       agent-sdk-testify record|verify|replay|simulate [flags]\n       agent-sdk-testify corpus review|qualify|adopt|gate [flags]\n       agent-sdk-testify protocol record|mock|connect [flags]\n       agent-sdk-testify version")
 			return
 		}
 	}
@@ -97,6 +98,9 @@ func execute(ctx context.Context, args []string) error {
 	}
 	if args[0] == "record" && !legacyRecordSelection(args[1:]) {
 		return executeRecord(ctx, args[1:])
+	}
+	if args[0] == "verify" {
+		return executeVerify(ctx, args[1:])
 	}
 	if args[0] == "corpus" {
 		return executeCorpus(ctx, args[1:])
@@ -196,9 +200,10 @@ func absoluteExecutable(name string) (string, error) {
 
 // A peer is a stdio child of the SDK. Give EOF a chance to drain before SDK
 // shutdown's TERM cancels it. This process never selects a real-agent fallback.
-func runPeer(args []string) error {
+func runPeer(args []string) (runErr error) {
 	f := flag.NewFlagSet("peer", flag.ContinueOnError)
 	p := f.String("request", "", "peer command file")
+	lifecycle := f.String("lifecycle", "", "internal protocol child exit evidence")
 	if e := f.Parse(args); e != nil {
 		return e
 	}
@@ -215,6 +220,17 @@ func runPeer(args []string) error {
 	defer signal.Stop(ch)
 	if e := cmd.Start(); e != nil {
 		return e
+	}
+	if *lifecycle != "" {
+		defer func() {
+			// This wrapper waits for its only child on every exit path.
+			code := cmd.ProcessState.ExitCode()
+			report := object{"schemaVersion": 1, "exitCode": code, "reaped": cmd.ProcessState != nil, "cleanupComplete": true}
+			if runErr != nil {
+				report["error"] = runErr.Error()
+			}
+			runErr = errors.Join(runErr, writeJSON(*lifecycle, report))
+		}()
 	}
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()

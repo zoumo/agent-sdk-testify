@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -92,7 +93,11 @@ func preparePeerRuns(ctx context.Context, o options, plan object, service *remot
 		if err = writeJSON(peerPath, command{Command: peer, Args: args}); err != nil {
 			return nil, err
 		}
-		launcher, err := writePeerLauncher(root, phase, command{Command: self, Args: []string{"peer", "--request", peerPath}})
+		launcherArgs := []string{"peer", "--request", peerPath}
+		if o.Mode == "verify" {
+			launcherArgs = append(launcherArgs, "--lifecycle", filepath.Join(root, "peer-"+phase+"-lifecycle.json"))
+		}
+		launcher, err := writePeerLauncher(root, phase, command{Command: self, Args: launcherArgs})
 		if err != nil {
 			return nil, err
 		}
@@ -126,7 +131,7 @@ func (r *peerRuns) close() error {
 
 func (r *peerRuns) finish(status string) error {
 	err := r.close()
-	if status == "unsupported" {
+	if status == "unsupported" && r.mode != "verify" {
 		return err
 	}
 	for _, run := range r.runs {
@@ -155,6 +160,22 @@ func (r peerRun) verify(mode, provider string) error {
 	h := sha256.Sum256(b)
 	if receipt["provider"] != provider || receipt["fullConsumption"] != true || receipt["clientEOF"] != true || receipt["nativeLaunched"] != false || receipt["recordingSHA256"] != hex.EncodeToString(h[:]) {
 		return errors.New("mock receipt does not prove full consumption of the selected recording")
+	}
+	if mode == "verify" {
+		if receipt["error"] != nil || receipt["frames"] != float64(len(bytes.Split(bytes.TrimSuffix(b, []byte("\n")), []byte("\n")))) {
+			return errors.New("mock receipt has errors or wrong frame count")
+		}
+		root := filepath.Dir(r.receipt)
+		if r.name == "probe" {
+			root = filepath.Dir(root)
+		}
+		var lifecycle object
+		if err := readJSON(filepath.Join(root, "peer-"+r.name+"-lifecycle.json"), &lifecycle); err != nil {
+			return err
+		}
+		if lifecycle["exitCode"] != float64(0) || lifecycle["reaped"] != true || lifecycle["cleanupComplete"] != true || lifecycle["error"] != nil {
+			return errors.New("protocol child did not exit and clean up successfully")
+		}
 	}
 	return nil
 }

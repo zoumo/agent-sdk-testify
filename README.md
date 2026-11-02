@@ -63,3 +63,33 @@ case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `-
 迁移期间，显式选择 `--materials`、`--cases-file` 或 `--index` 的旧流程仍按旧 CLI 执行，
 将在 T8 统一移除；上面的新入口只使用本仓库 case 与已安装的官方 driver。
 默认离线测试只以受控进程替换官方 driver 和 native Agent，不执行真实 SDK、模型或录制调用。
+
+## 官方离线验证与采用
+
+在已安装上述官方 driver 和 SDK 的环境中执行：
+
+```sh
+agent-sdk-testify verify --recording /private/new-capture \
+  --output /private/new-verification --timeout 2m
+```
+
+provider/case 从录制身份确定，只选择本工具的官方 driver；不接受 `--driver`、
+`--driver-arg`、`--peer` 或 SDK 仿真 driver。不会启动真实 Agent 或自动安装依赖。
+原件与旧 replay 证据保持不变；新目录保存业务报告、每个选中连接的协议及退出回执、
+失败诊断和 `verification.json`。验证证据绑定原件、合同、工具及 driver 哈希，
+记录实际安装的官方 SDK 包和版本；版本不兼容须报告失败。
+业务通过仍须所有连接严格匹配、完整消费、EOF、退出及清理通过。
+
+新录制经验证后可直接沿用内部资格、私有归档与原子采用流程：
+
+```sh
+agent-sdk-testify verify --recording /private/new-capture \
+  --output /private/new-verification \
+  --index /absolute/recordings/index.json \
+  --scenarios /absolute/scenarios --archive /private/archives
+```
+
+`--index` 启用采用；`--scenarios` 默认取 index 的相邻 `../scenarios`。
+资格要求沿用既有隔离、来源、官方业务与材料规则，不生成新的内容审核或扫描流程。
+`admission-summary.json` 单独报告采用结果；采用失败保留验证证据和旧索引/材料。
+SDK simulate 不参与采用判断。资格与采用成功不单独证明内容允许公开发布。

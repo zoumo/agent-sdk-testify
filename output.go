@@ -16,6 +16,17 @@ func createOutput(path, mode string) (string, error) {
 		}
 		return absolute, os.Mkdir(absolute, 0700)
 	}
+	base, err := outputBase(mode)
+	if err != nil {
+		return "", err
+	}
+	if err = os.MkdirAll(base, 0700); err != nil {
+		return "", fmt.Errorf("create persistent attempt directory: %w", err)
+	}
+	return os.MkdirTemp(base, "attempt-")
+}
+
+func outputBase(mode string) (string, error) {
 	base := os.Getenv("AGENT_SDK_TESTIFY_DATA_DIR")
 	if base == "" {
 		base = os.Getenv("XDG_DATA_HOME")
@@ -28,12 +39,5 @@ func createOutput(path, mode string) (string, error) {
 		}
 		base = filepath.Join(base, "agent-sdk-testify")
 	}
-	base, err := filepath.Abs(filepath.Join(base, "attempts", mode))
-	if err != nil {
-		return "", err
-	}
-	if err = os.MkdirAll(base, 0700); err != nil {
-		return "", fmt.Errorf("create persistent attempt directory: %w", err)
-	}
-	return os.MkdirTemp(base, "attempt-")
+	return filepath.Abs(filepath.Join(base, "attempts", mode))
 }
