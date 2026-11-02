@@ -89,6 +89,9 @@ func execute(ctx context.Context, args []string) error {
 	if len(args) == 0 {
 		return errors.New("use record, replay or simulate with --materials and --driver; use protocol for standalone protocol operations")
 	}
+	if args[0] == "record" && !legacyRecordSelection(args[1:]) {
+		return executeRecord(ctx, args[1:])
+	}
 	if args[0] == "corpus" {
 		return executeCorpus(ctx, args[1:])
 	}
