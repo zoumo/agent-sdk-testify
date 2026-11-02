@@ -40,6 +40,7 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 	report := f.String("report", "", "New persistent receipt file")
 	seconds := f.Float64("timeout", 0, "Seconds; default: scenario timeout, then provider default")
 	phase := f.String("phase", "main", "Declared stream: main or probe")
+	progress := f.Int("progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
 	help := f.Bool("help", false, "Show mock usage")
 	var flags, native []string
 	for i := 0; i < len(args); i++ {
@@ -82,6 +83,19 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 		return bad(errors.New("invalid mock timeout"))
 	}
 	// Resolve parents before opening so report aliases cannot overwrite evidence.
+	if *progress != -1 && *progress < 3 {
+		return bad(errors.New("progress-fd must be >=3"))
+	}
+	var notification *os.File
+	if *progress >= 3 {
+		fd, e := syscall.Dup(*progress)
+		if e != nil {
+			return bad(e)
+		}
+		syscall.CloseOnExec(fd)
+		notification = os.NewFile(uintptr(fd), "consumption-notification")
+		defer notification.Close()
+	}
 	sourceRoot, e := filepath.EvalSymlinks(*root)
 	if e != nil {
 		return bad(e)
@@ -148,7 +162,7 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	consumed, e := mockProtocol(ctx, document)
+	consumed, e := mockProtocolNotifying(ctx, document, notification)
 	receipt["fullConsumption"] = consumed
 	if e != nil {
 		code := protocolcmd.ExitFailure
@@ -166,6 +180,10 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 // The engine's dedicated progress descriptor distinguishes full consumption
 // from successful EOF. Run closes it and all protocol duplicates before return.
 func mockProtocol(ctx context.Context, document *recording.Document) (bool, error) {
+	return mockProtocolNotifying(ctx, document, nil)
+}
+
+func mockProtocolNotifying(ctx context.Context, document *recording.Document, notification *os.File) (bool, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
 		return false, err
@@ -181,13 +199,27 @@ func mockProtocol(ctx context.Context, document *recording.Document) (bool, erro
 		return false, errors.Join(dupErr, closeErr, r.Close())
 	}
 	syscall.CloseOnExec(fd)
-	err = replay.Run(ctx, document, recording.Limits{}, "", os.Stdin, os.Stdout, fd)
-	var marker [1]byte
-	n, readErr := r.Read(marker[:])
-	if errors.Is(readErr, io.EOF) {
-		readErr = nil
+	type progressResult struct {
+		consumed bool
+		err      error
 	}
-	return n == 1 && marker[0] == '1', errors.Join(err, readErr, r.Close())
+	done := make(chan progressResult, 1)
+	go func() {
+		var marker [1]byte
+		n, e := r.Read(marker[:])
+		consumed := n == 1 && marker[0] == '1'
+		if errors.Is(e, io.EOF) {
+			e = nil
+		}
+		if consumed && notification != nil {
+			_, writeErr := notification.Write(marker[:])
+			e = errors.Join(e, writeErr)
+		}
+		done <- progressResult{consumed, e}
+	}()
+	err = replay.Run(ctx, document, recording.Limits{}, "", os.Stdin, os.Stdout, fd)
+	progress := <-done
+	return progress.consumed, errors.Join(err, progress.err, r.Close())
 }
 
 // loadMockSource is shared by direct and prepared mock. It requires the same
