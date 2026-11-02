@@ -7,9 +7,9 @@ test discovery, not skipped tests or evidence of passing SDK integration.
 `manifest.json` records their original paths, byte counts and SHA-256 hashes.
 
 Owner: **zoumo/agent-sdk-go**, restoration task: **T7** (external mock consumer).
-The source SDK checkout is unchanged. T7 must port and execute these assertions
-through the SDK public interfaces and external tool process before removing this
-artifact:
+The source SDK checkout is unchanged. The isolated SDK branch restores these
+assertions through public SDK interfaces and the external tool process; originals
+remain here as immutable provenance:
 
 - `TestSDKRequestUsesRunnerPeers`: structured input, remote main/probe,
   preserve/suppress, missing receipts/raw aliases and postprocessing failures.
@@ -25,11 +25,11 @@ only the listed SDK-dependent functions are removed from default discovery.
 The active tool files now live at the repository root (`corpus_test.go`,
 `materialize_claude_test.go`); protocol tests live in root `protocol/`.
 Manifest `sourcePath` entries and `.pending` contents retain their historical
-SDK paths and hashes. T7 must use the new root binary build entry (`go build .`).
+SDK paths and hashes. The new consumer uses the root binary build entry (`go build .`).
 These original tests reference old runner internals and omitted SDK fixtures /
 Go driver: merely renaming them to `_test.go` here is not a valid restoration.
-T7 must adapt ownership and obtain those SDK inputs from the SDK repository,
-preserving every assertion and its evidence level. Do not import the SDK into
+The restoration adapts ownership and retains SDK inputs in the SDK repository,
+preserving the named assertions and their evidence levels. Do not import the SDK into
 the tool, weaken matching, or count this pending transfer as SDK acceptance.
 
 ## T7 restoration

@@ -30,7 +30,7 @@
   "restoration": {
     "repository": "https://github.com/zoumo/agent-sdk-go",
     "branch": "codex-testify-sdk-t7",
-    "revision": "b156ee8",
+    "revision": "745bb30edb2e101d2feaac2bc5298c20e6149d57",
     "status": "ported and locally executed through SDK/public mock process seam; full required corpus remains a separate failing gate",
     "tests": [
       {
