@@ -367,7 +367,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 		}
 		c := mockConnection{ID: phase, Recording: selected, PlanSHA256: planHash, RecordingSHA256: selectedDoc.SHA256, ManifestSHA256: manifestHash, Receipt: filepath.Join(output, phase+".receipt.json"), ProcessReceipt: filepath.Join(output, phase+".process.json")}
 		c.command = command{Command: self, Args: []string{"mock", "--run", path, "--connection", phase}}
-		c.Launcher, err = writePeerLauncher(r.ResourceRoot, phase, c.command)
+		c.Launcher, err = writeMockLauncher(r.ResourceRoot, phase, c.command)
 		if err != nil {
 			return err
 		}
@@ -381,6 +381,54 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 		return err
 	}
 	return json.NewEncoder(os.Stdout).Encode(r)
+}
+
+// Prepared launchers accept the native metadata probe without forwarding SDK
+// startup arguments. Legacy record/verify launchers retain their own behavior.
+func writeMockLauncher(root, phase string, peer command) (string, error) {
+	quote := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
+	words := []string{quote(peer.Command)}
+	for _, arg := range peer.Args {
+		words = append(words, quote(arg))
+	}
+	invocation := strings.Join(words, " ")
+	script := "#!/bin/sh\nif [ \"$#\" -eq 1 ] && { [ \"$1\" = '--version' ] || [ \"$1\" = '-v' ]; }; then\n  exec " + invocation + " --version\nfi\nexec " + invocation + "\n"
+	path := filepath.Join(root, "peer-"+phase)
+	return path, os.WriteFile(path, []byte(script), 0700)
+}
+
+// This reads immutable metadata only: no lock file, connection claim, protocol
+// child or success receipt. The recorded native identity is not our tool version.
+func mockNativeVersion(path, id string, r *mockRun) error {
+	if err := mockOwner(r); err != nil {
+		return err
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(path), "closed")); !os.IsNotExist(err) {
+		return errors.New("mock run is finished")
+	}
+	declared := false
+	for _, c := range r.Connections {
+		if c.ID == id {
+			declared = true
+			break
+		}
+	}
+	if !declared {
+		return errors.New("undeclared mock connection")
+	}
+	if err := checkMockMetadata(r); err != nil {
+		return err
+	}
+	var plan object
+	if err := readJSON(r.Contract, &plan); err != nil {
+		return err
+	}
+	version := strings.TrimSpace(str(plan["cliVersion"]))
+	if version == "" {
+		version = "unknown (mock; recorded native CLI version unavailable)"
+	}
+	_, err := fmt.Fprintln(os.Stdout, version)
+	return err
 }
 
 func readMockRun(path string) (*mockRun, error) {
@@ -439,6 +487,9 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	r, err := readMockRun(path)
 	if err != nil {
 		return err
+	}
+	if len(native) == 1 && (native[0] == "--version" || native[0] == "-v") {
+		return mockNativeVersion(path, id, r)
 	}
 	lock, err := lockMockRun(path, false)
 	if err != nil {

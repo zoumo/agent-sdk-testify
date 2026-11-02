@@ -388,3 +388,84 @@ func TestPreparedMockNeverCreatesTemporaryFilesInsideRecording(t *testing.T) {
 	}
 	assert.Equal(t, before, mockSourceBytes(t, root))
 }
+
+// Fake native consumer: metadata probes precede the same connection's protocol.
+func TestPreparedMockNativeVersionProbes(t *testing.T) {
+	for _, version := range []string{"2.1.31 (Claude Code)", ""} {
+		t.Run(version, func(t *testing.T) {
+			root := mockCapture(t)
+			var plan, manifest object
+			require.NoError(t, readJSON(filepath.Join(root, "plan.json"), &plan))
+			if version != "" {
+				plan["cliVersion"] = version
+			}
+			require.NoError(t, writeJSON(filepath.Join(root, "plan.json"), plan))
+			require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
+			hash, err := fileDigest(filepath.Join(root, "plan.json"))
+			require.NoError(t, err)
+			manifest["planSHA256"] = hash
+			require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
+			before := mockSourceBytes(t, root)
+			path, run := preparedMock(t, root)
+			t.Cleanup(func() { _, _ = mockCommand(t, "--finish", path).CombinedOutput() })
+			peer := obj(array(run["connections"])[0])
+			expected := version + "\n"
+			if version == "" {
+				expected = "unknown (mock; recorded native CLI version unavailable)\n"
+			}
+			for _, probeFlag := range []string{"--version", "--version", "-v", "-v"} {
+				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				cmd := exec.CommandContext(ctx, str(peer["launcher"]), probeFlag)
+				cmd.Dir = str(run["workspace"])
+				out, err := cmd.CombinedOutput()
+				cancel()
+				require.NoError(t, err, "%s", out)
+				assert.Equal(t, expected, string(out))
+			}
+			out, err := mockCommand(t, "--run", path, "--connection", "main", "--version").CombinedOutput()
+			require.NoError(t, err, "%s", out)
+			assert.Equal(t, expected, string(out))
+			assert.NoFileExists(t, filepath.Join(filepath.Dir(path), "run.lock"))
+			assert.NoFileExists(t, str(peer["receipt"]))
+			assert.NoFileExists(t, str(peer["processReceipt"]))
+			assert.NoFileExists(t, str(peer["processReceipt"])+".started")
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			cmd := exec.CommandContext(ctx, str(peer["launcher"]))
+			cmd.Stdin = strings.NewReader(`{"id":99,"method":"ping","params":{"unknown":9007199254740993}}` + "\n")
+			out, err = cmd.CombinedOutput()
+			require.NoError(t, err, "%s", out)
+			assert.JSONEq(t, `{"id":99,"result":{"unknown":9007199254740993}}`, string(out))
+			out, err = mockCommand(t, "--finish", path).CombinedOutput()
+			require.NoError(t, err, "%s", out)
+			assert.Equal(t, before, mockSourceBytes(t, root))
+		})
+	}
+}
+
+func TestPreparedMockVersionProbeRequiresProtocolEvidence(t *testing.T) {
+	root := mockCapture(t)
+	path, run := preparedMock(t, root)
+	peer := obj(array(run["connections"])[0])
+	out, err := mockCommand(t, "--run", path, "--version").CombinedOutput()
+	require.NoError(t, err, "%s", out)
+	out, err = mockCommand(t, "--run", path, "--connection", "undeclared", "--version").CombinedOutput()
+	require.Error(t, err)
+	assert.Contains(t, string(out), "undeclared")
+	contract, err := os.ReadFile(str(run["contract"]))
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(str(run["contract"]), []byte(`{"cliVersion":"invented"}`), 0600))
+	out, err = mockCommand(t, "--run", path, "--version").CombinedOutput()
+	require.Error(t, err)
+	assert.NotContains(t, string(out), "invented")
+	require.NoError(t, os.WriteFile(str(run["contract"]), contract, 0600))
+	assert.NoFileExists(t, str(peer["receipt"]))
+	assert.NoFileExists(t, str(peer["processReceipt"]))
+	out, err = mockCommand(t, "--finish", path).Output()
+	require.Error(t, err)
+	var finish object
+	require.NoError(t, json.Unmarshal(out, &finish))
+	assert.Equal(t, "failed", finish["status"])
+	assert.Equal(t, true, finish["cleanupComplete"])
+	assert.Contains(t, string(out), "receipt")
+}
