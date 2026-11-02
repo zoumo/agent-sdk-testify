@@ -26,7 +26,7 @@ case "${1:---help}" in
     simulation_mode=$1
     shift
     if [[ "$simulation_mode" == gate ]]; then
-      mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/agent-sdk-testify" .
+      bash "$simulation_source/scripts/build-builtin.sh" "$simulation_build/agent-sdk-testify"
       : "${AGENT_SDK_DRIVER_BIN:?SDK gate requires an explicit SDK-owned driver}"
       set -- --sdk-driver "$AGENT_SDK_DRIVER_BIN" --source-root "$simulation_source" "$@"
     fi
@@ -39,7 +39,7 @@ case "${1:---help}" in
     mkdir -p "$simulation_build"
     simulation_build=$(cd "$simulation_build" && pwd)
     test "$(mise exec -C "$simulation_source" -- go env GOVERSION)" = go1.26.9
-    mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/agent-sdk-testify" .
+    bash "$simulation_source/scripts/build-builtin.sh" "$simulation_build/agent-sdk-testify"
     "$simulation_python" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$simulation_build" "$simulation_source/tests/simulation/drivers"
     ;;
   record|replay)

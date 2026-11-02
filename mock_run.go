@@ -21,6 +21,7 @@ import (
 // The descriptor is the installed-process contract, not a workflow runner.
 // Consumers apply Env before starting their SDK host and own business policy.
 type mockRun struct {
+	Builtin               *builtinSelection `json:"builtin,omitempty"`
 	SchemaVersion         int               `json:"schemaVersion"`
 	RunID                 string            `json:"runId"`
 	Tool                  command           `json:"tool"`
@@ -67,6 +68,10 @@ func mockMode(ctx context.Context, args []string) error {
 	if !prepared {
 		return mockExternal(ctx, args)
 	}
+	return mockPreparedMode(ctx, args, nil)
+}
+
+func mockPreparedMode(ctx context.Context, args []string, selection *builtinSelection) error {
 	bad := func(err error) error { return protocolcmd.Fail(protocolcmd.ExitConfiguration, err) }
 	f := flag.NewFlagSet("mock", flag.ContinueOnError)
 	prepare := f.Bool("prepare", false, "Prepare isolated SDK-host environment")
@@ -111,7 +116,7 @@ func mockMode(ctx context.Context, args []string) error {
 		if *run != "" || *finish != "" || len(native) > 0 {
 			return bad(errors.New("mock modes are mutually exclusive"))
 		}
-		return prepareMock(ctx, *root, *output, *provider)
+		return prepareMockSelected(ctx, *root, *output, *provider, selection)
 	}
 	if *root != "" || *output != "" || *provider != "" {
 		return bad(errors.New("recording/output/provider belong to prepare"))
@@ -131,7 +136,11 @@ func mockMode(ctx context.Context, args []string) error {
 	return runPreparedMock(ctx, *run, *connection, native)
 }
 
-func prepareMock(ctx context.Context, source, output, provider string) (err error) {
+func prepareMock(ctx context.Context, source, output, provider string) error {
+	return prepareMockSelected(ctx, source, output, provider, nil)
+}
+
+func prepareMockSelected(ctx context.Context, source, output, provider string, selection *builtinSelection) (err error) {
 	if !filepath.IsAbs(source) || !filepath.IsAbs(output) {
 		return protocolcmd.Fail(protocolcmd.ExitConfiguration, errors.New("prepare requires --recording ABS and --output ABS"))
 	}
@@ -206,6 +215,16 @@ func prepareMock(ctx context.Context, source, output, provider string) (err erro
 	if err != nil {
 		return err
 	}
+	if selection != nil {
+		target := filepath.Join(r.ResourceRoot, "builtin")
+		if err = os.Rename(source, target); err != nil {
+			return err
+		}
+		source, r.Recording, r.Builtin = target, target, selection
+		if err = checkBuiltinMaterial(source, selection.Material); err != nil {
+			return err
+		}
+	}
 	r.Workspace = filepath.Join(r.ResourceRoot, "project")
 	for _, dir := range []string{"project", "home", "config", "tmp"} {
 		if err = os.Mkdir(filepath.Join(r.ResourceRoot, dir), 0700); err != nil {
@@ -251,6 +270,16 @@ func prepareMock(ctx context.Context, source, output, provider string) (err erro
 	if err = readJSON(filepath.Join(r.ResourceRoot, "materialization.json"), &materialization); err != nil {
 		return err
 	}
+	var adoptedHashes object
+	if _, e := os.Stat(filepath.Join(source, "adoption.json")); e == nil {
+		review, e := verifyAdoptedFiles(source)
+		if e != nil {
+			return e
+		}
+		adoptedHashes = obj(review["captureFiles"])
+	} else if !os.IsNotExist(e) {
+		return e
+	}
 	var copies []object
 	for _, directory := range []string{"config/projects", "config/sessions", "history-seed"} {
 		base := filepath.Join(source, directory)
@@ -275,6 +304,9 @@ func prepareMock(ctx context.Context, source, output, provider string) (err erro
 			expected := str(obj(manifest["savedFiles"])[name])
 			if expected == "" {
 				expected = str(obj(obj(obj(plan["historySeed"])["files"])[name])["sha256"])
+			}
+			if expected == "" {
+				expected = str(adoptedHashes[name])
 			}
 			if hash != expected {
 				return fmt.Errorf("unbound or corrupt history: %s", name)
@@ -443,6 +475,11 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 		}
 		err = errors.Join(err, atomicMockJSON(c.ProcessReceipt, process))
 	}()
+	if r.Builtin != nil {
+		if err = checkBuiltinMaterial(r.Recording, r.Builtin.Material); err != nil {
+			return err
+		}
+	}
 	if err = errors.Join(checkMockIdentity(*c), checkMockHistory(r)); err != nil {
 		return err
 	}
@@ -473,6 +510,7 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	// finish rejects a valid report borrowed from a different prepared execution.
 	var receipt object
 	if e := readJSON(c.Receipt, &receipt); e == nil {
+		receipt["builtin"] = r.Builtin
 		receipt["runId"] = r.RunID
 		receipt["connectionId"] = c.ID
 		err = errors.Join(err, atomicMockJSON(c.Receipt, receipt))
@@ -532,9 +570,34 @@ func finishMock(path string) (err error) {
 		err = errors.Join(err, atomicMockJSON(filepath.Join(output, "finish.json"), report))
 		err = errors.Join(err, json.NewEncoder(os.Stdout).Encode(report))
 	}()
+	var previousCleanup object
+	cleanedBuiltin := false
+	if r.Builtin != nil {
+		_, statErr := os.Stat(r.ResourceRoot)
+		cleanedBuiltin = os.IsNotExist(statErr) && readJSON(filepath.Join(output, "cleanup.json"), &previousCleanup) == nil && previousCleanup["runId"] == r.RunID && previousCleanup["cleanupComplete"] == true
+	}
+	var builtinErr error
+	if r.Builtin != nil {
+		_, hash, e := readBuiltin()
+		if e != nil {
+			builtinErr = e
+		} else if hash != r.Builtin.ManifestSHA256 {
+			builtinErr = errors.New("builtin manifest drift")
+		} else if cleanedBuiltin {
+			if message := str(previousCleanup["builtinError"]); message != "" {
+				builtinErr = errors.New(message)
+			}
+		} else {
+			builtinErr = checkBuiltinMaterial(r.Recording, r.Builtin.Material)
+		}
+		err = errors.Join(err, builtinErr)
+	}
 	var peers []object
 	for _, c := range r.Connections {
-		peerErr := checkMockIdentity(c)
+		var peerErr error
+		if !cleanedBuiltin {
+			peerErr = checkMockIdentity(c)
+		}
 		var receipt, process object
 		peerErr = errors.Join(peerErr, readJSON(c.Receipt, &receipt), readJSON(c.ProcessReceipt, &process))
 		if receipt["runId"] != r.RunID || receipt["connectionId"] != c.ID || receipt["schemaVersion"] != float64(1) || receipt["status"] != "passed" || receipt["provider"] != r.Provider || receipt["recordingSHA256"] != c.RecordingSHA256 || receipt["planSHA256"] != c.PlanSHA256 || receipt["fullConsumption"] != true || receipt["clientEOF"] != true || receipt["cleanupComplete"] != true || receipt["nativeLaunched"] != false || receipt["exitCode"] != float64(0) {
@@ -586,6 +649,9 @@ func finishMock(path string) (err error) {
 		cleanupErr := os.RemoveAll(r.ResourceRoot)
 		report["cleanupComplete"] = cleanupErr == nil
 		cleanup := object{"schemaVersion": 1, "runId": r.RunID, "resourceRoot": r.ResourceRoot, "cleanupComplete": cleanupErr == nil, "history": historyResult}
+		if builtinErr != nil {
+			cleanup["builtinError"] = builtinErr.Error()
+		}
 		err = errors.Join(err, cleanupErr, atomicMockJSON(filepath.Join(output, "cleanup.json"), cleanup))
 	}
 	return err
@@ -606,6 +672,31 @@ func atomicMockJSON(path string, v any) error {
 }
 
 func checkMockMetadata(r *mockRun) error {
+	if r.Builtin != nil {
+		if err := checkBuiltinSelection(r.Builtin.Material); err != nil {
+			return err
+		}
+		_, hash, err := readBuiltin()
+		if err != nil {
+			return err
+		}
+		if hash != r.Builtin.ManifestSHA256 {
+			return errors.New("builtin manifest drift")
+		}
+		if r.Recording != filepath.Join(r.ResourceRoot, "builtin") {
+			return errors.New("builtin ownership path drift")
+		}
+		for _, c := range r.Connections {
+			raw := "raw/raw.jsonl"
+			if c.ID == "probe" {
+				raw = "remote-probe/raw/raw.jsonl"
+			}
+			files := r.Builtin.Material.Files
+			if c.Recording != r.Recording || c.PlanSHA256 != files["plan.json"] || c.ManifestSHA256 != files["manifest.json"] || c.RecordingSHA256 != files[raw] {
+				return errors.New("builtin connection identity drift")
+			}
+		}
+	}
 	if err := verifyFile(filepath.Dir(r.Contract), filepath.Base(r.Contract), r.ContractSHA256); err != nil {
 		return err
 	}
