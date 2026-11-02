@@ -57,8 +57,9 @@ func recordDriverSubstitute(args []string) int {
 		return 5
 	}
 	fmt.Fprintln(in, `{"id":1,"method":"synthetic","unknown":9007199254740993}`)
-	_, readErr := bufio.NewReader(out).ReadBytes('\n')
+	// End the request stream even when native startup fails before a response.
 	_ = in.Close()
+	_, readErr := bufio.NewReader(out).ReadBytes('\n')
 	waitErr := cmd.Wait()
 	if status != "false-pass" && (readErr != nil || waitErr != nil) {
 		status = "failed"
