@@ -3,14 +3,14 @@
 <a id="repository-recording"></a>
 
 `codex/official/` and `claude/official/` contain the native official-SDK cases;
-`codex/go/` and `claude/go/` contain Go SDK simulation flows. The root Go entry
-dispatches requests independently of the generic
-[agent-sdk-testify runner](../../../tools/agent-sdk-testify/README.md). Each driver
+Go SDK simulation flows and their Go entry remain owned by agent-sdk-go.
+The official drivers dispatch single requests supplied by the
+[agent-sdk-testify runner](../../../docs/legacy-cli.md). Each driver
 owns its SDK operations and business assertions; the generic runner owns
 environments, peer processes and result collection.
 
 Build from the repository root with `bash scripts/simulation.sh build`. This builds
-`.artifacts/simulation/{agent-sdk-testify,sdk-driver,agent_sdk_testify_driver-*.whl}`;
+`.artifacts/simulation/{agent-sdk-testify,agent_sdk_testify_driver-*.whl}`;
 `AGENT_SDK_TESTIFY_BUILD_DIR` selects another absolute output directory. No SDK or
 Agent runs during build. The Python interpreter (`PYTHON`, default python3.11)
 needs Python 3.11+ and setuptools>=68; dependency installation is explicit.
@@ -202,12 +202,12 @@ corpus 可同时保留不同模型的录制，不因本轮补录模型变化而�
 
 | 输入 | 代码归属与来源 |
 |---|---|
-| Codex 生命周期与故障、原生问题 | [生命周期](../../../codex/tests/testdata/integration/lifecycle.jsonl)、[问题](../../../codex/tests/testdata/integration/question.jsonl) |
-| Claude 任务失败 | [任务失败](../../../claude/tests/testdata/integration/task-failure.jsonl) |
-| 共享原生对端 | [tests/integration](../../integration/peer_test.go)、[会话对端](../../integration/session_peer_test.go) |
-| Claude 子任务示例 | [合成事件](../../../claude/examples/subagents-offline/testdata/events.ndjson) |
+| Codex 生命周期与故障、原生问题 | [生命周期](https://github.com/zoumo/agent-sdk-go/blob/428263bd594bcd2586049ba38d01c5573284e0ca/codex/tests/testdata/integration/lifecycle.jsonl)、[问题](https://github.com/zoumo/agent-sdk-go/blob/428263bd594bcd2586049ba38d01c5573284e0ca/codex/tests/testdata/integration/question.jsonl) |
+| Claude 任务失败 | [任务失败](https://github.com/zoumo/agent-sdk-go/blob/428263bd594bcd2586049ba38d01c5573284e0ca/claude/tests/testdata/integration/task-failure.jsonl) |
+| 共享原生对端 | [tests/integration](https://github.com/zoumo/agent-sdk-go/blob/428263bd594bcd2586049ba38d01c5573284e0ca/tests/integration/peer_test.go)、[会话对端](https://github.com/zoumo/agent-sdk-go/blob/428263bd594bcd2586049ba38d01c5573284e0ca/tests/integration/session_peer_test.go) |
+| Claude 子任务示例 | [合成事件](https://github.com/zoumo/agent-sdk-go/blob/428263bd594bcd2586049ba38d01c5573284e0ca/claude/examples/subagents-offline/testdata/events.ndjson) |
 
-Go fixture 适配器读取同一份嵌入数据，协议匹配由 `tools/agent-sdk-testify/protocol/` 实现。
+Go fixture 适配器读取同一份嵌入数据，协议匹配由 `protocol/` 实现。
 专项测试直接验证 SDK 公开接口；不生成按 story/case 编号组织的合成回执。
 
 <a id="catalog-仿真测试流程目录"></a>

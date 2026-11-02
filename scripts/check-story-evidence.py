@@ -136,8 +136,8 @@ def check(root):
     errors += inventory_errors(mapping, 'SDK-CASE', case_ids)
     if [line for line in mapping.splitlines() if line.startswith('| SDK-CASE-')] != rows:
         errors.append('Story/case mapping must match exact identities and provider routes')
-    documents = [root / name for name in ('AGENTS.md', 'README.md', 'CHANGELOG.md', 'GLOSSARY.md', 'tests/simulation/drivers/README.md')]
-    for directory in ('harness', 'docs', 'codex', 'claude'):
+    documents = [root / name for name in ('AGENTS.md', 'README.md', 'GLOSSARY.md', 'tests/simulation/drivers/README.md')]
+    for directory in ('harness', 'docs'):
         documents += sorted((root / directory).rglob('*.md'))
     for path in documents:
         errors += link_errors(path, path.read_text())
