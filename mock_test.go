@@ -323,3 +323,16 @@ func TestMockPreservesExistingReportsAndConsumerFiles(t *testing.T) {
 		assert.Equal(t, before, mockSourceBytes(t, root))
 	}
 }
+
+func TestMockConsumptionNotificationBeforeEOF(t *testing.T) {
+ root := mockCapture(t)
+ r,w,err := os.Pipe(); require.NoError(t,err); defer r.Close(); defer w.Close()
+ cmd := mockCommand(t,"--recording",root,"--report",filepath.Join(t.TempDir(),"receipt.json"),"--progress-fd","3")
+ cmd.ExtraFiles=[]*os.File{w}
+ in,err:=cmd.StdinPipe();require.NoError(t,err);defer in.Close()
+ var diagnostics bytes.Buffer;cmd.Stderr=&diagnostics
+ require.NoError(t,cmd.Start());w.Close()
+ _,err=in.Write([]byte(`{"id":7,"method":"ping","params":{"unknown":9007199254740993}}`+"\n"));require.NoError(t,err)
+ var marker [1]byte; n,err:=r.Read(marker[:]);in.Close()
+ waitErr:=cmd.Wait();require.NoError(t,err,diagnostics.String());require.Equal(t,1,n);require.Equal(t,byte('1'),marker[0]);require.NoError(t,waitErr,diagnostics.String())
+}
