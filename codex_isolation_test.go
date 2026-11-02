@@ -69,11 +69,16 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	require.NotEmpty(t, binary, "run with scripts/with-agent-sdk-testify.sh")
 	output := filepath.Join(root, "attempt")
-	cliArgs := []string{"record", "--materials", materials, "--driver", filepath.Join(root, "driver"), "--cli", filepath.Join(root, "native"), "--output", output}
+	self, err := os.Executable()
+	require.NoError(t, err)
+	o := options{Mode: "record", Materials: materials, Driver: filepath.Join(root, "driver"), CLI: filepath.Join(root, "native"), Output: output, Peer: binary}
 	if configured {
-		cliArgs = append(cliArgs, "--config", filepath.Join(personal, ".codex"))
+		o.Config = filepath.Join(personal, ".codex")
 	}
-	cmd := exec.Command(binary, cliArgs...)
+	optionPath := filepath.Join(root, "options.json")
+	require.NoError(t, writeJSON(optionPath, o))
+	cmd := exec.Command(self, "official-engine-fixture", optionPath)
+
 	cmd.Dir = t.TempDir()
 	cmd.Env = append(os.Environ(), "HOME="+personal, "CODEX_HOME="+filepath.Join(personal, ".codex"), "ISOLATION_AUTH=synthetic-key", "ISOLATION_HEADER=synthetic-header", "CODEX_SKILLS_DIR=/personal/skills", "CODEX_ADDITIONAL_SKILL_ROOTS=/personal/extra")
 	return cmd, output, personal

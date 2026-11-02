@@ -101,7 +101,7 @@ for line in sys.stdin:
             with patch.dict(sys.modules, modules), patch('record_user_story.drivers.sdk_identity', return_value=plan['officialSDK']):
                 binary = identity()['path']
                 launcher = root/'record-peer'
-                launcher.write_text('#!/bin/sh\nexec ' + shlex.join([binary, 'protocol', 'record', '--output', str(root/'raw'),
+                launcher.write_text('#!/bin/sh\nexec ' + shlex.join([binary, '--internal-protocol', 'record', '--output', str(root/'raw'),
                                                                          '--cwd', str(root), '--', plan['cli']]) + '\n')
                 launcher.chmod(0o700)
                 request_case(plan, peer={'command': str(launcher), 'args': []})
@@ -120,7 +120,7 @@ for line in sys.stdin:
                 replay_plan = dict(plan, root=str(replay_root), raw=str(replay_root/'raw'))
                 launcher = replay_root/'mock-peer'
                 receipt = replay_root/'peer.json'
-                launcher.write_text('#!/bin/sh\nexec ' + shlex.join([binary, 'protocol', 'mock', '--provider', 'codex',
+                launcher.write_text('#!/bin/sh\nexec ' + shlex.join([binary, '--internal-protocol', 'mock', '--provider', 'codex',
                                                  '--scenario', str(root/'raw/raw.jsonl'), '--receipt', str(receipt)]) + '\n')
                 launcher.chmod(0o700)
                 request_case(replay_plan, peer={'command': str(launcher), 'args': []})

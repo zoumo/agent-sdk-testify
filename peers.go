@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -18,14 +17,13 @@ type peerRuns struct {
 	mode, provider string
 	runs           []peerRun
 	driver         driverPeer
-	remote         *mockRemoteService
 }
 
 type peerRun struct {
 	name, recording, receipt string
 }
 
-func preparePeerRuns(ctx context.Context, o options, plan object, service *remoteService) (*peerRuns, error) {
+func preparePeerRuns(o options, plan object, service *remoteService) (*peerRuns, error) {
 	self, err := os.Executable()
 	if err != nil {
 		return nil, err
@@ -44,9 +42,6 @@ func preparePeerRuns(ctx context.Context, o options, plan object, service *remot
 	if plan["driverProfile"] == "remote-close" {
 		phases = append(phases, "probe")
 	}
-	if o.Mode == "simulate" && str(obj(obj(plan["scenario"])["parameters"])["childDetailPolicy"]) != "" {
-		phases = append(phases, "suppress")
-	}
 	for _, phase := range phases {
 		base, source := root, o.Materials
 		switch phase {
@@ -54,11 +49,6 @@ func preparePeerRuns(ctx context.Context, o options, plan object, service *remot
 			base = filepath.Join(root, "remote-probe")
 			source = filepath.Join(o.Materials, "remote-probe")
 			if err = os.MkdirAll(base, 0700); err != nil {
-				return nil, err
-			}
-		case "suppress":
-			base = filepath.Join(root, "suppress")
-			if err = preparePolicyCopy(root, base); err != nil {
 				return nil, err
 			}
 		}
@@ -70,10 +60,10 @@ func preparePeerRuns(ctx context.Context, o options, plan object, service *remot
 			if plan["driverProfile"] == "existing-children" {
 				cwd = str(plan["historyProject"])
 			}
-			args = []string{"protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", cwd, "--stdin-eof-action", str(plan["stdinEOFAction"]), "--", str(plan["cli"])}
+			args = []string{"--internal-protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", cwd, "--stdin-eof-action", str(plan["stdinEOFAction"]), "--", str(plan["cli"])}
 			args = append(args, stringsOf(plan["args"])...)
 			if service != nil {
-				args = []string{"protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", str(plan["project"]), "--", peer, "protocol", "connect", "--url", service.endpoint, "--token-file", service.token}
+				args = []string{"--internal-protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", str(plan["project"]), "--", peer, "--internal-protocol", "connect", "--url", service.endpoint, "--token-file", service.token}
 			}
 		} else {
 			// The original native cwd and recording bytes remain source data;
@@ -82,18 +72,18 @@ func preparePeerRuns(ctx context.Context, o options, plan object, service *remot
 			if _, err = os.Stat(run.recording); err != nil {
 				return nil, fmt.Errorf("%s offline recording: %w", phase, err)
 			}
-			if phase != "suppress" {
+			{
 				if err = os.Symlink(filepath.Join(source, "raw"), filepath.Join(base, "raw")); err != nil {
 					return nil, err
 				}
 			}
-			args = []string{"protocol", "mock", "--provider", r.provider, "--scenario", run.recording, "--receipt", run.receipt}
+			args = []string{"--internal-protocol", "mock", "--provider", r.provider, "--scenario", run.recording, "--receipt", run.receipt}
 		}
 		peerPath := filepath.Join(root, "peer-"+phase+".json")
 		if err = writeJSON(peerPath, command{Command: peer, Args: args}); err != nil {
 			return nil, err
 		}
-		launcherArgs := []string{"peer", "--request", peerPath}
+		launcherArgs := []string{"--internal-peer", "--request", peerPath}
 		if o.Mode == "verify" {
 			launcherArgs = append(launcherArgs, "--lifecycle", filepath.Join(root, "peer-"+phase+"-lifecycle.json"))
 		}
@@ -107,30 +97,14 @@ func preparePeerRuns(ctx context.Context, o options, plan object, service *remot
 			r.driver.command = entry
 		case "probe":
 			r.driver.Probe = &entry
-		case "suppress":
-			r.driver.Suppress = &entry
 		}
 		r.runs = append(r.runs, run)
-	}
-	if o.Mode == "simulate" && plan["driverProfile"] == "remote-close" {
-		r.remote, err = startMockRemote(ctx, r.driver.command, *r.driver.Probe, root)
-		if err != nil {
-			return nil, err
-		}
-		r.driver.Remote = &r.remote.endpoint
 	}
 	return r, nil
 }
 
-func (r *peerRuns) close() error {
-	if r.remote != nil {
-		return r.remote.close()
-	}
-	return nil
-}
-
 func (r *peerRuns) finish(status string) error {
-	err := r.close()
+	var err error
 	if status == "unsupported" && r.mode != "verify" {
 		return err
 	}
@@ -190,16 +164,4 @@ func writePeerLauncher(root, phase string, peer command) (string, error) {
 	}
 	path := filepath.Join(root, "peer-"+phase)
 	return path, os.WriteFile(path, []byte("#!/bin/sh\nexec "+strings.Join(words, " ")+"\n"), 0700)
-}
-
-func preparePolicyCopy(root, target string) error {
-	if err := os.Mkdir(target, 0700); err != nil {
-		return err
-	}
-	for _, name := range []string{"raw", "config", "plan.json", "report.json"} {
-		if err := os.Symlink(filepath.Join(root, name), filepath.Join(target, name)); err != nil {
-			return err
-		}
-	}
-	return nil
 }

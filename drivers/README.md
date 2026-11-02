@@ -5,7 +5,7 @@
 `codex/official/` and `claude/official/` contain the native official-SDK cases;
 Go SDK simulation flows and their Go entry remain owned by agent-sdk-go.
 The official drivers dispatch single requests supplied by the
-[agent-sdk-testify runner](../../../docs/legacy-cli.md). Each driver
+[agent-sdk-testify runner](../docs/official-environment.md). Each driver
 owns its SDK operations and business assertions; the generic runner owns
 environments, peer processes and result collection.
 
@@ -15,12 +15,11 @@ Build from the repository root with `bash scripts/simulation.sh build`. This bui
 Agent runs during build. The Python interpreter (`PYTHON`, default python3.11)
 needs Python 3.11+ and setuptools>=68; dependency installation is explicit.
 
-Install into a private Python 3.11+ environment:
-
-```sh
-python3.11 -m pip install '.artifacts/simulation/agent_sdk_testify_driver-0.1.0-py3-none-any.whl[recording]'
-agent-sdk-testify-codex --request /absolute/request.json
-```
+Install the wheel with `--no-deps` into a private Python 3.11+ environment, then
+follow [the supported official source setup](../docs/official-environment.md).
+The historical `[codex]`/`[recording]` extras and lock are not a proven install
+route on the current mirror: both the recorded Codex release and CLI-bin dependency
+are unavailable. Never substitute an unrelated same-name package.
 
 Installed commands are `agent-sdk-testify-codex` and `agent-sdk-testify-claude`.
 They execute one supplied request; Go prepares the environment and recording or
@@ -39,13 +38,13 @@ receipts and diagnostics remain driver-owned files in the same output directory.
 For offline package and driver checks:
 
 ```sh
-mise exec -- bash scripts/with-agent-sdk-testify.sh env PYTHONPATH=tests/simulation/drivers/common:tests/simulation/drivers/codex/official:tests/simulation/drivers/claude/official python3.11 -m unittest discover -s tests/simulation/drivers/tests -v
-mise exec -- bash scripts/with-agent-sdk-testify.sh python3.11 -m unittest discover -s tests/simulation/drivers/tests/scenarios -v
+mise exec -- bash scripts/with-agent-sdk-testify.sh env PYTHONPATH=drivers/common:drivers/codex/official:drivers/claude/official python3.11 -m unittest discover -s drivers/tests -v
+mise exec -- bash scripts/with-agent-sdk-testify.sh python3.11 -m unittest discover -s drivers/tests/scenarios -v
 ```
 
 The story/case table below describes available native flows, not successful
 recordings or current Go SDK simulation coverage. Actual results belong to each
-private attempt. See the [design](../../../harness/modules/agent-sdk-testify/design.md).
+private attempt. See the [design](../harness/modules/agent-sdk-testify/design.md).
 
 <a id="fixtures-仿真录制与测试输入"></a>
 
@@ -57,31 +56,17 @@ private attempt. See the [design](../../../harness/modules/agent-sdk-testify/des
 
 ```sh
 bash scripts/simulation.sh build
-# Activate the venv containing the wheel and chosen SDK extra first.
-bash scripts/simulation.sh record codex --case SDK-CASE-001 --materials "$PWD/tests/simulation/scenarios" --cli /absolute/codex --output /private/new-capture
-bash scripts/simulation.sh replay codex --materials /private/new-capture --output /private/new-official-replay
-# Run independently on already reviewed/admitted materials:
-bash scripts/simulation.sh simulate --materials /private/admitted-capture --output /private/new-go-simulation
+# Explicitly prepare the official SDK environment first; record is an opt-in live operation.
+agent-sdk-testify record --provider codex --case SDK-CASE-001 --cli /absolute/codex --output /private/new-capture
+agent-sdk-testify verify --recording /private/new-capture --output /private/new-verification
 ```
 
-Only explicit record launches the selected native CLI. All runner flags, including
-batch selection, pass through; heterogeneous batches can use the binary directly
-with per-case drivers. The installed console command identities remain unchanged.
-
-新样本顺序固定为：构建 → 官方 SDK 真实录制 → 官方 SDK 回放 → 资格校验及本地替换 → 当前 Go SDK 仿真。
-录制、官方回放、Go 仿真分别生成 summary.json；result.json 是 driver 的业务结果，
-summary 的 error 与每个协议回执共同决定运行是否有效，业务 passed 不能抵消传输失败。
-
-交给后续审核／入库阶段的材料是原始 capture 目录（plan.json、request.json、
-manifest.json、原始 raw、原生历史、driver 诊断与结果），以及独立官方 replay
-目录及其 summary/result 和每个选中连接的完整消费回执。调用方记录这些目录、源码
-revision 和使用的构建产物；source manifest 中的实际文件清单和哈希是来源依据。
-保存失败目录及 native ID/cwd，不修改原始帧，不把旧 driver 快照当执行入口。
-数据索引、可迁移性与覆盖门禁由下面的 corpus 入口负责。
-`bash scripts/simulation.sh record` 自动执行官方回放、资格校验与本地替换；
-Go 二进制的 `record --index` 执行同一自动流程；不带 `--index` 时只采集私有材料。
-独立 `replay` 不更新索引。`corpus review|qualify|adopt|gate` 均由 Go 二进制实现。
-Go SDK 通过不是有效样本入库条件；入库后的仿真失败保留有效样本并阻断 SDK 门禁。
+只有显式 record 启动原生 Agent；verify 使用本工具提供的严格协议对端。
+两个入口只选择已安装的官方 driver，不接收任意 driver 或批量 SDK 流程。
+原始 capture 包含 plan、manifest、raw、历史、诊断和结果；verify 的新目录保留
+业务报告、来源哈希、每个选中连接的完整消费、EOF、进程退出及清理回执。
+失败和未触发均保存，不能因业务 passed 忽略传输失败。
+record 不自动验证或采用；Go SDK simulate 是消费者独立阶段。
 
 Codex 008/009 的新 binding 显式提供当前模型的 `apply_patch` catalog，并关闭 shell；
 不替换模型身份，也不把 command approval 当作 file approval。Codex 016/019 使用
@@ -97,23 +82,17 @@ Claude 019 在异步 Read 权限回调中等待对应 root result。两者均不
 ### 审核采用和日常门禁
 
 ```sh
-# Normal repository recording: capture, official replay, qualification, replacement.
-bash scripts/simulation.sh record codex --materials tests/simulation/scenarios --case SDK-CASE-001 --cli /path/to/codex --config /private/config --model provider/model
-# Reuse a completed capture and official replay without new model calls:
-bash scripts/simulation.sh qualify --source /private/capture --replay /private/official-replay --review /private/qualification.json
-bash scripts/simulation.sh adopt --source /private/capture --replay /private/official-replay --review /private/qualification.json
-# Every code change: rebuild current Go binaries and simulate the fixed corpus.
-bash scripts/simulation.sh gate
+agent-sdk-testify verify --recording /private/capture --output /private/new-verification \
+  --index /absolute/recordings/index.json --scenarios /absolute/scenarios --archive /private/archives
 mise exec -- bash scripts/check-offline.sh
 ```
 
-`qualify` 要求带录制时隔离标记的新采集，校验官方 SDK 录制和回放，生成机器资格记录，
-不填写人工审核标记，不执行内容扫描。旧版未隔离采集不能走自动采用路径。
-只选择固定允许范围内的必需回归材料；资格有效不等于内容已脱敏或可任意公开。
-`record` 为每个通过的 case 执行这条路径，替换现有本地回归数据并保存 admission-summary.json。
-批次部分失败时仍采用通过的 case，失败 case 保留旧版本，整批返回非零。不自动 commit/push。
-`review` 仍可生成未批准的人工审核清单，不自动确认来源或发布权限。审核者核对完整来源、原生执行身份、
-官方 SDK 身份、业务结果、敏感内容和每个 `publishFiles`；三个审核标记须明确为 true。
+verify 的 `--index` 在验证成功后运行内部资格校验、私有归档和原子采用。
+要求录制时隔离、完整官方业务与来源证明；不填写人工审核标记，不执行内容扫描。
+旧版未隔离采集不能走自动采用路径。资格有效不等于内容可任意公开。
+采用失败保留诊断和旧样本；无公开 corpus/review/qualify/adopt/gate 入口。
+内容审核需核对来源、原生身份、官方 SDK 身份、业务结果及逐文件发布范围。
+
 `captureFiles` 冻结完整原件，`replayFiles` 冻结官方业务报告、summary/result 和所有连接回执。
 官方 replay 的 summary 必须绑定原始 plan/manifest/report/result/summary；旧回执缺少绑定时，
 使用当前官方 driver 重新离线回放，不能补写成功回执。
@@ -124,7 +103,7 @@ mise exec -- bash scripts/check-offline.sh
 默认 ~/.local/share/agent-sdk-testify；原件归档不依赖当前 worktree 的存续。
 可用 `--archive` 选择另一个持久私有目录。在 checkout 内只允许被 Git 忽略的 `.artifacts`。
 原始采集包不会整体发布，只有审核选中的必需材料进入
-`tests/simulation/recordings/<provider>/<story>/<case>/<attempt>/`，并更新固定 index。
+`recordings/<provider>/<story>/<case>/<attempt>/`，并更新固定 index。
 `adoption.json` 关联原件哈希、归档 ID 和公开文件清单；完整 review 同时保存。
 入库原件不做字节转换，初始文件来自 plan，历史来自经过校验的 config/history-seed 副本。
 两类官方驱动均在新 workspace 启动 SDK 子进程，Codex 原生请求的 cwd 参数仍保留原值。
@@ -136,11 +115,8 @@ previous-regression/ 和 previous-entry.json；新文件写入完成后原子切
 新的失败尝试或索引切换失败不会删除旧样本。Go 仿真不参与采用资格判定。
 `--index` 支持在独立目录验证完整固定索引，不支持缩小必需集合。
 
-仓库 shell 的 `gate` 总是构建当前 Go 工具和 SDK driver，校验固定索引与采用哈希，
-再用统一运行器批量 simulate。Go 二进制的 `corpus gate --sdk-driver` 使用显式指定的构建产物，
-不依赖 checkout 或编译器；`--source-root` 可选，仓库 shell 用它绑定源码文件哈希和 revision。
-它不要求安装官方 SDK、认证或真实 CLI。覆盖报告独立保存在
-`.artifacts/simulation/gates/<attempt>/coverage.json`，记录当前源码及二进制哈希。
+SDK 自己的 simulate/gate 通过 mock 查询、prepare/run/finish 执行业务和覆盖判断。
+工具离线门禁只检查工具、材料闭包和打包，不运行 SDK driver。
 能力要求 requirement 只有 required/optional，由共享 case 的 required 字段及 provider binding 的显式 required 覆盖决定；
 provider 路径 planned/unsupported 不改变要求。adoption 是采用状态（admitted/missing/untriggered），
 verification 是业务验证（passed/failed/unverified/blocked/unsupported）；非 passed 必须有
@@ -149,7 +125,7 @@ verificationReason，passed 必须有已采用材料。coverage 另记本轮 sim
 必需项须同时满足已采用、业务验证 passed、本轮 Go 仿真 passed；缺任一条件返回非零。
 可选项缺失、业务失败或仿真失败仅报告，不阻断必需验收；任何已采用材料的来源／哈希损坏仍失败。
 采用后 Go 失败仍保留样本；应检查 SDK/driver，不能改帧、放宽协议匹配或弃样。
-`check-offline.sh` 包含该门禁，CI 即使缺样本仍继续打包、race 和 vet，并保存覆盖与诊断。
+SDK 完整门禁包含覆盖判断；工具的 `check-offline.sh` 不把材料缺口升级为通过。
 固定覆盖为 64 required、8 optional（36 case × 两个 provider）；真实样本及采用哈希见
 [固定索引](../recordings/index.json)。003、025、026 可选；027 思考强度仍为必需。
 Claude 017、032 为可选，保留 unsupported／blocked 状态；Codex 对应 case 仍必需。
@@ -172,7 +148,7 @@ Claude 保留带 theta 前缀的请求及不带前缀的原生 assistant model�
 Codex 012 仍阻断必需门禁；实时结论以固定索引及本轮覆盖报告为准。
 语义、要求和业务状态同步到场景与索引；历史 plan、manifest、原生版本、模型及来源哈希不追改。
 corpus 可同时保留不同模型的录制，不因本轮补录模型变化而重录所有既有合格样本。
-各 case 的通过证据、配置生效范围与不包含的承诺以[流程语义](../../../harness/sdk/validation-cases.md#流程语义)
+各 case 的通过证据、配置生效范围与不包含的承诺以[流程语义](../harness/sdk/validation-cases.md#流程语义)
 为准；共享 expect.scope 仅概述范围，不代替驱动中的实际断言。
 工具的合成测试通过不代表真实 corpus 通过。
 
@@ -188,11 +164,11 @@ corpus 可同时保留不同模型的录制，不因本轮补录模型变化而�
 
 ### 私有仿真数据
 
-私有数据按 `<story-id>/<case-id>/` 保存；文件清单见[数据合同](../../../harness/modules/agent-sdk-testify/design.md#story-数据格式与存储)。
+私有数据按 `<story-id>/<case-id>/` 保存；文件清单见[数据合同](../harness/modules/agent-sdk-testify/design.md#story-数据格式与存储)。
 
 配置和认证副本按录制流程清理。私有诊断不随官方验证通过而进入回归区；不得直接发布完整采集包。
 数据来源、哈希与遗漏以该次 manifest 为准；本地替换不自动触发远程发布。
-规范见[仿真工具](../../../harness/modules/agent-sdk-testify/design.md#story-官方-sdk-仿真测试)和[布局](../../../harness/architecture.md#layout-code-layout-standards)。
+规范见[仿真工具](../harness/modules/agent-sdk-testify/design.md#story-官方-sdk-仿真测试)和[布局](../harness/architecture.md#layout-code-layout-standards)。
 
 <a id="fixtures-代码集成测试输入"></a>
 
@@ -214,7 +190,7 @@ Go fixture 适配器读取同一份嵌入数据，协议匹配由 `protocol/` �
 
 ## 仿真测试流程目录
 
-[仓库场景目录](../scenarios)包含 8 个真实用户故事、36 条完整流程。主规范见[用户故事](../../../harness/sdk/validation-cases.md#stories-sdk-用户故事)及[case 语义](../../../harness/sdk/validation-cases.md)。
+[仓库场景目录](../scenarios)包含 8 个真实用户故事、36 条完整流程。主规范见[用户故事](../harness/sdk/validation-cases.md#stories-sdk-用户故事)及[case 语义](../harness/sdk/validation-cases.md)。
 
 `live-selected-path` 表示驱动提供该真实流程；`planned` 表示尚未实现；`unsupported` 表示已知原生能力不支持。
 这些状态不代表录制或回放已通过。实际结果由每次私有数据集中的来源、报告与回放回执证明。

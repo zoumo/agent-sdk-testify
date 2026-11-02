@@ -1,0 +1,37 @@
+name: Standalone offline validation
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.9'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare build dependencies
+        run: |
+          go mod download
+          python3.11 -m pip install 'setuptools>=68' wheel
+      - name: Validate offline
+        env:
+          GOPROXY: 'off'
+          GOSUMDB: 'off'
+          PIP_NO_INDEX: '1'
+          GOTOOLCHAIN: local
+          GOENV: 'off'
+          PYTHON: python3.11
+        run: bash scripts/check-offline.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: standalone-${{ matrix.os }}
+          path: .artifacts/acceptance

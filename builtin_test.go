@@ -52,13 +52,13 @@ func TestBuiltinCatalogOutsideCheckout(t *testing.T) {
 func builtinTranscript(t *testing.T, provider, id string) (string, string) {
 	t.Helper()
 	var index object
-	require.NoError(t, readJSON("tests/simulation/recordings/index.json", &index))
+	require.NoError(t, readJSON("recordings/index.json", &index))
 	for _, value := range array(index["cases"]) {
 		row := obj(value)
 		if row["provider"] != provider || row["caseId"] != id {
 			continue
 		}
-		root := filepath.Join("tests/simulation/recordings", str(row["materials"]))
+		root := filepath.Join("recordings", str(row["materials"]))
 		data, err := os.ReadFile(filepath.Join(root, "raw/raw.jsonl"))
 		require.NoError(t, err)
 		var input strings.Builder
@@ -211,7 +211,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	data, err = exec.Command(generator, "--check").CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	root := t.TempDir()
-	for _, name := range []string{"tests/simulation/scenarios", "tests/simulation/recordings", "builtin"} {
+	for _, name := range []string{"scenarios", "recordings", "builtin"} {
 		require.NoError(t, copyTree(name, filepath.Join(root, name)))
 	}
 	require.NoError(t, copyFile("docs/import-baseline.json", filepath.Join(root, "docs/import-baseline.json")))
@@ -231,7 +231,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	assert.Contains(t, string(data), "inventory drift")
 	require.NoError(t, os.WriteFile(raw, original, 0600))
 	// Changes in the authoritative contract invalidate the generated snapshot.
-	contract := filepath.Join(root, "tests/simulation/scenarios/SDK-US-001.json")
+	contract := filepath.Join(root, "scenarios/SDK-US-001.json")
 	f, err := os.OpenFile(contract, os.O_APPEND|os.O_WRONLY, 0600)
 	require.NoError(t, err)
 	_, err = f.WriteString("\n")
@@ -240,7 +240,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	data, err = invoke()
 	require.Error(t, err)
 	assert.Contains(t, string(data), "builtin drift")
-	indexPath := filepath.Join(root, "tests/simulation/recordings/index.json")
+	indexPath := filepath.Join(root, "recordings/index.json")
 	var empty object
 	require.NoError(t, readJSON(indexPath, &empty))
 	for _, value := range array(empty["cases"]) {

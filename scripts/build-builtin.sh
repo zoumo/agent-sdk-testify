@@ -6,5 +6,8 @@ if [[ $# != 1 ]]; then
   echo "usage: bash scripts/build-builtin.sh /absolute/output-binary" >&2
   exit 2
 fi
-mise exec -C "$builtin_source" -- go -C "$builtin_source" run -tags builtin_generate . --check
-mise exec -C "$builtin_source" -- go -C "$builtin_source" build -o "$1" .
+if [[ "$(go env GOVERSION 2>/dev/null || true)" != go1.26.9 ]]; then
+  exec mise exec -C "$builtin_source" -- bash "$0" "$@"
+fi
+go -C "$builtin_source" run -tags builtin_generate . --check
+go -C "$builtin_source" build -o "$1" .

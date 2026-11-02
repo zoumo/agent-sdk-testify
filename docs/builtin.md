@@ -138,7 +138,7 @@ Missing/drifted closure, malformed identities, stale generated outputs or an
 empty selection fail the check/build. New SDK compatibility diagnostics do not
 select candidates or replace historical evidence.
 
-For T7, read describe before prepare, retain assertionInputs/manifest identity,
+Consumers read describe before prepare, retain assertionInputs/manifest identity,
 apply the returned env/workspace to the SDK host, use each declared command or
 launcher, close/wait, then always finish. A prepared launcher's sole `--version` (or `-v`)
 probe returns recorded native CLI compatibility metadata from contract `cliVersion`
@@ -155,3 +155,7 @@ The imported tracked materials originate at public `zoumo/agent-sdk-go` revision
 `docs/import-baseline.json` provenance with distributions. This existing source
 publication introduces no additional manual-review or scanning gate for local
 embedding; actual push/release remains a separate action.
+
+Authoritative source paths are now root `scenarios/`, `recordings/`, and `drivers/`.
+The historical import manifest retains original paths; `import-current-paths.json`
+resolves relocated paths without changing historical hashes.

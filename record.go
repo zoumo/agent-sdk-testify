@@ -9,17 +9,16 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"strings"
 )
 
 // Record and mock share this authoritative catalog. Generated builtin materials
 // bind these exact contract/binding bytes; there is no second authoring source.
 //
-//go:embed tests/simulation/scenarios/*.json tests/simulation/scenarios/bindings/*.json
+//go:embed scenarios/*.json scenarios/bindings/*.json
 var catalogFiles embed.FS
 
 var caseCatalog = func() fs.FS {
-	catalog, err := fs.Sub(catalogFiles, "tests/simulation/scenarios")
+	catalog, err := fs.Sub(catalogFiles, "scenarios")
 	if err != nil {
 		panic(err)
 	}
@@ -66,19 +65,4 @@ func executeRecord(ctx context.Context, args []string) error {
 		fmt.Fprintln(os.Stdout, string(b))
 	}
 	return err
-}
-
-// Keep explicitly selected legacy material/batch workflows until T8 removes
-// legacy modes together. The catalog-backed public command has no driver flag.
-func legacyRecordSelection(args []string) bool {
-	for _, arg := range args {
-		if !strings.HasPrefix(arg, "-") {
-			continue
-		}
-		name := strings.SplitN(strings.TrimLeft(arg, "-"), "=", 2)[0]
-		if name == "materials" || name == "cases-file" || name == "index" {
-			return true
-		}
-	}
-	return false
 }

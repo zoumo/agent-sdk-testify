@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -25,8 +23,8 @@ func TestCorpus(t *testing.T) { suite.Run(t, new(corpusSuite)) }
 func (s *corpusSuite) SetupTest() {
 	s.root = s.T().TempDir()
 	s.source, s.replay = filepath.Join(s.root, "capture"), filepath.Join(s.root, "replay")
-	s.c = corpus{Index: filepath.Join(s.root, "corpus", "index.json"), Scenarios: "tests/simulation/scenarios", Archive: filepath.Join(s.root, "archive")}
-	index := s.read("tests/simulation/recordings", "index.json")
+	s.c = corpus{Index: filepath.Join(s.root, "corpus", "index.json"), Scenarios: "scenarios", Archive: filepath.Join(s.root, "archive")}
+	index := s.read("recordings", "index.json")
 	for _, value := range array(index["cases"]) {
 		e := obj(value)
 		for _, key := range []string{"materials", "adoptionSHA256"} {
@@ -249,36 +247,10 @@ func (s *corpusSuite) TestOptionalAdmissionAndIntegrity() {
 	s.Error(err, "optional does not waive source integrity")
 }
 
-func TestCorpusGateRequirementPolicy(t *testing.T) {
-	passed := func() object {
-		return object{"provider": "codex", "caseId": "SDK-CASE-001", "requirement": "required", "adoption": "admitted", "verification": "passed", "simulationStatus": "passed", "status": "passed"}
-	}
-	for _, state := range []string{"failed", "unverified", "blocked", "unsupported"} {
-		t.Run(state, func(t *testing.T) {
-			optional := object{"requirement": "optional", "status": state, "verification": state, "simulationStatus": "failed"}
-			require.NoError(t, corpusGateResult([]object{passed(), optional}))
-			required := passed()
-			required["caseId"], required["verification"], required["status"] = "SDK-CASE-012", state, state
-			require.ErrorContains(t, corpusGateResult([]object{passed(), required, optional}), "codex/SDK-CASE-012")
-			// Even a passing replay cannot override failed or unknown business evidence.
-			required["status"] = "passed"
-			require.Error(t, corpusGateResult([]object{required}))
-		})
-	}
-	for _, field := range []string{"adoption", "simulationStatus"} {
-		row := passed()
-		row[field] = "missing"
-		require.Error(t, corpusGateResult([]object{row}))
-	}
-	require.ErrorContains(t, corpusGateResult(nil), "empty required corpus")
-}
 func (s *corpusSuite) TestReviewNeverApprovesCandidate() {
 	s.evidence()
-	path := filepath.Join(s.root, "candidate.json")
-	err := executeCorpus(context.Background(), []string{"review", "--index", s.c.Index, "--scenarios", s.c.Scenarios,
-		"--source", s.source, "--replay", s.replay, "--review", path, "--archive", s.c.Archive})
+	review, err := s.c.qualification(s.source, s.replay, true)
 	s.Require().NoError(err)
-	review := s.read(s.root, "candidate.json")
 	s.Equal("unreviewed", review["origin"])
 	s.Equal(false, review["sourceReviewed"])
 	_, err = s.c.validateAdmission(s.source, s.replay, review)
@@ -407,34 +379,17 @@ func (s *corpusSuite) TestAutomaticQualificationRejectsUnisolatedCapture() {
 }
 func (s *corpusSuite) TestQualificationCLIAndInvalidDestinationPreflight() {
 	s.evidence()
-	err := executeCorpus(context.Background(), []string{"qualify", "--index", s.c.Index, "--scenarios", s.c.Scenarios,
-		"--source", s.source, "--replay", s.replay, "--review", filepath.Join(s.root, "proof.json"), "--archive", s.c.Archive})
+	review, err := s.c.qualification(s.source, s.replay, false)
 	s.Require().NoError(err)
-	s.Equal("official-sdk", obj(s.read(s.root, "proof.json")["qualification"])["method"])
+	s.Equal("official-sdk", obj(review["qualification"])["method"])
 	c := s.c
 	c.Archive = filepath.Join(filepath.Dir(c.Index), "private")
 	output := filepath.Join(s.root, "must-not-launch")
-	_, err = c.recordAndAdopt(context.Background(), options{Output: output})
+	_, err = c.archiveRoot()
 	s.ErrorContains(err, "outside regression corpus")
 	s.NoDirExists(output)
 }
 
-func (s *corpusSuite) TestCompiledCorpusOutsideCheckoutWithoutCompilerOrPython() {
-	s.evidence()
-	scenarios, err := filepath.Abs(s.c.Scenarios)
-	s.Require().NoError(err)
-	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	s.Require().NotEmpty(binary)
-	binary, err = filepath.Abs(binary)
-	s.Require().NoError(err)
-	cmd := exec.Command(binary, "corpus", "qualify", "--index", s.c.Index, "--scenarios", scenarios,
-		"--source", s.source, "--replay", s.replay, "--review", filepath.Join(s.root, "standalone.json"), "--archive", s.c.Archive)
-	cmd.Dir = s.root
-	cmd.Env = []string{"PATH=" + s.T().TempDir(), "HOME=" + s.root}
-	output, err := cmd.CombinedOutput()
-	s.Require().NoError(err, "%s", output)
-	s.Equal("official-sdk", obj(s.read(s.root, "standalone.json")["qualification"])["method"])
-}
 func (s *corpusSuite) TestReplacementArchivesPreviousAndRetainsNewOnFailure() {
 	s.evidence()
 	first := s.adopt(s.qualify())
@@ -500,59 +455,6 @@ func (s *corpusSuite) TestIndexSwitchFailurePreservesOldSampleAndRemovesStaging(
 	s.Empty(remaining)
 }
 
-func (s *corpusSuite) recordOptions(id string) options {
-	o := sample(s.T(), id)
-	plan := s.read(o.Materials, "plan.json")
-	plan["storyId"] = "SDK-US-001"
-	plan["corpusTestBusiness"] = true
-	if id == "SDK-CASE-002" {
-		plan["driverProfile"] = "structured-input"
-	}
-	s.write(o.Materials, "plan.json", plan)
-	o.Mode, o.Config = "record", s.T().TempDir()
-	o.CLI, _ = os.Executable()
-	return o
-}
-func (s *corpusSuite) TestRecordAutomaticallyReplaysAndAdopts() {
-	o := s.recordOptions("SDK-CASE-001")
-	report, err := s.c.recordAndAdopt(context.Background(), o)
-	s.Require().NoError(err)
-	s.Equal(1, report["passed"])
-	_, err = s.c.verifyAdopted(s.entry())
-	s.NoError(err)
-	s.Equal(float64(1), s.read(o.Output, "admission-summary.json")["passed"])
-}
-func (s *corpusSuite) TestFailedOfficialReplayRetainsPrevious() {
-	s.evidence()
-	target := s.adopt(s.qualify())
-	before := s.hash(filepath.Dir(s.c.Index), "index.json")
-	o := s.recordOptions("SDK-CASE-001")
-	plan := s.read(o.Materials, "plan.json")
-	plan["corpusTestReplayFail"] = true
-	s.write(o.Materials, "plan.json", plan)
-	report, err := s.c.recordAndAdopt(context.Background(), o)
-	s.Error(err)
-	s.Equal(0, report["passed"])
-	s.Equal(before, s.hash(filepath.Dir(s.c.Index), "index.json"))
-	s.DirExists(target)
-}
-func (s *corpusSuite) TestPartialBatchAdoptsSuccessAndReturnsFailure() {
-	first, second := s.recordOptions("SDK-CASE-001"), s.recordOptions("SDK-CASE-002")
-	plan := s.read(second.Materials, "plan.json")
-	plan["corpusTestFail"] = true
-	s.write(second.Materials, "plan.json", plan)
-	selection := filepath.Join(s.root, "batch.json")
-	s.write(s.root, "batch.json", []object{
-		{"case": first.Materials, "driver": command{Command: first.Driver, Args: first.DriverArgs}},
-		{"case": second.Materials, "driver": command{Command: second.Driver, Args: second.DriverArgs}},
-	})
-	first.CasesFile, first.Jobs, first.Output = selection, 2, filepath.Join(s.root, "batch")
-	report, err := s.c.recordAndAdopt(context.Background(), first)
-	s.Error(err)
-	s.Equal(1, report["passed"])
-	s.Equal(2, report["selected"])
-	s.Equal("SDK-CASE-001", s.entry()["caseId"])
-}
 func (s *corpusSuite) TestSourceFailuresCannotBeReviewedIntoSuccess() {
 	for _, tc := range []struct {
 		name, field string
@@ -611,10 +513,4 @@ func TestCorpusStrictJSONAndSourceProvenance(t *testing.T) {
 		_, err := corpusRead(p)
 		require.Error(t, err, data)
 	}
-	source, err := corpusSource(".")
-	require.NoError(t, err)
-	require.Len(t, str(source["sourceRevision"]), 40)
-	require.Contains(t, obj(source["sourceFiles"]), "corpus.go")
-	require.Contains(t, obj(source["sourceFiles"]), "go.mod")
-	require.NotContains(t, obj(source["sourceFiles"]), ".artifacts")
 }

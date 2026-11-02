@@ -15,6 +15,9 @@ import (
 
 func run(ctx context.Context, o options) (summary object, runFailure error) {
 	var err error
+	if o.Mode != "record" && o.Mode != "verify" {
+		return nil, errors.New("expected official record or verify")
+	}
 	if o.Materials != "" {
 		o.Materials, err = filepath.Abs(o.Materials)
 		if err != nil {
@@ -138,11 +141,10 @@ func run(ctx context.Context, o options) (summary object, runFailure error) {
 			}
 		}()
 	}
-	peers, err := preparePeerRuns(ctx, o, plan, service)
+	peers, err := preparePeerRuns(o, plan, service)
 	if err != nil {
 		return nil, err
 	}
-	defer peers.close()
 	// Keep original source data for provider-owned assertions; mutable runtime
 	// paths belong to this attempt. No exact SDK or executable version gate.
 	if err = writeJSON(filepath.Join(o.Output, "materials/case.json"), plan); err != nil {

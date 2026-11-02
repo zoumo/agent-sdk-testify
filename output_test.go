@@ -18,7 +18,7 @@ func TestPersistentAttemptsKeepFailureAndNeverOverwrite(t *testing.T) {
 	first, err := run(context.Background(), o)
 	require.ErrorContains(t, err, "driver reported failed")
 	path := str(first["output"])
-	require.Equal(t, filepath.Join(data, "attempts", "replay"), filepath.Dir(path))
+	require.Equal(t, filepath.Join(data, "attempts", "verify"), filepath.Dir(path))
 	before, err := os.ReadFile(filepath.Join(path, "summary.json"))
 	require.NoError(t, err)
 	require.FileExists(t, filepath.Join(path, "result.json"))

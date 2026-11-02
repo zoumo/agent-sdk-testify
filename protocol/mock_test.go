@@ -84,7 +84,7 @@ func mockCommand(t *testing.T, binary, provider, source string, args ...string) 
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	t.Cleanup(cancel)
-	cmd := exec.CommandContext(ctx, binary, append([]string{"protocol", "mock", "--provider", provider, "--scenario", source}, args...)...)
+	cmd := exec.CommandContext(ctx, binary, append([]string{"--internal-protocol", "mock", "--provider", provider, "--scenario", source}, args...)...)
 	cmd.Dir = t.TempDir()
 	cmd.Env = []string{"PATH=/nonexistent", "GORACE=atexit_sleep_ms=0"}
 	return cmd

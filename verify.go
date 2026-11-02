@@ -204,7 +204,7 @@ func verifyRecording(ctx context.Context, o options) (summary object, err error)
 	}
 	contracts := object{}
 	for _, name := range []string{str(catalog["storyId"]) + ".json", "bindings/" + o.Provider + ".json"} {
-		data, e := catalogFiles.ReadFile("tests/simulation/scenarios/" + name)
+		data, e := catalogFiles.ReadFile("scenarios/" + name)
 		if e != nil {
 			return nil, e
 		}

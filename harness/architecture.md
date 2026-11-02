@@ -26,9 +26,9 @@ Go SDK 拥有 runtime、Go driver、simulate、业务断言、并行门禁和 SD
 |---|---|
 | 仓库根目录 | 单二进制和环境/进程实现 |
 | `protocol/` | 协议处理及 capture、command、rawjson、recording、replay |
-| `tests/simulation/drivers/` | 官方 driver、Python wheel、离线 driver 测试和文档 |
-| `tests/simulation/scenarios/` | 权威 story/case、输入、预期、provider binding |
-| `tests/simulation/recordings/` | 已跟踪材料、固定索引、来源与哈希 |
+| `drivers/` | 官方 driver、Python wheel、离线 driver 测试和文档 |
+| `scenarios/` | 权威 story/case、输入、预期、provider binding |
+| `recordings/` | 已跟踪材料、固定索引、来源与哈希 |
 | `migration/agent-sdk-go/` | SDK 专属测试的待迁移原件；SDK 拥有，不参与默认工具测试 |
 
 目标布局可以按工具设计迁移；移动时同步 imports、embeds、脚本、测试及文档。

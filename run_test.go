@@ -19,13 +19,24 @@ import (
 func TestMain(m *testing.M) {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "peer":
+		case "official-engine-fixture":
+			var o options
+			if err := readJSON(os.Args[2], &o); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			if _, err := run(context.Background(), o); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		case "--internal-peer":
 			if e := runPeer(os.Args[2:]); e != nil {
 				fmt.Fprintln(os.Stderr, e)
 				os.Exit(1)
 			}
 			os.Exit(0)
-		case "protocol":
+		case "--internal-protocol":
 			main()
 			os.Exit(0)
 		case "verify-driver-substitute":
@@ -205,7 +216,7 @@ func sample(t *testing.T, id string) options {
 	require.NotEmpty(t, peer, "run with scripts/with-agent-sdk-testify.sh")
 	self, e := os.Executable()
 	require.NoError(t, e)
-	return options{Mode: "replay", Materials: source, Driver: self, DriverArgs: []string{"driver"}, Peer: peer, Output: filepath.Join(t.TempDir(), "run")}
+	return options{Mode: "verify", Materials: source, Driver: self, DriverArgs: []string{"driver"}, Peer: peer, Output: filepath.Join(t.TempDir(), "run")}
 }
 
 func TestDriverContract(t *testing.T) {
@@ -227,8 +238,8 @@ func TestDriverContract(t *testing.T) {
 			} else {
 				require.Error(t, e)
 				if id == "unsupported" {
-					require.ErrorContains(t, e, "driver reported unsupported")
-					require.NotContains(t, e.Error(), "peer:")
+					require.Equal(t, "unsupported", summary["result"].(result).Status)
+					require.Contains(t, e.Error(), "peer:")
 				} else if id == "untriggered" {
 					require.ErrorContains(t, e, "main peer:")
 				} else if id != "failed" && id != "crash" && id != "bad-result" {
@@ -284,7 +295,7 @@ func TestCaptureWithSyntheticNative(t *testing.T) {
 	require.NoFileExists(t, filepath.Join(o.Output, "native.env.private.json"))
 	// The recording output itself is the next stage's material directory.
 	replay := o
-	replay.Mode = "replay"
+	replay.Mode = "verify"
 	replay.Materials = o.Output
 	replay.Output = filepath.Join(t.TempDir(), "replay")
 	validated, e := run(context.Background(), replay)
@@ -297,7 +308,7 @@ func TestCaptureWithSyntheticNative(t *testing.T) {
 }
 
 func TestSharedMaterialsContainNoExecutableSteps(t *testing.T) {
-	o := options{Materials: "tests/simulation/scenarios", Case: "SDK-CASE-008", Provider: "claude"}
+	o := options{Materials: "scenarios", Case: "SDK-CASE-008", Provider: "claude"}
 	p, e := loadMaterials(o)
 	require.NoError(t, e)
 	require.NotContains(t, obj(p["scenario"]), "steps")
@@ -310,22 +321,7 @@ func TestSharedMaterialsContainNoExecutableSteps(t *testing.T) {
 }
 
 func TestCLIRejectsMissingSelection(t *testing.T) {
-	var e = execute(context.Background(), []string{"replay"})
+	var e = execute(context.Background(), []string{"verify"})
 	require.Error(t, e)
-	require.True(t, strings.Contains(e.Error(), "materials"))
-}
-
-func TestBatchSelectsDriversAndPreservesFailures(t *testing.T) {
-	first, second := sample(t, "passed"), sample(t, "failed")
-	selection := filepath.Join(t.TempDir(), "cases.json")
-	require.NoError(t, writeJSON(selection, []object{
-		{"case": first.Materials, "driver": command{Command: first.Driver, Args: first.DriverArgs}},
-		{"case": second.Materials, "driver": command{Command: second.Driver, Args: second.DriverArgs}},
-	}))
-	o := options{Mode: "replay", CasesFile: selection, Peer: first.Peer, Output: filepath.Join(t.TempDir(), "batch"), Jobs: 2}
-	summary, err := runBatch(context.Background(), o)
-	require.ErrorContains(t, err, "1/2 cases passed")
-	require.Equal(t, 1, summary["passed"])
-	require.FileExists(t, filepath.Join(o.Output, "codex-failed/result.json"))
-	require.FileExists(t, filepath.Join(o.Output, "summary.json"))
+	require.True(t, strings.Contains(e.Error(), "recording"))
 }

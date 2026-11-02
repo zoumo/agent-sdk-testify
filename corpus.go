@@ -23,7 +23,6 @@ import (
 // so the compiled binary can operate outside its source checkout.
 type corpus struct {
 	Index, Scenarios, Archive string
-	SourceRoot                string
 }
 
 var sourceEvidence = []string{"plan.json", "manifest.json", "report.json", "result.json", "summary.json"}
@@ -292,9 +291,6 @@ func corpusPhases(plan object, mode string) [][2]string {
 	out := [][2]string{{"", ""}}
 	if plan["driverProfile"] == "remote-close" {
 		out = append(out, [2]string{"remote-probe/", "remote-probe/"})
-	}
-	if mode == "simulate" && obj(obj(plan["scenario"])["parameters"])["childDetailPolicy"] != nil {
-		out = append(out, [2]string{"suppress/", ""})
 	}
 	return out
 }

@@ -39,7 +39,7 @@ class StoryEvidenceTests(unittest.TestCase):
             root = Path(temporary) / 'repository'
             shutil.copytree(source, root, ignore=shutil.ignore_patterns('.git', '.artifacts', '__pycache__',
                                                                        '*.egg-info', 'build', 'dist'))
-            binding = root / 'tests/simulation/scenarios/bindings/codex.json'
+            binding = root / 'scenarios/bindings/codex.json'
             original = json.loads(binding.read_text())
             for mode, reason, diagnostic in [
                 ('offline-only', 'synthetic check', 'invalid simulation route'),

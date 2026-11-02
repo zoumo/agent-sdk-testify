@@ -36,7 +36,7 @@ def case_mapping_errors(stories, cases):
 
 
 def recording_mapping(root):
-    directory = root / 'tests/simulation/scenarios'
+    directory = root / 'scenarios'
     index = json.loads((directory / 'index.json').read_text())
     stories = [json.loads((directory / (name + '.json')).read_text()) for name in index['stories']]
     providers = {p: json.loads((directory / 'bindings' / (p + '.json')).read_text()) for p in ('codex', 'claude')}
@@ -114,7 +114,7 @@ def check(root):
             errors.append(case['id'] + ': simulation case must be implemented or planned')
         if not isinstance(case.get('required'), bool) or requirements.get(case['id']) != ('required' if case['required'] else 'optional'):
             errors.append(case['id'] + ': normative and configured requirement differ')
-    directory = root / 'tests/simulation/scenarios'
+    directory = root / 'scenarios'
     index = json.loads((directory / 'index.json').read_text())
     if set(index['stories']) != common or len(index['stories']) != len(common):
         errors.append('Simulation catalog must contain exactly the eight user stories')
@@ -132,11 +132,11 @@ def check(root):
                 errors.append(provider + '/' + case['id'] + ': unavailable route needs a reason')
             if 'offlineTest' in case or 'offlineTest' in binding:
                 errors.append(provider + '/' + case['id'] + ': code integration checks are not simulation routes')
-    mapping = (root / 'tests/simulation/drivers/README.md').read_text()
+    mapping = (root / 'drivers/README.md').read_text()
     errors += inventory_errors(mapping, 'SDK-CASE', case_ids)
     if [line for line in mapping.splitlines() if line.startswith('| SDK-CASE-')] != rows:
         errors.append('Story/case mapping must match exact identities and provider routes')
-    documents = [root / name for name in ('AGENTS.md', 'README.md', 'GLOSSARY.md', 'tests/simulation/drivers/README.md')]
+    documents = [root / name for name in ('AGENTS.md', 'README.md', 'GLOSSARY.md', 'drivers/README.md')]
     for directory in ('harness', 'docs'):
         documents += sorted((root / directory).rglob('*.md'))
     for path in documents:

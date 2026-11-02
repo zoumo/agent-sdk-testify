@@ -47,7 +47,7 @@ class RecordingTests(unittest.TestCase):
                 plan['agentMock'] = identity()
                 private_json(root/'plan.json', plan)
                 env = {'PATH': '/missing'}
-                captured = subprocess.run([identity()['path'], 'protocol', 'record', '--output', str(root/'raw'),
+                captured = subprocess.run([identity()['path'], '--internal-protocol', 'record', '--output', str(root/'raw'),
                                            '--', sys.executable, str(native)], input=request,
                                           capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(captured.returncode, 0, (captured.stderr, {p.name: p.read_text() for p in root.glob('*diagnostics*.json')}))
@@ -62,7 +62,7 @@ class RecordingTests(unittest.TestCase):
                     _validate(json.loads(line), schema)
                 native.unlink()  # Replay must be independent of the recorded executable.
                 receipt = root/'receipt.json'
-                command = [identity()['path'], 'protocol', 'mock', '--provider', provider,
+                command = [identity()['path'], '--internal-protocol', 'mock', '--provider', provider,
                            '--scenario', str(raw), '--receipt', str(receipt)]
                 replayed = subprocess.run(command, input=rebound, capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(replayed.returncode, 0, replayed.stderr)

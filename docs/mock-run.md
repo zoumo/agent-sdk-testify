@@ -125,7 +125,7 @@ output. `prepare.json` retains preparation failure and partial cleanup results;
 existing outputs and consumer files are preserved. A failed protocol run cannot
 become successful merely because cleanup succeeded.
 
-## T5 and T7 integration
+## Consumer integration
 
 Builtin selection and versioned describe assertion inputs are documented in
 [builtin.md](builtin.md) and [mock-catalog.schema.json](mock-catalog.schema.json).
@@ -135,10 +135,27 @@ materials live under the owned root and are removed by finish, while immutable
 contract/materialization and receipts remain persistent. Consumer assertion data
 comes from describe; `recording` is not a filesystem interface for SDK assertions.
 
-T7 should parse this schema, start its own SDK runner with the returned cwd/env,
+SDK consumers parse this schema, start its own SDK runner with the returned cwd/env,
 consume the selected command or launcher, close/wait, and always run finish.
 For Go SDK preserve/suppress comparisons, call prepare **twice**, with distinct
 outputs and independent environments/receipts. The SDK owns that comparison and
 any WebSocket bridge. This tool declares only case-required main/probe connections;
 it does not add SDK suppress workflows. Persist SDK assertions alongside the two
 protocol reports and require both business and finish success.
+
+## Bounded MASS consumer evidence
+
+The parent-run T8 sidecar used MASS `078a5136e435176b66c994681e31ddcb5e693782`, its
+pinned Go SDK `v0.0.0-20261031154401-ed6c8216607c`, and the **T7** local tool artifact
+SHA-256 `77fcb3c46479f5e76395c3b75dab13a55f8fd95e307c4ec7ce40ca6175aff979`.
+A synthetic external, unqualified fixture passed actual MASS CLI/service → SDK →
+mock, with exact persisted messages, final idle state, all 14 strict frames, EOF,
+normal exit, finish and owned-resource cleanup. This is targeted synthetic product
+integration; it is not official material qualification or builtin acceptance.
+Builtin Codex CASE-001 failed at initialize (`mass/2` versus the recorded official
+client), before Session/input; business remains unverified and original bytes
+unchanged. Both attempts released owned services, ports and mock resources.
+These results apply to that T7 binary, not to later T8 artifacts. No MASS code,
+models, native Agent fallback or recording was used. Final T8 MASS execution was
+not repeated. The parent retains the full sidecar report under its external
+`t8-mass-consumer/report.md` evidence directory.

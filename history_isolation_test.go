@@ -64,8 +64,17 @@ func runHistoryCommand(t *testing.T, mode, materials, native, driver string, ext
 	output := filepath.Join(t.TempDir(), "attempt")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	args := []string{mode, "--materials", materials, "--cli", native, "--driver", driver, "--output", output}
-	cmd := exec.CommandContext(ctx, tool, append(args, extra...)...)
+	self, e := os.Executable()
+	require.NoError(t, e)
+	o := options{Mode: mode, Materials: materials, CLI: native, Driver: driver, Output: output, Peer: tool}
+	for i := 0; i < len(extra); i += 2 {
+		require.Equal(t, "--history-seed", extra[i])
+		o.HistorySeed = extra[i+1]
+	}
+	optionsPath := filepath.Join(t.TempDir(), "options.json")
+	require.NoError(t, writeJSON(optionsPath, o))
+	cmd := exec.CommandContext(ctx, self, "official-engine-fixture", optionsPath)
+
 	data, err := cmd.CombinedOutput()
 	return output, err, string(data)
 }
@@ -171,7 +180,7 @@ func TestRecordingHistorySeedRequiresIsolatedCapture(t *testing.T) {
 			require.Error(t, err)
 			assert.Contains(t, log, "seed must come from an isolated recording")
 			// Legacy evidence remains valid offline, without certification.
-			for _, mode := range []string{"replay", "simulate"} {
+			for _, mode := range []string{"verify"} {
 				out, err, log := runHistoryCommand(t, mode, source, native, driver)
 				require.NoError(t, err, log)
 				var offlinePlan object

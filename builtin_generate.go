@@ -49,7 +49,7 @@ func generateBuiltin(root, revision string, check bool) error {
 	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(revision) {
 		return errors.New("full source --revision required")
 	}
-	c := corpus{Index: filepath.Join(root, "tests/simulation/recordings/index.json"), Scenarios: filepath.Join(root, "tests/simulation/scenarios")}
+	c := corpus{Index: filepath.Join(root, "recordings/index.json"), Scenarios: filepath.Join(root, "scenarios")}
 	index, err := c.loadIndex()
 	if err != nil {
 		return err

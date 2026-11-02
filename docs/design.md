@@ -6,9 +6,9 @@ status: approved
 
 # agent-sdk-testify 独立拆分与三项能力
 
-本文设计已获用户批准。已从源仓库建立原样复制基线，三命令收敛尚未实施；来源为 `agent-sdk-go`
-的 `428263bd594bcd2586049ba38d01c5573284e0ca`。本文中的命令为目标接口，
-不能作为已实现、已发布或 SDK/MASS 验收通过的证据。
+本文设计已获用户批准，三命令和独立目录已实施。历史导入来源为 `agent-sdk-go`
+的 `428263bd594bcd2586049ba38d01c5573284e0ca`。实现和本地工程验收不代表
+公开发布、完整 SDK required 覆盖或 MASS E2E 通过。
 
 [查看目标架构图](../.archify/architecture-three-commands-20261102-181131/extraction.html)。
 
@@ -48,7 +48,7 @@ case、provider binding、输入/预期、覆盖要求、官方录制 driver、�
 
 ## 3. 三个命令的接口
 
-下面的路径与参数表示目标合同，均尚未实现。
+下面是已实现的公共进程合同。
 
 ### record：录制
 
@@ -244,14 +244,9 @@ Go SDK checkout；Go SDK 的 simulate 能调用外部 mock 完成原有测试且
 缺失时明确失败，不自动构建 SDK 内源码或安装 driver。运行证据记录实际工具版本/哈希
 以及 SDK 自身 revision，二者不混记。标准版本提供 Linux/macOS 产物及校验和。
 
-## 8. 本次审批内容
+## 8. 交付状态
 
-请审批以下边界及配套接口：
-
-- agent-sdk-testify 只提供 record、verify、mock 三个业务命令，verify 使用官方 SDK 验证录制。
-- case、官方 driver、录制及材料库归本仓库；simulate、Go driver 和 SDK 执行门禁归 agent-sdk-go。
-- mock 负责协议对端及必要环境/回执；查询、准备、收尾作为 mock 的配套模式，消费者负责业务测试。
-- 按 A/B 两个里程碑实施，分别报告边界迁移和内置消费验收。
-
-上述设计已批准。当前先按[实施规格](implementation-plan.md)建立复制基线；
-不修改源 SDK，不自动录制、提交、推送或发布版本。
+上述边界已批准并实现。当前版本为本地 `0.1.0-dev`，构建及离线 CI 工作流可供审阅，
+未推送或发布。SDK 的发布 pin 在真实发布前保持 null，本地必须显式指定工具路径。
+历史导入清单不改写；根目录迁移由 `docs/import-current-paths.json` 单独映射。
+官方验证、当前 SDK 覆盖和 MASS 业务证据分别报告，缺口不因迁移或合成检查通过而升级。

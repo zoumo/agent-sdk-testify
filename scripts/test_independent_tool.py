@@ -13,10 +13,11 @@ ROOT = Path(__file__).resolve().parents[1]
 class IndependentToolTests(unittest.TestCase):
     def test_recordings_cases_and_pending_sdk_assertions_keep_imported_bytes(self):
         baseline = json.loads((ROOT / 'docs/import-baseline.json').read_text())
+        mapping = json.loads((ROOT / 'docs/import-current-paths.json').read_text())['paths']
         for entry in baseline['files']:
             if entry['path'].startswith(('tests/simulation/recordings/', 'tests/simulation/scenarios/')):
                 with self.subTest(path=entry['path']):
-                    self.assertEqual(entry['sha256'], hashlib.sha256((ROOT / entry['path']).read_bytes()).hexdigest())
+                    self.assertEqual(entry['sha256'], hashlib.sha256((ROOT / mapping.get(entry['path'],entry['path'])).read_bytes()).hexdigest())
         migration = json.loads((ROOT / 'migration/agent-sdk-go/manifest.json').read_text())
         imported = {entry['path']: entry for entry in baseline['files']}
         for entry in migration['files']:
@@ -41,7 +42,7 @@ class IndependentToolTests(unittest.TestCase):
         environment = dict(os.environ)
         environment.pop('AGENT_SDK_TESTIFY_BIN', None)
         environment.update(GOPROXY='off', GOSUMDB='off', GOWORK='off')
-        result = subprocess.run(['go', 'test', './...', '-run', '^TestBinaryUsesItselfForCaptureReplayAndSimulation$'],
+        result = subprocess.run(['go', 'test', './...', '-run', '^TestBinaryUsesItselfOutsideCheckout$'],
                                 cwd=ROOT, env=environment, capture_output=True, text=True, timeout=120)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         dependencies = subprocess.check_output(['go', 'list', '-deps', '-test', './...'],
