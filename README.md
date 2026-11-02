@@ -14,6 +14,7 @@
 当前 CLI 仍为待收敛的复制实现，三命令边界尚未实现。
 [旧 CLI 参考](docs/legacy-cli.md)用于迁移期间，不代表最终公开接口。
 
+- [mock 环境、运行描述与收尾接口](docs/mock-run.md)
 - [已批准设计](docs/design.md)
 - [实施规格与阶段规划](docs/implementation-plan.md)
 - [导入来源与文件哈希](docs/import-baseline.json)
