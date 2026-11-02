@@ -1,0 +1,429 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 36,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 2971,
+        "duration_api_ms": 2427,
+        "is_error": false,
+        "num_turns": 2,
+        "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.026258999999999998,
+        "usage": {
+          "input_tokens": 478,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 44288,
+          "output_tokens": 69,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "The agent is running in the background. I'll wait for its completion notification before reporting its output.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/glm-5.3": {
+            "inputTokens": 478,
+            "outputTokens": 69,
+            "cacheReadInputTokens": 44288,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.026258999999999998,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/glm-5.3",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "6ec00fbb-8b1d-4439-85c7-b293c797b768",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "list_sessions": [
+        {
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+          "last_modified": 1793515217840,
+          "file_size": 14355,
+          "custom_title": null,
+          "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+          "git_branch": "HEAD",
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/replays/batch/claude-SDK-CASE-029/project",
+          "tag": null,
+          "created_at": 1793515085537
+        }
+      ]
+    },
+    {
+      "get_session_info": {
+        "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+        "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+        "last_modified": 1793515217840,
+        "file_size": 14355,
+        "custom_title": null,
+        "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+        "git_branch": "HEAD",
+        "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/replays/batch/claude-SDK-CASE-029/project",
+        "tag": null,
+        "created_at": 1793515085537
+      }
+    },
+    {
+      "get_session_messages": [
+        {
+          "type": "user",
+          "uuid": "c621c75d-d993-4d2c-a806-e7f24f4d7ef5",
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "message": {
+            "role": "user",
+            "content": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "92d1ef8d-a935-4769-ad83-da0179c70b4e",
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "message": {
+            "id": "0b4060c517935150857535228e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": ""
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "339adc33-8fe0-43e9-ae57-0b5540ce62fb",
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "message": {
+            "id": "0b4060c517935150857535228e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "input": {
+                  "description": "Reply with sentinel token",
+                  "prompt": "Reply with exactly SYNTHETIC_SAVED_CHILD and nothing else. Make no tool calls.",
+                  "subagent_type": "general-purpose"
+                },
+                "type": "tool_use",
+                "id": "fc-de4c441c-36cd-4c0e-a91b-125a1228a357",
+                "name": "Agent"
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 50,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22144,
+              "output_tokens": 47,
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "stop_reason": "tool_use",
+            "stop_details": null
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "user",
+          "uuid": "9af9f68d-6fc8-4295-93be-deb0da0a53b9",
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "message": {
+            "role": "user",
+            "content": [
+              {
+                "tool_use_id": "fc-de4c441c-36cd-4c0e-a91b-125a1228a357",
+                "type": "tool_result",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Async agent launched successfully. (This tool result is internal metadata \u2014 never quote or paste any part of it, including the agentId below, into a user-facing reply.)\nagentId: adb5283b38e62790f (internal ID - do not mention to user. Use SendMessage with to: 'adb5283b38e62790f', summary: '<5-10 word recap>' to continue this agent.)\nThe agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives \u2014 do not report, assume, or predict them; continue other work or respond to the user in the meantime.\nDo not duplicate this agent's work \u2014 avoid working with the same files or topics it is using.\noutput_file: /private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/tasks/adb5283b38e62790f.output\nDo NOT Read or tail this file via the shell tool \u2014 it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you'll get a completion notification."
+                  }
+                ]
+              }
+            ]
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "255bf5fd-f079-4343-912a-0121e961d24f",
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "message": {
+            "id": "0b4060c517935150872575277e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "The agent is running in the background. I'll wait for its completion notification before reporting its output."
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "user",
+          "uuid": "5aaa2902-cf29-4ce4-a659-be6668a31f4c",
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "message": {
+            "role": "user",
+            "content": "<task-notification>\n<task-id>adb5283b38e62790f</task-id>\n<tool-use-id>fc-de4c441c-36cd-4c0e-a91b-125a1228a357</tool-use-id>\n<output-file>/private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/tasks/adb5283b38e62790f.output</output-file>\n<status>completed</status>\n<summary>Agent \"Reply with sentinel token\" finished</summary>\n<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>\n<result>SYNTHETIC_SAVED_CHILD</result>\n<usage><subagent_tokens>32</subagent_tokens><tool_uses>0</tool_uses><duration_ms>2221</duration_ms></usage>\n</task-notification>"
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "917a8bbb-b391-445c-8e4e-fccc0c6b318e",
+          "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+          "message": {
+            "id": "0b4060c517935150893775379e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "The agent completed and replied with exactly:\n\nSYNTHETIC_SAVED_CHILD\n\nIt made no tool calls, as requested."
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        }
+      ]
+    },
+    {
+      "list_subagents": {
+        "sessionId": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+        "agentIds": [
+          "adb5283b38e62790f"
+        ]
+      }
+    },
+    {
+      "get_subagent_messages": {
+        "sessionId": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+        "agentId": "adb5283b38e62790f",
+        "messages": [
+          {
+            "type": "user",
+            "uuid": "ebc25f9e-c928-403f-a6f9-f84182301a7f",
+            "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+            "message": {
+              "role": "user",
+              "content": "Reply with exactly SYNTHETIC_SAVED_CHILD and nothing else. Make no tool calls."
+            },
+            "parent_tool_use_id": "fc-de4c441c-36cd-4c0e-a91b-125a1228a357",
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "14a247e8-6f65-4eb5-ae57-1ea21f8860c7",
+            "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+            "message": {
+              "id": "0b4060c517935150877955309e3957",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "signature": "sig-theta",
+                  "thinking": "The user wants an exact reply of \"SYNTHETIC_SAVED_CHILD\" with no tool calls. Simple compliance.",
+                  "type": "thinking"
+                }
+              ],
+              "model": "glm-5.3",
+              "usage": {
+                "input_tokens": 773,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 5952,
+                "output_tokens": 35,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": "fc-de4c441c-36cd-4c0e-a91b-125a1228a357",
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "17b7c503-b447-4494-af55-4bcd1a80f39f",
+            "session_id": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+            "message": {
+              "id": "0b4060c517935150877955309e3957",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_SAVED_CHILD"
+                }
+              ],
+              "model": "glm-5.3",
+              "usage": {
+                "input_tokens": 773,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 5952,
+                "output_tokens": 35,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": "fc-de4c441c-36cd-4c0e-a91b-125a1228a357",
+            "parent_agent_id": null
+          }
+        ]
+      }
+    },
+    {
+      "child-model-inheritance": {
+        "requested": "theta/glm-5.3",
+        "rootId": "2fdfb114-5c38-4a61-a823-7f351a6bf65c",
+        "rootObservedModel": "glm-5.3",
+        "childObservedModels": {
+          "fc-de4c441c-36cd-4c0e-a91b-125a1228a357": "glm-5.3"
+        },
+        "scope": "model only; no reasoning inheritance claim"
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-029",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u914d\u7f6e\u6839\u4f1a\u8bdd\u5e76\u89c2\u5bdf\u5b50 Agent \u7684\u5b9e\u9645\u7ee7\u627f\u60c5\u51b5\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-029",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

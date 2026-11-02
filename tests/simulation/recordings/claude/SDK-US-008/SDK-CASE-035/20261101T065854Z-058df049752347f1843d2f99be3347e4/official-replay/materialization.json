@@ -1,0 +1,26 @@
+{
+  "executionProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/replays/batch/claude-SDK-CASE-035/project",
+  "originalHistoryProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-034/project",
+  "originalProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-035/project",
+  "transformations": [
+    {
+      "derived": "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-replays-batch-claude-SDK-CASE-035-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl",
+      "derivedSHA256": "ce6e79eb3219499f0fc5399f6b1ad752bb1c95485458a71d3cab81ba3e5595c9",
+      "executionCWD": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/replays/batch/claude-SDK-CASE-035/project",
+      "kind": "claude-project-cwd-copy",
+      "source": "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl",
+      "sourceCWD": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-034/project",
+      "sourceSHA256": "6dc41669ec357974d4ec0dd08740ff83d7d069e3c1e7932b54584806c37ac54c"
+    },
+    {
+      "derived": "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-replays-batch-claude-SDK-CASE-035-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl",
+      "derivedSHA256": "422b7ffcfc92996ef81f24295448a4d8c6b38922f9e28841f2e7be153a27e1f7",
+      "executionCWD": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/replays/batch/claude-SDK-CASE-035/project",
+      "kind": "claude-project-cwd-copy",
+      "source": "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl",
+      "sourceCWD": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-034/project",
+      "sourceSHA256": "a01cd3dc310eb50f3fc798404baed90ea0a6c583768eefd2ea949b5287d6bc4d"
+    }
+  ],
+  "version": 1
+}

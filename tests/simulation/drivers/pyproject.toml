@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-sdk-testify-driver"
+version = "0.1.0"
+description = "Native Python SDK cases for the Go agent-sdk-testify runner"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+codex = ["openai-codex"]
+claude = ["claude-agent-sdk"]
+recording = ["openai-codex", "claude-agent-sdk"]
+
+[project.scripts]
+agent-sdk-testify-codex = "codex_driver:main"
+agent-sdk-testify-claude = "claude_driver:main"
+
+[tool.setuptools]
+packages = ["record_user_story", "record_user_story.adapters", "codex_driver", "claude_driver"]
+
+[tool.setuptools.package-dir]
+record_user_story = "common/record_user_story"
+"record_user_story.adapters" = "common/record_user_story/adapters"
+codex_driver = "codex/official/codex_driver"
+claude_driver = "claude/official/claude_driver"
+
+[tool.setuptools.package-data]
+record_user_story = ["schemas/*.json", "examples/*.json", "examples/bindings/*.json"]

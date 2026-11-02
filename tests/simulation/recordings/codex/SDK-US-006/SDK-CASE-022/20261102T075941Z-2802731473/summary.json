@@ -1,0 +1,12 @@
+{
+  "case": "SDK-CASE-022",
+  "driver": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/venv/bin/agent-sdk-testify-codex",
+  "driverArgs": null,
+  "mode": "record",
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/codex-022-corrected",
+  "provider": "codex",
+  "recordingSHA256": "61def233847d192be4bfd9b1c7edec969b94e5e828aa40bc014ad2daa04cebb2",
+  "result": {
+    "status": "passed"
+  }
+}

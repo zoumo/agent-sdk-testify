@@ -1,0 +1,460 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 113,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.163.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.161.0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/glm-5.3",
+        "modelProvider": "theta",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.163.0",
+          "createdAt": 1793515031,
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+          "model": "theta/glm-5.3",
+          "modelProvider": "theta",
+          "originator": "official-python-story-recorder",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/config/sessions/2026/11/01/rollout-2026-11-01T14-37-11-01a195d3-8b5d-7812-8009-2aa41fdfedd3.jsonl",
+          "preview": "",
+          "recencyAt": 1793515031,
+          "sessionId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793515031
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a195d3-8b82-7742-928e-060e389944e3",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+        "turn": {
+          "completedAt": 1793515042,
+          "durationMs": 10986,
+          "id": "01a195d3-8b82-7742-928e-060e389944e3",
+          "items": [
+            {
+              "id": "msg_18e3d86db1b85580000016c2",
+              "phase": "final_answer",
+              "text": "Child output: `SYNTHETIC_SAVED_CHILD`",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793515031,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "history-setup-ended": {
+        "threadId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+        "response": {
+          "status": "unsubscribed"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/list",
+        "params": {
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+          "sourceKinds": [
+            "cli",
+            "vscode",
+            "exec",
+            "appServer"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+              "environments": [
+                {
+                  "environmentId": "local",
+                  "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+                  "runtimeWorkspaceRoots": [
+                    "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project"
+                  ]
+                }
+              ],
+              "extra": null,
+              "sessionId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+              "forkedFromId": null,
+              "parentThreadId": null,
+              "preview": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network.",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "theta",
+              "model": "theta/glm-5.3",
+              "reasoningEffort": null,
+              "createdAt": 1793515031,
+              "updatedAt": 1793515042,
+              "recencyAt": 1793515031,
+              "status": {
+                "type": "idle"
+              },
+              "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/config/sessions/2026/11/01/rollout-2026-11-01T14-37-11-01a195d3-8b5d-7812-8009-2aa41fdfedd3.jsonl",
+              "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+              "cliVersion": "0.163.0",
+              "originator": "official-python-story-recorder",
+              "source": "vscode",
+              "canAcceptDirectInput": null,
+              "threadSource": null,
+              "agentNickname": null,
+              "agentRole": null,
+              "gitInfo": null,
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {
+            "01a195d3-8b5d-7812-8009-2aa41fdfedd3": {
+              "firstUnread": {
+                "type": "turn",
+                "turnId": "01a195d3-8b82-7742-928e-060e389944e3"
+              },
+              "revision": "7f374f3d-906c-4251-9b09-44a97dd648bc"
+            }
+          },
+          "backwardsCursor": "2026-11-01T06:37:11.393Z"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/list",
+        "params": {
+          "parentThreadId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+          "sourceKinds": [
+            "subAgentThreadSpawn"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a195d3-a7f7-7813-8e45-61290f5c6496",
+              "environments": [
+                {
+                  "environmentId": "local",
+                  "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+                  "runtimeWorkspaceRoots": [
+                    "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project"
+                  ]
+                }
+              ],
+              "extra": null,
+              "sessionId": "01a195d3-a7f7-7813-8e45-61290f5c6496",
+              "forkedFromId": null,
+              "parentThreadId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+              "preview": "Reply with exactly SYNTHETIC_SAVED_CHILD. Do not use any tools, files, or network.",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "theta",
+              "model": "theta/glm-5.3",
+              "reasoningEffort": null,
+              "createdAt": 1793515038,
+              "updatedAt": 1793515040,
+              "recencyAt": 1793515038,
+              "status": {
+                "type": "idle"
+              },
+              "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/config/sessions/2026/11/01/rollout-2026-11-01T14-37-18-01a195d3-a7f7-7813-8e45-61290f5c6496.jsonl",
+              "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+              "cliVersion": "0.163.0",
+              "originator": "official-python-story-recorder",
+              "source": {
+                "subAgent": {
+                  "thread_spawn": {
+                    "parent_thread_id": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+                    "depth": 1,
+                    "agent_path": null,
+                    "agent_nickname": "Archimedes",
+                    "agent_role": null
+                  }
+                }
+              },
+              "canAcceptDirectInput": true,
+              "threadSource": null,
+              "agentNickname": "Archimedes",
+              "agentRole": null,
+              "gitInfo": null,
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {},
+          "backwardsCursor": "2026-11-01T06:37:17.999Z"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/read",
+        "params": {
+          "threadId": "01a195d3-a7f7-7813-8e45-61290f5c6496",
+          "includeTurns": false
+        },
+        "response": {
+          "thread": {
+            "id": "01a195d3-a7f7-7813-8e45-61290f5c6496",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+                "runtimeWorkspaceRoots": [
+                  "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+            "forkedFromId": null,
+            "parentThreadId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+            "preview": "Reply with exactly SYNTHETIC_SAVED_CHILD. Do not use any tools, files, or network.",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "theta",
+            "model": "theta/glm-5.3",
+            "reasoningEffort": null,
+            "createdAt": 1793515038,
+            "updatedAt": 1793515040,
+            "recencyAt": 1793515038,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/config/sessions/2026/11/01/rollout-2026-11-01T14-37-18-01a195d3-a7f7-7813-8e45-61290f5c6496.jsonl",
+            "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+            "cliVersion": "0.163.0",
+            "originator": "official-python-story-recorder",
+            "source": {
+              "subAgent": {
+                "thread_spawn": {
+                  "parent_thread_id": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+                  "depth": 1,
+                  "agent_path": null,
+                  "agent_nickname": "Archimedes",
+                  "agent_role": null
+                }
+              }
+            },
+            "canAcceptDirectInput": true,
+            "threadSource": "subagent",
+            "agentNickname": "Archimedes",
+            "agentRole": null,
+            "gitInfo": null,
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": []
+          }
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/read",
+        "params": {
+          "threadId": "01a195d3-a7f7-7813-8e45-61290f5c6496",
+          "includeTurns": true
+        },
+        "response": {
+          "thread": {
+            "id": "01a195d3-a7f7-7813-8e45-61290f5c6496",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+                "runtimeWorkspaceRoots": [
+                  "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+            "forkedFromId": null,
+            "parentThreadId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+            "preview": "Reply with exactly SYNTHETIC_SAVED_CHILD. Do not use any tools, files, or network.",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "theta",
+            "model": "theta/glm-5.3",
+            "reasoningEffort": null,
+            "createdAt": 1793515038,
+            "updatedAt": 1793515040,
+            "recencyAt": 1793515038,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/config/sessions/2026/11/01/rollout-2026-11-01T14-37-18-01a195d3-a7f7-7813-8e45-61290f5c6496.jsonl",
+            "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-020/project",
+            "cliVersion": "0.163.0",
+            "originator": "official-python-story-recorder",
+            "source": {
+              "subAgent": {
+                "thread_spawn": {
+                  "parent_thread_id": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+                  "depth": 1,
+                  "agent_path": null,
+                  "agent_nickname": "Archimedes",
+                  "agent_role": null
+                }
+              }
+            },
+            "canAcceptDirectInput": true,
+            "threadSource": "subagent",
+            "agentNickname": "Archimedes",
+            "agentRole": null,
+            "gitInfo": null,
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": [
+              {
+                "id": "01a195d3-a813-7bd0-a960-499101a26dea",
+                "rootTurnId": "01a195d3-8b82-7742-928e-060e389944e3",
+                "items": [
+                  {
+                    "type": "userMessage",
+                    "id": "01a195d3-aa70-7b71-87a6-88855f829c99",
+                    "clientId": null,
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Reply with exactly SYNTHETIC_SAVED_CHILD. Do not use any tools, files, or network.",
+                        "text_elements": []
+                      }
+                    ]
+                  },
+                  {
+                    "type": "reasoning",
+                    "id": "rs_0b4060c517935150394143035e3957_0",
+                    "summary": [
+                      "The user explicitly requests exact reply \"SYNTHETIC_SAVED_CHILD\" with no tools. We must comply exactly, no other text."
+                    ],
+                    "content": []
+                  },
+                  {
+                    "type": "agentMessage",
+                    "id": "msg_18e3d86d39b83208000016be",
+                    "text": "SYNTHETIC_SAVED_CHILD",
+                    "phase": "final_answer",
+                    "memoryCitation": null,
+                    "delivery": null,
+                    "questions": null
+                  }
+                ],
+                "itemsView": "full",
+                "status": "completed",
+                "error": null,
+                "startedAt": 1793515038,
+                "completedAt": 1793515040,
+                "durationMs": 1670
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "child-detail-selection": {
+        "requested": "suppress",
+        "rootId": "01a195d3-8b5d-7812-8009-2aa41fdfedd3",
+        "childIds": [
+          "01a195d3-a7f7-7813-8e45-61290f5c6496"
+        ],
+        "nativeDetailCount": 2,
+        "scope": "native source; Go SDK delivery is checked by SDK simulation"
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-020",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u9009\u62e9\u5b50\u8be6\u7ec6\u4ea4\u4ed8\u7b56\u7565\u5e76\u89c2\u5bdf\u5b9e\u9645\u8f93\u51fa\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.163.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-020",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.161.0"
+  },
+  "branchStatus": "passed"
+}

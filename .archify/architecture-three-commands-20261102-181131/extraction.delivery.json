@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "623173cc-aeba-4a30-b759-8d692b3bcf64",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-three-commands-20261102-181131/candidate.json",
+  "output": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-three-commands-20261102-181131/extraction.html",
+  "specification": {
+    "sha256": "e5092c273f9d8ea862dd340635c5378437eae9b44f24fafd8add49682be9cbc2",
+    "bytes": 5903
+  },
+  "artifact": {
+    "sha256": "072f3523debd2c7af6a0347515ab28e86e89955dced64da952fd322995cf793d",
+    "bytes": 847933
+  }
+}

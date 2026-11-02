@@ -1,0 +1,177 @@
+{
+  "version": 4,
+  "id": "SDK-US-007",
+  "goal": "中断执行并关闭会话或连接",
+  "cases": [
+    {
+      "id": "SDK-CASE-030",
+      "storyId": "SDK-US-007",
+      "goal": "在执行进度后中断并读取确认及终态",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-030",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Produce a numbered list from one to twenty."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.progress",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "execution.interrupt"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "在执行进度后中断并读取确认及终态。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "interrupt"
+    },
+    {
+      "id": "SDK-CASE-031",
+      "storyId": "SDK-US-007",
+      "goal": "关闭拥有的会话并确认交互与进程结束",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-031",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Reply Ready."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "关闭拥有的会话并确认交互与进程结束。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "session-close"
+    },
+    {
+      "id": "SDK-CASE-032",
+      "storyId": "SDK-US-007",
+      "goal": "关闭远端连接并保持远端服务可用",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-032",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Reply Ready."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "关闭远端连接并保持远端服务可用。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "remote-close"
+    }
+  ]
+}

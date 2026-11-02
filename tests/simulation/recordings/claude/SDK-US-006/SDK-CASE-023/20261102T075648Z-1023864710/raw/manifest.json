@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "0.1.0-dev",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "args": [
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--include-partial-messages",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/glm-5.3"
+    ],
+    "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-023/project"
+  },
+  "files": {
+    "raw.jsonl": "f6bdfb096a118cdd436372dd64418484ef2698e0f3e3a78670aa47147c649ef2",
+    "stderr.raw": "79a7283251ff351cadc4112cbc5c23616676a2efd276231b60b925d921017dd3",
+    "transport.json": "31a8c5a04f0a3cd2c401ded80c4a0cea740a2fcda67580398a8d83801ab21114"
+  }
+}

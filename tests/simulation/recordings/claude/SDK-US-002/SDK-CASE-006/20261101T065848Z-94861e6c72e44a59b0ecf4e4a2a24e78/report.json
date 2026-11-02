@@ -1,0 +1,119 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-002",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 44,
+  "requests": 2,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 3803,
+        "duration_api_ms": 2851,
+        "is_error": false,
+        "num_turns": 3,
+        "session_id": "ce2881fe-6bd4-4d06-a3bb-23a593cb9937",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.037460999999999994,
+        "usage": {
+          "input_tokens": 576,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 66112,
+          "output_tokens": 61,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "Read numbers.txt (7 and 11), then wrote summary.txt with `total=18` and a trailing newline.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/glm-5.3": {
+            "inputTokens": 576,
+            "outputTokens": 61,
+            "cacheReadInputTokens": 66112,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.037460999999999994,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/glm-5.3",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "a0e89b9a-ebe0-420d-86df-2d282d159414",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-006",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u89c2\u5bdf\u6587\u4ef6\u5de5\u5177\u7684\u6267\u884c\u4e0e\u4efb\u52a1\u5b8c\u6210\u3002",
+    "storyId": "SDK-US-002"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-002",
+  "caseId": "SDK-CASE-006",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "request",
+      "name": "Read"
+    },
+    {
+      "step": "request",
+      "name": "Write"
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

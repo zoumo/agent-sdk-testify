@@ -1,0 +1,19 @@
+{
+  "case": "SDK-CASE-004",
+  "driver": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/venv/bin/agent-sdk-testify-codex",
+  "driverArgs": null,
+  "mode": "replay",
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/archive/qualification/20261102T075332Z-2250922804/replay",
+  "provider": "codex",
+  "recordingSHA256": "f7a804d6e306877097ce91d7467f2039775544bd02917a27a47bc0af9c49427d",
+  "result": {
+    "status": "passed"
+  },
+  "source": {
+    "manifest.json": "3c059183de0dfe07c12442fb18476d2e2d53db10542ef47dadd0a58599528554",
+    "plan.json": "056c8fa329680a25906cf372373051eacfc1b3d9589078ba03635564c2b4fb74",
+    "report.json": "7040a2a9f737f3bc6eaf4e22a39859f3a2ead18a5b31014f05ffe6302b6a6d7d",
+    "result.json": "a12bffc24bc0c4a90a041fe128326ed57302a0d26c20d42fd3398ed84981e190",
+    "summary.json": "2f278ee788ba25d36b556c54b716b26e02067c1bc1324eef20ea3bf004bd8884"
+  }
+}

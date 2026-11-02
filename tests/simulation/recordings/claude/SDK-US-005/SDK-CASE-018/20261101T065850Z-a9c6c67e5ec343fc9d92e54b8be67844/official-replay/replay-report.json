@@ -1,0 +1,2791 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 141,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 7141,
+        "duration_api_ms": 10465,
+        "is_error": false,
+        "num_turns": 5,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.080518,
+        "usage": {
+          "input_tokens": 2104,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 67392,
+          "output_tokens": 469,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "Both child agents launched concurrently and completed. Results:\n\n**Agent 1** (addition in three sentences, ending with its marker):\n> Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n>\n> SYNTHETIC_ALPHA\n\n**Agent 2** (addition in three sentences, ending with its marker):\n> Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n>\n> SYNTHETIC_BETA\n\nBoth markers confirmed: **SYNTHETIC_ALPHA** and **SYNTHETIC_BETA**.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/glm-5.3": {
+            "inputTokens": 3699,
+            "outputTokens": 895,
+            "cacheReadInputTokens": 79296,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.080518,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/glm-5.3",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "2179ceb1-3bde-44ba-8a7f-0ece53133eed",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-018",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u89c2\u5bdf\u5e76\u884c\u5b50 Agent \u7684\u72ec\u7acb\u8f93\u51fa\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-018",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "topologyEvents": [
+    {
+      "kind": "HookEventMessage",
+      "native": {
+        "subtype": "hook_started",
+        "data": {
+          "type": "system",
+          "subtype": "hook_started",
+          "hook_id": "b923037a-76e7-4f4b-bb3c-9cde6458fbf1",
+          "hook_name": "SessionStart:startup",
+          "hook_event": "SessionStart",
+          "uuid": "c5090a5f-8828-498d-b4ef-ba5b1b295911",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "hook_event_name": "SessionStart",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "c5090a5f-8828-498d-b4ef-ba5b1b295911"
+      }
+    },
+    {
+      "kind": "HookEventMessage",
+      "native": {
+        "subtype": "hook_response",
+        "data": {
+          "type": "system",
+          "subtype": "hook_response",
+          "hook_id": "b923037a-76e7-4f4b-bb3c-9cde6458fbf1",
+          "hook_name": "SessionStart:startup",
+          "hook_event": "SessionStart",
+          "output": "",
+          "stdout": "",
+          "stderr": "",
+          "exit_code": 0,
+          "outcome": "success",
+          "uuid": "fbaa4ff2-506a-4fbd-8b34-4ebcbcb21535",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "hook_event_name": "SessionStart",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "fbaa4ff2-506a-4fbd-8b34-4ebcbcb21535"
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "session_state_changed",
+        "data": {
+          "type": "system",
+          "subtype": "session_state_changed",
+          "state": "running",
+          "uuid": "7aae74db-0910-44fb-98f6-8b002efb96c2",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        }
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "init",
+        "data": {
+          "type": "system",
+          "subtype": "init",
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-018-retry-1/project",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+          "tools": [
+            "Task",
+            "AskUserQuestion",
+            "Bash",
+            "CronCreate",
+            "CronDelete",
+            "CronList",
+            "DesignSync",
+            "Edit",
+            "EnterPlanMode",
+            "EnterWorktree",
+            "ExitPlanMode",
+            "ExitWorktree",
+            "ListAgents",
+            "NotebookEdit",
+            "Read",
+            "ReportFindings",
+            "ScheduleWakeup",
+            "SendMessage",
+            "TaskCreate",
+            "TaskGet",
+            "TaskList",
+            "TaskOutput",
+            "TaskStop",
+            "TaskUpdate",
+            "WebFetch",
+            "WebSearch",
+            "Workflow",
+            "Write"
+          ],
+          "mcp_servers": [],
+          "model": "theta/glm-5.3",
+          "permissionMode": "default",
+          "slash_commands": [],
+          "apiKeySource": "none",
+          "claude_code_version": "2.1.258",
+          "output_style": "default",
+          "agents": [
+            "claude",
+            "Explore",
+            "general-purpose",
+            "Plan",
+            "statusline-setup"
+          ],
+          "skills": [],
+          "plugins": [],
+          "capabilities": [
+            "interrupt_receipt_v1",
+            "interrupt_cancel_queued_v1",
+            "msg_lifecycle_v1"
+          ],
+          "analytics_disabled": false,
+          "product_feedback_disabled": false,
+          "uuid": "7d5235a0-98f9-49e2-b1dd-52668a137c74",
+          "memory_paths": {
+            "auto": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-018-retry-1/config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/memory/"
+          },
+          "messaging_socket_path": "/tmp/cc-socks/47028.sock",
+          "fast_mode_state": "off",
+          "fast_mode_disabled_reason": "sdk_opt_in_required"
+        }
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "status",
+        "data": {
+          "type": "system",
+          "subtype": "status",
+          "status": "requesting",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+          "uuid": "2fba0b25-f8c2-424e-acf0-772bcde30968"
+        }
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "f5f0eec2-3a22-4dd1-8401-0b68b3184817",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "message_start",
+          "message": {
+            "id": "0b4060c517935151739541268e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "2cb08f1d-8557-4c8a-9ab0-401bb375ad6c",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": ""
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "22385096-23e7-4e42-8385-9c9ca406bc73",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_stop",
+          "index": 0
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "5654a612-d13b-4b19-bc5f-a209836f813f",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_start",
+          "index": 1,
+          "content_block": {
+            "input": {},
+            "type": "tool_use",
+            "id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+            "name": "Agent"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "86246e18-b687-4a35-8d66-0c3f18a16843",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "{\"description\": \""
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a2e441b6-f191-449b-86b4-eb392c065463",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "Explain addition,"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "f6170e68-cadf-46f6-82df-9b79d6d2c16f",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " marker"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "e5a7d0d9-8cec-43a8-8b6a-e769eab89227",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " ALPHA"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "71e72706-0c7a-4370-822b-b3eb0930407e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "\", \"prompt\": \"Ex"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "6967f439-7cb1-4d69-9e73-e555d4c1dad6",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "plain addition in exactly"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "38b8c71e-e6b8-4f62-b07f-496772054adb",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " three sentences. Then end your"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "b8e5272a-cb5c-4879-9d5f-c64d4195e266",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " response with the distinct"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "2a7cd896-11d2-44d8-9a44-2301ce338709",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " marker SYNTHETIC_ALPHA"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "fad20493-4bfa-43e7-acb2-c20888db1e3b",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " on its own line. Do"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "dd56c496-8688-4a65-92ce-e2a4125903a9",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " not use any files"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "7fdea51c-08dc-411c-94e8-139cae601a29",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": ", shell commands"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "3e7099e6-a611-4060-8850-e52b28e77d0e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": ", or network access"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "3286c797-2d57-4901-a42f-64b93ba0a647",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " \u2014"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "62912929-c724-4399-adaa-3aab2f9a38e6",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " just reply with text"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "e147b338-633d-4e10-9b9e-e7aad33dfc8f",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": ".\""
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "0862ff8b-290f-4bd6-ac71-eca794c3549d",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": ", \"run_in_background\": true"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "0b87839b-dd93-458c-9078-f21bc65bd092",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "}"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+            "name": "Agent",
+            "input": {
+              "description": "Explain addition, marker ALPHA",
+              "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_ALPHA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+              "run_in_background": true
+            }
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": null,
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151739541268e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "5f9a1e77-c9d4-43df-ab29-db7b02fcc638"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "5fceccad-6538-44a3-9487-99258ad8f953",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_stop",
+          "index": 1
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a839e01a-570a-4061-bed3-ca3f99d68586",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_start",
+          "index": 2,
+          "content_block": {
+            "input": {},
+            "type": "tool_use",
+            "id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+            "name": "Agent"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "774dec0d-d5a0-4867-82b8-4822acc13d88",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "{\"description\": \"Explain addition,"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "ae584825-fbaa-4afa-9f47-16c562fe038b",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " marker BETA\""
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "375181b4-ed9b-457d-b5cf-773ac43d9cb0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": ", \"prompt\": \"Explain addition in"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a42b9a85-a2bd-4e0b-ab41-18c45e92bccd",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " exactly three sentences. Then end"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "background_tasks_changed",
+        "data": {
+          "type": "system",
+          "subtype": "background_tasks_changed",
+          "tasks": [
+            {
+              "task_id": "ae411d62b65d6f107",
+              "task_type": "local_agent",
+              "description": "Explain addition, marker ALPHA"
+            }
+          ],
+          "uuid": "373989da-6256-443e-a883-8139665cc1d6",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        }
+      }
+    },
+    {
+      "kind": "TaskStartedMessage",
+      "native": {
+        "subtype": "task_started",
+        "data": {
+          "type": "system",
+          "subtype": "task_started",
+          "task_id": "ae411d62b65d6f107",
+          "tool_use_id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+          "description": "Explain addition, marker ALPHA",
+          "subagent_type": "general-purpose",
+          "is_backgrounded": true,
+          "spawn_depth": 1,
+          "task_type": "local_agent",
+          "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_ALPHA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+          "uuid": "42aa65d2-2ca8-4d92-b058-2762845c0337",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "task_id": "ae411d62b65d6f107",
+        "description": "Explain addition, marker ALPHA",
+        "uuid": "42aa65d2-2ca8-4d92-b058-2762845c0337",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "tool_use_id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+        "task_type": "local_agent"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "2775213a-ec78-435e-a376-ff5ddb2ea4ba",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " your response with the distinct marker"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "64ef30d2-ecec-4585-956a-76ca5ea5d336",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " SYNTHETIC_BETA"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "9ca9412e-ff55-450b-abbf-7a83e169bad0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " on its own line. Do"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "205d9e4e-ba56-485e-8ebf-d9b4ae0ca55a",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " not use any files, shell"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "5cbe3a48-7c63-4759-ac5c-66411510177a",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " commands, or network access \u2014"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "5afb1d5c-08de-4b4b-be26-babbe1226162",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " just reply with text.\""
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "ccce49aa-2548-47ad-9036-5498b7f330bb",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": ", \"run_in_background\":"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a5a95fe5-86d2-431f-ac2e-e6dc116d6d08",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " true}"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+            "name": "Agent",
+            "input": {
+              "description": "Explain addition, marker BETA",
+              "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_BETA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+              "run_in_background": true
+            }
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": null,
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151739541268e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "787a03af-d968-4d3c-aa4a-606ff9d727ab"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "4c818028-fb11-4146-a6f8-71f89db8322e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "content_block_stop",
+          "index": 2
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "6cba0ef4-17a5-4e5d-b879-75462ce1a214",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "tool_use",
+            "stop_sequence": null
+          },
+          "usage": {
+            "input_tokens": 3,
+            "output_tokens": 146,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 22208
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "10aeca08-2892-4328-88f7-611814a3bae8",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151739541268e3957",
+          "type": "message_stop"
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "UserMessage",
+      "native": {
+        "content": [
+          {
+            "tool_use_id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+            "content": [
+              {
+                "type": "text",
+                "text": "Async agent launched successfully. (This tool result is internal metadata \u2014 never quote or paste any part of it, including the agentId below, into a user-facing reply.)\nagentId: ae411d62b65d6f107 (internal ID - do not mention to user. Use SendMessage with to: 'ae411d62b65d6f107', summary: '<5-10 word recap>' to continue this agent.)\nThe agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives \u2014 do not report, assume, or predict them; continue other work or respond to the user in the meantime.\nDo not duplicate this agent's work \u2014 avoid working with the same files or topics it is using.\noutput_file: /private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae411d62b65d6f107.output\nDo NOT Read or tail this file via the shell tool \u2014 it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you'll get a completion notification."
+              }
+            ],
+            "is_error": null
+          }
+        ],
+        "uuid": "4b6ff3e8-a1b4-4a6a-bb8e-4a5226cf9a4e",
+        "parent_tool_use_id": null,
+        "tool_use_result": {
+          "isAsync": true,
+          "status": "async_launched",
+          "agentId": "ae411d62b65d6f107",
+          "description": "Explain addition, marker ALPHA",
+          "resolvedModel": "theta/glm-5.3",
+          "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_ALPHA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+          "outputFile": "/private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae411d62b65d6f107.output",
+          "canReadOutputFile": true
+        },
+        "origin": null
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "background_tasks_changed",
+        "data": {
+          "type": "system",
+          "subtype": "background_tasks_changed",
+          "tasks": [
+            {
+              "task_id": "ae411d62b65d6f107",
+              "task_type": "local_agent",
+              "description": "Explain addition, marker ALPHA"
+            },
+            {
+              "task_id": "ae73c6919587a1c99",
+              "task_type": "local_agent",
+              "description": "Explain addition, marker BETA"
+            }
+          ],
+          "uuid": "4e2094ca-08bc-422c-9570-6ed5d271434c",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        }
+      }
+    },
+    {
+      "kind": "TaskStartedMessage",
+      "native": {
+        "subtype": "task_started",
+        "data": {
+          "type": "system",
+          "subtype": "task_started",
+          "task_id": "ae73c6919587a1c99",
+          "tool_use_id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+          "description": "Explain addition, marker BETA",
+          "subagent_type": "general-purpose",
+          "is_backgrounded": true,
+          "spawn_depth": 1,
+          "task_type": "local_agent",
+          "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_BETA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+          "uuid": "dbd17980-4107-46bf-b071-4e366c3ffc50",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "task_id": "ae73c6919587a1c99",
+        "description": "Explain addition, marker BETA",
+        "uuid": "dbd17980-4107-46bf-b071-4e366c3ffc50",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "tool_use_id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+        "task_type": "local_agent"
+      }
+    },
+    {
+      "kind": "UserMessage",
+      "native": {
+        "content": [
+          {
+            "tool_use_id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+            "content": [
+              {
+                "type": "text",
+                "text": "Async agent launched successfully. (This tool result is internal metadata \u2014 never quote or paste any part of it, including the agentId below, into a user-facing reply.)\nagentId: ae73c6919587a1c99 (internal ID - do not mention to user. Use SendMessage with to: 'ae73c6919587a1c99', summary: '<5-10 word recap>' to continue this agent.)\nThe agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives \u2014 do not report, assume, or predict them; continue other work or respond to the user in the meantime.\nDo not duplicate this agent's work \u2014 avoid working with the same files or topics it is using.\noutput_file: /private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae73c6919587a1c99.output\nDo NOT Read or tail this file via the shell tool \u2014 it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you'll get a completion notification."
+              }
+            ],
+            "is_error": null
+          }
+        ],
+        "uuid": "557f4ca6-acdf-4c67-ae0a-cc7314d5a77b",
+        "parent_tool_use_id": null,
+        "tool_use_result": {
+          "isAsync": true,
+          "status": "async_launched",
+          "agentId": "ae73c6919587a1c99",
+          "description": "Explain addition, marker BETA",
+          "resolvedModel": "theta/glm-5.3",
+          "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_BETA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+          "outputFile": "/private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae73c6919587a1c99.output",
+          "canReadOutputFile": true
+        },
+        "origin": null
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "status",
+        "data": {
+          "type": "system",
+          "subtype": "status",
+          "status": "requesting",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+          "uuid": "1e1b3370-97a6-447e-b049-48d1cc739c37"
+        }
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "thinking": "The user wants an explanation of addition in exactly three sentences, ending with the marker SYNTHETIC_ALPHA on its own line. No tools needed. I'll write three clear sentences covering what addition is, how it works, and a property or example, then the marker.",
+            "signature": "sig-theta"
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151756051331e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "c991a912-0d9d-4869-b10e-00469a46296f"
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "text": "Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_ALPHA"
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151756051331e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "973fbaa7-a292-4785-9adc-985e57e9e3d0"
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "background_tasks_changed",
+        "data": {
+          "type": "system",
+          "subtype": "background_tasks_changed",
+          "tasks": [
+            {
+              "task_id": "ae73c6919587a1c99",
+              "task_type": "local_agent",
+              "description": "Explain addition, marker BETA"
+            }
+          ],
+          "uuid": "e3fadd2c-5389-4fc1-bb80-aa59d026949d",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        }
+      }
+    },
+    {
+      "kind": "TaskUpdatedMessage",
+      "native": {
+        "subtype": "task_updated",
+        "data": {
+          "type": "system",
+          "subtype": "task_updated",
+          "task_id": "ae411d62b65d6f107",
+          "patch": {
+            "status": "completed",
+            "end_time": 1793515177751
+          },
+          "uuid": "6686266e-42cf-4627-ad0c-1fb5e3ad4649",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "task_id": "ae411d62b65d6f107",
+        "patch": {
+          "status": "completed",
+          "end_time": 1793515177751
+        },
+        "status": "completed",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "6686266e-42cf-4627-ad0c-1fb5e3ad4649"
+      }
+    },
+    {
+      "kind": "TaskNotificationMessage",
+      "native": {
+        "subtype": "task_notification",
+        "data": {
+          "type": "system",
+          "subtype": "task_notification",
+          "task_id": "ae411d62b65d6f107",
+          "tool_use_id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+          "status": "completed",
+          "output_file": "/private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae411d62b65d6f107.output",
+          "summary": "Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_ALPHA",
+          "usage": {
+            "total_tokens": 175,
+            "tool_uses": 0,
+            "duration_ms": 2409
+          },
+          "uuid": "7ef6ade1-185f-4412-a7bc-7419d0ddd9cc",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "task_id": "ae411d62b65d6f107",
+        "status": "completed",
+        "output_file": "/private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae411d62b65d6f107.output",
+        "summary": "Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_ALPHA",
+        "uuid": "7ef6ade1-185f-4412-a7bc-7419d0ddd9cc",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "tool_use_id": "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+        "usage": {
+          "total_tokens": 175,
+          "tool_uses": 0,
+          "duration_ms": 2409
+        }
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "c483288b-adf6-43f5-91fd-7ca3174d32b1",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "message_start",
+          "message": {
+            "id": "0b4060c517935151760101352e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "f81dc399-f171-4d17-a4aa-b2c7ae508167",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "content_block": {
+            "signature": "",
+            "thinking": "",
+            "type": "thinking"
+          },
+          "index": 0,
+          "type": "content_block_start"
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "thinking_tokens",
+        "data": {
+          "type": "system",
+          "subtype": "thinking_tokens",
+          "estimated_tokens": 8,
+          "estimated_tokens_delta": 8,
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+          "uuid": "ba44a5c2-9498-4ba2-b9c6-710d071ae8f5"
+        }
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a7d28200-d952-4bae-9b26-d5ef2b9fba7a",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "thinking_delta",
+            "thinking": "Wait for both via TaskOutput."
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "ae22f144-bfdb-405f-ba35-72b8409eea6e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "signature_delta",
+            "signature": "sig-theta"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "thinking": "Wait for both via TaskOutput.",
+            "signature": "sig-theta"
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": null,
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151760101352e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "e3f7d79f-cbd4-430b-bac8-0f5c9651efb1"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "025b4742-0242-4bb6-b99b-2b5b94c40f8d",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_stop",
+          "index": 0
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "1c77b2d4-a5f6-43a8-8b5e-ac76d4ec8f24",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_start",
+          "index": 1,
+          "content_block": {
+            "type": "text",
+            "text": ""
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "2f6af040-52e0-42b9-9391-f3cea7ee75f0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "text_delta",
+            "text": "Both agents launched in parallel. Now waiting for both results."
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "text": "Both agents launched in parallel. Now waiting for both results."
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": null,
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151760101352e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "e2d40c06-d44e-4020-a0c4-4061314d0136"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "01954dc5-d3e2-4dd8-837f-c71019577bb1",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_stop",
+          "index": 1
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "d1d33a87-9570-43dd-8b63-34af4d7f5fb9",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_start",
+          "index": 2,
+          "content_block": {
+            "input": {},
+            "type": "tool_use",
+            "id": "fc-d190dd3d-5226-4cbc-832d-8e5a5ed1d7a6",
+            "name": "TaskOutput"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "684446c4-2acf-4f8b-9530-8cb7f016dddb",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 2,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "{\"block\": true, \"task_id\": \"ae411d62b65d6f107\", \"timeout\": 600000}"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "id": "fc-d190dd3d-5226-4cbc-832d-8e5a5ed1d7a6",
+            "name": "TaskOutput",
+            "input": {
+              "task_id": "ae411d62b65d6f107",
+              "block": true,
+              "timeout": 600000
+            }
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": null,
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151760101352e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "f410c65d-ccfd-4e2b-a27d-71dd5df132f2"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "c0186555-ef9e-4127-9c67-22afa5a8247f",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_stop",
+          "index": 2
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "74f05fbe-904a-4b80-89e9-54e9865dfd83",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_start",
+          "index": 3,
+          "content_block": {
+            "input": {},
+            "type": "tool_use",
+            "id": "fc-5b7d2fdd-d6a2-417a-b165-050972c67a49",
+            "name": "TaskOutput"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "4855a6f1-e1bf-426a-9707-7617f17c25f5",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 3,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "{\"block\":"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "2d2efeaf-2b72-431d-a3a1-d83621a253f0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 3,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " true"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "2a431673-c1b0-4c5c-a502-05009bf6db69",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 3,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": ", \"task_id\": \"ae73c691"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "ec96b681-f99a-4d66-ac6d-6a803abe6a86",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 3,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "9587a1c"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "af8ca705-95b1-4290-82fa-bca87b6996ce",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 3,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "99\", \"timeout\":"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "71b3cd13-bd79-4e57-93f9-1e1facb22b06",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_delta",
+          "index": 3,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": " 600000}"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "id": "fc-5b7d2fdd-d6a2-417a-b165-050972c67a49",
+            "name": "TaskOutput",
+            "input": {
+              "task_id": "ae73c6919587a1c99",
+              "block": true,
+              "timeout": 600000
+            }
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": null,
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151760101352e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "927a97e2-653d-4c1f-9d87-1e7488222a1b"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "f5437e75-615c-45b4-8f09-e42be6a2b530",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "content_block_stop",
+          "index": 3
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "7cb94301-7af6-4f1e-bc4f-e74535734b47",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "tool_use",
+            "stop_sequence": null
+          },
+          "usage": {
+            "input_tokens": 795,
+            "output_tokens": 90,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 22208
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "7fa056fe-e472-48cd-97ca-a2d556351a36",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151760101352e3957",
+          "type": "message_stop"
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "UserMessage",
+      "native": {
+        "content": [
+          {
+            "tool_use_id": "fc-d190dd3d-5226-4cbc-832d-8e5a5ed1d7a6",
+            "content": "<retrieval_status>success</retrieval_status>\n\n<task_id>ae411d62b65d6f107</task_id>\n\n<task_type>local_agent</task_type>\n\n<status>completed</status>\n\n<output>\nAddition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_ALPHA\n</output>",
+            "is_error": null
+          }
+        ],
+        "uuid": "19f5a040-6a91-4af3-b272-0384b9fd960c",
+        "parent_tool_use_id": null,
+        "tool_use_result": {
+          "retrieval_status": "success",
+          "task": {
+            "task_id": "ae411d62b65d6f107",
+            "task_type": "local_agent",
+            "status": "completed",
+            "description": "Explain addition, marker ALPHA",
+            "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_ALPHA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+            "result": "Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_ALPHA",
+            "output": "Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_ALPHA",
+            "isRawTranscript": false
+          }
+        },
+        "origin": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "thinking": "The user wants me to explain addition in exactly three sentences, then end with the marker SYNTHETIC_BETA on its own line. This is a pure text task \u2014 no tools, files, or network needed\n\nI need to be careful about the sentence count: exactly three sentences for the explanation. Then the marker on its own line. I should make sure each sentence is a genuine, complete sentence and avoid anything that might accidentally read as a fourth sentence (like a question or an exclamation). I also shouldn't add any extra text after the marker.\n\nLet me draft the three sentences:\n\n1. Addition is the mathematical operation of combining two or more numbers into a single total.\n2. It works by joining quantities together, so that adding 2 and 3 yields 5, the union of their amounts.\n3. Addition is commutative and associative, meaning the order and grouping of numbers do not change the result.\n\nThat's exactly three sentences, each complete and correct. Then the marker on its own line.",
+            "signature": "sig-theta"
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151758871349e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "29938891-546a-45f6-acaa-cde068b4b358"
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "text": "Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_BETA"
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151758871349e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "8a981dd2-b07b-414d-8807-010efbd40cba"
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "background_tasks_changed",
+        "data": {
+          "type": "system",
+          "subtype": "background_tasks_changed",
+          "tasks": [],
+          "uuid": "857a3225-91a8-4f38-8c50-6050a456211c",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        }
+      }
+    },
+    {
+      "kind": "TaskUpdatedMessage",
+      "native": {
+        "subtype": "task_updated",
+        "data": {
+          "type": "system",
+          "subtype": "task_updated",
+          "task_id": "ae73c6919587a1c99",
+          "patch": {
+            "status": "completed",
+            "end_time": 1793515178562
+          },
+          "uuid": "13027e6a-d7b7-413c-8503-d4f1fbb1da20",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "task_id": "ae73c6919587a1c99",
+        "patch": {
+          "status": "completed",
+          "end_time": 1793515178562
+        },
+        "status": "completed",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "13027e6a-d7b7-413c-8503-d4f1fbb1da20"
+      }
+    },
+    {
+      "kind": "TaskNotificationMessage",
+      "native": {
+        "subtype": "task_notification",
+        "data": {
+          "type": "system",
+          "subtype": "task_notification",
+          "task_id": "ae73c6919587a1c99",
+          "tool_use_id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+          "status": "completed",
+          "output_file": "/private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae73c6919587a1c99.output",
+          "summary": "Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_BETA",
+          "usage": {
+            "total_tokens": 348,
+            "tool_uses": 0,
+            "duration_ms": 3000
+          },
+          "uuid": "311d3a91-ab1c-4d1e-8ac7-125d256fdb90",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1"
+        },
+        "task_id": "ae73c6919587a1c99",
+        "status": "completed",
+        "output_file": "/private/tmp/claude-502/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-SDK-CASE-018-retry-1-project/d85e58b2-cd7f-425e-b9c8-911af132efc1/tasks/ae73c6919587a1c99.output",
+        "summary": "Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_BETA",
+        "uuid": "311d3a91-ab1c-4d1e-8ac7-125d256fdb90",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "tool_use_id": "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a",
+        "usage": {
+          "total_tokens": 348,
+          "tool_uses": 0,
+          "duration_ms": 3000
+        }
+      }
+    },
+    {
+      "kind": "UserMessage",
+      "native": {
+        "content": [
+          {
+            "tool_use_id": "fc-5b7d2fdd-d6a2-417a-b165-050972c67a49",
+            "content": "<retrieval_status>success</retrieval_status>\n\n<task_id>ae73c6919587a1c99</task_id>\n\n<task_type>local_agent</task_type>\n\n<status>completed</status>\n\n<output>\nAddition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_BETA\n</output>",
+            "is_error": null
+          }
+        ],
+        "uuid": "be1ad325-67c6-4abe-aff8-3a90befd81a6",
+        "parent_tool_use_id": null,
+        "tool_use_result": {
+          "retrieval_status": "success",
+          "task": {
+            "task_id": "ae73c6919587a1c99",
+            "task_type": "local_agent",
+            "status": "completed",
+            "description": "Explain addition, marker BETA",
+            "prompt": "Explain addition in exactly three sentences. Then end your response with the distinct marker SYNTHETIC_BETA on its own line. Do not use any files, shell commands, or network access \u2014 just reply with text.",
+            "result": "Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_BETA",
+            "output": "Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n\nSYNTHETIC_BETA",
+            "isRawTranscript": false
+          }
+        },
+        "origin": null
+      }
+    },
+    {
+      "kind": "SystemMessage",
+      "native": {
+        "subtype": "status",
+        "data": {
+          "type": "system",
+          "subtype": "status",
+          "status": "requesting",
+          "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+          "uuid": "82ea3da8-10d4-4588-a3ee-44f190592659"
+        }
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "d932ad2e-73dd-4fc0-8207-e8e24292df7d",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "message_start",
+          "message": {
+            "id": "0b4060c517935151788381525e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "b1aa6cd5-1db4-45a3-8c5a-51d407d69fca",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": ""
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a5dc1fd9-61a0-471e-97d3-d0b5723c9e6c",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "Both child agents launched concurrently and completed. Results"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "17844b62-d831-4dcc-a0ea-038478036628",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ":\n\n**Agent 1**"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "24de8019-15ff-4c8c-af18-3229ae836055",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " (add"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "b24d5d23-d3af-4330-9c1f-a9cf2df2725e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "ition in"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "b4a64133-48ba-445d-b74d-8cb55d175615",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " three sentences,"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "2f746041-1457-417c-8b6a-f3031f3f2eed",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " ending with its"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "f1c35a51-d224-4a16-a334-4143957e5b7c",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " marker):\n> Addition is the"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "0a3185cc-2e71-4a45-a0c9-a4ed2b7f76a2",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " mathematical operation of combining two or"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "b7ec9c2e-94e7-4a27-b5c0-4fd986bfd4f4",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " more quantities to find their total"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "be21ad01-6fb1-432c-9680-4cc85069fd1c",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ", represented by the plus sign"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a2d29cbe-b875-4807-b62a-37361fed445b",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " (+). When you add numbers"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "d439fa50-3c18-49ad-854d-31ac8fca84e9",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ", you count forward from one"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "482209f0-27e2-499c-aa0e-3802b1c47412",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " quantity by the amount of the"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "b2225921-19af-497e-af27-ec2b5b029ad0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " other, so 3 +"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "9bded81a-8e47-4cb7-bb44-65784136005f",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " 2 means starting at"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "ee238b52-dc06-444c-a4b6-ef420731ec7e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " 3 and moving forward 2"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "96102c11-fa19-430d-8d3d-23371d74c6fa",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " units to reach 5."
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "278d83c5-6023-42c1-b62d-612f355d4d06",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Addition is commutative and"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "6ee03c31-75a2-4168-b443-5809775a1087",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " associative, meaning the order and"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "6c0f472d-536d-48d3-ba1d-29f82e878a2e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " grouping of the numbers do not"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "74c94790-5ca3-446f-85c2-3b6a6003e30a",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " change the result.\n>\n>"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "e4b20efc-d0e9-4751-81c6-67c08d283a74",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " SYN"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "f5afb6c8-ba46-46b6-b867-421645b6de3a",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "THETIC_ALPHA\n\n**"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "947402f4-9c54-4669-8908-5963e37ceb00",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "Agent 2** (add"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "9132a7d6-bd69-4988-b7e3-9a2b2b01c6ae",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "ition in three sentences, ending"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "5a6dae04-b408-45cc-9840-e7fb522dd50c",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " with its marker):\n> Addition"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "a450e8e2-2471-4479-86fd-c22280fcd4a5",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " is the mathematical operation of combining"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "c2c833a6-08aa-48a8-92a0-811595629b46",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " two or more numbers into a"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "30a879b6-85d7-4db4-939a-b5ebecbc1b11",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " single total. It joins quantities"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "fe70db93-d869-400b-819c-e7fd0f24e1c0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " together, so adding 2"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "14787a48-9db5-473e-bd3e-ddf98251c6f0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " and 3 yields 5"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "24f6af68-9197-451b-8bfe-fe4bbbbb0c85",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ", the union of their amounts"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "6491836d-e933-4f8d-a161-d5e8d2a719f4",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ". Addition is commutative"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "55910efd-ee60-4343-aada-1f3ee2640c67",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " and associative, meaning the order"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "06689126-8ff0-41ea-9844-b1f9b926264c",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " and grouping of the numbers do"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "8474f718-4958-4982-ac78-88dcacc36dfc",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " not change the result.\n>"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "61bc4f22-eb12-4596-99b9-67d251947328",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "\n> SYNTHETIC_B"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "39feaa6e-af2b-45b9-816c-6aec32eedd63",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "ETA\n\nBoth markers confirmed"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "56ecac35-e465-44bd-a939-86ae38ac5b81",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ": **SYNTHET"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "88756330-bb90-420a-9e3a-9b9df7ad1c28",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "IC_ALPHA** and **SY"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "427f0e4f-bede-4013-a2d4-44776ed1b17b",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "NTHETIC_BETA"
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "66077a3a-617e-414c-8260-abbad71dcc66",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "**."
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "AssistantMessage",
+      "native": {
+        "content": [
+          {
+            "text": "Both child agents launched concurrently and completed. Results:\n\n**Agent 1** (addition in three sentences, ending with its marker):\n> Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n>\n> SYNTHETIC_ALPHA\n\n**Agent 2** (addition in three sentences, ending with its marker):\n> Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n>\n> SYNTHETIC_BETA\n\nBoth markers confirmed: **SYNTHETIC_ALPHA** and **SYNTHETIC_BETA**."
+          }
+        ],
+        "model": "glm-5.3",
+        "parent_tool_use_id": null,
+        "error": null,
+        "usage": {
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "message_id": "0b4060c517935151788381525e3957",
+        "stop_reason": null,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "uuid": "0319dd60-77b7-4340-ba6a-3eeda207b8f1"
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "4a7cd3b1-8e5e-4f30-9872-1c88379d8cb0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "content_block_stop",
+          "index": 0
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "f9dc1d9a-35ea-4b80-b0ab-0c45614f612e",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "end_turn",
+            "stop_sequence": null
+          },
+          "usage": {
+            "input_tokens": 1306,
+            "output_tokens": 233,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 22976
+          }
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "StreamEvent",
+      "native": {
+        "uuid": "37767e9f-5aa0-4fd8-b966-935aceab72b0",
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "event": {
+          "id": "0b4060c517935151788381525e3957",
+          "type": "message_stop"
+        },
+        "parent_tool_use_id": null
+      }
+    },
+    {
+      "kind": "ResultMessage",
+      "native": {
+        "subtype": "success",
+        "duration_ms": 7141,
+        "duration_api_ms": 10465,
+        "is_error": false,
+        "num_turns": 5,
+        "session_id": "d85e58b2-cd7f-425e-b9c8-911af132efc1",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.080518,
+        "usage": {
+          "input_tokens": 2104,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 67392,
+          "output_tokens": 469,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "Both child agents launched concurrently and completed. Results:\n\n**Agent 1** (addition in three sentences, ending with its marker):\n> Addition is the mathematical operation of combining two or more quantities to find their total, represented by the plus sign (+). When you add numbers, you count forward from one quantity by the amount of the other, so 3 + 2 means starting at 3 and moving forward 2 units to reach 5. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n>\n> SYNTHETIC_ALPHA\n\n**Agent 2** (addition in three sentences, ending with its marker):\n> Addition is the mathematical operation of combining two or more numbers into a single total. It joins quantities together, so adding 2 and 3 yields 5, the union of their amounts. Addition is commutative and associative, meaning the order and grouping of the numbers do not change the result.\n>\n> SYNTHETIC_BETA\n\nBoth markers confirmed: **SYNTHETIC_ALPHA** and **SYNTHETIC_BETA**.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/glm-5.3": {
+            "inputTokens": 3699,
+            "outputTokens": 895,
+            "cacheReadInputTokens": 79296,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.080518,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/glm-5.3",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "2179ceb1-3bde-44ba-8a7f-0ece53133eed",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "topology": {
+    "mode": "parallel",
+    "nativeToolUseIds": [
+      "fc-24a17436-c1f5-4637-a1df-a874946ac415",
+      "fc-db9bb18c-ca8e-4628-bb5f-a3a9bf87042a"
+    ],
+    "verified": true
+  },
+  "branchStatus": "passed"
+}

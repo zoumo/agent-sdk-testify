@@ -1,0 +1,20 @@
+{
+  "case": "SDK-CASE-007",
+  "driver": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/venv/bin/agent-sdk-testify-claude",
+  "driverArgs": null,
+  "materializationSHA256": "4e0c5ae337b4bc3b7956a07c0c0e32b6a4ca613343c61da60210b0247572680a",
+  "mode": "replay",
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/replays/batch/claude-SDK-CASE-007",
+  "provider": "claude",
+  "recordingSHA256": "d3affc8620aac941d07f8546b2b9196b0c2b8d2b9a653f52855e4944e92147eb",
+  "result": {
+    "status": "passed"
+  },
+  "source": {
+    "manifest.json": "4996baf28d238c35bfe848fbe5ac4dfb4a40480a803058bd342e3cdffbb5abf7",
+    "plan.json": "2623b5d4e592ba9ba737b6243acda4754503c9fd2112837b1bf0bc5d2254f965",
+    "report.json": "0d513b66ad89e74ff3302307e2a68534186b226266f00b484a4aeb1d8ac97d80",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "summary.json": "88fe9fba505c785f9a97ca52f5a17d97f673fd8e5e057c81bb71f377188cb8f0"
+  }
+}

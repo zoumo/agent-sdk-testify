@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "provider": "claude",
+  "cases": {
+    "two-inputs": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    }
+  }
+}

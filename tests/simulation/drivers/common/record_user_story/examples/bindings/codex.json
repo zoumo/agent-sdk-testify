@@ -1,0 +1,15 @@
+{
+  "version": 3,
+  "provider": "codex",
+  "cases": {
+    "two-inputs": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    }
+  }
+}

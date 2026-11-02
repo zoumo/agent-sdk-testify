@@ -1,0 +1,15 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "f81fed7efce21f1a46b4be489307b88a178ca2846e7af7c9cc687708cc751370",
+    "raw.jsonl": "c6dccc8f9fc2a3a0312a532e9f1e054f53dfe18bfd6a2e3cbd1c177a398eab34",
+    "stderr.raw": "f1141d3168a6a8bbb7cf0e097b275ccaf33b77235982ba892cade7698d206dce",
+    "transport.json": "0ff33a31036dc0f57b88192a87226b6a7c049e5b5d5f785fab6fb8d39fd7b9db"
+  },
+  "planSHA256": "c2f3589befddccd47a6987f5adae06ee779c2278d00d77aaff510aac0cb4b01d",
+  "provenance": "capture",
+  "remotePhaseFiles": {},
+  "savedFiles": {},
+  "status": "passed"
+}

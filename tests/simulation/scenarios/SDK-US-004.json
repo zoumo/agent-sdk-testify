@@ -1,0 +1,211 @@
+{
+  "version": 4,
+  "id": "SDK-US-004",
+  "goal": "回答 Agent 提出的选择题或文本题",
+  "cases": [
+    {
+      "id": "SDK-CASE-013",
+      "storyId": "SDK-US-004",
+      "goal": "回答选择题并继续任务",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-013",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Ask which color to use, with choices Blue and Green. Wait for the answer, then finish briefly."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "question.answer"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "回答选择题并继续任务。",
+        "answers": {
+          "question": "Which synthetic color?",
+          "choice": "Blue",
+          "options": [
+            "Blue",
+            "Green"
+          ]
+        },
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "questions",
+      "parameters": {
+        "questionCount": 1,
+        "freeText": false
+      }
+    },
+    {
+      "id": "SDK-CASE-014",
+      "storyId": "SDK-US-004",
+      "goal": "提供自由文本答案并继续任务",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-014",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Use the native question tool exactly once with 1 question(s). Ask for a short free text project note; accept an Other answer. Report the answers and finish. Do not use other tools."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "question.answer"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "提供自由文本答案并继续任务。",
+        "answers": {
+          "question": "Which synthetic color?",
+          "choice": "Blue",
+          "options": [
+            "Blue",
+            "Green"
+          ]
+        },
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "questions",
+      "parameters": {
+        "questionCount": 1,
+        "freeText": true
+      }
+    },
+    {
+      "id": "SDK-CASE-015",
+      "storyId": "SDK-US-004",
+      "goal": "回答一个请求中的多道问题",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-015",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Use the native question tool exactly once with 2 question(s). Ask which color and which second color; each question offers Amber and Indigo. Report the answers and finish. Do not use other tools."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "question.answer"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "回答一个请求中的多道问题。",
+        "answers": {
+          "question": "Which synthetic color?",
+          "choice": "Blue",
+          "options": [
+            "Blue",
+            "Green"
+          ]
+        },
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "questions",
+      "parameters": {
+        "questionCount": 2,
+        "freeText": false
+      }
+    }
+  ]
+}

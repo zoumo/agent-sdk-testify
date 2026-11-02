@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "origin": "real-agent",
+  "qualification": {
+    "method": "official-sdk",
+    "qualifiedAt": "2026-11-01T06:55:59.539726+00:00"
+  },
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "captureFiles": {
+    "config/.claude.json": "ca535390ea10539646ba6d5255df502686c4c7c06cdff2927356b3dff429b1ca",
+    "config/.last-cleanup": "44e4f7a1289e76080182a752753014c41f5f35d37404075ec638878bef1c63a9",
+    "config/backups/.claude.json.backup.1793515085024": "fc8c818f8b566afc00f318334851cf508a6f512514d7d052c809feeaf7edb650",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/subagents/agent-adb5283b38e62790f.jsonl": "74d0e4619ee03e81c224bb444d03621b4212400ba4361ac9e8c706106874f4b0",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/subagents/agent-adb5283b38e62790f.meta.json": "0011be8a006f19bec196d0d71effbabf17331eef53f3032dbf7b48afab061317",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c.jsonl": "c671401b1e0b0567e55d2846025a070e472d534856ca49633177a5c0a764cd61",
+    "manifest.json": "e8d5aae064007d91109dbdcb65b904d572c2c706702b4ee232ed443e1eaa37fc",
+    "materials/case.json": "e71e7407005229ff799ba6c0025aab0fd5c2f9145b8e85ea268d714f80ec8940",
+    "peer-main": "b87396ff8e460753d70e7e1d58569ae78ca12c33420e80b9105e3204f203dbc4",
+    "peer-main.json": "4fc35e232463295d077fd2cdc9fc23381201205daa553ef7725603968cdea88e",
+    "plan.json": "e71e7407005229ff799ba6c0025aab0fd5c2f9145b8e85ea268d714f80ec8940",
+    "raw/manifest.json": "3172a871d996f8eb9d8f0b792d900ff8009919db53e43ef9ec6ba7af9264b136",
+    "raw/raw.jsonl": "2d4022d5640e375edce488114a2be027eed5f40dc66d038c01abb09e3a8a5ec6",
+    "raw/stderr.raw": "f1141d3168a6a8bbb7cf0e097b275ccaf33b77235982ba892cade7698d206dce",
+    "raw/transport.json": "2c57c44dc1a896b8ad82b59126818054c96618d6dbff4498288bfde6b8ff03c7",
+    "report.json": "4820cccce1daaa3b82a2e8732493b112ebf14261203f4b0155b13d80c0b30b88",
+    "request.json": "ada31628bc913a7d3ea9459446612801b22d8b897b4890e42d4f2bf24cfa8a84",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "summary.json": "03995d217d3a05b5d5b076d979e4b6140ebcb82f74609a7ba990ced24b9dfeef"
+  },
+  "replayFiles": {
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-replays-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c.jsonl": "07ce90ad841ac81243b4577bde58e2e152bec2b1b4c33cee71e906ee9befb75e",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-replays-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/subagents/agent-adb5283b38e62790f.jsonl": "a6145e3c0ce7a3da836047fff9aaa7b556f06f161778fbddcf6f7e1ed4ef50dd",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-replays-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/subagents/agent-adb5283b38e62790f.meta.json": "0011be8a006f19bec196d0d71effbabf17331eef53f3032dbf7b48afab061317",
+    "materialization.json": "5e39e8c147be47f161adfbc9cc64b34b1232d0b56c956fde40ec58ad31283b4c",
+    "replay-peer.json": "afc46fbb1de062157f760a274ce1e6722e15edd39fccbbf3918630c0632e9b8e",
+    "replay-report.json": "032b15896c83c87484ee1ee0950d0d2cb6068600607998796dcfc233c6d4070f",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "summary.json": "1171a777d18240f31c2e54ad7a2205cc26dff301981f3c68131ac23ced529752"
+  },
+  "publishFiles": [
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c.jsonl",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/subagents/agent-adb5283b38e62790f.jsonl",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-029-project/2fdfb114-5c38-4a61-a823-7f351a6bf65c/subagents/agent-adb5283b38e62790f.meta.json",
+    "manifest.json",
+    "plan.json",
+    "raw/manifest.json",
+    "raw/raw.jsonl",
+    "raw/stderr.raw",
+    "raw/transport.json",
+    "report.json",
+    "result.json",
+    "summary.json"
+  ]
+}

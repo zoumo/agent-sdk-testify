@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-case-ownership-20261102-174500/candidate.json",
+    "sha256": "0f9ca73d05a018944a5b1cd6b66b174764120e4afe7e880a11dce2c13d252342",
+    "bytes": 6401
+  },
+  "artifact": {
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-case-ownership-20261102-174500/extraction.html",
+    "sha256": "bc2cd890b97d4703b26331fc84cc47a990b473f76df77c1680b7fccd84adb984",
+    "bytes": 851385
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-case-ownership-20261102-174500/extraction.finalize.json",
+    "summaryReceipt": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-case-ownership-20261102-174500/extraction.finalize-summary.json",
+    "browserCheckReceipt": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-case-ownership-20261102-174500/extraction.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T09:56:55.758Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5364,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

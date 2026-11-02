@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "origin": "real-agent",
+  "qualification": {
+    "method": "official-sdk",
+    "qualifiedAt": "2026-11-01T06:55:59.622159+00:00"
+  },
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "captureFiles": {
+    "config/.claude.json": "6c70998076b582a84a5ac4806e47cc298a0120be694962309b19216d30747017",
+    "config/backups/.claude.json.backup.1793515090911": "bc99f02c6862e4eb40cbab9e22ca805fff2261b991bfeee4bc53820ae8b5c26b",
+    "manifest.json": "b157db22460a65e3e3378a68fd0dd2df64ab8ff76c60a3febc27786eeacfd523",
+    "materials/case.json": "f7538dca1abb041ffce800d88818175969d185d8fac65343cfdaeaf5be88abf9",
+    "peer-main": "897fee64f1d67f231f43cf1184dc99f921abe929b39c7e9136e3d3a8c252521b",
+    "peer-main.json": "eff6e29b84ded5d97d93b0e972639215144001b3ace7acd1afef8ad330074414",
+    "plan.json": "f7538dca1abb041ffce800d88818175969d185d8fac65343cfdaeaf5be88abf9",
+    "project/numbers.txt": "dcf7d0378a8e4f73292ceb621c258ebd4ae42b709fa70c57f5705a38318f0c19",
+    "raw/manifest.json": "513a74bd45ce0810b44fb78a88437c7ec87cfee22d9ff49a95e62160404af990",
+    "raw/raw.jsonl": "b95208363cbb24ca0eada1f63ff1239730cf90dfe71a8c4f07208e39798dff58",
+    "raw/stderr.raw": "f1141d3168a6a8bbb7cf0e097b275ccaf33b77235982ba892cade7698d206dce",
+    "raw/transport.json": "3fbe2e45bfff26812cd7fd8bcba573901f84b439191f1a62b60678e72747843b",
+    "report.json": "2610f7f4ec8b3302def59f6863487e3d3a95cd11e762933cba9f5130f982bb8d",
+    "request.json": "a686b71f75536c752411020f0f48f1aa54420812c46784cd99e3bb9fd67fa8a0",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "summary.json": "540b14eea38ff5a5d399a050570c12c06380d5f1f24c78a30228bedca3e59bab"
+  },
+  "replayFiles": {
+    "materialization.json": "5e75aa810ebf75f1a7dd36f2755a5090b6e7eb7c1b0029a1eb152ed54affb609",
+    "replay-peer.json": "c94ff64f2057e988a845d6669bad53eb9930f07e546119bb5e3bb2eafabfe839",
+    "replay-report.json": "2610f7f4ec8b3302def59f6863487e3d3a95cd11e762933cba9f5130f982bb8d",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "summary.json": "ba9336cc81b6705dec6527cb72a23da539060783837a4c95e4f245429b5005e7"
+  },
+  "publishFiles": [
+    "manifest.json",
+    "plan.json",
+    "raw/manifest.json",
+    "raw/raw.jsonl",
+    "raw/stderr.raw",
+    "raw/transport.json",
+    "report.json",
+    "result.json",
+    "summary.json"
+  ]
+}

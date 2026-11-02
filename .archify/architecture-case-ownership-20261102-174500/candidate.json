@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "待审批：本仓库定义 case 与录制，SDK 消费 mock",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "output": ".archify/architecture-case-ownership-20261102-174500/extraction.html"
+  },
+  "components": [
+    {
+      "id": "suite",
+      "type": "database",
+      "label": "本仓库：case 与验收合同",
+      "sublabel": "输入、预期、binding、required 政策",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "publish",
+      "type": "backend",
+      "label": "本仓库：官方录制与审核",
+      "sublabel": "官方 SDK 执行、录制、严格回放",
+      "pos": [
+        470,
+        40
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "builtin",
+      "type": "database",
+      "label": "本仓库：材料库与发布",
+      "sublabel": "固定索引、合格录制、内置快照",
+      "pos": [
+        900,
+        40
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "runner",
+      "type": "backend",
+      "label": "工具：replay / simulate",
+      "sublabel": "准备环境，启动外部 driver，汇总",
+      "pos": [
+        40,
+        440
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "prepare",
+      "type": "backend",
+      "label": "工具：场景查询与 prepare",
+      "sublabel": "返回 run.json、env、入口和合同",
+      "pos": [
+        470,
+        440
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "resources",
+      "type": "database",
+      "label": "每次运行：隔离目录",
+      "sublabel": "workspace / HOME / config / tmp",
+      "pos": [
+        900,
+        440
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "sdkflow",
+      "type": "external",
+      "label": "agent-sdk-go：测试 → SDK",
+      "sublabel": "自有适配与业务断言；消费 mock",
+      "pos": [
+        40,
+        710
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "mock",
+      "type": "backend",
+      "label": "工具：严格协议 mock",
+      "sublabel": "Codex / Claude JSONL；逐连接回执",
+      "pos": [
+        470,
+        710
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "evidence",
+      "type": "database",
+      "label": "持久证据：回放与清理",
+      "sublabel": "verify 核验；cleanup 保留报告",
+      "pos": [
+        900,
+        710
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "massflow",
+      "type": "external",
+      "label": "MASS 测试 → MASS → SDK",
+      "sublabel": "业务接口推进；应用 env 与入口",
+      "pos": [
+        470,
+        970
+      ],
+      "size": [
+        270,
+        82
+      ]
+    },
+    {
+      "id": "originals",
+      "type": "database",
+      "label": "本工具管理：私有原件归档",
+      "sublabel": "Git 外保存完整采集、失败和原始哈希",
+      "pos": [
+        470,
+        235
+      ],
+      "size": [
+        270,
+        82
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "suite-publish",
+      "from": "suite",
+      "to": "publish",
+      "label": "按 case 执行"
+    },
+    {
+      "id": "publish-builtin",
+      "from": "publish",
+      "to": "builtin",
+      "label": "合格后采用与发布"
+    },
+    {
+      "id": "builtin-prepare",
+      "from": "builtin",
+      "to": "prepare",
+      "label": "释放所选材料"
+    },
+    {
+      "id": "runner-prepare",
+      "from": "runner",
+      "to": "prepare",
+      "label": "共用准备逻辑"
+    },
+    {
+      "id": "prepare-resources",
+      "from": "prepare",
+      "to": "resources",
+      "label": "创建自有资源"
+    },
+    {
+      "id": "runner-sdk",
+      "from": "runner",
+      "to": "sdkflow",
+      "label": "request / result"
+    },
+    {
+      "id": "prepare-mock",
+      "from": "prepare",
+      "to": "mock",
+      "label": "绑定 run / 连接"
+    },
+    {
+      "id": "sdk-mock",
+      "from": "sdkflow",
+      "to": "mock",
+      "label": "原生 stdio"
+    },
+    {
+      "id": "mass-mock",
+      "from": "massflow",
+      "to": "mock",
+      "label": "原生 stdio"
+    },
+    {
+      "id": "mock-evidence",
+      "from": "mock",
+      "to": "evidence",
+      "label": "写独立回执"
+    },
+    {
+      "id": "record-originals",
+      "from": "publish",
+      "to": "originals",
+      "label": "保存全部原件"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "里程碑 A：先独立工具",
+      "items": [
+        "case、binding、官方录制 driver、材料和索引迁入本仓库。",
+        "录制及官方回放在本仓库执行，Go SDK 不作为上游。",
+        "Go SDK 只保留操作适配、业务断言和 mock 消费测试。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "里程碑 B：内置场景与下游使用",
+      "items": [
+        "本图为目标设计，新增命令尚未实现。",
+        "内置集合由本仓库的 case、索引和合格材料生成。",
+        "SDK 与 MASS 共用准备、匹配和回执；MASS 无需 driver。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "环境需要配置给 SDK 宿主",
+      "items": [
+        "Codex：HOME、CODEX_HOME、tmp 与必要历史。",
+        "Claude：CLAUDE_CONFIG_DIR、workspace 与派生历史。",
+        "mock 子进程不能修改父进程；调用方在启动宿主前应用配置。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "成功与结束分别核验",
+      "items": [
+        "调用方断言业务，并先关闭自己的 Session / Runtime。",
+        "verify 检查所有连接的严格匹配、完整消费、EOF 和退出。",
+        "cleanup 清理工具自有目录；业务服务由调用方关闭。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "材料和证据的边界",
+      "items": [
+        "原件由本工具管理，私有采集包在 Git 外保留。",
+        "审核采用录制及索引在本仓库维护，发布集合随版本内置。",
+        "运行资源清理，报告保留；完整覆盖缺口仍须报告。"
+      ]
+    }
+  ]
+}

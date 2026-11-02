@@ -1,0 +1,18 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "5057a91172c437d02b70627ea4a79758e37ed49768bd081bc1a472d884384074",
+    "raw.jsonl": "71078b22808963660b5423e21c513c8d4f5f94a0c3055d7eecb85ff10ef0a817",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "b73429dd0cfd76b3e64fbaf75a0bfbda766d01c26cf8a6df707a8d44934d8a22"
+  },
+  "planSHA256": "4d2ed8989fe8b1413d7b87877a80ef23af199b66b995f6ae17795eceb9d5a480",
+  "provenance": "capture",
+  "remotePhaseFiles": {},
+  "savedFiles": {
+    "config/sessions/2026/11/01/rollout-2026-11-01T14-38-07-01a195d4-6645-7521-9d3a-f9140cf8bc25.jsonl": "b352ca3d9269632b131d2ebc6c896f1768f8ffd24fabcd0277972f4849c88019",
+    "config/sessions/2026/11/01/rollout-2026-11-01T14-38-09-01a195d4-701b-7710-954d-0399d586a3dd.jsonl": "fdbfeacb6219246a3153aa06576a01020000bef39d396708cbf0f6ae651dedc4"
+  },
+  "status": "passed"
+}

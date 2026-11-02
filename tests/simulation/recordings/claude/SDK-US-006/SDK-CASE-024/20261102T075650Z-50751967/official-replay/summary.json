@@ -1,0 +1,20 @@
+{
+  "case": "SDK-CASE-024",
+  "driver": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/venv/bin/agent-sdk-testify-claude",
+  "driverArgs": null,
+  "materializationSHA256": "23b63ed538f1ab9fb89ceebf641602963a3712c23fb5d87cd77b4f5f9e8d0f07",
+  "mode": "replay",
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/archive/qualification/20261102T075649Z-2566270008/replay",
+  "provider": "claude",
+  "recordingSHA256": "f86651e9a48d365aebbabbc861667ee75e06d9492fe05461c66bcb8038034156",
+  "result": {
+    "status": "passed"
+  },
+  "source": {
+    "manifest.json": "39f4b8bba5d7733458c8d9c563b0b43135e850f85a846656d004bf5ec9a323f0",
+    "plan.json": "d54b5b09c6f525afc415a7d01d5ddb27cabcb23dc40b77123fcb68fd8d3deea2",
+    "report.json": "908c9032542ddd9d02fc97ad884490575d6eaf4f40743c3eb773ed7821deb8ae",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "summary.json": "1ca3714ba669c9240412414264258e8eb5d7dd1fb649bad2d287115369fe2375"
+  }
+}

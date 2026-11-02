@@ -1,0 +1,18 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "13d29350208038356e09cce68f9f126f3891d393dd16e48001ae9cab09354089",
+    "raw.jsonl": "556dc088c1e38d7826465d0e3df9ed028bf9a75fe7972861da7dcdc599cd94fc",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "209e563d31d5f320de43ceda53ff3ce3b628fd86d20369c6cc952f916d82b1de"
+  },
+  "planSHA256": "ec2f1f85fd6904cf3c15aff7ad3e58e832ffdcbc0e2fcda04d62a988ee13eec6",
+  "provenance": "capture",
+  "remotePhaseFiles": {},
+  "savedFiles": {
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl": "a01cd3dc310eb50f3fc798404baed90ea0a6c583768eefd2ea949b5287d6bc4d",
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl": "6dc41669ec357974d4ec0dd08740ff83d7d069e3c1e7932b54584806c37ac54c"
+  },
+  "status": "passed"
+}

@@ -1,0 +1,72 @@
+{
+  "_fixtureProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-001/project",
+  "args": [
+    "app-server",
+    "--stdio",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-001",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "连续提交文本输入并在结果后继续观察。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-001",
+  "cli": "/Users/jim/.bun/bin/codex",
+  "cliSHA256": "61b0194f3bb6534439c8d26a3ed57d0805f84b884588b761795323eeb92fcf70",
+  "cliVersion": "codex-cli 0.163.0",
+  "config": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-001/config",
+  "driverProfile": "continuation",
+  "home": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-001/home",
+  "model": "theta/glm-5.3",
+  "project": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-001/project",
+  "prompts": [
+    "Reply with the word Ready.",
+    "Reply with the word Done."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-001/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-001",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-001",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "连续提交文本输入并在结果后继续观察。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-001",
+    "configuration": {},
+    "driverProfile": "continuation",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "requireSessionContinuation": true
+    },
+    "prompts": [
+      "Reply with the word Ready.",
+      "Reply with the word Done."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

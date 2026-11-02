@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "b51e1e4d-aa67-46bf-b60a-09b93bfadddc",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-case-ownership-20261102-174500/candidate.json",
+  "output": "/Users/jim/code/zoumo/agent-sdk-testify/.archify/architecture-case-ownership-20261102-174500/extraction.html",
+  "specification": {
+    "sha256": "0f9ca73d05a018944a5b1cd6b66b174764120e4afe7e880a11dce2c13d252342",
+    "bytes": 6401
+  },
+  "artifact": {
+    "sha256": "bc2cd890b97d4703b26331fc84cc47a990b473f76df77c1680b7fccd84adb984",
+    "bytes": 851385
+  }
+}

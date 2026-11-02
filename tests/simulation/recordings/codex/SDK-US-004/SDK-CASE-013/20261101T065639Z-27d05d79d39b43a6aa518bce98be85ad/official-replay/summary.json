@@ -1,0 +1,19 @@
+{
+  "case": "SDK-CASE-013",
+  "driver": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/venv/bin/agent-sdk-testify-codex",
+  "driverArgs": null,
+  "mode": "replay",
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/replays/batch/codex-SDK-CASE-013",
+  "provider": "codex",
+  "recordingSHA256": "309e63b93c1a0d82e098e6571c2a22d75d2832f16f2f365d2ea2a13a90918834",
+  "result": {
+    "status": "passed"
+  },
+  "source": {
+    "manifest.json": "abb39496080a347337555052e6e0a8b5d52c0c8a93eafec3b48113cad2349001",
+    "plan.json": "c17eb587dce02ae02fe33ba4f547af74033101bb12e475f37674625e6e006899",
+    "report.json": "b826ec7d1fa86026408f6d502e86a42098e99a9278fb2c8921ee4f584ec11e3e",
+    "result.json": "a12bffc24bc0c4a90a041fe128326ed57302a0d26c20d42fd3398ed84981e190",
+    "summary.json": "ff93235eb0c55e61919a28fecf54598591cd810628af85ad8f6cd4a0a0f7672d"
+  }
+}

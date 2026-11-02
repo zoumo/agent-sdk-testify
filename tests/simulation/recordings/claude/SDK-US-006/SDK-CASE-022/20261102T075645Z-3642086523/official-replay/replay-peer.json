@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "fullConsumption": true,
+  "nativeLaunched": false,
+  "peer": "Go native mock",
+  "provider": "claude",
+  "frames": 32,
+  "recordingSHA256": "0830b5fab5d99c69e5645ca5d51d097300b632943fd1971d66aa363236adc472",
+  "clientEOF": true
+}

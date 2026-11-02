@@ -1,0 +1,85 @@
+{
+  "_fixtureProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-016/project",
+  "args": [
+    "app-server",
+    "--stdio",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "agents.enabled=true",
+    "-c",
+    "features.multi_agent=true",
+    "-c",
+    "features.multi_agent_v2.enabled=true",
+    "-c",
+    "features.multi_agent_v2.non_code_mode_only=false",
+    "-c",
+    "features.multi_agent_v2.hide_spawn_agent_metadata=false",
+    "-c",
+    "features.multi_agent_v2_dynamic_tools=true",
+    "-c",
+    "features.shell_tool=false",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-016",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察直接子 Agent 的身份、输出与结果。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-016",
+  "cli": "/Users/jim/.bun/bin/codex",
+  "cliSHA256": "61b0194f3bb6534439c8d26a3ed57d0805f84b884588b761795323eeb92fcf70",
+  "cliVersion": "codex-cli 0.163.0",
+  "config": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-016/config",
+  "driverProfile": "children",
+  "home": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-016/home",
+  "model": "theta/glm-5.3",
+  "project": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-016/project",
+  "prompts": [
+    "Use collaboration.spawn_agent exactly once with agent_type fixture_reader, task_name fixture_read_task, and message exactly \"Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\". Wait for this child with collaboration.wait_agent, then report its result. The root must not read files, call the child gate, use shell/network/other tools, or create another child."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-016/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-016",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-016",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察直接子 Agent 的身份、输出与结果。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-016",
+    "configuration": {},
+    "driverProfile": "children",
+    "files": {
+      "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n",
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "childTools": "inherited-dynamic-v2"
+    },
+    "prompts": [
+      "Use collaboration.spawn_agent exactly once with agent_type fixture_reader, task_name fixture_read_task, and message exactly \"Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\". Wait for this child with collaboration.wait_agent, then report its result. The root must not read files, call the child gate, use shell/network/other tools, or create another child."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

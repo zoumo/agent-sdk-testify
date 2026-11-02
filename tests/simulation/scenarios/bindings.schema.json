@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 3
+    },
+    "provider": {
+      "type": "string"
+    },
+    "cases": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "required": {
+            "type": "boolean"
+          },
+          "execution": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "live-selected-path",
+                  "planned",
+                  "unsupported"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "files": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "requests": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "answers": {
+            "type": "object"
+          },
+          "configuration": {
+            "type": "object",
+            "properties": {
+              "timing": {
+                "const": "before-first-input"
+              },
+              "modelSource": {
+                "enum": [
+                  "session",
+                  "prepared-or-default"
+                ]
+              },
+              "thinking": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "effort": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "effectiveValue": {
+                "const": "unknown-unless-observed"
+              }
+            },
+            "additionalProperties": false
+          },
+          "progressBarrier": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "requirePostResultEvent": {
+                "type": "boolean"
+              },
+              "nativeFileTool": {
+                "const": "apply_patch"
+              },
+              "childTools": {
+                "const": "inherited-dynamic-v2"
+              },
+              "backgroundReadBarrier": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "files",
+          "requests",
+          "answers",
+          "configuration",
+          "progressBarrier"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "version",
+    "provider",
+    "cases"
+  ],
+  "additionalProperties": false
+}

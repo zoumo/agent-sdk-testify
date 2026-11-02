@@ -1,0 +1,50 @@
+{
+  "captureFiles": {
+    "config/.claude.json": "346e42648a2bb2339a4169406fb41d79054dc5b334e8921090183d908cabe745",
+    "config/backups/.claude.json.backup.1793606199586": "cad02fc92be7e83a3789972bad94883e814adabae01ca12dc9b447ab22597dcc",
+    "manifest.json": "39f4b8bba5d7733458c8d9c563b0b43135e850f85a846656d004bf5ec9a323f0",
+    "materials/case.json": "d54b5b09c6f525afc415a7d01d5ddb27cabcb23dc40b77123fcb68fd8d3deea2",
+    "peer-main": "16a284bb0ab728d82a5ef91196855457cfd99ba01d539b6448bf3f94964ad316",
+    "peer-main.json": "880a0ec44c20a09c34dab75e41540e7a629e41da5564f733ef6cbddfd39f12a0",
+    "plan.json": "d54b5b09c6f525afc415a7d01d5ddb27cabcb23dc40b77123fcb68fd8d3deea2",
+    "project/numbers.txt": "dcf7d0378a8e4f73292ceb621c258ebd4ae42b709fa70c57f5705a38318f0c19",
+    "raw/manifest.json": "0e4268a5becd3e713f07ad53795bc925a74ff033678df050a6878a969a822e50",
+    "raw/raw.jsonl": "f86651e9a48d365aebbabbc861667ee75e06d9492fe05461c66bcb8038034156",
+    "raw/stderr.raw": "f1141d3168a6a8bbb7cf0e097b275ccaf33b77235982ba892cade7698d206dce",
+    "raw/transport.json": "c59a0282c77fb264f997d34f86b73a768f726b27683d140036645a06388da52f",
+    "report.json": "908c9032542ddd9d02fc97ad884490575d6eaf4f40743c3eb773ed7821deb8ae",
+    "request.json": "ff7e8ea8337f5a4c1b08e455b21f55dafb1a6907034722b3e8ee1347faae6c05",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "summary.json": "1ca3714ba669c9240412414264258e8eb5d7dd1fb649bad2d287115369fe2375"
+  },
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "origin": "real-agent",
+  "publishFiles": [
+    "manifest.json",
+    "plan.json",
+    "raw/manifest.json",
+    "raw/raw.jsonl",
+    "raw/stderr.raw",
+    "raw/transport.json",
+    "report.json",
+    "result.json",
+    "summary.json"
+  ],
+  "qualification": {
+    "method": "official-sdk",
+    "qualifiedAt": "2026-11-02T07:56:50.330647Z"
+  },
+  "replayFiles": {
+    "materialization.json": "23b63ed538f1ab9fb89ceebf641602963a3712c23fb5d87cd77b4f5f9e8d0f07",
+    "replay-peer.json": "6ca065f9f7c8e07e84d052c6b62f99ee2675b14254ca0c60bce8bdc09278dbd6",
+    "replay-report.json": "908c9032542ddd9d02fc97ad884490575d6eaf4f40743c3eb773ed7821deb8ae",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "summary.json": "ab7530427928c26fa123ed91b8cbdca38dabfbb12b80ec5e476beaa6f0a93819"
+  },
+  "version": 1
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent-mock JSONL recording frame v1",
+  "type": "object",
+  "properties": {
+    "ordinal": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "direction": {
+      "enum": [
+        "c2s",
+        "s2c"
+      ]
+    },
+    "channel": {
+      "enum": [
+        "protocol",
+        "control"
+      ]
+    },
+    "epoch": {
+      "const": 1
+    },
+    "elapsedMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "wire": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "ordinal",
+    "direction",
+    "channel",
+    "epoch",
+    "elapsedMs",
+    "wire"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "agent-recording-scenarios"
+    },
+    "version": {
+      "const": 2
+    },
+    "stories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "format",
+    "version",
+    "stories"
+  ],
+  "additionalProperties": false
+}

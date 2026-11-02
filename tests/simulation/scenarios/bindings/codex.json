@@ -1,0 +1,415 @@
+{
+  "version": 3,
+  "provider": "codex",
+  "cases": {
+    "SDK-CASE-001": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-002": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-003": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Codex native UserInput has no document variant; rejection is not successful document input"
+      }
+    },
+    "SDK-CASE-004": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-005": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "item/started with a non-user item type"
+    },
+    "SDK-CASE-006": {
+      "inputs": [
+        "Use fixture_read exactly once on numbers.txt, add the two integers, then use fixture_write exactly once on summary.txt with text exactly sum=42 followed by a newline. Use no other tools."
+      ],
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "fixture.read": "fixture_read",
+        "fixture.write": "fixture_write"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-007": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "fixture.read": "fixture_read"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-008": {
+      "inputs": [
+        "Use apply_patch exactly once to add denied.txt with content denied followed by a newline in the working directory. The native file change approval will be denied. Report the decision without retrying or using shell or another tool."
+      ],
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "approval.deny": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "parameters": {
+        "nativeFileTool": "apply_patch"
+      }
+    },
+    "SDK-CASE-009": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "approval.answer": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "parameters": {
+        "nativeFileTool": "apply_patch"
+      },
+      "inputs": [
+        "Use apply_patch exactly once to add approved.txt with content SYNTHETIC_APPROVED followed by a newline in the working directory. The native file change approval will be allowed. Report the decision without retrying or using shell or another tool."
+      ]
+    },
+    "SDK-CASE-010": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "approval.answer": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-011": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "approval.answer": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-012": {
+      "execution": {
+        "mode": "planned",
+        "reason": "必需能力的录制验证阻塞：现有官方 Python SDK 0.161.0 与 0.163.0 在唯一读取线程同步执行审批回调，持有审批会阻塞控制回执和事件，公开 API 无延后回答机制。先回答再观察不满足本 case；planned 仅表示当前驱动路径未完成，不豁免必需门禁。这是语言驱动限制，不是 Codex 原生协议不支持，也不是 Go SDK 已验证失败。"
+      },
+      "inputs": [],
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "permission.read": "Read",
+        "permission.held-control": "held-control",
+        "permission.held-event": "held-event"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-013": {
+      "inputs": [
+        "Synthetic interaction fixture. Use request_user_input exactly once to ask which color to use: Amber or Indigo. Give exactly those two choices. After receiving the answer, report the chosen color briefly and finish. Do not use other tools or spawn agents."
+      ],
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "question.answer": "question"
+      },
+      "answers": {
+        "choice": "Amber",
+        "options": [
+          "Amber",
+          "Indigo"
+        ]
+      },
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-014": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "question.answer": "question"
+      },
+      "answers": {
+        "choice": "SYNTHETIC_FREE_TEXT",
+        "options": []
+      },
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-015": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {
+        "question.answer": "question"
+      },
+      "answers": {
+        "choice": "Amber",
+        "options": [
+          "Amber",
+          "Indigo"
+        ]
+      },
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-016": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use collaboration.spawn_agent exactly once with agent_type fixture_reader, task_name fixture_read_task, and message exactly \"Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\". Wait for this child with collaboration.wait_agent, then report its result. The root must not read files, call the child gate, use shell/network/other tools, or create another child."
+      ],
+      "parameters": {
+        "childTools": "inherited-dynamic-v2"
+      }
+    },
+    "SDK-CASE-017": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-018": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-019": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use collaboration.spawn_agent exactly once with agent_type fixture_reader, task_name fixture_read_task, and message exactly \"First call mcp__child_gate__wait_for_root with no arguments and wait for its success. Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\". Return ROOT_RETURNED immediately after launch, without waiting, messaging or interrupting the child. The root must not read files, call the child gate, use shell/network/other tools, or create another child."
+      ],
+      "parameters": {
+        "childTools": "inherited-dynamic-v2"
+      }
+    },
+    "SDK-CASE-020": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+      ]
+    },
+    "SDK-CASE-021": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-022": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {
+        "timing": "before-first-input",
+        "modelSource": "session",
+        "thinking": {
+          "effort": "low"
+        },
+        "effectiveValue": "unknown-unless-observed"
+      },
+      "progressBarrier": null
+    },
+    "SDK-CASE-023": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-024": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-025": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Codex exposes reasoning effort, not an independent thinking mode; effort is required and verified by SDK-CASE-027. The old SDK-CASE-025 recording remains retained as effort evidence only."
+      }
+    },
+    "SDK-CASE-026": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Codex exposes reasoning effort, not a dynamic token budget"
+      }
+    },
+    "SDK-CASE-027": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-028": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-029": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+      ]
+    },
+    "SDK-CASE-030": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "item/started with a non-user item type"
+    },
+    "SDK-CASE-031": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-032": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-033": {
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-034": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+      ]
+    },
+    "SDK-CASE-035": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-036": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    }
+  }
+}

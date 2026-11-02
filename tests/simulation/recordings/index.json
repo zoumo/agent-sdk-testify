@@ -1,0 +1,723 @@
+{
+  "cases": [
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "900e945fdf80239d3b9248e6d211ae7d6d9bb3a4802f5e332288e161c2cd8d14",
+      "caseId": "SDK-CASE-001",
+      "materials": "claude/SDK-US-001/SDK-CASE-001/20261101T065847Z-7f3b2b919eef44a091d5ce4e539406d1",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "13b504a18458defad631802e3cb049cc519e05a6e96648354282aa81c738af77",
+      "caseId": "SDK-CASE-002",
+      "materials": "claude/SDK-US-001/SDK-CASE-002/20261102T075212Z-212585344",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "2278008968840f3713010882eebe59661a6f8121b80cd364ea93a365dea3beef",
+      "caseId": "SDK-CASE-003",
+      "materials": "claude/SDK-US-001/SDK-CASE-003/20261101T065848Z-02d448bf51c742848ce4d5125b98435a",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "failed",
+      "verificationReason": "Document block was submitted, but the recorded result says Nothing was supplied; successful replay does not prove document reading. Original reports are retained unchanged."
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "2db4f5ef678f2c28467404a2ebf29077d30de40b602e80d7591a24b8fd99ef73",
+      "caseId": "SDK-CASE-004",
+      "materials": "claude/SDK-US-001/SDK-CASE-004/20261102T075348Z-4292286865",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "51c5232cdbaa20cf908f1db20849e94b08a1e9d8bb6d1449ee50d344eace7dc0",
+      "caseId": "SDK-CASE-005",
+      "materials": "claude/SDK-US-001/SDK-CASE-005/20261101T065848Z-738102f3ddbf44c5b9acbf806e8d71b0",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "0d687d6c41d30872d59d246ae169ccd64573370080503680b8d47ad0075317a2",
+      "caseId": "SDK-CASE-006",
+      "materials": "claude/SDK-US-002/SDK-CASE-006/20261101T065848Z-94861e6c72e44a59b0ecf4e4a2a24e78",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "37c1f51c5c226506d506b46c7110d73012bedfb5645120b6e79c092b8a911e93",
+      "caseId": "SDK-CASE-007",
+      "materials": "claude/SDK-US-002/SDK-CASE-007/20261101T065849Z-98f38da372054df1a6930ea80487cb22",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "1134327fe34d6f333fff23ea0d78d092c80e76fa041c8282c137a7650d4a7624",
+      "caseId": "SDK-CASE-008",
+      "materials": "claude/SDK-US-003/SDK-CASE-008/20261101T065849Z-eb2443e425104edaaef4236f30d16549",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e13b5eb56822dbf0d0ba203513a96877738d3aa1a38ecad00a0ea47ffab094d3",
+      "caseId": "SDK-CASE-009",
+      "materials": "claude/SDK-US-003/SDK-CASE-009/20261101T065849Z-63c81cac5170414286dcc6dc9ca0c7d4",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "6f17f4e5f0d03cedc8120310b0829e40360047e51b1bc5bb3b3b7db6b01454b2",
+      "caseId": "SDK-CASE-010",
+      "materials": "claude/SDK-US-003/SDK-CASE-010/20261101T065849Z-b7bf1428bfda419c9863519a70002444",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "afc1e32cf1d670cc7008b14eaef4bdd8b4a0f087d9b59048a1c8f87ba9149aeb",
+      "caseId": "SDK-CASE-011",
+      "materials": "claude/SDK-US-003/SDK-CASE-011/20261101T065849Z-995a23f73cfc4ddc8c6bf091b616c3cc",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "4591a94cc0ece1fcde7cf87b49b5947a479082f4e84ac47491ea1c5967a12d3c",
+      "caseId": "SDK-CASE-012",
+      "materials": "claude/SDK-US-003/SDK-CASE-012/20261101T065849Z-cd8f9b2815ab4b64947bf68120b1ec5c",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "933eaa9eac2fce6ff4d833bafa091445a68020aa57ccd01333c9af8edcc2305a",
+      "caseId": "SDK-CASE-013",
+      "materials": "claude/SDK-US-004/SDK-CASE-013/20261101T065850Z-525ab2c9e40949379bbea5f6943dd78f",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "f9dbbf922208aa5fe19884a2eb8b5588ac6dc1b172b6dc58bc6d1397b85c98eb",
+      "caseId": "SDK-CASE-014",
+      "materials": "claude/SDK-US-004/SDK-CASE-014/20261101T065850Z-61160de9d9224663ab0e9b0a22650e45",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "a2cd2117078a2e9bcfb86c306ad70b8072485ccd5b9baf9ac74c651f0bef045b",
+      "caseId": "SDK-CASE-015",
+      "materials": "claude/SDK-US-004/SDK-CASE-015/20261101T065850Z-b72acb7c57a64c4cba28aa16a426d90d",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e54ed08992af8c0ebc9f37ba666f956be25fbc6d0aabaadf4ac408d39a426309",
+      "caseId": "SDK-CASE-016",
+      "materials": "claude/SDK-US-005/SDK-CASE-016/20261101T065850Z-be778ab9e5db44b48c35d7c4123dc8e5",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-017",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Claude 原生子 Agent 不支持创建嵌套子 Agent。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e080a240b9e8c68a2e42f80e490e9d685cad08af67083645a9495b216db391aa",
+      "caseId": "SDK-CASE-018",
+      "materials": "claude/SDK-US-005/SDK-CASE-018/20261101T065850Z-a9c6c67e5ec343fc9d92e54b8be67844",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "672386571b2c3aef122e570b19c0f186c00137fd3535c334b8654cf5298e3e5b",
+      "caseId": "SDK-CASE-019",
+      "materials": "claude/SDK-US-005/SDK-CASE-019/20261101T065851Z-df4fd3d32d0344b6b67213b81d58258f",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "22c7497fe7ad89d744425a2fb99bcb172604ca519a04298f194dd2b9ad3657d1",
+      "caseId": "SDK-CASE-020",
+      "materials": "claude/SDK-US-005/SDK-CASE-020/20261101T065851Z-53e845daf2d1485fb5eb1de3a7304534",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "62927212417fcf1cf13c008132f882fdaac53c142c90c67d527131c37ee21967",
+      "caseId": "SDK-CASE-021",
+      "materials": "claude/SDK-US-006/SDK-CASE-021/20261101T065851Z-ce2275e635e94fcaa2b3f4cfb30aa543",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "6e0962d46e8ae01e5dc325d3223315123f273a1196c907bbe2c265623addb564",
+      "caseId": "SDK-CASE-022",
+      "materials": "claude/SDK-US-006/SDK-CASE-022/20261102T075645Z-3642086523",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "20363c19174b86ffc4f545fd32693e81fd5a480ecbc3de6eba7bf613e45d48d7",
+      "caseId": "SDK-CASE-023",
+      "materials": "claude/SDK-US-006/SDK-CASE-023/20261102T075648Z-1023864710",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "79c00e90bde4e86d986e3d94a81992053557cf57e97c09f4d7e19223c71fd624",
+      "caseId": "SDK-CASE-024",
+      "materials": "claude/SDK-US-006/SDK-CASE-024/20261102T075650Z-50751967",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "194278853b92925a4ee59989876b6a045afdf815cf6ae1715879425c8791326f",
+      "caseId": "SDK-CASE-025",
+      "materials": "claude/SDK-US-006/SDK-CASE-025/20261101T065852Z-d684b6382f304140b7bf4e1751271a3b",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "d3b06112d60610ea9380988592292184d9124f36b9c22a13add52efbc74c1061",
+      "caseId": "SDK-CASE-026",
+      "materials": "claude/SDK-US-006/SDK-CASE-026/20261101T065852Z-57b6621965c74b0ea39044736101b0f2",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "set_max_thinking_tokens was acknowledged, but configurationEvidence.effectiveScope is unknown; actual model budget effect is not verified."
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "4e797e38a44691f8ad921e3a087b847f23740caee5ace8b0d966e2d293bdbda7",
+      "caseId": "SDK-CASE-027",
+      "materials": "claude/SDK-US-006/SDK-CASE-027/20261101T065853Z-56224e0852044b75a75ca59bae3d7a78",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "f090145d59f89e347f1d9e523b7a06fbb40e5806c2fc4bfa47a1dd58908c5c99",
+      "caseId": "SDK-CASE-028",
+      "materials": "claude/SDK-US-006/SDK-CASE-028/20261101T065853Z-52f4014250824cc5b5168de3397f6614",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "9da4b73302efe7cb98805d32ee3bdaf031af654faeaa847f0a33b5a5ae536438",
+      "caseId": "SDK-CASE-029",
+      "materials": "claude/SDK-US-006/SDK-CASE-029/20261101T065853Z-47188c3f3da1427a840d285e32e353a6",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "5a16f90e4cdf56b190794efbe4d1769d6e338df586cf8fc72ed5f7d8cbd0f5a3",
+      "caseId": "SDK-CASE-030",
+      "materials": "claude/SDK-US-007/SDK-CASE-030/20261101T065853Z-9ff1ea3a3677431e818dd104353ef90b",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "268a787babef3c8fde7bdb0959c07797f07a6e19fd2b2375061c80ad2aa38701",
+      "caseId": "SDK-CASE-031",
+      "materials": "claude/SDK-US-007/SDK-CASE-031/20261101T065853Z-42e9334df78148079caf608e3ee51494",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-032",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-007",
+      "verification": "blocked",
+      "verificationReason": "当前 Claude SDK 仅支持本地 stdio；原生 remote-control 需要 claude.ai 订阅登录，现有配置未提供可录制的远端 SDK 连接。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "58c9afa0d79fb67dc733945e61e409f9a8240b732ddece1d4dfb8754fa8d36f8",
+      "caseId": "SDK-CASE-033",
+      "materials": "claude/SDK-US-008/SDK-CASE-033/20261101T065854Z-de0f8d04c0614653b002e2089969a11c",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "305d37edee3eb2d3229544540a72a99f11d6790590139ad3d2f98d1ef703d61a",
+      "caseId": "SDK-CASE-034",
+      "materials": "claude/SDK-US-008/SDK-CASE-034/20261101T065854Z-d9ef01ee189440fb8503e5e4b79168a3",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "3cd587cd7506efd55e5f71e49c87d0fd335d53e3c315199b2ec0af7897cad549",
+      "caseId": "SDK-CASE-035",
+      "materials": "claude/SDK-US-008/SDK-CASE-035/20261101T065854Z-058df049752347f1843d2f99be3347e4",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "95783e4132d6e17400713473b2a27c704b2d7f1443736119d5a1324af1a6f40c",
+      "caseId": "SDK-CASE-036",
+      "materials": "claude/SDK-US-008/SDK-CASE-036/20261101T065854Z-acad0bc198c54064896ced4f8722519a",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "c2a2efe1f8b3612d74c3b578d0abca9cad5744b4ddc485f585d58cf211c89ab7",
+      "caseId": "SDK-CASE-001",
+      "materials": "codex/SDK-US-001/SDK-CASE-001/20261101T065559Z-6a7c186793d249cb8595d5a057c65941",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e144f0e8e7af92376ca6e883d91b2af1b51ff5383502000a3a5d98392d09d2e2",
+      "caseId": "SDK-CASE-002",
+      "materials": "codex/SDK-US-001/SDK-CASE-002/20261102T075331Z-2839489936",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-003",
+      "provider": "codex",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "unsupported",
+      "verificationReason": "Codex native UserInput has no document variant; rejection is not successful document input"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "3d251a41b52a4cdd37874ac23a5dcb1653a78f645cbb2a47971a76371e596417",
+      "caseId": "SDK-CASE-004",
+      "materials": "codex/SDK-US-001/SDK-CASE-004/20261102T075333Z-610000851",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e2f0d6387d676110dde6a1088016229d237bbb364e2aec2b4d5a5add383bfa3a",
+      "caseId": "SDK-CASE-005",
+      "materials": "codex/SDK-US-001/SDK-CASE-005/20261101T065604Z-d22f40c990aa4d0eb628e3169b1d78ad",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "971ed5904ea8b8e044febc53d00ac8493103605eec105a3bb97cc27dc4b66826",
+      "caseId": "SDK-CASE-006",
+      "materials": "codex/SDK-US-002/SDK-CASE-006/20261101T065614Z-1e3e81145214489a925ae9dfff5dae29",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "311eb056463b116f03622070202cedd94336306f85b2b8b62d16651d670310a9",
+      "caseId": "SDK-CASE-007",
+      "materials": "codex/SDK-US-002/SDK-CASE-007/20261101T065615Z-17fed92c2ccd47ada9244928d6de6d49",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "b21b08093ee3bc100677e22149fdde468d378e6ae86b0e90d2626f7fb52a04f3",
+      "caseId": "SDK-CASE-008",
+      "materials": "codex/SDK-US-003/SDK-CASE-008/20261101T065616Z-52ed5241358b4d0780d180b72e9bcc05",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "f9736a7a2fb1d608dd75827d708ee646d9bdeb51f0e031d1691b605b48d83445",
+      "caseId": "SDK-CASE-009",
+      "materials": "codex/SDK-US-003/SDK-CASE-009/20261101T065616Z-19964685b8704f7cb66de957c13bbd65",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "6e20f7ac48bf4bd8dc85a6cac3b95c62348a89d9808b0df8a8449ccb4de7685a",
+      "caseId": "SDK-CASE-010",
+      "materials": "codex/SDK-US-003/SDK-CASE-010/20261101T065619Z-8b76901fdae54a039884c219dc481956",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "afadd729bcdf2d815458d53fadeacdb2060a868aa6571234028ba42118b0dacf",
+      "caseId": "SDK-CASE-011",
+      "materials": "codex/SDK-US-003/SDK-CASE-011/20261101T065629Z-14fe5afaf4994581b3d80de21744b7c7",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-012",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "blocked",
+      "verificationReason": "必需能力的录制验证阻塞：现有官方 Python SDK 0.161.0 与 0.163.0 在唯一读取线程同步执行审批回调，持有审批会阻塞控制回执和事件，公开 API 无延后回答机制。先回答再观察不满足本 case；planned 仅表示当前驱动路径未完成，不豁免必需门禁。这是语言驱动限制，不是 Codex 原生协议不支持，也不是 Go SDK 已验证失败。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "a35bf80cfb922f5ac1c1bfc80ee8ece4b9883eab18fdf3894189f320afd20d54",
+      "caseId": "SDK-CASE-013",
+      "materials": "codex/SDK-US-004/SDK-CASE-013/20261101T065639Z-27d05d79d39b43a6aa518bce98be85ad",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "8d8fa344bdfd520dfaa3c1347cddaeb24abe761e2ba8a7ad5c559cc83d74824b",
+      "caseId": "SDK-CASE-014",
+      "materials": "codex/SDK-US-004/SDK-CASE-014/20261101T065648Z-223b348923be4d5daaea2c4f50fda158",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "b6a2f64c1c81bcf617b12929a008890576cbbaadcd2b1e2b7efe1f21b2fc6c0a",
+      "caseId": "SDK-CASE-015",
+      "materials": "codex/SDK-US-004/SDK-CASE-015/20261101T065656Z-e836c3ff8c094cbd8287f1dd11351608",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "d33ec4df1f60b324b89b16cbc250f318331553f3fdd2ee4598abf01c9a3072aa",
+      "caseId": "SDK-CASE-016",
+      "materials": "codex/SDK-US-005/SDK-CASE-016/20261101T065705Z-22a5ac4985d04dc49388dcda21abc42b",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "108527c2f249fd01c23bb799926619c700f1757ad1ac4bbc4decfd18d1b60b1e",
+      "caseId": "SDK-CASE-017",
+      "materials": "codex/SDK-US-005/SDK-CASE-017/20261101T065714Z-572252d9ca114c59a745f4414de6ebf4",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "07ff510d53576b2e18f601177439a191577fab3abfadaec0045c1e2feebb9df1",
+      "caseId": "SDK-CASE-018",
+      "materials": "codex/SDK-US-005/SDK-CASE-018/20261101T065723Z-1ffe02cdf3624cc8ac6853a8d3c8b1e1",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "101e5fc2087e889fe78e623f650818a6a41b99cbc28514f7e1bef10c08afec95",
+      "caseId": "SDK-CASE-019",
+      "materials": "codex/SDK-US-005/SDK-CASE-019/20261101T065733Z-9a4acbe0b4e14bed9beef976ebe656c2",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "24f5bf9e521bcd0b6b3d1bcd7b75a5aa0c9d28f8aa026b8b568779bca360158b",
+      "caseId": "SDK-CASE-020",
+      "materials": "codex/SDK-US-005/SDK-CASE-020/20261101T065744Z-da7d50395d4b4974a9e6f2fefdb24edb",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e90f7118ea43a43edac53f58aad6a8f995d650d899d5f97b84b44c78c6933f0b",
+      "caseId": "SDK-CASE-021",
+      "materials": "codex/SDK-US-006/SDK-CASE-021/20261101T065752Z-ea4aac95e5a248289aa92a188c78b13d",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "5ae50e6ca7af30f5677d6690ebbaf309a39a9f44b382ca98494524160f3689c8",
+      "caseId": "SDK-CASE-022",
+      "materials": "codex/SDK-US-006/SDK-CASE-022/20261102T075941Z-2802731473",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "dd27118ade17d160ebd419b20d20c1d8f19b657df799b94111a1373f40228a59",
+      "caseId": "SDK-CASE-023",
+      "materials": "codex/SDK-US-006/SDK-CASE-023/20261102T075657Z-1771274383",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e4ee37e6c2cf9d320fd5b0f1e1aec7cfa42e613d9857c6dfac201a04c9af5f38",
+      "caseId": "SDK-CASE-024",
+      "materials": "codex/SDK-US-006/SDK-CASE-024/20261102T075659Z-1724786440",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "2a361435f94a34af8233d20216bf69393859bcc1f3ae7e9b648719e07f0ab4d2",
+      "caseId": "SDK-CASE-025",
+      "materials": "codex/SDK-US-006/SDK-CASE-025/20261101T065754Z-a4553bef22984456adfbaa7fb5218d25",
+      "provider": "codex",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "The pinned native interface exposes reasoning effort, not an independent thinking mode. The retained recording configures model_reasoning_effort and does not verify SDK-CASE-025; effort is required under SDK-CASE-027."
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-026",
+      "provider": "codex",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "Codex exposes reasoning effort, not a dynamic token budget"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "1eeea5ca1444d1408ac1732b9f1ea053bd4d31f21896cdb24b055a16c9827d75",
+      "caseId": "SDK-CASE-027",
+      "materials": "codex/SDK-US-006/SDK-CASE-027/20261101T065754Z-de7987cc4aac40f9b23b4b2fd45b2072",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e3813026610f76f8c5ecb697afd9cfdbb9175b7e7c0a38c3ddbcd70288924961",
+      "caseId": "SDK-CASE-028",
+      "materials": "codex/SDK-US-006/SDK-CASE-028/20261101T065755Z-ea619cd2e014416da97fe2a100ef5b64",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "3452d81d4e701dc4cb10f1de1f79ee1f8c4755b4bb037e8ea14b55bb1f4ebb62",
+      "caseId": "SDK-CASE-029",
+      "materials": "codex/SDK-US-006/SDK-CASE-029/20261101T065758Z-c58da71a098b4c819c74fb4ab4a31748",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "c969c55d7570261b9f839b8b8e5c9fdeb9b701854bc62f2502c6b37aed33d5f0",
+      "caseId": "SDK-CASE-030",
+      "materials": "codex/SDK-US-007/SDK-CASE-030/20261101T065808Z-4b9e1dd291f048debf3737b796c365d8",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "96e72102468e3562beba13db156afb8a3027a0d7659ed1980bc97c910045b167",
+      "caseId": "SDK-CASE-031",
+      "materials": "codex/SDK-US-007/SDK-CASE-031/20261101T065812Z-5a60c3534a414994b7284722d0fbf524",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "d348fe2c73d6ac592c89f05a04047585e8e78a6bb6f48d9dd220abaa98333e3f",
+      "caseId": "SDK-CASE-032",
+      "materials": "codex/SDK-US-007/SDK-CASE-032/20261101T065825Z-dc38cf4ebf534cdea0d216b790c455a0",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "c003ce4392a87a27ceb12ffe224100d022f4e123417d85820a29554a59183584",
+      "caseId": "SDK-CASE-033",
+      "materials": "codex/SDK-US-008/SDK-CASE-033/20261101T065835Z-25d56c6a814d40c19c9cf1021a0c406b",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "4010cf9dfa97b5ac652d3a7ebdf63632e8d16462ca837319a585a6194e6177ba",
+      "caseId": "SDK-CASE-034",
+      "materials": "codex/SDK-US-008/SDK-CASE-034/20261101T065838Z-6836d8996ad2404bafebf91f6ba978cd",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "6610a9966565d62be5342bdf941afe5a9c196454f27f41d769075a98ec9aa65c",
+      "caseId": "SDK-CASE-035",
+      "materials": "codex/SDK-US-008/SDK-CASE-035/20261101T065847Z-c914547ccf004db695522f51c462a676",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "fb1678bd9fea9b2147495725ae7095ddcbf87021bf3b765200a5ec8cb01608ae",
+      "caseId": "SDK-CASE-036",
+      "materials": "codex/SDK-US-008/SDK-CASE-036/20261101T065845Z-1c83fcb0e2b341218a01a22df16deb1c",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    }
+  ],
+  "version": 1
+}

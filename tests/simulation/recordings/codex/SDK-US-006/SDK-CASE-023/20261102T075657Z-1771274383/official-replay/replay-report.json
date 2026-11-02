@@ -1,0 +1,241 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 142,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.163.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.161.0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/codex-model/codex-SDK-CASE-023/project",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/glm-5.3",
+        "modelProvider": "glinkap",
+        "reasoningEffort": "medium",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.163.0",
+          "createdAt": 1793606183,
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/codex-model/codex-SDK-CASE-023/project",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+          "model": "theta/glm-5.3",
+          "modelProvider": "glinkap",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "reasoningEffort": "medium",
+          "recencyAt": 1793606183,
+          "sessionId": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793606183
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a19b42-6954-7983-b03b-a59670a9b310",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+        "turn": {
+          "completedAt": 1793606196,
+          "durationMs": 13677,
+          "id": "01a19b42-6954-7983-b03b-a59670a9b310",
+          "items": [
+            {
+              "id": "msg_18e42b5541798308000033e3",
+              "phase": "final_answer",
+              "text": "Ready.",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793606183,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "variant-configuration": {
+        "timing": "between-inputs",
+        "requested": {
+          "threadId": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "response": {},
+        "observed": null
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a19b42-9ecb-7130-9a37-bc09d37529ce",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+        "turn": {
+          "completedAt": 1793606205,
+          "durationMs": 8187,
+          "id": "01a19b42-9ecb-7130-9a37-bc09d37529ce",
+          "items": [
+            {
+              "id": "msg_18e42b572cbaae68000033ed",
+              "phase": "final_answer",
+              "text": "Done.",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793606196,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-023",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u4e24\u6b21\u6267\u884c\u4e4b\u95f4\u4ece\u6a21\u578b A \u4fee\u6539\u4e3a\u4e0d\u540c\u6a21\u578b B\uff0c\u89c2\u5bdf\u7b2c\u4e8c\u6b21\u8f93\u5165\u7684\u6267\u884c\u53ca\u53ef\u53d6\u5f97\u7684\u539f\u751f\u914d\u7f6e\u8bc1\u636e\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.163.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-023",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "configuration-acknowledged",
+      "timing": "between-inputs",
+      "completedInputs": 1,
+      "requested": {
+        "threadId": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+        "model": "theta/DeepSeek-V4.1-Flash-1017"
+      }
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.161.0"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "threadId": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "acknowledged": true,
+        "timing": "between-inputs",
+        "completedInputs": 1
+      }
+    ],
+    "observed": [
+      {
+        "source": "thread/settings/updated",
+        "scope": "thread-settings",
+        "native": {
+          "threadId": "01a19b42-693f-7f10-aa2f-3d7493ee94be",
+          "threadSettings": {
+            "disabledPluginIds": [],
+            "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/codex-model/codex-SDK-CASE-023/project",
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "sandboxPolicy": {
+              "type": "workspaceWrite",
+              "writableRoots": [],
+              "networkAccess": false,
+              "excludeTmpdirEnvVar": false,
+              "excludeSlashTmp": false
+            },
+            "activePermissionProfile": null,
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "modelProvider": "glinkap",
+            "serviceTier": null,
+            "effort": "medium",
+            "summary": null,
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "reasoning_effort": "medium",
+                "developer_instructions": null
+              }
+            },
+            "multiAgentMode": "explicitRequestOnly",
+            "personality": null
+          }
+        }
+      }
+    ],
+    "effectiveScope": "thread-settings model; execution model not independently reported",
+    "initialModel": "theta/glm-5.3",
+    "targetModel": "theta/DeepSeek-V4.1-Flash-1017",
+    "observedModels": [
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ]
+  },
+  "branchStatus": "passed"
+}

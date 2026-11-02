@@ -1,0 +1,86 @@
+{
+  "_fixtureProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-022/project",
+  "args": [
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise.",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--include-partial-messages",
+    "--no-session-persistence",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/glm-5.3"
+  ],
+  "case": {
+    "id": "SDK-CASE-022",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-022",
+  "cli": "/Users/jim/bin/claude",
+  "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "config": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-022/config",
+  "driverProfile": "configuration-timing",
+  "home": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-022/home",
+  "initialModel": "theta/glm-5.3",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-022/project",
+  "prompts": [
+    "Reply with the word Ready.",
+    "Reply with the word Done."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-022/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-022",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-022",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-022",
+    "configuration": {
+      "effectiveValue": "unknown-unless-observed",
+      "modelSource": "prepared-or-default",
+      "thinking": null,
+      "timing": "before-first-input"
+    },
+    "driverProfile": "configuration-timing",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Reply with the word Ready.",
+      "Reply with the word Done."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

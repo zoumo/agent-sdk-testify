@@ -1,0 +1,326 @@
+{
+  "version": 3,
+  "provider": "claude",
+  "cases": {
+    "SDK-CASE-001": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "parameters": {
+        "requirePostResultEvent": true
+      }
+    },
+    "SDK-CASE-002": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-003": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-004": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-005": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "stream-json event type stream_event"
+    },
+    "SDK-CASE-006": {
+      "inputs": [
+        "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+      ],
+      "files": {},
+      "requests": {
+        "fixture.read": "Read",
+        "fixture.write": "Write"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-007": {
+      "files": {},
+      "requests": {
+        "fixture.read": "fixture_read"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use mcp__fixture__fixture_read exactly once to read numbers.txt, then report those numbers. Use no other tools."
+      ]
+    },
+    "SDK-CASE-008": {
+      "files": {},
+      "requests": {
+        "approval.deny": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-009": {
+      "files": {},
+      "requests": {
+        "approval.answer": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-010": {
+      "files": {},
+      "requests": {
+        "approval.answer": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-011": {
+      "files": {},
+      "requests": {
+        "approval.answer": "approval_answer"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-012": {
+      "files": {},
+      "requests": {
+        "permission.read": "Read",
+        "permission.held-control": "held-control",
+        "permission.held-event": "held-event"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-013": {
+      "inputs": [
+        "Use AskUserQuestion exactly once. Ask 'Which synthetic color?' with exactly two options Blue and Green. Wait for the answer, then finish briefly. Use no other tools."
+      ],
+      "files": {},
+      "requests": {
+        "question.answer": "question"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-014": {
+      "files": {},
+      "requests": {
+        "question.answer": "question"
+      },
+      "answers": {
+        "choice": "SYNTHETIC_FREE_TEXT",
+        "options": []
+      },
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-015": {
+      "files": {},
+      "requests": {
+        "question.answer": "question"
+      },
+      "answers": {
+        "choice": "Amber",
+        "options": [
+          "Amber",
+          "Indigo"
+        ]
+      },
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-016": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=false. Wait for the child result, then report it. The root must not read files, use shell/network/other tools, or create another child."
+      ]
+    },
+    "SDK-CASE-017": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Claude 原生子 Agent 不支持创建嵌套子 Agent。"
+      },
+      "required": false
+    },
+    "SDK-CASE-018": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-019": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "inputs": [
+        "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+      ],
+      "parameters": {
+        "backgroundReadBarrier": true
+      }
+    },
+    "SDK-CASE-020": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-021": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-022": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {
+        "timing": "before-first-input",
+        "modelSource": "prepared-or-default",
+        "thinking": null,
+        "effectiveValue": "unknown-unless-observed"
+      },
+      "progressBarrier": null
+    },
+    "SDK-CASE-023": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-024": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-025": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-026": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-027": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-028": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-029": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-030": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "stream-json event type stream_event"
+    },
+    "SDK-CASE-031": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-032": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "planned",
+        "reason": "当前 Claude SDK 仅支持本地 stdio；原生 remote-control 需要 claude.ai 订阅登录，现有配置未提供可录制的远端 SDK 连接。"
+      },
+      "required": false
+    },
+    "SDK-CASE-033": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-034": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-035": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-036": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    }
+  }
+}

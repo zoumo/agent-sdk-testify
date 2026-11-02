@@ -1,0 +1,14 @@
+{
+  "format": "agent-recording-scenarios",
+  "version": 2,
+  "stories": [
+    "SDK-US-001",
+    "SDK-US-002",
+    "SDK-US-003",
+    "SDK-US-004",
+    "SDK-US-005",
+    "SDK-US-006",
+    "SDK-US-007",
+    "SDK-US-008"
+  ]
+}

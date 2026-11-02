@@ -1,0 +1,283 @@
+{
+  "version": 4,
+  "id": "SDK-US-005",
+  "goal": "观察直接、嵌套、并行和后台子 Agent",
+  "cases": [
+    {
+      "id": "SDK-CASE-016",
+      "storyId": "SDK-US-005",
+      "goal": "观察直接子 Agent 的身份、输出与结果",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-016",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n",
+          "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Create a child to read the synthetic child fixture and report its result."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "观察直接子 Agent 的身份、输出与结果。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "children"
+    },
+    {
+      "id": "SDK-CASE-017",
+      "storyId": "SDK-US-005",
+      "goal": "观察嵌套子 Agent 的实际父子关系",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-017",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {
+        "input-1": "Use spawn_agent to create one child. Tell that child to use spawn_agent to create exactly one grandchild which replies SYNTHETIC_GRANDCHILD. Have the child wait for its grandchild then report its output. Wait for your child. Use no tools except spawn_agent and wait, and do not read or write files or use network."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "观察嵌套子 Agent 的实际父子关系。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "topology",
+      "parameters": {
+        "topology": "nested"
+      }
+    },
+    {
+      "id": "SDK-CASE-018",
+      "storyId": "SDK-US-005",
+      "goal": "观察并行子 Agent 的独立输出",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-018",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {
+        "input-1": "Launch two child agents before waiting for either. Each child must explain addition in three sentences, then end with its distinct marker SYNTHETIC_ALPHA or SYNTHETIC_BETA. Use only native spawn_agent or Agent and wait tools. No files, shell or network. Wait for both results and report both markers."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "观察并行子 Agent 的独立输出。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "topology",
+      "parameters": {
+        "topology": "parallel"
+      }
+    },
+    {
+      "id": "SDK-CASE-019",
+      "storyId": "SDK-US-005",
+      "goal": "根任务结束后继续观察后台子 Agent",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-019",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n",
+          "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Create a child to read the synthetic child fixture and report its result."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "根任务结束后继续观察后台子 Agent。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "background-children"
+    },
+    {
+      "id": "SDK-CASE-020",
+      "storyId": "SDK-US-005",
+      "goal": "选择子详细交付策略并观察实际输出",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-020",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {
+        "input-1": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "创建 Session 时固定子详情交付策略；比较同一材料的 preserve/suppress，须实际过滤允许的详情且完整保留受保护事件。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "history",
+      "parameters": {
+        "historyTarget": "child-messages",
+        "childDetailPolicy": "suppress"
+      }
+    }
+  ]
+}

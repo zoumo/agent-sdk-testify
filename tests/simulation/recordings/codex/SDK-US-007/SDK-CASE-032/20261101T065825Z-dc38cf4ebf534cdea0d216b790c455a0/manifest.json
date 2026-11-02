@@ -1,0 +1,23 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "547dd8b879687e9db963830c8a3e9781914e341ac3c0f2e456ec1380493af0c2",
+    "raw.jsonl": "0c2b7d363252ad520ea8e147dd695e3eac608bf8ba6db3877fd9d7d32ad79f86",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "46dcab76cd86f8725ee7e471f8f0bd3c64ec232359b7ac2cb65ec0582c47ec12"
+  },
+  "planSHA256": "31feddafa9f90f7b01f52759ade00084c3803f1a2fa79f27b6d6bdd30deda164",
+  "provenance": "capture",
+  "remotePhaseFiles": {
+    "remote-probe/raw/manifest.json": "d4aa5bca87b3fe80178d43d0c7aa7699cfd334c40f8bde9fcf551fdc91033422",
+    "remote-probe/raw/raw.jsonl": "721dddfb8f35008c3dca53ff7b41354f5f4ec8ec690f7da64183a923b619195a",
+    "remote-probe/raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "remote-probe/raw/transport.json": "6a3dbc55641db9e9c2094c84d3d62915eb22e5eae41d83f084f3e82c963edf51",
+    "remote-service.json": "180a5db9ffc38acab0effc50d1908844828882e1381efc9e87daedf618acf8f8"
+  },
+  "savedFiles": {
+    "config/sessions/2026/11/01/rollout-2026-11-01T14-37-46-01a195d4-15e1-7701-8973-a80ef9a28b0f.jsonl": "b17b58c1e9c7c7e8c5fc59e1a225792ffccb0fc929fa4b52633bc286061df836"
+  },
+  "status": "passed"
+}

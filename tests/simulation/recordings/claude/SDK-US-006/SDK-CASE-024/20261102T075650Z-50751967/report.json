@@ -1,0 +1,157 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 33,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "variant-configuration": {
+        "timing": "during-execution",
+        "requested": {
+          "subtype": "set_model",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "acknowledged": true,
+        "observed": null
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 3275,
+        "duration_api_ms": 2988,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "c4a785e8-aa45-4e1e-a5cd-6009dd72d901",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.014860000000000002,
+        "usage": {
+          "input_tokens": 396,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 21760,
+          "output_tokens": 80,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "Addition combines two or more quantities into a single total by counting how many units they contain altogether \u2014 for example, 3 + 4 means starting at 3 and counting onward 4 more steps, landing on 7. It works because numbers follow consistent rules (commutativity, associativity), so no matter how you group or order the parts, the total stays the same.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/glm-5.3": {
+            "inputTokens": 396,
+            "outputTokens": 80,
+            "cacheReadInputTokens": 21760,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.014860000000000002,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/glm-5.3",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "f2e1553d-4a41-4427-9e6d-c42be24f929e",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-024",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u6267\u884c\u671f\u95f4\u8bf7\u6c42\u4e0d\u540c\u6a21\u578b\uff0c\u4fdd\u7559\u63a5\u53d7\u6216\u62d2\u7edd\u53ca\u5f53\u524d\u6267\u884c\u7ec8\u6001\uff0c\u8bb0\u5f55\u53ef\u89c2\u5bdf\u7684\u751f\u6548\u8303\u56f4\uff1b\u4e0d\u627f\u8bfa\u5f53\u524d\u6267\u884c\u7acb\u5373\u6362\u6a21\u578b\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-024",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "configuration-acknowledged",
+      "timing": "during-execution",
+      "completedInputs": 0,
+      "requested": {
+        "subtype": "set_model",
+        "model": "theta/DeepSeek-V4.1-Flash-1017"
+      }
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "subtype": "set_model",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "acknowledged": true,
+        "timing": "during-execution",
+        "completedInputs": 0
+      }
+    ],
+    "observed": [
+      {
+        "source": "assistant",
+        "scope": "assistant-message",
+        "model": "glm-5.3"
+      }
+    ],
+    "effectiveScope": "current execution not guaranteed; observed models only",
+    "initialModel": "theta/glm-5.3",
+    "targetModel": "theta/DeepSeek-V4.1-Flash-1017",
+    "observedModels": [
+      "glm-5.3"
+    ]
+  },
+  "branchStatus": "passed"
+}

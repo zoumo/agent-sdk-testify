@@ -1,0 +1,72 @@
+{
+  "version": 4,
+  "id": "conversation",
+  "goal": "在长期 Session 中多次输入并持续观察结果",
+  "cases": [
+    {
+      "id": "two-inputs",
+      "storyId": "conversation",
+      "goal": "连续完成两次文本输入",
+      "required": true,
+      "implementation": "implemented",
+      "name": "continuation",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Reply with the word Ready.",
+        "input-2": "Reply with the word Done."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-2"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "同一会话连续完成两次文本输入。",
+        "outOfScope": [
+          "重复拥有 Session",
+          "媒体输入",
+          "长期压力"
+        ]
+      },
+      "limits": {
+        "inputs": 2,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "continuation"
+    }
+  ]
+}

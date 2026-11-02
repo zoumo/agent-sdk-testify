@@ -1,0 +1,12 @@
+{
+  "case": "SDK-CASE-022",
+  "driver": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/venv/bin/agent-sdk-testify-claude",
+  "driverArgs": null,
+  "mode": "record",
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/claude-model/claude-SDK-CASE-022",
+  "provider": "claude",
+  "recordingSHA256": "0830b5fab5d99c69e5645ca5d51d097300b632943fd1971d66aa363236adc472",
+  "result": {
+    "status": "passed"
+  }
+}

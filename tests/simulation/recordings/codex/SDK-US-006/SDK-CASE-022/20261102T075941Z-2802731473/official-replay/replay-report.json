@@ -1,0 +1,268 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 26,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.163.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.161.0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/codex-022-corrected/project",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/glm-5.3",
+        "modelProvider": "glinkap",
+        "reasoningEffort": "medium",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.163.0",
+          "createdAt": 1793606376,
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/codex-022-corrected/project",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+          "model": "theta/glm-5.3",
+          "modelProvider": "glinkap",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "reasoningEffort": "medium",
+          "recencyAt": 1793606376,
+          "sessionId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793606376
+        }
+      }
+    },
+    {
+      "thread/settings/update": {
+        "requested": {
+          "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "accepted": true,
+        "response": {}
+      }
+    },
+    {
+      "thread/settings/update": {
+        "requested": {
+          "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+          "effort": "low"
+        },
+        "accepted": true,
+        "response": {}
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a19b45-5c08-7123-99a6-728af825f1a2",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+        "turn": {
+          "completedAt": 1793606378,
+          "durationMs": 1591,
+          "id": "01a19b45-5c08-7123-99a6-728af825f1a2",
+          "items": [
+            {
+              "id": "msg_18e42b7f6e05488800003403",
+              "phase": "final_answer",
+              "text": "Ready",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793606376,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a19b45-624b-7af2-83c7-cc577d8bf0d7",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+        "turn": {
+          "completedAt": 1793606379,
+          "durationMs": 995,
+          "id": "01a19b45-624b-7af2-83c7-cc577d8bf0d7",
+          "items": [
+            {
+              "id": "msg_18e42b7fa957269000003404",
+              "phase": "final_answer",
+              "text": "Done",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793606378,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-022",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u9996\u6b21\u8f93\u5165\u524d\u4ece\u5df2\u77e5\u6a21\u578b A \u8bf7\u6c42\u4fee\u6539\u4e3a\u4e0d\u540c\u6a21\u578b B\uff1b\u5206\u522b\u8bb0\u5f55\u8bf7\u6c42\u3001\u786e\u8ba4\u3001\u8f93\u5165\u987a\u5e8f\u4e0e\u539f\u751f\u89c2\u5bdf\u7684\u751f\u6548\u8303\u56f4\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.163.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-022",
+  "flowTrace": [
+    {
+      "step": "configuration-acknowledged",
+      "timing": "before-first-input",
+      "completedInputs": 0,
+      "requested": {
+        "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+        "model": "theta/DeepSeek-V4.1-Flash-1017"
+      }
+    },
+    {
+      "step": "configuration-acknowledged",
+      "timing": "before-first-input",
+      "completedInputs": 0,
+      "requested": {
+        "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+        "effort": "low"
+      }
+    },
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.161.0"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "acknowledged": true,
+        "timing": "before-first-input",
+        "completedInputs": 0
+      },
+      {
+        "requested": {
+          "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+          "effort": "low"
+        },
+        "acknowledged": true,
+        "timing": "before-first-input",
+        "completedInputs": 0
+      }
+    ],
+    "observed": [
+      {
+        "source": "thread/settings/updated",
+        "scope": "thread-settings",
+        "native": {
+          "threadId": "01a19b45-5b70-7ae0-976f-a40771d9ff4d",
+          "threadSettings": {
+            "disabledPluginIds": [],
+            "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-02T154838-deepseek-v41-refresh/codex-022-corrected/project",
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "sandboxPolicy": {
+              "type": "workspaceWrite",
+              "writableRoots": [],
+              "networkAccess": false,
+              "excludeTmpdirEnvVar": false,
+              "excludeSlashTmp": false
+            },
+            "activePermissionProfile": null,
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "modelProvider": "glinkap",
+            "serviceTier": null,
+            "effort": "low",
+            "summary": null,
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "reasoning_effort": "low",
+                "developer_instructions": null
+              }
+            },
+            "multiAgentMode": "explicitRequestOnly",
+            "personality": null
+          }
+        }
+      }
+    ],
+    "effectiveScope": "thread-settings model; execution model not independently reported",
+    "initialModel": "theta/glm-5.3",
+    "targetModel": "theta/DeepSeek-V4.1-Flash-1017",
+    "observedModels": [
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ]
+  },
+  "branchStatus": "passed"
+}

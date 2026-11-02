@@ -1,0 +1,443 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 65,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 5952,
+        "duration_api_ms": 4985,
+        "is_error": false,
+        "num_turns": 2,
+        "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.039227,
+        "usage": {
+          "input_tokens": 663,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 43904,
+          "output_tokens": 94,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "The agent ran and replied with exactly:\n\nSYNTHETIC_SAVED_CHILD",
+        "structured_output": null,
+        "model_usage": {
+          "theta/glm-5.3": {
+            "inputTokens": 1437,
+            "outputTokens": 154,
+            "cacheReadInputTokens": 56384,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.039227,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/glm-5.3",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "8da3d716-13f3-4296-a725-a6bed52b7289",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "list_sessions": [
+        {
+          "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+          "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+          "last_modified": 1793515041884,
+          "file_size": 10648,
+          "custom_title": null,
+          "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+          "git_branch": "HEAD",
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-020/project",
+          "tag": null,
+          "created_at": 1793515035918
+        }
+      ]
+    },
+    {
+      "get_session_info": {
+        "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+        "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+        "last_modified": 1793515041884,
+        "file_size": 10648,
+        "custom_title": null,
+        "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+        "git_branch": "HEAD",
+        "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-020/project",
+        "tag": null,
+        "created_at": 1793515035918
+      }
+    },
+    {
+      "get_session_messages": [
+        {
+          "type": "user",
+          "uuid": "a87433ea-b6ed-4d11-98fe-da4f7627edcd",
+          "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+          "message": {
+            "role": "user",
+            "content": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "b5bf08b2-db17-4a1b-a8d1-392c76e92fca",
+          "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+          "message": {
+            "id": "0b4060c517935150368612896e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "signature": "sig-theta",
+                "thinking": "Run in foreground (run_in_background: false) since we need the result immediately.",
+                "type": "thinking"
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "0f2f1cdf-af42-4c64-a260-5d5d5740ac28",
+          "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+          "message": {
+            "id": "0b4060c517935150368612896e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": ""
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "c74b224f-88b4-4d56-b414-dab0dae3497d",
+          "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+          "message": {
+            "id": "0b4060c517935150368612896e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "input": {
+                  "description": "Reply with marker token",
+                  "prompt": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tool calls.",
+                  "run_in_background": false,
+                  "subagent_type": "general-purpose"
+                },
+                "type": "tool_use",
+                "id": "fc-4f071638-35c5-4b87-a15e-f512041abe37",
+                "name": "Agent"
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 434,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 21760,
+              "output_tokens": 76,
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "stop_reason": "tool_use",
+            "stop_details": null
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "user",
+          "uuid": "dbf5f58e-4899-462b-8408-ecabce3c8715",
+          "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+          "message": {
+            "role": "user",
+            "content": [
+              {
+                "tool_use_id": "fc-4f071638-35c5-4b87-a15e-f512041abe37",
+                "type": "tool_result",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "SYNTHETIC_SAVED_CHILD"
+                  },
+                  {
+                    "type": "text",
+                    "text": "agentId: a8fc5605ac459ce09 (use SendMessage with to: 'a8fc5605ac459ce09', summary: '<5-10 word recap>' to continue this agent)\n<usage>subagent_tokens: 13314\ntool_uses: 0\nduration_ms: 2419</usage>"
+                  }
+                ]
+              }
+            ]
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "0f46e576-6aee-4528-a653-714bb7c4b719",
+          "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+          "message": {
+            "id": "0b4060c517935150409443107e3957",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "The agent ran and replied with exactly:\n\nSYNTHETIC_SAVED_CHILD"
+              }
+            ],
+            "model": "glm-5.3",
+            "usage": {
+              "input_tokens": 229,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22144,
+              "output_tokens": 18,
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "stop_reason": "end_turn",
+            "stop_details": null
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        }
+      ]
+    },
+    {
+      "list_subagents": {
+        "sessionId": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+        "agentIds": [
+          "a8fc5605ac459ce09"
+        ]
+      }
+    },
+    {
+      "get_subagent_messages": {
+        "sessionId": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+        "agentId": "a8fc5605ac459ce09",
+        "messages": [
+          {
+            "type": "user",
+            "uuid": "5a413a7b-e6b9-4c25-8b08-ec0a70247b03",
+            "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+            "message": {
+              "role": "user",
+              "content": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tool calls."
+            },
+            "parent_tool_use_id": "fc-4f071638-35c5-4b87-a15e-f512041abe37",
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "fe983b45-f941-44bc-88dd-a4cc1315d6a3",
+            "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+            "message": {
+              "id": "0b4060c517935150388652992e3957",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "signature": "sig-theta",
+                  "thinking": "The instruction is clear: reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else, no tool calls. My role as an agent is to complete the assigned task, and this is a simple text response. I'll comply exactly.",
+                  "type": "thinking"
+                }
+              ],
+              "model": "glm-5.3",
+              "usage": {
+                "input_tokens": 774,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 12480,
+                "output_tokens": 60,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": "fc-4f071638-35c5-4b87-a15e-f512041abe37",
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "3087fb21-c83c-42c5-b27e-64d6bc92eb34",
+            "session_id": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+            "message": {
+              "id": "0b4060c517935150388652992e3957",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_SAVED_CHILD"
+                }
+              ],
+              "model": "glm-5.3",
+              "usage": {
+                "input_tokens": 774,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 12480,
+                "output_tokens": 60,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": "fc-4f071638-35c5-4b87-a15e-f512041abe37",
+            "parent_agent_id": null
+          }
+        ]
+      }
+    },
+    {
+      "child-detail-selection": {
+        "requested": "suppress",
+        "rootId": "f5d385fc-6f6b-426e-8d32-dc4d4cb9f092",
+        "childIds": [
+          "a8fc5605ac459ce09"
+        ],
+        "nativeDetailCount": 1,
+        "scope": "native source; Go SDK delivery is checked by SDK simulation"
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-020",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u9009\u62e9\u5b50\u8be6\u7ec6\u4ea4\u4ed8\u7b56\u7565\u5e76\u89c2\u5bdf\u5b9e\u9645\u8f93\u51fa\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-020",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

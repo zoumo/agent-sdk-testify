@@ -1,0 +1,231 @@
+{
+  "version": 4,
+  "id": "SDK-US-008",
+  "goal": "独立发现并读取已有会话及子 Agent 保存内容",
+  "cases": [
+    {
+      "id": "SDK-CASE-033",
+      "storyId": "SDK-US-008",
+      "goal": "独立发现会话、读取元数据和主会话内容",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-033",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Reply with the word SYNTHETIC_SAVED."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "独立发现会话、读取元数据和主会话内容。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "history",
+      "parameters": {
+        "historyTarget": "messages"
+      }
+    },
+    {
+      "id": "SDK-CASE-034",
+      "storyId": "SDK-US-008",
+      "goal": "独立发现并读取保存的子 Agent 内容",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-034",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {
+        "input-1": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "独立发现并读取保存的子 Agent 内容。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "history",
+      "parameters": {
+        "historyTarget": "child-messages"
+      }
+    },
+    {
+      "id": "SDK-CASE-035",
+      "storyId": "SDK-US-008",
+      "goal": "发现当前 Session 观察前已有的子 Agent",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-035",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {},
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "history.discover"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 0,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "existing-children",
+      "parameters": {}
+    },
+    {
+      "id": "SDK-CASE-036",
+      "storyId": "SDK-US-008",
+      "goal": "按原生分页或切片浏览保存的记录与内容",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-036",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Reply with the word SYNTHETIC_SAVED.",
+        "input-2": "Reply with the word SYNTHETIC_SECOND_SAVED."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-2"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "使用原生分页或切片连续读取至少两个窗口，核对顺序和边界；不伪造 cursor、total 或原子快照。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 2,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "history",
+      "parameters": {
+        "historyTarget": "pagination"
+      }
+    }
+  ]
+}

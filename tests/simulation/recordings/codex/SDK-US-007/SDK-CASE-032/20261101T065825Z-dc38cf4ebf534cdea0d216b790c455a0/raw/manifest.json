@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "0.1.0-dev",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/bin/agent-sdk-testify",
+    "sha256": "9735522a2c1209ea9f228f4579bdf1e1d5ecd8ee74d9c77819784388c298bca6",
+    "args": [
+      "protocol",
+      "connect",
+      "--url",
+      "ws://127.0.0.1:63917",
+      "--token-file",
+      "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032/remote-token.private"
+    ],
+    "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032/project"
+  },
+  "files": {
+    "raw.jsonl": "0c2b7d363252ad520ea8e147dd695e3eac608bf8ba6db3877fd9d7d32ad79f86",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "46dcab76cd86f8725ee7e471f8f0bd3c64ec232359b7ac2cb65ec0582c47ec12"
+  }
+}

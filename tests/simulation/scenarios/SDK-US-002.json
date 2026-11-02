@@ -1,0 +1,123 @@
+{
+  "version": 4,
+  "id": "SDK-US-002",
+  "goal": "观察工具执行并处理应用工具调用",
+  "cases": [
+    {
+      "id": "SDK-CASE-006",
+      "storyId": "SDK-US-002",
+      "goal": "观察文件工具的执行与任务完成",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-006",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Read numbers.txt using the supplied read tool, then use the supplied write tool to write summary.txt with exactly total=18 followed by a newline. Use no other tools."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "fixture.read",
+          "fixture.write"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "观察文件工具的执行与任务完成。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "fixture-tools"
+    },
+    {
+      "id": "SDK-CASE-007",
+      "storyId": "SDK-US-002",
+      "goal": "处理应用工具请求并等待任务完成",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-007",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "numbers.txt": "7\n11\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Use fixture_read exactly once on numbers.txt and report the two numbers. Use no other tools."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "fixture.read"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "处理应用工具请求并等待任务完成。",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "fixture-tools",
+      "parameters": {
+        "applicationTool": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "9bf5c2b838487d0e63a43c12539e750507cbd314b3eb9c3ba37036e78dfff19e",
+    "raw.jsonl": "1adfe29641074064cc37f73545c114091985032792b4efc1c2cf94e0cf721fd3",
+    "stderr.raw": "f1141d3168a6a8bbb7cf0e097b275ccaf33b77235982ba892cade7698d206dce",
+    "transport.json": "9a8edb4f5da9b3a73359f40ebd384d49b13d55ab8b9c3e41a0c940d0284c08c1"
+  },
+  "planSHA256": "f4931c37ff960d840ccafb5ea76d8d9905c6d566e3f8671f141fd17c389d7885",
+  "provenance": "capture",
+  "remotePhaseFiles": {},
+  "savedFiles": {
+    "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-036-project/15b1c587-4447-4767-8364-3d39dceff441.jsonl": "e01e5663f2faaace7be417a3cfbf69e3fb7ad9433bbb88e4fe28337b1dbf7bdc"
+  },
+  "status": "passed"
+}

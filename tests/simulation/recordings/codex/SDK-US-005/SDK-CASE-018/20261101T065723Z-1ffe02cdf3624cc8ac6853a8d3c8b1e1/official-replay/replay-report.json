@@ -1,0 +1,388 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 74,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.163.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.161.0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/project",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/glm-5.3",
+        "modelProvider": "theta",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.163.0",
+          "createdAt": 1793515004,
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/project",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "model": "theta/glm-5.3",
+          "modelProvider": "theta",
+          "originator": "official-python-story-recorder",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/config/sessions/2026/11/01/rollout-2026-11-01T14-36-44-01a195d3-21e0-71c1-9c2f-c528f07751f6.jsonl",
+          "preview": "",
+          "recencyAt": 1793515004,
+          "sessionId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793515004
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a195d3-21fc-77d2-91d7-76435b799bc8",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+        "turn": {
+          "completedAt": 1793515029,
+          "durationMs": 25467,
+          "id": "01a195d3-21fc-77d2-91d7-76435b799bc8",
+          "items": [
+            {
+              "id": "msg_18e3d86ab9938840000016ae",
+              "phase": "final_answer",
+              "text": "Both child agents completed successfully and each explained addition in three sentences.\n\n**Markers received:**\n- SYNTHETIC_ALPHA\n- SYNTHETIC_BETA",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793515004,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "topology/thread-read": {
+        "thread": {
+          "cliVersion": "0.163.0",
+          "createdAt": 1793515004,
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/project",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "model": "theta/glm-5.3",
+          "modelProvider": "theta",
+          "originator": "official-python-story-recorder",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/config/sessions/2026/11/01/rollout-2026-11-01T14-36-44-01a195d3-21e0-71c1-9c2f-c528f07751f6.jsonl",
+          "preview": "Launch two child agents before waiting for either. Each child must explain addition in three sentences, then end with its distinct marker SYNTHETIC_ALPHA or SYNTHETIC_BETA. Use only native spawn_agent or Agent and wait tools. No files, shell or network. Wait for both results and report both markers.",
+          "recencyAt": 1793515004,
+          "sessionId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [
+            {
+              "completedAt": 1793515029,
+              "durationMs": 25467,
+              "id": "01a195d3-21fc-77d2-91d7-76435b799bc8",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "text": "Launch two child agents before waiting for either. Each child must explain addition in three sentences, then end with its distinct marker SYNTHETIC_ALPHA or SYNTHETIC_BETA. Use only native spawn_agent or Agent and wait tools. No files, shell or network. Wait for both results and report both markers.",
+                      "text_elements": [],
+                      "type": "text"
+                    }
+                  ],
+                  "id": "01a195d3-232d-74d2-8589-027b9171ec75",
+                  "type": "userMessage"
+                },
+                {
+                  "content": [],
+                  "id": "rs_0b4060c517935150050081067e3957_0",
+                  "summary": [
+                    "We need need comply. User explicitly asks launch two child agents before waiting for either. Use only native spawn_agent or Agent and wait tools. No files shell network. We have multi_agent tools. Need spawn two separate calls. \"before waiting for either\" likely call spawn_agent twice perhaps parallel? We can use multi_tool parallel to make both spawns in same block. Distinct prompts. Then wait both. Need no files shell network. Start."
+                  ],
+                  "type": "reasoning"
+                },
+                {
+                  "agentsStates": {
+                    "01a195d3-3292-78d3-8498-84531e4b109f": {
+                      "status": "pendingInit"
+                    }
+                  },
+                  "id": "call_fc-b7d73350-4864-4cde-9819-2f07df228a14",
+                  "model": "theta/glm-5.3",
+                  "prompt": "Explain addition in exactly three sentences, then end your response with the marker SYNTHETIC_ALPHA. Do not use any files, shell commands, or network access.",
+                  "reasoningEffort": "medium",
+                  "receiverThreadIds": [
+                    "01a195d3-3292-78d3-8498-84531e4b109f"
+                  ],
+                  "senderThreadId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+                  "status": "completed",
+                  "tool": "spawnAgent",
+                  "type": "collabAgentToolCall"
+                },
+                {
+                  "agentsStates": {
+                    "01a195d3-3685-7da0-bb3a-b125577ef3a5": {
+                      "status": "pendingInit"
+                    }
+                  },
+                  "id": "call_fc-143b9825-e849-4abd-a8cb-8068c3acaa6f",
+                  "model": "theta/glm-5.3",
+                  "prompt": "Explain addition in exactly three sentences, then end your response with the marker SYNTHETIC_BETA. Do not use any files, shell commands, or network access.",
+                  "reasoningEffort": "medium",
+                  "receiverThreadIds": [
+                    "01a195d3-3685-7da0-bb3a-b125577ef3a5"
+                  ],
+                  "senderThreadId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+                  "status": "completed",
+                  "tool": "spawnAgent",
+                  "type": "collabAgentToolCall"
+                },
+                {
+                  "agentsStates": {
+                    "01a195d3-3292-78d3-8498-84531e4b109f": {
+                      "message": "Addition is the mathematical operation of combining quantities to find their total. When you add numbers such as 2 and 3, the result, called the sum, is 5. Addition is typically represented by the plus sign (+) and follows properties like commutativity, meaning the order of the numbers does not change the outcome.\n\nSYNTHETIC_ALPHA",
+                      "status": "completed"
+                    },
+                    "01a195d3-3685-7da0-bb3a-b125577ef3a5": {
+                      "message": "Addition is the operation of combining two or more quantities to find their total, often written with a plus sign. The result, called the sum, tells how many objects or units you would have if the quantities were put together. For example, adding 2 and 3 gives 5 because combining two objects with three objects produces five objects.\nSYNTHETIC_BETA",
+                      "status": "completed"
+                    }
+                  },
+                  "id": "call_fc-a41ee939-ca26-4f5a-9e1d-f896c3b3492f",
+                  "receiverThreadIds": [
+                    "01a195d3-3292-78d3-8498-84531e4b109f",
+                    "01a195d3-3685-7da0-bb3a-b125577ef3a5"
+                  ],
+                  "senderThreadId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+                  "status": "completed",
+                  "tool": "wait",
+                  "type": "collabAgentToolCall"
+                },
+                {
+                  "id": "msg_18e3d86ab9938840000016ae",
+                  "phase": "final_answer",
+                  "text": "Both child agents completed successfully and each explained addition in three sentences.\n\n**Markers received:**\n- SYNTHETIC_ALPHA\n- SYNTHETIC_BETA",
+                  "type": "agentMessage"
+                }
+              ],
+              "itemsView": "full",
+              "startedAt": 1793515004,
+              "status": "completed"
+            }
+          ],
+          "updatedAt": 1793515029
+        }
+      }
+    },
+    {
+      "topology/thread-read": {
+        "thread": {
+          "agentNickname": "Leibniz",
+          "cliVersion": "0.163.0",
+          "createdAt": 1793515008,
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/project",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a195d3-3292-78d3-8498-84531e4b109f",
+          "model": "theta/glm-5.3",
+          "modelProvider": "theta",
+          "originator": "official-python-story-recorder",
+          "parentThreadId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/config/sessions/2026/11/01/rollout-2026-11-01T14-36-48-01a195d3-3292-78d3-8498-84531e4b109f.jsonl",
+          "preview": "Explain addition in exactly three sentences, then end your response with the marker SYNTHETIC_ALPHA. Do not use any files, shell commands, or network access.",
+          "recencyAt": 1793515008,
+          "sessionId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "source": {
+            "subAgent": {
+              "thread_spawn": {
+                "agent_nickname": "Leibniz",
+                "depth": 1,
+                "parent_thread_id": "01a195d3-21e0-71c1-9c2f-c528f07751f6"
+              }
+            }
+          },
+          "status": {
+            "type": "idle"
+          },
+          "threadSource": "subagent",
+          "turns": [
+            {
+              "completedAt": 1793515025,
+              "durationMs": 16979,
+              "id": "01a195d3-32b3-7c80-a640-af31ca829293",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "text": "Explain addition in exactly three sentences, then end your response with the marker SYNTHETIC_ALPHA. Do not use any files, shell commands, or network access.",
+                      "text_elements": [],
+                      "type": "text"
+                    }
+                  ],
+                  "id": "01a195d3-3779-79e1-a65a-b66c60929fe7",
+                  "type": "userMessage"
+                },
+                {
+                  "content": [],
+                  "id": "rs_0b4060c517935150233472081e3957_0",
+                  "summary": [
+                    "The user wants a simple explanation of addition in exactly three sentences, ending with the marker SYNTHETIC_ALPHA. No files, tools, or network needed. I'll write exactly three sentences and append the marker."
+                  ],
+                  "type": "reasoning"
+                },
+                {
+                  "id": "msg_18e3d86994e54b10000016a8",
+                  "phase": "final_answer",
+                  "text": "Addition is the mathematical operation of combining quantities to find their total. When you add numbers such as 2 and 3, the result, called the sum, is 5. Addition is typically represented by the plus sign (+) and follows properties like commutativity, meaning the order of the numbers does not change the outcome.\n\nSYNTHETIC_ALPHA",
+                  "type": "agentMessage"
+                }
+              ],
+              "itemsView": "full",
+              "startedAt": 1793515008,
+              "status": "completed"
+            }
+          ],
+          "updatedAt": 1793515025
+        }
+      }
+    },
+    {
+      "topology/thread-read": {
+        "thread": {
+          "agentNickname": "Euler",
+          "cliVersion": "0.163.0",
+          "createdAt": 1793515009,
+          "cwd": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/project",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a195d3-3685-7da0-bb3a-b125577ef3a5",
+          "model": "theta/glm-5.3",
+          "modelProvider": "theta",
+          "originator": "official-python-story-recorder",
+          "parentThreadId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-018/config/sessions/2026/11/01/rollout-2026-11-01T14-36-49-01a195d3-3685-7da0-bb3a-b125577ef3a5.jsonl",
+          "preview": "Explain addition in exactly three sentences, then end your response with the marker SYNTHETIC_BETA. Do not use any files, shell commands, or network access.",
+          "recencyAt": 1793515009,
+          "sessionId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+          "source": {
+            "subAgent": {
+              "thread_spawn": {
+                "agent_nickname": "Euler",
+                "depth": 1,
+                "parent_thread_id": "01a195d3-21e0-71c1-9c2f-c528f07751f6"
+              }
+            }
+          },
+          "status": {
+            "type": "idle"
+          },
+          "threadSource": "subagent",
+          "turns": [
+            {
+              "completedAt": 1793515023,
+              "durationMs": 13444,
+              "id": "01a195d3-36ae-7e33-9095-15339cc42b7e",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "text": "Explain addition in exactly three sentences, then end your response with the marker SYNTHETIC_BETA. Do not use any files, shell commands, or network access.",
+                      "text_elements": [],
+                      "type": "text"
+                    }
+                  ],
+                  "id": "01a195d3-3b06-7bd3-bf25-79b8d11d3f54",
+                  "type": "userMessage"
+                },
+                {
+                  "id": "msg_18e3d8691a8628f8000016a4",
+                  "phase": "final_answer",
+                  "text": "Addition is the operation of combining two or more quantities to find their total, often written with a plus sign. The result, called the sum, tells how many objects or units you would have if the quantities were put together. For example, adding 2 and 3 gives 5 because combining two objects with three objects produces five objects.\nSYNTHETIC_BETA",
+                  "type": "agentMessage"
+                }
+              ],
+              "itemsView": "full",
+              "startedAt": 1793515009,
+              "status": "completed"
+            }
+          ],
+          "updatedAt": 1793515023
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-018",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u89c2\u5bdf\u5e76\u884c\u5b50 Agent \u7684\u72ec\u7acb\u8f93\u51fa\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.163.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-018",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.161.0"
+  },
+  "topology": {
+    "mode": "parallel",
+    "rootId": "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+    "nativeNodeIds": [
+      "01a195d3-21e0-71c1-9c2f-c528f07751f6",
+      "01a195d3-3292-78d3-8498-84531e4b109f",
+      "01a195d3-3685-7da0-bb3a-b125577ef3a5"
+    ],
+    "verified": true
+  },
+  "branchStatus": "passed"
+}

@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 4
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "execution": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "live-selected-path",
+                  "planned",
+                  "unsupported"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          "setup": {
+            "type": "object",
+            "properties": {
+              "files": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "files"
+            ],
+            "additionalProperties": false
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "op": {
+                  "enum": [
+                    "session.open",
+                    "configuration.apply",
+                    "input.submit",
+                    "event.wait",
+                    "execution.interrupt",
+                    "session.close",
+                    "history.discover"
+                  ]
+                },
+                "input": {
+                  "type": "string"
+                },
+                "event": {
+                  "enum": [
+                    "execution.progress",
+                    "execution.result"
+                  ]
+                },
+                "onMissing": {
+                  "const": "untriggered"
+                }
+              },
+              "required": [
+                "op"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "expect": {
+            "type": "object",
+            "properties": {
+              "requests": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "missingEvidence": {
+                "const": "untriggered"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "answers": {
+                "type": "object"
+              },
+              "outOfScope": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "requests",
+              "missingEvidence",
+              "scope",
+              "outOfScope"
+            ],
+            "additionalProperties": false
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "inputs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "activitySeconds": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "transportSeconds": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "protocolBytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "stderrBytes": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "inputs",
+              "activitySeconds",
+              "transportSeconds",
+              "protocolBytes",
+              "stderrBytes"
+            ],
+            "additionalProperties": false
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          },
+          "storyId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+          },
+          "goal": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "implementation": {
+            "enum": [
+              "implemented",
+              "planned"
+            ]
+          },
+          "driverProfile": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "inputKind": {
+                "enum": [
+                  "image",
+                  "document",
+                  "mixed"
+                ]
+              },
+              "approvalKind": {
+                "enum": [
+                  "file",
+                  "command"
+                ]
+              },
+              "approvalDecision": {
+                "enum": [
+                  "allow",
+                  "deny"
+                ]
+              },
+              "questionCount": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4
+              },
+              "freeText": {
+                "type": "boolean"
+              },
+              "configurationTiming": {
+                "enum": [
+                  "creation",
+                  "between-inputs",
+                  "during-execution",
+                  "before-first-input"
+                ]
+              },
+              "setting": {
+                "enum": [
+                  "model",
+                  "thinking",
+                  "effort",
+                  "display"
+                ]
+              },
+              "historyTarget": {
+                "enum": [
+                  "metadata",
+                  "messages",
+                  "children",
+                  "child-messages",
+                  "pagination"
+                ]
+              },
+              "requirePostResultEvent": {
+                "type": "boolean"
+              },
+              "topology": {
+                "enum": [
+                  "nested",
+                  "parallel"
+                ]
+              },
+              "applicationTool": {
+                "type": "boolean"
+              },
+              "requireSessionContinuation": {
+                "type": "boolean"
+              },
+              "childDetailPolicy": {
+                "enum": [
+                  "preserve",
+                  "suppress"
+                ]
+              },
+              "childConfiguration": {
+                "enum": [
+                  "model"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "storyId",
+          "goal",
+          "required",
+          "implementation",
+          "execution"
+        ],
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "implementation": {
+                "const": "implemented"
+              }
+            },
+            "required": [
+              "name",
+              "driverProfile",
+              "execution",
+              "setup",
+              "inputs",
+              "steps",
+              "expect",
+              "limits"
+            ]
+          },
+          {
+            "properties": {
+              "implementation": {
+                "enum": [
+                  "planned"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "version",
+    "id",
+    "goal",
+    "cases"
+  ],
+  "additionalProperties": false
+}
