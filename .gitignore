@@ -1,4 +1,5 @@
 /.scratch/
+/.archify/
 *.test
 coverage.out
 __pycache__/

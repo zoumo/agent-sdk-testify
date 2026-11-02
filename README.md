@@ -18,7 +18,7 @@
 - [已批准设计](docs/design.md)
 - [实施规格与阶段规划](docs/implementation-plan.md)
 - [导入来源与文件哈希](docs/import-baseline.json)
-- [目标架构图（可缩放 HTML）](.archify/architecture-three-commands-20261102-181131/extraction.html)
+- [三命令架构图（可缩放 HTML）](docs/assets/three-commands.html)
 
 ## 独立构建与离线测试
 

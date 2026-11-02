@@ -10,7 +10,7 @@ status: approved
 的 `428263bd594bcd2586049ba38d01c5573284e0ca`。实现和本地工程验收不代表
 公开发布、完整 SDK required 覆盖或 MASS E2E 通过。
 
-[查看目标架构图](../.archify/architecture-three-commands-20261102-181131/extraction.html)。
+[查看三命令架构图](assets/three-commands.html)。
 
 ## 1. 核心边界
 
