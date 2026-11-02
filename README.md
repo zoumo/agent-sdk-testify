@@ -39,3 +39,27 @@ mise exec -- python3 -m unittest discover -s scripts -p 'test_*.py'
 SDK 专属断言原件与 T7 恢复要求见[待迁移材料](migration/agent-sdk-go/README.md)。
 历史导入清单保持原路径与哈希，不随目录迁移改写；当前代码身份由 Git revision 确定。
 常规检查全程离线，不执行真实 Agent 或新录制，也不构成 SDK 仿真通过的证据。
+
+## 按 case 录制
+
+在独立环境中先安装本仓库构建的官方 driver wheel 及所选 provider 的官方 SDK extra，
+将该环境的 bin 目录放入 PATH。工具内部选择 `agent-sdk-testify-codex` 或
+`agent-sdk-testify-claude`；不会下载、安装或改用其他 SDK 包。
+安装需满足该官方 SDK 版本的 Python 与包源要求；wheel 本身安装成功不证明 SDK 依赖可用。
+
+```sh
+agent-sdk-testify record --provider codex --case SDK-CASE-001 \
+  --cli /absolute/codex --config /absolute/selected-config \
+  --output /private/new-capture
+```
+
+case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `--materials` 或 `--driver`。
+`--config` 仅选取既有允许的配置与认证，个人 skills、插件和指令不会整体复制。
+可选 `--model`、`--initial-model`、`--history-seed` 与 `--timeout` 沿用录制规则。
+省略 output 时创建持久私有 attempt，显式 output 必须尚不存在。
+失败与未触发尝试仍保留原始 plan/raw、业务状态、stderr、采集与清理回执；准备阶段失败保留诊断。
+录制通过不等于官方验证、审核采用或发布通过，record 不自动执行这些后续步骤。
+
+迁移期间，显式选择 `--materials`、`--cases-file` 或 `--index` 的旧流程仍按旧 CLI 执行，
+将在 T8 统一移除；上面的新入口只使用本仓库 case 与已安装的官方 driver。
+默认离线测试只以受控进程替换官方 driver 和 native Agent，不执行真实 SDK、模型或录制调用。
