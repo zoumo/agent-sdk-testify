@@ -19,10 +19,9 @@ import (
 	"github.com/zoumo/agent-sdk-testify/protocol/replay"
 )
 
-// Direct mock owns only its protocol descriptors and persistent receipt. Shared
-// environments and multi-connection runs belong to the later prepare contract.
+// Direct mock owns only its protocol descriptors and persistent receipt.
 func executeMock(ctx context.Context, args []string) int {
-	err := mockExternal(ctx, args)
+	err := mockMode(ctx, args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "agent-sdk-testify mock:", err)
 	}
@@ -36,6 +35,7 @@ func mockExternal(ctx context.Context, args []string) (err error) {
 	provider := f.String("provider", "", "codex or claude (default: plan provider)")
 	report := f.String("report", "", "New persistent receipt file")
 	seconds := f.Float64("timeout", 0, "Seconds; default: scenario timeout, then provider default")
+	phase := f.String("phase", "main", "Declared stream: main or probe")
 	help := f.Bool("help", false, "Show mock usage")
 	var flags, native []string
 	for i := 0; i < len(args); i++ {
@@ -65,6 +65,7 @@ func mockExternal(ctx context.Context, args []string) (err error) {
 		return protocolcmd.Fail(protocolcmd.ExitConfiguration, e)
 	}
 	if *help {
+		fmt.Fprintln(os.Stderr, "Prepared modes: mock --prepare --recording ABS --output ABS; mock --run ABS/run.json [--connection main|probe]; mock --finish ABS/run.json")
 		f.PrintDefaults()
 		return nil
 	}
@@ -103,69 +104,20 @@ func mockExternal(ctx context.Context, args []string) (err error) {
 		if err != nil {
 			receipt["error"] = err.Error()
 		}
-		data, encodeErr := recording.EncodeReport(receipt)
-		if encodeErr == nil {
-			_, encodeErr = receiptFile.Write(data)
-		}
-		err = errors.Join(err, encodeErr, receiptFile.Close())
+		closeErr := receiptFile.Close()
+		err = errors.Join(err, closeErr, atomicMockJSON(reportPath, receipt))
 	}()
-	// Unlike legacy shared-material loaders, this entry requires the source
-	// manifest to bind both the plan and the raw stream, even for synthetic input.
-	var manifest, plan object
-	if e = readJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); e != nil {
+	manifest, plan, document, e := loadMockPhase(sourceRoot, *provider, *phase)
+	if e != nil {
 		return bad(e)
 	}
-	if str(manifest["planSHA256"]) == "" || str(obj(manifest["files"])["raw.jsonl"]) == "" {
-		return bad(errors.New("source manifest requires planSHA256 and files.raw.jsonl"))
-	}
-	if e = verifySourcePhase(sourceRoot, true); e != nil {
-		return bad(e)
-	}
-	if e = readJSON(filepath.Join(sourceRoot, "plan.json"), &plan); e != nil {
-		return bad(e)
-	}
-	if *provider == "" {
-		*provider = str(plan["provider"])
-	} else if str(plan["provider"]) != "" && *provider != str(plan["provider"]) {
-		return bad(errors.New("provider differs from selected recording"))
-	}
+	*provider = str(plan["provider"])
 	if e = protocolcmd.ValidateNativeArgs(*provider, native); e != nil {
 		return bad(e)
 	}
 	receipt["provider"] = *provider
 	receipt["planSHA256"] = manifest["planSHA256"]
 	receipt["provenance"] = manifest["provenance"]
-	source, e := os.Open(filepath.Join(sourceRoot, "raw/raw.jsonl"))
-	if e != nil {
-		return bad(e)
-	}
-	document, readErr := recording.Read(source, *provider, recording.Limits{})
-	if e = errors.Join(readErr, source.Close()); e != nil {
-		return bad(e)
-	}
-	if document.SHA256 != str(obj(manifest["files"])["raw.jsonl"]) {
-		return bad(errors.New("source hash mismatch: raw.jsonl"))
-	}
-	// Legacy manifests have no format descriptor. If one is supplied, enforce
-	// its version and transport rather than treating it as decorative metadata.
-	for _, name := range []string{"manifest.json", "raw/manifest.json"} {
-		data, readErr := os.ReadFile(filepath.Join(sourceRoot, name))
-		if os.IsNotExist(readErr) {
-			continue
-		}
-		var metadata object
-		if readErr != nil {
-			return bad(readErr)
-		}
-		if e = json.Unmarshal(data, &metadata); e != nil {
-			return bad(e)
-		}
-		if _, present := metadata["recordingFormat"]; present {
-			if _, e = recording.ValidateManifest(data, "raw.jsonl", document.Original); e != nil {
-				return bad(e)
-			}
-		}
-	}
 	receipt["recordingSHA256"] = document.SHA256
 	receipt["frames"] = len(document.Frames)
 	timeout := time.Duration(*seconds * float64(time.Second))
@@ -220,4 +172,83 @@ func mockProtocol(ctx context.Context, document *recording.Document) (bool, erro
 		readErr = nil
 	}
 	return n == 1 && marker[0] == '1', errors.Join(err, readErr, r.Close())
+}
+
+// loadMockSource is shared by direct and prepared mock. It requires the same
+// immutable plan/raw bindings and format validation at both entry points.
+func loadMockSource(sourceRoot, provider string) (object, object, *recording.Document, error) {
+	return loadMockPhase(sourceRoot, provider, "main")
+}
+
+func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recording.Document, error) {
+	var e error
+	// Unlike legacy shared-material loaders, this entry requires the source
+	// manifest to bind both the plan and the raw stream, even for synthetic input.
+	var manifest, plan object
+	if e := readJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); e != nil {
+		return nil, nil, nil, e
+	}
+	if str(manifest["planSHA256"]) == "" || str(obj(manifest["files"])["raw.jsonl"]) == "" {
+		return nil, nil, nil, errors.New("source manifest requires planSHA256 and files.raw.jsonl")
+	}
+	if e = verifySourcePhase(sourceRoot, true); e != nil {
+		return nil, nil, nil, e
+	}
+	if e = readJSON(filepath.Join(sourceRoot, "plan.json"), &plan); e != nil {
+		return nil, nil, nil, e
+	}
+	if provider == "" {
+		provider = str(plan["provider"])
+	} else if str(plan["provider"]) != "" && provider != str(plan["provider"]) {
+		return nil, nil, nil, errors.New("provider differs from selected recording")
+	}
+	rawRoot := filepath.Join(sourceRoot, "raw")
+	expected := str(obj(manifest["files"])["raw.jsonl"])
+	if phase == "probe" && plan["driverProfile"] == "remote-close" {
+		rawRoot = filepath.Join(sourceRoot, "remote-probe/raw")
+		expected = str(obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"])
+		if expected == "" {
+			return nil, nil, nil, errors.New("source manifest must bind selected probe stream")
+		}
+		if e = verifySourcePhase(filepath.Join(sourceRoot, "remote-probe"), true); e != nil {
+			return nil, nil, nil, e
+		}
+	} else if phase != "main" {
+		return nil, nil, nil, errors.New("undeclared recording phase")
+	}
+	source, e := os.Open(filepath.Join(rawRoot, "raw.jsonl"))
+	if e != nil {
+		return nil, nil, nil, e
+	}
+	document, readErr := recording.Read(source, provider, recording.Limits{})
+	if e = errors.Join(readErr, source.Close()); e != nil {
+		return nil, nil, nil, e
+	}
+	if document.SHA256 != expected {
+		return nil, nil, nil, errors.New("source hash mismatch: raw.jsonl")
+	}
+	// Legacy manifests have no format descriptor. If one is supplied, enforce
+	// its version and transport rather than treating it as decorative metadata.
+	for _, name := range []string{filepath.Join(sourceRoot, "manifest.json"), filepath.Join(rawRoot, "manifest.json")} {
+		data, readErr := os.ReadFile(name)
+		if os.IsNotExist(readErr) {
+			continue
+		}
+		var metadata object
+		if readErr != nil {
+			return nil, nil, nil, readErr
+		}
+		if e = json.Unmarshal(data, &metadata); e != nil {
+			return nil, nil, nil, e
+		}
+		if _, present := metadata["recordingFormat"]; present {
+			if _, e = recording.ValidateManifest(data, "raw.jsonl", document.Original); e != nil {
+				return nil, nil, nil, e
+			}
+		}
+	}
+	if provider != "codex" && provider != "claude" {
+		return nil, nil, nil, errors.New("materials must identify codex or claude")
+	}
+	return manifest, plan, document, nil
 }
