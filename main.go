@@ -54,6 +54,12 @@ type options struct {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "mock" {
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		code := executeMock(ctx, os.Args[2:])
+		stop()
+		os.Exit(code)
+	}
 	if len(os.Args) > 1 && os.Args[1] == "protocol" {
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 		code := protocol.Execute(ctx, os.Args[2:], protocolcmd.IO{In: os.Stdin, Out: os.Stdout, Err: os.Stderr})
@@ -66,7 +72,7 @@ func main() {
 			fmt.Println("agent-sdk-testify " + protocolcmd.Version)
 			return
 		case "--help", "-h":
-			fmt.Println("Usage: agent-sdk-testify record|replay|simulate [flags]\n       agent-sdk-testify corpus review|qualify|adopt|gate [flags]\n       agent-sdk-testify protocol record|mock|connect [flags]\n       agent-sdk-testify version")
+			fmt.Println("Usage: agent-sdk-testify mock --recording /absolute/capture --report FILE [--provider codex|claude]\n       agent-sdk-testify record|replay|simulate [flags]\n       agent-sdk-testify corpus review|qualify|adopt|gate [flags]\n       agent-sdk-testify protocol record|mock|connect [flags]\n       agent-sdk-testify version")
 			return
 		}
 	}
