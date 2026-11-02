@@ -190,7 +190,7 @@ mock 不执行录制中的 shell、文件编辑或模型调用，不能据此推
 case 流程如 existing-children 由本仓库维护其合同及官方执行；Go SDK 如何执行由 SDK 负责。
 不把 Go SDK 的私有流程控制当成工具公开合同，不为拆分添加动态插件、通用工作流 DSL 或嵌套 module。
 
-目标布局：
+目标布局（源码直接位于独立仓库根目录，不保留原 SDK 的 tools/agent-sdk-testify 包装目录）：
 
 ```text
 agent-sdk-testify/

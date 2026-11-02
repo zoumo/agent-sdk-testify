@@ -52,7 +52,7 @@
 
 ## Implementation Decisions
 
-- 采用复制后收敛。首轮只导入受版本控制的相关文件，保留目录布局、源 revision、文件哈希及已有测试；不从空目录重新实现。
+- 采用复制后收敛。首轮复制保留来源目录和哈希用于追溯；独立构建阶段将工具源码移到仓库根目录，协议实现移到根 protocol，不保留 tools/agent-sdk-testify 包装层。同步更新 imports、构建入口、相对路径与文档，原始来源清单保持历史身份。
 - 三个公开业务入口固定为 record、verify、mock。当前官方 replay 改为 verify；不保留工具 simulate/replay 或公开 corpus/protocol 命令组。
 - case、provider binding、目标证据规则、官方 driver、官方 wheel、录制库和固定索引归工具仓库；Go SDK runtime、Go driver、simulate、SDK 业务覆盖门禁归 SDK。
 - record 与 verify 复用现有官方 driver 及进程请求合同。它们不接受任意被测 SDK driver，不因沿用内部驱动机制而保留通用 SDK 测试运行器。
@@ -153,3 +153,9 @@
 本地提交与集成分支实施。集成分支为 `codex-testify-integration`，审查基线为 `867a671`。
 首次复制阶段的不提交约束不再阻止技能要求的本地实现提交；推送、发布版本及真实录制仍未执行。
 父规格保持开放，不因某个子任务完成而关闭；工作仅在实际验收完成后记为完成。
+
+### 源码布局更正
+
+用户明确要求本仓库作为工具主体：Go 命令源码直接放根目录，协议代码放根 protocol。
+该调整归入 T1 独立构建，连同包路径、脚本、测试和文档一起迁移；历史导入清单只记录来源，
+不为目录调整改写原件记录。
