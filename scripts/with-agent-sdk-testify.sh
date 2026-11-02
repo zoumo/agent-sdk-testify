@@ -18,7 +18,7 @@ else
   testify_build_dir=$(mktemp -d "${TMPDIR:-/tmp}/agent-sdk-testify.XXXXXXXX")
   trap 'rm -rf "$testify_build_dir"' EXIT
   export AGENT_SDK_TESTIFY_BIN="$testify_build_dir/agent-sdk-testify"
-  GOPROXY=off GOSUMDB=off mise exec -C "$testify_source" -- go -C "$testify_source" build -o "$AGENT_SDK_TESTIFY_BIN" ./tools/agent-sdk-testify
+  GOPROXY=off GOSUMDB=off mise exec -C "$testify_source" -- go -C "$testify_source" build -o "$AGENT_SDK_TESTIFY_BIN" .
 fi
 export AGENT_SDK_TESTIFY_BIN
 "$AGENT_SDK_TESTIFY_BIN" version >&2

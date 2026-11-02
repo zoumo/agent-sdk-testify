@@ -68,15 +68,15 @@ class StoryEvidenceTests(unittest.TestCase):
 
     def test_relative_links_resolve_from_each_document(self):
         root = Path(__file__).resolve().parents[1]
-        self.assertEqual([], gate.link_errors(root / "docs/testing.md", "[ok](testing.md) [web](https://example.org)"))
-        errors = gate.link_errors(root / "docs/testing.md", "[bad](missing-issue8-file.md)")
+        self.assertEqual([], gate.link_errors(root / "harness/testing.md", "[ok](testing.md) [web](https://example.org)"))
+        errors = gate.link_errors(root / "harness/testing.md", "[bad](missing-issue8-file.md)")
         self.assertEqual(1, len(errors))
         self.assertIn("missing-issue8-file.md", errors[0])
 
     def test_local_fragment_must_name_a_real_heading(self):
         root = Path(__file__).resolve().parents[1]
-        path = root / "docs/testing.md"
-        self.assertEqual([], gate.link_errors(path, "[ok](testing.md#external-consumers)"))
+        path = root / "harness/testing.md"
+        self.assertEqual([], gate.link_errors(path, "[ok](testing.md#环境与结果)"))
         errors = gate.link_errors(path, "[bad](testing.md#missing-evidence-heading)")
         self.assertEqual(1, len(errors))
         self.assertIn("missing-evidence-heading", errors[0])

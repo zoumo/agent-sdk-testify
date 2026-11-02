@@ -10,7 +10,8 @@ Usage: bash scripts/simulation.sh build
        bash scripts/simulation.sh record|replay codex|claude [runner flags]
        bash scripts/simulation.sh simulate [runner flags]
        bash scripts/simulation.sh review|qualify|adopt|gate [corpus flags]
-Build creates agent-sdk-testify, sdk-driver, and the official-driver wheel.
+Build creates agent-sdk-testify and the official-driver wheel.
+SDK simulation/gate requires an explicit AGENT_SDK_DRIVER_BIN from the SDK owner.
 Set AGENT_SDK_TESTIFY_BUILD_DIR to choose the build directory; PYTHON selects
 the Python 3.11+ build interpreter (setuptools>=68 must already be installed).
 Install the wheel's [codex], [claude], or [recording] extras in your own venv,
@@ -25,9 +26,9 @@ case "${1:---help}" in
     simulation_mode=$1
     shift
     if [[ "$simulation_mode" == gate ]]; then
-      mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/agent-sdk-testify" ./tools/agent-sdk-testify
-      mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/sdk-driver" ./tests/simulation/drivers
-      set -- --sdk-driver "$simulation_build/sdk-driver" --source-root "$simulation_source" "$@"
+      mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/agent-sdk-testify" .
+      : "${AGENT_SDK_DRIVER_BIN:?SDK gate requires an explicit SDK-owned driver}"
+      set -- --sdk-driver "$AGENT_SDK_DRIVER_BIN" --source-root "$simulation_source" "$@"
     fi
     exec "$simulation_build/agent-sdk-testify" corpus "$simulation_mode" \
       --index "$simulation_source/tests/simulation/recordings/index.json" \
@@ -38,8 +39,7 @@ case "${1:---help}" in
     mkdir -p "$simulation_build"
     simulation_build=$(cd "$simulation_build" && pwd)
     test "$(mise exec -C "$simulation_source" -- go env GOVERSION)" = go1.26.9
-    mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/agent-sdk-testify" ./tools/agent-sdk-testify
-    mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/sdk-driver" ./tests/simulation/drivers
+    mise exec -C "$simulation_source" -- go -C "$simulation_source" build -o "$simulation_build/agent-sdk-testify" .
     "$simulation_python" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$simulation_build" "$simulation_source/tests/simulation/drivers"
     ;;
   record|replay)
@@ -60,7 +60,7 @@ case "${1:---help}" in
     ;;
   simulate)
     shift
-    exec "$simulation_build/agent-sdk-testify" simulate --driver "$simulation_build/sdk-driver" "$@"
+    exec "$simulation_build/agent-sdk-testify" simulate --driver "${AGENT_SDK_DRIVER_BIN:-$simulation_build/sdk-driver}" "$@"
     ;;
   --help|-h) usage ;;
   *) usage >&2; exit 2 ;;

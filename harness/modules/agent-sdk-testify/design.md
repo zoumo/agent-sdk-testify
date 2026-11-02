@@ -8,18 +8,22 @@ status: stable
 
 ## 语言无关的模块契约
 
-agent-sdk-testify 是唯一 Go 工具二进制，统一 case 编排、录制、严格离线回放与 Go SDK 仿真。
+公开业务入口为 record、verify、mock。verify 专指官方 SDK 验证录制；
+mock 的查询、准备、启动和收尾是其配套模式。simulate、Go driver、SDK 双策略及远端业务
+编排归 agent-sdk-go。下文的协议桥接、材料管理和驱动请求均为内部合同，不增加公开命令。
+
+agent-sdk-testify 是唯一 Go 工具二进制，负责本仓库 case 的录制、官方离线验证与协议 mock；Go SDK 仿真归 SDK。
 模块设计集中在本文；使用命令由工具 README 维护。
 
 | 入口／模块 | 职责 | 不负责 |
 | --- | --- | --- |
-| `record`、`replay`、`simulate` 运行器 | 准备环境、选择 case 与 driver、管理进程、检查运行有效性及汇总 | SDK 操作与业务断言 |
+| `record`、`verify` 运行器 | 准备环境、选择 case 与 driver、管理进程、检查运行有效性及汇总 | SDK 操作与业务断言 |
 | 内置场景入口 | 查询已发布 case、释放内置材料、准备隔离环境、提供原生进程启动配置及独立回执 | 接管下游测试或要求下游实现 driver |
-| `protocol record`、`protocol mock`、`protocol connect` 协议模块 | stdio 录制、严格协议匹配、完整消费、传输桥接及自有进程清理 | case 选择、环境准备与业务判定 |
+| 内部录制、mock、连接桥接协议模块 | stdio 录制、严格协议匹配、完整消费、传输桥接及自有进程清理 | case 选择、环境准备与业务判定 |
 | 原生 driver | SDK 调用、流程推进与业务断言 | 协议匹配与通用进程编排 |
 
 运行器默认用自身可执行路径启动协议子命令；`--peer` 仅供显式选择另一个
-agent-sdk-testify 产物。SDK 专项测试可以直接调用协议子命令，不必经过 case 运行器，
+agent-sdk-testify 产物。SDK 专项测试通过 mock 进程接入，不必经过 case 运行器，
 也不需要安装官方 SDK driver。测试脚本通过 `AGENT_SDK_TESTIFY_BIN` 提供唯一二进制。
 协议模块通过进程命令和版本化录制数据供任意语言调用。
 Go Module 与包归属见[仓库架构](../../architecture.md)和[代码布局](../../architecture.md#layout-code-layout-standards)。
@@ -29,7 +33,7 @@ provider 的 CLI 参数、配置和历史材料准备与通用环境／进程编
 编译后的可执行文件不依赖 Git checkout，也不需要调用方安装 Go 编译器。
 
 录制与 mock 使用 stdio，覆盖 Codex、Claude 的 JSONL 消息协议。
-远端 case 可通过 `protocol connect` 命令将 stdio 桥接到已有 WebSocket 服务；不提供通用多传输插件 Interface。
+远端 case 可通过内部连接桥接将 stdio 桥接到已有 WebSocket 服务；不提供通用多传输插件 Interface。
 stdio 是传输方式，JSONL 是第一版支持的分帧格式；不能把它当作任意二进制协议支持。
 
 [外部 story 录制工具](#story-官方-sdk-仿真测试) 使用相应 Agent 的官方 SDK 执行 story 并录制 case。
@@ -56,7 +60,7 @@ stdout 只承载原生协议。工具诊断使用 stderr 或独立报告；采�
 
 下游将 agent-sdk-testify 配置为原生 Agent 可执行程序，通过自己的公共业务接口运行测试。
 MASS 不实现本工具的 driver，也不由本工具启动或解释 MASS 测试。SDK 自己的仿真运行器
-复用同一材料访问、环境准备、严格协议回放和回执实现；生产 SDK 不依赖这些测试能力。
+通过 mock 进程使用材料、环境和回执；生产 SDK 不依赖这些测试能力。
 外部录制输入继续供私有材料、新样本验证和专项测试使用。
 
 ### 保存材料与发布资格
@@ -212,15 +216,15 @@ SDK 测试通过 fixture 与进程 Adapter 调用模块，依赖与代码归属�
 
 ## 运行器与原生 SDK 驱动
 
-`tools/agent-sdk-testify/` 的 Go 运行器统一准备环境、选择 case 和驱动、启动与取消进程、检查运行有效性并汇总结果。
-两类 SDK 驱动统一放在 `tests/simulation/drivers/`，按 codex、claude 聚合；各 Agent 的 official/ 放官方 SDK 驱动，go/ 放本仓库 SDK 仿真。公共材料读取与辅助代码放在 common/，官方驱动离线测试放在 tests/，Python 安装配置和 Go 进程入口位于 drivers 根。
+仓库根目录的 Go 运行器统一准备环境、选择 case 和驱动、启动与取消进程、检查运行有效性并汇总结果。
+官方 SDK 驱动放在 `tests/simulation/drivers/`，按 codex、claude 聚合；各 Agent 的 official/ 放官方驱动。公共材料读取与辅助代码放在 common/，官方驱动离线测试放在 tests/，Python 安装配置位于 drivers 根。Go driver 和 SDK 仿真入口归 agent-sdk-go。
 官方 SDK 驱动使用对应语言原生编写 case，负责 SDK 调用、异步事件、原始请求句柄、
 审批与工具回调、流程推进和全部业务断言。驱动报告结果，Go 不重新解释 SDK 事件或判定业务。
-Go SDK 仿真使用相同的运行方式，入口位于 `tests/simulation/drivers/`。
-provider 的 Go 流程实现、历史与子 Agent 验收及回归测试集中在 `codex/go/`、`claude/go/`。
+Go SDK 仿真的入口、provider Go 流程、历史与子 Agent 断言及回归测试由 SDK 仓库维护；
+这些流程只通过本工具 mock 的进程接口、场景描述、环境准备和回执消费材料。
 SDK 自有 `tests/replay` 只保留合成输入适配、专项集成测试和测试私有辅助代码，
 不承载可执行仿真流程。
-共享 case 材料放在 `tests/simulation/scenarios/`，由调用方显式提供；Go SDK 专项集成测试保留在 `tests/integration/`。
+共享 case 材料放在 `tests/simulation/scenarios/`，由调用方显式提供；Go SDK 专项集成测试保留在 SDK 仓库。
 
 <a id="story-录制生命周期"></a>
 
@@ -229,7 +233,7 @@ SDK 自有 `tests/replay` 只保留合成输入适配、专项集成测试和测
 一次任务启动一个驱动进程，执行一个 case；case 内可以包含多个会话或连接。
 Go 下发请求文件，等待驱动写入最终结果；不提供双向命令、事件协议、catalog、
 能力协商、通用步骤解释器或通用断言引擎。录制和官方回放执行同一个驱动，
-Go 提供不同协议对端。只有显式 `record` 或 `protocol record` 才启动真实 Agent；回放失败不得回落到真实 Agent。
+Go 提供不同协议对端。只有显式 `record` 才启动真实 Agent；回放失败不得回落到真实 Agent。
 
 <a id="story-场景配置"></a>
 
@@ -303,7 +307,7 @@ CLI、SDK、驱动和工具版本作为诊断信息记录，不建立精确版�
 真实录制、官方 SDK 回放和 Go SDK 仿真分别报告结果。已有材料的 Go 仿真可以独立执行。
 Go SDK 通过不是有效样本入库条件；入库后的 Go 仿真失败保留样本并阻断 SDK 门禁。
 阶段交付以原始 capture 目录、来源 manifest、各次独立 summary/result 和协议回执为材料，
-由调用方关联其路径与源码／构建身份；审核入库、数据索引和覆盖门禁由 Go 工具的 corpus 命令管理，
+由调用方关联其路径与源码／构建身份；审核入库和数据索引由工具内部材料管理负责；当前 SDK 覆盖门禁归 SDK，
 不属于 Python driver 或通用进程运行器。
 某条路径通过仅证明其驱动断言和本次运行范围，不能抵扣其他路径。
 回放严格匹配原始协议，不执行工具或重建文件副作用；相关 SDK 交付和业务断言由驱动按 case 检查。
@@ -321,7 +325,7 @@ Go SDK 通过不是有效样本入库条件；入库后的 Go 仿真失败保留
 
 ### 审核采用与固定回归门禁
 
-corpus CLI 在采用前保存完整私有采集包，包括未选用文件及失败证据；每次尝试使用独立目录，
+内部材料管理在采用前保存完整私有采集包，包括未选用文件及失败证据；每次尝试使用独立目录，
 不覆盖源文件或既有归档。公开回归区只复制允许范围内的必需材料，保留原字节、
 完整原件哈希及归档 ID；认证、配置、私有诊断和任意工具测试文件不能自动成为回归材料。
 仓库录制入口自动执行官方回放和机器资格校验，不要求另行填写人工审核标记。
@@ -348,7 +352,7 @@ Claude 的进程和历史 API 需要现存 cwd；其运行时使用新工作目�
 原子切换索引后移除旧回归目录；校验或索引切换失败时保留旧样本。
 批次逐 case 更新，失败 case 保留旧版本及失败材料；采用状态不能由 Go 仿真结果更改。
 Go 二进制的 record 不带 index 时只负责私有采集；带 index 时由 Go 工具自动回放和替换，
-仓库 shell 入口提供仓库索引及场景路径。资格校验、归档、采用和固定门禁均由 Go 工具实现，
+仓库 shell 入口提供仓库索引及场景路径。资格校验、归档、采用和材料校验由工具实现，当前 SDK 固定门禁由 SDK 实现，
 不自动执行 git commit 或 push。
 
 固定索引明确列出全部 provider/case、story 归属、required/optional 能力要求、采用状态及业务验证。

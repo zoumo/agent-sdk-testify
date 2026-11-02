@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "owner": "zoumo/agent-sdk-go",
+  "restoreTask": "T7",
+  "baseline": "867a671",
+  "sourceRevision": "428263bd594bcd2586049ba38d01c5573284e0ca",
+  "files": [
+    {
+      "sourcePath": "tools/agent-sdk-testify/sdk_driver_test.go",
+      "pendingPath": "migration/agent-sdk-go/sdk_driver_test.go.pending",
+      "sha256": "77b7a924b77ffe5cc7ec29ce42e3cef09e2ab3a501c2afb9834280caa632fcd2",
+      "bytes": 7511,
+      "migrate": "TestSDKRequestUsesRunnerPeers"
+    },
+    {
+      "sourcePath": "tools/agent-sdk-testify/materialize_claude_test.go",
+      "pendingPath": "migration/agent-sdk-go/materialize_claude_test.go.pending",
+      "sha256": "297f0c76e6221fa81daf1303b689aefd8a76c9bb3956b69b45a07e76a468a0ef",
+      "bytes": 6356,
+      "migrate": "func TestClaudeMovedMaterialsUseCurrentSDKAndDerivedHistory"
+    },
+    {
+      "sourcePath": "tools/agent-sdk-testify/corpus_test.go",
+      "pendingPath": "migration/agent-sdk-go/corpus_test.go.pending",
+      "sha256": "b5cd128498f03dfc8563c180e80fd213100665f3c82160d403a33343135f898f",
+      "bytes": 30633,
+      "migrate": "func (s *corpusSuite) TestAdoptedMaterialsRunCurrentSDKAndRetainFailures"
+    }
+  ]
+}
