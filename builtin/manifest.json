@@ -1,11 +1,7 @@
 {
   "schemaVersion": 1,
   "toolVersion": "0.1.0-dev",
-  "sourceRevision": "9f2b70e833a97abc84b2cfe40825990fa4061124",
-  "importSource": {
-    "repository": "https://github.com/zoumo/agent-sdk-go",
-    "revision": "428263bd594bcd2586049ba38d01c5573284e0ca"
-  },
+  "sourceRevision": "fc73d86c310ada28478a6735af69b07af1139ad9",
   "scope": "local technical candidates; public release not authorized",
   "indexSHA256": "20e239b1f16fa01487979d056267926b95ef6e76183dbf6d6e1b92d596f959ba",
   "catalog": {

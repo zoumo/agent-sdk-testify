@@ -1,11 +1,11 @@
 # Builtin materials and mock discovery (v1)
 
 The installed binary embeds `builtin/materials.tar.gz` and
-`builtin/manifest.json`. The current local snapshot contains 64 historical
-qualified technical candidates (32/provider), selected from all 72 index entries.
+`builtin/manifest.json`. The current local snapshot contains 64 selected,
+qualified technical candidates (32/provider) from the 72 index entries.
 Local embedding/build approval does not authorize public push or release.
-Historical official SDK evidence is preserved; current SDK compatibility and new
-verify diagnostics are separate results and never update these historical claims.
+Each selected attempt keeps its original official SDK evidence; current SDK
+compatibility and new verify diagnostics are separate results and never rewrite it.
 
 ```sh
 agent-sdk-testify mock --list --json
@@ -149,13 +149,7 @@ comparisons. SDK business assertions, current compatibility and full coverage
 remain SDK-owned. Local binaries are suitable for integration; no published pin
 or public release is implied.
 
-The imported tracked materials originate at public `zoumo/agent-sdk-go` revision
-`428263bd594bcd2586049ba38d01c5573284e0ca` (tree
-`740858be23f1d950030198406da24823c4f03fc0`). Keep the repository license and
-`docs/import-baseline.json` provenance with distributions. This existing source
-publication introduces no additional manual-review or scanning gate for local
-embedding; actual push/release remains a separate action.
-
-Authoritative source paths are now root `scenarios/`, `recordings/`, and `drivers/`.
-The historical import manifest retains original paths; `import-current-paths.json`
-resolves relocated paths without changing historical hashes.
+The authoritative material source is the current repository `scenarios/`,
+`recordings/index.json`, and each selected attempt's manifest, adoption and review
+files. The generator copies those bytes unchanged and binds their hashes into the
+snapshot. It does not relabel historical evidence as a current verification result.

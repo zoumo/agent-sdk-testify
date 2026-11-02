@@ -30,7 +30,6 @@ type builtinManifest struct {
 	SchemaVersion  int               `json:"schemaVersion"`
 	ToolVersion    string            `json:"toolVersion"`
 	SourceRevision string            `json:"sourceRevision"`
-	ImportSource   object            `json:"importSource"`
 	Scope          string            `json:"scope"`
 	IndexSHA256    string            `json:"indexSHA256"`
 	Catalog        map[string]string `json:"catalog"`

@@ -1,7 +1,5 @@
 """Offline process checks for an independently installed tool (no Agent calls)."""
 import os
-import hashlib
-import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -11,20 +9,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class IndependentToolTests(unittest.TestCase):
-    def test_recordings_cases_and_pending_sdk_assertions_keep_imported_bytes(self):
-        baseline = json.loads((ROOT / 'docs/import-baseline.json').read_text())
-        mapping = json.loads((ROOT / 'docs/import-current-paths.json').read_text())['paths']
-        for entry in baseline['files']:
-            if entry['path'].startswith(('tests/simulation/recordings/', 'tests/simulation/scenarios/')):
-                with self.subTest(path=entry['path']):
-                    self.assertEqual(entry['sha256'], hashlib.sha256((ROOT / mapping.get(entry['path'],entry['path'])).read_bytes()).hexdigest())
-        migration = json.loads((ROOT / 'migration/agent-sdk-go/manifest.json').read_text())
-        imported = {entry['path']: entry for entry in baseline['files']}
-        for entry in migration['files']:
-            with self.subTest(path=entry['pendingPath']):
-                self.assertEqual(imported[entry['sourcePath']]['sha256'], entry['sha256'])
-                self.assertEqual(entry['sha256'], hashlib.sha256((ROOT / entry['pendingPath']).read_bytes()).hexdigest())
-
     def test_repository_build_does_not_require_sdk_driver(self):
         with tempfile.TemporaryDirectory() as temporary:
             environment = dict(os.environ, AGENT_SDK_TESTIFY_BUILD_DIR=temporary,

@@ -1,8 +1,6 @@
 # Standalone tool workspace
 
-本仓库维护独立的 record、verify、mock 工具，先读
-[已批准设计](docs/design.md)、[实施规格](docs/implementation-plan.md)和
-[导入来源清单](docs/import-baseline.json)。
+本仓库维护独立的 record、verify、mock 工具，先读[工具设计](docs/design.md)。
 
 - 最终公开业务入口仅 record、verify、mock；simulate、Go driver 及 SDK 业务编排留在 agent-sdk-go。
 - case、官方 driver、录制、材料及索引归本仓库。测试接入点为 mock 的进程接口。

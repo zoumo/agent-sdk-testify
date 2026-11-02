@@ -7,7 +7,7 @@ status: stable
 # Testing standards
 
 工具测试通过已批准的进程接口检查协议、环境、材料、回执和清理。
-[case 合同](sdk/validation-cases.md)定义 8 个用户故事、36 个 case；
+[case 目录](cases.md)定义 8 个用户故事、36 个 case；
 provider binding 的 required/optional、planned/unsupported 及原因必须保留。
 合同和材料存在不证明当前 SDK 通过，合成材料必须保持 synthetic 身份。
 
@@ -21,9 +21,8 @@ provider binding 的 required/optional、planned/unsupported 及原因必须保�
 | 真实 E2E / record | 仅显式授权执行，保留业务、采集和清理结果 | 产品自身 E2E |
 
 默认测试离线，不启动真实 Agent、不需要认证、不安装官方 SDK、不新增录制。
-工具生产与默认测试依赖不得导入 agent-sdk-go；不以 replace、go.work、相邻 checkout
-或自动跳过 SDK 断言解决迁移。SDK 专属断言由 SDK 承接；待迁移原件不参与 Go 测试发现，
-须保留字节、哈希、原位置、明确归属和恢复任务。
+工具生产与默认测试依赖不得导入 agent-sdk-go；不以 replace、go.work 或相邻 checkout
+掩盖依赖。
 
 工具从源码目录外运行编译产物，协议 stdout 只承载原生协议，诊断使用 stderr 或报告。
 保留未知字段、数字字面量、关联 ID、严格匹配、错误分类、部分消费、取消、
@@ -58,7 +57,7 @@ case/索引身份、全部录制字节、来源哈希和政策检查不得弱化
 - Preserve all cases, expected values, error classifications, unknown-field
   checks, backpressure, cancellation and race assertions. Do not lower coverage,
   loosen deadlines or substitute mocks for recorded protocol replay to make a
-  migration pass.
+  change pass.
 - Keep Go `Example` output contracts, `TestMain`/subprocess dispatch, testing
   entry points, helpers, cleanup, environment management and explicit live skips
   native where those APIs are required. Helpers should serve a concrete protocol

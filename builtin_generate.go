@@ -55,11 +55,6 @@ func generateBuiltin(root, revision string, check bool) error {
 		return err
 	}
 	m := builtinManifest{SchemaVersion: 1, ToolVersion: protocolcmd.Version, SourceRevision: revision, Scope: "local technical candidates; public release not authorized", Catalog: map[string]string{}, Coverage: []object{}, Materials: []builtinMaterial{}}
-	baseline, err := corpusRead(filepath.Join(root, "docs/import-baseline.json"))
-	if err != nil {
-		return err
-	}
-	m.ImportSource = obj(baseline["source"])
 	m.IndexSHA256, err = fileDigest(c.Index)
 	if err != nil {
 		return err

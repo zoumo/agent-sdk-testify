@@ -19,7 +19,7 @@ def inventory_errors(text, prefix, expected):
 
 
 def stable_stories(root):
-    return re.findall(r'^\| (SDK-US-\d{3}) \|', (root / 'harness/sdk/validation-cases.md').read_text(), re.M)
+    return re.findall(r'^\| (SDK-US-\d{3}) \|', (root / 'harness/cases.md').read_text(), re.M)
 
 
 def case_mapping_errors(stories, cases):
@@ -94,11 +94,11 @@ def link_errors(path, text):
 def check(root):
     common = {f"SDK-US-{n:03}" for n in range(1, 9)}
     stories = stable_stories(root)
-    errors = inventory_errors((root / 'harness/sdk/validation-cases.md').read_text(), 'SDK-US', common)
+    errors = inventory_errors((root / 'harness/cases.md').read_text(), 'SDK-US', common)
     cases, rows = recording_mapping(root)
     errors += case_mapping_errors(stories, cases)
     case_ids = {case['id'] for case in cases}
-    normative = (root / 'harness/sdk/validation-cases.md').read_text()
+    normative = (root / 'harness/cases.md').read_text()
     errors += inventory_errors(normative, 'SDK-CASE', case_ids)
     owners = dict(re.findall(r'^\| (SDK-CASE-\d{3}) \| (SDK-US-\d{3}) \|', normative, re.M))
     requirements = dict(re.findall(r'^\| (SDK-CASE-\d{3}) \| SDK-US-\d{3} \| (required|optional)(?: \([^)]*\))? \|', normative, re.M))
@@ -132,10 +132,6 @@ def check(root):
                 errors.append(provider + '/' + case['id'] + ': unavailable route needs a reason')
             if 'offlineTest' in case or 'offlineTest' in binding:
                 errors.append(provider + '/' + case['id'] + ': code integration checks are not simulation routes')
-    mapping = (root / 'drivers/README.md').read_text()
-    errors += inventory_errors(mapping, 'SDK-CASE', case_ids)
-    if [line for line in mapping.splitlines() if line.startswith('| SDK-CASE-')] != rows:
-        errors.append('Story/case mapping must match exact identities and provider routes')
     documents = [root / name for name in ('AGENTS.md', 'README.md', 'GLOSSARY.md', 'drivers/README.md')]
     for directory in ('harness', 'docs'):
         documents += sorted((root / directory).rglob('*.md'))

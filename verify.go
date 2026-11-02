@@ -82,8 +82,8 @@ func executeVerify(ctx context.Context, args []string) error {
 	return err
 }
 
-// A new attempt owns all new evidence. Imported plans, raw bytes and replay
-// results remain immutable, including their historical mode and SDK identity.
+// A verification attempt owns its new evidence. The source plan, raw bytes and
+// prior results remain immutable, including their original mode and SDK identity.
 func verifyRecording(ctx context.Context, o options) (summary object, err error) {
 	o.Mode = "verify"
 	o.Materials, err = corpusResolved(o.Materials)

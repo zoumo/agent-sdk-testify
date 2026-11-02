@@ -214,7 +214,6 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	for _, name := range []string{"scenarios", "recordings", "builtin"} {
 		require.NoError(t, copyTree(name, filepath.Join(root, name)))
 	}
-	require.NoError(t, copyFile("docs/import-baseline.json", filepath.Join(root, "docs/import-baseline.json")))
 	invoke := func() ([]byte, error) { return exec.Command(generator, "--root", root, "--check").CombinedOutput() }
 	// A selected missing file must fail, even though the generated bundle exists.
 	_, source := builtinTranscript(t, "codex", "SDK-CASE-001")

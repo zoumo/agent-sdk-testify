@@ -27,7 +27,7 @@ def main():
         run('go','build','-trimpath','-buildvcs=false','-o',str(binary),'.',env=dict(environment,GOOS=system,GOARCH=arch))
         name=f'agent-sdk-testify_{version}_{system}_{arch}.tar.gz'
         with (output/name).open('wb') as stream, gzip.GzipFile(filename='',fileobj=stream,mode='wb',mtime=0) as gz, tarfile.open(fileobj=gz,mode='w') as tar:
-            for source,member in [(binary,'agent-sdk-testify'),(ROOT/'builtin/manifest.json','builtin-manifest.json'),(ROOT/'LICENSE','LICENSE'),(ROOT/'README.md','README.md'),(ROOT/'docs/import-baseline.json','docs/import-baseline.json'),(ROOT/'docs/import-current-paths.json','docs/import-current-paths.json'),(ROOT/'docs/mock-run.md','docs/mock-run.md'),(ROOT/'docs/builtin.md','docs/builtin.md'),(ROOT/'docs/mock-catalog.schema.json','docs/mock-catalog.schema.json'),(ROOT/'docs/official-environment.md','docs/official-environment.md')]:
+            for source,member in [(binary,'agent-sdk-testify'),(ROOT/'builtin/manifest.json','builtin-manifest.json'),(ROOT/'LICENSE','LICENSE'),(ROOT/'README.md','README.md'),(ROOT/'docs/mock-run.md','docs/mock-run.md'),(ROOT/'docs/builtin.md','docs/builtin.md'),(ROOT/'docs/mock-catalog.schema.json','docs/mock-catalog.schema.json'),(ROOT/'docs/official-environment.md','docs/official-environment.md')]:
                 data=source.read_bytes(); info=tarfile.TarInfo(member); info.size=len(data); info.mode=0o755 if member=='agent-sdk-testify' else 0o644
                 tar.addfile(info,io.BytesIO(data))
         files.append({'path':name,'sha256':digest(output/name),'binarySHA256':digest(binary),'target':target})

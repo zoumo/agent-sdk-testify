@@ -11,13 +11,11 @@
 
 工具使用独立 module，命令源码位于根目录，协议位于 `protocol/`，权威材料位于
 `scenarios/`、`recordings/`，官方 driver 与 wheel 位于 `drivers/`。
-已实现的业务入口只有 record、verify、mock；不提供旧 simulate/replay/corpus/protocol/peer 入口。
+已实现的业务入口只有 record、verify、mock；不提供 simulate/replay/corpus/protocol/peer 入口。
 内部协议子进程仅供官方录制与验证使用。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
 - [mock 环境、运行描述与收尾接口](docs/mock-run.md)
-- [已批准设计](docs/design.md)
-- [实施规格与阶段规划](docs/implementation-plan.md)
-- [导入来源与文件哈希](docs/import-baseline.json)
+- [工具设计](docs/design.md)
 - [三命令架构图（可缩放 HTML）](docs/assets/three-commands.html)
 
 ## 独立构建与离线测试
@@ -36,8 +34,6 @@ mise exec -- python3 -m unittest discover -s scripts -p 'test_*.py'
 脚本测试和 wheel 构建需要 Python 3.11+、pip 和已安装的 setuptools>=68；不会安装官方 SDK。
 `bash scripts/simulation.sh build` 仅构建本工具及官方 driver wheel。
 SDK 自己构建 simulate/gate，通过显式 `AGENT_SDK_TESTIFY_BIN` 消费 mock；发布 pin 仍为 null。
-SDK 专属断言原件与 T7 恢复要求见[待迁移材料](migration/agent-sdk-go/README.md)。
-历史导入清单保持原路径与哈希，不随目录迁移改写；当前代码身份由 Git revision 确定。
 常规检查全程离线，不执行真实 Agent 或新录制，也不构成 SDK 仿真通过的证据。
 
 ## 按 case 录制
@@ -73,7 +69,7 @@ agent-sdk-testify verify --recording /private/new-capture \
 
 provider/case 从录制身份确定，只选择本工具的官方 driver；不接受 `--driver`、
 `--driver-arg`、`--peer` 或 SDK 仿真 driver。不会启动真实 Agent 或自动安装依赖。
-原件与旧 replay 证据保持不变；新目录保存业务报告、每个选中连接的协议及退出回执、
+原件与已有 replay 证据保持不变；新目录保存业务报告、每个选中连接的协议及退出回执、
 失败诊断和 `verification.json`。验证证据绑定原件、合同、工具及 driver 哈希，
 记录实际安装的官方 SDK 包和版本；版本不兼容须报告失败。
 业务通过仍须所有连接严格匹配、完整消费、EOF、退出及清理通过。
@@ -101,7 +97,6 @@ amd64/arm64 独立归档、官方 driver wheel、manifest.json 和 SHA256SUMS。
 运行 `mise exec -- bash scripts/check-offline.sh` 执行离线完整门禁；CI 分开准备依赖后执行同一脚本。
 
 消费者先 `mock --describe`，按 [运行合同](docs/mock-run.md) prepare、执行自身业务、关闭宿主，
-最后 finish。SDK/MASS 的业务成功与工具协议成功分别判断。MASS 的 mass/2 Codex 握手与
-历史内置握手不兼容时应失败，不得修改录制或放宽字段。
+最后 finish。SDK/MASS 的业务成功与工具协议成功分别判断。MASS 的 mass/2 Codex
+握手与录制中的官方客户端不同时应失败，不得修改录制或放宽字段。
 [官方环境与已知验证限制](docs/official-environment.md)记录实际依赖和来源。
-[路径映射](docs/import-current-paths.json)解析导入清单的旧位置，历史来源哈希不变。
