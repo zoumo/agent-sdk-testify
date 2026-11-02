@@ -8,11 +8,6 @@ import stat
 
 
 def scenario_directory():
-    # An immutable recording snapshot owns its catalog, even if the caller has
-    # configured a different catalog in its environment.
-    frozen = Path(__file__).parent.parent / 'scenarios'
-    if frozen.is_dir():
-        return frozen
     configured = os.environ.get('AGENT_MOCK_SCENARIOS')
     return Path(configured) if configured else Path(__file__).parent / 'examples'
 

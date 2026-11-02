@@ -18,5 +18,6 @@ export PYTHONPATH="$PWD/drivers/common:$PWD/drivers/codex/official:$PWD/drivers/
 python3.11 -m unittest discover -s scripts -p 'test_*.py'
 python3.11 -m unittest discover -s drivers/tests -p 'test_*.py'
 python3.11 -m unittest discover -s drivers/tests/scenarios -p 'test_*.py'
+rm -rf .artifacts/acceptance/dist
 python3.11 scripts/release.py --output .artifacts/acceptance/dist
 python3.11 scripts/check-agent-sdk-testify-package.py .artifacts/acceptance/dist/*.whl

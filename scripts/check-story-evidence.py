@@ -19,7 +19,7 @@ def inventory_errors(text, prefix, expected):
 
 
 def stable_stories(root):
-    return re.findall(r'^\| (SDK-US-\d{3}) \|', (root / 'harness/cases.md').read_text(), re.M)
+    return re.findall(r'^\| (SDK-US-\d{3}) \|', (root / 'docs/cases.md').read_text(), re.M)
 
 
 def case_mapping_errors(stories, cases):
@@ -36,7 +36,7 @@ def case_mapping_errors(stories, cases):
 
 
 def recording_mapping(root):
-    directory = root / 'scenarios'
+    directory = root / 'data/scenarios'
     index = json.loads((directory / 'index.json').read_text())
     stories = [json.loads((directory / (name + '.json')).read_text()) for name in index['stories']]
     providers = {p: json.loads((directory / 'bindings' / (p + '.json')).read_text()) for p in ('codex', 'claude')}
@@ -51,7 +51,7 @@ def recording_mapping(root):
                     continue
                 binding = bindings['cases'][case['id']]
                 routes.append(dict(case['execution'], **binding.get('execution', {}))['mode'])
-            target = f"[配置](../scenarios/{story['id']}.json)"
+            target = f"[配置](../data/scenarios/{story['id']}.json)"
             requirement = 'required' if case['required'] else 'optional'
             overrides = [provider + ' ' + ('required' if bindings['cases'][case['id']]['required'] else 'optional')
                          for provider, bindings in providers.items()
@@ -94,11 +94,11 @@ def link_errors(path, text):
 def check(root):
     common = {f"SDK-US-{n:03}" for n in range(1, 9)}
     stories = stable_stories(root)
-    errors = inventory_errors((root / 'harness/cases.md').read_text(), 'SDK-US', common)
+    errors = inventory_errors((root / 'docs/cases.md').read_text(), 'SDK-US', common)
     cases, rows = recording_mapping(root)
     errors += case_mapping_errors(stories, cases)
     case_ids = {case['id'] for case in cases}
-    normative = (root / 'harness/cases.md').read_text()
+    normative = (root / 'docs/cases.md').read_text()
     errors += inventory_errors(normative, 'SDK-CASE', case_ids)
     owners = dict(re.findall(r'^\| (SDK-CASE-\d{3}) \| (SDK-US-\d{3}) \|', normative, re.M))
     requirements = dict(re.findall(r'^\| (SDK-CASE-\d{3}) \| SDK-US-\d{3} \| (required|optional)(?: \([^)]*\))? \|', normative, re.M))
@@ -114,7 +114,7 @@ def check(root):
             errors.append(case['id'] + ': simulation case must be implemented or planned')
         if not isinstance(case.get('required'), bool) or requirements.get(case['id']) != ('required' if case['required'] else 'optional'):
             errors.append(case['id'] + ': normative and configured requirement differ')
-    directory = root / 'scenarios'
+    directory = root / 'data/scenarios'
     index = json.loads((directory / 'index.json').read_text())
     if set(index['stories']) != common or len(index['stories']) != len(common):
         errors.append('Simulation catalog must contain exactly the eight user stories')
@@ -133,8 +133,7 @@ def check(root):
             if 'offlineTest' in case or 'offlineTest' in binding:
                 errors.append(provider + '/' + case['id'] + ': code integration checks are not simulation routes')
     documents = [root / name for name in ('AGENTS.md', 'README.md', 'GLOSSARY.md', 'drivers/README.md')]
-    for directory in ('harness', 'docs'):
-        documents += sorted((root / directory).rglob('*.md'))
+    documents += sorted((root / 'docs').rglob('*.md'))
     for path in documents:
         errors += link_errors(path, path.read_text())
     return errors

@@ -1,0 +1,423 @@
+package corpus
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/fs"
+	"os"
+	"path"
+	"path/filepath"
+	"reflect"
+	"regexp"
+	"sort"
+	"strings"
+
+	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
+)
+
+// Corpus policy belongs to the Go tool, not to an SDK driver. Paths are explicit
+// so the compiled binary can operate outside its source checkout.
+type Corpus struct {
+	Index, Scenarios, Archive string
+}
+
+var SourceEvidence = []string{"plan.json", "manifest.json", "report.json", "result.json", "summary.json"}
+
+func claudeProjectKey(cwd string) string {
+	return regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(cwd, "-")
+}
+
+func Local(name string) bool {
+	return name != "" && name != "." && !strings.Contains(name, "\\") && path.Clean(name) == name && filepath.IsLocal(name)
+}
+
+func Regular(root, name string) (string, error) {
+	if !Local(name) {
+		return "", fmt.Errorf("non-local or non-canonical material path: %q", name)
+	}
+	p := root
+	for _, part := range strings.Split(name, "/") {
+		p = filepath.Join(p, part)
+		i, err := os.Lstat(p)
+		if err != nil {
+			return "", err
+		}
+		if i.Mode()&os.ModeSymlink != 0 {
+			return "", fmt.Errorf("material symlink is forbidden: %s", name)
+		}
+	}
+	i, err := os.Stat(p)
+	if err != nil {
+		return "", err
+	}
+	if !i.Mode().IsRegular() {
+		return "", fmt.Errorf("required regular material missing: %s", name)
+	}
+	return p, nil
+}
+
+func Digest(p string) (string, error) {
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return "", err
+	}
+	h := sha256.Sum256(b)
+	return hex.EncodeToString(h[:]), nil
+}
+
+func Inventory(root string, empty bool) (object, error) {
+	i, err := os.Lstat(root)
+	if err != nil {
+		return nil, err
+	}
+	if !i.IsDir() || i.Mode()&os.ModeSymlink != 0 {
+		return nil, errors.New("material directory is missing or linked")
+	}
+	out := object{}
+	err = filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.Type()&os.ModeSymlink != 0 {
+			return errors.New("material symlink is forbidden")
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if !d.Type().IsRegular() {
+			return errors.New("non-regular material is forbidden")
+		}
+		name, err := filepath.Rel(root, p)
+		if err != nil {
+			return err
+		}
+		h, err := Digest(p)
+		if err == nil {
+			out[filepath.ToSlash(name)] = h
+		}
+		return err
+	})
+	if err == nil && !empty && len(out) == 0 {
+		err = errors.New("empty material inventory")
+	}
+	return out, err
+}
+
+func Read(p string) (object, error) {
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = rawjson.Parse(b); err != nil {
+		return nil, err
+	}
+	var v object
+	err = json.Unmarshal(b, &v)
+	if err == nil && v == nil {
+		err = errors.New("JSON evidence must be an object")
+	}
+	return v, err
+}
+
+func Write(p string, value any) error {
+	b, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err = os.MkdirAll(filepath.Dir(p), 0700); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(append(b, '\n'))
+	return errors.Join(err, f.Close())
+}
+
+// Validation keeps the first error. Subsequent reads/checks cannot turn a
+// missing or malformed artifact into a successful qualification.
+type Validation struct{ Err error }
+
+func (v *Validation) Check(ok bool, message string) {
+	if v.Err == nil && !ok {
+		v.Err = errors.New(message)
+	}
+}
+func (v *Validation) Read(root, name string) object {
+	if v.Err != nil {
+		return object{}
+	}
+	p, err := Regular(root, name)
+	if err != nil {
+		v.Err = err
+		return object{}
+	}
+	m, err := Read(p)
+	v.Err = err
+	return m
+}
+func (v *Validation) Digest(root, name string) string {
+	if v.Err != nil {
+		return ""
+	}
+	p, err := Regular(root, name)
+	if err != nil {
+		v.Err = err
+		return ""
+	}
+	h, err := Digest(p)
+	v.Err = err
+	return h
+}
+func (v *Validation) Hashes(root string, hashes object) {
+	v.Check(len(hashes) > 0, "nonempty hash inventory required")
+	for name, expected := range hashes {
+		v.Check(len(str(expected)) == 64 && v.Digest(root, name) == expected, "material hash mismatch: "+name)
+	}
+}
+func (v *Validation) Inventory(root string, empty bool) object {
+	if v.Err != nil {
+		return object{}
+	}
+	x, err := Inventory(root, empty)
+	v.Err = err
+	return x
+}
+func Keys(m object) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+func corpusSet(names []string) object {
+	m := object{}
+	for _, n := range names {
+		m[n] = true
+	}
+	return m
+}
+func Within(p, root string) bool {
+	r, err := filepath.Rel(root, p)
+	return err == nil && (r == "." || filepath.IsLocal(r))
+}
+
+func (c Corpus) Catalog() (object, error) {
+	v := &Validation{}
+	index := v.Read(c.Scenarios, "index.json")
+	out := object{}
+	for _, story := range stringsOf(index["stories"]) {
+		s := v.Read(c.Scenarios, story+".json")
+		for _, item := range array(s["cases"]) {
+			definition := obj(item)
+			id := str(definition["id"])
+			for _, provider := range []string{"codex", "claude"} {
+				binding := v.Read(c.Scenarios, "bindings/"+provider+".json")
+				mode := str(obj(definition["execution"])["mode"])
+				if x := str(obj(obj(obj(binding["cases"])[id])["execution"])["mode"]); x != "" {
+					mode = x
+				}
+				required, ok := definition["required"].(bool)
+				v.Check(ok, "case requirement must be explicit")
+				if override, exists := obj(obj(binding["cases"])[id])["required"]; exists {
+					required, ok = override.(bool)
+					v.Check(ok, "provider requirement must be boolean")
+				}
+				requirement := "optional"
+				if required {
+					requirement = "required"
+				}
+				out[provider+"/"+id] = object{"story": story, "requirement": requirement, "route": mode, "driverProfile": definition["driverProfile"]}
+			}
+		}
+	}
+	return out, v.Err
+}
+
+func (c Corpus) LoadIndex() (object, error) {
+	index, err := Read(c.Index)
+	if err != nil {
+		return nil, err
+	}
+	expected, err := c.Catalog()
+	if err != nil {
+		return nil, err
+	}
+	v := &Validation{}
+	v.Check(index["version"] == float64(1), "unsupported corpus index version")
+	seen := map[string]bool{}
+	for _, item := range array(index["cases"]) {
+		e := obj(item)
+		key := str(e["provider"]) + "/" + str(e["caseId"])
+		target, ok := expected[key]
+		v.Check(ok && !seen[key], "unknown or duplicate corpus identity")
+		seen[key] = true
+		t := obj(target)
+		v.Check(e["storyId"] == t["story"] && e["requirement"] == t["requirement"], "corpus requirement differs from catalog")
+		state := str(e["adoption"])
+		v.Check(state == "" || state == "missing" || state == "untriggered" || state == "admitted", "invalid adoption state")
+		verification := str(e["verification"])
+		v.Check(corpusSet([]string{"passed", "failed", "unverified", "blocked", "unsupported"})[verification] == true, "invalid verification state")
+		v.Check(verification == "passed" || strings.TrimSpace(str(e["verificationReason"])) != "", "non-passing verification needs a reason")
+		v.Check(verification != "passed" || state == "admitted", "passing verification requires admitted evidence")
+	}
+	v.Check(len(seen) > 0 && len(seen) == len(expected), "corpus index omits required identities")
+	return index, v.Err
+}
+
+func corpusPublishable(name string) bool {
+	if !Local(name) {
+		return false
+	}
+	allowed := corpusSet(append(append([]string{}, SourceEvidence...), "remote-service.json"))[name] == true
+	for _, prefix := range []string{"raw/", "history-seed/", "driver/", "config/projects/", "config/sessions/", "remote-probe/raw/"} {
+		allowed = allowed || strings.HasPrefix(name, prefix)
+	}
+	for _, forbidden := range []string{"credentials", "auth.json", ".private", ".env"} {
+		if strings.Contains(strings.ToLower(name), forbidden) {
+			return false
+		}
+	}
+	return allowed
+}
+
+func Phases(plan object, mode string) [][2]string {
+	out := [][2]string{{"", ""}}
+	if plan["driverProfile"] == "remote-close" {
+		out = append(out, [2]string{"remote-probe/", "remote-probe/"})
+	}
+	return out
+}
+
+func (v *Validation) Summary(root, mode string, plan object) object {
+	s := v.Read(root, "summary.json")
+	v.Check(s["mode"] == mode && s["provider"] == plan["provider"] && s["case"] == plan["caseId"], "run identity or mode differs")
+	v.Check(s["error"] == nil && obj(s["result"])["status"] == "passed", "run did not pass")
+	v.Check(v.Read(root, "result.json")["status"] == "passed", "business result did not pass")
+	return s
+}
+
+func (v *Validation) Replay(source, replay string, plan object, mode string) {
+	actualMode := mode
+	if mode == "replay" {
+		var summary object
+		if readJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
+			actualMode = "verify"
+			attestation := v.Read(replay, "verification.json")
+			v.Check(attestation["schemaVersion"] == float64(1) && attestation["status"] == "passed" && attestation["error"] == nil, "official verification did not pass")
+			v.Hashes(replay, obj(attestation["files"]))
+			for _, name := range []string{"summary.json", "result.json", "replay-report.json"} {
+				v.Check(obj(attestation["files"])[name] != nil, "verification omits evidence hash")
+			}
+			for _, phase := range Phases(plan, "verify") {
+				name := "main"
+				if phase[0] != "" {
+					name = "probe"
+				}
+				lifecycle := "peer-" + name + "-lifecycle.json"
+				v.Check(obj(attestation["files"])[phase[0]+"replay-peer.json"] != nil && obj(attestation["files"])[lifecycle] != nil, "verification omits selected connection")
+			}
+		}
+	}
+	s := v.Summary(replay, actualMode, plan)
+	original := object{}
+	for _, name := range SourceEvidence {
+		original[name] = v.Digest(source, name)
+	}
+	v.Check(reflect.DeepEqual(s["source"], original), "run does not bind original source plan and manifest")
+	for _, phase := range Phases(plan, mode) {
+		r := v.Read(replay, phase[0]+"replay-peer.json")
+		raw := phase[1] + "raw/raw.jsonl"
+		v.Check(r["provider"] == plan["provider"] && r["recordingSHA256"] == v.Digest(source, raw) && r["fullConsumption"] == true && r["clientEOF"] == true && r["nativeLaunched"] == false && r["error"] == nil, "incomplete or incorrect mock receipt")
+		if v.Err == nil {
+			b, err := os.ReadFile(filepath.Join(source, raw))
+			v.Err = err
+			v.Check(r["frames"] == float64(len(bytes.Split(bytes.TrimSuffix(b, []byte("\n")), []byte("\n")))), "receipt frame count differs")
+		}
+	}
+	v.Check(s["recordingSHA256"] == v.Digest(source, "raw/raw.jsonl"), "summary recording hash differs")
+	if plan["provider"] != "claude" {
+		return
+	}
+	v.Check(v.Digest(replay, "materialization.json") == s["materializationSHA256"], "runtime materialization hash differs")
+	m := v.Read(replay, "materialization.json")
+	execution := str(m["executionProject"])
+	v.Check(execution == filepath.Join(str(s["output"]), "project") && m["originalProject"] == plan["project"] && m["originalHistoryProject"] == plan["historyProject"], "runtime project mapping differs")
+	for _, item := range array(m["transformations"]) {
+		x := obj(item)
+		cwd := str(x["sourceCWD"])
+		v.Check(x["kind"] == "claude-project-cwd-copy" && (x["sourceCWD"] == plan["project"] || x["sourceCWD"] == plan["historyProject"]) && x["executionCWD"] == execution, "unsupported runtime transformation")
+		prefix := "config/projects/" + claudeProjectKey(cwd) + "/"
+		target := "config/projects/" + claudeProjectKey(execution) + "/"
+		v.Check(strings.HasPrefix(str(x["source"]), prefix) && x["derived"] == target+strings.TrimPrefix(str(x["source"]), prefix), "runtime history ownership differs")
+		v.Hashes(source, object{str(x["source"]): x["sourceSHA256"]})
+		v.Hashes(replay, object{str(x["derived"]): x["derivedSHA256"]})
+	}
+}
+
+func (v *Validation) ReplayEvidence(replay string, plan object) object {
+	names := corpusSet([]string{"summary.json", "result.json", "replay-report.json"})
+	var summary object
+	if readJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
+		names["verification.json"] = true
+		for _, phase := range Phases(plan, "verify") {
+			name := "main"
+			if phase[0] != "" {
+				name = "probe"
+			}
+			names["peer-"+name+"-lifecycle.json"] = true
+		}
+	}
+	for _, phase := range Phases(plan, "replay") {
+		names[phase[0]+"replay-peer.json"] = true
+	}
+	if plan["provider"] == "claude" {
+		names["materialization.json"] = true
+		for _, item := range array(v.Read(replay, "materialization.json")["transformations"]) {
+			names[str(obj(item)["derived"])] = true
+		}
+	}
+	return names
+}
+
+func (v *Validation) Required(source string, plan object) object {
+	names := corpusSet(SourceEvidence)
+	manifest := v.Read(source, "manifest.json")
+	for _, group := range []string{"savedFiles", "caseFiles", "remotePhaseFiles", "driverFiles"} {
+		hashes := obj(manifest[group])
+		if len(hashes) > 0 {
+			v.Hashes(source, hashes)
+			for name := range hashes {
+				names[name] = true
+			}
+		}
+	}
+	for _, phase := range Phases(plan, "replay") {
+		for _, name := range []string{"raw.jsonl", "manifest.json", "transport.json", "stderr.raw"} {
+			names[phase[1]+"raw/"+name] = true
+		}
+	}
+	for _, prefix := range []string{"config/projects", "config/sessions", "history-seed"} {
+		p := filepath.Join(source, prefix)
+		if _, err := os.Lstat(p); os.IsNotExist(err) {
+			continue
+		}
+		for name := range v.Inventory(p, true) {
+			names[prefix+"/"+name] = true
+		}
+	}
+	for name, evidence := range obj(obj(plan["historySeed"])["files"]) {
+		v.Hashes(source, object{name: obj(evidence)["sha256"]})
+		names[name] = true
+	}
+	if plan["driverProfile"] == "remote-close" {
+		names["remote-service.json"] = true
+	}
+	return names
+}

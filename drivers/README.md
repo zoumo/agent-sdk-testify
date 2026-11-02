@@ -24,7 +24,7 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 从仓库根目录执行：
 
 ```sh
-bash scripts/simulation.sh build
+bash scripts/build.sh
 mise exec -- bash scripts/with-agent-sdk-testify.sh env \
   PYTHONPATH=drivers/common:drivers/codex/official:drivers/claude/official \
   python3.11 -m unittest discover -s drivers/tests -v
@@ -32,7 +32,7 @@ mise exec -- bash scripts/with-agent-sdk-testify.sh \
   python3.11 -m unittest discover -s drivers/tests/scenarios -v
 ```
 
-构建输出默认位于 `.artifacts/simulation/`：
+构建输出默认位于 `.artifacts/build/`：
 
 - `agent-sdk-testify`
 - `agent_sdk_testify_driver-*.whl`
@@ -40,14 +40,42 @@ mise exec -- bash scripts/with-agent-sdk-testify.sh \
 `AGENT_SDK_TESTIFY_BUILD_DIR` 可指定另一个绝对目录。Python 3.11+ 需要
 `setuptools>=68`；构建和离线测试不启动 SDK、真实 Agent 或模型。
 
-## 安装
+## 官方 SDK 环境
 
-使用 `--no-deps` 把 wheel 安装到显式 Python 环境，并把该环境的 `bin` 放入
-`PATH`。官方 SDK 和原生 CLI 需要单独准备；完整步骤见
-[官方环境说明](../docs/official-environment.md)。
+只有 `record`/`verify` 需要 Python 官方 SDK；`mock` 只使用工具二进制。使用
+Python 3.11+、pip 和 `setuptools>=68` 构建本目录，再把 wheel 以 `--no-deps`
+安装到显式环境，并将该环境的 `bin` 放入 `PATH`。
 
-`requirements.lock` 和可选 extras 只是安装来源快照，不是当前可用性承诺。
-wheel 安装成功不证明其外部 SDK 依赖、认证或原生 Agent 可用。
+`requirements.lock` 和可选 extras 只是原始安装来源快照，不是当前可用性承诺。
+`openai-codex==0.161.0` 和 `openai-codex-cli-bin` 当前不可从 PyPI 安装；按源码
+VCS 声明解析依赖也会因 CLI-bin 版本不可用而失败。
+
+已验证的材料环境使用 Claude `0.2.174` 和 Codex `0.0.0.dev0`。后者来自官方
+源码 `rust-v0.161.0`、revision
+`979011409de0a60b52f179721948e65531d26144`，其 pyproject 声明
+`0.0.0-dev`；不要把它重新标成 `0.161.0`，也不要修改录制去匹配包名。
+
+在显式目录中复现（网络准备由操作者单独执行）：
+
+```sh
+python3.11 -m venv /absolute/official-env
+/absolute/official-env/bin/python -m pip install \
+  'setuptools>=68' wheel 'uv_build>=0.11.19,<0.12' \
+  'pydantic>=2.12' 'packaging>=26.2' 'claude-agent-sdk==0.2.174'
+git clone --branch rust-v0.161.0 \
+  https://github.com/openai/codex.git /absolute/codex-source
+git -C /absolute/codex-source rev-parse HEAD
+# 必须输出 979011409de0a60b52f179721948e65531d26144 后再安装。
+/absolute/official-env/bin/python -m pip install \
+  --no-deps --no-build-isolation /absolute/codex-source/sdk/python
+/absolute/official-env/bin/python -m pip install \
+  --no-deps /absolute/agent_sdk_testify_driver-0.1.0-py3-none-any.whl
+```
+
+`--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。`record` 通过 `--cli ABS`
+显式指定 native executable；`verify` 使用 driver 提供的 strict mock/proxy，
+不得回落到已安装的真实 Codex 或 Claude。源码 SDK、录制中的原生 CLI 和工具自身
+是三个独立版本身份。
 
 ## 单请求协议
 
@@ -66,8 +94,8 @@ wheel 安装成功不证明其外部 SDK 依赖、认证或原生 Agent 可用�
 业务协议，原生 SDK 进程使用独立管道。
 
 driver 只执行一个请求，不实现 registry、双向命令、步骤 DSL 或 SDK 覆盖门禁。
-case 输入、provider 参数和断言边界来自 [场景目录](../scenarios) 与
-[case 规范](../harness/cases.md)。
+case 输入、provider 参数和断言边界来自 [场景目录](../data/scenarios) 与
+[case 规范](../docs/cases.md)。
 
 <a id="fixtures-仿真录制与测试输入"></a>
 
@@ -76,7 +104,7 @@ case 输入、provider 参数和断言边界来自 [场景目录](../scenarios) 
 `record` 的原始尝试保存在私有输出目录；经 `verify`、资格审核和采用后，材料进入：
 
 ```text
-recordings/<provider>/<story>/<case>/<attempt>/
+data/<provider>/<story>/<case>/<attempt>/
 ```
 
 每个采用目录保留原始 `plan.json`、`manifest.json`、`raw/raw.jsonl`、业务报告、
@@ -90,6 +118,6 @@ attempt 身份不可改写；失败与未触发结果不伪装成通过。
 - 合成材料：人工构造的协议或错误路径输入，只用于代码测试。
 
 当前材料状态、缺口和采用身份以
-[固定索引](../recordings/index.json)和
-[内置清单](../builtin/manifest.json)为准。文档中的 case 列表描述目标流程，
+[固定索引](../data/index.json)和
+[内置清单](../data/builtin/manifest.json)为准。文档中的 case 列表描述目标流程，
 不代表每个 provider 已有通过材料。

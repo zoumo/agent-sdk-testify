@@ -9,14 +9,23 @@
 本仓库维护 case、官方 driver、录制及材料库；`simulate`、Go driver 和 SDK 验收编排
 留在 `agent-sdk-go`。SDK 与 MASS 直接消费本仓库的 mock。
 
-工具使用独立 module，命令源码位于根目录，协议位于 `protocol/`，权威材料位于
-`scenarios/`、`recordings/`，官方 driver 与 wheel 位于 `drivers/`。
+工具使用独立 module，仓库根目录只保留 `main.go`；命令实现按功能位于
+`internal/`，协议位于 `protocol/`。权威场景、采用材料和内置快照统一位于
+`data/`，官方 driver 与 wheel 位于 `drivers/`。
 已实现的业务入口只有 record、verify、mock；不提供 simulate/replay/corpus/protocol/peer 入口。
 内部协议子进程仅供官方录制与验证使用。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
-- [mock 环境、运行描述与收尾接口](docs/mock-run.md)
-- [工具设计](docs/design.md)
-- [三命令架构图（可缩放 HTML）](docs/assets/three-commands.html)
+## 文档
+
+| 主题 | 文档 |
+| --- | --- |
+| 工具边界、合同与材料链路 | [工具设计](docs/design.md) |
+| 模块、依赖、布局、编码与测试 | [开发规范](docs/development.md) |
+| 8 个用户故事与 36 个 case | [共同验收](docs/cases.md) |
+| 从 SDK 测试接入、运行与收尾 mock | [mock 使用指南](docs/using-mock.md) |
+| 内置材料、查询与断言输入 | [内置材料](docs/builtin.md) |
+| 官方 driver、SDK 环境和已知限制 | [driver 说明](drivers/README.md#官方-sdk-环境) |
+| 术语 | [GLOSSARY](GLOSSARY.md) |
 
 ## 独立构建与离线测试
 
@@ -32,13 +41,13 @@ mise exec -- python3 -m unittest discover -s scripts -p 'test_*.py'
 ```
 
 脚本测试和 wheel 构建需要 Python 3.11+、pip 和已安装的 setuptools>=68；不会安装官方 SDK。
-`bash scripts/simulation.sh build` 仅构建本工具及官方 driver wheel。
+`bash scripts/build.sh` 仅构建本工具及官方 driver wheel。
 SDK 自己构建 simulate/gate，通过显式 `AGENT_SDK_TESTIFY_BIN` 消费 mock；发布 pin 仍为 null。
 常规检查全程离线，不执行真实 Agent 或新录制，也不构成 SDK 仿真通过的证据。
 
 ## 按 case 录制
 
-按 [官方环境说明](docs/official-environment.md)显式安装本仓库 wheel 和所选官方 SDK；Codex 使用固定官方源码及 `--no-deps`，
+按 [driver 环境说明](drivers/README.md#官方-sdk-环境)显式安装本仓库 wheel 和所选官方 SDK；Codex 使用固定官方源码及 `--no-deps`，
 将该环境的 bin 目录放入 PATH。工具内部选择 `agent-sdk-testify-codex` 或
 `agent-sdk-testify-claude`；不会下载、安装或改用其他 SDK 包。
 安装需满足该官方 SDK 版本的 Python 与包源要求；wheel 本身安装成功不证明 SDK 依赖可用。
@@ -79,8 +88,8 @@ provider/case 从录制身份确定，只选择本工具的官方 driver；不�
 ```sh
 agent-sdk-testify verify --recording /private/new-capture \
   --output /private/new-verification \
-  --index /absolute/recordings/index.json \
-  --scenarios /absolute/scenarios --archive /private/archives
+  --index /absolute/data/index.json \
+  --scenarios /absolute/data/scenarios --archive /private/archives
 ```
 
 `--index` 启用采用；`--scenarios` 默认取 index 的相邻 `../scenarios`。
@@ -96,7 +105,7 @@ amd64/arm64 独立归档、官方 driver wheel、manifest.json 和 SHA256SUMS。
 版本、工具源码 revision、内置材料 revision/哈希和逐产物校验和分别记录。
 运行 `mise exec -- bash scripts/check-offline.sh` 执行离线完整门禁；CI 分开准备依赖后执行同一脚本。
 
-消费者先 `mock --describe`，按 [运行合同](docs/mock-run.md) prepare、执行自身业务、关闭宿主，
+消费者先 `mock --describe`，按 [mock 使用指南](docs/using-mock.md) prepare、执行自身业务、关闭宿主，
 最后 finish。SDK/MASS 的业务成功与工具协议成功分别判断。MASS 的 mass/2 Codex
 握手与录制中的官方客户端不同时应失败，不得修改录制或放宽字段。
-[官方环境与已知验证限制](docs/official-environment.md)记录实际依赖和来源。
+[driver 环境与已知限制](drivers/README.md#官方-sdk-环境)记录实际依赖和来源。

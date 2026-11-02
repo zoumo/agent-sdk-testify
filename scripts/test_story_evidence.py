@@ -39,7 +39,7 @@ class StoryEvidenceTests(unittest.TestCase):
             root = Path(temporary) / 'repository'
             shutil.copytree(source, root, ignore=shutil.ignore_patterns('.git', '.artifacts', '__pycache__',
                                                                        '*.egg-info', 'build', 'dist'))
-            binding = root / 'scenarios/bindings/codex.json'
+            binding = root / 'data/scenarios/bindings/codex.json'
             original = json.loads(binding.read_text())
             for mode, reason, diagnostic in [
                 ('offline-only', 'synthetic check', 'invalid simulation route'),
@@ -68,16 +68,16 @@ class StoryEvidenceTests(unittest.TestCase):
 
     def test_relative_links_resolve_from_each_document(self):
         root = Path(__file__).resolve().parents[1]
-        self.assertEqual([], gate.link_errors(root / "harness/testing.md", "[ok](testing.md) [web](https://example.org)"))
-        errors = gate.link_errors(root / "harness/testing.md", "[bad](missing-issue8-file.md)")
+        self.assertEqual([], gate.link_errors(root / "docs/development.md", "[ok](development.md) [web](https://example.org)"))
+        errors = gate.link_errors(root / "docs/development.md", "[bad](missing-issue8-file.md)")
         self.assertEqual(1, len(errors))
         self.assertIn("missing-issue8-file.md", errors[0])
 
     def test_local_fragment_must_name_a_real_heading(self):
         root = Path(__file__).resolve().parents[1]
-        path = root / "harness/testing.md"
-        self.assertEqual([], gate.link_errors(path, "[ok](testing.md#环境与结果)"))
-        errors = gate.link_errors(path, "[bad](testing.md#missing-evidence-heading)")
+        path = root / "docs/development.md"
+        self.assertEqual([], gate.link_errors(path, "[ok](development.md#环境与结果)"))
+        errors = gate.link_errors(path, "[bad](development.md#missing-evidence-heading)")
         self.assertEqual(1, len(errors))
         self.assertIn("missing-evidence-heading", errors[0])
 

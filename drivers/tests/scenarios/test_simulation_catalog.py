@@ -9,7 +9,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
 BOOTSTRAP = ROOT / 'drivers/common/record_user_story/bootstrap.py'
-CATALOG = ROOT / 'scenarios'
+CATALOG = ROOT / 'data/scenarios'
 
 
 class SimulationCatalogTests(unittest.TestCase):

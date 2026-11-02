@@ -50,7 +50,7 @@ _Avoid_: 单条断言、专项故障测试
 状态为 `admitted` 时，不代表内容已获公开发布授权。
 
 **Fixed index（固定索引）**:
-`recordings/index.json`，列出每个 provider/case 的材料、采用状态、验证结果和缺口。
+`data/index.json`，列出每个 provider/case 的材料、采用状态、验证结果和缺口。
 
 **Builtin snapshot（内置快照）**:
 从固定索引选择 `admitted` 且 `verification=passed` 的材料，压入二进制并由 manifest 哈希绑定。

@@ -14,7 +14,7 @@ class IndependentToolTests(unittest.TestCase):
             environment = dict(os.environ, AGENT_SDK_TESTIFY_BUILD_DIR=temporary,
                                PYTHON='python3.11', GOPROXY='off', GOSUMDB='off',
                                PIP_NO_INDEX='1', GOWORK='off')
-            result = subprocess.run(['bash', str(ROOT / 'scripts/simulation.sh'), 'build'],
+            result = subprocess.run(['bash', str(ROOT / 'scripts/build.sh')],
                                     cwd=temporary, env=environment, capture_output=True,
                                     text=True, timeout=120)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
