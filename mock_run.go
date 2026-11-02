@@ -190,8 +190,15 @@ func prepareMock(ctx context.Context, source, output, provider string) (err erro
 	if err != nil {
 		return err
 	}
-	// Empty base uses OS temp, independent of persistent output and source.
-	r.ResourceRoot, err = os.MkdirTemp("", "agent-sdk-testify-mock-")
+	// TMPDIR is caller-controlled; never allocate mutable resources in evidence.
+	tempBase, e := filepath.EvalSymlinks(os.TempDir())
+	if e != nil {
+		return e
+	}
+	if rel, e := filepath.Rel(source, tempBase); e != nil || filepath.IsLocal(rel) {
+		return errors.New("temporary directory must be outside recording")
+	}
+	r.ResourceRoot, err = os.MkdirTemp(tempBase, "agent-sdk-testify-mock-")
 	if err != nil {
 		return err
 	}

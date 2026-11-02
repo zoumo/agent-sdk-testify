@@ -370,3 +370,21 @@ func TestPreparedMockPartialPreparationCleansOwnedResources(t *testing.T) {
 	require.NotEmpty(t, diagnostic["resourceRoot"])
 	assert.NoDirExists(t, str(diagnostic["resourceRoot"]))
 }
+
+func TestPreparedMockNeverCreatesTemporaryFilesInsideRecording(t *testing.T) {
+	root := mockCapture(t)
+	before := mockSourceBytes(t, root)
+	output := filepath.Join(t.TempDir(), "persistent")
+	cmd := mockCommand(t, "--prepare", "--recording", root, "--output", output)
+	cmd.Env = append(cmd.Env, "TMPDIR="+root)
+	data, err := cmd.CombinedOutput()
+	if err == nil {
+		var run object
+		require.NoError(t, json.Unmarshal(data, &run))
+		canonical, canonicalErr := filepath.EvalSymlinks(root)
+		require.NoError(t, canonicalErr)
+		assert.False(t, strings.HasPrefix(str(run["resourceRoot"]), canonical+string(filepath.Separator)), "temp root must never be inside source")
+		_, _ = mockCommand(t, "--finish", filepath.Join(output, "run.json")).CombinedOutput()
+	}
+	assert.Equal(t, before, mockSourceBytes(t, root))
+}
