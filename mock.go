@@ -21,14 +21,18 @@ import (
 
 // Direct mock owns only its protocol descriptors and persistent receipt.
 func executeMock(ctx context.Context, args []string) int {
-	err := mockMode(ctx, args)
+	err := mockBuiltinMode(ctx, args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "agent-sdk-testify mock:", err)
 	}
 	return protocolcmd.ExitCode(err)
 }
 
-func mockExternal(ctx context.Context, args []string) (err error) {
+func mockExternal(ctx context.Context, args []string) error {
+	return mockExternalSelected(ctx, args, nil)
+}
+
+func mockExternalSelected(ctx context.Context, args []string, selection *builtinSelection) (err error) {
 	f := flag.NewFlagSet("mock", flag.ContinueOnError)
 	f.SetOutput(os.Stderr)
 	root := f.String("recording", "", "Absolute external capture directory")
@@ -65,6 +69,7 @@ func mockExternal(ctx context.Context, args []string) (err error) {
 		return protocolcmd.Fail(protocolcmd.ExitConfiguration, e)
 	}
 	if *help {
+		fmt.Fprintln(os.Stderr, "Builtin: mock --list [--provider PROVIDER] --json; mock --describe --provider PROVIDER --case CASE --json; mock [--prepare] --provider PROVIDER --case CASE (see docs/builtin.md)")
 		fmt.Fprintln(os.Stderr, "Prepared modes: mock --prepare --recording ABS --output ABS; mock --run ABS/run.json [--connection main|probe]; mock --finish ABS/run.json")
 		f.PrintDefaults()
 		return nil
@@ -100,6 +105,12 @@ func mockExternal(ctx context.Context, args []string) (err error) {
 	receipt := object{"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
 		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": protocolcmd.Version}
 	defer func() {
+		if selection != nil {
+			receipt["builtin"] = selection
+			cleanupErr := os.RemoveAll(sourceRoot)
+			receipt["cleanupComplete"] = cleanupErr == nil
+			err = errors.Join(err, cleanupErr)
+		}
 		receipt["exitCode"] = protocolcmd.ExitCode(err)
 		if err != nil {
 			receipt["error"] = err.Error()
@@ -107,6 +118,11 @@ func mockExternal(ctx context.Context, args []string) (err error) {
 		closeErr := receiptFile.Close()
 		err = errors.Join(err, closeErr, atomicMockJSON(reportPath, receipt))
 	}()
+	if selection != nil {
+		if e = checkBuiltinMaterial(sourceRoot, selection.Material); e != nil {
+			return bad(e)
+		}
+	}
 	manifest, plan, document, e := loadMockPhase(sourceRoot, *provider, *phase)
 	if e != nil {
 		return bad(e)

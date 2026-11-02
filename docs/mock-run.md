@@ -1,7 +1,7 @@
 # Prepared mock contract (schemaVersion 1)
 
 Prepared mock is an installed CLI/process interface. It needs the tool binary and
-an absolute external recording directory; it needs no official SDK, native Agent,
+builtin provider/case selection or an absolute external recording directory; it needs no official SDK, native Agent,
 Go compiler or source checkout. It never runs captured commands or model calls.
 The caller owns SDK operations, assertions, remote services and policy comparisons.
 
@@ -113,11 +113,13 @@ become successful merely because cleanup succeeded.
 
 ## T5 and T7 integration
 
-T5 should resolve embedded/list/describe selection to the same immutable material
-contract, then reuse `prepareMock`/`loadMockPhase` and these run/finish semantics.
-This change adds no embedded generator or list/selection behavior. Existing probes
-have no separate plan: their stream is bound by the parent's `remotePhaseFiles`
-and their own raw manifest, when present.
+Builtin selection and versioned describe assertion inputs are documented in
+[builtin.md](builtin.md) and [mock-catalog.schema.json](mock-catalog.schema.json).
+`--prepare --provider PROVIDER --case CASE` uses this same lifecycle. Its optional
+`builtin` descriptor field binds the manifest and selected material. Extracted
+materials live under the owned root and are removed by finish, while immutable
+contract/materialization and receipts remain persistent. Consumer assertion data
+comes from describe; `recording` is not a filesystem interface for SDK assertions.
 
 T7 should parse this schema, start its own SDK runner with the returned cwd/env,
 consume the selected command or launcher, close/wait, and always run finish.

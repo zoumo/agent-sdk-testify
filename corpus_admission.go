@@ -176,15 +176,10 @@ func corpusCopy(source, target string, names []string) error {
 	return nil
 }
 
-func (c corpus) verifyAdopted(entry object) (string, error) {
-	name := str(entry["materials"])
-	if !corpusLocal(name) || !strings.HasPrefix(name, str(entry["provider"])+"/"+str(entry["storyId"])+"/"+str(entry["caseId"])+"/") {
-		return "", errors.New("material ownership path differs")
-	}
-	base := filepath.Dir(c.Index)
+// verifyAdoptedFiles validates the reduced immutable view. External mock may
+// reuse its saved-history hashes without claiming official/publication eligibility.
+func verifyAdoptedFiles(root string) (object, error) {
 	v := &corpusValidation{}
-	v.check(v.digest(base, name+"/adoption.json") == entry["adoptionSHA256"], "adoption hash drift")
-	root := filepath.Join(base, name)
 	adoption := v.read(root, "adoption.json")
 	v.check(adoption["adoption"] == "admitted" && adoption["transformations"] != nil && len(array(adoption["transformations"])) == 0, "unsupported adoption record")
 	files := v.inventory(root, false)
@@ -199,7 +194,31 @@ func (c corpus) verifyAdopted(entry object) (string, error) {
 	}
 	v.hashes(root, reduced)
 	if v.err != nil {
+		return nil, v.err
+	}
+	return review, nil
+}
+
+func (c corpus) verifyAdopted(entry object) (string, error) {
+	name := str(entry["materials"])
+	if !corpusLocal(name) || !strings.HasPrefix(name, str(entry["provider"])+"/"+str(entry["storyId"])+"/"+str(entry["caseId"])+"/") {
+		return "", errors.New("material ownership path differs")
+	}
+	base := filepath.Dir(c.Index)
+	v := &corpusValidation{}
+	v.check(v.digest(base, name+"/adoption.json") == entry["adoptionSHA256"], "adoption hash drift")
+	root := filepath.Join(base, name)
+	if v.err != nil {
 		return "", v.err
+	}
+	review, err := verifyAdoptedFiles(root)
+	if err != nil {
+		return "", err
+	}
+	original := obj(review["captureFiles"])
+	reduced := object{}
+	for _, name := range stringsOf(review["publishFiles"]) {
+		reduced[name] = original[name]
 	}
 	view, err := os.MkdirTemp("", "agent-sdk-testify-qualification-")
 	if err != nil {

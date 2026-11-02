@@ -1,0 +1,492 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/zoumo/agent-sdk-testify/blob/main/docs/mock-catalog.schema.json",
+  "title": "Mock catalog, assertion inputs and builtin manifest v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/scene"
+    },
+    {
+      "$ref": "#/$defs/listing"
+    },
+    {
+      "$ref": "#/$defs/manifest"
+    },
+    {
+      "$ref": "#/$defs/externalScene"
+    }
+  ],
+  "$defs": {
+    "scene": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/coverage"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "toolVersion": {
+              "type": "string"
+            },
+            "manifestSHA256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "contract": {
+              "type": "object"
+            },
+            "binding": {
+              "type": "object"
+            },
+            "scenario": {
+              "type": "object"
+            },
+            "plan": {
+              "type": "object"
+            },
+            "material": {
+              "$ref": "#/$defs/material"
+            },
+            "assertionInputs": {
+              "$ref": "#/$defs/assertionInputs"
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "toolVersion",
+            "manifestSHA256",
+            "contract",
+            "binding",
+            "scenario"
+          ],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "listing": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "toolVersion": {
+          "type": "string"
+        },
+        "manifestSHA256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sourceRevision": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scene"
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "toolVersion",
+        "manifestSHA256",
+        "sourceRevision",
+        "scope",
+        "cases"
+      ],
+      "additionalProperties": true
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "enum": [
+            "codex",
+            "claude"
+          ]
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "storyId": {
+          "type": "string"
+        },
+        "requirement": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "adoption": {
+          "type": "string"
+        },
+        "verification": {
+          "enum": [
+            "passed",
+            "failed",
+            "unverified",
+            "blocked",
+            "unsupported"
+          ]
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "missingReason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "caseId",
+        "storyId",
+        "requirement",
+        "adoption",
+        "verification",
+        "available"
+      ],
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "available": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "missingReason"
+            ],
+            "properties": {
+              "missingReason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "enum": [
+            "codex",
+            "claude"
+          ]
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "storyId": {
+          "type": "string"
+        },
+        "attempt": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "files": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "contracts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "officialSDK": {
+          "type": "object"
+        },
+        "qualification": {
+          "type": "object"
+        },
+        "plan": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "provider",
+        "caseId",
+        "storyId",
+        "attempt",
+        "files",
+        "contracts",
+        "officialSDK",
+        "plan"
+      ],
+      "additionalProperties": true
+    },
+    "document": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "vendor-native-json",
+            "vendor-native-jsonl"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "originalBase64": {
+          "type": "string",
+          "contentEncoding": "base64"
+        },
+        "value": {},
+        "rows": {
+          "type": "array",
+          "items": {}
+        }
+      },
+      "required": [
+        "id",
+        "format",
+        "sha256",
+        "originalBase64"
+      ],
+      "additionalProperties": true
+    },
+    "connection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "enum": [
+            "main",
+            "probe"
+          ]
+        },
+        "format": {
+          "const": "agent-mock-jsonl"
+        },
+        "version": {
+          "const": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "originalBase64": {
+          "type": "string",
+          "contentEncoding": "base64"
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "format",
+        "version",
+        "sha256",
+        "originalBase64",
+        "frames"
+      ],
+      "additionalProperties": true
+    },
+    "assertionInputs": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "enum": [
+            "codex",
+            "claude"
+          ]
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "attempt": {
+          "type": "string"
+        },
+        "manifestSHA256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sourcePlan": {
+          "$ref": "#/$defs/document"
+        },
+        "sourceReport": {
+          "$ref": "#/$defs/document"
+        },
+        "savedHistory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/document"
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/connection"
+          }
+        },
+        "sourceManifestSHA256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "missingEvidence": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "sourceReport"
+            ]
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "provider",
+        "caseId",
+        "attempt",
+        "sourcePlan",
+        "savedHistory",
+        "connections",
+        "sourceManifestSHA256",
+        "missingEvidence"
+      ],
+      "additionalProperties": true
+    },
+    "manifest": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "toolVersion": {
+          "type": "string"
+        },
+        "sourceRevision": {
+          "type": "string"
+        },
+        "importSource": {
+          "type": "object"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "indexSHA256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "catalog": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "archiveSHA256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "coverage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/coverage"
+          }
+        },
+        "materials": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/material"
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "toolVersion",
+        "sourceRevision",
+        "importSource",
+        "scope",
+        "indexSHA256",
+        "catalog",
+        "archiveSHA256",
+        "coverage",
+        "materials"
+      ],
+      "additionalProperties": true
+    },
+    "externalScene": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "toolVersion",
+        "materialKind",
+        "qualification",
+        "provenance",
+        "provider",
+        "caseId",
+        "sourceManifestSHA256",
+        "available",
+        "plan",
+        "assertionInputs"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "toolVersion": {
+          "type": "string"
+        },
+        "materialKind": {
+          "const": "external"
+        },
+        "qualification": {
+          "const": "unqualified"
+        },
+        "provenance": {
+          "type": "string"
+        },
+        "provider": {
+          "enum": [
+            "claude",
+            "codex"
+          ]
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "sourceManifestSHA256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "available": {
+          "const": true
+        },
+        "plan": {
+          "type": "object"
+        },
+        "assertionInputs": {
+          "$ref": "#/$defs/assertionInputs"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

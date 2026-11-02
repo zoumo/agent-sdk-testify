@@ -12,10 +12,10 @@ import (
 	"strings"
 )
 
-// The authoritative catalog travels with the binary; no recording is embedded
-// here. Mock publication can reuse this catalog without depending on record.
+// Record and mock share this authoritative catalog. Generated builtin materials
+// bind these exact contract/binding bytes; there is no second authoring source.
 //
-//go:embed tests/simulation/scenarios/SDK-US-*.json tests/simulation/scenarios/bindings/*.json
+//go:embed tests/simulation/scenarios/*.json tests/simulation/scenarios/bindings/*.json
 var catalogFiles embed.FS
 
 var caseCatalog = func() fs.FS {
