@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -41,6 +43,9 @@ func array(v any) []any {
 
 // Existing plans supply materials and native identities, not runtime locks.
 func loadMaterials(o options) (object, error) {
+	if o.Mode == "record" && o.Materials == "" {
+		return loadCatalogCase(caseCatalog, o)
+	}
 	if err := verifyMaterials(o.Materials, o.Mode != "record"); err != nil {
 		return nil, err
 	}
@@ -61,15 +66,27 @@ func loadMaterials(o options) (object, error) {
 	} else if !os.IsNotExist(e) {
 		return nil, e
 	}
-	paths, e := filepath.Glob(filepath.Join(o.Materials, "SDK-US-*.json"))
+	return loadCatalogCase(os.DirFS(o.Materials), o)
+}
+
+// Both embedded and local catalogs use the same case/binding projection.
+func loadCatalogCase(catalog fs.FS, o options) (object, error) {
+	paths, e := fs.Glob(catalog, "SDK-US-*.json")
 	if e != nil {
 		return nil, e
 	}
 	sort.Strings(paths)
+	read := func(path string, v any) error {
+		b, err := fs.ReadFile(catalog, path)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(b, v)
+	}
 	var core, story object
 	for _, p := range paths {
 		var s object
-		if e = readJSON(p, &s); e != nil {
+		if e = read(p, &s); e != nil {
 			return nil, e
 		}
 		for _, c := range array(s["cases"]) {
@@ -83,7 +100,7 @@ func loadMaterials(o options) (object, error) {
 		return nil, fmt.Errorf("case %q is absent from shared materials", o.Case)
 	}
 	var bindings object
-	if e = readJSON(filepath.Join(o.Materials, "bindings", o.Provider+".json"), &bindings); e != nil {
+	if e = read("bindings/"+o.Provider+".json", &bindings); e != nil {
 		return nil, e
 	}
 	b, ok := obj(bindings["cases"])[o.Case]

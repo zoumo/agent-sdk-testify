@@ -28,6 +28,10 @@ func TestMain(m *testing.M) {
 		case "protocol":
 			main()
 			os.Exit(0)
+		case "record-driver-substitute":
+			os.Exit(recordDriverSubstitute(os.Args[2:]))
+		case "record-agent-substitute":
+			os.Exit(recordAgentSubstitute(os.Args[2:]))
 		case "driver":
 			os.Exit(testDriver(os.Args[2:]))
 		case "--version":

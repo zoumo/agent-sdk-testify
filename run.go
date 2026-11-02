@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
-func run(ctx context.Context, o options) (object, error) {
+func run(ctx context.Context, o options) (summary object, runFailure error) {
 	var err error
-	o.Materials, err = filepath.Abs(o.Materials)
-	if err != nil {
-		return nil, err
+	if o.Materials != "" {
+		o.Materials, err = filepath.Abs(o.Materials)
+		if err != nil {
+			return nil, err
+		}
 	}
 	plan, err := loadMaterials(o)
 	if err != nil {
@@ -60,7 +62,17 @@ func run(ctx context.Context, o options) (object, error) {
 	}
 	root := o.Output
 	workspace := filepath.Join(o.Output, "project")
-	defer scrubNative(root)
+	defer func() {
+		cleanupErr := scrubNative(root)
+		if o.Mode == "record" {
+			runFailure = errors.Join(runFailure, cleanupErr)
+			// Retain preparation failures too, before driver/transport receipts exist.
+			if runFailure != nil && summary == nil {
+				summary = object{"mode": o.Mode, "provider": provider, "case": str(plan["caseId"]), "output": root, "error": runFailure.Error()}
+				runFailure = errors.Join(runFailure, writeJSON(filepath.Join(root, "summary.json"), summary))
+			}
+		}
+	}()
 	for _, dir := range []string{root, workspace, filepath.Join(root, "home"), filepath.Join(root, "config"), filepath.Join(root, "tmp"), filepath.Join(o.Output, "materials")} {
 		if err = os.MkdirAll(dir, 0700); err != nil {
 			return nil, err
@@ -194,7 +206,7 @@ func run(ctx context.Context, o options) (object, error) {
 		transportErr = errors.Join(transportErr, writeSourceManifest(root, outcome))
 	}
 	runErr = errors.Join(runErr, resultErr, transportErr, scrubNative(root))
-	summary := object{"case": req.Case, "provider": provider, "mode": o.Mode, "result": outcome, "output": o.Output}
+	summary = object{"case": req.Case, "provider": provider, "mode": o.Mode, "result": outcome, "output": o.Output}
 	if o.Mode != "record" {
 		summary["source"] = source
 		if digest, e := fileDigest(filepath.Join(root, "materialization.json")); e == nil {
