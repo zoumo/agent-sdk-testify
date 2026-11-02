@@ -15,7 +15,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
-func (c Corpus) ValidateAdmission(source, replay string, review object) (object, error) {
+func (c *Corpus) ValidateAdmission(source, replay string, review object) (object, error) {
 	v := &Validation{}
 	v.Check(review["version"] == float64(1) && review["origin"] == "real-agent", "review must attest real Agent origin")
 	qualification, automatic := review["qualification"]
@@ -61,7 +61,7 @@ func (c Corpus) ValidateAdmission(source, replay string, review object) (object,
 			v.Check(reflect.DeepEqual(sdk, review["officialSDK"]), "review SDK identity differs from capture")
 		}
 	}
-	for _, phase := range Phases(plan, "replay") {
+	for _, phase := range Phases(plan) {
 		rawroot := filepath.Join(source, phase[1], "raw")
 		m := v.Read(rawroot, "manifest.json")
 		transport := v.Read(rawroot, "transport.json")
@@ -124,7 +124,7 @@ func strictCorpusFrame(b []byte, row *object) (int, error) {
 	return len(b), json.Unmarshal(b, row)
 }
 
-func (c Corpus) Qualification(source, replay string, manual bool) (object, error) {
+func (c *Corpus) Qualification(source, replay string, manual bool) (object, error) {
 	v := &Validation{}
 	plan := v.Read(source, "plan.json")
 	capture := v.Inventory(source, false)
@@ -161,15 +161,15 @@ func corpusCopy(source, target string, names []string) error {
 			return err
 		}
 		dest := filepath.Join(target, name)
-		if err = os.MkdirAll(filepath.Dir(dest), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(dest), 0o700); err != nil {
 			return err
 		}
-		f, err := os.OpenFile(dest, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+		f, err := os.OpenFile(dest, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 		if err != nil {
 			return err
 		}
 		_, err = f.Write(b)
-		if err = errors.Join(err, f.Close()); err != nil {
+		if err := errors.Join(err, f.Close()); err != nil {
 			return err
 		}
 	}
@@ -199,7 +199,7 @@ func VerifyAdoptedFiles(root string) (object, error) {
 	return review, nil
 }
 
-func (c Corpus) VerifyAdopted(entry object) (string, error) {
+func (c *Corpus) VerifyAdopted(entry object) (string, error) {
 	name := str(entry["materials"])
 	if !Local(name) || !strings.HasPrefix(name, str(entry["provider"])+"/"+str(entry["storyId"])+"/"+str(entry["caseId"])+"/") {
 		return "", errors.New("material ownership path differs")
@@ -225,7 +225,7 @@ func (c Corpus) VerifyAdopted(entry object) (string, error) {
 		return "", err
 	}
 	defer os.RemoveAll(view)
-	if err = corpusCopy(root, view, stringsOf(review["publishFiles"])); err != nil {
+	if err := corpusCopy(root, view, stringsOf(review["publishFiles"])); err != nil {
 		return "", err
 	}
 	review["captureFiles"] = reduced
@@ -243,7 +243,7 @@ func (c Corpus) VerifyAdopted(entry object) (string, error) {
 	return root, nil
 }
 
-func (c Corpus) archiveRoot() (string, error) {
+func (c *Corpus) archiveRoot() (string, error) {
 	archive, err := filepath.Abs(c.Archive)
 	if err != nil {
 		return "", err
@@ -295,17 +295,17 @@ func Resolved(p string) (string, error) {
 }
 
 func corpusAttempt(base string) (string, error) {
-	if err := os.MkdirAll(base, 0700); err != nil {
+	if err := os.MkdirAll(base, 0o700); err != nil {
 		return "", err
 	}
 	return os.MkdirTemp(base, time.Now().UTC().Format("20060102T150405Z-"))
 }
 
-func (c Corpus) Adopt(source, replay, reviewPath string) (target string, err error) {
+func (c *Corpus) Adopt(source, replay, reviewPath string) (target string, err error) {
 	return c.AdoptWithIndexReplacement(source, replay, reviewPath, os.Rename)
 }
 
-func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, replace func(string, string) error) (target string, err error) {
+func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, replace func(string, string) error) (target string, err error) {
 	archive, err := c.archiveRoot()
 	if err != nil {
 		return "", err
@@ -332,17 +332,17 @@ func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, rep
 		}
 		err = errors.Join(err, Write(filepath.Join(saved, "adoption-result.json"), object{"status": status, "materials": target}))
 	}()
-	if err = corpusCopy(source, filepath.Join(saved, "capture"), Keys(original)); err != nil {
+	if err := corpusCopy(source, filepath.Join(saved, "capture"), Keys(original)); err != nil {
 		return "", err
 	}
-	if err = Write(filepath.Join(saved, "original-files.json"), original); err != nil {
+	if err := Write(filepath.Join(saved, "original-files.json"), original); err != nil {
 		return "", err
 	}
 	review, err := Read(reviewPath)
 	if err != nil {
 		return "", err
 	}
-	if err = Write(filepath.Join(saved, "review.json"), review); err != nil {
+	if err := Write(filepath.Join(saved, "review.json"), review); err != nil {
 		return "", err
 	}
 	v := &Validation{}
@@ -350,7 +350,7 @@ func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, rep
 	if v.Err != nil {
 		return "", v.Err
 	}
-	if err = corpusCopy(replay, filepath.Join(saved, "official-replay"), Keys(obj(review["replayFiles"]))); err != nil {
+	if err := corpusCopy(replay, filepath.Join(saved, "official-replay"), Keys(obj(review["replayFiles"]))); err != nil {
 		return "", err
 	}
 	plan, err := c.ValidateAdmission(filepath.Join(saved, "capture"), filepath.Join(saved, "official-replay"), review)
@@ -365,7 +365,7 @@ func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, rep
 		return "", errors.New("capture changed during adoption")
 	}
 	lockPath := strings.TrimSuffix(c.Index, filepath.Ext(c.Index)) + ".lock"
-	lock, err := os.OpenFile(lockPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	lock, err := os.OpenFile(lockPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return "", err
 	}
@@ -396,19 +396,19 @@ func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, rep
 		if err != nil {
 			return "", err
 		}
-		if err = corpusCopy(previous, filepath.Join(saved, "previous-regression"), Keys(previousHashes)); err != nil {
+		if err := corpusCopy(previous, filepath.Join(saved, "previous-regression"), Keys(previousHashes)); err != nil {
 			return "", err
 		}
-		if err = Write(filepath.Join(saved, "previous-entry.json"), entry); err != nil {
+		if err := Write(filepath.Join(saved, "previous-entry.json"), entry); err != nil {
 			return "", err
 		}
 	}
 	name := str(entry["provider"]) + "/" + str(entry["storyId"]) + "/" + str(entry["caseId"]) + "/" + filepath.Base(saved)
 	target = filepath.Join(filepath.Dir(c.Index), name)
-	if err = os.MkdirAll(filepath.Dir(target), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(target), 0o700); err != nil {
 		return "", err
 	}
-	if err = os.Mkdir(target, 0700); err != nil {
+	if err := os.Mkdir(target, 0o700); err != nil {
 		return "", err
 	}
 	committed := false
@@ -417,13 +417,13 @@ func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, rep
 			_ = os.RemoveAll(target)
 		}
 	}()
-	if err = corpusCopy(filepath.Join(saved, "capture"), target, stringsOf(review["publishFiles"])); err != nil {
+	if err := corpusCopy(filepath.Join(saved, "capture"), target, stringsOf(review["publishFiles"])); err != nil {
 		return target, err
 	}
-	if err = corpusCopy(filepath.Join(saved, "official-replay"), filepath.Join(target, "official-replay"), Keys(obj(review["replayFiles"]))); err != nil {
+	if err := corpusCopy(filepath.Join(saved, "official-replay"), filepath.Join(target, "official-replay"), Keys(obj(review["replayFiles"]))); err != nil {
 		return target, err
 	}
-	if err = Write(filepath.Join(target, "review.json"), review); err != nil {
+	if err := Write(filepath.Join(target, "review.json"), review); err != nil {
 		return target, err
 	}
 	files, err := Inventory(target, false)
@@ -431,7 +431,7 @@ func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, rep
 		return target, err
 	}
 	record := object{"version": 1, "adoption": "admitted", "archiveId": filepath.Base(saved), "originalFiles": original, "transformations": []any{}, "files": files}
-	if err = Write(filepath.Join(target, "adoption.json"), record); err != nil {
+	if err := Write(filepath.Join(target, "adoption.json"), record); err != nil {
 		return target, err
 	}
 	hash, err := Digest(filepath.Join(target, "adoption.json"))
@@ -472,12 +472,12 @@ func (c Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, rep
 			return target, errors.New("previous sample changed during replacement")
 		}
 	}
-	if err = replace(tempName, c.Index); err != nil {
+	if err := replace(tempName, c.Index); err != nil {
 		return target, err
 	}
 	committed = true
 	if previous != "" {
-		if err = os.RemoveAll(previous); err != nil {
+		if err := os.RemoveAll(previous); err != nil {
 			return target, fmt.Errorf("new index committed, old sample cleanup failed: %w", err)
 		}
 	}

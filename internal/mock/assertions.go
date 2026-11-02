@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,7 +47,7 @@ type assertionInputs struct {
 
 func nativeRows(data []byte) ([]json.RawMessage, error) {
 	rows := []json.RawMessage{}
-	for _, line := range bytes.Split(data, []byte("\n")) {
+	for line := range bytes.SplitSeq(data, []byte("\n")) {
 		if len(bytes.TrimSpace(line)) == 0 {
 			continue
 		}
@@ -57,6 +58,7 @@ func nativeRows(data []byte) ([]json.RawMessage, error) {
 	}
 	return rows, nil
 }
+
 func nativeSourceDocument(root, name, id string) (nativeDocument, error) {
 	source, err := corpusRegular(root, name)
 	if err != nil {
@@ -77,6 +79,7 @@ func nativeSourceDocument(root, name, id string) (nativeDocument, error) {
 	}
 	return d, err
 }
+
 func builtinAssertionInputs(material *builtinMaterial, manifestHash string) (inputs *assertionInputs, err error) {
 	root, err := extractBuiltin(material)
 	if err != nil {
@@ -143,6 +146,7 @@ func sourceAssertionInputs(root string, material *builtinMaterial, manifestHash 
 	}
 	return inputs, nil
 }
+
 func writeNativeJSON(value any) error {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetEscapeHTML(false)
@@ -165,21 +169,19 @@ func describeExternalMock(root, provider string) error {
 	provider = str(plan["provider"])
 	files := object{"raw/raw.jsonl": document.SHA256, "plan.json": manifest["planSHA256"]}
 	for _, group := range []string{"savedFiles", "caseFiles", "remotePhaseFiles"} {
-		for name, hash := range obj(manifest[group]) {
-			files[name] = hash
-		}
+		maps.Copy(files, obj(manifest[group]))
 	}
 	for name, value := range obj(obj(plan["historySeed"])["files"]) {
 		hash := str(obj(value)["sha256"])
-		if err = verifyFile(root, name, hash); err != nil {
+		if err := verifyFile(root, name, hash); err != nil {
 			return err
 		}
 		files[name] = hash
 	}
 	if _, e := os.Stat(filepath.Join(root, "adoption.json")); e == nil {
-		review, e := verifyAdoptedFiles(root)
-		if e != nil {
-			return e
+		review, reviewErr := verifyAdoptedFiles(root)
+		if reviewErr != nil {
+			return reviewErr
 		}
 		for _, name := range stringsOf(review["publishFiles"]) {
 			files[name] = obj(review["captureFiles"])[name]

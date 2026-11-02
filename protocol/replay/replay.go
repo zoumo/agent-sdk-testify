@@ -41,7 +41,7 @@ func play(ctx context.Context, document *recording.Document, limits recording.Li
 	}()
 	for _, frame := range document.Frames {
 		ordinal = frame.Ordinal
-		if err = ctx.Err(); err != nil {
+		if err := ctx.Err(); err != nil {
 			return err
 		}
 		if frame.Delay != 0 {
@@ -66,7 +66,7 @@ func play(ctx context.Context, document *recording.Document, limits recording.Li
 				return err
 			}
 			if reverse && handshakes != "" {
-				if err = p.barrier("replay/answer"); err != nil {
+				if err := p.barrier("replay/answer"); err != nil {
 					return err
 				}
 			}
@@ -75,26 +75,26 @@ func play(ctx context.Context, document *recording.Document, limits recording.Li
 			if err != nil {
 				return err
 			}
-			if err = p.write(emitted.Raw()); err != nil {
+			if err := p.write(emitted.Raw()); err != nil {
 				return err
 			}
 		}
 	}
-	if err = a.complete(); err != nil {
+	if err := a.complete(); err != nil {
 		return err
 	}
 	if handshakes == "answer-and-assert" {
-		if err = p.barrier("replay/assert"); err != nil {
+		if err := p.barrier("replay/assert"); err != nil {
 			return err
 		}
 	}
-	if err = ctx.Err(); err != nil {
+	if err := ctx.Err(); err != nil {
 		return err
 	}
 	// Consumption is intentionally observable BEFORE EOF, but never before the
 	// pending request check. It lets the caller close input without deadlocking.
 	if complete != nil {
-		if err = complete(); err != nil {
+		if err := complete(); err != nil {
 			return err
 		}
 	}
@@ -158,7 +158,7 @@ func (p *peerIO) write(payload []byte) error {
 	if int64(len(payload)) >= p.limits.MaxFrameBytes {
 		return errors.New("server frame byte limit exceeded")
 	}
-	data := append(payload, '\n')
+	data := append(append([]byte(nil), payload...), '\n')
 	if int64(len(data)) > p.limits.MaxBytes-p.writeBytes {
 		return errors.New("server traffic byte limit exceeded")
 	}

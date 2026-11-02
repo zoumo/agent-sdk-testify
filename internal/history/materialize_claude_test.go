@@ -22,16 +22,16 @@ func TestClaudeHistoryDerivationRejectsCorruptionAndPreservesOtherBytes(t *testi
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			source, root, workspace := t.TempDir(), t.TempDir(), t.TempDir()
-			path := filepath.Join(source, "config/projects/-original-project", tc.filename)
-			require.NoError(t, os.MkdirAll(filepath.Dir(path), 0700))
-			require.NoError(t, os.WriteFile(path, []byte(tc.source), 0600))
-			err := materializeClaude(source, root, workspace, object{"project": "/original/project"})
+			path := filepath.Join(source, "config", "projects", "-original-project", tc.filename)
+			require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
+			require.NoError(t, os.WriteFile(path, []byte(tc.source), 0o600))
+			err := MaterializeClaude(source, root, workspace, object{"project": "/original/project"})
 			if tc.fail {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 				key := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(workspace, "-")
-				derived, err := os.ReadFile(filepath.Join(root, "config/projects", key, tc.filename))
+				derived, err := os.ReadFile(filepath.Join(root, "config", "projects", key, tc.filename))
 				require.NoError(t, err)
 				require.Equal(t, bytes.ReplaceAll([]byte(tc.source), []byte("/original/project"), []byte(workspace)), derived)
 			}

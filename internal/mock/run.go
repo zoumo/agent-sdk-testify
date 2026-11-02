@@ -136,10 +136,6 @@ func mockPreparedMode(ctx context.Context, args []string, selection *builtinSele
 	return runPreparedMock(ctx, *run, *connection, native)
 }
 
-func prepareMock(ctx context.Context, source, output, provider string) error {
-	return prepareMockSelected(ctx, source, output, provider, nil)
-}
-
 func prepareMockSelected(ctx context.Context, source, output, provider string, selection *builtinSelection) (err error) {
 	if !filepath.IsAbs(source) || !filepath.IsAbs(output) {
 		return protocolcmd.Fail(protocolcmd.ExitConfiguration, errors.New("prepare requires --recording ABS and --output ABS"))
@@ -153,10 +149,10 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 		return e
 	}
 	output = filepath.Join(parent, filepath.Base(output))
-	if rel, e := filepath.Rel(source, output); e != nil || filepath.IsLocal(rel) {
+	if rel, relErr := filepath.Rel(source, output); relErr != nil || filepath.IsLocal(rel) {
 		return errors.New("output must be outside recording")
 	}
-	if err = os.Mkdir(output, 0700); err != nil {
+	if err := os.Mkdir(output, 0o700); err != nil {
 		return err
 	}
 	var r mockRun
@@ -217,27 +213,27 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 	}
 	if selection != nil {
 		target := filepath.Join(r.ResourceRoot, "builtin")
-		if err = os.Rename(source, target); err != nil {
+		if err := os.Rename(source, target); err != nil {
 			return err
 		}
 		source, r.Recording, r.Builtin = target, target, selection
-		if err = checkBuiltinMaterial(source, selection.Material); err != nil {
+		if err := checkBuiltinMaterial(source, selection.Material); err != nil {
 			return err
 		}
 	}
 	r.Workspace = filepath.Join(r.ResourceRoot, "project")
 	for _, dir := range []string{"project", "home", "config", "tmp"} {
-		if err = os.Mkdir(filepath.Join(r.ResourceRoot, dir), 0700); err != nil {
+		if err := os.Mkdir(filepath.Join(r.ResourceRoot, dir), 0o700); err != nil {
 			return err
 		}
 	}
-	if err = os.WriteFile(filepath.Join(r.ResourceRoot, ".owner"), []byte(r.RunID), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(r.ResourceRoot, ".owner"), []byte(r.RunID), 0o600); err != nil {
 		return err
 	}
-	if err = writeFiles(r.Workspace, obj(obj(plan["scenario"])["files"])); err != nil {
+	if err := writeFiles(r.Workspace, obj(obj(plan["scenario"])["files"])); err != nil {
 		return err
 	}
-	if err = copySaved(source, r.ResourceRoot); err != nil {
+	if err := copySaved(source, r.ResourceRoot); err != nil {
 		return err
 	}
 	// Offline mock does not copy auth, user settings, hooks or discovery inputs.
@@ -252,29 +248,29 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 			return err
 		}
 	}
-	if err = os.WriteFile(filepath.Join(r.ResourceRoot, "config", configName), configBytes, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(r.ResourceRoot, "config", configName), configBytes, 0o600); err != nil {
 		return err
 	}
 	r.ProtocolCWD = str(plan["project"])
 	if r.Provider == "claude" {
-		if err = materializeClaude(source, r.ResourceRoot, r.Workspace, plan); err != nil {
+		if err := materializeClaude(source, r.ResourceRoot, r.Workspace, plan); err != nil {
 			return err
 		}
 		r.ProtocolCWD = r.Workspace
 	} else {
-		if err = writeJSON(filepath.Join(r.ResourceRoot, "materialization.json"), object{"version": 1, "transformations": []object{}}); err != nil {
+		if err := writeJSON(filepath.Join(r.ResourceRoot, "materialization.json"), object{"version": 1, "transformations": []object{}}); err != nil {
 			return err
 		}
 	}
 	var materialization object
-	if err = readJSON(filepath.Join(r.ResourceRoot, "materialization.json"), &materialization); err != nil {
+	if err := readJSON(filepath.Join(r.ResourceRoot, "materialization.json"), &materialization); err != nil {
 		return err
 	}
 	var adoptedHashes object
 	if _, e := os.Stat(filepath.Join(source, "adoption.json")); e == nil {
-		review, e := verifyAdoptedFiles(source)
-		if e != nil {
-			return e
+		review, reviewErr := verifyAdoptedFiles(source)
+		if reviewErr != nil {
+			return reviewErr
 		}
 		adoptedHashes = obj(review["captureFiles"])
 	} else if !os.IsNotExist(e) {
@@ -286,7 +282,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 		if _, e := os.Stat(base); os.IsNotExist(e) {
 			continue
 		}
-		if err = filepath.WalkDir(base, func(p string, d os.DirEntry, e error) error {
+		if err := filepath.WalkDir(base, func(p string, d os.DirEntry, e error) error {
 			if e != nil {
 				return e
 			}
@@ -318,11 +314,11 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 		}
 	}
 	materialization["copies"] = copies
-	if err = writeJSON(filepath.Join(r.ResourceRoot, "materialization.json"), materialization); err != nil {
+	if err := writeJSON(filepath.Join(r.ResourceRoot, "materialization.json"), materialization); err != nil {
 		return err
 	}
 	r.Materialization = filepath.Join(output, "materialization.json")
-	if err = copyFile(filepath.Join(r.ResourceRoot, "materialization.json"), r.Materialization); err != nil {
+	if err := copyFile(filepath.Join(r.ResourceRoot, "materialization.json"), r.Materialization); err != nil {
 		return err
 	}
 	r.MaterializationSHA256, err = fileDigest(r.Materialization)
@@ -339,7 +335,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 	}
 	r.Contract = filepath.Join(output, "case.json")
 	// Preserve native identities in contract; only explicit descriptor paths are mutable.
-	if err = copyFile(filepath.Join(source, "plan.json"), r.Contract); err != nil {
+	if err := copyFile(filepath.Join(source, "plan.json"), r.Contract); err != nil {
 		return err
 	}
 	r.ContractSHA256, err = fileDigest(r.Contract)
@@ -377,7 +373,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 	if ctx.Err() != nil {
 		return protocolcmd.Fail(protocolcmd.ExitCanceled, ctx.Err())
 	}
-	if err = atomicMockJSON(path, r); err != nil {
+	if err := atomicMockJSON(path, r); err != nil {
 		return err
 	}
 	return json.NewEncoder(os.Stdout).Encode(r)
@@ -394,7 +390,7 @@ func writeMockLauncher(root, phase string, peer command) (string, error) {
 	invocation := strings.Join(words, " ")
 	script := "#!/bin/sh\nif [ \"$#\" -eq 1 ] && { [ \"$1\" = '--version' ] || [ \"$1\" = '-v' ]; }; then\n  exec " + invocation + " --version\nfi\nexec " + invocation + "\n"
 	path := filepath.Join(root, "peer-"+phase)
-	return path, os.WriteFile(path, []byte(script), 0700)
+	return path, os.WriteFile(path, []byte(script), 0o700)
 }
 
 // This reads immutable metadata only: no lock file, connection claim, protocol
@@ -451,7 +447,7 @@ func readMockRun(path string) (*mockRun, error) {
 // Shared locks cover the entire peer lifetime; exclusive finish never deletes
 // directories while a declared peer is still using them. Locks survive SIGKILL.
 func lockMockRun(path string, exclusive bool) (*os.File, error) {
-	f, err := os.OpenFile(filepath.Join(filepath.Dir(path), "run.lock"), os.O_CREATE|os.O_RDWR, 0600)
+	f, err := os.OpenFile(filepath.Join(filepath.Dir(path), "run.lock"), os.O_CREATE|os.O_RDWR, 0o600)
 	if err != nil {
 		return nil, err
 	}
@@ -459,7 +455,7 @@ func lockMockRun(path string, exclusive bool) (*os.File, error) {
 	if exclusive {
 		mode = syscall.LOCK_EX | syscall.LOCK_NB
 	}
-	if err = syscall.Flock(int(f.Fd()), mode); err != nil {
+	if err := syscall.Flock(int(f.Fd()), mode); err != nil {
 		_ = f.Close()
 		return nil, errors.New("mock run busy: close and wait for all peers before finish")
 	}
@@ -483,6 +479,7 @@ func mockOwner(r *mockRun) error {
 	}
 	return nil
 }
+
 func runPreparedMock(ctx context.Context, path, id string, native []string) (err error) {
 	r, err := readMockRun(path)
 	if err != nil {
@@ -496,7 +493,7 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 		return err
 	}
 	defer unlockMockRun(lock)
-	if err = mockOwner(r); err != nil {
+	if err := mockOwner(r); err != nil {
 		return err
 	}
 	if _, e := os.Stat(filepath.Join(filepath.Dir(path), "closed")); !os.IsNotExist(e) {
@@ -512,12 +509,12 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	if c == nil {
 		return errors.New("undeclared mock connection")
 	}
-	claim, e := os.OpenFile(c.ProcessReceipt+".started", os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	claim, e := os.OpenFile(c.ProcessReceipt+".started", os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if e != nil {
 		return e
 	}
-	if e = claim.Close(); e != nil {
-		return e
+	if err := claim.Close(); err != nil {
+		return err
 	}
 	process := object{"schemaVersion": 1, "runId": r.RunID, "connectionId": id, "status": "failed", "exitCode": -1, "toolVersion": protocolcmd.Version}
 	defer func() {
@@ -527,14 +524,14 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 		err = errors.Join(err, atomicMockJSON(c.ProcessReceipt, process))
 	}()
 	if r.Builtin != nil {
-		if err = checkBuiltinMaterial(r.Recording, r.Builtin.Material); err != nil {
+		if err := checkBuiltinMaterial(r.Recording, r.Builtin.Material); err != nil {
 			return err
 		}
 	}
-	if err = errors.Join(checkMockIdentity(*c), checkMockHistory(r)); err != nil {
+	if err := errors.Join(checkMockIdentity(*c), checkMockHistory(r)); err != nil {
 		return err
 	}
-	if err = protocolcmd.ValidateNativeArgs(r.Provider, native); err != nil {
+	if err := protocolcmd.ValidateNativeArgs(r.Provider, native); err != nil {
 		return protocolcmd.Fail(protocolcmd.ExitConfiguration, err)
 	}
 	self, e := os.Executable()
@@ -543,7 +540,7 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	}
 	args := []string{"mock", "--recording", c.Recording, "--provider", r.Provider, "--report", c.Receipt, "--phase", c.ID, "--"}
 	args = append(args, native...)
-	cmd := exec.Command(self, args...)
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), self, args...)
 	cmd.Dir = r.Workspace
 	cmd.Env = []string{"PATH=/missing"}
 	for k, v := range r.Env {
@@ -587,6 +584,7 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	}
 	return err
 }
+
 func checkMockIdentity(c mockConnection) error {
 	raw := "raw/raw.jsonl"
 	if c.ID == "probe" {
@@ -599,6 +597,7 @@ func checkMockIdentity(c mockConnection) error {
 	}
 	return verifySourcePhase(c.Recording, true)
 }
+
 func finishMock(path string) (err error) {
 	r, err := readMockRun(path)
 	if err != nil {

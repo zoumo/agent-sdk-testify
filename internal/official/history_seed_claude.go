@@ -28,10 +28,10 @@ func claudeHistorySeedReceipts(report object) (string, map[string]bool, []string
 	return session, agents, ids, nil
 }
 
-func claudeHistorySeedIdentity(name, session string) (string, bool, error) {
+func claudeHistorySeedIdentity(name, session string) (string, bool) {
 	identity := ""
 	if !strings.HasPrefix(name, "config/projects/") {
-		return "", false, nil
+		return "", false
 	}
 	base := filepath.Base(name)
 	if base == session+".jsonl" {
@@ -39,5 +39,5 @@ func claudeHistorySeedIdentity(name, session string) (string, bool, error) {
 	} else if strings.Contains(name, "/"+session+"/subagents/") {
 		identity = strings.TrimSuffix(strings.TrimPrefix(base, "agent-"), ".jsonl")
 	}
-	return identity, true, nil
+	return identity, true
 }

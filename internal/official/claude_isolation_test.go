@@ -50,7 +50,7 @@ observation = {'env': dict(os.environ), 'args': sys.argv[1:], 'cwd': os.getcwd()
 sys.stdin.readline()
 print('{"type":"result","result":"controlled"}', flush=True)
 sys.stdin.read()
-`), 0700))
+`), 0o700))
 	driver := filepath.Join(bin, "driver")
 	require.NoError(t, os.WriteFile(driver, []byte("#!"+python+"\n"+`import json, pathlib, subprocess, sys
 r = json.loads(pathlib.Path(sys.argv[2]).read_text())
@@ -59,27 +59,31 @@ child = subprocess.run([p['command']] + p.get('args', []), input='{"type":"user"
 sys.stderr.write(child.stderr)
 pathlib.Path(r['output'], 'result.json').write_text(json.dumps({'status': 'passed' if child.returncode == 0 else 'failed'}))
 sys.exit(child.returncode)
-`), 0700))
+`), 0o700))
 	materials := t.TempDir()
-	plan := object{"provider": "claude", "caseId": "controlled-isolation", "driverProfile": "children",
-		"scenario": object{"files": object{"numbers.txt": "7\n11\n"}}}
+	plan := object{
+		"provider": "claude", "caseId": "controlled-isolation", "driverProfile": "children",
+		"scenario": object{"files": object{"numbers.txt": "7\n11\n"}},
+	}
 	if args != nil {
 		plan["args"] = args
 	}
 	require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), plan))
-	o := options{Mode: "record", Materials: materials, Config: source, CLI: native, Driver: driver,
-		Peer: os.Getenv("AGENT_SDK_TESTIFY_BIN"), Output: filepath.Join(t.TempDir(), "capture"), Model: "selected-model"}
+	o := options{
+		Mode: "record", Materials: materials, Config: source, CLI: native, Driver: driver,
+		Peer: os.Getenv("AGENT_SDK_TESTIFY_BIN"), Output: filepath.Join(t.TempDir(), "capture"), Model: "selected-model",
+	}
 	if settings == nil {
 		o.Config = ""
 	}
-	require.NotEmpty(t, o.Peer, "run with scripts/with-agent-sdk-testify.sh")
+	require.NotEmpty(t, o.Peer, "run with make test")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	_, err = Run(ctx, o)
 	if len(rejected) != 0 {
 		require.ErrorContains(t, err, rejected[0])
 		assert.NoFileExists(t, filepath.Join(o.Output, "native-observation.json"))
-		assert.NoFileExists(t, filepath.Join(o.Output, "raw/raw.jsonl"))
+		assert.NoFileExists(t, filepath.Join(o.Output, "raw", "raw.jsonl"))
 		return nil, o, personal
 	}
 	if err != nil {
@@ -96,7 +100,7 @@ sys.exit(child.returncode)
 		require.NoError(t, readJSON(filepath.Join(source, "settings.json"), &original))
 		assert.Equal(t, settings, original)
 	}
-	data, err := os.ReadFile(filepath.Join(source, "skills/source/SKILL.md"))
+	data, err := os.ReadFile(filepath.Join(source, "skills", "source", "SKILL.md"))
 	require.NoError(t, err)
 	assert.Equal(t, "SOURCE_PERSONAL\n", string(data))
 	return observed, o, personal
@@ -115,7 +119,7 @@ func TestClaudeRecordingRejectsExternalSettings(t *testing.T) {
 		{"--settings"},
 	} {
 		t.Run(args[len(args)-1], func(t *testing.T) {
-			claudeIsolationRun(t, nil, args, "Claude recording isolation")
+			claudeIsolationRun(t, nil, args, "claude recording isolation")
 		})
 	}
 }
@@ -124,7 +128,7 @@ func TestClaudeRecordingRejectsExternalInstructionAndMCPInputs(t *testing.T) {
 	for _, flag := range []string{"--system-prompt-file", "--append-system-prompt-file", "--append-subagent-system-prompt-file", "--mcp-config", "--agents", "--plugin-dir"} {
 		for _, args := range [][]string{{flag, "/personal/input.json"}, {flag + "=/personal/input.json"}} {
 			t.Run(args[0], func(t *testing.T) {
-				claudeIsolationRun(t, nil, args, "Claude recording isolation")
+				claudeIsolationRun(t, nil, args, "claude recording isolation")
 			})
 		}
 	}
@@ -135,18 +139,20 @@ func TestClaudeRecordingRejectsExternalInstructionAndMCPInputs(t *testing.T) {
 		{"--mcp-config"},
 	} {
 		t.Run(args[len(args)-1], func(t *testing.T) {
-			claudeIsolationRun(t, nil, args, "Claude recording isolation")
+			claudeIsolationRun(t, nil, args, "claude recording isolation")
 		})
 	}
 }
 
 func TestClaudeRecordingPreservesInlineCaseConfiguration(t *testing.T) {
-	args := []string{"--print", `--settings={"permissions":{"ask":["Read"],"allow":["Bash"],"deny":["Write"],"defaultMode":"default"}}`,
+	args := []string{
+		"--print", `--settings={"permissions":{"ask":["Read"],"allow":["Bash"],"deny":["Write"],"defaultMode":"default"}}`,
 		`--agents={"fixture":{"description":"Synthetic","prompt":"Read numbers.txt"}}`,
 		`--mcp-config={"mcpServers":{"fixture":{"type":"sdk","name":"fixture"}}}`,
 		`{"mcpServers":{"other":{"type":"sdk","name":"other"}}}`,
 		"--system-prompt", "--settings=/personal/prompt-text.json", "--append-system-prompt", "--plugin-dir=/personal/prompt-text",
-		"--append-subagent-system-prompt", "--mcp-config=/personal/prompt-text.json", "--forward-subagent-text"}
+		"--append-subagent-system-prompt", "--mcp-config=/personal/prompt-text.json", "--forward-subagent-text",
+	}
 	observed, _, _ := claudeIsolationRun(t, nil, args)
 	got := stringsOf(observed["args"])
 	assert.Contains(t, got, `{"permissions":{"ask":["Read"],"allow":["Bash"],"deny":["Write"],"defaultMode":"default"}}`)
@@ -168,9 +174,11 @@ func TestClaudeRecordingRejectsDiscoveryEnvironmentFromSelectedSettings(t *testi
 			"ANTHROPIC_MODEL": "configured-env-model", "HTTPS_PROXY": "http://synthetic-proxy.invalid",
 			"ANTHROPIC_DEFAULT_HAIKU_MODEL": "configured-child-model",
 		},
-	}, []string{"--print", "--setting-sources=project,local", "--setting-sources", "user,project,local",
+	}, []string{
+		"--print", "--setting-sources=project,local", "--setting-sources", "user,project,local",
 		"--settings", `{"permissions":{"ask":["Bash"]}}`, "--agents", `{"fixture":{"description":"Synthetic","prompt":"Read numbers.txt"}}`,
-		"--mcp-config", `{"mcpServers":{"fixture":{"type":"sdk","name":"fixture"}}}`, "--forward-subagent-text"})
+		"--mcp-config", `{"mcpServers":{"fixture":{"type":"sdk","name":"fixture"}}}`, "--forward-subagent-text",
+	})
 	env := obj(observed["env"])
 	assert.Equal(t, filepath.Join(o.Output, "home"), env["HOME"])
 	assert.Equal(t, filepath.Join(o.Output, "config"), env["CLAUDE_CONFIG_DIR"])
@@ -197,8 +205,10 @@ func TestClaudeRecordingRejectsDiscoveryEnvironmentFromSelectedSettings(t *testi
 }
 
 func TestClaudeRecordingWithoutSelectedConfigIsolatesLegacyArgs(t *testing.T) {
-	observed, o, _ := claudeIsolationRun(t, nil, []string{"--print", "--setting-sources", "project,local",
-		"--permission-prompt-tool", "stdio", "--forward-subagent-text", "--", "synthetic prompt"})
+	observed, o, _ := claudeIsolationRun(t, nil, []string{
+		"--print", "--setting-sources", "project,local",
+		"--permission-prompt-tool", "stdio", "--forward-subagent-text", "--", "synthetic prompt",
+	})
 	args := stringsOf(observed["args"])
 	assert.Contains(t, args, "--disable-slash-commands")
 	assert.Less(t, slices.Index(args, "--disable-slash-commands"), slices.Index(args, "--"), "isolation must be parsed as options, not prompt text")
@@ -221,8 +231,10 @@ func TestClaudeRecordingWithoutSelectedConfigIsolatesLegacyArgs(t *testing.T) {
 }
 
 func TestClaudeRecordingIsolatesDiscoveryBeforeStartup(t *testing.T) {
-	observed, o, personal := claudeIsolationRun(t, object{"model": "configured-model", "hooks": object{"SessionStart": []any{}},
-		"enabledPlugins": object{"personal": true}}, nil)
+	observed, o, personal := claudeIsolationRun(t, object{
+		"model": "configured-model", "hooks": object{"SessionStart": []any{}},
+		"enabledPlugins": object{"personal": true},
+	}, nil)
 	args := stringsOf(observed["args"])
 	assert.Contains(t, args, "--disable-slash-commands")
 	require.Contains(t, args, "--setting-sources")

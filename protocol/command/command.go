@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 )
 
@@ -45,22 +46,25 @@ func ExitCode(err error) int {
 
 // IO supplies actual process descriptors so implementations can interrupt blocked
 // reads/writes. A handler owns their use for one process invocation.
-type IO struct{ In, Out, Err *os.File }
-type RecordOptions struct {
-	Output         string
-	CWD            string
-	Env            []string
-	ClearEnv       bool
-	Command        []string
-	NativeVersion  string
-	StdinEOFAction string
-	Timeout        time.Duration
-	ProtocolBytes  int64
-	StderrBytes    int64
-	MaxFrames      int64
-	MaxFrameBytes  int64
-	CleanupTimeout time.Duration
-}
+type (
+	IO            struct{ In, Out, Err *os.File }
+	RecordOptions struct {
+		Output         string
+		CWD            string
+		Env            []string
+		ClearEnv       bool
+		Command        []string
+		NativeVersion  string
+		StdinEOFAction string
+		Timeout        time.Duration
+		ProtocolBytes  int64
+		StderrBytes    int64
+		MaxFrames      int64
+		MaxFrameBytes  int64
+		CleanupTimeout time.Duration
+	}
+)
+
 type MockOptions struct {
 	Provider         string
 	Scenario         string
@@ -237,7 +241,7 @@ func mockCommand(handler func(context.Context, MockOptions, IO) error, streams I
 		if o.ProgressFD < -1 || (o.ProgressFD >= 0 && o.ProgressFD < 3) {
 			return bad(errors.New("progress descriptor must be >=3"))
 		}
-		if err = ValidateNativeArgs(o.Provider, native); err != nil {
+		if err := ValidateNativeArgs(o.Provider, native); err != nil {
 			return bad(err)
 		}
 		o.NativeArgs = native
@@ -259,6 +263,7 @@ func runtimeError(err error) error {
 	}
 	return Fail(ExitFailure, err)
 }
+
 func duration(seconds float64, zero bool) (time.Duration, error) {
 	if math.IsNaN(seconds) || math.IsInf(seconds, 0) || seconds < 0 || (!zero && seconds == 0) || seconds >= float64(math.MaxInt64)/float64(time.Second) {
 		return 0, errors.New("timeout seconds out of range")

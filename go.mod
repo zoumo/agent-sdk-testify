@@ -1,6 +1,6 @@
 module github.com/zoumo/agent-sdk-testify
 
-go 1.26.9
+go 1.26
 
 require (
 	github.com/coder/websocket v1.8.15

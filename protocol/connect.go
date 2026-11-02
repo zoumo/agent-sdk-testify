@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 
 	"github.com/coder/websocket"
+
 	"github.com/zoumo/agent-sdk-testify/protocol/command"
 )
 
@@ -45,7 +46,7 @@ func runConnect(ctx context.Context, o command.ConnectOptions, streams command.I
 	if err != nil {
 		return fail("WebSocket connection failed")
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 	conn.SetReadLimit(o.MaxFrameBytes)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -85,7 +86,7 @@ func runConnect(ctx context.Context, o command.ConnectOptions, streams command.I
 				writeDone <- fail("client JSON line exceeds frame limit")
 				return
 			}
-			if err == bufio.ErrBufferFull {
+			if errors.Is(err, bufio.ErrBufferFull) {
 				continue
 			}
 			if err == io.EOF && len(line) == 0 {

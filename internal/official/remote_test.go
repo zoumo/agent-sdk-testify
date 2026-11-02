@@ -14,7 +14,7 @@ func TestRemoteCleanupReceiptExplicitlyExcludesForcedCleanup(t *testing.T) {
 	root := t.TempDir()
 	log, err := os.Create(filepath.Join(root, "stderr.log"))
 	require.NoError(t, err)
-	cmd := exec.Command(os.Args[0], "synthetic-remote-cleanup")
+	cmd := exec.CommandContext(t.Context(), os.Args[0], "synthetic-remote-cleanup")
 	stdout, err := cmd.StdoutPipe()
 	require.NoError(t, err)
 	require.NoError(t, cmd.Start())
@@ -22,13 +22,15 @@ func TestRemoteCleanupReceiptExplicitlyExcludesForcedCleanup(t *testing.T) {
 	ready, err := bufio.NewReader(stdout).ReadString('\n')
 	require.NoError(t, err)
 	require.Equal(t, "ready\n", ready)
-	service := &remoteService{cmd: cmd, done: make(chan error, 1), log: log,
-		root: root, token: filepath.Join(root, "token.private")}
+	service := &remoteService{
+		cmd: cmd, done: make(chan error, 1), log: log,
+		root: root, token: filepath.Join(root, "token.private"),
+	}
 	go func() { service.done <- cmd.Wait() }()
 	require.NoError(t, service.close())
 	var receipt object
 	require.NoError(t, readJSON(filepath.Join(root, "remote-service.json"), &receipt))
 	require.Equal(t, true, receipt["cleanupComplete"])
-	require.Equal(t, float64(0), receipt["serverExitCode"])
+	require.InDelta(t, float64(0), receipt["serverExitCode"], 0)
 	require.Equal(t, false, receipt["forcedCleanup"])
 }

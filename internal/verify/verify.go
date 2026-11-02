@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"time"
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
@@ -23,11 +24,12 @@ import (
 
 func Execute(ctx context.Context, args []string) error {
 	o := official.Options{Mode: "verify"}
+	var timeout time.Duration
 	c := corpus.Corpus{}
 	f := flag.NewFlagSet("verify", flag.ContinueOnError)
 	f.StringVar(&o.Materials, "recording", "", "existing recording directory")
 	f.StringVar(&o.Output, "output", "", "new separate verification directory")
-	f.DurationVar(&o.Timeout, "timeout", 0, "whole-task timeout; zero disables it")
+	f.DurationVar(&timeout, "timeout", 0, "whole-task timeout; zero disables it")
 	f.StringVar(&c.Index, "index", "", "optional fixed index: qualify and atomically adopt after verification")
 	f.StringVar(&c.Scenarios, "scenarios", "", "scenario catalog for admission (default: index sibling ../scenarios)")
 	f.StringVar(&c.Archive, "archive", "", "private admission archive (default: persistent data directory)")
@@ -40,7 +42,7 @@ func Execute(ctx context.Context, args []string) error {
 	if f.NArg() != 0 || o.Materials == "" {
 		return errors.New("verify requires --recording")
 	}
-	if o.Timeout < 0 {
+	if timeout < 0 {
 		return errors.New("timeout must be nonnegative")
 	}
 	if c.Index == "" && c.Scenarios != "" {
@@ -58,9 +60,9 @@ func Execute(ctx context.Context, args []string) error {
 			return err
 		}
 	}
-	if o.Timeout > 0 {
+	if timeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
+		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
 	summary, err := verifyRecording(ctx, o)
@@ -89,7 +91,10 @@ func Execute(ctx context.Context, args []string) error {
 		err = errors.Join(err, writeJSON(filepath.Join(root, "admission-summary.json"), admission))
 	}
 	if summary != nil {
-		b, _ := json.Marshal(summary)
+		b, encodeErr := json.Marshal(summary)
+		if encodeErr != nil {
+			return errors.Join(err, fmt.Errorf("encode verify summary: %w", encodeErr))
+		}
 		fmt.Println(string(b))
 	}
 	return err
@@ -185,13 +190,13 @@ func verifyRecording(ctx context.Context, o official.Options) (summary object, e
 	}
 	// Missing manifests cannot turn an unbound raw file into a recording.
 	var originalPlan object
-	if e = readJSON(filepath.Join(o.Materials, "plan.json"), &originalPlan); e != nil {
-		return nil, e
+	if planErr := readJSON(filepath.Join(o.Materials, "plan.json"), &originalPlan); planErr != nil {
+		return nil, planErr
 	}
 	vSource := &corpusValidation{}
 	manifest := vSource.Read(o.Materials, "manifest.json")
 	vSource.Check(manifest["planSHA256"] == before["plan.json"], "source plan hash differs")
-	for _, phase := range corpusPhases(originalPlan, "verify") {
+	for _, phase := range corpusPhases(originalPlan) {
 		rawRoot := filepath.Join(o.Materials, phase[1], "raw")
 		m := vSource.Read(rawRoot, "manifest.json")
 		vSource.Hashes(rawRoot, obj(m["files"]))
@@ -217,11 +222,11 @@ func verifyRecording(ctx context.Context, o official.Options) (summary object, e
 	}
 	contracts := object{}
 	for _, name := range []string{str(catalogPlan["storyId"]) + ".json", "bindings/" + o.Provider + ".json"} {
-		data, e := fs.ReadFile(data.Scenarios(), name)
-		if e != nil {
-			return nil, e
+		content, readErr := fs.ReadFile(data.Scenarios(), name)
+		if readErr != nil {
+			return nil, readErr
 		}
-		hash := sha256.Sum256(data)
+		hash := sha256.Sum256(content)
 		contracts[name] = hex.EncodeToString(hash[:])
 	}
 	evidence["contracts"] = contracts

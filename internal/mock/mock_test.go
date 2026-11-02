@@ -22,12 +22,12 @@ import (
 func mockCapture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	require.NoError(t, os.Mkdir(filepath.Join(root, "raw"), 0700))
+	require.NoError(t, os.Mkdir(filepath.Join(root, "raw"), 0o700))
 	plan := []byte(`{"provider":"codex","provenance":"synthetic"}` + "\n")
 	raw := []byte("{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"protocol\",\"epoch\":1,\"wire\":{\"id\":1,\"method\":\"ping\",\"params\":{\"unknown\":9007199254740993}}}\n" +
 		"{\"ordinal\":2,\"direction\":\"s2c\",\"channel\":\"protocol\",\"epoch\":1,\"wire\":{\"id\":1,\"result\":{\"unknown\":9007199254740993}}}\n")
-	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(root, "raw/raw.jsonl"), raw, 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), raw, 0o600))
 	digest := func(b []byte) string { sum := sha256.Sum256(b); return hex.EncodeToString(sum[:]) }
 	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{
 		"provenance": "synthetic", "captureStatus": "complete", "planSHA256": digest(plan),
@@ -66,7 +66,7 @@ func TestMockExternalRecording(t *testing.T) {
 	assert.Equal(t, true, receipt["cleanupComplete"])
 	assert.Equal(t, false, receipt["nativeLaunched"])
 	assert.Equal(t, "codex", receipt["provider"])
-	assert.Equal(t, float64(0), receipt["exitCode"])
+	assert.InDelta(t, float64(0), receipt["exitCode"], 0)
 	assert.NotEmpty(t, receipt["planSHA256"])
 	assert.NotEmpty(t, receipt["recordingSHA256"])
 }
@@ -101,10 +101,10 @@ func TestMockRequiresClientEOFAfterConsumption(t *testing.T) {
 
 func TestMockRejectsUnsupportedSourceFormat(t *testing.T) {
 	root := mockCapture(t)
-	raw, err := os.ReadFile(filepath.Join(root, "raw/raw.jsonl"))
+	raw, err := os.ReadFile(filepath.Join(root, "raw", "raw.jsonl"))
 	require.NoError(t, err)
 	sum := sha256.Sum256(raw)
-	require.NoError(t, writeJSON(filepath.Join(root, "raw/manifest.json"), object{
+	require.NoError(t, writeJSON(filepath.Join(root, "raw", "manifest.json"), object{
 		"recordingFormat": object{"name": "agent-mock-jsonl", "version": 999, "transport": "stdio-jsonl"},
 		"files":           object{"raw.jsonl": hex.EncodeToString(sum[:])},
 	}))
@@ -148,7 +148,7 @@ func TestMockStrictFailuresRetainReceiptsAndSourceBytes(t *testing.T) {
 			assert.Equal(t, tc.consumed, receipt["fullConsumption"])
 			assert.Equal(t, false, receipt["clientEOF"])
 			assert.Equal(t, true, receipt["cleanupComplete"])
-			assert.Equal(t, float64(1), receipt["exitCode"])
+			assert.InDelta(t, float64(1), receipt["exitCode"], 0)
 			assert.Contains(t, receipt["error"], tc.diagnostic)
 			assert.Equal(t, before, mockSourceBytes(t, root))
 		})
@@ -176,13 +176,13 @@ func TestMockRejectsInvalidSourcesBeforeProtocol(t *testing.T) {
 		args             []string
 	}{
 		{"plan drift", "source hash mismatch: plan.json", func(t *testing.T, root string) {
-			require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), []byte(`{"provider":"claude"}`), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), []byte(`{"provider":"claude"}`), 0o600))
 		}, nil},
 		{"raw drift", "source hash mismatch: raw.jsonl", func(t *testing.T, root string) {
-			require.NoError(t, os.WriteFile(filepath.Join(root, "raw/raw.jsonl"), []byte("{}\n"), 0600))
+			require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), []byte("{}\n"), 0o600))
 		}, nil},
 		{"missing raw", "raw.jsonl", func(t *testing.T, root string) {
-			require.NoError(t, os.Remove(filepath.Join(root, "raw/raw.jsonl")))
+			require.NoError(t, os.Remove(filepath.Join(root, "raw", "raw.jsonl")))
 		}, nil},
 		{"missing manifest", "manifest.json", func(t *testing.T, root string) {
 			require.NoError(t, os.Remove(filepath.Join(root, "manifest.json")))
@@ -256,8 +256,8 @@ func TestMockClaudeNativeStdio(t *testing.T) {
 	plan := []byte(`{"provider":"claude","provenance":"synthetic"}`)
 	raw := []byte("{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"control\",\"epoch\":1,\"wire\":{\"type\":\"control_request\",\"request_id\":\"recorded\",\"request\":{\"subtype\":\"initialize\",\"unknown\":true}}}\n" +
 		"{\"ordinal\":2,\"direction\":\"s2c\",\"channel\":\"control\",\"epoch\":1,\"wire\":{\"type\":\"control_response\",\"response\":{\"subtype\":\"success\",\"request_id\":\"recorded\",\"response\":{\"unknown\":true}}}}\n")
-	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(root, "raw/raw.jsonl"), raw, 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), raw, 0o600))
 	planSum, rawSum := sha256.Sum256(plan), sha256.Sum256(raw)
 	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{
 		"planSHA256": hex.EncodeToString(planSum[:]), "provenance": "synthetic", "captureStatus": "complete",
@@ -308,7 +308,7 @@ func TestMockPreservesExistingReportsAndConsumerFiles(t *testing.T) {
 	root := mockCapture(t)
 	for _, report := range []string{filepath.Join(t.TempDir(), "existing.json"), filepath.Join(root, "new-report.json")} {
 		if filepath.Dir(report) != root {
-			require.NoError(t, os.WriteFile(report, []byte("consumer evidence\n"), 0600))
+			require.NoError(t, os.WriteFile(report, []byte("consumer evidence\n"), 0o600))
 		}
 		before := mockSourceBytes(t, root)
 		cmd := mockCommand(t, "--recording", root, "--report", report)

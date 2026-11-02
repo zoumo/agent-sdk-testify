@@ -36,7 +36,7 @@ func WaitDriver(ctx context.Context, cmd *exec.Cmd) error {
 	if err := cmd.Start(); err != nil {
 		return err
 	}
-	defer syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	defer func() { _ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) }()
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	select {
@@ -65,7 +65,7 @@ func RunPeer(args []string) (runErr error) {
 	if err := ReadJSON(*requestPath, &c); err != nil {
 		return err
 	}
-	cmd := exec.Command(c.Command, c.Args...)
+	cmd := exec.CommandContext(context.Background(), c.Command, c.Args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

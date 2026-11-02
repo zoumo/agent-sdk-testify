@@ -22,10 +22,11 @@ func TestCaptureWaitHelper(t *testing.T) {
 		time.Sleep(time.Hour)
 	}
 }
+
 func TestNativeWaitCanJoinAtCleanupDeadline(t *testing.T) {
 	executable, err := os.Executable()
 	require.NoError(t, err)
-	cmd := exec.Command(executable, "-test.run=^TestCaptureWaitHelper$")
+	cmd := exec.CommandContext(t.Context(), executable, "-test.run=^TestCaptureWaitHelper$")
 	cmd.Env = append(os.Environ(), "AGENT_MOCK_CAPTURE_WAIT_TEST=1")
 	require.NoError(t, cmd.Start())
 	pid := cmd.Process.Pid

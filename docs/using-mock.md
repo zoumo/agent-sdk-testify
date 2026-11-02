@@ -39,6 +39,10 @@ unqualified` 和原始 provenance 是明确结论，不会因为来源报告写�
 
 `describe.assertionInputs` 是 SDK 编写业务断言的输入，版本当前为 `1`：
 
+- `schemaVersion` 当前为 `1`；`provider`、`caseId`、`attempt` 与 describe
+  行一致，内置材料还带 `manifestSHA256`。
+- `sourceManifestSHA256` 绑定来源 manifest；`missingEvidence` 列出缺失的可选
+  证据，例如合成录制没有 `sourceReport`。
 - `connections[]` 保留每条原生连接的顺序、`frames`、原始 JSONL
   `originalBase64` 和 SHA-256。
 - `sourcePlan`、`sourceReport`、`savedHistory[]` 保留原始 JSON/JSONL 字节、

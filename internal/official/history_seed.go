@@ -23,12 +23,12 @@ func prepareHistorySeed(source, root string, plan object) error {
 	if err != nil {
 		return err
 	}
-	if err = verifyMaterials(source, true); err != nil {
+	if err := verifyMaterials(source, true); err != nil {
 		return err
 	}
 	var previous, report, manifest object
 	for name, target := range map[string]*object{"plan.json": &previous, "report.json": &report, "manifest.json": &manifest} {
-		if err = readJSON(filepath.Join(source, name), target); err != nil {
+		if err := readJSON(filepath.Join(source, name), target); err != nil {
 			return err
 		}
 	}
@@ -70,7 +70,7 @@ func prepareHistorySeed(source, root string, plan object) error {
 		if provider == "codex" {
 			identity, matched, e = codexHistorySeedIdentity(name, data)
 		} else {
-			identity, matched, e = claudeHistorySeedIdentity(name, session)
+			identity, matched = claudeHistorySeedIdentity(name, session)
 		}
 		if e != nil {
 			return e
@@ -89,12 +89,12 @@ func prepareHistorySeed(source, root string, plan object) error {
 		if actual != str(digest) {
 			return errors.New("seed content changed")
 		}
-		if e = copyFile(filepath.Join(source, name), filepath.Join(root, name)); e != nil {
-			return e
+		if err := copyFile(filepath.Join(source, name), filepath.Join(root, name)); err != nil {
+			return err
 		}
 		destination := filepath.Join("history-seed", name)
-		if e = copyFile(filepath.Join(source, name), filepath.Join(root, destination)); e != nil {
-			return e
+		if err := copyFile(filepath.Join(source, name), filepath.Join(root, destination)); err != nil {
+			return err
 		}
 		files[destination] = object{"source": name, "sha256": actual}
 		found[identity] = true
@@ -109,12 +109,12 @@ func prepareHistorySeed(source, root string, plan object) error {
 	if provider == "codex" {
 		// Resume keeps the source cwd as a native identity. Check its discovery
 		// roots too; prepareNative separately isolates the new workspace/args.
-		if err = prepareCodexIsolation(root, object{"project": project}); err != nil {
+		if err := prepareCodexIsolation(root, object{"project": project}); err != nil {
 			return err
 		}
 	}
 	projectFiles := object{}
-	if err = filepath.WalkDir(project, func(p string, d os.DirEntry, e error) error {
+	if err := filepath.WalkDir(project, func(p string, d os.DirEntry, e error) error {
 		if e != nil {
 			return e
 		}

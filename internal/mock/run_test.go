@@ -35,7 +35,7 @@ func TestPreparedMockLifecycle(t *testing.T) {
 	root := mockCapture(t)
 	before := mockSourceBytes(t, root)
 	path, run := preparedMock(t, root)
-	assert.Equal(t, float64(1), run["schemaVersion"])
+	assert.InDelta(t, float64(1), run["schemaVersion"], 0)
 	workspace := str(run["workspace"])
 	env := obj(run["env"])
 	for _, dir := range []string{workspace, str(env["HOME"]), str(env["CODEX_HOME"]), str(env["TMPDIR"])} {
@@ -54,9 +54,9 @@ func TestPreparedMockLifecycle(t *testing.T) {
 	require.NoError(t, readJSON(str(peer["receipt"]), &receipt))
 	require.NoError(t, readJSON(str(peer["processReceipt"]), &process))
 	assert.Equal(t, "passed", receipt["status"])
-	assert.Equal(t, float64(0), process["exitCode"])
+	assert.InDelta(t, float64(0), process["exitCode"], 0)
 	assert.Equal(t, run["runId"], process["runId"])
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		data, err = mockCommand(t, "--finish", path).CombinedOutput()
 		require.NoError(t, err, "%s", data)
 		var finish object
@@ -80,12 +80,12 @@ func TestPreparedMockRequiresEveryDeclaredConnection(t *testing.T) {
 	require.NoError(t, readJSON(filepath.Join(root, "plan.json"), &plan))
 	plan["driverProfile"] = "remote-close"
 	require.NoError(t, writeJSON(filepath.Join(root, "plan.json"), plan))
-	require.NoError(t, copyTree(filepath.Join(root, "raw"), filepath.Join(root, "remote-probe/raw")))
+	require.NoError(t, copyTree(filepath.Join(root, "raw"), filepath.Join(root, "remote-probe", "raw")))
 	require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
 	hash, err := fileDigest(filepath.Join(root, "plan.json"))
 	require.NoError(t, err)
 	manifest["planSHA256"] = hash
-	rawHash, err := fileDigest(filepath.Join(root, "remote-probe/raw/raw.jsonl"))
+	rawHash, err := fileDigest(filepath.Join(root, "remote-probe", "raw", "raw.jsonl"))
 	require.NoError(t, err)
 	manifest["remotePhaseFiles"] = object{"remote-probe/raw/raw.jsonl": rawHash}
 	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
@@ -152,7 +152,7 @@ func TestPreparedMockHistoryMaterialization(t *testing.T) {
 				assert.Contains(t, string(data), `"nested":{"cwd":"keep-nested"}`)
 				assert.Contains(t, string(data), str(run["workspace"]))
 				// A derived-history drift must be reported before its temp file is removed.
-				require.NoError(t, os.WriteFile(derived, []byte("corrupt\n"), 0600))
+				require.NoError(t, os.WriteFile(derived, []byte("corrupt\n"), 0o600))
 			} else {
 				assert.Equal(t, "/original/project", run["protocolCwd"])
 			}
@@ -197,8 +197,8 @@ func TestPreparedMockBusyFinishCancellationAndCleanup(t *testing.T) {
 	require.NoError(t, readJSON(str(peer["processReceipt"]), &process))
 	assert.Equal(t, true, receipt["fullConsumption"])
 	assert.Equal(t, false, receipt["clientEOF"])
-	assert.Equal(t, float64(3), process["exitCode"])
-	for i := 0; i < 2; i++ {
+	assert.InDelta(t, float64(3), process["exitCode"], 0)
+	for range 2 {
 		data, err = mockCommand(t, "--finish", path).CombinedOutput()
 		require.Error(t, err)
 		assert.Contains(t, string(data), "failed")
@@ -243,15 +243,15 @@ func TestPreparedMockFailureEvidenceAndOwnership(t *testing.T) {
 				process["runId"] = "another-run"
 				require.NoError(t, writeJSON(str(peer["processReceipt"]), process))
 			case "raw drift":
-				require.NoError(t, os.WriteFile(filepath.Join(root, "raw/raw.jsonl"), []byte("{}\n"), 0600))
+				require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), []byte("{}\n"), 0o600))
 			case "plan drift":
-				require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), []byte("{}\n"), 0600))
+				require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), []byte("{}\n"), 0o600))
 			case "cleanup ownership":
-				require.NoError(t, os.WriteFile(filepath.Join(str(run["resourceRoot"]), ".owner"), []byte("not-owned"), 0600))
+				require.NoError(t, os.WriteFile(filepath.Join(str(run["resourceRoot"]), ".owner"), []byte("not-owned"), 0o600))
 			}
 			consumer := filepath.Join(filepath.Dir(path), "consumer.txt")
-			require.NoError(t, os.WriteFile(consumer, []byte("keep"), 0600))
-			for i := 0; i < 2; i++ {
+			require.NoError(t, os.WriteFile(consumer, []byte("keep"), 0o600))
+			for range 2 {
 				data, err = mockCommand(t, "--finish", path).CombinedOutput()
 				require.Error(t, err, "%s", data)
 				var finish object
@@ -266,7 +266,7 @@ func TestPreparedMockFailureEvidenceAndOwnership(t *testing.T) {
 				}
 			}
 			if kind == "cleanup ownership" {
-				require.NoError(t, os.WriteFile(filepath.Join(str(run["resourceRoot"]), ".owner"), []byte(str(run["runId"])), 0600))
+				require.NoError(t, os.WriteFile(filepath.Join(str(run["resourceRoot"]), ".owner"), []byte(str(run["runId"])), 0o600))
 				data, err = mockCommand(t, "--finish", path).CombinedOutput()
 				require.NoError(t, err, "%s", data)
 				assert.NoDirExists(t, str(run["resourceRoot"]))
@@ -278,7 +278,7 @@ func TestPreparedMockFailureEvidenceAndOwnership(t *testing.T) {
 
 func TestPreparedMockRejectsCorruptPrepareAndRetainsDiagnostic(t *testing.T) {
 	root := mockCapture(t)
-	require.NoError(t, os.WriteFile(filepath.Join(root, "raw/raw.jsonl"), []byte("{}\n"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), []byte("{}\n"), 0o600))
 	output := filepath.Join(t.TempDir(), "persistent")
 	data, err := mockCommand(t, "--prepare", "--recording", root, "--output", output).CombinedOutput()
 	require.Error(t, err)
@@ -335,14 +335,14 @@ func TestPreparedMockLauncherAndIndependentAllocations(t *testing.T) {
 	}{{path, run}, {otherPath, other}} {
 		peer := obj(array(entry.descriptor["connections"])[0])
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
+		t.Cleanup(cancel)
 		cmd := exec.CommandContext(ctx, str(peer["launcher"]))
 		cmd.Dir = str(entry.descriptor["workspace"])
 		cmd.Env = []string{"PATH=/missing"}
 		cmd.Stdin = strings.NewReader(`{"id":99,"method":"ping","params":{"unknown":9007199254740993}}` + "\n")
 		data, err := cmd.CombinedOutput()
 		require.NoError(t, err, "%s", data)
-		data, err = mockCommand(t, "--run", entry.path).CombinedOutput()
+		_, err = mockCommand(t, "--run", entry.path).CombinedOutput()
 		require.Error(t, err, "allocation must not be reused")
 		data, err = mockCommand(t, "--finish", entry.path).CombinedOutput()
 		require.NoError(t, err, "%s", data)
@@ -454,11 +454,11 @@ func TestPreparedMockVersionProbeRequiresProtocolEvidence(t *testing.T) {
 	assert.Contains(t, string(out), "undeclared")
 	contract, err := os.ReadFile(str(run["contract"]))
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(str(run["contract"]), []byte(`{"cliVersion":"invented"}`), 0600))
+	require.NoError(t, os.WriteFile(str(run["contract"]), []byte(`{"cliVersion":"invented"}`), 0o600))
 	out, err = mockCommand(t, "--run", path, "--version").CombinedOutput()
 	require.Error(t, err)
 	assert.NotContains(t, string(out), "invented")
-	require.NoError(t, os.WriteFile(str(run["contract"]), contract, 0600))
+	require.NoError(t, os.WriteFile(str(run["contract"]), contract, 0o600))
 	assert.NoFileExists(t, str(peer["receipt"]))
 	assert.NoFileExists(t, str(peer["processReceipt"]))
 	out, err = mockCommand(t, "--finish", path).Output()

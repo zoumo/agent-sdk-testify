@@ -2,20 +2,24 @@ package recording_test
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 	"io"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
+	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 )
 
 // These are deliberately synthetic format examples, not copies of the SDK corpus.
-const native = `{ "future":{"z":1e+09,"huge":9007199254740993,"fraction":0.123456789012345678901234567890},"type":"notice" }`
-const unified = `{"ordinal":1,"direction":"s2c","channel":"protocol","epoch":1,"elapsedMs":12,"wire":` + native + `}`
-const legacy = `{"ordinal":1,"direction":"server","channel":"control","data":` + native + `}`
+const (
+	native  = `{ "future":{"z":1e+09,"huge":9007199254740993,"fraction":0.123456789012345678901234567890},"type":"notice" }`
+	unified = `{"ordinal":1,"direction":"s2c","channel":"protocol","epoch":1,"elapsedMs":12,"wire":` + native + `}`
+	legacy  = `{"ordinal":1,"direction":"server","channel":"control","data":` + native + `}`
+)
 
 func TestHistoricalFormatsPreserveRaw(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
@@ -28,7 +32,7 @@ func TestHistoricalFormatsPreserveRaw(t *testing.T) {
 				d, err := recording.Read(strings.NewReader(input), provider, recording.Limits{})
 				require.NoError(t, err)
 				require.Len(t, d.Frames, 1)
-				assert.Equal(t, native, string(d.Frames[0].Wire.Raw()))
+				assert.Equal(t, native, string(d.Frames[0].Wire.Raw())) //nolint:testifylint // Exact bytes are contractual.
 				assert.Equal(t, []byte(input), d.Original)
 				assert.Equal(t, recording.Hash([]byte(input)), d.SHA256)
 				assert.Equal(t, recording.ServerToClient, d.Frames[0].Direction)
@@ -37,7 +41,7 @@ func TestHistoricalFormatsPreserveRaw(t *testing.T) {
 					assert.Equal(t, 125*time.Millisecond, d.Timeout)
 				}
 				if name == "legacy scenario" {
-					assert.Equal(t, `{"path":"old/fixture","sha256":"unchanged"}`, string(d.Source.Raw()))
+					assert.Equal(t, `{"path":"old/fixture","sha256":"unchanged"}`, string(d.Source.Raw())) //nolint:testifylint // Exact bytes are contractual.
 				}
 			})
 		}
@@ -53,7 +57,7 @@ func TestEncodePreservesWireAndRejectsNonCaptureFrames(t *testing.T) {
 	assert.True(t, bytes.Contains(data, append([]byte(`"wire":`), wire.Raw()...)))
 	d, err := recording.Read(bytes.NewReader(data), "codex", recording.Limits{})
 	require.NoError(t, err)
-	assert.Equal(t, native, string(d.Frames[0].Wire.Raw()))
+	assert.Equal(t, native, string(d.Frames[0].Wire.Raw())) //nolint:testifylint // Exact bytes are contractual.
 	f.Disconnect = true
 	_, err = recording.EncodeFrame(f)
 	require.Error(t, err)

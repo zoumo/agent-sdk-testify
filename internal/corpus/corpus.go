@@ -40,7 +40,7 @@ func Regular(root, name string) (string, error) {
 		return "", fmt.Errorf("non-local or non-canonical material path: %q", name)
 	}
 	p := root
-	for _, part := range strings.Split(name, "/") {
+	for part := range strings.SplitSeq(name, "/") {
 		p = filepath.Join(p, part)
 		i, err := os.Lstat(p)
 		if err != nil {
@@ -128,10 +128,10 @@ func Write(p string, value any) error {
 	if err != nil {
 		return err
 	}
-	if err = os.MkdirAll(filepath.Dir(p), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(p), 0o700); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(p, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return err
 	}
@@ -148,6 +148,7 @@ func (v *Validation) Check(ok bool, message string) {
 		v.Err = errors.New(message)
 	}
 }
+
 func (v *Validation) Read(root, name string) object {
 	if v.Err != nil {
 		return object{}
@@ -161,6 +162,7 @@ func (v *Validation) Read(root, name string) object {
 	v.Err = err
 	return m
 }
+
 func (v *Validation) Digest(root, name string) string {
 	if v.Err != nil {
 		return ""
@@ -174,12 +176,14 @@ func (v *Validation) Digest(root, name string) string {
 	v.Err = err
 	return h
 }
+
 func (v *Validation) Hashes(root string, hashes object) {
 	v.Check(len(hashes) > 0, "nonempty hash inventory required")
 	for name, expected := range hashes {
 		v.Check(len(str(expected)) == 64 && v.Digest(root, name) == expected, "material hash mismatch: "+name)
 	}
 }
+
 func (v *Validation) Inventory(root string, empty bool) object {
 	if v.Err != nil {
 		return object{}
@@ -188,6 +192,7 @@ func (v *Validation) Inventory(root string, empty bool) object {
 	v.Err = err
 	return x
 }
+
 func Keys(m object) []string {
 	out := make([]string, 0, len(m))
 	for k := range m {
@@ -196,6 +201,7 @@ func Keys(m object) []string {
 	sort.Strings(out)
 	return out
 }
+
 func corpusSet(names []string) object {
 	m := object{}
 	for _, n := range names {
@@ -203,12 +209,13 @@ func corpusSet(names []string) object {
 	}
 	return m
 }
+
 func Within(p, root string) bool {
 	r, err := filepath.Rel(root, p)
 	return err == nil && (r == "." || filepath.IsLocal(r))
 }
 
-func (c Corpus) Catalog() (object, error) {
+func (c *Corpus) Catalog() (object, error) {
 	v := &Validation{}
 	index := v.Read(c.Scenarios, "index.json")
 	out := object{}
@@ -240,7 +247,7 @@ func (c Corpus) Catalog() (object, error) {
 	return out, v.Err
 }
 
-func (c Corpus) LoadIndex() (object, error) {
+func (c *Corpus) LoadIndex() (object, error) {
 	index, err := Read(c.Index)
 	if err != nil {
 		return nil, err
@@ -287,7 +294,7 @@ func corpusPublishable(name string) bool {
 	return allowed
 }
 
-func Phases(plan object, mode string) [][2]string {
+func Phases(plan object) [][2]string {
 	out := [][2]string{{"", ""}}
 	if plan["driverProfile"] == "remote-close" {
 		out = append(out, [2]string{"remote-probe/", "remote-probe/"})
@@ -315,7 +322,7 @@ func (v *Validation) Replay(source, replay string, plan object, mode string) {
 			for _, name := range []string{"summary.json", "result.json", "replay-report.json"} {
 				v.Check(obj(attestation["files"])[name] != nil, "verification omits evidence hash")
 			}
-			for _, phase := range Phases(plan, "verify") {
+			for _, phase := range Phases(plan) {
 				name := "main"
 				if phase[0] != "" {
 					name = "probe"
@@ -331,7 +338,7 @@ func (v *Validation) Replay(source, replay string, plan object, mode string) {
 		original[name] = v.Digest(source, name)
 	}
 	v.Check(reflect.DeepEqual(s["source"], original), "run does not bind original source plan and manifest")
-	for _, phase := range Phases(plan, mode) {
+	for _, phase := range Phases(plan) {
 		r := v.Read(replay, phase[0]+"replay-peer.json")
 		raw := phase[1] + "raw/raw.jsonl"
 		v.Check(r["provider"] == plan["provider"] && r["recordingSHA256"] == v.Digest(source, raw) && r["fullConsumption"] == true && r["clientEOF"] == true && r["nativeLaunched"] == false && r["error"] == nil, "incomplete or incorrect mock receipt")
@@ -366,7 +373,7 @@ func (v *Validation) ReplayEvidence(replay string, plan object) object {
 	var summary object
 	if readJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
 		names["verification.json"] = true
-		for _, phase := range Phases(plan, "verify") {
+		for _, phase := range Phases(plan) {
 			name := "main"
 			if phase[0] != "" {
 				name = "probe"
@@ -374,7 +381,7 @@ func (v *Validation) ReplayEvidence(replay string, plan object) object {
 			names["peer-"+name+"-lifecycle.json"] = true
 		}
 	}
-	for _, phase := range Phases(plan, "replay") {
+	for _, phase := range Phases(plan) {
 		names[phase[0]+"replay-peer.json"] = true
 	}
 	if plan["provider"] == "claude" {
@@ -398,7 +405,7 @@ func (v *Validation) Required(source string, plan object) object {
 			}
 		}
 	}
-	for _, phase := range Phases(plan, "replay") {
+	for _, phase := range Phases(plan) {
 		for _, name := range []string{"raw.jsonl", "manifest.json", "transport.json", "stderr.raw"} {
 			names[phase[1]+"raw/"+name] = true
 		}

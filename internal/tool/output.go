@@ -32,13 +32,13 @@ func CreateOutput(path, mode string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return absolute, os.Mkdir(absolute, 0700)
+		return absolute, os.Mkdir(absolute, 0o700)
 	}
 	base, err := OutputBase(mode)
 	if err != nil {
 		return "", err
 	}
-	if err = os.MkdirAll(base, 0700); err != nil {
+	if err := os.MkdirAll(base, 0o700); err != nil {
 		return "", fmt.Errorf("create persistent attempt directory: %w", err)
 	}
 	return os.MkdirTemp(base, "attempt-")

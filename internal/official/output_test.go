@@ -51,7 +51,7 @@ func TestPersistentDataRootDefaults(t *testing.T) {
 			require.Equal(t, filepath.Join(base, "agent-sdk-testify", "attempts", "record"), filepath.Dir(path))
 			info, err := os.Stat(path)
 			require.NoError(t, err)
-			require.Equal(t, os.FileMode(0700), info.Mode().Perm())
+			require.Equal(t, os.FileMode(0o700), info.Mode().Perm())
 		})
 	}
 }

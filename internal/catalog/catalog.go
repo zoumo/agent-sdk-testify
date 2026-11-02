@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
 	"sort"
@@ -74,7 +75,7 @@ func Load(catalog fs.FS, selection Selection) (tool.Object, error) {
 	var core, story tool.Object
 	for _, path := range paths {
 		var s tool.Object
-		if err = read(path, &s); err != nil {
+		if err := read(path, &s); err != nil {
 			return nil, err
 		}
 		for _, c := range tool.Array(s["cases"]) {
@@ -88,7 +89,7 @@ func Load(catalog fs.FS, selection Selection) (tool.Object, error) {
 		return nil, fmt.Errorf("case %q is absent from shared materials", selection.Case)
 	}
 	var bindings tool.Object
-	if err = read("bindings/"+selection.Provider+".json", &bindings); err != nil {
+	if err := read("bindings/"+selection.Provider+".json", &bindings); err != nil {
 		return nil, err
 	}
 	rawBinding, ok := tool.Obj(bindings["cases"])[selection.Case]
@@ -98,12 +99,8 @@ func Load(catalog fs.FS, selection Selection) (tool.Object, error) {
 	binding := tool.Obj(rawBinding)
 	merge := func(a, b any) tool.Object {
 		out := tool.Object{}
-		for k, v := range tool.Obj(a) {
-			out[k] = v
-		}
-		for k, v := range tool.Obj(b) {
-			out[k] = v
-		}
+		maps.Copy(out, tool.Obj(a))
+		maps.Copy(out, tool.Obj(b))
 		return out
 	}
 	inputs := tool.Obj(core["inputs"])

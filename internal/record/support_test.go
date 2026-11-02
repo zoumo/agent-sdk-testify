@@ -30,5 +30,5 @@ func writePeerLauncher(root, phase string, peer command) (string, error) {
 		words = append(words, quote(arg))
 	}
 	path := filepath.Join(root, "peer-"+phase)
-	return path, os.WriteFile(path, []byte("#!/bin/sh\nexec "+strings.Join(words, " ")+"\n"), 0700)
+	return path, os.WriteFile(path, []byte("#!/bin/sh\nexec "+strings.Join(words, " ")+"\n"), 0o700)
 }

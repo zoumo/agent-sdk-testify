@@ -22,7 +22,7 @@ func VerifyMaterials(root string, requireComplete bool) error {
 		var service object
 		if err := readJSON(filepath.Join(root, "remote-service.json"), &service); err == nil {
 			if service["cleanupComplete"] != true || service["serverExitCode"] != float64(0) || service["forcedCleanup"] == true {
-				return fmt.Errorf("source remote service cleanup is incomplete")
+				return errors.New("source remote service cleanup is incomplete")
 			}
 		} else if !os.IsNotExist(err) {
 			return err
@@ -64,9 +64,9 @@ func VerifySourcePhase(root string, requireComplete bool) error {
 	}
 	if requireComplete {
 		var transport object
-		if err := readJSON(filepath.Join(root, "raw/transport.json"), &transport); err == nil {
+		if err := readJSON(filepath.Join(root, "raw", "transport.json"), &transport); err == nil {
 			if transport["captureStatus"] != "complete" || transport["cleanupComplete"] != true {
-				return fmt.Errorf("source recording capture or cleanup is incomplete")
+				return errors.New("source recording capture or cleanup is incomplete")
 			}
 		} else if !os.IsNotExist(err) {
 			return err
@@ -129,7 +129,7 @@ func WriteSourceManifest(root string, outcome result) error {
 		if _, e := os.Stat(filepath.Join(root, dir)); os.IsNotExist(e) {
 			continue
 		}
-		if err = filepath.WalkDir(filepath.Join(root, dir), func(p string, d os.DirEntry, e error) error {
+		if err := filepath.WalkDir(filepath.Join(root, dir), func(p string, d os.DirEntry, e error) error {
 			if e != nil {
 				return e
 			}
@@ -149,17 +149,17 @@ func WriteSourceManifest(root string, outcome result) error {
 			return err
 		}
 	}
-	if _, e := os.Stat(filepath.Join(root, "remote-probe/raw")); e == nil {
-		entries, e := os.ReadDir(filepath.Join(root, "remote-probe/raw"))
+	if _, e := os.Stat(filepath.Join(root, "remote-probe", "raw")); e == nil {
+		entries, e := os.ReadDir(filepath.Join(root, "remote-probe", "raw"))
 		if e != nil {
 			return e
 		}
 		for _, entry := range entries {
 			if entry.Type().IsRegular() {
-				name := filepath.Join("remote-probe/raw", entry.Name())
-				digest, e := hash(filepath.Join(root, name))
-				if e != nil {
-					return e
+				name := filepath.Join("remote-probe", "raw", entry.Name())
+				digest, hashErr := hash(filepath.Join(root, name))
+				if hashErr != nil {
+					return hashErr
 				}
 				remote[name] = digest
 			}
@@ -175,7 +175,7 @@ func WriteSourceManifest(root string, outcome result) error {
 		return err
 	}
 	var transport object
-	if err = readJSON(filepath.Join(root, "raw/transport.json"), &transport); err != nil {
+	if err := readJSON(filepath.Join(root, "raw", "transport.json"), &transport); err != nil {
 		return err
 	}
 	scan, scanErr := ScanCaptureCredentials(root)

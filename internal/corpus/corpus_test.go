@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 )
 
@@ -46,27 +47,31 @@ func (s *corpusSuite) SetupTest() {
 
 func (s *corpusSuite) write(root, name string, value any) {
 	s.T().Helper()
-	s.Require().NoError(os.MkdirAll(filepath.Dir(filepath.Join(root, name)), 0700))
+	s.Require().NoError(os.MkdirAll(filepath.Dir(filepath.Join(root, name)), 0o700))
 	s.Require().NoError(writeJSON(filepath.Join(root, name), value))
 }
+
 func (s *corpusSuite) read(root, name string) object {
 	s.T().Helper()
 	v, err := Read(filepath.Join(root, name))
 	s.Require().NoError(err)
 	return v
 }
+
 func (s *corpusSuite) inventory(root string) object {
 	s.T().Helper()
 	v, err := Inventory(root, false)
 	s.Require().NoError(err)
 	return v
 }
+
 func (s *corpusSuite) hash(root, name string) string {
 	s.T().Helper()
 	v, err := Digest(filepath.Join(root, name))
 	s.Require().NoError(err)
 	return v
 }
+
 func (s *corpusSuite) bindReplay() {
 	summary := s.read(s.replay, "summary.json")
 	files := object{}
@@ -76,53 +81,77 @@ func (s *corpusSuite) bindReplay() {
 	summary["source"] = files
 	s.write(s.replay, "summary.json", summary)
 }
+
 func (s *corpusSuite) evidence() object {
-	plan := object{"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001",
+	plan := object{
+		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001",
 		"driverProfile": "continuation", "project": "/original/project", "recordingIsolation": "personal-skills-v1",
-		"scenario": object{"files": object{"numbers.txt": "7\n11\n"}}}
+		"scenario": object{"files": object{"numbers.txt": "7\n11\n"}},
+	}
 	s.write(s.source, "plan.json", plan)
-	s.write(s.source, "raw/raw.jsonl", object{"ordinal": 1, "direction": "c2s", "channel": "protocol",
-		"epoch": 1, "elapsedMs": 0, "wire": object{"id": 1, "method": "ping"}})
-	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw/raw.jsonl"), []byte("{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"protocol\",\"epoch\":1,\"elapsedMs\":0,\"wire\":{\"id\":1,\"method\":\"ping\"}}\n"), 0600))
-	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw/stderr.raw"), nil, 0600))
-	s.write(s.source, "raw/transport.json", object{"captureStatus": "complete", "cleanupComplete": true,
-		"nativeLaunched": true, "reaped": true, "clientEOF": true, "frames": 1})
-	s.write(s.source, "raw/manifest.json", object{"captureStatus": "complete", "files": s.inventory(filepath.Join(s.source, "raw")),
+	s.write(s.source, "raw/raw.jsonl", object{
+		"ordinal": 1, "direction": "c2s", "channel": "protocol",
+		"epoch": 1, "elapsedMs": 0, "wire": object{"id": 1, "method": "ping"},
+	})
+	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw", "raw.jsonl"), []byte("{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"protocol\",\"epoch\":1,\"elapsedMs\":0,\"wire\":{\"id\":1,\"method\":\"ping\"}}\n"), 0o600))
+	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw", "stderr.raw"), nil, 0o600))
+	s.write(s.source, "raw/transport.json", object{
+		"captureStatus": "complete", "cleanupComplete": true,
+		"nativeLaunched": true, "reaped": true, "clientEOF": true, "frames": 1,
+	})
+	s.write(s.source, "raw/manifest.json", object{
+		"captureStatus": "complete", "files": s.inventory(filepath.Join(s.source, "raw")),
 		"native":          object{"executable": "/observed/native", "sha256": strings.Repeat("a", 64), "cwd": "/original/project"},
-		"recordingFormat": object{"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl"}})
+		"recordingFormat": object{"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl"},
+	})
 	sdk := object{"package": "openai-codex", "version": "synthetic-test-only"}
-	business := object{"status": "passed", "branchStatus": "passed", "captureStatus": "complete",
-		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "officialSDK": sdk}
+	business := object{
+		"status": "passed", "branchStatus": "passed", "captureStatus": "complete",
+		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "officialSDK": sdk,
+	}
 	s.write(s.source, "report.json", business)
 	s.write(s.replay, "replay-report.json", business)
 	s.write(s.source, "result.json", object{"status": "passed"})
 	s.write(s.replay, "result.json", object{"status": "passed"})
-	s.write(s.source, "manifest.json", object{"provenance": "capture", "status": "passed", "captureStatus": "complete",
-		"credentialScan": "pass", "planSHA256": s.hash(s.source, "plan.json"), "files": s.inventory(filepath.Join(s.source, "raw"))})
+	s.write(s.source, "manifest.json", object{
+		"provenance": "capture", "status": "passed", "captureStatus": "complete",
+		"credentialScan": "pass", "planSHA256": s.hash(s.source, "plan.json"), "files": s.inventory(filepath.Join(s.source, "raw")),
+	})
 	hash := s.hash(s.source, "raw/raw.jsonl")
-	s.write(s.source, "summary.json", object{"provider": "codex", "case": "SDK-CASE-001", "mode": "record",
-		"result": object{"status": "passed"}, "recordingSHA256": hash})
-	s.write(s.replay, "summary.json", object{"provider": "codex", "case": "SDK-CASE-001", "mode": "replay",
-		"result": object{"status": "passed"}, "recordingSHA256": hash})
+	s.write(s.source, "summary.json", object{
+		"provider": "codex", "case": "SDK-CASE-001", "mode": "record",
+		"result": object{"status": "passed"}, "recordingSHA256": hash,
+	})
+	s.write(s.replay, "summary.json", object{
+		"provider": "codex", "case": "SDK-CASE-001", "mode": "replay",
+		"result": object{"status": "passed"}, "recordingSHA256": hash,
+	})
 	s.bindReplay()
-	s.write(s.replay, "replay-peer.json", object{"provider": "codex", "recordingSHA256": hash,
-		"fullConsumption": true, "clientEOF": true, "nativeLaunched": false, "frames": 1})
-	return object{"version": float64(1), "origin": "real-agent", "reviewer": "test reviewer",
+	s.write(s.replay, "replay-peer.json", object{
+		"provider": "codex", "recordingSHA256": hash,
+		"fullConsumption": true, "clientEOF": true, "nativeLaunched": false, "frames": 1,
+	})
+	return object{
+		"version": float64(1), "origin": "real-agent", "reviewer": "test reviewer",
 		"reviewedAt": "2026-10-31T00:00:00Z", "sourceReviewed": true, "contentReviewed": true, "credentialsReviewed": true,
 		"officialSDK": sdk, "captureFiles": s.inventory(s.source), "replayFiles": s.inventory(s.replay),
-		"publishFiles": Keys(s.inventory(s.source))}
+		"publishFiles": Keys(s.inventory(s.source)),
+	}
 }
+
 func (s *corpusSuite) qualify() object {
 	r, err := s.c.Qualification(s.source, s.replay, false)
 	s.Require().NoError(err)
 	return r
 }
+
 func (s *corpusSuite) adopt(review object) string {
 	s.write(s.root, "review.json", review)
 	target, err := s.c.Adopt(s.source, s.replay, filepath.Join(s.root, "review.json"))
 	s.Require().NoError(err)
 	return target
 }
+
 func (s *corpusSuite) entry() object {
 	index, err := s.c.LoadIndex()
 	s.Require().NoError(err)
@@ -134,6 +163,7 @@ func (s *corpusSuite) entry() object {
 	s.FailNow("no admitted entry")
 	return nil
 }
+
 func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 	index, err := s.c.LoadIndex()
 	s.Require().NoError(err)
@@ -168,18 +198,19 @@ func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 			c := s.c
 			c.Index = p
 			_, err := c.LoadIndex()
-			s.Error(err)
+			s.Require().Error(err)
 		})
 	}
 	s.Len(array(index["cases"]), 72)
 }
+
 func (s *corpusSuite) TestInventoryRetainsPrivateOriginalsAndRejectsSymlinks() {
 	s.write(s.source, "private.json", object{"retain": true})
 	s.write(s.source, "plan.json", object{})
 	s.Len(s.inventory(s.source), 2)
 	s.Require().NoError(os.Symlink(filepath.Join(s.source, "plan.json"), filepath.Join(s.source, "linked")))
 	_, err := Inventory(s.source, false)
-	s.Error(err)
+	s.Require().Error(err)
 }
 
 func (s *corpusSuite) TestRequirementsAreIndependentOfRoutes() {
@@ -249,9 +280,9 @@ func (s *corpusSuite) TestOptionalAdmissionAndIntegrity() {
 	s.Equal("synthetic known business gap", entry["verificationReason"])
 	target, err := s.c.VerifyAdopted(entry)
 	s.Require().NoError(err)
-	s.Require().NoError(os.WriteFile(filepath.Join(target, "raw/raw.jsonl"), []byte("tampered\n"), 0600))
+	s.Require().NoError(os.WriteFile(filepath.Join(target, "raw", "raw.jsonl"), []byte("tampered\n"), 0o600))
 	_, err = s.c.VerifyAdopted(entry)
-	s.Error(err, "optional does not waive source integrity")
+	s.Require().Error(err, "optional does not waive source integrity")
 }
 
 func (s *corpusSuite) TestReviewNeverApprovesCandidate() {
@@ -261,20 +292,22 @@ func (s *corpusSuite) TestReviewNeverApprovesCandidate() {
 	s.Equal("unreviewed", review["origin"])
 	s.Equal(false, review["sourceReviewed"])
 	_, err = s.c.ValidateAdmission(s.source, s.replay, review)
-	s.Error(err)
+	s.Require().Error(err)
 }
+
 func (s *corpusSuite) TestOptionalHistoryPreservesFilesAndRejectsLinks() {
 	s.evidence()
 	name := "config/projects/project/session.jsonl"
 	s.write(s.source, name, object{"cwd": "/original/project"})
-	s.Require().NoError(os.MkdirAll(filepath.Join(s.source, "config/sessions/empty"), 0700))
+	s.Require().NoError(os.MkdirAll(filepath.Join(s.source, "config", "sessions", "empty"), 0o700))
 	v := &Validation{}
 	s.Equal(true, v.Required(s.source, s.read(s.source, "plan.json"))[name])
 	s.Require().NoError(v.Err)
-	s.Require().NoError(os.Symlink(filepath.Join(s.source, name), filepath.Join(s.source, "config/sessions/linked")))
+	s.Require().NoError(os.Symlink(filepath.Join(s.source, name), filepath.Join(s.source, "config", "sessions", "linked")))
 	v.Required(s.source, s.read(s.source, "plan.json"))
-	s.Error(v.Err)
+	s.Require().Error(v.Err)
 }
+
 func (s *corpusSuite) TestPublishPathsCannotEscapeOrSelectCredentials() {
 	for _, name := range []string{"../secret", "/absolute", "config/auth.json", "native.env.private.json", "config/settings.json", "stdout.log", "raw/../plan.json", "raw\\auth.json"} {
 		s.False(corpusPublishable(name), name)
@@ -283,17 +316,20 @@ func (s *corpusSuite) TestPublishPathsCannotEscapeOrSelectCredentials() {
 		s.True(corpusPublishable(name), name)
 	}
 }
+
 func (s *corpusSuite) TestAdmissionRequiresBusinessAndFrozenReview() {
 	review := s.evidence()
 	_, err := s.c.ValidateAdmission(s.source, s.replay, review)
 	s.Require().NoError(err)
-	for field, value := range (object{"origin": "synthetic", "sourceReviewed": false, "credentialsReviewed": false,
-		"captureFiles": object{}, "officialSDK": "", "reviewer": ""}) {
+	for field, value := range (object{
+		"origin": "synthetic", "sourceReviewed": false, "credentialsReviewed": false,
+		"captureFiles": object{}, "officialSDK": "", "reviewer": "",
+	}) {
 		s.Run(field, func() {
 			old := review[field]
 			review[field] = value
 			_, err := s.c.ValidateAdmission(s.source, s.replay, review)
-			s.Error(err)
+			s.Require().Error(err)
 			review[field] = old
 		})
 	}
@@ -301,9 +337,13 @@ func (s *corpusSuite) TestAdmissionRequiresBusinessAndFrozenReview() {
 		name, field string
 		value       any
 	}{
-		{"summary.json", "mode", "simulate"}, {"summary.json", "source", object{}}, {"result.json", "status", "untriggered"},
-		{"replay-peer.json", "fullConsumption", false}, {"replay-peer.json", "clientEOF", false},
-		{"replay-peer.json", "nativeLaunched", true}, {"replay-peer.json", "recordingSHA256", strings.Repeat("f", 64)},
+		{"summary.json", "mode", "simulate"},
+		{"summary.json", "source", object{}},
+		{"result.json", "status", "untriggered"},
+		{"replay-peer.json", "fullConsumption", false},
+		{"replay-peer.json", "clientEOF", false},
+		{"replay-peer.json", "nativeLaunched", true},
+		{"replay-peer.json", "recordingSHA256", strings.Repeat("f", 64)},
 	} {
 		s.Run(tc.name+"/"+tc.field, func() {
 			path := filepath.Join(s.replay, tc.name)
@@ -314,14 +354,15 @@ func (s *corpusSuite) TestAdmissionRequiresBusinessAndFrozenReview() {
 			s.write(s.replay, tc.name, m)
 			review["replayFiles"] = s.inventory(s.replay)
 			_, err = s.c.ValidateAdmission(s.source, s.replay, review)
-			s.Error(err)
-			s.Require().NoError(os.WriteFile(path, before, 0600))
+			s.Require().Error(err)
+			s.Require().NoError(os.WriteFile(path, before, 0o600))
 		})
 	}
-	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw/raw.jsonl"), []byte("changed"), 0600))
+	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw", "raw.jsonl"), []byte("changed"), 0o600))
 	_, err = s.c.ValidateAdmission(s.source, s.replay, review)
-	s.Error(err)
+	s.Require().Error(err)
 }
+
 func (s *corpusSuite) TestAdoptArchivesCompleteOriginalAndSurvivesSourceRemoval() {
 	review := s.evidence()
 	s.write(s.source, "diagnostics.private.json", object{"retain": true})
@@ -337,10 +378,11 @@ func (s *corpusSuite) TestAdoptArchivesCompleteOriginalAndSurvivesSourceRemoval(
 	s.Require().NoError(err)
 	s.Equal(target, actual)
 	s.Equal("/original/project", s.read(target, "plan.json")["project"])
-	s.Require().NoError(os.WriteFile(filepath.Join(target, "raw/raw.jsonl"), []byte("changed"), 0600))
+	s.Require().NoError(os.WriteFile(filepath.Join(target, "raw", "raw.jsonl"), []byte("changed"), 0o600))
 	_, err = s.c.VerifyAdopted(s.entry())
-	s.Error(err)
+	s.Require().Error(err)
 }
+
 func (s *corpusSuite) TestRejectedAdoptionStillArchivesOriginals() {
 	review := s.evidence()
 	review["origin"] = "synthetic"
@@ -355,6 +397,7 @@ func (s *corpusSuite) TestRejectedAdoptionStillArchivesOriginals() {
 	s.Equal("rejected", s.read(filepath.Dir(saved[0]), "adoption-result.json")["status"])
 	s.Equal(s.inventory(s.source), s.inventory(filepath.Join(filepath.Dir(saved[0]), "capture")))
 }
+
 func (s *corpusSuite) TestQualificationDoesNotFabricateContentReview() {
 	s.evidence()
 	s.write(s.source, "config/logs_2.sqlite-wal", object{"private": true})
@@ -366,8 +409,9 @@ func (s *corpusSuite) TestQualificationDoesNotFabricateContentReview() {
 	s.NotContains(stringsOf(review["publishFiles"]), "config/logs_2.sqlite-wal")
 	s.write(s.replay, "result.json", object{"status": "failed"})
 	_, err := s.c.Qualification(s.source, s.replay, false)
-	s.Error(err)
+	s.Require().Error(err)
 }
+
 func (s *corpusSuite) TestAutomaticQualificationCannotExpandPublication() {
 	s.evidence()
 	s.write(s.source, "raw/extra-diagnostic.json", object{"private": true})
@@ -376,6 +420,7 @@ func (s *corpusSuite) TestAutomaticQualificationCannotExpandPublication() {
 	_, err := s.c.ValidateAdmission(s.source, s.replay, review)
 	s.ErrorContains(err, "only required regression materials")
 }
+
 func (s *corpusSuite) TestAutomaticQualificationRejectsUnisolatedCapture() {
 	s.evidence()
 	plan := s.read(s.source, "plan.json")
@@ -384,6 +429,7 @@ func (s *corpusSuite) TestAutomaticQualificationRejectsUnisolatedCapture() {
 	_, err := s.c.Qualification(s.source, s.replay, false)
 	s.ErrorContains(err, "recording-time isolated capture")
 }
+
 func (s *corpusSuite) TestQualificationCLIAndInvalidDestinationPreflight() {
 	s.evidence()
 	review, err := s.c.Qualification(s.source, s.replay, false)
@@ -393,7 +439,7 @@ func (s *corpusSuite) TestQualificationCLIAndInvalidDestinationPreflight() {
 	c.Archive = filepath.Join(filepath.Dir(c.Index), "private")
 	output := filepath.Join(s.root, "must-not-launch")
 	_, err = c.archiveRoot()
-	s.ErrorContains(err, "outside regression corpus")
+	s.Require().ErrorContains(err, "outside regression corpus")
 	s.NoDirExists(output)
 }
 
@@ -418,19 +464,20 @@ func (s *corpusSuite) TestReplacementArchivesPreviousAndRetainsNewOnFailure() {
 	review["origin"] = "synthetic"
 	s.write(s.root, "bad.json", review)
 	_, err = s.c.Adopt(s.source, s.replay, filepath.Join(s.root, "bad.json"))
-	s.Error(err)
+	s.Require().Error(err)
 	s.Equal(before, s.hash(filepath.Dir(s.c.Index), "index.json"))
 	s.DirExists(second)
 }
+
 func (s *corpusSuite) TestIndexLockFailureRetainsExistingSample() {
 	s.evidence()
 	target := s.adopt(s.qualify())
 	before := s.hash(filepath.Dir(s.c.Index), "index.json")
 	lock := strings.TrimSuffix(s.c.Index, ".json") + ".lock"
-	s.Require().NoError(os.WriteFile(lock, nil, 0600))
+	s.Require().NoError(os.WriteFile(lock, nil, 0o600))
 	s.write(s.root, "review.json", s.qualify())
 	_, err := s.c.Adopt(s.source, s.replay, filepath.Join(s.root, "review.json"))
-	s.Error(err)
+	s.Require().Error(err)
 	s.Equal(before, s.hash(filepath.Dir(s.c.Index), "index.json"))
 	children, err := os.ReadDir(filepath.Dir(target))
 	s.Require().NoError(err)
@@ -467,8 +514,10 @@ func (s *corpusSuite) TestSourceFailuresCannotBeReviewedIntoSuccess() {
 		name, field string
 		value       any
 	}{
-		{"manifest.json", "provenance", "synthetic"}, {"result.json", "status", "untriggered"},
-		{"raw/transport.json", "cleanupComplete", false}, {"report.json", "branchStatus", "untriggered"},
+		{"manifest.json", "provenance", "synthetic"},
+		{"result.json", "status", "untriggered"},
+		{"raw/transport.json", "cleanupComplete", false},
+		{"report.json", "branchStatus", "untriggered"},
 		{"report.json", "gaps", []string{"missing behavior"}},
 	} {
 		s.Run(tc.name+"/"+tc.field, func() {
@@ -478,10 +527,11 @@ func (s *corpusSuite) TestSourceFailuresCannotBeReviewedIntoSuccess() {
 			s.write(s.source, tc.name, m)
 			review["captureFiles"] = s.inventory(s.source)
 			_, err := s.c.ValidateAdmission(s.source, s.replay, review)
-			s.Error(err)
+			s.Require().Error(err)
 		})
 	}
 }
+
 func (s *corpusSuite) TestClaudeMaterializationPinsSourceAndDerivedHashes() {
 	s.evidence()
 	plan := s.read(s.source, "plan.json")
@@ -492,11 +542,14 @@ func (s *corpusSuite) TestClaudeMaterializationPinsSourceAndDerivedHashes() {
 	execution := "/gone-replay/project"
 	target := "config/projects/" + claudeProjectKey(execution) + "/session.jsonl"
 	s.write(s.replay, target, object{"cwd": execution, "id": "unchanged"})
-	s.write(s.replay, "materialization.json", object{"version": 1, "originalProject": "/original/project",
+	s.write(s.replay, "materialization.json", object{
+		"version": 1, "originalProject": "/original/project",
 		"originalHistoryProject": nil, "executionProject": execution, "transformations": []object{{
 			"kind": "claude-project-cwd-copy", "source": name, "derived": target,
 			"sourceSHA256": s.hash(s.source, name), "derivedSHA256": s.hash(s.replay, target),
-			"sourceCWD": "/original/project", "executionCWD": execution}}})
+			"sourceCWD": "/original/project", "executionCWD": execution,
+		}},
+	})
 	summary := s.read(s.replay, "summary.json")
 	summary["provider"], summary["output"] = "claude", "/gone-replay"
 	summary["materializationSHA256"] = s.hash(s.replay, "materialization.json")
@@ -510,13 +563,13 @@ func (s *corpusSuite) TestClaudeMaterializationPinsSourceAndDerivedHashes() {
 	s.Require().NoError(v.Err)
 	s.write(s.replay, target, object{"cwd": execution, "id": "changed"})
 	v.Replay(s.source, s.replay, plan, "replay")
-	s.Error(v.Err)
+	s.Require().Error(v.Err)
 }
 
 func TestCorpusStrictJSONAndSourceProvenance(t *testing.T) {
 	for _, data := range []string{`{"a":1,"a":2}`, `null`, `[]`, `{"a":1} {}`} {
 		p := filepath.Join(t.TempDir(), "invalid.json")
-		require.NoError(t, os.WriteFile(p, []byte(data), 0600))
+		require.NoError(t, os.WriteFile(p, []byte(data), 0o600))
 		_, err := Read(p)
 		require.Error(t, err, data)
 	}

@@ -22,11 +22,11 @@ func Run(ctx context.Context, o Options, streams IO) error {
 		return &Error{Kind: Configuration, Err: err}
 	}
 	start := time.Now()
-	cmd, identity, err := prepare(o)
+	cmd, identity, err := prepare(ctx, o)
 	if err != nil {
 		return &Error{Kind: Configuration, Err: fmt.Errorf("record preflight: %w", err)}
 	}
-	if err = os.Mkdir(o.Output, 0700); err != nil {
+	if err := os.Mkdir(o.Output, 0o700); err != nil {
 		return &Error{Kind: Configuration, Err: fmt.Errorf("reserve output: %w", err)}
 	}
 	journal, err := openJournal(o, start)
@@ -107,7 +107,7 @@ func (j *journal) run(ctx context.Context, cmd *exec.Cmd, streams IO, report *re
 		return ctx.Err()
 	}
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = childIn, childOut, childErr
-	if err = cmd.Start(); err != nil {
+	if err := cmd.Start(); err != nil {
 		report.Reason = "launch-error"
 		return fmt.Errorf("launch native: %w", err)
 	}
@@ -234,6 +234,7 @@ func (j *journal) run(ctx context.Context, cmd *exec.Cmd, streams IO, report *re
 	report.CleanupComplete = cleanupOK && report.Reaped
 	return runErr
 }
+
 func contextReason(ctx context.Context) string {
 	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		return "deadline"

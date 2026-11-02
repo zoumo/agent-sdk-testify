@@ -9,12 +9,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/official"
 )
 
 func Execute(ctx context.Context, args []string) error {
 	o := official.Options{Mode: "record"}
+	var timeout time.Duration
 	f := flag.NewFlagSet("record", flag.ContinueOnError)
 	f.StringVar(&o.Provider, "provider", "", "native provider: codex or claude")
 	f.StringVar(&o.Case, "case", "", "case ID from this tool's catalog")
@@ -24,7 +26,7 @@ func Execute(ctx context.Context, args []string) error {
 	f.StringVar(&o.Model, "model", "", "native model")
 	f.StringVar(&o.InitialModel, "initial-model", "", "initial model for a change to --model")
 	f.StringVar(&o.HistorySeed, "history-seed", "", "completed child-history capture for existing-child cases")
-	f.DurationVar(&o.Timeout, "timeout", 0, "whole-task timeout; zero disables it")
+	f.DurationVar(&timeout, "timeout", 0, "whole-task timeout; zero disables it")
 	if err := f.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
@@ -34,7 +36,7 @@ func Execute(ctx context.Context, args []string) error {
 	if f.NArg() != 0 || o.Case == "" || o.CLI == "" {
 		return errors.New("record requires --provider, --case and --cli")
 	}
-	if o.Timeout < 0 {
+	if timeout < 0 {
 		return errors.New("timeout must be nonnegative")
 	}
 	var err error
@@ -42,14 +44,17 @@ func Execute(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	if o.Timeout > 0 {
+	if timeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
+		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
 	summary, err := official.Run(ctx, o)
 	if summary != nil {
-		b, _ := json.Marshal(summary)
+		b, encodeErr := json.Marshal(summary)
+		if encodeErr != nil {
+			return errors.Join(err, fmt.Errorf("encode record summary: %w", encodeErr))
+		}
 		fmt.Fprintln(os.Stdout, string(b))
 	}
 	return err

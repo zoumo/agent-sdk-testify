@@ -20,7 +20,7 @@ func (a *codexAdapter) client(expected, actual rawjson.Value) (bool, error) {
 			return false, err
 		}
 		if _, request := expected.Member("method"); request {
-			if err = a.bind(key, live, actualID); err != nil {
+			if err := a.bind(key, live, actualID); err != nil {
 				return false, err
 			}
 			actual, err = actual.Replace([]string{"id"}, recordedID)
@@ -28,7 +28,7 @@ func (a *codexAdapter) client(expected, actual rawjson.Value) (bool, error) {
 				return false, err
 			}
 		} else {
-			if err = a.answer(key); err != nil {
+			if err := a.answer(key); err != nil {
 				return false, err
 			}
 			reverseAnswer = true
@@ -45,7 +45,7 @@ func (a *codexAdapter) server(expected rawjson.Value) (rawjson.Value, error) {
 			return rawjson.Value{}, err
 		}
 		if _, request := expected.Member("method"); request {
-			if err = a.reverse(key); err != nil {
+			if err := a.reverse(key); err != nil {
 				return rawjson.Value{}, err
 			}
 			thread := member(member(expected, "params"), "threadId")

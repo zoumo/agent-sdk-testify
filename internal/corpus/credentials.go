@@ -47,10 +47,10 @@ func ScanCaptureCredentials(root string) (string, error) {
 			return "unavailable", err
 		}
 	}
-	data, err := os.ReadFile(filepath.Join(root, "config/config.toml"))
+	data, err := os.ReadFile(filepath.Join(root, "config", "config.toml"))
 	if err == nil {
 		var config object
-		if err = toml.Unmarshal(data, &config); err != nil {
+		if err := toml.Unmarshal(data, &config); err != nil {
 			return "unavailable", err
 		}
 		provider := obj(obj(config["model_providers"])[str(config["model_provider"])])

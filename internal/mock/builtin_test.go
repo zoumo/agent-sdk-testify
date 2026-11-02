@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 )
@@ -20,7 +21,7 @@ func TestBuiltinCatalogOutsideCheckout(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	var listing object
 	require.NoError(t, json.Unmarshal(data, &listing))
-	assert.Equal(t, float64(1), listing["schemaVersion"])
+	assert.InDelta(t, float64(1), listing["schemaVersion"], 0)
 	rows := array(listing["cases"])
 	require.Len(t, rows, 72)
 	available := 0
@@ -56,17 +57,17 @@ func builtinTranscript(t *testing.T, provider, id string) (string, string) {
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
 	var index object
-	require.NoError(t, readJSON(filepath.Join(repository, "data/index.json"), &index))
+	require.NoError(t, readJSON(filepath.Join(repository, "data", "index.json"), &index))
 	for _, value := range array(index["cases"]) {
 		row := obj(value)
 		if row["provider"] != provider || row["caseId"] != id {
 			continue
 		}
 		root := filepath.Join(repository, "data", str(row["materials"]))
-		data, err := os.ReadFile(filepath.Join(root, "raw/raw.jsonl"))
+		data, err := os.ReadFile(filepath.Join(root, "raw", "raw.jsonl"))
 		require.NoError(t, err)
 		var input strings.Builder
-		for _, line := range bytes.Split(bytes.TrimSpace(data), []byte("\n")) {
+		for line := range bytes.SplitSeq(bytes.TrimSpace(data), []byte("\n")) {
 			var frame map[string]json.RawMessage
 			require.NoError(t, json.Unmarshal(line, &frame))
 			if string(frame["direction"]) == `"c2s"` {
@@ -145,7 +146,7 @@ func TestBuiltinPreparedLifecycle(t *testing.T) {
 	cmd.Stdin = strings.NewReader(input)
 	data, err = cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		data, err = mockCommand(t, "--finish", filepath.Join(output, "run.json")).CombinedOutput()
 		require.NoError(t, err, "%s", data)
 		var finish object
@@ -187,12 +188,12 @@ func TestBuiltinPreparedDriftAndMissingReceiptsPersist(t *testing.T) {
 				if damage == "official-evidence" {
 					name = "official-replay/summary.json"
 				}
-				require.NoError(t, os.WriteFile(filepath.Join(str(run["recording"]), name), []byte("drift"), 0600))
+				require.NoError(t, os.WriteFile(filepath.Join(str(run["recording"]), name), []byte("drift"), 0o600))
 				data, err = mockCommand(t, "--run", filepath.Join(output, "run.json")).CombinedOutput()
 				require.Error(t, err)
 				assert.Contains(t, string(data), "hash mismatch")
 			}
-			for i := 0; i < 2; i++ {
+			for range 2 {
 				data, err = mockCommand(t, "--finish", filepath.Join(output, "run.json")).Output()
 				require.Error(t, err)
 				var finish object
@@ -210,19 +211,19 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
 	generator := filepath.Join(t.TempDir(), "generator")
-	cmd := exec.Command("go", "build", "-tags", "builtin_generate", "-o", generator, ".")
+	cmd := exec.CommandContext(t.Context(), "go", "build", "-tags", "builtin_generate", "-o", generator, ".")
 	cmd.Dir = repository
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	// Check recomputes the entire closure rather than trusting generated hashes.
-	cmd = exec.Command(generator, "--check")
+	cmd = exec.CommandContext(t.Context(), generator, "--check")
 	cmd.Dir = repository
 	data, err = cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	root := t.TempDir()
 	require.NoError(t, copyTree(filepath.Join(repository, "data"), filepath.Join(root, "data")))
 	invoke := func() ([]byte, error) {
-		cmd := exec.Command(generator, "--root", root, "--check")
+		cmd := exec.CommandContext(t.Context(), generator, "--root", root, "--check")
 		cmd.Dir = repository
 		return cmd.CombinedOutput()
 	}
@@ -230,21 +231,21 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	_, source := builtinTranscript(t, "codex", "SDK-CASE-001")
 	relativeSource, err := filepath.Rel(repository, source)
 	require.NoError(t, err)
-	raw := filepath.Join(root, relativeSource, "raw/raw.jsonl")
+	raw := filepath.Join(root, relativeSource, "raw", "raw.jsonl")
 	original, err := os.ReadFile(raw)
 	require.NoError(t, err)
 	require.NoError(t, os.Remove(raw))
 	data, err = invoke()
 	require.Error(t, err)
 	assert.Contains(t, string(data), "inventory drift")
-	require.NoError(t, os.WriteFile(raw, append(original, 10), 0600))
+	require.NoError(t, os.WriteFile(raw, append(original, 10), 0o600))
 	data, err = invoke()
 	require.Error(t, err)
 	assert.Contains(t, string(data), "inventory drift")
-	require.NoError(t, os.WriteFile(raw, original, 0600))
+	require.NoError(t, os.WriteFile(raw, original, 0o600))
 	// Changes in the authoritative contract invalidate the generated snapshot.
-	contract := filepath.Join(root, "data/scenarios/SDK-US-001.json")
-	f, err := os.OpenFile(contract, os.O_APPEND|os.O_WRONLY, 0600)
+	contract := filepath.Join(root, "data", "scenarios", "SDK-US-001.json")
+	f, err := os.OpenFile(contract, os.O_APPEND|os.O_WRONLY, 0o600)
 	require.NoError(t, err)
 	_, err = f.WriteString("\n")
 	require.NoError(t, err)
@@ -252,7 +253,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	data, err = invoke()
 	require.Error(t, err)
 	assert.Contains(t, string(data), "builtin drift")
-	indexPath := filepath.Join(root, "data/index.json")
+	indexPath := filepath.Join(root, "data", "index.json")
 	var empty object
 	require.NoError(t, readJSON(indexPath, &empty))
 	for _, value := range array(empty["cases"]) {
@@ -294,7 +295,7 @@ func TestBuiltinDescribeAssertionInputsPreserveNativeBytes(t *testing.T) {
 			c := inputs.Connections[0]
 			assert.Equal(t, "main", c.ID)
 			_, source := builtinTranscript(t, provider, "SDK-CASE-018")
-			raw, err := os.ReadFile(filepath.Join(source, "raw/raw.jsonl"))
+			raw, err := os.ReadFile(filepath.Join(source, "raw", "raw.jsonl"))
 			require.NoError(t, err)
 			assert.Equal(t, raw, c.Original)
 			assert.Equal(t, digestBytes(raw), c.SHA256)
@@ -371,12 +372,12 @@ func TestExternalSyntheticDescribeRetainsUnqualifiedNativeInputs(t *testing.T) {
 	root := mockCapture(t)
 	// Independent synthetic values exercise number lexemes beyond float64 and HTML.
 	plan := []byte(`{"provider":"codex","caseId":"sdk-request","provenance":"synthetic","unknown":9007199254740993}`)
-	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0o600))
 	var manifest object
 	require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
 	manifest["planSHA256"] = digestBytes(plan)
 	report := []byte(`{"status":"passed","protected":{"unknown":9007199254740993,"decimal":1.00,"html":"<native>"}}`)
-	require.NoError(t, os.WriteFile(filepath.Join(root, "report.json"), report, 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "report.json"), report, 0o600))
 	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
 	data, err := mockCommand(t, "--describe", "--recording", root, "--json").CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -405,7 +406,7 @@ func TestExternalSyntheticDescribeRetainsUnqualifiedNativeInputs(t *testing.T) {
 	assert.Equal(t, digestBytes(report), scene.AssertionInputs.SourceReport.SHA256)
 	assert.Contains(t, string(scene.AssertionInputs.Connections[0].Frames[0]), "9007199254740993")
 	require.Len(t, scene.AssertionInputs.Connections, 1)
-	require.NoError(t, os.WriteFile(filepath.Join(root, "raw/raw.jsonl"), []byte("drift"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), []byte("drift"), 0o600))
 	data, err = mockCommand(t, "--describe", "--recording", root, "--json").CombinedOutput()
 	require.Error(t, err)
 	assert.Contains(t, string(data), "hash")

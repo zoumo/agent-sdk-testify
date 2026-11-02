@@ -57,7 +57,7 @@ func Read() (*Manifest, string, error) {
 		return nil, "", err
 	}
 	var m Manifest
-	if err = json.Unmarshal(raw, &m); err != nil {
+	if err := json.Unmarshal(raw, &m); err != nil {
 		return nil, "", err
 	}
 	if m.SchemaVersion != 1 || m.ToolVersion != protocolcmd.Version || len(m.Materials) == 0 {
@@ -148,11 +148,11 @@ func Extract(material *Material) (root string, err error) {
 			return root, fmt.Errorf("builtin material hash drift: %s", name)
 		}
 		path := filepath.Join(root, name)
-		if e = os.MkdirAll(filepath.Dir(path), 0700); e != nil {
-			return root, e
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			return root, err
 		}
-		if e = os.WriteFile(path, b, 0600); e != nil {
-			return root, e
+		if err := os.WriteFile(path, b, 0o600); err != nil {
+			return root, err
 		}
 		seen[name] = true
 	}
@@ -171,8 +171,14 @@ func CheckSelection(material *Material) error {
 		return err
 	}
 	// Runtime descriptors cannot substitute a different hash inventory.
-	a, _ := json.Marshal(material)
-	b, _ := json.Marshal(canonical)
+	a, err := json.Marshal(material)
+	if err != nil {
+		return fmt.Errorf("encode selected material: %w", err)
+	}
+	b, err := json.Marshal(canonical)
+	if err != nil {
+		return fmt.Errorf("encode canonical material: %w", err)
+	}
 	if !bytes.Equal(a, b) {
 		return errors.New("builtin selection drift")
 	}

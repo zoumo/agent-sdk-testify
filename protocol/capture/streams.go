@@ -45,12 +45,12 @@ func (j *journal) protocol(src, dst *os.File, direction recording.Direction, inp
 			if last == '\r' {
 				payloadSize--
 			}
-			if max := j.options.MaxFrameBytes; max > 0 && int64(payloadSize) > max {
-				keep := max - int64(len(pending))
+			if limit := j.options.MaxFrameBytes; limit > 0 && int64(payloadSize) > limit {
+				keep := limit - int64(len(pending))
 				if keep > 0 {
 					pending = append(pending, piece[:min(int64(len(piece)), keep)]...)
 				}
-				return false, fail("limit", fmt.Errorf("%s native frame payload exceeds %d bytes", direction, max))
+				return false, fail("limit", fmt.Errorf("%s native frame payload exceeds %d bytes", direction, limit))
 			}
 			pending = append(pending, piece...)
 			if !complete {
@@ -67,7 +67,7 @@ func (j *journal) protocol(src, dst *os.File, direction recording.Direction, inp
 			// Retain the complete observed frame even if forwarding subsequently fails.
 			line := pending
 			pending = nil
-			if e = writeAll(dst, line); e != nil {
+			if e := writeAll(dst, line); e != nil {
 				return false, fmt.Errorf("%s frame %d forwarding: %w", direction, ordinal, e)
 			}
 		}
@@ -88,6 +88,7 @@ func (j *journal) protocol(src, dst *os.File, direction recording.Direction, inp
 		}
 	}
 }
+
 func (j *journal) copyStderr(src *os.File) error {
 	buffer := make([]byte, 32*1024)
 	for {

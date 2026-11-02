@@ -48,14 +48,14 @@ func preparePeerRuns(o options, plan object, service *remoteService) (*peerRuns,
 		case "probe":
 			base = filepath.Join(root, "remote-probe")
 			source = filepath.Join(o.Materials, "remote-probe")
-			if err = os.MkdirAll(base, 0700); err != nil {
+			if err := os.MkdirAll(base, 0o700); err != nil {
 				return nil, err
 			}
 		}
-		run := peerRun{name: phase, recording: filepath.Join(base, "raw/raw.jsonl"), receipt: filepath.Join(base, "replay-peer.json")}
+		run := peerRun{name: phase, recording: filepath.Join(base, "raw", "raw.jsonl"), receipt: filepath.Join(base, "replay-peer.json")}
 		var args []string
 		if o.Mode == "record" {
-			run.receipt = filepath.Join(base, "raw/transport.json")
+			run.receipt = filepath.Join(base, "raw", "transport.json")
 			cwd := str(plan["project"])
 			if plan["driverProfile"] == "existing-children" {
 				cwd = str(plan["historyProject"])
@@ -68,19 +68,17 @@ func preparePeerRuns(o options, plan object, service *remoteService) (*peerRuns,
 		} else {
 			// The original native cwd and recording bytes remain source data;
 			// only writable fixtures and output receipts belong to this attempt.
-			run.recording = filepath.Join(source, "raw/raw.jsonl")
+			run.recording = filepath.Join(source, "raw", "raw.jsonl")
 			if _, err = os.Stat(run.recording); err != nil {
 				return nil, fmt.Errorf("%s offline recording: %w", phase, err)
 			}
-			{
-				if err = os.Symlink(filepath.Join(source, "raw"), filepath.Join(base, "raw")); err != nil {
-					return nil, err
-				}
+			if err := os.Symlink(filepath.Join(source, "raw"), filepath.Join(base, "raw")); err != nil {
+				return nil, err
 			}
 			args = []string{"--internal-protocol", "mock", "--provider", r.provider, "--scenario", run.recording, "--receipt", run.receipt}
 		}
 		peerPath := filepath.Join(root, "peer-"+phase+".json")
-		if err = writeJSON(peerPath, command{Command: peer, Args: args}); err != nil {
+		if err := writeJSON(peerPath, command{Command: peer, Args: args}); err != nil {
 			return nil, err
 		}
 		launcherArgs := []string{"--internal-peer", "--request", peerPath}
@@ -163,5 +161,5 @@ func writePeerLauncher(root, phase string, peer command) (string, error) {
 		words = append(words, quote(arg))
 	}
 	path := filepath.Join(root, "peer-"+phase)
-	return path, os.WriteFile(path, []byte("#!/bin/sh\nexec "+strings.Join(words, " ")+"\n"), 0700)
+	return path, os.WriteFile(path, []byte("#!/bin/sh\nexec "+strings.Join(words, " ")+"\n"), 0o700)
 }

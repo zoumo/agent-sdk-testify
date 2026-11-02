@@ -2,6 +2,7 @@ package replay
 
 import (
 	"errors"
+
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
@@ -45,14 +46,14 @@ func (a *claudeAdapter) client(expected, actual rawjson.Value) (bool, error) {
 			if live.kind != key.kind {
 				return false, errors.New("control ID type mismatch")
 			}
-			if err = a.bind(key, live, actualID); err != nil {
+			if err := a.bind(key, live, actualID); err != nil {
 				return false, err
 			}
 			expected, err = expected.Replace([]string{"request_id"}, actualID)
 			if err != nil {
 				return false, err
 			}
-		} else if err = a.answer(key); err != nil {
+		} else if err := a.answer(key); err != nil {
 			return false, err
 		}
 	}

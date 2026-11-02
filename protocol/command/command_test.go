@@ -3,13 +3,16 @@ package command_test
 import (
 	"context"
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/zoumo/agent-sdk-testify/protocol/command"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/protocol/command"
 )
 
 func invoke(t *testing.T, args []string, handlers command.Handlers) (int, string, string) {
@@ -104,12 +107,21 @@ func TestMockOptionsWithInterleavedStartupArguments(t *testing.T) {
 func TestInvalidArgumentsNeverReachHandlers(t *testing.T) {
 	h := command.Handlers{Record: func(context.Context, command.RecordOptions, command.IO) error { t.Error("record called"); return nil }, Mock: func(context.Context, command.MockOptions, command.IO) error { t.Error("mock called"); return nil }}
 	cases := [][]string{
-		{"unknown"}, {"--typo"}, {"version", "extra"}, {"record"}, {"record", "--output", "x", "program"},
-		{"record", "--output", "x", "before", "--", "program"}, {"record", "--output", "x", "--timeout", "NaN", "--", "x"},
-		{"record", "--output", "x", "--protocol-bytes", "-1", "--", "x"}, {"record", "--output", "x", "--cleanup-timeout", "0", "--", "x"},
-		{"record", "--output", "x", "--env", "bad", "--", "x"}, {"record", "--output", "x", "--env", "A=1", "--env", "A=2", "--", "x"},
+		{"unknown"},
+		{"--typo"},
+		{"version", "extra"},
+		{"record"},
+		{"record", "--output", "x", "program"},
+		{"record", "--output", "x", "before", "--", "program"},
+		{"record", "--output", "x", "--timeout", "NaN", "--", "x"},
+		{"record", "--output", "x", "--protocol-bytes", "-1", "--", "x"},
+		{"record", "--output", "x", "--cleanup-timeout", "0", "--", "x"},
+		{"record", "--output", "x", "--env", "bad", "--", "x"},
+		{"record", "--output", "x", "--env", "A=1", "--env", "A=2", "--", "x"},
 		{"record", "--output", "x", "--stdin-eof-action", "ignore", "--", "x"},
-		{"mock"}, {"mock", "--provider", "unknown", "--scenario", "x"}, {"mock", "--provider", "codex", "--scenario"},
+		{"mock"},
+		{"mock", "--provider", "unknown", "--scenario", "x"},
+		{"mock", "--provider", "codex", "--scenario"},
 	}
 	for _, extra := range [][]string{{"--timeout", "0"}, {"--timeout", "-1"}, {"--timeout", "NaN"}, {"--timeout", "Inf"}, {"--timeout", "1e30"}, {"--max-frames", "0"}, {"--max-frames", "10001"}, {"--max-bytes", "0"}, {"--max-frame-bytes", "0"}, {"--progress-fd", "1"}, {"--progress-fd", "-2"}, {"--sdk-test-handshakes", "other"}, {"--unknown"}, {"--listen", "ws://localhost"}, {"app-server", "app-server"}} {
 		cases = append(cases, append([]string{"mock", "--provider", "codex", "--scenario", "x"}, extra...))
@@ -124,12 +136,14 @@ func TestInvalidArgumentsNeverReachHandlers(t *testing.T) {
 		})
 	}
 }
+
 func fmtArgs(args []string) string {
-	result := ""
+	var result strings.Builder
 	for _, arg := range args {
-		result += arg + " "
+		result.WriteString(arg)
+		result.WriteByte(' ')
 	}
-	return result
+	return result.String()
 }
 
 func TestNativeArgumentContract(t *testing.T) {
@@ -138,11 +152,16 @@ func TestNativeArgumentContract(t *testing.T) {
 		args     []string
 		valid    bool
 	}{
-		{"codex", nil, true}, {"claude", nil, true}, {"unknown", nil, false},
+		{"codex", nil, true},
+		{"claude", nil, true},
+		{"unknown", nil, false},
 		{"codex", []string{"app-server", "--listen", "stdio://"}, true},
 		{"claude", []string{"--output-format", "stream-json", "--input-format=stream-json", "--permission-prompt-tool", "stdio", "--verbose", "--include-partial-messages", "--model=x", "--resume=y"}, true},
-		{"claude", []string{"--verbose", "--verbose"}, false}, {"claude", []string{"--model", "x"}, false}, {"claude", []string{"--output-format"}, false},
-		{"claude", []string{"--dangerously-skip-permissions"}, false}, {"codex", []string{"app-server=x"}, false},
+		{"claude", []string{"--verbose", "--verbose"}, false},
+		{"claude", []string{"--model", "x"}, false},
+		{"claude", []string{"--output-format"}, false},
+		{"claude", []string{"--dangerously-skip-permissions"}, false},
+		{"codex", []string{"app-server=x"}, false},
 	} {
 		t.Run(tt.provider+fmtArgs(tt.args), func(t *testing.T) {
 			err := command.ValidateNativeArgs(tt.provider, tt.args)

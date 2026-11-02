@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
@@ -69,7 +70,7 @@ func ValidateManifest(data []byte, artifact string, content []byte) (rawjson.Val
 	if !ok {
 		return v, errors.New("recordingFormat required")
 	}
-	if err = allowed(f, "name", "version", "transport"); err != nil {
+	if err := allowed(f, "name", "version", "transport"); err != nil {
 		return v, err
 	}
 	name, e1 := stringField(f, "name")

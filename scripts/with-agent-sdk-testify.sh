@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build this checkout’s unified test tool once, then run a caller-selected offline check.
-# Usage: bash scripts/with-agent-sdk-testify.sh mise exec -- go test ./...
+# Usage: bash scripts/with-agent-sdk-testify.sh go test ./...
 # Or supply an already built absolute AGENT_SDK_TESTIFY_BIN; no source checkout needed.
 set -euo pipefail
 if [[ $# == 0 ]]; then
@@ -14,9 +14,6 @@ if [[ -n "${AGENT_SDK_TESTIFY_BIN:-}" ]]; then
   }
 else
   testify_source=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-  if [[ "$(go env GOVERSION 2>/dev/null || true)" != go1.26.9 ]]; then
-    exec mise exec -C "$testify_source" -- bash "$0" "$@"
-  fi
   testify_build_dir=$(mktemp -d "${TMPDIR:-/tmp}/agent-sdk-testify.XXXXXXXX")
   trap 'rm -rf "$testify_build_dir"' EXIT
   export AGENT_SDK_TESTIFY_BIN="$testify_build_dir/agent-sdk-testify"

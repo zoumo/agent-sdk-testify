@@ -59,12 +59,14 @@ func (v Value) Kind() Kind {
 	}
 	return v.n.kind
 }
+
 func (v Value) Raw() []byte {
 	if v.n == nil {
 		return nil
 	}
 	return bytes.Clone(v.data[v.n.start:v.n.end])
 }
+
 func (v Value) Member(key string) (Value, bool) {
 	if v.Kind() != Object {
 		return Value{}, false
@@ -75,12 +77,14 @@ func (v Value) Member(key string) (Value, bool) {
 	}
 	return Value{v.data, n}, true
 }
+
 func (v Value) Keys() []string {
 	if v.Kind() != Object {
 		return nil
 	}
 	return append([]string(nil), v.n.keys...)
 }
+
 func (v Value) Elements() []Value {
 	if v.Kind() != Array {
 		return nil
@@ -91,6 +95,7 @@ func (v Value) Elements() []Value {
 	}
 	return out
 }
+
 func (v Value) String() (string, error) {
 	if v.Kind() != String {
 		return "", errors.New("JSON string required")
@@ -99,12 +104,14 @@ func (v Value) String() (string, error) {
 	err := json.Unmarshal(v.Raw(), &s)
 	return s, err
 }
+
 func (v Value) Int64() (int64, error) {
 	if v.Kind() != Number {
 		return 0, errors.New("JSON integer required")
 	}
 	return strconv.ParseInt(string(bytes.TrimSpace(v.Raw())), 10, 64)
 }
+
 func (v Value) Bool() (bool, error) {
 	if v.Kind() != Boolean {
 		return false, errors.New("JSON boolean required")
@@ -181,6 +188,7 @@ func (p *parser) space() {
 		p.pos++
 	}
 }
+
 func (p *parser) stringEnd() error {
 	p.pos++
 	for p.data[p.pos] != '"' {
@@ -209,6 +217,7 @@ func (p *parser) stringEnd() error {
 	p.pos++
 	return nil
 }
+
 func (p *parser) value() (*node, error) {
 	p.space()
 	n := &node{start: p.pos}

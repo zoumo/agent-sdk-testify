@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zoumo/agent-sdk-testify/protocol/command"
 	"io"
 	"os"
 	"os/exec"
@@ -19,6 +18,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/protocol/command"
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 )
 
@@ -96,7 +97,7 @@ func TestRecordCLIHelper(t *testing.T) {
 	case "flood":
 		line := "{\"data\":\"" + strings.Repeat("x", 128*1024) + "\"}\n"
 		for {
-			if _, err := io.WriteString(os.Stdout, line); err != nil {
+			if _, err := os.Stdout.WriteString(line); err != nil {
 				os.Exit(0)
 			}
 		}
@@ -104,17 +105,20 @@ func TestRecordCLIHelper(t *testing.T) {
 		done := make(chan struct{})
 		go func() { _, _ = io.Copy(io.Discard, os.Stdin); close(done) }()
 		line := "{\"server\":\"" + strings.Repeat("s", 256*1024) + "\"}\n"
-		for i := 0; i < 8; i++ {
-			_, _ = io.WriteString(os.Stdout, line)
+		for range 8 {
+			_, _ = os.Stdout.WriteString(line)
 		}
 		<-done
 		fmt.Fprint(os.Stdout, "{\"done\":true}\n")
 	case "identity":
 		cwd, _ := os.Getwd()
-		data, _ := json.Marshal(map[string]string{"cwd": cwd, "override": os.Getenv("RECORD_OVERRIDE"), "empty": os.Getenv("RECORD_EMPTY"), "inherited": os.Getenv("RECORD_INHERITED")})
+		data, err := json.Marshal(map[string]string{"cwd": cwd, "override": os.Getenv("RECORD_OVERRIDE"), "empty": os.Getenv("RECORD_EMPTY"), "inherited": os.Getenv("RECORD_INHERITED")})
+		if err != nil {
+			os.Exit(97)
+		}
 		fmt.Fprintf(os.Stdout, "%s\n", data)
 	case "grandchild":
-		child := exec.Command(os.Args[0], "-test.run=^TestRecordCLIHelper$", "--", "ignore-term")
+		child := exec.CommandContext(context.Background(), os.Args[0], "-test.run=^TestRecordCLIHelper$", "--", "ignore-term")
 		child.Env = os.Environ()
 		child.Stdout = os.Stdout
 		child.Stderr = os.Stderr
@@ -153,6 +157,7 @@ func startRecord(t *testing.T, flags []string, mode ...string) *recordProcess {
 	dir := filepath.Join(t.TempDir(), "capture")
 	return startRecordAt(t, dir, flags, mode...)
 }
+
 func startRecordAt(t *testing.T, dir string, flags []string, mode ...string) *recordProcess {
 	t.Helper()
 	executable, err := os.Executable()
@@ -160,6 +165,7 @@ func startRecordAt(t *testing.T, dir string, flags []string, mode ...string) *re
 	native := append([]string{executable, "-test.run=^TestRecordCLIHelper$", "--"}, mode...)
 	return startRecordCommand(t, dir, flags, native)
 }
+
 func startRecordCommand(t *testing.T, dir string, flags, native []string) *recordProcess {
 	t.Helper()
 	executable, err := os.Executable()
@@ -168,7 +174,7 @@ func startRecordCommand(t *testing.T, dir string, flags, native []string) *recor
 	args = append(args, flags...)
 	args = append(args, "--")
 	args = append(args, native...)
-	p := &recordProcess{cmd: exec.Command(executable, args...), dir: dir, done: make(chan error, 1)}
+	p := &recordProcess{cmd: exec.CommandContext(t.Context(), executable, args...), dir: dir, done: make(chan error, 1)}
 	p.cmd.Env = append(os.Environ(), "AGENT_MOCK_RECORD_TEST_ROLE=cli", "RECORD_INHERITED=outer", "GORACE=atexit_sleep_ms=0")
 	p.in, err = p.cmd.StdinPipe()
 	require.NoError(t, err)
@@ -185,6 +191,7 @@ func startRecordCommand(t *testing.T, dir string, flags, native []string) *recor
 	t.Cleanup(func() { _ = p.in.Close(); _ = p.out.Close(); _ = p.cmd.Process.Kill() })
 	return p
 }
+
 func (p *recordProcess) wait(t *testing.T, want int) {
 	t.Helper()
 	select {
@@ -201,6 +208,7 @@ func (p *recordProcess) wait(t *testing.T, want int) {
 		t.Fatal("record CLI did not exit")
 	}
 }
+
 func (p *recordProcess) reports(t *testing.T) (recording.TransportReport, recording.Manifest) {
 	t.Helper()
 	var report recording.TransportReport
@@ -219,14 +227,15 @@ func (p *recordProcess) reports(t *testing.T) (recording.TransportReport, record
 		assert.Equal(t, hash, recording.Hash(data), name)
 		stat, err := os.Stat(filepath.Join(p.dir, name))
 		require.NoError(t, err)
-		assert.Equal(t, os.FileMode(0600), stat.Mode().Perm())
+		assert.Equal(t, os.FileMode(0o600), stat.Mode().Perm())
 	}
 	stat, err := os.Stat(p.dir)
 	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0700), stat.Mode().Perm())
+	assert.Equal(t, os.FileMode(0o700), stat.Mode().Perm())
 	assert.True(t, report.CleanupComplete, report.Error)
 	return report, manifest
 }
+
 func recordReadAll(t *testing.T, r io.Reader) []byte {
 	t.Helper()
 	data, err := io.ReadAll(r)
@@ -267,14 +276,16 @@ func TestRecordCLIBidirectionalRawAndEOF(t *testing.T) {
 	assert.Equal(t, 2, bytes.Count(raw, []byte(strings.TrimSuffix(wire, "\r\n"))))
 	assert.Contains(t, manifest.Files, "transport.json")
 }
+
 func TestRecordCLIFragmentedAndEarlyExit(t *testing.T) {
 	p := startRecord(t, nil, "fragment")
 	output := recordReadAll(t, p.out)
-	p.wait(t, 0) // client stdin deliberately stays open
-	assert.Equal(t, " {\"unknown\":[1e+09,9007199254740993,-0.00],\"escape\":\"\\u0061\"}\r\n", string(output))
+	p.wait(t, 0)                                                                                                // client stdin deliberately stays open
+	assert.Equal(t, " {\"unknown\":[1e+09,9007199254740993,-0.00],\"escape\":\"\\u0061\"}\r\n", string(output)) //nolint:testifylint // Exact bytes are contractual.
 	report, _ := p.reports(t)
 	assert.EqualValues(t, 1, report.Frames)
 }
+
 func TestRecordCLIDuplexBackpressure(t *testing.T) {
 	p := startRecord(t, []string{"--timeout", "5"}, "duplex")
 	written := make(chan error, 1)
@@ -296,6 +307,7 @@ func TestRecordCLIDuplexBackpressure(t *testing.T) {
 	report, _ := p.reports(t)
 	assert.EqualValues(t, 17, report.Frames)
 }
+
 func TestRecordCLIMalformedAndLimits(t *testing.T) {
 	cases := []struct {
 		name, wire, why string
@@ -326,12 +338,14 @@ func TestRecordCLIMalformedAndLimits(t *testing.T) {
 		})
 	}
 }
+
 func TestRecordCLIInclusivePayloadAndBytes(t *testing.T) {
 	p := startRecord(t, []string{"--max-frame-bytes", "2", "--protocol-bytes", "4", "--max-frames", "1"}, "emit", "{}\r\n")
 	assert.Equal(t, "{}\r\n", string(recordReadAll(t, p.out)))
 	p.wait(t, 0)
 	p.reports(t)
 }
+
 func TestRecordCLIIncompleteClient(t *testing.T) {
 	p := startRecord(t, nil, "echo")
 	_, err := io.WriteString(p.in, "{\"partial\":")
@@ -346,6 +360,7 @@ func TestRecordCLIIncompleteClient(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "{\"partial\":", string(data))
 }
+
 func TestRecordCLINonzeroExit(t *testing.T) {
 	p := startRecord(t, nil, "nonzero")
 	assert.Equal(t, "{\"beforeExit\":true}\n", string(recordReadAll(t, p.out)))
@@ -355,6 +370,7 @@ func TestRecordCLINonzeroExit(t *testing.T) {
 	require.NotNil(t, report.NativeExitCode)
 	assert.Equal(t, 17, *report.NativeExitCode)
 }
+
 func TestRecordCLIDeadlineHalfCloseAndBlockedIO(t *testing.T) {
 	for _, mode := range []string{"idle", "stdout-closed", "no-read", "flood", "ignore-term"} {
 		t.Run(mode, func(t *testing.T) {
@@ -383,6 +399,7 @@ func TestRecordCLIDeadlineHalfCloseAndBlockedIO(t *testing.T) {
 		})
 	}
 }
+
 func TestRecordCLICancelCleansGroup(t *testing.T) {
 	p := startRecord(t, []string{"--cleanup-timeout", "1"}, "grandchild")
 	line, err := bufio.NewReader(p.out).ReadBytes('\n')
@@ -396,9 +413,10 @@ func TestRecordCLICancelCleansGroup(t *testing.T) {
 	p.wait(t, 3)
 	report, _ := p.reports(t)
 	assert.Equal(t, "canceled", report.Reason)
-	assert.ErrorIs(t, syscall.Kill(ids.Parent, 0), syscall.ESRCH)
+	require.ErrorIs(t, syscall.Kill(ids.Parent, 0), syscall.ESRCH)
 	assert.ErrorIs(t, syscall.Kill(ids.Child, 0), syscall.ESRCH)
 }
+
 func TestRecordCLIIdentityAndEnvironment(t *testing.T) {
 	cwd := t.TempDir()
 	p := startRecord(t, []string{"--cwd", cwd, "--clear-env", "--env", "RECORD_OVERRIDE=private-value", "--env", "RECORD_EMPTY=", "--native-version", "caller-label"}, "identity")
@@ -422,10 +440,11 @@ func TestRecordCLIIdentityAndEnvironment(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotContains(t, string(data), "private-value")
 }
+
 func TestRecordCLIExclusiveOutput(t *testing.T) {
 	dir := t.TempDir()
 	sentinel := filepath.Join(dir, "keep")
-	require.NoError(t, os.WriteFile(sentinel, []byte("untouched"), 0600))
+	require.NoError(t, os.WriteFile(sentinel, []byte("untouched"), 0o600))
 	p := startRecordAt(t, dir, nil, "echo")
 	_ = recordReadAll(t, p.out)
 	p.wait(t, 2)
@@ -436,6 +455,7 @@ func TestRecordCLIExclusiveOutput(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, entries, 1)
 }
+
 func TestRecordCLIClosedClientOutput(t *testing.T) {
 	p := startRecord(t, nil, "flood")
 	require.NoError(t, p.out.Close())
@@ -444,6 +464,7 @@ func TestRecordCLIClosedClientOutput(t *testing.T) {
 	assert.Equal(t, "transport-error", report.Reason)
 	assert.Equal(t, "failed", report.CaptureStatus)
 }
+
 func TestRecordCLIStderrLimit(t *testing.T) {
 	p := startRecord(t, []string{"--stderr-bytes", "4"}, "echo")
 	require.NoError(t, p.in.Close())
@@ -455,11 +476,12 @@ func TestRecordCLIStderrLimit(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "nati", string(data))
 }
+
 func TestRecordCLIArtifactFailure(t *testing.T) {
 	p := startRecord(t, nil, "idle")
 	_, err := bufio.NewReader(p.out).ReadString('\n')
 	require.NoError(t, err)
-	require.NoError(t, os.Mkdir(filepath.Join(p.dir, "transport.json"), 0700))
+	require.NoError(t, os.Mkdir(filepath.Join(p.dir, "transport.json"), 0o700))
 	require.NoError(t, p.cmd.Process.Signal(syscall.SIGTERM))
 	_ = recordReadAll(t, p.out)
 	p.wait(t, 3)
@@ -480,6 +502,7 @@ func TestRecordCLIZeroFrames(t *testing.T) {
 	assert.EqualValues(t, 0, report.Frames)
 	assert.Equal(t, "complete", report.CaptureStatus)
 }
+
 func TestRecordCLIPreflightAndFailedLaunch(t *testing.T) {
 	t.Run("preflight", func(t *testing.T) {
 		dir := filepath.Join(t.TempDir(), "capture")
@@ -490,7 +513,7 @@ func TestRecordCLIPreflightAndFailedLaunch(t *testing.T) {
 	})
 	t.Run("launch", func(t *testing.T) {
 		executable := filepath.Join(t.TempDir(), "missing-interpreter")
-		require.NoError(t, os.WriteFile(executable, []byte("#!/no/such/agent-sdk-testify-interpreter\n"), 0700))
+		require.NoError(t, os.WriteFile(executable, []byte("#!/no/such/agent-sdk-testify-interpreter\n"), 0o700))
 		p := startRecordCommand(t, filepath.Join(t.TempDir(), "capture"), nil, []string{executable})
 		assert.Empty(t, recordReadAll(t, p.out))
 		p.wait(t, 1)
@@ -502,13 +525,14 @@ func TestRecordCLIPreflightAndFailedLaunch(t *testing.T) {
 		assert.NotEmpty(t, manifest.Native.SHA256)
 	})
 }
+
 func TestRecordCLIManifestFailureCannotClaimComplete(t *testing.T) {
 	p := startRecord(t, nil, "echo")
 	_, err := io.WriteString(p.in, "{}\n")
 	require.NoError(t, err)
 	_, err = bufio.NewReader(p.out).ReadString('\n')
 	require.NoError(t, err)
-	require.NoError(t, os.Mkdir(filepath.Join(p.dir, "manifest.json"), 0700))
+	require.NoError(t, os.Mkdir(filepath.Join(p.dir, "manifest.json"), 0o700))
 	require.NoError(t, p.in.Close())
 	_ = recordReadAll(t, p.out)
 	p.wait(t, 1)
@@ -520,6 +544,7 @@ func TestRecordCLIManifestFailureCannotClaimComplete(t *testing.T) {
 	assert.Equal(t, "transport-error", report.Reason)
 	assert.Contains(t, report.Error, "write manifest.json")
 }
+
 func TestRecordCLIRejectsBadClientAndPreservesPriorFrame(t *testing.T) {
 	p := startRecord(t, nil, "echo")
 	_, err := io.WriteString(p.in, "{\"ok\":1}\n{\"duplicate\":0,\"duplicate\":1}\n")
@@ -535,6 +560,7 @@ func TestRecordCLIRejectsBadClientAndPreservesPriorFrame(t *testing.T) {
 	assert.NotContains(t, string(raw), "duplicate")
 	assert.Contains(t, manifest.Files, "c2s.partial.raw")
 }
+
 func TestRecordCLICancelRetainsPartialInput(t *testing.T) {
 	p := startRecord(t, []string{"--timeout", "0.3"}, "idle")
 	_, err := bufio.NewReader(p.out).ReadString('\n')

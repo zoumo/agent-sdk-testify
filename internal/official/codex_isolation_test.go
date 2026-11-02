@@ -57,17 +57,17 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 	// Place the output under a hostile project ancestor as well as a hostile HOME.
 	require.NoError(t, writeFiles(root, object{".git/HEAD": "ref: refs/heads/test\n", ".agents/skills/ancestor/SKILL.md": "ANCESTOR_SKILL", ".codex/config.toml": "developer_instructions=\"ANCESTOR\"", "AGENTS.md": "ANCESTOR_INSTRUCTIONS"}))
 	materials := filepath.Join(root, "materials")
-	require.NoError(t, os.Mkdir(materials, 0700))
+	require.NoError(t, os.Mkdir(materials, 0o700))
 	plan := object{"provider": "codex", "caseId": "isolation", "driverProfile": "children", "scenario": object{"files": object{"numbers.txt": "7\n11\n"}, "parameters": object{}}}
 	if args != nil {
 		plan["args"] = args
 	}
 	require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), plan))
 	for name, body := range map[string]string{"native": codexIsolationNative, "driver": codexIsolationDriver} {
-		require.NoError(t, os.WriteFile(filepath.Join(root, name), []byte("#!"+python+"\n"+body), 0700))
+		require.NoError(t, os.WriteFile(filepath.Join(root, name), []byte("#!"+python+"\n"+body), 0o700))
 	}
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	require.NotEmpty(t, binary, "run with scripts/with-agent-sdk-testify.sh")
+	require.NotEmpty(t, binary, "run with make test")
 	output := filepath.Join(root, "attempt")
 	self, err := os.Executable()
 	require.NoError(t, err)
@@ -77,7 +77,7 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 	}
 	optionPath := filepath.Join(root, "options.json")
 	require.NoError(t, writeJSON(optionPath, o))
-	cmd := exec.Command(self, "official-engine-fixture", optionPath)
+	cmd := exec.CommandContext(t.Context(), self, "official-engine-fixture", optionPath)
 
 	cmd.Dir = t.TempDir()
 	cmd.Env = append(os.Environ(), "HOME="+personal, "CODEX_HOME="+filepath.Join(personal, ".codex"), "ISOLATION_AUTH=synthetic-key", "ISOLATION_HEADER=synthetic-header", "CODEX_SKILLS_DIR=/personal/skills", "CODEX_ADDITIONAL_SKILL_ROOTS=/personal/extra")
@@ -86,7 +86,7 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 
 func TestCodexIsolationBeforeRecording(t *testing.T) {
 	cmd, output, personal := codexIsolationCommand(t, nil, true)
-	before, err := os.ReadFile(filepath.Join(personal, ".codex/config.toml"))
+	before, err := os.ReadFile(filepath.Join(personal, ".codex", "config.toml"))
 	require.NoError(t, err)
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -120,7 +120,7 @@ func TestCodexIsolationBeforeRecording(t *testing.T) {
 	assert.NotContains(t, config, "skills")
 	assert.NotContains(t, config, "developer_instructions")
 	assert.NotContains(t, config, "agents")
-	after, err := os.ReadFile(filepath.Join(personal, ".codex/config.toml"))
+	after, err := os.ReadFile(filepath.Join(personal, ".codex", "config.toml"))
 	require.NoError(t, err)
 	assert.Equal(t, before, after)
 	for path, want := range map[string]string{".agents/skills/private/SKILL.md": "PRIVATE_SKILL\n", ".codex/skills/private/SKILL.md": "PRIVATE_LEGACY_SKILL\n", ".codex/AGENTS.md": "PRIVATE_INSTRUCTIONS\n"} {
@@ -129,7 +129,7 @@ func TestCodexIsolationBeforeRecording(t *testing.T) {
 		assert.Equal(t, want, string(got))
 	}
 	assert.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
-	assert.NoFileExists(t, filepath.Join(output, "config/auth.json"))
+	assert.NoFileExists(t, filepath.Join(output, "config", "auth.json"))
 	var summary json.RawMessage
 	require.NoError(t, readJSON(filepath.Join(output, "summary.json"), &summary))
 }
@@ -139,7 +139,7 @@ func TestCodexIsolationRejectsCredentialEnvironmentOverrides(t *testing.T) {
 		for _, name := range []string{"CODEX_HOME", "HOME", "PATH", "TMPDIR", "XDG_CONFIG_HOME", "CODEX_SKILLS_DIR", "CLAUDE_CONFIG_DIR", "NODE_OPTIONS", "PYTHONPATH", "LD_PRELOAD", "DYLD_INSERT_LIBRARIES", "BASH_ENV", "AGENT_SDK_TESTIFY_BIN"} {
 			t.Run(field+"/"+name, func(t *testing.T) {
 				cmd, output, personal := codexIsolationCommand(t, nil, true)
-				path := filepath.Join(personal, ".codex/config.toml")
+				path := filepath.Join(personal, ".codex", "config.toml")
 				var config object
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)
@@ -152,12 +152,12 @@ func TestCodexIsolationRejectsCredentialEnvironmentOverrides(t *testing.T) {
 				}
 				data, err = toml.Marshal(config)
 				require.NoError(t, err)
-				require.NoError(t, os.WriteFile(path, data, 0600))
+				require.NoError(t, os.WriteFile(path, data, 0o600))
 				data, err = cmd.CombinedOutput()
 				require.Error(t, err, "%s", data)
-				assert.Contains(t, string(data), "Codex recording isolation: reserved credential environment")
+				assert.Contains(t, string(data), "codex recording isolation: reserved credential environment")
 				assert.NoFileExists(t, filepath.Join(output, "observation.json"))
-				assert.NoFileExists(t, filepath.Join(output, "raw/raw.jsonl"))
+				assert.NoFileExists(t, filepath.Join(output, "raw", "raw.jsonl"))
 			})
 		}
 	}
@@ -179,9 +179,9 @@ func TestCodexIsolationRejectsSuppliedDiscoveryArguments(t *testing.T) {
 			cmd, output, _ := codexIsolationCommand(t, args, false)
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
-			assert.Contains(t, string(data), "Codex recording isolation")
+			assert.Contains(t, string(data), "codex recording isolation")
 			assert.NoFileExists(t, filepath.Join(output, "observation.json"))
-			assert.NoFileExists(t, filepath.Join(output, "raw/raw.jsonl"))
+			assert.NoFileExists(t, filepath.Join(output, "raw", "raw.jsonl"))
 		})
 	}
 }
@@ -190,25 +190,27 @@ func TestCodexIsolationRejectsWorkspaceDiscoveryRoots(t *testing.T) {
 	for _, path := range []string{".agents/skills/private/SKILL.md", ".codex/config.toml"} {
 		t.Run(path, func(t *testing.T) {
 			cmd, output, _ := codexIsolationCommand(t, nil, false)
-			materials := filepath.Join(filepath.Dir(output), "materials/plan.json")
+			materials := filepath.Join(filepath.Dir(output), "materials", "plan.json")
 			var plan object
 			require.NoError(t, readJSON(materials, &plan))
 			obj(obj(plan["scenario"])["files"])[path] = "PRIVATE"
 			require.NoError(t, writeJSON(materials, plan))
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
-			assert.Contains(t, string(data), "Codex recording isolation")
+			assert.Contains(t, string(data), "codex recording isolation")
 			assert.NoFileExists(t, filepath.Join(output, "observation.json"))
 		})
 	}
 }
 
 func TestCodexIsolationPreservesSuppliedCaseCapabilitiesWithoutConfig(t *testing.T) {
-	args := []string{"app-server", "--stdio", "--enable", "multi_agent", "-c", `model="case/model"`,
+	args := []string{
+		"app-server", "--stdio", "--enable", "multi_agent", "-c", `model="case/model"`,
 		"-c", `sandbox_mode="read-only"`, "--config=agents.max_depth=2", "-cfeatures.shell_tool=false",
 		"-c", "features.multi_agent_v2.enabled=true", "-c", "features.multi_agent_v2_dynamic_tools=true",
 		"-c", "project_root_markers=[\".git\"]", "-c", "project_doc_max_bytes=99999",
-		"-c", "tool_output_token_limit=4096"}
+		"-c", "tool_output_token_limit=4096",
+	}
 	cmd, output, _ := codexIsolationCommand(t, args, false)
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)

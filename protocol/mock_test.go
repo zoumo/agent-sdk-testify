@@ -17,6 +17,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 )
 
@@ -24,7 +25,7 @@ import (
 // no Python, SDK, agent, compiler, credentials or normal PATH in its environment.
 func TestMockCLI(t *testing.T) {
 	binary := filepath.Join(t.TempDir(), "agent-sdk-testify")
-	build := exec.Command("go", "build", "-o", binary, "..")
+	build := exec.CommandContext(t.Context(), "go", "build", "-o", binary, "..")
 	out, err := build.CombinedOutput()
 	require.NoError(t, err, "%s", out)
 	for _, provider := range []string{"codex", "claude"} {
@@ -41,7 +42,7 @@ func TestMockCLI(t *testing.T) {
 		root := t.TempDir()
 		source := mockWriteScenario(t, root, mockScenario("<{}"))
 		receipt := filepath.Join(root, "receipt.json")
-		require.NoError(t, os.WriteFile(receipt, []byte("existing evidence"), 0600))
+		require.NoError(t, os.WriteFile(receipt, []byte("existing evidence"), 0o600))
 		cmd := mockCommand(t, binary, "codex", source, "--receipt", receipt)
 		out, stderr, code := mockOutput(cmd, "")
 		assert.Equal(t, 2, code, stderr)
@@ -76,7 +77,7 @@ func mockScenario(actions ...string) string {
 func mockWriteScenario(t *testing.T, root, data string) string {
 	t.Helper()
 	path := filepath.Join(root, "scenario.json")
-	require.NoError(t, os.WriteFile(path, []byte(data), 0600))
+	require.NoError(t, os.WriteFile(path, []byte(data), 0o600))
 	return path
 }
 
@@ -133,7 +134,7 @@ func mockCLIBasics(t *testing.T, binary, provider string) {
 			assert.Equal(t, tc.output, out)
 			data, err := os.ReadFile(receipt)
 			if tc.code != 0 {
-				assert.ErrorIs(t, err, os.ErrNotExist)
+				require.ErrorIs(t, err, os.ErrNotExist)
 				assert.NotEmpty(t, stderr)
 				return
 			}
@@ -148,10 +149,10 @@ func mockCLIBasics(t *testing.T, binary, provider string) {
 			assert.Equal(t, "Go native mock", got.Peer)
 			assert.Equal(t, provider, got.Provider)
 			assert.Equal(t, recording.Hash([]byte(tc.source)), got.RecordingSHA256)
-			assert.Greater(t, got.Frames, 0)
+			assert.Positive(t, got.Frames)
 			info, err := os.Stat(receipt)
 			require.NoError(t, err)
-			assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
+			assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 		})
 	}
 }

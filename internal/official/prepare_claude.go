@@ -2,12 +2,13 @@ package official
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 )
 
-func claudeNativeArgs(profile string, params object) []string {
+func claudeNativeArgs(profile string, params object) ([]string, error) {
 	var args []string
 	args = []string{"--print", "--system-prompt", "Complete the supplied synthetic task in the working directory. Be concise.", "--output-format", "stream-json", "--verbose", "--input-format", "stream-json", "--permission-prompt-tool", "stdio", "--include-partial-messages"}
 	if profile != "history" && profile != "existing-children" {
@@ -29,7 +30,10 @@ func claudeNativeArgs(profile string, params object) []string {
 		ask = []string{"Bash"}
 	}
 	if ask != nil {
-		b, _ := json.Marshal(object{"permissions": object{"ask": ask}})
+		b, err := json.Marshal(object{"permissions": object{"ask": ask}})
+		if err != nil {
+			return nil, fmt.Errorf("encode claude permissions: %w", err)
+		}
 		args = append(args, "--settings", string(b))
 	}
 	if params["applicationTool"] == true {
@@ -41,7 +45,7 @@ func claudeNativeArgs(profile string, params object) []string {
 	if params["setting"] == "effort" {
 		args = append(args, "--effort", "low")
 	}
-	return args
+	return args, nil
 }
 
 func prepareClaudeArgs(plan object, args []string, profile string) ([]string, error) {
@@ -69,29 +73,29 @@ func prepareClaudeArgs(plan object, args []string, profile string) ([]string, er
 			isolated = append(isolated, args[i])
 			if !inline {
 				if i+1 == len(args) {
-					return nil, fmt.Errorf("Claude recording isolation: missing %s value", flag)
+					return nil, fmt.Errorf("claude recording isolation: missing %s value", flag)
 				}
 				i++
 				isolated = append(isolated, args[i])
 			}
 			continue
 		case "--system-prompt-file", "--append-system-prompt-file", "--append-subagent-system-prompt-file", "--plugin-dir":
-			return nil, fmt.Errorf("Claude recording isolation: external instruction or plugin input")
+			return nil, errors.New("claude recording isolation: external instruction or plugin input")
 		case "--settings", "--mcp-config", "--agents":
 			if !inline {
 				if i+1 == len(args) {
-					return nil, fmt.Errorf("Claude recording isolation: missing %s value", flag)
+					return nil, fmt.Errorf("claude recording isolation: missing %s value", flag)
 				}
 				i++
 				value = args[i]
 			}
 			if flag == "--settings" && !claudeCasePermissions(value) {
-				return nil, fmt.Errorf("Claude recording isolation: settings must contain only inline case permissions")
+				return nil, errors.New("claude recording isolation: settings must contain only inline case permissions")
 			}
 			if flag != "--settings" {
 				var fields object
 				if json.Unmarshal([]byte(value), &fields) != nil || fields == nil {
-					return nil, fmt.Errorf("Claude recording isolation: %s requires inline case JSON", flag)
+					return nil, fmt.Errorf("claude recording isolation: %s requires inline case JSON", flag)
 				}
 			}
 			if inline && flag != "--settings" {
@@ -105,7 +109,7 @@ func prepareClaudeArgs(plan object, args []string, profile string) ([]string, er
 					i++
 					var fields object
 					if json.Unmarshal([]byte(args[i]), &fields) != nil || fields == nil {
-						return nil, fmt.Errorf("Claude recording isolation: MCP requires inline case JSON")
+						return nil, errors.New("claude recording isolation: MCP requires inline case JSON")
 					}
 					isolated = append(isolated, args[i])
 				}
@@ -114,7 +118,8 @@ func prepareClaudeArgs(plan object, args []string, profile string) ([]string, er
 		}
 		isolated = append(isolated, args[i])
 	}
-	args = append(isolated, "--setting-sources", "user", "--disable-slash-commands", "--strict-mcp-config")
+	isolated = append(isolated, "--setting-sources", "user", "--disable-slash-commands", "--strict-mcp-config")
+	args = isolated
 	if str(plan["model"]) != "" {
 		model := str(plan["initialModel"])
 		if model == "" {

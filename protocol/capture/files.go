@@ -43,8 +43,9 @@ type journal struct {
 }
 
 func createPrivate(dir, name string) (*os.File, error) {
-	return os.OpenFile(filepath.Join(dir, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	return os.OpenFile(filepath.Join(dir, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 }
+
 func openJournal(o Options, start time.Time) (*journal, error) {
 	j := &journal{options: o, start: start}
 	var err error
@@ -59,6 +60,7 @@ func openJournal(o Options, start time.Time) (*journal, error) {
 	}
 	return j, err
 }
+
 func writeAll(w io.Writer, data []byte) error {
 	for len(data) > 0 {
 		n, err := w.Write(data)
@@ -72,6 +74,7 @@ func writeAll(w io.Writer, data []byte) error {
 	}
 	return nil
 }
+
 func (j *journal) observed(n int, stderr bool) (int, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
@@ -82,14 +85,12 @@ func (j *journal) observed(n int, stderr bool) (int, error) {
 	before := *counter
 	*counter += int64(n)
 	if limit > 0 && *counter > limit {
-		keep := limit - before
-		if keep < 0 {
-			keep = 0
-		}
+		keep := max(limit-before, 0)
 		return int(keep), fail("limit", fmt.Errorf("observed %s byte limit %d exceeded", map[bool]string{true: "stderr", false: "protocol"}[stderr], limit))
 	}
 	return n, nil
 }
+
 func (j *journal) frame(direction recording.Direction, payload []byte) (int64, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
@@ -109,18 +110,19 @@ func (j *journal) frame(direction recording.Direction, payload []byte) (int64, e
 	if err != nil {
 		return describe(err)
 	}
-	if err = writeAll(j.raw, data); err != nil {
+	if err := writeAll(j.raw, data); err != nil {
 		return describe(err)
 	}
 	j.frames++
 	return ordinal, nil
 }
+
 func (j *journal) partial(direction recording.Direction, data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
-	if max := j.options.MaxFrameBytes; max > 0 && int64(len(data)) > max {
-		data = data[:max]
+	if limit := j.options.MaxFrameBytes; limit > 0 && int64(len(data)) > limit {
+		data = data[:limit]
 	}
 	name := string(direction) + ".partial.raw"
 	file, err := createPrivate(j.options.Output, name)
@@ -132,6 +134,7 @@ func (j *journal) partial(direction recording.Direction, data []byte) error {
 	j.mu.Unlock()
 	return errors.Join(writeAll(file, data), file.Close())
 }
+
 func hashFile(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -139,7 +142,7 @@ func hashFile(path string) (string, error) {
 	}
 	h := sha256.New()
 	_, copyErr := io.Copy(h, f)
-	if err = errors.Join(copyErr, f.Close()); err != nil {
+	if err := errors.Join(copyErr, f.Close()); err != nil {
 		return "", err
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
@@ -194,7 +197,7 @@ func (j *journal) finish(report *recording.TransportReport, identity recording.N
 		return writeAll(file, data)
 	}
 	if transport != nil {
-		if err = writeMetadata(transport, report); err != nil {
+		if err := writeMetadata(transport, report); err != nil {
 			runErr = errors.Join(runErr, fmt.Errorf("write transport.json: %w", err))
 		}
 		if digest, e := hashFile(filepath.Join(j.options.Output, "transport.json")); e != nil {

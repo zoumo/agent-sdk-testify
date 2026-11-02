@@ -12,7 +12,7 @@ class IndependentToolTests(unittest.TestCase):
     def test_repository_build_does_not_require_sdk_driver(self):
         with tempfile.TemporaryDirectory() as temporary:
             environment = dict(os.environ, AGENT_SDK_TESTIFY_BUILD_DIR=temporary,
-                               PYTHON='python3.11', GOPROXY='off', GOSUMDB='off',
+                               PYTHON='python3', GOPROXY='off', GOSUMDB='off',
                                PIP_NO_INDEX='1', GOWORK='off')
             result = subprocess.run(['bash', str(ROOT / 'scripts/build.sh')],
                                     cwd=temporary, env=environment, capture_output=True,

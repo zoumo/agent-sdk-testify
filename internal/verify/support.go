@@ -10,7 +10,6 @@ import (
 
 type (
 	object           = tool.Object
-	result           = tool.Result
 	corpusValidation = corpus.Validation
 )
 

@@ -7,7 +7,6 @@ import (
 	"errors"
 
 	"github.com/zoumo/agent-sdk-testify/protocol/capture"
-
 	"github.com/zoumo/agent-sdk-testify/protocol/command"
 )
 

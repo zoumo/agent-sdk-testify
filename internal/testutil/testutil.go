@@ -3,6 +3,8 @@
 package testutil
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,7 +15,7 @@ import (
 func RepositoryRoot() (string, error) {
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
-		return "", fmt.Errorf("locate testutil source")
+		return "", errors.New("locate testutil source")
 	}
 	dir := filepath.Dir(file)
 	for {
@@ -51,7 +53,7 @@ func PrepareBinary() (func(), error) {
 	}
 	cleanup := func() { _ = os.RemoveAll(dir) }
 	binary := filepath.Join(dir, "agent-sdk-testify")
-	cmd := exec.Command("go", "build", "-o", binary, ".")
+	cmd := exec.CommandContext(context.Background(), "go", "build", "-o", binary, ".")
 	cmd.Dir = root
 	if output, err := cmd.CombinedOutput(); err != nil {
 		cleanup()

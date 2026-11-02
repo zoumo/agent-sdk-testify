@@ -16,14 +16,27 @@ func TestCodexCaseNativeTools(t *testing.T) {
 		params        object
 		want, absent  []string
 	}{
-		{"file", "approval", object{"approvalKind": "file", "nativeFileTool": "apply_patch"},
-			[]string{"features.shell_tool=false"}, []string{"multi_agent_v2"}},
-		{"command", "approval", object{"approvalKind": "command"},
-			[]string{`sandbox_mode="read-only"`}, []string{"features.shell_tool=false", "multi_agent_v2"}},
-		{"child", "children", object{"childTools": "inherited-dynamic-v2"},
-			[]string{"features.multi_agent_v2.enabled=true", "features.multi_agent_v2_dynamic_tools=true",
-				"features.multi_agent_v2.non_code_mode_only=false", "features.multi_agent_v2.hide_spawn_agent_metadata=false"},
-			nil},
+		{
+			"file", "approval",
+			object{"approvalKind": "file", "nativeFileTool": "apply_patch"},
+			[]string{"features.shell_tool=false"},
+			[]string{"multi_agent_v2"},
+		},
+		{
+			"command", "approval",
+			object{"approvalKind": "command"},
+			[]string{`sandbox_mode="read-only"`},
+			[]string{"features.shell_tool=false", "multi_agent_v2"},
+		},
+		{
+			"child", "children",
+			object{"childTools": "inherited-dynamic-v2"},
+			[]string{
+				"features.multi_agent_v2.enabled=true", "features.multi_agent_v2_dynamic_tools=true",
+				"features.multi_agent_v2.non_code_mode_only=false", "features.multi_agent_v2.hide_spawn_agent_metadata=false",
+			},
+			nil,
+		},
 		{"legacy child", "children", object{}, []string{"features.multi_agent=true"}, []string{"multi_agent_v2"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -42,13 +55,15 @@ func TestCodexFileToolCatalogPreservesSelectedModel(t *testing.T) {
 	for _, explicit := range []bool{true, false} {
 		t.Run(map[bool]string{true: "explicit", false: "configured"}[explicit], func(t *testing.T) {
 			root, source := t.TempDir(), t.TempDir()
-			require.NoError(t, os.Mkdir(filepath.Join(root, "config"), 0700))
+			require.NoError(t, os.Mkdir(filepath.Join(root, "config"), 0o700))
 			require.NoError(t, os.WriteFile(filepath.Join(source, "config.toml"),
-				[]byte("model=\"theta/glm-5.3\"\n"), 0600))
+				[]byte("model=\"theta/glm-5.3\"\n"), 0o600))
 			cli, err := os.Executable()
 			require.NoError(t, err)
-			plan := object{"provider": "codex", "driverProfile": "approval", "project": root,
-				"scenario": object{"parameters": object{"approvalKind": "file", "nativeFileTool": "apply_patch"}}}
+			plan := object{
+				"provider": "codex", "driverProfile": "approval", "project": root,
+				"scenario": object{"parameters": object{"approvalKind": "file", "nativeFileTool": "apply_patch"}},
+			}
 			if explicit {
 				plan["model"] = "other/selected-model"
 			}

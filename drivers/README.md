@@ -24,12 +24,12 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 从仓库根目录执行：
 
 ```sh
-bash scripts/build.sh
-mise exec -- bash scripts/with-agent-sdk-testify.sh env \
+make bundle
+bash scripts/with-agent-sdk-testify.sh env \
   PYTHONPATH=drivers/common:drivers/codex/official:drivers/claude/official \
-  python3.11 -m unittest discover -s drivers/tests -v
-mise exec -- bash scripts/with-agent-sdk-testify.sh \
-  python3.11 -m unittest discover -s drivers/tests/scenarios -v
+  python3 -m unittest discover -s drivers/tests -v
+bash scripts/with-agent-sdk-testify.sh \
+  python3 -m unittest discover -s drivers/tests/scenarios -v
 ```
 
 构建输出默认位于 `.artifacts/build/`：
@@ -58,7 +58,7 @@ VCS 声明解析依赖也会因 CLI-bin 版本不可用而失败。
 在显式目录中复现（网络准备由操作者单独执行）：
 
 ```sh
-python3.11 -m venv /absolute/official-env
+python3 -m venv /absolute/official-env
 /absolute/official-env/bin/python -m pip install \
   'setuptools>=68' wheel 'uv_build>=0.11.19,<0.12' \
   'pydantic>=2.12' 'packaging>=26.2' 'claude-agent-sdk==0.2.174'

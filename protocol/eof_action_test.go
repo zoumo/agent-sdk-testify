@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,30 +24,38 @@ import (
 func recordEOFActionPeer(mode string) {
 	var child *exec.Cmd
 	var childDone chan error
-	if mode == "direct-only" {
-		child = exec.Command(os.Args[0], "-test.run=^TestRecordCLIHelper$", "--", "eof-action", "unhandled")
-		child.Env = os.Environ()
-		input, err := child.StdinPipe()
-		if err != nil {
-			os.Exit(90)
+	var input io.WriteCloser
+	var err error
+	exit := func(code int) {
+		if input != nil {
+			_ = input.Close()
 		}
-		defer input.Close()
+		os.Exit(code)
+	}
+	if mode == "direct-only" {
+		child = exec.CommandContext(context.Background(), os.Args[0], "-test.run=^TestRecordCLIHelper$", "--", "eof-action", "unhandled")
+		child.Env = os.Environ()
+		input, err = child.StdinPipe()
+		if err != nil {
+			exit(90)
+		}
 		output, err := child.StdoutPipe()
 		if err != nil || child.Start() != nil {
-			os.Exit(90)
+			exit(90)
 		}
 		if _, err = bufio.NewReader(output).ReadString('\n'); err != nil {
-			os.Exit(90)
+			exit(90)
 		}
 		childDone = make(chan error, 1)
 		go func() { childDone <- child.Wait() }()
 	}
 	signals := make(chan os.Signal, 1)
-	if mode == "unhandled" {
+	switch mode {
+	case "unhandled":
 		signal.Reset(syscall.SIGINT)
-	} else if mode == "ignore" {
+	case "ignore":
 		signal.Ignore(syscall.SIGINT)
-	} else {
+	default:
 		signal.Notify(signals, syscall.SIGINT)
 	}
 	eof := make(chan struct{})
@@ -76,18 +85,18 @@ func recordEOFActionPeer(mode string) {
 			}
 		}
 		fmt.Fprint(os.Stdout, "{\"closedBy\":\"EOF\"}\n")
-		os.Exit(1)
+		exit(1)
 	case <-signals:
 		// Stdin must remain open throughout native graceful shutdown.
 		select {
 		case <-eof:
-			os.Exit(92)
+			exit(92)
 		case <-time.After(30 * time.Millisecond):
 		}
 		if child != nil {
 			select {
 			case <-childDone:
-				os.Exit(91) // SIGINT must not reach the process group.
+				exit(91) // SIGINT must not reach the process group.
 			default:
 			}
 			_ = child.Process.Kill()
@@ -96,8 +105,11 @@ func recordEOFActionPeer(mode string) {
 		fmt.Fprint(os.Stdout, "{\"closedBy\":\"SIGINT\",\"data\":\""+strings.Repeat("x", 256*1024)+"\"}\n")
 		fmt.Fprint(os.Stderr, "shutdown flushed\n")
 		if mode == "nonzero" {
-			os.Exit(17)
+			exit(17)
 		}
+	}
+	if input != nil {
+		_ = input.Close()
 	}
 }
 
@@ -151,7 +163,7 @@ func TestRecordCLIStdinEOFAction(t *testing.T) {
 			} else {
 				assert.Nil(t, report.NativeExitCode)
 			}
-			assert.ErrorIs(t, syscall.Kill(peer.Ready, 0), syscall.ESRCH)
+			require.ErrorIs(t, syscall.Kill(peer.Ready, 0), syscall.ESRCH)
 			action := tc.action
 			if action == "" {
 				action = "close"
@@ -170,7 +182,7 @@ func TestRecordCLIStdinEOFAction(t *testing.T) {
 					require.NoError(t, err)
 					assert.Equal(t, "shutdown flushed\n", string(stderr))
 				} else {
-					assert.Equal(t, "{\"closedBy\":\"EOF\"}\n", string(output))
+					assert.Equal(t, "{\"closedBy\":\"EOF\"}\n", string(output)) //nolint:testifylint // Exact bytes are contractual.
 				}
 			}
 			raw, err := os.ReadFile(filepath.Join(p.dir, "raw.jsonl"))

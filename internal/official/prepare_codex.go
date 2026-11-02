@@ -2,6 +2,7 @@ package official
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ func prepareCodexIsolation(root string, plan object) error {
 	// ordinary case files reopen the discovery roots filtered from user config.
 	for _, name := range []string{".agents/skills", ".codex/skills", ".codex/config.toml"} {
 		if _, err := os.Lstat(filepath.Join(str(plan["project"]), name)); err == nil {
-			return fmt.Errorf("Codex recording isolation: workspace contains %s", name)
+			return fmt.Errorf("codex recording isolation: workspace contains %s", name)
 		} else if !os.IsNotExist(err) {
 			return err
 		}
@@ -30,7 +31,7 @@ func prepareCodexIsolation(root string, plan object) error {
 		switch {
 		case arg == "-c" || arg == "--config":
 			if i+1 == len(args) {
-				return fmt.Errorf("Codex recording isolation: missing config override")
+				return errors.New("codex recording isolation: missing config override")
 			}
 			i++
 			override = args[i]
@@ -41,28 +42,28 @@ func prepareCodexIsolation(root string, plan object) error {
 		case arg == "--cd" || strings.HasPrefix(arg, "--cd=") || strings.HasPrefix(arg, "-C"),
 			arg == "--profile" || strings.HasPrefix(arg, "--profile=") || strings.HasPrefix(arg, "-p"),
 			arg == "--code-mode-host" || strings.HasPrefix(arg, "--code-mode-host="):
-			return fmt.Errorf("Codex recording isolation: external workspace, profile or host")
+			return errors.New("codex recording isolation: external workspace, profile or host")
 		default:
 			continue
 		}
 		key, _, ok := strings.Cut(override, "=")
 		var config object
 		if !ok {
-			return fmt.Errorf("Codex recording isolation: malformed config override")
+			return errors.New("codex recording isolation: malformed config override")
 		}
 		if err := toml.Unmarshal([]byte(override), &config); err != nil {
 			// Native CLI accepts non-TOML values as strings. Parse the key
 			// separately so quoted instruction keys cannot bypass the check.
-			if err = toml.Unmarshal([]byte(key+`=""`), &config); err != nil {
-				return fmt.Errorf("Codex recording isolation: malformed config key")
+			if err := toml.Unmarshal([]byte(key+`=""`), &config); err != nil {
+				return errors.New("codex recording isolation: malformed config key")
 			}
 		}
 		if codexPersonalInputOverride(config) {
-			return fmt.Errorf("Codex recording isolation: personal discovery or instruction override")
+			return errors.New("codex recording isolation: personal discovery or instruction override")
 		}
 		if path, ok := config["model_catalog_json"]; ok {
-			if path != filepath.Join(root, "config/file-tool-model.json") {
-				return fmt.Errorf("Codex recording isolation: external model catalog")
+			if path != filepath.Join(root, "config", "file-tool-model.json") {
+				return errors.New("codex recording isolation: external model catalog")
 			}
 		}
 	}
@@ -129,18 +130,18 @@ func codexNativeArgs(profile string, params object) []string {
 func prepareCodexFileTool(root string, plan object) error {
 	model := str(plan["model"])
 	if model == "" {
-		data, err := os.ReadFile(filepath.Join(root, "config/config.toml"))
+		data, err := os.ReadFile(filepath.Join(root, "config", "config.toml"))
 		if err != nil {
 			return fmt.Errorf("file approval case needs an explicit model: %w", err)
 		}
 		var config struct{ Model string }
-		if err = toml.Unmarshal(data, &config); err != nil {
+		if err := toml.Unmarshal(data, &config); err != nil {
 			return err
 		}
 		model = config.Model
 	}
 	if model == "" {
-		return fmt.Errorf("file approval case needs an explicit model")
+		return errors.New("file approval case needs an explicit model")
 	}
 	plan["model"] = model
 	path := filepath.Join(root, "config", "file-tool-model.json")
@@ -156,14 +157,20 @@ func prepareCodexFileTool(root string, plan object) error {
 	if err := writeJSON(path, catalog); err != nil {
 		return err
 	}
-	quoted, _ := json.Marshal(path)
+	quoted, err := json.Marshal(path)
+	if err != nil {
+		return fmt.Errorf("encode model catalog path: %w", err)
+	}
 	plan["args"] = append(stringsOf(plan["args"]), "-c", "model_catalog_json="+string(quoted))
 	return nil
 }
 
 func prepareCodexChildFixture(root string) error {
 	prompt := "Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool."
-	b, _ := json.Marshal(prompt)
+	b, err := json.Marshal(prompt)
+	if err != nil {
+		return fmt.Errorf("encode child fixture prompt: %w", err)
+	}
 	role := "name=\"fixture_reader\"\ndescription=\"Read the single synthetic child fixture with fixture_read.\"\ndeveloper_instructions=" + string(b) + "\n"
 	if err := writeFiles(filepath.Join(root, "config"), object{"agents/fixture_reader.toml": role}); err != nil {
 		return err
@@ -188,7 +195,7 @@ func codexAuthEnvironment(path string, env map[string]string) error {
 			Headers map[string]string `toml:"env_http_headers"`
 		} `toml:"model_providers"`
 	}
-	if err = toml.Unmarshal(data, &config); err != nil {
+	if err := toml.Unmarshal(data, &config); err != nil {
 		return fmt.Errorf("selected Codex config: %w", err)
 	}
 	selected := config.Providers[config.Provider]
@@ -198,7 +205,7 @@ func codexAuthEnvironment(path string, env map[string]string) error {
 	}
 	for _, name := range names {
 		if codexReservedCredentialEnvironment(name) {
-			return fmt.Errorf("Codex recording isolation: reserved credential environment")
+			return errors.New("codex recording isolation: reserved credential environment")
 		}
 		if value, ok := os.LookupEnv(name); name != "" && ok {
 			env[name] = value
@@ -242,7 +249,7 @@ func filterCodexConfig(path string) error {
 		return err
 	}
 	var source object
-	if err = toml.Unmarshal(data, &source); err != nil {
+	if err := toml.Unmarshal(data, &source); err != nil {
 		return err
 	}
 	selected := object{}
@@ -266,5 +273,5 @@ func filterCodexConfig(path string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, filtered, 0600)
+	return os.WriteFile(path, filtered, 0o600)
 }

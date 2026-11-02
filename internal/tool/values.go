@@ -61,7 +61,7 @@ func WriteJSON(path string, v any) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, append(b, '\n'), 0600)
+	return os.WriteFile(path, append(b, '\n'), 0o600)
 }
 
 func DigestBytes(data []byte) string {

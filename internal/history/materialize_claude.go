@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,7 +27,7 @@ func MaterializeClaude(source, root, workspace string, plan object) error {
 			continue
 		}
 		seen[cwd] = true
-		prefix := filepath.Join("config/projects", key.ReplaceAllString(cwd, "-"))
+		prefix := filepath.Join("config", "projects", key.ReplaceAllString(cwd, "-"))
 		original := filepath.Join(source, prefix)
 		if _, err := os.Stat(original); os.IsNotExist(err) {
 			continue
@@ -41,12 +42,12 @@ func MaterializeClaude(source, root, workspace string, plan object) error {
 			if err != nil {
 				return err
 			}
-			derived := filepath.Join("config/projects", targetKey, rel)
+			derived := filepath.Join("config", "projects", targetKey, rel)
 			if entry.IsDir() {
-				return os.MkdirAll(filepath.Join(root, derived), 0700)
+				return os.MkdirAll(filepath.Join(root, derived), 0o700)
 			}
 			if !entry.Type().IsRegular() {
-				return fmt.Errorf("non-regular Claude history material")
+				return errors.New("non-regular Claude history material")
 			}
 			data, err := os.ReadFile(path)
 			if err != nil {
@@ -74,10 +75,13 @@ func MaterializeClaude(source, root, workspace string, plan object) error {
 							return err
 						}
 						if recordedCWD != "" && recordedCWD != cwd {
-							return fmt.Errorf("Claude history cwd differs from original project")
+							return errors.New("claude history cwd differs from original project")
 						}
 						if recordedCWD == cwd {
-							encoded, _ := json.Marshal(workspace)
+							encoded, err := json.Marshal(workspace)
+							if err != nil {
+								return fmt.Errorf("encode claude history workspace: %w", err)
+							}
 							replacement, err := rawjson.Parse(encoded)
 							if err != nil {
 								return err
@@ -93,7 +97,7 @@ func MaterializeClaude(source, root, workspace string, plan object) error {
 				}
 				output = result.Bytes()
 			}
-			f, err := os.OpenFile(filepath.Join(root, derived), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+			f, err := os.OpenFile(filepath.Join(root, derived), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 			if err != nil {
 				return err // Never overwrite an original or merge ambiguous projects.
 			}

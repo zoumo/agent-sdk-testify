@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -77,27 +78,27 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 		}
 	}()
 	for _, dir := range []string{root, workspace, filepath.Join(root, "home"), filepath.Join(root, "config"), filepath.Join(root, "tmp"), filepath.Join(o.Output, "materials")} {
-		if err = os.MkdirAll(dir, 0700); err != nil {
+		if err := os.MkdirAll(dir, 0o700); err != nil {
 			return nil, err
 		}
 	}
-	if err = writeFiles(workspace, obj(obj(plan["scenario"])["files"])); err != nil {
+	if err := writeFiles(workspace, obj(obj(plan["scenario"])["files"])); err != nil {
 		return nil, err
 	}
 	// Saved material reuse belongs to offline runs. New captures may only
 	// import history through the explicit, provenance-checked seed path.
 	if o.Mode != "record" {
-		if err = copySaved(o.Materials, root); err != nil {
+		if err := copySaved(o.Materials, root); err != nil {
 			return nil, err
 		}
 	}
 	if o.Mode != "record" && provider == "claude" {
-		if err = materializeClaude(o.Materials, root, workspace, plan); err != nil {
+		if err := materializeClaude(o.Materials, root, workspace, plan); err != nil {
 			return nil, err
 		}
 	}
 	if o.Mode == "record" && plan["driverProfile"] == "existing-children" && o.HistorySeed != "" {
-		if err = prepareHistorySeed(o.HistorySeed, root, plan); err != nil {
+		if err := prepareHistorySeed(o.HistorySeed, root, plan); err != nil {
 			return nil, err
 		}
 	}
@@ -107,14 +108,14 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	if o.Mode != "record" {
 		for _, name := range []string{"remote-service.json"} {
 			if _, e := os.Stat(filepath.Join(o.Materials, name)); e == nil {
-				if err = copyFile(filepath.Join(o.Materials, name), filepath.Join(root, name)); err != nil {
+				if err := copyFile(filepath.Join(o.Materials, name), filepath.Join(root, name)); err != nil {
 					return nil, err
 				}
 			}
 		}
 	} else {
 		plan["project"] = workspace
-		if err = prepareNative(ctx, &o, plan, root); err != nil {
+		if err := prepareNative(ctx, &o, plan, root); err != nil {
 			return nil, err
 		}
 		plan["recordingIsolation"] = isolatedRecording
@@ -145,24 +146,24 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	}
 	// Keep original source data for provider-owned assertions; mutable runtime
 	// paths belong to this attempt. No exact SDK or executable version gate.
-	if err = writeJSON(filepath.Join(o.Output, "materials/case.json"), plan); err != nil {
+	if err := writeJSON(filepath.Join(o.Output, "materials", "case.json"), plan); err != nil {
 		return nil, err
 	}
 	req := request{Case: str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Workspace: workspace, Peer: peers.driver, Output: root}
 	requestPath := filepath.Join(o.Output, "request.json")
-	if err = writeJSON(requestPath, req); err != nil {
+	if err := writeJSON(requestPath, req); err != nil {
 		return nil, err
 	}
-	if err = writeJSON(filepath.Join(root, "plan.json"), plan); err != nil {
+	if err := writeJSON(filepath.Join(root, "plan.json"), plan); err != nil {
 		return nil, err
 	}
 	if _, e := os.Stat(filepath.Join(o.Materials, "report.json")); o.Mode != "record" && e == nil {
-		if err = copyFile(filepath.Join(o.Materials, "report.json"), filepath.Join(root, "source-report.json")); err != nil {
+		if err := copyFile(filepath.Join(o.Materials, "report.json"), filepath.Join(root, "source-report.json")); err != nil {
 			return nil, err
 		}
 	}
 	if _, e := os.Stat(filepath.Join(root, "source-report.json")); e == nil {
-		if err = copyFile(filepath.Join(root, "source-report.json"), filepath.Join(root, "report.json")); err != nil {
+		if err := copyFile(filepath.Join(root, "source-report.json"), filepath.Join(root, "report.json")); err != nil {
 			return nil, err
 		}
 	}
@@ -174,17 +175,17 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	if err != nil {
 		return nil, err
 	}
-	log, err := os.OpenFile(filepath.Join(o.Output, "stderr.log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	log, err := os.OpenFile(filepath.Join(o.Output, "stderr.log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return nil, err
 	}
 	defer log.Close()
-	stdout, err := os.OpenFile(filepath.Join(o.Output, "stdout.log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	stdout, err := os.OpenFile(filepath.Join(o.Output, "stdout.log"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return nil, err
 	}
 	defer stdout.Close()
-	cmd := exec.Command(driver, append(append([]string{}, o.DriverArgs...), "--request", requestPath)...)
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), driver, append(append([]string{}, o.DriverArgs...), "--request", requestPath)...)
 	cmd.Dir = workspace
 	cmd.Env = env
 	cmd.Stdout = stdout
@@ -228,11 +229,11 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	// Versions and hashes aid diagnosis; they never select or reject a runtime.
 	summary["driver"] = driver
 	summary["driverArgs"] = o.DriverArgs
-	if b, e := os.ReadFile(filepath.Join(root, "raw/raw.jsonl")); e == nil {
+	if b, e := os.ReadFile(filepath.Join(root, "raw", "raw.jsonl")); e == nil {
 		h := sha256.Sum256(b)
 		summary["recordingSHA256"] = hex.EncodeToString(h[:])
 	}
-	if err = writeJSON(filepath.Join(o.Output, "summary.json"), summary); err != nil {
+	if err := writeJSON(filepath.Join(o.Output, "summary.json"), summary); err != nil {
 		return summary, errors.Join(runErr, err)
 	}
 	if runErr != nil {
@@ -258,9 +259,7 @@ func driverEnvironment(o options, plan object) ([]string, error) {
 		if err := readJSON(filepath.Join(str(plan["root"]), "native.env.private.json"), &selected); err != nil {
 			return nil, err
 		}
-		for k, v := range selected {
-			env[k] = v
-		}
+		maps.Copy(env, selected)
 	}
 	var out []string
 	for k, v := range env {

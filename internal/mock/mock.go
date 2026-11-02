@@ -71,7 +71,7 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 		return protocolcmd.Fail(protocolcmd.ExitConfiguration, e)
 	}
 	if *help {
-		fmt.Fprintln(os.Stderr, "Builtin: mock --list [--provider PROVIDER] --json; mock --describe --provider PROVIDER --case CASE --json; mock [--prepare] --provider PROVIDER --case CASE (see docs/builtin.md)")
+		fmt.Fprintln(os.Stderr, "Builtin: mock --list [--provider PROVIDER] --json; mock --describe --provider PROVIDER --case CASE --json; mock [--prepare] --provider PROVIDER --case CASE (see docs/using-mock.md)")
 		fmt.Fprintln(os.Stderr, "Prepared modes: mock --prepare --recording ABS --output ABS; mock --run ABS/run.json [--connection main|probe]; mock --finish ABS/run.json")
 		f.PrintDefaults()
 		return nil
@@ -110,15 +110,17 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 		return bad(e)
 	}
 	reportPath = filepath.Join(reportParent, filepath.Base(reportPath))
-	if rel, e := filepath.Rel(sourceRoot, reportPath); e != nil || filepath.IsLocal(rel) {
+	if rel, relErr := filepath.Rel(sourceRoot, reportPath); relErr != nil || filepath.IsLocal(rel) {
 		return bad(errors.New("report must be outside the recording directory"))
 	}
-	receiptFile, e := os.OpenFile(reportPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	receiptFile, e := os.OpenFile(reportPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if e != nil {
 		return bad(e)
 	}
-	receipt := object{"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
-		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": protocolcmd.Version}
+	receipt := object{
+		"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
+		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": protocolcmd.Version,
+	}
 	defer func() {
 		if selection != nil {
 			receipt["builtin"] = selection
@@ -134,8 +136,8 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 		err = errors.Join(err, closeErr, atomicMockJSON(reportPath, receipt))
 	}()
 	if selection != nil {
-		if e = checkBuiltinMaterial(sourceRoot, selection.Material); e != nil {
-			return bad(e)
+		if checkErr := checkBuiltinMaterial(sourceRoot, selection.Material); checkErr != nil {
+			return bad(checkErr)
 		}
 	}
 	manifest, plan, document, e := loadMockPhase(sourceRoot, *provider, *phase)
@@ -143,8 +145,8 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 		return bad(e)
 	}
 	*provider = str(plan["provider"])
-	if e = protocolcmd.ValidateNativeArgs(*provider, native); e != nil {
-		return bad(e)
+	if checkErr := protocolcmd.ValidateNativeArgs(*provider, native); checkErr != nil {
+		return bad(checkErr)
 	}
 	receipt["provider"] = *provider
 	receipt["planSHA256"] = manifest["planSHA256"]
@@ -176,12 +178,6 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 	}
 	receipt["status"], receipt["fullConsumption"], receipt["clientEOF"] = "passed", true, true
 	return nil
-}
-
-// The engine's dedicated progress descriptor distinguishes full consumption
-// from successful EOF. Run closes it and all protocol duplicates before return.
-func mockProtocol(ctx context.Context, document *recording.Document) (bool, error) {
-	return mockProtocolNotifying(ctx, document, nil)
 }
 
 func mockProtocolNotifying(ctx context.Context, document *recording.Document, notification *os.File) (bool, error) {
@@ -230,21 +226,20 @@ func loadMockSource(sourceRoot, provider string) (object, object, *recording.Doc
 }
 
 func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recording.Document, error) {
-	var e error
 	// Unlike legacy shared-material loaders, this entry requires the source
 	// manifest to bind both the plan and the raw stream, even for synthetic input.
 	var manifest, plan object
-	if e := readJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); e != nil {
-		return nil, nil, nil, e
+	if readErr := readJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); readErr != nil {
+		return nil, nil, nil, readErr
 	}
 	if str(manifest["planSHA256"]) == "" || str(obj(manifest["files"])["raw.jsonl"]) == "" {
 		return nil, nil, nil, errors.New("source manifest requires planSHA256 and files.raw.jsonl")
 	}
-	if e = verifySourcePhase(sourceRoot, true); e != nil {
-		return nil, nil, nil, e
+	if err := verifySourcePhase(sourceRoot, true); err != nil {
+		return nil, nil, nil, err
 	}
-	if e = readJSON(filepath.Join(sourceRoot, "plan.json"), &plan); e != nil {
-		return nil, nil, nil, e
+	if err := readJSON(filepath.Join(sourceRoot, "plan.json"), &plan); err != nil {
+		return nil, nil, nil, err
 	}
 	if provider == "" {
 		provider = str(plan["provider"])
@@ -254,24 +249,24 @@ func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recordi
 	rawRoot := filepath.Join(sourceRoot, "raw")
 	expected := str(obj(manifest["files"])["raw.jsonl"])
 	if phase == "probe" && plan["driverProfile"] == "remote-close" {
-		rawRoot = filepath.Join(sourceRoot, "remote-probe/raw")
+		rawRoot = filepath.Join(sourceRoot, "remote-probe", "raw")
 		expected = str(obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"])
 		if expected == "" {
 			return nil, nil, nil, errors.New("source manifest must bind selected probe stream")
 		}
-		if e = verifySourcePhase(filepath.Join(sourceRoot, "remote-probe"), true); e != nil {
-			return nil, nil, nil, e
+		if err := verifySourcePhase(filepath.Join(sourceRoot, "remote-probe"), true); err != nil {
+			return nil, nil, nil, err
 		}
 	} else if phase != "main" {
 		return nil, nil, nil, errors.New("undeclared recording phase")
 	}
-	source, e := os.Open(filepath.Join(rawRoot, "raw.jsonl"))
-	if e != nil {
-		return nil, nil, nil, e
+	source, err := os.Open(filepath.Join(rawRoot, "raw.jsonl"))
+	if err != nil {
+		return nil, nil, nil, err
 	}
 	document, readErr := recording.Read(source, provider, recording.Limits{})
-	if e = errors.Join(readErr, source.Close()); e != nil {
-		return nil, nil, nil, e
+	if err := errors.Join(readErr, source.Close()); err != nil {
+		return nil, nil, nil, err
 	}
 	if document.SHA256 != expected {
 		return nil, nil, nil, errors.New("source hash mismatch: raw.jsonl")
@@ -287,12 +282,12 @@ func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recordi
 		if readErr != nil {
 			return nil, nil, nil, readErr
 		}
-		if e = json.Unmarshal(data, &metadata); e != nil {
-			return nil, nil, nil, e
+		if err := json.Unmarshal(data, &metadata); err != nil {
+			return nil, nil, nil, err
 		}
 		if _, present := metadata["recordingFormat"]; present {
-			if _, e = recording.ValidateManifest(data, "raw.jsonl", document.Original); e != nil {
-				return nil, nil, nil, e
+			if _, err := recording.ValidateManifest(data, "raw.jsonl", document.Original); err != nil {
+				return nil, nil, nil, err
 			}
 		}
 	}

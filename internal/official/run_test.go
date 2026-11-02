@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -84,10 +85,10 @@ func testDriver(args []string) int {
 		return 9
 	}
 	if r.Case == "bad-result" {
-		_ = os.WriteFile(filepath.Join(r.Output, "result.json"), []byte(`{`), 0600)
+		_ = os.WriteFile(filepath.Join(r.Output, "result.json"), []byte(`{`), 0o600)
 		return 0
 	}
-	cmd := exec.Command(r.Peer.Command.Command, r.Peer.Command.Args...)
+	cmd := exec.CommandContext(context.Background(), r.Peer.Command.Command, r.Peer.Command.Args...)
 	in, e := cmd.StdinPipe()
 	if e != nil {
 		return 2
@@ -97,7 +98,7 @@ func testDriver(args []string) int {
 		return 2
 	}
 	cmd.Stderr = os.Stderr
-	if e = cmd.Start(); e != nil {
+	if startErr := cmd.Start(); startErr != nil {
 		return 2
 	}
 	if r.Case == "cancel" {
@@ -154,9 +155,11 @@ func testDriver(args []string) int {
 		if plan["corpusTestFail"] == true {
 			status = "failed"
 		}
-		business := object{"status": status, "branchStatus": status, "captureStatus": "complete",
+		business := object{
+			"status": status, "branchStatus": status, "captureStatus": "complete",
 			"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
-			"officialSDK": object{"package": "openai-codex", "version": "synthetic-test-only"}}
+			"officialSDK": object{"package": "openai-codex", "version": "synthetic-test-only"},
+		}
 		if writeJSON(filepath.Join(r.Output, name), business) != nil {
 			return 2
 		}
@@ -173,19 +176,21 @@ func testDriver(args []string) int {
 func sample(t *testing.T, id string) options {
 	t.Helper()
 	source := t.TempDir()
-	require.NoError(t, os.Mkdir(filepath.Join(source, "raw"), 0700))
-	frames := []object{{"ordinal": 1, "direction": "c2s", "channel": "protocol", "epoch": 1, "elapsedMs": 0, "wire": object{"id": 1, "method": "ping"}},
-		{"ordinal": 2, "direction": "s2c", "channel": "protocol", "epoch": 1, "elapsedMs": 1, "wire": object{"id": 1, "result": object{}}}}
+	require.NoError(t, os.Mkdir(filepath.Join(source, "raw"), 0o700))
+	frames := []object{
+		{"ordinal": 1, "direction": "c2s", "channel": "protocol", "epoch": 1, "elapsedMs": 0, "wire": object{"id": 1, "method": "ping"}},
+		{"ordinal": 2, "direction": "s2c", "channel": "protocol", "epoch": 1, "elapsedMs": 1, "wire": object{"id": 1, "result": object{}}},
+	}
 	var data []byte
 	for _, f := range frames {
 		b, e := json.Marshal(f)
 		require.NoError(t, e)
 		data = append(append(data, b...), '\n')
 	}
-	require.NoError(t, os.WriteFile(filepath.Join(source, "raw/raw.jsonl"), data, 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), data, 0o600))
 	require.NoError(t, writeJSON(filepath.Join(source, "plan.json"), object{"provider": "codex", "caseId": id, "project": filepath.Join(source, "original-cwd"), "driverProfile": "continuation", "args": []string{"synthetic-agent"}, "scenario": object{"files": object{"numbers.txt": "7\n11\n"}}, "agentMock": object{"sha256": "deliberately-different", "version": "old-version"}}))
 	peer := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	require.NotEmpty(t, peer, "run with scripts/with-agent-sdk-testify.sh")
+	require.NotEmpty(t, peer, "run with make test")
 	self, e := os.Executable()
 	require.NoError(t, e)
 	return options{Mode: "verify", Materials: source, Driver: self, DriverArgs: []string{"driver"}, Peer: peer, Output: filepath.Join(t.TempDir(), "run")}
@@ -195,7 +200,7 @@ func TestDriverContract(t *testing.T) {
 	for _, id := range []string{"passed", "failed", "crash", "bad-result", "false-pass", "wrong-hash", "wrong-provider", "not-consumed", "no-eof", "native-launched", "unsupported", "untriggered"} {
 		t.Run(id, func(t *testing.T) {
 			o := sample(t, id)
-			before, e := os.ReadFile(filepath.Join(o.Materials, "raw/raw.jsonl"))
+			before, e := os.ReadFile(filepath.Join(o.Materials, "raw", "raw.jsonl"))
 			require.NoError(t, e)
 			summary, e := Run(context.Background(), o)
 			if id == "passed" {
@@ -219,25 +224,25 @@ func TestDriverContract(t *testing.T) {
 					require.ErrorContains(t, e, "main peer:")
 				}
 			}
-			after, e := os.ReadFile(filepath.Join(o.Materials, "raw/raw.jsonl"))
+			after, e := os.ReadFile(filepath.Join(o.Materials, "raw", "raw.jsonl"))
 			require.NoError(t, e)
 			require.Equal(t, before, after)
 			var plan object
-			require.NoError(t, readJSON(filepath.Join(o.Output, "materials/case.json"), &plan))
+			require.NoError(t, readJSON(filepath.Join(o.Output, "materials", "case.json"), &plan))
 			require.Equal(t, filepath.Join(o.Materials, "original-cwd"), plan["project"])
-			require.FileExists(t, filepath.Join(o.Output, "project/numbers.txt"))
+			require.FileExists(t, filepath.Join(o.Output, "project", "numbers.txt"))
 		})
 	}
 }
 
 func TestUnselectedPeerMaterialsDoNotRequireReceipt(t *testing.T) {
 	o := sample(t, "passed")
-	probe := filepath.Join(o.Materials, "remote-probe/raw")
-	require.NoError(t, os.MkdirAll(probe, 0700))
-	require.NoError(t, copyFile(filepath.Join(o.Materials, "raw/raw.jsonl"), filepath.Join(probe, "raw.jsonl")))
+	probe := filepath.Join(o.Materials, "remote-probe", "raw")
+	require.NoError(t, os.MkdirAll(probe, 0o700))
+	require.NoError(t, copyFile(filepath.Join(o.Materials, "raw", "raw.jsonl"), filepath.Join(probe, "raw.jsonl")))
 	_, err := Run(context.Background(), o)
 	require.NoError(t, err)
-	require.NoFileExists(t, filepath.Join(o.Output, "remote-probe/replay-peer.json"))
+	require.NoFileExists(t, filepath.Join(o.Output, "remote-probe", "replay-peer.json"))
 }
 
 func TestCancellation(t *testing.T) {
@@ -263,7 +268,7 @@ func TestCaptureWithSyntheticNative(t *testing.T) {
 	}
 	require.NoError(t, e)
 	require.Equal(t, "passed", summary["result"].(result).Status)
-	require.FileExists(t, filepath.Join(o.Output, "raw/transport.json"))
+	require.FileExists(t, filepath.Join(o.Output, "raw", "transport.json"))
 	require.NoFileExists(t, filepath.Join(o.Output, "native.env.private.json"))
 	// The recording output itself is the next stage's material directory.
 	replay := o

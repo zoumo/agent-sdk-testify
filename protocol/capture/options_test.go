@@ -2,7 +2,6 @@ package capture
 
 import (
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,7 +31,7 @@ func TestRunRejectsInvalidConfigurationWithoutCreatingOutput(t *testing.T) {
 			require.ErrorAs(t, err, &failure)
 			assert.Equal(t, Configuration, failure.Kind)
 			_, err = os.Stat(output)
-			assert.True(t, errors.Is(err, os.ErrNotExist))
+			assert.ErrorIs(t, err, os.ErrNotExist)
 		})
 	}
 }

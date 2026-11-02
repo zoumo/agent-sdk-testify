@@ -6,11 +6,8 @@ if [[ $# != 0 ]]; then
   echo "usage: bash scripts/build.sh" >&2
   exit 2
 fi
-if [[ "$(go env GOVERSION 2>/dev/null || true)" != go1.26.9 ]]; then
-  exec mise exec -C "$source" -- bash "$0"
-fi
 output=${AGENT_SDK_TESTIFY_BUILD_DIR:-"$source/.artifacts/build"}
 mkdir -p "$output"
 go -C "$source" run -tags builtin_generate . --check
 go -C "$source" build -o "$output/agent-sdk-testify" .
-"${PYTHON:-python3.11}" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$output" "$source/drivers"
+"${PYTHON:-python3}" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$output" "$source/drivers"

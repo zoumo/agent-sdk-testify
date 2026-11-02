@@ -1,10 +1,12 @@
 package rawjson_test
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
-	"testing"
 )
 
 func TestRawAndSurgicalReplacement(t *testing.T) {
@@ -16,7 +18,7 @@ func TestRawAndSurgicalReplacement(t *testing.T) {
 	require.NoError(t, err)
 	changed, err := v.Replace([]string{"response", "request_id"}, replacement)
 	require.NoError(t, err)
-	assert.Equal(t, `  { "z":9007199254740993,"response":{ "request_id":"new", "payload":{"request_id":"literal","decimal":0.123456789012345678901234567890,"exp":1e+09}}, "a":[-0,true,null,"\u0061"] } `, string(changed.Raw()))
+	assert.Equal(t, `  { "z":9007199254740993,"response":{ "request_id":"new", "payload":{"request_id":"literal","decimal":0.123456789012345678901234567890,"exp":1e+09}}, "a":[-0,true,null,"\u0061"] } `, string(changed.Raw())) //nolint:testifylint // Exact bytes are contractual.
 	assert.Equal(t, original, v.Raw())
 	original[2] = 'X'
 	copied := v.Raw()
@@ -36,10 +38,17 @@ func TestExactSemanticComparison(t *testing.T) {
 		equal bool
 	}{
 		{`{"a":1,"b":[true,"a"]}`, `{"b":[true,"\u0061"],"a":1}`, true},
-		{`1`, ` 1 `, true}, {`1`, `1.0`, false}, {`1e3`, `1000`, false}, {`-0`, `0`, false},
+		{`1`, ` 1 `, true},
+		{`1`, `1.0`, false},
+		{`1e3`, `1000`, false},
+		{`-0`, `0`, false},
 		{`"\ud83d\ude00"`, `"😀"`, true},
-		{`9007199254740993`, `9007199254740992`, false}, {`true`, `1`, false}, {`"1"`, `1`, false},
-		{`{"unknown":null}`, `{}`, false}, {`[1,2]`, `[2,1]`, false}, {`{"x":1}`, `{"x":2}`, false},
+		{`9007199254740993`, `9007199254740992`, false},
+		{`true`, `1`, false},
+		{`"1"`, `1`, false},
+		{`{"unknown":null}`, `{}`, false},
+		{`[1,2]`, `[2,1]`, false},
+		{`{"x":1}`, `{"x":2}`, false},
 	} {
 		t.Run(tt.a+"/"+tt.b, func(t *testing.T) {
 			a, err := rawjson.Parse([]byte(tt.a))

@@ -15,11 +15,11 @@ func TestHistorySeedUsesCaptureWithoutReplay(t *testing.T) {
 			source, err := filepath.EvalSymlinks(source)
 			require.NoError(t, err)
 			root := t.TempDir()
-			require.NoError(t, os.MkdirAll(filepath.Join(source, "project"), 0700))
+			require.NoError(t, os.MkdirAll(filepath.Join(source, "project"), 0o700))
 			require.NoError(t, writeFiles(filepath.Join(source, "project"), object{"fixture.txt": "synthetic source\n"}))
-			require.NoError(t, os.MkdirAll(filepath.Join(source, "raw"), 0700))
-			require.NoError(t, os.WriteFile(filepath.Join(source, "raw/raw.jsonl"), []byte("{}\n"), 0600))
-			require.NoError(t, writeJSON(filepath.Join(source, "raw/transport.json"), object{"captureStatus": "complete", "cleanupComplete": true}))
+			require.NoError(t, os.MkdirAll(filepath.Join(source, "raw"), 0o700))
+			require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), []byte("{}\n"), 0o600))
+			require.NoError(t, writeJSON(filepath.Join(source, "raw", "transport.json"), object{"captureStatus": "complete", "cleanupComplete": true}))
 			plan := object{"provider": provider, "driverProfile": "history", "project": filepath.Join(source, "project"), "model": "synthetic-model", "recordingIsolation": isolatedRecording, "scenario": object{"parameters": object{"historyTarget": "child-messages"}}}
 			require.NoError(t, writeJSON(filepath.Join(source, "plan.json"), plan))
 			receipts := []object{{"list_subagents": object{"sessionId": "parent", "agentIds": []string{"child"}}}}
@@ -56,7 +56,7 @@ func TestHistorySeedUsesCaptureWithoutReplay(t *testing.T) {
 				require.NoError(t, verifyFile(root, name, str(obj(value)["sha256"])))
 				// Native resume may append mode metadata to its writable copy.
 				writable := filepath.Join(root, str(obj(value)["source"]))
-				f, e := os.OpenFile(writable, os.O_APPEND|os.O_WRONLY, 0600)
+				f, e := os.OpenFile(writable, os.O_APPEND|os.O_WRONLY, 0o600)
 				require.NoError(t, e)
 				_, e = f.WriteString("{\"type\":\"system\",\"subtype\":\"mode\"}\n")
 				require.NoError(t, e)

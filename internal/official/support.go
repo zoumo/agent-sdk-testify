@@ -1,8 +1,6 @@
 package official
 
 import (
-	"time"
-
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
@@ -18,7 +16,6 @@ type Options struct {
 	HistorySeed                                                               string
 	InitialModel                                                              string
 	DriverArgs                                                                []string
-	Timeout                                                                   time.Duration
 }
 
 type DriverPeer struct {
@@ -51,13 +48,10 @@ var (
 	readJSON               = tool.ReadJSON
 	writeJSON              = tool.WriteJSON
 	fileDigest             = tool.FileDigest
-	digestBytes            = tool.DigestBytes
 	absoluteExecutable     = tool.AbsoluteExecutable
 	waitDriver             = tool.WaitDriver
 	createOutput           = tool.CreateOutput
-	outputBase             = tool.OutputBase
 	copyFile               = tool.CopyFile
-	copyTree               = tool.CopyTree
 	writeFiles             = tool.WriteFiles
 	copySaved              = tool.CopySaved
 	verifyFile             = corpus.VerifyFile

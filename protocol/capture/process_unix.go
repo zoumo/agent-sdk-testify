@@ -3,6 +3,7 @@
 package capture
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -30,11 +31,13 @@ func environment(o Options) []string {
 				filtered = append(filtered, item)
 			}
 		}
-		env = append(filtered, override)
+		filtered = append(filtered, override)
+		env = filtered
 	}
 	return env
 }
-func prepare(o Options) (*exec.Cmd, recording.NativeIdentity, error) {
+
+func prepare(ctx context.Context, o Options) (*exec.Cmd, recording.NativeIdentity, error) {
 	identity := recording.NativeIdentity{Args: append([]string{}, o.Command[1:]...), Version: o.NativeVersion}
 	cwd := o.CWD
 	var err error
@@ -63,8 +66,8 @@ func prepare(o Options) (*exec.Cmd, recording.NativeIdentity, error) {
 	if !strings.ContainsRune(executable, os.PathSeparator) {
 		var search string
 		for _, item := range env {
-			if strings.HasPrefix(item, "PATH=") {
-				search = strings.TrimPrefix(item, "PATH=")
+			if after, ok := strings.CutPrefix(item, "PATH="); ok {
+				search = after
 			}
 		}
 		executable = ""
@@ -102,7 +105,7 @@ func prepare(o Options) (*exec.Cmd, recording.NativeIdentity, error) {
 	if err != nil {
 		return nil, identity, err
 	}
-	cmd := exec.Command(executable, o.Command[1:]...)
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), executable, o.Command[1:]...)
 	cmd.Dir, cmd.Env = cwd, env
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	return cmd, identity, nil
@@ -121,7 +124,7 @@ func interruptible(file *os.File) (*os.File, error) {
 		return nil, err
 	}
 	syscall.CloseOnExec(fd)
-	if err = syscall.SetNonblock(fd, true); err != nil {
+	if err := syscall.SetNonblock(fd, true); err != nil {
 		syscall.Close(fd)
 		return nil, err
 	}
@@ -140,6 +143,7 @@ func groupExists(pid int) (bool, error) {
 	}
 	return err == nil, err
 }
+
 func signalGroup(pid int, signal syscall.Signal) error {
 	err := syscall.Kill(-pid, signal)
 	if errors.Is(err, syscall.ESRCH) {

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"io/fs"
+	"maps"
 	"os"
 	"strings"
 
@@ -50,9 +51,7 @@ func mockQuery(args []string) error {
 			continue
 		}
 		row := object{}
-		for k, v := range coverage {
-			row[k] = v
-		}
+		maps.Copy(row, coverage)
 		catalogPlan, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: str(row["provider"]), Case: str(row["caseId"])})
 		if err != nil {
 			return err
@@ -62,7 +61,7 @@ func mockQuery(args []string) error {
 			return err
 		}
 		var story object
-		if err = json.Unmarshal(raw, &story); err != nil {
+		if err := json.Unmarshal(raw, &story); err != nil {
 			return err
 		}
 		for _, c := range array(story["cases"]) {
@@ -75,7 +74,7 @@ func mockQuery(args []string) error {
 			return err
 		}
 		var binding object
-		if err = json.Unmarshal(raw, &binding); err != nil {
+		if err := json.Unmarshal(raw, &binding); err != nil {
 			return err
 		}
 		row["binding"] = obj(binding["cases"])[str(row["caseId"])]

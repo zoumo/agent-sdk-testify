@@ -11,10 +11,10 @@ func CopyFile(source, target string) error {
 	if err != nil {
 		return err
 	}
-	if err = os.MkdirAll(filepath.Dir(target), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(target), 0o700); err != nil {
 		return err
 	}
-	return os.WriteFile(target, b, 0600)
+	return os.WriteFile(target, b, 0o600)
 }
 
 func CopyTree(source, target string) error {
@@ -28,7 +28,7 @@ func CopyTree(source, target string) error {
 		}
 		dest := filepath.Join(target, rel)
 		if d.IsDir() {
-			return os.MkdirAll(dest, 0700)
+			return os.MkdirAll(dest, 0o700)
 		}
 		if !d.Type().IsRegular() {
 			return fmt.Errorf("material is not a regular file: %s", p)
@@ -43,10 +43,10 @@ func WriteFiles(root string, files Object) error {
 			return fmt.Errorf("material path escapes workspace: %s", name)
 		}
 		path := filepath.Join(root, name)
-		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 			return err
 		}
-		if err := os.WriteFile(path, []byte(Str(value)), 0600); err != nil {
+		if err := os.WriteFile(path, []byte(Str(value)), 0o600); err != nil {
 			return err
 		}
 	}

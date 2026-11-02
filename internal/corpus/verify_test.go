@@ -2,17 +2,19 @@ package corpus
 
 import (
 	"bufio"
+	"context"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestVerifyOfficialOnlySelection(t *testing.T) {
 	for _, args := range [][]string{{"--help"}, {"--driver", "/never-execute"}, {"--driver-arg", "x"}, {"--peer", "/never-execute"}, {"--sdk-driver", "/never-execute"}} {
-		cmd := exec.Command(os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"verify"}, args...)...)
+		cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"verify"}, args...)...)
 		cmd.Dir = t.TempDir()
 		data, err := cmd.CombinedOutput()
 		if args[0] == "--help" {
@@ -46,7 +48,7 @@ func verifyDriverSubstitute(args []string) int {
 		entries = append(entries, *req.Peer.Probe)
 	}
 	for _, entry := range entries {
-		cmd := exec.Command(entry.Command, entry.Args...)
+		cmd := exec.CommandContext(context.Background(), entry.Command, entry.Args...)
 		in, _ := cmd.StdinPipe()
 		out, _ := cmd.StdoutPipe()
 		cmd.Stderr = os.Stderr
@@ -119,8 +121,8 @@ func verifyFixture(t *testing.T, mode string) (*exec.Cmd, string, string) {
 	s.SetT(t)
 	s.SetupTest()
 	s.evidence()
-	raw := filepath.Join(s.source, "raw/raw.jsonl")
-	file, e := os.OpenFile(raw, os.O_APPEND|os.O_WRONLY, 0600)
+	raw := filepath.Join(s.source, "raw", "raw.jsonl")
+	file, e := os.OpenFile(raw, os.O_APPEND|os.O_WRONLY, 0o600)
 	require.NoError(t, e)
 	_, e = file.WriteString(`{"ordinal":2,"direction":"s2c","channel":"protocol","epoch":1,"elapsedMs":1,"wire":{"id":1,"result":{}}}` + "\n")
 	require.NoError(t, e)
@@ -145,9 +147,9 @@ func verifyFixture(t *testing.T, mode string) (*exec.Cmd, string, string) {
 	self, err := os.Executable()
 	require.NoError(t, err)
 	script := fmt.Sprintf("#!/bin/sh\nexec %q verify-driver-substitute %q \"$@\"\n", self, mode)
-	require.NoError(t, os.WriteFile(filepath.Join(bin, "agent-sdk-testify-codex"), []byte(script), 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(bin, "agent-sdk-testify-codex"), []byte(script), 0o700))
 	output := filepath.Join(t.TempDir(), "verify")
-	cmd := exec.Command(os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--recording", s.source, "--output", output)
+	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--recording", s.source, "--output", output)
 	cmd.Dir = t.TempDir()
 	cmd.Env = []string{"PATH=" + bin + ":/usr/bin:/bin", "HOME=" + t.TempDir(), "GORACE=atexit_sleep_ms=0"}
 	return cmd, s.source, output
@@ -187,7 +189,7 @@ func TestVerifyRequiresPeerExitAndCleanup(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	var lifecycle object
 	require.NoError(t, readJSON(filepath.Join(output, "peer-main-lifecycle.json"), &lifecycle))
-	require.Equal(t, float64(0), lifecycle["exitCode"])
+	require.InDelta(t, float64(0), lifecycle["exitCode"], 0)
 	require.Equal(t, true, lifecycle["reaped"])
 	require.Equal(t, true, lifecycle["cleanupComplete"])
 }
@@ -214,7 +216,7 @@ func TestVerifyFailureEvidence(t *testing.T) {
 
 func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
 	cmd, source, output := verifyFixture(t, "passed")
-	require.NoError(t, os.WriteFile(filepath.Join(source, "raw/raw.jsonl"), []byte("corrupt\n"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), []byte("corrupt\n"), 0o600))
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
 	var evidence object
@@ -227,7 +229,7 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 	for _, mode := range []string{"passed", "omit-probe"} {
 		t.Run(mode, func(t *testing.T) {
 			cmd, source, output := verifyFixture(t, mode)
-			require.NoError(t, copyTree(filepath.Join(source, "raw"), filepath.Join(source, "remote-probe/raw")))
+			require.NoError(t, copyTree(filepath.Join(source, "raw"), filepath.Join(source, "remote-probe", "raw")))
 			var plan, manifest object
 			require.NoError(t, readJSON(filepath.Join(source, "plan.json"), &plan))
 			plan["driverProfile"], plan["caseId"], plan["storyId"] = "remote-close", "SDK-CASE-032", "SDK-US-007"
@@ -241,7 +243,7 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 			data, err := cmd.CombinedOutput()
 			if mode == "passed" {
 				require.NoError(t, err, "%s", data)
-				require.FileExists(t, filepath.Join(output, "remote-probe/replay-peer.json"))
+				require.FileExists(t, filepath.Join(output, "remote-probe", "replay-peer.json"))
 				require.FileExists(t, filepath.Join(output, "peer-probe-lifecycle.json"))
 			} else {
 				require.Error(t, err, "%s", data)
@@ -266,7 +268,7 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	var admission object
 	require.NoError(t, readJSON(filepath.Join(output, "admission-summary.json"), &admission))
 	require.Equal(t, "admitted", admission["status"])
-	require.FileExists(t, filepath.Join(str(admission["materials"]), "official-replay/verification.json"))
+	require.FileExists(t, filepath.Join(str(admission["materials"]), "official-replay", "verification.json"))
 	_, err = s.c.VerifyAdopted(s.entry())
 	require.NoError(t, err)
 	after, err := Inventory(source, false)

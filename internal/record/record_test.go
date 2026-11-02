@@ -2,6 +2,7 @@ package record
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -43,7 +44,7 @@ func recordDriverSubstitute(args []string) int {
 	if _, err := os.Stat(filepath.Join(req.Workspace, "numbers.txt")); err != nil {
 		return 4
 	}
-	cmd := exec.Command(req.Peer.Command.Command, req.Peer.Command.Args...)
+	cmd := exec.CommandContext(context.Background(), req.Peer.Command.Command, req.Peer.Command.Args...)
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return 5
@@ -110,17 +111,17 @@ func recordProcess(t *testing.T, provider, status, native string) (*exec.Cmd, st
 	for _, path := range []string{driverPath} {
 		script, err := os.ReadFile(path)
 		require.NoError(t, err)
-		require.NoError(t, os.WriteFile(path, append(script[:len(script)-1], []byte(" \"$@\"\n")...), 0700))
+		require.NoError(t, os.WriteFile(path, append(script[:len(script)-1], []byte(" \"$@\"\n")...), 0o700))
 	}
 	cli, err := writePeerLauncher(bin, "native", command{Command: self, Args: []string{"record-agent-substitute", native}})
 	require.NoError(t, err)
 	script, err := os.ReadFile(cli)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(cli, append(script[:len(script)-1], []byte(" \"$@\"\n")...), 0700))
+	require.NoError(t, os.WriteFile(cli, append(script[:len(script)-1], []byte(" \"$@\"\n")...), 0o700))
 	config := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(config, "AGENTS.md"), []byte("personal instructions must not be copied"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(config, "AGENTS.md"), []byte("personal instructions must not be copied"), 0o600))
 	output := filepath.Join(t.TempDir(), "capture")
-	cmd := exec.Command(os.Getenv("AGENT_SDK_TESTIFY_BIN"), "record", "--provider", provider, "--case", "SDK-CASE-001", "--cli", cli, "--config", config, "--output", output, "--timeout", "10s")
+	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "record", "--provider", provider, "--case", "SDK-CASE-001", "--cli", cli, "--config", config, "--output", output, "--timeout", "10s")
 	cmd.Dir = t.TempDir()
 	cmd.Env = []string{"PATH=" + bin, "GORACE=atexit_sleep_ms=0"}
 	cmd.WaitDelay = 15 * time.Second
@@ -148,18 +149,18 @@ func checkRecordCapture(t *testing.T, provider string) {
 	require.NoError(t, readJSON(filepath.Join(output, "manifest.json"), &manifest))
 	require.Equal(t, "passed", manifest["status"])
 	require.Equal(t, "complete", manifest["captureStatus"])
-	require.NoError(t, readJSON(filepath.Join(output, "raw/transport.json"), &transport))
+	require.NoError(t, readJSON(filepath.Join(output, "raw", "transport.json"), &transport))
 	require.Equal(t, true, transport["cleanupComplete"])
 	require.NoError(t, readJSON(filepath.Join(output, "report.json"), &report))
 	require.Equal(t, "synthetic-driver-source", report["captureStatus"])
-	raw, err := os.ReadFile(filepath.Join(output, "raw/raw.jsonl"))
+	raw, err := os.ReadFile(filepath.Join(output, "raw", "raw.jsonl"))
 	require.NoError(t, err)
 	require.Contains(t, string(raw), "9007199254740993")
 	require.Contains(t, string(raw), "1.2300")
-	stderr, err := os.ReadFile(filepath.Join(output, "raw/stderr.raw"))
+	stderr, err := os.ReadFile(filepath.Join(output, "raw", "stderr.raw"))
 	require.NoError(t, err)
 	require.Contains(t, string(stderr), "synthetic native stderr")
-	require.NoFileExists(t, filepath.Join(output, "config/AGENTS.md"))
+	require.NoFileExists(t, filepath.Join(output, "config", "AGENTS.md"))
 	require.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
 	require.NoFileExists(t, filepath.Join(output, "review.json"))
 }
@@ -186,7 +187,7 @@ func TestRecordPreservesFailedAttempts(t *testing.T) {
 				var manifest object
 				require.NoError(t, readJSON(filepath.Join(output, "manifest.json"), &manifest))
 				require.Equal(t, test.status, manifest["status"])
-				require.FileExists(t, filepath.Join(output, "raw/raw.jsonl"))
+				require.FileExists(t, filepath.Join(output, "raw", "raw.jsonl"))
 			}
 		})
 	}
@@ -196,7 +197,7 @@ func TestRecordPreparationFailureKeepsDiagnostic(t *testing.T) {
 	cmd, output := recordProcess(t, "claude", "passed", "passed")
 	// The explicitly selected config must be readable; no personal fallback.
 	config := filepath.Join(t.TempDir(), "invalid-config")
-	require.NoError(t, os.WriteFile(config, []byte("not a directory"), 0600))
+	require.NoError(t, os.WriteFile(config, []byte("not a directory"), 0o600))
 	cmd.Args = append(cmd.Args, "--config", config)
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
@@ -219,7 +220,7 @@ func TestRecordHelpAndSelectionErrors(t *testing.T) {
 		{"missing-official-driver", []string{"--provider", "codex", "--case", "SDK-CASE-001", "--cli", "/never-execute"}, "install the driver wheel", false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			cmd := exec.Command(os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"record"}, test.args...)...)
+			cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"record"}, test.args...)...)
 			cmd.Dir = t.TempDir()
 			cmd.Env = []string{"PATH=/missing"}
 			data, err := cmd.CombinedOutput()

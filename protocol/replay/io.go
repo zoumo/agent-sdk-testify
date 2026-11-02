@@ -26,7 +26,7 @@ func Run(ctx context.Context, document *recording.Document, limits recording.Lim
 		if progressFD < 3 {
 			return errors.New("invalid progress descriptor")
 		}
-		if err = syscall.SetNonblock(progressFD, true); err != nil {
+		if err := syscall.SetNonblock(progressFD, true); err != nil {
 			return err
 		}
 		progress = &ownedFile{File: os.NewFile(uintptr(progressFD), "mock-progress")}
@@ -88,11 +88,11 @@ func duplicatePollFile(source *os.File) (*ownedFile, error) {
 	fd := -1
 	var duplicateErr error
 	err = raw.Control(func(original uintptr) { fd, duplicateErr = syscall.Dup(int(original)) })
-	if err = errors.Join(err, duplicateErr); err != nil {
+	if err := errors.Join(err, duplicateErr); err != nil {
 		return nil, err
 	}
 	syscall.CloseOnExec(fd)
-	if err = syscall.SetNonblock(fd, true); err != nil {
+	if err := syscall.SetNonblock(fd, true); err != nil {
 		_ = syscall.Close(fd)
 		return nil, err
 	}

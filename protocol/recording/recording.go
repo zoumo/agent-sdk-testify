@@ -14,9 +14,11 @@ import (
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
-const FormatName = "agent-mock-jsonl"
-const FormatVersion = 1
-const Transport = "stdio-jsonl"
+const (
+	FormatName    = "agent-mock-jsonl"
+	FormatVersion = 1
+	Transport     = "stdio-jsonl"
+)
 
 type Format struct {
 	Name      string `json:"name"`
@@ -76,6 +78,7 @@ func DefaultLimits(provider string) (Limits, error) {
 		return Limits{}, fmt.Errorf("unsupported native protocol adapter %q", provider)
 	}
 }
+
 func (l Limits) Resolve(provider string) (Limits, error) {
 	d, err := DefaultLimits(provider)
 	if err != nil {
@@ -118,7 +121,7 @@ func Read(r io.Reader, provider string, limits Limits) (*Document, error) {
 	var rows []rawjson.Value
 	whole, wholeErr := rawjson.Parse(data)
 	if _, ok := whole.Member("frames"); wholeErr == nil && ok {
-		if err = allowed(whole, "version", "provenance", "source", "timeoutMs", "frames"); err != nil {
+		if err := allowed(whole, "version", "provenance", "source", "timeoutMs", "frames"); err != nil {
 			return nil, err
 		}
 		version, e := integer(whole, "version", false)
@@ -302,6 +305,7 @@ func allowed(v rawjson.Value, keys ...string) error {
 	}
 	return nil
 }
+
 func integer(v rawjson.Value, key string, optional bool) (int64, error) {
 	x, ok := v.Member(key)
 	if !ok && optional {
@@ -313,6 +317,7 @@ func integer(v rawjson.Value, key string, optional bool) (int64, error) {
 	}
 	return n, nil
 }
+
 func stringField(v rawjson.Value, key string) (string, error) {
 	x, _ := v.Member(key)
 	s, err := x.String()
@@ -321,6 +326,7 @@ func stringField(v rawjson.Value, key string) (string, error) {
 	}
 	return s, nil
 }
+
 func nonemptySource(v rawjson.Value) bool {
 	switch v.Kind() {
 	case rawjson.String:

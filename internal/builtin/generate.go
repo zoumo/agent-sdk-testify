@@ -51,7 +51,7 @@ func generateBuiltin(root, revision string, check bool) error {
 	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(revision) {
 		return errors.New("full source --revision required")
 	}
-	c := corpus.Corpus{Index: filepath.Join(root, "data/index.json"), Scenarios: filepath.Join(root, "data/scenarios")}
+	c := corpus.Corpus{Index: filepath.Join(root, "data", "index.json"), Scenarios: filepath.Join(root, "data", "scenarios")}
 	index, err := c.LoadIndex()
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func generateBuiltin(root, revision string, check bool) error {
 			if tool.DigestBytes(data) != inventory[name] {
 				return fmt.Errorf("material changed while generating: %s", name)
 			}
-			if e = tw.WriteHeader(&tar.Header{Name: material.Path + "/" + name, Mode: 0600, Size: int64(len(data)), Format: tar.FormatPAX}); e != nil {
+			if e := tw.WriteHeader(&tar.Header{Name: material.Path + "/" + name, Mode: 0o600, Size: int64(len(data)), Format: tar.FormatPAX}); e != nil {
 				return e
 			}
 			if _, e = tw.Write(data); e != nil {
@@ -146,7 +146,7 @@ func generateBuiltin(root, revision string, check bool) error {
 	if len(m.Materials) == 0 {
 		return errors.New("empty qualified builtin set")
 	}
-	if err = errors.Join(tw.Close(), gz.Close()); err != nil {
+	if err := errors.Join(tw.Close(), gz.Close()); err != nil {
 		return err
 	}
 	m.ArchiveSHA256 = tool.DigestBytes(archive.Bytes())
@@ -169,7 +169,7 @@ func generateBuiltin(root, revision string, check bool) error {
 				return fmt.Errorf("builtin drift: %s; regenerate after qualification/adoption", output.name)
 			}
 		} else {
-			if err = os.WriteFile(path, output.data, 0600); err != nil {
+			if err := os.WriteFile(path, output.data, 0o600); err != nil {
 				return err
 			}
 		}

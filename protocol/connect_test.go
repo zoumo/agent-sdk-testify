@@ -3,7 +3,6 @@ package protocol
 import (
 	"bufio"
 	"context"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/stretchr/testify/require"
+
 	"github.com/zoumo/agent-sdk-testify/protocol/command"
 )
 
@@ -46,13 +46,13 @@ func TestConnectPreservesJSONAndClosesOnlyConnection(t *testing.T) {
 		output, sink, err := os.Pipe()
 		require.NoError(t, err)
 		token := filepath.Join(t.TempDir(), "token")
-		require.NoError(t, os.WriteFile(token, []byte("synthetic-token\n"), 0600))
+		require.NoError(t, os.WriteFile(token, []byte("synthetic-token\n"), 0o600))
 		done := make(chan error, 1)
 		go func() {
 			done <- runConnect(ctx, command.ConnectOptions{URL: "ws" + strings.TrimPrefix(server.URL, "http"), TokenFile: token, MaxFrameBytes: 1 << 20}, command.IO{In: input, Out: sink, Err: os.Stderr})
 		}()
 		const line = "{\"unknown\":9007199254740993,\"number\":1.00,\"null\":null}\n"
-		_, err = io.WriteString(writer, line)
+		_, err = writer.WriteString(line)
 		require.NoError(t, err)
 		got, err := bufio.NewReader(output).ReadString('\n')
 		require.NoError(t, err)
@@ -93,13 +93,13 @@ func TestConnectRejectsPartialJSONAndRemoteEarlyClose(t *testing.T) {
 			defer output.Close()
 			defer sink.Close()
 			token := filepath.Join(t.TempDir(), "token")
-			require.NoError(t, os.WriteFile(token, []byte("synthetic-token"), 0600))
+			require.NoError(t, os.WriteFile(token, []byte("synthetic-token"), 0o600))
 			done := make(chan error, 1)
 			go func() {
 				done <- runConnect(ctx, command.ConnectOptions{URL: "ws" + strings.TrimPrefix(server.URL, "http"), TokenFile: token, MaxFrameBytes: 1 << 20}, command.IO{In: input, Out: sink, Err: os.Stderr})
 			}()
 			if partial {
-				_, err := io.WriteString(writer, `{"partial":true}`)
+				_, err := writer.WriteString(`{"partial":true}`)
 				require.NoError(t, err)
 				require.NoError(t, writer.Close())
 			}

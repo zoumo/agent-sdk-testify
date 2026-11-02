@@ -24,22 +24,25 @@ type remoteService struct {
 }
 
 func startRemote(ctx context.Context, o options, plan object) (*remoteService, error) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, err
 	}
 	address := listener.Addr().String()
-	listener.Close()
+	if err := listener.Close(); err != nil {
+		return nil, err
+	}
 	r := &remoteService{root: str(plan["root"]), endpoint: "ws://" + address, done: make(chan error, 1)}
 	r.token = filepath.Join(r.root, "remote-token.private")
 	var secret [32]byte
 	if _, err = rand.Read(secret[:]); err != nil {
 		return nil, err
 	}
-	if err = os.WriteFile(r.token, []byte(hex.EncodeToString(secret[:])), 0600); err != nil {
+	if err := os.WriteFile(r.token, []byte(hex.EncodeToString(secret[:])), 0o600); err != nil {
 		return nil, err
 	}
-	r.log, err = os.OpenFile(filepath.Join(r.root, "remote-server-stderr.private"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	r.log, err = os.OpenFile(filepath.Join(r.root, "remote-server-stderr.private"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		os.Remove(r.token)
 		return nil, err
@@ -51,7 +54,7 @@ func startRemote(ctx context.Context, o options, plan object) (*remoteService, e
 		}
 	}
 	args = append(args, "--listen", r.endpoint, "--ws-auth", "capability-token", "--ws-token-file", r.token)
-	r.cmd = exec.Command(str(plan["cli"]), args...)
+	r.cmd = exec.CommandContext(context.WithoutCancel(ctx), str(plan["cli"]), args...)
 	r.cmd.Dir = str(plan["project"])
 	r.cmd.Stdout = r.log
 	r.cmd.Stderr = r.log
@@ -72,25 +75,28 @@ func startRemote(ctx context.Context, o options, plan object) (*remoteService, e
 		case e := <-r.done:
 			r.log.Close()
 			os.Remove(r.token)
-			return nil, fmt.Errorf("native remote service ended before readiness: %v", e)
+			return nil, fmt.Errorf("native remote service ended before readiness: %w", e)
 		case <-ctx.Done():
 			_ = r.close()
 			return nil, ctx.Err()
 		case <-ticker.C:
-			conn, e := net.DialTimeout("tcp", address, 100*time.Millisecond)
+			var dialer net.Dialer
+			dialer.Timeout = 100 * time.Millisecond
+			conn, e := dialer.DialContext(ctx, "tcp", address)
 			if e == nil {
-				conn.Close()
+				_ = conn.Close()
 				return r, nil
 			}
 		}
 	}
 }
+
 func (r *remoteService) close() error {
 	defer r.log.Close()
 	defer os.Remove(r.token)
 	select {
 	case err := <-r.done:
-		return fmt.Errorf("native remote service ended before owned cleanup: %v", err)
+		return fmt.Errorf("native remote service ended before owned cleanup: %w", err)
 	default:
 	}
 	_ = r.cmd.Process.Signal(os.Interrupt)

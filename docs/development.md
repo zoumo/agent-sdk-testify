@@ -3,7 +3,7 @@
 ## Module 与依赖
 
 使用单一 module `github.com/zoumo/agent-sdk-testify` 和单一工具二进制，
-遵循 `mise.toml` 固定的编译器与依赖版本；不添加嵌套 module、replace 或 go.work。
+使用 Go 1.26 和 golangci-lint 2.12.2；不添加嵌套 module、replace 或 go.work。
 生产代码及默认测试不得导入 agent-sdk-go、Go driver 或 SDK fixture 容器。
 官方 SDK 仅作为 record/verify 的显式环境依赖，不在运行时自动安装。
 
@@ -14,7 +14,7 @@
 
 ```text
 agent-sdk-testify/
-  go.mod / go.sum / mise.toml
+  go.mod / go.sum / Makefile / .golangci.yaml
   main.go                   # 唯一根目录 Go 文件
   internal/
     record/ verify/ mock/   # 公开业务命令
@@ -51,8 +51,8 @@ agent-sdk-testify/
 快照；普通版本变更也需要重新生成：
 
 ```sh
-mise exec -- go run -tags builtin_generate . --revision FULL_40_CHARACTER_SOURCE_COMMIT
-mise exec -- go run -tags builtin_generate . --check
+go run -tags builtin_generate . --revision FULL_40_CHARACTER_SOURCE_COMMIT
+go run -tags builtin_generate . --check
 ```
 
 生成器从固定索引选择 `admitted` 且 `verification=passed` 的材料，校验完整闭包并
@@ -87,8 +87,7 @@ workspace 隔离、prepare/run/finish 失败保留和自有资源清理。
 
 ### 离线门禁
 
-使用 `mise.toml` 固定的 Go 编译器。完整门禁由
-`mise exec -- bash scripts/check-offline.sh` 执行，覆盖独立构建、默认测试、race、
+使用 Go 1.26。完整门禁由 `make check` 执行，覆盖格式、lint、独立构建、默认测试、race、
 vet、依赖边界、源码目录外运行、driver 测试和 wheel 打包检查。
 case/索引身份、全部录制字节、来源哈希和政策检查不得弱化。
 

@@ -42,7 +42,7 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 		plan["initialModel"] = o.InitialModel
 	}
 	var version bytes.Buffer
-	probe := exec.Command(cli, "--version")
+	probe := exec.CommandContext(context.WithoutCancel(ctx), cli, "--version")
 	probe.Stdout = &version
 	probe.Dir = root
 	if err := waitDriver(ctx, probe); ctx.Err() != nil {
@@ -69,7 +69,10 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 		if provider == "codex" {
 			args = codexNativeArgs(profile, params)
 		} else {
-			args = claudeNativeArgs(profile, params)
+			args, err = claudeNativeArgs(profile, params)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	if provider == "claude" {
@@ -84,11 +87,11 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 		plan["stdinEOFAction"] = "interrupt"
 	}
 	if profile == "children" || profile == "background-children" {
-		if err = writeFiles(str(plan["project"]), object{"child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n"}); err != nil {
+		if err := writeFiles(str(plan["project"]), object{"child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n"}); err != nil {
 			return err
 		}
 		if provider == "codex" {
-			if err = prepareCodexChildFixture(root); err != nil {
+			if err := prepareCodexChildFixture(root); err != nil {
 				return err
 			}
 		}
@@ -111,33 +114,33 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 			} else if e != nil {
 				return e
 			}
-			if err = copyFile(source, filepath.Join(root, "config", name)); err != nil {
+			if err := copyFile(source, filepath.Join(root, "config", name)); err != nil {
 				return err
 			}
 		}
 		if provider == "claude" {
-			claudeAuthEnvironment(filepath.Join(root, "config/settings.json"), env)
+			claudeAuthEnvironment(filepath.Join(root, "config", "settings.json"), env)
 			// The selected connection is carried in the isolated process env;
 			// retain the native default model, excluding inherited integrations.
-			if err = filterClaudeConfig(filepath.Join(root, "config/settings.json")); err != nil {
+			if err := filterClaudeConfig(filepath.Join(root, "config", "settings.json")); err != nil {
 				return err
 			}
 		} else {
-			if err = filterCodexConfig(filepath.Join(root, "config/config.toml")); err != nil {
+			if err := filterCodexConfig(filepath.Join(root, "config", "config.toml")); err != nil {
 				return err
 			}
-			if err = codexAuthEnvironment(filepath.Join(root, "config/config.toml"), env); err != nil {
+			if err := codexAuthEnvironment(filepath.Join(root, "config", "config.toml"), env); err != nil {
 				return err
 			}
 		}
 	}
 	if provider == "codex" && params["nativeFileTool"] == "apply_patch" {
-		if err = prepareCodexFileTool(root, plan); err != nil {
+		if err := prepareCodexFileTool(root, plan); err != nil {
 			return err
 		}
 	}
 	if provider == "codex" {
-		if err = prepareCodexIsolation(root, plan); err != nil {
+		if err := prepareCodexIsolation(root, plan); err != nil {
 			return err
 		}
 	}
