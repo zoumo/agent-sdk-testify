@@ -59,7 +59,7 @@ A connection contains:
 | --- | --- |
 | `id` | `main`, plus `probe` only for a `remote-close` contract |
 | `command`, `args` | Exact installed CLI invocation; default `--run` selects main |
-| `launcher` | Temporary executable adapter for SDKs accepting only an executable path; invoke without arguments |
+| `launcher` | Temporary executable adapter for SDKs accepting only an executable path; invoke for protocol startup or with sole `--version` (or `-v`) for a metadata probe |
 | `recording` | Parent capture directory (also for probe) |
 | `planSHA256`, `manifestSHA256`, `recordingSHA256` | Selected source plan/manifest and this connection's raw stream identity |
 | `receipt`, `processReceipt` | Independent persistent protocol and supervisor exit reports |
@@ -68,7 +68,21 @@ Each allocation is single-use. Repeated or concurrent starts of the same
 connection fail; independent main/probe processes may run concurrently. Undeclared
 connections fail. Consumers passing native startup flags to `command/args` receive
 the same strict transport/argument checks as direct mock. No flags relax matching.
-The no-argument launcher deliberately supplies only its declared command.
+The launcher deliberately supplies only its declared command for protocol startup.
+A sole `--version` (or `-v`) instead invokes `mock --run FILE --connection ID --version`.
+This read-only probe returns the immutable contract's `cliVersion`: the recorded
+native CLI version used as SDK compatibility metadata, not the installed tool or
+SDK identity. Missing/empty recorded versions return
+`unknown (mock; recorded native CLI version unavailable)`. The actual tool's
+`--version` and descriptor `toolVersion` remain the installed tool identity.
+
+Metadata probes validate the descriptor, declared connection, ownership and
+contract hash. They do not create locks, reserve/start the protocol connection or
+write protocol/process receipts. Repeated probes leave the same connection
+available for its single protocol execution. Probe-only runs still fail finish:
+all full-consumption, EOF and process-exit evidence remains required. SDK startup
+arguments otherwise retain the launcher's existing declared-command behavior;
+command-prefix native startup arguments retain strict validation.
 
 ## History and reports
 

@@ -140,7 +140,11 @@ select candidates or replace historical evidence.
 
 For T7, read describe before prepare, retain assertionInputs/manifest identity,
 apply the returned env/workspace to the SDK host, use each declared command or
-launcher, close/wait, then always finish. Prepare independently for policy
+launcher, close/wait, then always finish. A prepared launcher's sole `--version` (or `-v`)
+probe returns recorded native CLI compatibility metadata from contract `cliVersion`
+(or an explicit unknown/mock response), without consuming a connection or writing
+success receipts. It is separate from the installed `toolVersion`; see
+[mock-run.md](mock-run.md). Prepare independently for policy
 comparisons. SDK business assertions, current compatibility and full coverage
 remain SDK-owned. Local binaries are suitable for integration; no published pin
 or public release is implied.
