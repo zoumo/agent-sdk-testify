@@ -12,26 +12,27 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
-func (c *Corpus) ValidateAdmission(source, replay string, review object) (object, error) {
+func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (tool.Object, error) {
 	v := &Validation{}
 	v.Check(review["version"] == float64(1) && review["origin"] == "real-agent", "review must attest real Agent origin")
 	qualification, automatic := review["qualification"]
 	if automatic {
-		q := obj(qualification)
-		_, err := time.Parse(time.RFC3339Nano, str(q["qualifiedAt"]))
+		q := tool.Obj(qualification)
+		_, err := time.Parse(time.RFC3339Nano, tool.Str(q["qualifiedAt"]))
 		v.Check(q["method"] == "official-sdk" && err == nil, "unsupported qualification method or time")
 	} else {
-		_, err := time.Parse(time.RFC3339Nano, str(review["reviewedAt"]))
-		v.Check(strings.TrimSpace(str(review["reviewer"])) != "" && err == nil, "reviewer and review time required")
+		_, err := time.Parse(time.RFC3339Nano, tool.Str(review["reviewedAt"]))
+		v.Check(strings.TrimSpace(tool.Str(review["reviewer"])) != "" && err == nil, "reviewer and review time required")
 		for _, field := range []string{"sourceReviewed", "contentReviewed", "credentialsReviewed"} {
 			v.Check(review[field] == true, "explicit review required: "+field)
 		}
 	}
 	v.Check(reflect.DeepEqual(v.Inventory(source, false), review["captureFiles"]), "capture inventory drifted or is incomplete")
-	v.Hashes(replay, obj(review["replayFiles"]))
+	v.Hashes(replay, tool.Obj(review["replayFiles"]))
 	plan := v.Read(source, "plan.json")
 	if automatic {
 		v.Check(plan["recordingIsolation"] == "personal-skills-v1", "automatic qualification requires a recording-time isolated capture")
@@ -40,7 +41,7 @@ func (c *Corpus) ValidateAdmission(source, replay string, review object) (object
 	if err != nil {
 		return nil, err
 	}
-	definition := obj(catalog[str(plan["provider"])+"/"+str(plan["caseId"])])
+	definition := tool.Obj(catalog[tool.Str(plan["provider"])+"/"+tool.Str(plan["caseId"])])
 	story := plan["storyId"]
 	if story == nil {
 		story = plan["story"]
@@ -54,9 +55,9 @@ func (c *Corpus) ValidateAdmission(source, replay string, review object) (object
 	v.Check(summary["recordingSHA256"] == v.Digest(source, "raw/raw.jsonl"), "capture summary hash differs")
 	for _, item := range [][2]string{{source, "report.json"}, {replay, "replay-report.json"}} {
 		business := v.Read(item[0], item[1])
-		sdk := obj(business["officialSDK"])
-		packageName := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[str(plan["provider"])]
-		v.Check(business["status"] == "passed" && business["branchStatus"] == "passed" && business["captureStatus"] == "complete" && len(array(business["gaps"])) == 0 && business["provider"] == plan["provider"] && business["caseId"] == plan["caseId"] && business["storyId"] == story && sdk["package"] == packageName && str(sdk["version"]) != "", "official SDK business evidence is absent, untriggered or incomplete")
+		sdk := tool.Obj(business["officialSDK"])
+		packageName := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(plan["provider"])]
+		v.Check(business["status"] == "passed" && business["branchStatus"] == "passed" && business["captureStatus"] == "complete" && len(tool.Array(business["gaps"])) == 0 && business["provider"] == plan["provider"] && business["caseId"] == plan["caseId"] && business["storyId"] == story && sdk["package"] == packageName && tool.Str(sdk["version"]) != "", "official SDK business evidence is absent, untriggered or incomplete")
 		if item[1] == "report.json" {
 			v.Check(reflect.DeepEqual(sdk, review["officialSDK"]), "review SDK identity differs from capture")
 		}
@@ -65,16 +66,16 @@ func (c *Corpus) ValidateAdmission(source, replay string, review object) (object
 		rawroot := filepath.Join(source, phase[1], "raw")
 		m := v.Read(rawroot, "manifest.json")
 		transport := v.Read(rawroot, "transport.json")
-		v.Check(reflect.DeepEqual(m["recordingFormat"], object{"name": "agent-mock-jsonl", "version": float64(1), "transport": "stdio-jsonl"}) && m["captureStatus"] == "complete", "unsupported or incomplete capture format")
-		native := obj(m["native"])
+		v.Check(reflect.DeepEqual(m["recordingFormat"], tool.Object{"name": "agent-mock-jsonl", "version": float64(1), "transport": "stdio-jsonl"}) && m["captureStatus"] == "complete", "unsupported or incomplete capture format")
+		native := tool.Obj(m["native"])
 		cwd := plan["project"]
 		if plan["driverProfile"] == "existing-children" {
 			cwd = plan["historyProject"]
 		}
-		v.Check(str(native["executable"]) != "" && regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(str(native["sha256"])) && str(cwd) != "" && native["cwd"] == cwd, "observed native execution identity required")
-		v.Hashes(rawroot, obj(m["files"]))
+		v.Check(tool.Str(native["executable"]) != "" && regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(tool.Str(native["sha256"])) && tool.Str(cwd) != "" && native["cwd"] == cwd, "observed native execution identity required")
+		v.Hashes(rawroot, tool.Obj(m["files"]))
 		for _, name := range []string{"raw.jsonl", "stderr.raw", "transport.json"} {
-			v.Check(obj(m["files"])[name] != nil, "raw manifest omits required artifact")
+			v.Check(tool.Obj(m["files"])[name] != nil, "raw manifest omits required artifact")
 		}
 		v.Check(transport["captureStatus"] == "complete" && transport["cleanupComplete"] == true && transport["nativeLaunched"] == true && transport["reaped"] == true && transport["clientEOF"] == true && transport["error"] == nil, "capture or cleanup incomplete")
 		if v.Err == nil {
@@ -83,23 +84,23 @@ func (c *Corpus) ValidateAdmission(source, replay string, review object) (object
 			rows := bytes.Split(bytes.TrimSuffix(b, []byte("\n")), []byte("\n"))
 			v.Check(len(b) > 0 && transport["frames"] == float64(len(rows)), "capture frame count differs")
 			for i, line := range rows {
-				var row object
+				var row tool.Object
 				if _, e := strictCorpusFrame(line, &row); e != nil {
 					v.Err = e
 					break
 				}
-				v.Check(len(row) == 6 && row["ordinal"] == float64(i+1) && row["epoch"] == float64(1) && row["channel"] == "protocol" && (row["direction"] == "c2s" || row["direction"] == "s2c") && row["elapsedMs"] != nil && len(obj(row["wire"])) > 0, "only original capture JSONL envelopes may be admitted")
+				v.Check(len(row) == 6 && row["ordinal"] == float64(i+1) && row["epoch"] == float64(1) && row["channel"] == "protocol" && (row["direction"] == "c2s" || row["direction"] == "s2c") && row["elapsedMs"] != nil && len(tool.Obj(row["wire"])) > 0, "only original capture JSONL envelopes may be admitted")
 			}
 		}
 	}
-	v.Hashes(filepath.Join(source, "raw"), obj(manifest["files"]))
+	v.Hashes(filepath.Join(source, "raw"), tool.Obj(manifest["files"]))
 	if plan["driverProfile"] == "remote-close" {
 		s := v.Read(source, "remote-service.json")
 		v.Check(s["cleanupComplete"] == true && s["serverExitCode"] == float64(0) && s["forcedCleanup"] == false, "remote source cleanup incomplete")
 	}
 	v.Replay(source, replay, plan, "replay")
 	required := v.Required(source, plan)
-	names := stringsOf(review["publishFiles"])
+	names := tool.Strings(review["publishFiles"])
 	selected := corpusSet(names)
 	v.Check(len(selected) == len(names), "duplicate publication path")
 	for name := range required {
@@ -112,11 +113,11 @@ func (c *Corpus) ValidateAdmission(source, replay string, review object) (object
 		v.Check(corpusPublishable(name), "file is not publishable regression material: "+name)
 		v.Digest(source, name)
 	}
-	v.Check(reflect.DeepEqual(corpusSet(Keys(obj(review["replayFiles"]))), v.ReplayEvidence(replay, plan)), "review must select only official replay evidence files")
+	v.Check(reflect.DeepEqual(corpusSet(Keys(tool.Obj(review["replayFiles"]))), v.ReplayEvidence(replay, plan)), "review must select only official replay evidence files")
 	return plan, v.Err
 }
 
-func strictCorpusFrame(b []byte, row *object) (int, error) {
+func strictCorpusFrame(b []byte, row *tool.Object) (int, error) {
 	// Reuse the strict evidence decoder, including duplicate-member rejection.
 	if _, err := rawjson.Parse(b); err != nil {
 		return 0, err
@@ -124,15 +125,15 @@ func strictCorpusFrame(b []byte, row *object) (int, error) {
 	return len(b), json.Unmarshal(b, row)
 }
 
-func (c *Corpus) Qualification(source, replay string, manual bool) (object, error) {
+func (c *Corpus) Qualification(source, replay string, manual bool) (tool.Object, error) {
 	v := &Validation{}
 	plan := v.Read(source, "plan.json")
 	capture := v.Inventory(source, false)
-	replayFiles := object{}
+	replayFiles := tool.Object{}
 	for name := range v.ReplayEvidence(replay, plan) {
 		replayFiles[name] = v.Digest(replay, name)
 	}
-	review := object{"version": float64(1), "origin": "real-agent", "qualification": object{"method": "official-sdk", "qualifiedAt": time.Now().UTC().Format(time.RFC3339Nano)}, "officialSDK": v.Read(source, "report.json")["officialSDK"], "captureFiles": capture, "replayFiles": replayFiles, "publishFiles": Keys(v.Required(source, plan))}
+	review := tool.Object{"version": float64(1), "origin": "real-agent", "qualification": tool.Object{"method": "official-sdk", "qualifiedAt": time.Now().UTC().Format(time.RFC3339Nano)}, "officialSDK": v.Read(source, "report.json")["officialSDK"], "captureFiles": capture, "replayFiles": replayFiles, "publishFiles": Keys(v.Required(source, plan))}
 	if v.Err != nil {
 		return nil, v.Err
 	}
@@ -178,18 +179,18 @@ func corpusCopy(source, target string, names []string) error {
 
 // VerifyAdoptedFiles validates the reduced immutable view. External mock may
 // reuse its saved-history hashes without claiming official/publication eligibility.
-func VerifyAdoptedFiles(root string) (object, error) {
+func VerifyAdoptedFiles(root string) (tool.Object, error) {
 	v := &Validation{}
 	adoption := v.Read(root, "adoption.json")
-	v.Check(adoption["adoption"] == "admitted" && adoption["transformations"] != nil && len(array(adoption["transformations"])) == 0, "unsupported adoption record")
+	v.Check(adoption["adoption"] == "admitted" && adoption["transformations"] != nil && len(tool.Array(adoption["transformations"])) == 0, "unsupported adoption record")
 	files := v.Inventory(root, false)
 	delete(files, "adoption.json")
 	v.Check(reflect.DeepEqual(files, adoption["files"]), "adopted corpus inventory drift")
 	review := v.Read(root, "review.json")
-	original := obj(review["captureFiles"])
+	original := tool.Obj(review["captureFiles"])
 	v.Check(reflect.DeepEqual(original, adoption["originalFiles"]), "original provenance hash inventory drift")
-	reduced := object{}
-	for _, name := range stringsOf(review["publishFiles"]) {
+	reduced := tool.Object{}
+	for _, name := range tool.Strings(review["publishFiles"]) {
 		reduced[name] = original[name]
 	}
 	v.Hashes(root, reduced)
@@ -199,9 +200,9 @@ func VerifyAdoptedFiles(root string) (object, error) {
 	return review, nil
 }
 
-func (c *Corpus) VerifyAdopted(entry object) (string, error) {
-	name := str(entry["materials"])
-	if !Local(name) || !strings.HasPrefix(name, str(entry["provider"])+"/"+str(entry["storyId"])+"/"+str(entry["caseId"])+"/") {
+func (c *Corpus) VerifyAdopted(entry tool.Object) (string, error) {
+	name := tool.Str(entry["materials"])
+	if !Local(name) || !strings.HasPrefix(name, tool.Str(entry["provider"])+"/"+tool.Str(entry["storyId"])+"/"+tool.Str(entry["caseId"])+"/") {
 		return "", errors.New("material ownership path differs")
 	}
 	base := filepath.Dir(c.Index)
@@ -215,9 +216,9 @@ func (c *Corpus) VerifyAdopted(entry object) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	original := obj(review["captureFiles"])
-	reduced := object{}
-	for _, name := range stringsOf(review["publishFiles"]) {
+	original := tool.Obj(review["captureFiles"])
+	reduced := tool.Object{}
+	for _, name := range tool.Strings(review["publishFiles"]) {
 		reduced[name] = original[name]
 	}
 	view, err := os.MkdirTemp("", "agent-sdk-testify-qualification-")
@@ -225,7 +226,7 @@ func (c *Corpus) VerifyAdopted(entry object) (string, error) {
 		return "", err
 	}
 	defer os.RemoveAll(view)
-	if err := corpusCopy(root, view, stringsOf(review["publishFiles"])); err != nil {
+	if err := corpusCopy(root, view, tool.Strings(review["publishFiles"])); err != nil {
 		return "", err
 	}
 	review["captureFiles"] = reduced
@@ -330,7 +331,7 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 		if err != nil {
 			status = "rejected"
 		}
-		err = errors.Join(err, Write(filepath.Join(saved, "adoption-result.json"), object{"status": status, "materials": target}))
+		err = errors.Join(err, Write(filepath.Join(saved, "adoption-result.json"), tool.Object{"status": status, "materials": target}))
 	}()
 	if err := corpusCopy(source, filepath.Join(saved, "capture"), Keys(original)); err != nil {
 		return "", err
@@ -346,11 +347,11 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 		return "", err
 	}
 	v := &Validation{}
-	v.Hashes(replay, obj(review["replayFiles"]))
+	v.Hashes(replay, tool.Obj(review["replayFiles"]))
 	if v.Err != nil {
 		return "", v.Err
 	}
-	if err := corpusCopy(replay, filepath.Join(saved, "official-replay"), Keys(obj(review["replayFiles"]))); err != nil {
+	if err := corpusCopy(replay, filepath.Join(saved, "official-replay"), Keys(tool.Obj(review["replayFiles"]))); err != nil {
 		return "", err
 	}
 	plan, err := c.ValidateAdmission(filepath.Join(saved, "capture"), filepath.Join(saved, "official-replay"), review)
@@ -374,9 +375,9 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 	if err != nil {
 		return "", err
 	}
-	var entry object
-	for _, item := range array(index["cases"]) {
-		e := obj(item)
+	var entry tool.Object
+	for _, item := range tool.Array(index["cases"]) {
+		e := tool.Obj(item)
 		if e["provider"] == plan["provider"] && e["caseId"] == plan["caseId"] {
 			entry = e
 			break
@@ -386,7 +387,7 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 		return "", errors.New("case absent from corpus index")
 	}
 	previous := ""
-	var previousHashes object
+	var previousHashes tool.Object
 	if entry["adoption"] == "admitted" {
 		previous, err = c.VerifyAdopted(entry)
 		if err != nil {
@@ -403,7 +404,7 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 			return "", err
 		}
 	}
-	name := str(entry["provider"]) + "/" + str(entry["storyId"]) + "/" + str(entry["caseId"]) + "/" + filepath.Base(saved)
+	name := tool.Str(entry["provider"]) + "/" + tool.Str(entry["storyId"]) + "/" + tool.Str(entry["caseId"]) + "/" + filepath.Base(saved)
 	target = filepath.Join(filepath.Dir(c.Index), name)
 	if err := os.MkdirAll(filepath.Dir(target), 0o700); err != nil {
 		return "", err
@@ -417,10 +418,10 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 			_ = os.RemoveAll(target)
 		}
 	}()
-	if err := corpusCopy(filepath.Join(saved, "capture"), target, stringsOf(review["publishFiles"])); err != nil {
+	if err := corpusCopy(filepath.Join(saved, "capture"), target, tool.Strings(review["publishFiles"])); err != nil {
 		return target, err
 	}
-	if err := corpusCopy(filepath.Join(saved, "official-replay"), filepath.Join(target, "official-replay"), Keys(obj(review["replayFiles"]))); err != nil {
+	if err := corpusCopy(filepath.Join(saved, "official-replay"), filepath.Join(target, "official-replay"), Keys(tool.Obj(review["replayFiles"]))); err != nil {
 		return target, err
 	}
 	if err := Write(filepath.Join(target, "review.json"), review); err != nil {
@@ -430,7 +431,7 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 	if err != nil {
 		return target, err
 	}
-	record := object{"version": 1, "adoption": "admitted", "archiveId": filepath.Base(saved), "originalFiles": original, "transformations": []any{}, "files": files}
+	record := tool.Object{"version": 1, "adoption": "admitted", "archiveId": filepath.Base(saved), "originalFiles": original, "transformations": []any{}, "files": files}
 	if err := Write(filepath.Join(target, "adoption.json"), record); err != nil {
 		return target, err
 	}

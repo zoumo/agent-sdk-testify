@@ -11,18 +11,19 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
 // Claude's public process/history APIs require an existing canonical WorkDir.
 // Keep original native identities and storage untouched, and explicitly derive
 // additional project-key/cwd copies for this attempt's isolated workspace.
-func MaterializeClaude(source, root, workspace string, plan object) error {
+func MaterializeClaude(source, root, workspace string, plan tool.Object) error {
 	key := regexp.MustCompile(`[^a-zA-Z0-9]`)
 	targetKey := key.ReplaceAllString(workspace, "-")
-	var transformations []object
+	var transformations []tool.Object
 	seen := map[string]bool{}
-	for _, cwd := range []string{str(plan["project"]), str(plan["historyProject"])} {
+	for _, cwd := range []string{tool.Str(plan["project"]), tool.Str(plan["historyProject"])} {
 		if cwd == "" || seen[cwd] {
 			continue
 		}
@@ -110,12 +111,12 @@ func MaterializeClaude(source, root, workspace string, plan object) error {
 				return closeErr
 			}
 			hash := func(b []byte) string { h := sha256.Sum256(b); return hex.EncodeToString(h[:]) }
-			transformations = append(transformations, object{"kind": "claude-project-cwd-copy", "source": filepath.Join(prefix, rel), "sourceSHA256": hash(data), "derived": derived, "derivedSHA256": hash(output), "sourceCWD": cwd, "executionCWD": workspace})
+			transformations = append(transformations, tool.Object{"kind": "claude-project-cwd-copy", "source": filepath.Join(prefix, rel), "sourceSHA256": hash(data), "derived": derived, "derivedSHA256": hash(output), "sourceCWD": cwd, "executionCWD": workspace})
 			return nil
 		})
 		if err != nil {
 			return err
 		}
 	}
-	return writeJSON(filepath.Join(root, "materialization.json"), object{"version": 1, "executionProject": workspace, "originalProject": plan["project"], "originalHistoryProject": plan["historyProject"], "transformations": transformations})
+	return tool.WriteJSON(filepath.Join(root, "materialization.json"), tool.Object{"version": 1, "executionProject": workspace, "originalProject": plan["project"], "originalHistoryProject": plan["historyProject"], "transformations": transformations})
 }

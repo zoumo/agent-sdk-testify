@@ -10,7 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 	"github.com/zoumo/agent-sdk-testify/protocol"
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
@@ -92,7 +94,7 @@ func mockExternalSelected(ctx context.Context, o Options) (err error) {
 	if e != nil {
 		return bad(e)
 	}
-	receipt := object{
+	receipt := tool.Object{
 		"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
 		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": version.Version,
 	}
@@ -185,24 +187,24 @@ func mockProtocolNotifying(ctx context.Context, document *recording.Document, no
 
 // loadMockSource is shared by direct and prepared mock. It requires the same
 // immutable plan/raw bindings and format validation at both entry points.
-func loadMockSource(sourceRoot, provider string) (object, object, *recording.Document, error) {
+func loadMockSource(sourceRoot, provider string) (tool.Object, tool.Object, *recording.Document, error) {
 	return loadMockPhase(sourceRoot, provider, "main")
 }
 
-func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recording.Document, error) {
+func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, tool.Object, *recording.Document, error) {
 	// Unlike legacy shared-material loaders, this entry requires the source
 	// manifest to bind both the plan and the raw stream, even for synthetic input.
-	var manifest, plan object
-	if readErr := readJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); readErr != nil {
+	var manifest, plan tool.Object
+	if readErr := tool.ReadJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); readErr != nil {
 		return nil, nil, nil, readErr
 	}
-	if str(manifest["planSHA256"]) == "" || str(obj(manifest["files"])["raw.jsonl"]) == "" {
+	if tool.Str(manifest["planSHA256"]) == "" || tool.Str(tool.Obj(manifest["files"])["raw.jsonl"]) == "" {
 		return nil, nil, nil, errors.New("source manifest requires planSHA256 and files.raw.jsonl")
 	}
-	if err := verifySourcePhase(sourceRoot, true); err != nil {
+	if err := corpus.VerifySourcePhase(sourceRoot, true); err != nil {
 		return nil, nil, nil, err
 	}
-	if err := readJSON(filepath.Join(sourceRoot, "plan.json"), &plan); err != nil {
+	if err := tool.ReadJSON(filepath.Join(sourceRoot, "plan.json"), &plan); err != nil {
 		return nil, nil, nil, err
 	}
 	plannedProvider, err := planAgentIdentity(plan)
@@ -215,14 +217,14 @@ func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recordi
 		return nil, nil, nil, errors.New("agent type differs from selected recording")
 	}
 	rawRoot := filepath.Join(sourceRoot, "raw")
-	expected := str(obj(manifest["files"])["raw.jsonl"])
+	expected := tool.Str(tool.Obj(manifest["files"])["raw.jsonl"])
 	if phase == "probe" && plan["driverProfile"] == "remote-close" {
 		rawRoot = filepath.Join(sourceRoot, "remote-probe", "raw")
-		expected = str(obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"])
+		expected = tool.Str(tool.Obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"])
 		if expected == "" {
 			return nil, nil, nil, errors.New("source manifest must bind selected probe stream")
 		}
-		if err := verifySourcePhase(filepath.Join(sourceRoot, "remote-probe"), true); err != nil {
+		if err := corpus.VerifySourcePhase(filepath.Join(sourceRoot, "remote-probe"), true); err != nil {
 			return nil, nil, nil, err
 		}
 	} else if phase != "main" {
@@ -246,7 +248,7 @@ func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recordi
 		if os.IsNotExist(readErr) {
 			continue
 		}
-		var metadata object
+		var metadata tool.Object
 		if readErr != nil {
 			return nil, nil, nil, readErr
 		}

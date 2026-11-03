@@ -11,6 +11,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // Controlled native fixtures exercise startup and saved bytes, not skill loading.
@@ -54,26 +57,26 @@ receipts = [{'history-query': {'method': 'thread/list', 'params': {'parentThread
 sys.exit(child.returncode)
 `), 0o700))
 	materials := t.TempDir()
-	require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), object{"provider": provider, "caseId": "controlled-history", "driverProfile": "history", "scenario": object{"parameters": object{"historyTarget": "child-messages"}, "files": object{"fixture.txt": "synthetic source\n"}}}))
+	require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), tool.Object{"provider": provider, "caseId": "controlled-history", "driverProfile": "history", "scenario": tool.Object{"parameters": tool.Object{"historyTarget": "child-messages"}, "files": tool.Object{"fixture.txt": "synthetic source\n"}}}))
 	return materials, native, driver
 }
 
 func runHistoryCommand(t *testing.T, mode, materials, native, driver string, extra ...string) (string, string, error) {
 	t.Helper()
-	tool := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	require.NotEmpty(t, tool, "run with make test")
+	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
+	require.NotEmpty(t, binary, "run with make test")
 	output := filepath.Join(t.TempDir(), "attempt")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	self, e := os.Executable()
 	require.NoError(t, e)
-	o := options{Mode: mode, Materials: materials, CLI: native, Driver: driver, Output: output, Peer: tool}
+	o := Options{Mode: mode, Materials: materials, CLI: native, Driver: driver, Output: output, Peer: binary}
 	for i := 0; i < len(extra); i += 2 {
 		require.Equal(t, "--history-seed", extra[i])
 		o.HistorySeed = extra[i+1]
 	}
 	optionsPath := filepath.Join(t.TempDir(), "options.json")
-	require.NoError(t, writeJSON(optionsPath, o))
+	require.NoError(t, tool.WriteJSON(optionsPath, o))
 	cmd := exec.CommandContext(ctx, self, "official-engine-fixture", optionsPath)
 
 	data, err := cmd.CombinedOutput()
@@ -84,21 +87,21 @@ func TestRecordingDoesNotImportSavedMaterials(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
 		t.Run(provider, func(t *testing.T) {
 			materials, native, driver := historyRunner(t, provider)
-			require.NoError(t, writeFiles(materials, object{"config/sessions/legacy.jsonl": "PERSONAL\n", "config/projects/key/legacy.jsonl": "PERSONAL\n", "history-seed/legacy.jsonl": "PERSONAL\n"}))
-			var input object
-			require.NoError(t, readJSON(filepath.Join(materials, "plan.json"), &input))
+			require.NoError(t, tool.WriteFiles(materials, tool.Object{"config/sessions/legacy.jsonl": "PERSONAL\n", "config/projects/key/legacy.jsonl": "PERSONAL\n", "history-seed/legacy.jsonl": "PERSONAL\n"}))
+			var input tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(materials, "plan.json"), &input))
 			input["recordingIsolation"] = "fabricated-policy"
-			input["historySeed"] = object{"sessionId": "personal-parent"}
+			input["historySeed"] = tool.Object{"sessionId": "personal-parent"}
 			input["historyProject"] = materials
-			require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), input))
+			require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), input))
 			out, log, err := runHistoryCommand(t, "record", materials, native, driver)
 			require.NoError(t, err, log)
-			var observed object
-			require.NoError(t, readJSON(filepath.Join(out, "history-observation.json"), &observed))
-			assert.Empty(t, obj(observed["saved"]))
+			var observed tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(out, "history-observation.json"), &observed))
+			assert.Empty(t, tool.Obj(observed["saved"]))
 			assert.NoFileExists(t, filepath.Join(out, "history-seed", "legacy.jsonl"))
-			var recorded object
-			require.NoError(t, readJSON(filepath.Join(out, "plan.json"), &recorded))
+			var recorded tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(out, "plan.json"), &recorded))
 			assert.NotContains(t, recorded, "historySeed")
 			assert.NotContains(t, recorded, "historyProject")
 			assert.Equal(t, "personal-skills-v1", recorded["recordingIsolation"])
@@ -115,17 +118,17 @@ func TestRecordingHistorySeedRejectsUnboundIsolationClaim(t *testing.T) {
 			materials, native, driver := historyRunner(t, provider)
 			source, log, err := runHistoryCommand(t, "record", materials, native, driver)
 			require.NoError(t, err, log)
-			var target, manifest object
-			require.NoError(t, readJSON(filepath.Join(materials, "plan.json"), &target))
+			var target, manifest tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(materials, "plan.json"), &target))
 			target["driverProfile"] = "existing-children"
-			require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), target))
-			require.NoError(t, readJSON(filepath.Join(source, "manifest.json"), &manifest))
+			require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), target))
+			require.NoError(t, tool.ReadJSON(filepath.Join(source, "manifest.json"), &manifest))
 			for _, field := range []string{"planSHA256", "provenance", "captureStatus", "status"} {
 				t.Run(field, func(t *testing.T) {
-					modified := object{}
+					modified := tool.Object{}
 					maps.Copy(modified, manifest)
 					delete(modified, field)
-					require.NoError(t, writeJSON(filepath.Join(source, "manifest.json"), modified))
+					require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), modified))
 					out, log, err := runHistoryCommand(t, "record", materials, native, driver, "--history-seed", source)
 					require.Error(t, err)
 					assert.Contains(t, log, "seed must come from an isolated recording")
@@ -140,13 +143,13 @@ func TestRecordingRejectsEmbeddedHistorySeed(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
 		t.Run(provider, func(t *testing.T) {
 			materials, native, driver := historyRunner(t, provider)
-			var plan object
-			require.NoError(t, readJSON(filepath.Join(materials, "plan.json"), &plan))
+			var plan tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(materials, "plan.json"), &plan))
 			plan["driverProfile"] = "existing-children"
-			plan["historySeed"] = object{"sessionId": "personal-parent", "sourceRoot": materials}
+			plan["historySeed"] = tool.Object{"sessionId": "personal-parent", "sourceRoot": materials}
 			plan["historyProject"] = materials
 			plan["recordingIsolation"] = "personal-skills-v1"
-			require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), plan))
+			require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), plan))
 			out, log, err := runHistoryCommand(t, "record", materials, native, driver)
 			require.Error(t, err)
 			assert.Contains(t, log, "existing-child recording needs supplied saved-history materials")
@@ -161,20 +164,20 @@ func TestRecordingHistorySeedRequiresIsolatedCapture(t *testing.T) {
 			materials, native, driver := historyRunner(t, provider)
 			source, log, err := runHistoryCommand(t, "record", materials, native, driver)
 			require.NoError(t, err, log)
-			var previous object
-			require.NoError(t, readJSON(filepath.Join(source, "plan.json"), &previous))
+			var previous tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &previous))
 			delete(previous, "recordingIsolation")
-			require.NoError(t, writeJSON(filepath.Join(source, "plan.json"), previous))
-			var manifest object
-			require.NoError(t, readJSON(filepath.Join(source, "manifest.json"), &manifest))
-			digest, err := fileDigest(filepath.Join(source, "plan.json"))
+			require.NoError(t, tool.WriteJSON(filepath.Join(source, "plan.json"), previous))
+			var manifest tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(source, "manifest.json"), &manifest))
+			digest, err := tool.FileDigest(filepath.Join(source, "plan.json"))
 			require.NoError(t, err)
 			manifest["planSHA256"] = digest
-			require.NoError(t, writeJSON(filepath.Join(source, "manifest.json"), manifest))
-			var target object
-			require.NoError(t, readJSON(filepath.Join(materials, "plan.json"), &target))
+			require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), manifest))
+			var target tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(materials, "plan.json"), &target))
 			target["driverProfile"] = "existing-children"
-			require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), target))
+			require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), target))
 			_, log, err = runHistoryCommand(t, "record", materials, native, driver, "--history-seed", source)
 			require.Error(t, err)
 			assert.Contains(t, log, "seed must come from an isolated recording")
@@ -182,12 +185,12 @@ func TestRecordingHistorySeedRequiresIsolatedCapture(t *testing.T) {
 			for _, mode := range []string{"verify"} {
 				out, log, err := runHistoryCommand(t, mode, source, native, driver)
 				require.NoError(t, err, log)
-				var offlinePlan object
-				require.NoError(t, readJSON(filepath.Join(out, "plan.json"), &offlinePlan))
+				var offlinePlan tool.Object
+				require.NoError(t, tool.ReadJSON(filepath.Join(out, "plan.json"), &offlinePlan))
 				assert.NotContains(t, offlinePlan, "recordingIsolation")
-				for name, digest := range obj(manifest["savedFiles"]) {
-					require.NoError(t, verifyFile(source, name, str(digest)))
-					require.NoError(t, verifyFile(out, name, str(digest)))
+				for name, digest := range tool.Obj(manifest["savedFiles"]) {
+					require.NoError(t, corpus.VerifyFile(source, name, tool.Str(digest)))
+					require.NoError(t, corpus.VerifyFile(out, name, tool.Str(digest)))
 				}
 			}
 		})
@@ -200,49 +203,49 @@ func TestRecordingHistorySeedPreservesEvidenceAndSourceProject(t *testing.T) {
 			materials, native, driver := historyRunner(t, provider)
 			source, log, err := runHistoryCommand(t, "record", materials, native, driver)
 			require.NoError(t, err, log)
-			var sourcePlan, manifest object
-			require.NoError(t, readJSON(filepath.Join(source, "plan.json"), &sourcePlan))
-			require.NoError(t, readJSON(filepath.Join(source, "manifest.json"), &manifest))
+			var sourcePlan, manifest tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &sourcePlan))
+			require.NoError(t, tool.ReadJSON(filepath.Join(source, "manifest.json"), &manifest))
 			assert.Equal(t, "personal-skills-v1", sourcePlan["recordingIsolation"])
 			before := map[string]string{}
 			for _, name := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl", "project/fixture.txt"} {
-				before[name], err = fileDigest(filepath.Join(source, name))
+				before[name], err = tool.FileDigest(filepath.Join(source, name))
 				require.NoError(t, err)
 			}
-			for name, digest := range obj(manifest["savedFiles"]) {
-				before[name] = str(digest)
+			for name, digest := range tool.Obj(manifest["savedFiles"]) {
+				before[name] = tool.Str(digest)
 			}
-			var target object
-			require.NoError(t, readJSON(filepath.Join(materials, "plan.json"), &target))
+			var target tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(materials, "plan.json"), &target))
 			target["driverProfile"] = "existing-children"
-			require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), target))
+			require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), target))
 			out, log, err := runHistoryCommand(t, "record", materials, native, driver, "--history-seed", source)
 			require.NoError(t, err, log)
-			var plan, observed object
-			require.NoError(t, readJSON(filepath.Join(out, "plan.json"), &plan))
-			require.NoError(t, readJSON(filepath.Join(out, "history-observation.json"), &observed))
-			seed := obj(plan["historySeed"])
+			var plan, observed tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(out, "plan.json"), &plan))
+			require.NoError(t, tool.ReadJSON(filepath.Join(out, "history-observation.json"), &observed))
+			seed := tool.Obj(plan["historySeed"])
 			assert.Equal(t, sourcePlan["project"], plan["historyProject"])
 			assert.Equal(t, sourcePlan["project"], seed["sourceProject"])
 			assert.Equal(t, sourcePlan["project"], observed["cwd"])
 			assert.Equal(t, "parent", seed["sessionId"])
-			assert.Equal(t, []string{"child"}, stringsOf(seed["agentIds"]))
-			assert.Len(t, obj(observed["saved"]), 2)
+			assert.Equal(t, []string{"child"}, tool.Strings(seed["agentIds"]))
+			assert.Len(t, tool.Obj(observed["saved"]), 2)
 			if provider == "codex" {
-				assert.Contains(t, stringsOf(observed["args"]), "project_root_markers=[]")
-				assert.Contains(t, stringsOf(observed["args"]), "project_doc_max_bytes=0")
+				assert.Contains(t, tool.Strings(observed["args"]), "project_root_markers=[]")
+				assert.Contains(t, tool.Strings(observed["args"]), "project_doc_max_bytes=0")
 			} else {
-				assert.Contains(t, stringsOf(observed["args"]), "--disable-slash-commands")
-				assert.Contains(t, stringsOf(observed["args"]), "--resume")
-				assert.Contains(t, stringsOf(observed["args"]), "parent")
+				assert.Contains(t, tool.Strings(observed["args"]), "--disable-slash-commands")
+				assert.Contains(t, tool.Strings(observed["args"]), "--resume")
+				assert.Contains(t, tool.Strings(observed["args"]), "parent")
 			}
 			for name, digest := range before {
-				require.NoError(t, verifyFile(source, name, digest))
+				require.NoError(t, corpus.VerifyFile(source, name, digest))
 			}
-			for name, value := range obj(seed["files"]) {
-				assert.Equal(t, before[str(obj(value)["source"])], obj(value)["sha256"])
-				require.NoError(t, verifyFile(out, name, str(obj(value)["sha256"])))
-				require.NoError(t, verifyFile(out, str(obj(value)["source"]), str(obj(value)["sha256"])))
+			for name, value := range tool.Obj(seed["files"]) {
+				assert.Equal(t, before[tool.Str(tool.Obj(value)["source"])], tool.Obj(value)["sha256"])
+				require.NoError(t, corpus.VerifyFile(out, name, tool.Str(tool.Obj(value)["sha256"])))
+				require.NoError(t, corpus.VerifyFile(out, tool.Str(tool.Obj(value)["source"]), tool.Str(tool.Obj(value)["sha256"])))
 			}
 		})
 	}
@@ -252,14 +255,14 @@ func TestRecordingHistorySeedRejectsCodexSourceDiscovery(t *testing.T) {
 	materials, native, driver := historyRunner(t, "codex")
 	source, log, err := runHistoryCommand(t, "record", materials, native, driver)
 	require.NoError(t, err, log)
-	var target object
-	require.NoError(t, readJSON(filepath.Join(materials, "plan.json"), &target))
+	var target tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(materials, "plan.json"), &target))
 	target["driverProfile"] = "existing-children"
-	require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), target))
+	require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), target))
 	for _, name := range []string{".agents", ".codex"} {
 		t.Run(name, func(t *testing.T) {
 			path := filepath.Join(source, "project", name)
-			require.NoError(t, writeFiles(path, object{"skills/personal/SKILL.md": "PERSONAL\n"}))
+			require.NoError(t, tool.WriteFiles(path, tool.Object{"skills/personal/SKILL.md": "PERSONAL\n"}))
 			defer os.RemoveAll(path)
 			out, log, err := runHistoryCommand(t, "record", materials, native, driver, "--history-seed", source)
 			require.Error(t, err)

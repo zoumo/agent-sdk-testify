@@ -122,18 +122,18 @@ func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout ti
 	return err
 }
 
-func admitVerified(materials string, summary object, err error, c corpus.Corpus) error {
+func admitVerified(materials string, summary tool.Object, err error, c corpus.Corpus) error {
 	if summary == nil || c.Index == "" {
 		return err
 	}
-	root := str(summary["output"])
-	admission := object{"status": "rejected"}
+	root := tool.Str(summary["output"])
+	admission := tool.Object{"status": "rejected"}
 	if err == nil {
-		var review object
+		var review tool.Object
 		review, err = c.Qualification(materials, root, false)
 		reviewPath := filepath.Join(root, "qualification.json")
 		if err == nil {
-			err = corpusWrite(reviewPath, review)
+			err = corpus.Write(reviewPath, review)
 		}
 		if err == nil {
 			var target string
@@ -147,7 +147,7 @@ func admitVerified(materials string, summary object, err error, c corpus.Corpus)
 	if err != nil {
 		admission["error"] = err.Error()
 	}
-	return errors.Join(err, writeJSON(filepath.Join(root, "admission-summary.json"), admission))
+	return errors.Join(err, tool.WriteJSON(filepath.Join(root, "admission-summary.json"), admission))
 }
 
 func snapshotVerification(source, target string) error {
@@ -193,9 +193,9 @@ func snapshotVerification(source, target string) error {
 	return nil
 }
 
-func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifecycle.Admission, preparedOutput, preparedWorkspace string) (summary object, err error) {
+func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifecycle.Admission, preparedOutput, preparedWorkspace string) (summary tool.Object, err error) {
 	o.Mode = "verify"
-	o.Materials, err = corpusResolved(o.Materials)
+	o.Materials, err = corpus.Resolved(o.Materials)
 	if err != nil {
 		return nil, err
 	}
@@ -203,11 +203,11 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 		return nil, errors.New("verify requires a prepared execution output")
 	}
 	{
-		resolved, e := corpusResolved(preparedOutput)
+		resolved, e := corpus.Resolved(preparedOutput)
 		if e != nil {
 			return nil, e
 		}
-		if resolved == o.Materials || corpusWithin(resolved, o.Materials) || corpusWithin(o.Materials, resolved) {
+		if resolved == o.Materials || corpus.Within(resolved, o.Materials) || corpus.Within(o.Materials, resolved) {
 			return nil, errors.New("verification output must be separate from recording")
 		}
 	}
@@ -219,47 +219,47 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 		return nil, err
 	}
 	o.OutputPrepared = true
-	evidence := object{"schemaVersion": 1, "status": "failed", "recording": o.Materials, "output": o.Output}
+	evidence := tool.Object{"schemaVersion": 1, "status": "failed", "recording": o.Materials, "output": o.Output}
 	if admission != nil {
 		evidence["admission"] = admission
 	}
 	defer func() {
 		if summary == nil {
-			summary = object{"mode": "verify", "output": o.Output, "result": tool.Result{Status: "failed"}}
+			summary = tool.Object{"mode": "verify", "output": o.Output, "result": tool.Result{Status: "failed"}}
 		}
 		if err != nil {
 			summary["error"] = err.Error()
 			evidence["error"] = err.Error()
 		}
-		err = errors.Join(err, writeJSON(filepath.Join(o.Output, "summary.json"), summary))
+		err = errors.Join(err, tool.WriteJSON(filepath.Join(o.Output, "summary.json"), summary))
 		// Bind the final run evidence, including failures, without a hash cycle.
-		hashes := object{}
+		hashes := tool.Object{}
 		for _, name := range []string{"summary.json", "result.json", "replay-report.json", "replay-peer.json", "remote-probe/replay-peer.json", "materialization.json", "peer-main-lifecycle.json", "peer-probe-lifecycle.json"} {
-			if digest, e := fileDigest(filepath.Join(o.Output, name)); e == nil {
+			if digest, e := tool.FileDigest(filepath.Join(o.Output, name)); e == nil {
 				hashes[name] = digest
 			}
 		}
 		evidence["files"] = hashes
-		err = errors.Join(err, writeJSON(filepath.Join(o.Output, "verification.json"), evidence))
+		err = errors.Join(err, tool.WriteJSON(filepath.Join(o.Output, "verification.json"), evidence))
 	}()
 	self, e := os.Executable()
 	if e != nil {
 		return nil, e
 	}
-	digest, e := fileDigest(self)
+	digest, e := tool.FileDigest(self)
 	if e != nil {
 		return nil, e
 	}
-	evidence["tool"] = object{"version": version.Version, "sha256": digest}
-	before, e := corpusInventory(o.Materials, false)
+	evidence["tool"] = tool.Object{"version": version.Version, "sha256": digest}
+	before, e := corpus.Inventory(o.Materials, false)
 	if e != nil {
 		return nil, e
 	}
 	evidence["sourceFiles"] = before
 	if before["adoption.json"] != nil {
-		v := &corpusValidation{}
+		v := &corpus.Validation{}
 		adoption := v.Read(o.Materials, "adoption.json")
-		files := object{}
+		files := tool.Object{}
 		for name, digest := range before {
 			if name != "adoption.json" {
 				files[name] = digest
@@ -272,25 +272,25 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 			return nil, v.Err
 		}
 	}
-	for _, name := range sourceEvidence {
+	for _, name := range corpus.SourceEvidence {
 		if before[name] == nil {
 			return nil, fmt.Errorf("recording omits %s", name)
 		}
 	}
 	// Missing manifests cannot turn an unbound raw file into a recording.
-	var originalPlan object
-	if planErr := readJSON(filepath.Join(o.Materials, "plan.json"), &originalPlan); planErr != nil {
+	var originalPlan tool.Object
+	if planErr := tool.ReadJSON(filepath.Join(o.Materials, "plan.json"), &originalPlan); planErr != nil {
 		return nil, planErr
 	}
-	vSource := &corpusValidation{}
+	vSource := &corpus.Validation{}
 	manifest := vSource.Read(o.Materials, "manifest.json")
 	vSource.Check(manifest["planSHA256"] == before["plan.json"], "source plan hash differs")
-	for _, phase := range corpusPhases(originalPlan) {
+	for _, phase := range corpus.Phases(originalPlan) {
 		rawRoot := filepath.Join(o.Materials, phase[1], "raw")
 		m := vSource.Read(rawRoot, "manifest.json")
-		vSource.Hashes(rawRoot, obj(m["files"]))
+		vSource.Hashes(rawRoot, tool.Obj(m["files"]))
 		for _, name := range []string{"raw.jsonl", "transport.json", "stderr.raw"} {
-			vSource.Check(obj(m["files"])[name] != nil, "raw manifest omits required artifact: "+name)
+			vSource.Check(tool.Obj(m["files"])[name] != nil, "raw manifest omits required artifact: "+name)
 		}
 	}
 	if vSource.Err != nil {
@@ -300,7 +300,7 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 	if e != nil {
 		return nil, e
 	}
-	o.Provider, o.Case = str(plan["provider"]), str(plan["caseId"])
+	o.Provider, o.Case = tool.Str(plan["provider"]), tool.Str(plan["caseId"])
 	evidence["provider"], evidence["case"] = o.Provider, o.Case
 	catalogPlan, e := catalog.Load(data.Scenarios(), catalog.Selection{Provider: o.Provider, Case: o.Case, Model: o.Model})
 	if e != nil {
@@ -309,8 +309,8 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 	if plan["driverProfile"] != catalogPlan["driverProfile"] {
 		return nil, errors.New("recording profile differs from case contract")
 	}
-	contracts := object{}
-	for _, name := range []string{str(catalogPlan["storyId"]) + ".json", "bindings/" + o.Provider + ".json"} {
+	contracts := tool.Object{}
+	for _, name := range []string{tool.Str(catalogPlan["storyId"]) + ".json", "bindings/" + o.Provider + ".json"} {
 		content, readErr := fs.ReadFile(data.Scenarios(), name)
 		if readErr != nil {
 			return nil, readErr
@@ -323,26 +323,26 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 	if e != nil {
 		return nil, e
 	}
-	digest, e = fileDigest(o.Driver)
+	digest, e = tool.FileDigest(o.Driver)
 	if e != nil {
 		return nil, e
 	}
-	evidence["driver"] = object{"path": o.Driver, "sha256": digest}
+	evidence["driver"] = tool.Object{"path": o.Driver, "sha256": digest}
 	summary, err = official.Run(ctx, o)
-	var business object
-	businessErr := readJSON(filepath.Join(o.Output, "replay-report.json"), &business)
+	var business tool.Object
+	businessErr := tool.ReadJSON(filepath.Join(o.Output, "replay-report.json"), &business)
 	evidence["officialSDK"] = business["officialSDK"]
 	if summary != nil {
 		evidence["driverProcess"] = summary["driverProcess"]
 	}
-	sdk := obj(business["officialSDK"])
+	sdk := tool.Obj(business["officialSDK"])
 	packageName := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[o.Provider]
-	if businessErr == nil && (business["status"] != "passed" || business["branchStatus"] != "passed" || business["captureStatus"] != "complete" || len(array(business["gaps"])) != 0 || business["provider"] != plan["provider"] || business["caseId"] != plan["caseId"] || business["storyId"] != catalogPlan["storyId"] || sdk["package"] != packageName || str(sdk["version"]) == "") {
+	if businessErr == nil && (business["status"] != "passed" || business["branchStatus"] != "passed" || business["captureStatus"] != "complete" || len(tool.Array(business["gaps"])) != 0 || business["provider"] != plan["provider"] || business["caseId"] != plan["caseId"] || business["storyId"] != catalogPlan["storyId"] || sdk["package"] != packageName || tool.Str(sdk["version"]) == "") {
 		businessErr = errors.New("official SDK business evidence is absent or incomplete")
 	}
-	v := &corpusValidation{}
+	v := &corpus.Validation{}
 	v.Replay(o.Materials, o.Output, plan, "verify")
-	after, sourceErr := corpusInventory(o.Materials, false)
+	after, sourceErr := corpus.Inventory(o.Materials, false)
 	if sourceErr == nil && !reflect.DeepEqual(before, after) {
 		sourceErr = errors.New("source changed during verification")
 	}

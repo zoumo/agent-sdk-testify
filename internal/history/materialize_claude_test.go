@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func TestClaudeHistoryDerivationRejectsCorruptionAndPreservesOtherBytes(t *testing.T) {
@@ -25,7 +27,7 @@ func TestClaudeHistoryDerivationRejectsCorruptionAndPreservesOtherBytes(t *testi
 			path := filepath.Join(source, "config", "projects", "-original-project", tc.filename)
 			require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
 			require.NoError(t, os.WriteFile(path, []byte(tc.source), 0o600))
-			err := MaterializeClaude(source, root, workspace, object{"project": "/original/project"})
+			err := MaterializeClaude(source, root, workspace, tool.Object{"project": "/original/project"})
 			if tc.fail {
 				require.Error(t, err)
 			} else {

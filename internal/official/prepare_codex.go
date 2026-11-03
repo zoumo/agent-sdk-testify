@@ -9,22 +9,24 @@ import (
 	"strings"
 
 	"github.com/pelletier/go-toml/v2"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // Empty project root markers confine native .agents/.codex discovery to cwd;
 // zero instruction bytes excludes AGENTS.md and configured fallback files.
 // Apply after all argument preparation, including supplied recording plans.
-func prepareCodexIsolation(root string, plan object) error {
+func prepareCodexIsolation(root string, plan tool.Object) error {
 	// Skill-specific case inputs need an explicit future contract; do not let
 	// ordinary case files reopen the discovery roots filtered from user config.
 	for _, name := range []string{".agents/skills", ".codex/skills", ".codex/config.toml"} {
-		if _, err := os.Lstat(filepath.Join(str(plan["project"]), name)); err == nil {
+		if _, err := os.Lstat(filepath.Join(tool.Str(plan["project"]), name)); err == nil {
 			return fmt.Errorf("codex recording isolation: workspace contains %s", name)
 		} else if !os.IsNotExist(err) {
 			return err
 		}
 	}
-	args := stringsOf(plan["args"])
+	args := tool.Strings(plan["args"])
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		var override string
@@ -47,7 +49,7 @@ func prepareCodexIsolation(root string, plan object) error {
 			continue
 		}
 		key, _, ok := strings.Cut(override, "=")
-		var config object
+		var config tool.Object
 		if !ok {
 			return errors.New("codex recording isolation: malformed config override")
 		}
@@ -72,7 +74,7 @@ func prepareCodexIsolation(root string, plan object) error {
 }
 
 // Reject sources of personal context, not unrelated native capability knobs.
-func codexPersonalInputOverride(config object) bool {
+func codexPersonalInputOverride(config tool.Object) bool {
 	for key, value := range config {
 		switch key {
 		case "skills", "plugins", "marketplaces", "mcp_servers", "profiles",
@@ -80,8 +82,8 @@ func codexPersonalInputOverride(config object) bool {
 			"model_instructions_file", "experimental_instructions_file":
 			return true
 		case "agents":
-			var personalRole func(object) bool
-			personalRole = func(fields object) bool {
+			var personalRole func(tool.Object) bool
+			personalRole = func(fields tool.Object) bool {
 				for name, value := range fields {
 					if name == "config_file" || name == "developer_instructions" {
 						return true
@@ -92,7 +94,7 @@ func codexPersonalInputOverride(config object) bool {
 				}
 				return false
 			}
-			if personalRole(obj(value)) {
+			if personalRole(tool.Obj(value)) {
 				return true
 			}
 		}
@@ -100,7 +102,7 @@ func codexPersonalInputOverride(config object) bool {
 	return false
 }
 
-func codexNativeArgs(profile string, params object) []string {
+func codexNativeArgs(profile string, params tool.Object) []string {
 	var args []string
 	args = []string{"app-server", "--stdio", "-c", "features.default_mode_request_user_input=true"}
 	if profile == "children" || profile == "background-children" || params["historyTarget"] == "child-messages" || params["topology"] != nil {
@@ -127,8 +129,8 @@ func codexNativeArgs(profile string, params object) []string {
 
 // Unknown model slugs otherwise get fallback metadata without apply_patch.
 // Declare the case's tool contract without substituting a different model.
-func prepareCodexFileTool(root string, plan object) error {
-	model := str(plan["model"])
+func prepareCodexFileTool(root string, plan tool.Object) error {
+	model := tool.Str(plan["model"])
 	if model == "" {
 		data, err := os.ReadFile(filepath.Join(root, "config", "config.toml"))
 		if err != nil {
@@ -145,23 +147,23 @@ func prepareCodexFileTool(root string, plan object) error {
 	}
 	plan["model"] = model
 	path := filepath.Join(root, "config", "file-tool-model.json")
-	catalog := object{"models": []object{{
+	catalog := tool.Object{"models": []tool.Object{{
 		"slug": model, "display_name": model, "description": "Synthetic file approval case",
-		"supported_reasoning_levels": []object{}, "shell_type": "disabled",
+		"supported_reasoning_levels": []tool.Object{}, "shell_type": "disabled",
 		"visibility": "hide", "supported_in_api": true, "priority": 0,
 		"support_verbosity": false, "apply_patch_tool_type": "freeform",
 		"base_instructions":            "Complete the synthetic file approval task using apply_patch.",
-		"truncation_policy":            object{"mode": "bytes", "limit": 10000},
+		"truncation_policy":            tool.Object{"mode": "bytes", "limit": 10000},
 		"experimental_supported_tools": []string{},
 	}}}
-	if err := writeJSON(path, catalog); err != nil {
+	if err := tool.WriteJSON(path, catalog); err != nil {
 		return err
 	}
 	quoted, err := json.Marshal(path)
 	if err != nil {
 		return fmt.Errorf("encode model catalog path: %w", err)
 	}
-	plan["args"] = append(stringsOf(plan["args"]), "-c", "model_catalog_json="+string(quoted))
+	plan["args"] = append(tool.Strings(plan["args"]), "-c", "model_catalog_json="+string(quoted))
 	return nil
 }
 
@@ -172,7 +174,7 @@ func prepareCodexChildFixture(root string) error {
 		return fmt.Errorf("encode child fixture prompt: %w", err)
 	}
 	role := "name=\"fixture_reader\"\ndescription=\"Read the single synthetic child fixture with fixture_read.\"\ndeveloper_instructions=" + string(b) + "\n"
-	if err := writeFiles(filepath.Join(root, "config"), object{"agents/fixture_reader.toml": role}); err != nil {
+	if err := tool.WriteFiles(filepath.Join(root, "config"), tool.Object{"agents/fixture_reader.toml": role}); err != nil {
 		return err
 	}
 	return nil
@@ -248,26 +250,26 @@ func filterCodexConfig(path string) error {
 	if err != nil {
 		return err
 	}
-	var source object
+	var source tool.Object
 	if err := toml.Unmarshal(data, &source); err != nil {
 		return err
 	}
-	selected := object{}
+	selected := tool.Object{}
 	for _, key := range []string{"model", "model_provider", "model_reasoning_effort"} {
 		if value, ok := source[key]; ok {
 			selected[key] = value
 		}
 	}
-	provider := str(source["model_provider"])
+	provider := tool.Str(source["model_provider"])
 	if provider != "" {
-		fields := obj(obj(source["model_providers"])[provider])
-		connection := object{}
+		fields := tool.Obj(tool.Obj(source["model_providers"])[provider])
+		connection := tool.Object{}
 		for _, key := range []string{"name", "base_url", "env_key", "wire_api", "requires_openai_auth", "http_headers", "env_http_headers", "supports_websockets"} {
 			if value, ok := fields[key]; ok {
 				connection[key] = value
 			}
 		}
-		selected["model_providers"] = object{provider: connection}
+		selected["model_providers"] = tool.Object{provider: connection}
 	}
 	filtered, err := toml.Marshal(selected)
 	if err != nil {

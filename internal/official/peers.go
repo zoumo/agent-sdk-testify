@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // The selected runs own both the commands sent to the driver and the evidence
@@ -16,14 +18,14 @@ import (
 type peerRuns struct {
 	mode, provider string
 	runs           []peerRun
-	driver         driverPeer
+	driver         DriverPeer
 }
 
 type peerRun struct {
 	name, recording, receipt string
 }
 
-func preparePeerRuns(o options, plan object, service *remoteService) (*peerRuns, error) {
+func preparePeerRuns(o Options, plan tool.Object, service *remoteService) (*peerRuns, error) {
 	self, err := os.Executable()
 	if err != nil {
 		return nil, err
@@ -32,11 +34,11 @@ func preparePeerRuns(o options, plan object, service *remoteService) (*peerRuns,
 	if peerName == "" {
 		peerName = self
 	}
-	peer, err := absoluteExecutable(peerName)
+	peer, err := tool.AbsoluteExecutable(peerName)
 	if err != nil {
 		return nil, err
 	}
-	r := &peerRuns{mode: o.Mode, provider: str(plan["provider"])}
+	r := &peerRuns{mode: o.Mode, provider: tool.Str(plan["provider"])}
 	root := o.Output
 	phases := []string{"main"}
 	if plan["driverProfile"] == "remote-close" {
@@ -56,14 +58,14 @@ func preparePeerRuns(o options, plan object, service *remoteService) (*peerRuns,
 		var args []string
 		if o.Mode == "record" {
 			run.receipt = filepath.Join(base, "raw", "transport.json")
-			cwd := str(plan["project"])
+			cwd := tool.Str(plan["project"])
 			if plan["driverProfile"] == "existing-children" {
-				cwd = str(plan["historyProject"])
+				cwd = tool.Str(plan["historyProject"])
 			}
-			args = []string{"--internal-protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", cwd, "--stdin-eof-action", str(plan["stdinEOFAction"]), "--", str(plan["cli"])}
-			args = append(args, stringsOf(plan["args"])...)
+			args = []string{"--internal-protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", cwd, "--stdin-eof-action", tool.Str(plan["stdinEOFAction"]), "--", tool.Str(plan["cli"])}
+			args = append(args, tool.Strings(plan["args"])...)
 			if service != nil {
-				args = []string{"--internal-protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", str(plan["project"]), "--", peer, "--internal-protocol", "connect", "--url", service.endpoint, "--token-file", service.token}
+				args = []string{"--internal-protocol", "record", "--output", filepath.Join(base, "raw"), "--cwd", tool.Str(plan["project"]), "--", peer, "--internal-protocol", "connect", "--url", service.endpoint, "--token-file", service.token}
 			}
 		} else {
 			// The original native cwd and recording bytes remain source data;
@@ -78,18 +80,18 @@ func preparePeerRuns(o options, plan object, service *remoteService) (*peerRuns,
 			args = []string{"--internal-protocol", "mock", "--provider", r.provider, "--scenario", run.recording, "--receipt", run.receipt}
 		}
 		peerPath := filepath.Join(root, "peer-"+phase+".json")
-		if err := writeJSON(peerPath, command{Command: peer, Args: args}); err != nil {
+		if err := tool.WriteJSON(peerPath, tool.Command{Command: peer, Args: args}); err != nil {
 			return nil, err
 		}
 		launcherArgs := []string{"--internal-peer", "--request", peerPath}
 		if o.Mode == "verify" {
 			launcherArgs = append(launcherArgs, "--lifecycle", filepath.Join(root, "peer-"+phase+"-lifecycle.json"))
 		}
-		launcher, err := writePeerLauncher(root, phase, command{Command: self, Args: launcherArgs})
+		launcher, err := writePeerLauncher(root, phase, tool.Command{Command: self, Args: launcherArgs})
 		if err != nil {
 			return nil, err
 		}
-		entry := command{Command: launcher}
+		entry := tool.Command{Command: launcher}
 		switch phase {
 		case "main":
 			r.driver.Command = entry
@@ -115,8 +117,8 @@ func (r *peerRuns) finish(status string) error {
 }
 
 func (r peerRun) verify(mode, provider string) error {
-	var receipt object
-	if err := readJSON(r.receipt, &receipt); err != nil {
+	var receipt tool.Object
+	if err := tool.ReadJSON(r.receipt, &receipt); err != nil {
 		return err
 	}
 	if mode == "record" {
@@ -141,8 +143,8 @@ func (r peerRun) verify(mode, provider string) error {
 		if r.name == "probe" {
 			root = filepath.Dir(root)
 		}
-		var lifecycle object
-		if err := readJSON(filepath.Join(root, "peer-"+r.name+"-lifecycle.json"), &lifecycle); err != nil {
+		var lifecycle tool.Object
+		if err := tool.ReadJSON(filepath.Join(root, "peer-"+r.name+"-lifecycle.json"), &lifecycle); err != nil {
 			return err
 		}
 		if lifecycle["exitCode"] != float64(0) || lifecycle["reaped"] != true || lifecycle["cleanupComplete"] != true || lifecycle["error"] != nil {
@@ -154,7 +156,7 @@ func (r peerRun) verify(mode, provider string) error {
 
 // Launchers adapt SDKs that accept only an executable path. The runner alone
 // chooses the protocol command, inputs and receipt for each independent run.
-func writePeerLauncher(root, phase string, peer command) (string, error) {
+func writePeerLauncher(root, phase string, peer tool.Command) (string, error) {
 	quote := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
 	words := []string{quote(peer.Command)}
 	for _, arg := range peer.Args {

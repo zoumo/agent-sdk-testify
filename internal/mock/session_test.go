@@ -17,6 +17,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func mockTestAgent() int {
@@ -74,29 +76,29 @@ func sessionExecutable(t *testing.T, env []string, executable string, args ...st
 	return cmd
 }
 
-func latestSessionExecution(t *testing.T, session, command string) (object, string) {
+func latestSessionExecution(t *testing.T, session, command string) (tool.Object, string) {
 	t.Helper()
-	var index object
-	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
-	rows := array(index["executions"])
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	rows := tool.Array(index["executions"])
 	for i := range slices.Backward(rows) {
-		row := obj(rows[i])
-		if str(row["command"]) != command {
+		row := tool.Obj(rows[i])
+		if tool.Str(row["command"]) != command {
 			continue
 		}
-		id := str(row["id"])
-		var execution object
-		require.NoError(t, readJSON(filepath.Join(session, "executions", id, "execution.json"), &execution))
+		id := tool.Str(row["id"])
+		var execution tool.Object
+		require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", id, "execution.json"), &execution))
 		return execution, id
 	}
 	t.Fatalf("session has no %s execution", command)
 	return nil, ""
 }
 
-func routeHostEnvironment(route object, extra map[string]string) []string {
+func routeHostEnvironment(route tool.Object, extra map[string]string) []string {
 	values := map[string]string{"PATH": os.Getenv("PATH"), "GORACE": "atexit_sleep_ms=0"}
-	for key, value := range obj(route["env"]) {
-		values[key] = str(value)
+	for key, value := range tool.Obj(route["env"]) {
+		values[key] = tool.Str(value)
 	}
 	maps.Copy(values, extra)
 	env := make([]string, 0, len(values))
@@ -124,7 +126,7 @@ func workspaceHashes(t *testing.T, root string) map[string]string {
 		if err != nil {
 			return err
 		}
-		hashes[filepath.ToSlash(rel)] = digestBytes(data)
+		hashes[filepath.ToSlash(rel)] = tool.DigestBytes(data)
 		return nil
 	}))
 	return hashes
@@ -134,7 +136,7 @@ func consumerSession(t *testing.T) (string, []string) {
 	t.Helper()
 	base := t.TempDir()
 	plan := filepath.Join(base, "plan.json")
-	require.NoError(t, writeJSON(plan, object{
+	require.NoError(t, tool.WriteJSON(plan, tool.Object{
 		"version":       1,
 		"agentType":     "codex",
 		"caseId":        "consumer-session",
@@ -142,9 +144,9 @@ func consumerSession(t *testing.T) (string, []string) {
 		"project":       filepath.Join(base, "original-project"),
 		"model":         "synthetic-model",
 		"cliVersion":    "synthetic-consumer-native",
-		"scenario": object{
-			"files":      object{"fixture.txt": "fixture\n"},
-			"parameters": object{"keep": 9007199254740993},
+		"scenario": tool.Object{
+			"files":      tool.Object{"fixture.txt": "fixture\n"},
+			"parameters": tool.Object{"keep": 9007199254740993},
 		},
 	}))
 	home := filepath.Join(base, "host-home")
@@ -162,9 +164,9 @@ func consumerSession(t *testing.T) (string, []string) {
 	data, err := prepare.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	t.Cleanup(func() {
-		var descriptor object
-		if readJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
-			_ = os.RemoveAll(str(descriptor["resourceRoot"]))
+		var descriptor tool.Object
+		if tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
+			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
 		}
 	})
 	return session, env
@@ -185,7 +187,7 @@ func recordConsumerRequest(t *testing.T, session string, env []string, request s
 	record.Stderr = &stderr
 	out, err := record.Output()
 	require.NoError(t, err, "%s", stderr.String())
-	var requestObject object
+	var requestObject tool.Object
 	require.NoError(t, json.Unmarshal([]byte(request), &requestObject))
 	assert.JSONEq(t, fmt.Sprintf(`{"id":%v,"result":{"synthetic":true}}`, requestObject["id"]), string(out))
 }
@@ -199,9 +201,9 @@ func TestPreparedHalfOpenMockFailsFinishAndRetainsEvidence(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 
 	execution, executionID := latestSessionExecution(t, session, "mock")
-	var mainConnection, probeConnection object
-	for _, value := range array(execution["connections"]) {
-		connection := obj(value)
+	var mainConnection, probeConnection tool.Object
+	for _, value := range tool.Array(execution["connections"]) {
+		connection := tool.Obj(value)
 		switch connection["id"] {
 		case "main":
 			mainConnection = connection
@@ -211,33 +213,33 @@ func TestPreparedHalfOpenMockFailsFinishAndRetainsEvidence(t *testing.T) {
 	}
 	require.NotEmpty(t, mainConnection)
 	require.NotEmpty(t, probeConnection)
-	require.FileExists(t, str(mainConnection["receipt"]))
-	require.NoFileExists(t, str(probeConnection["receipt"]))
+	require.FileExists(t, tool.Str(mainConnection["receipt"]))
+	require.NoFileExists(t, tool.Str(probeConnection["receipt"]))
 
 	finish := sessionTool(t, env, "finish", "--session-dir", session)
 	data, err = finish.Output()
 	require.Error(t, err, "%s", data)
-	var report object
+	var report tool.Object
 	require.NoError(t, json.Unmarshal(data, &report))
 	require.Equal(t, "failed", report["status"])
 	require.Equal(t, true, report["cleanupComplete"])
-	rows := array(report["executions"])
+	rows := tool.Array(report["executions"])
 	require.Len(t, rows, 1)
-	require.Equal(t, executionID, obj(rows[0])["id"])
-	require.Equal(t, "failed", obj(rows[0])["status"])
+	require.Equal(t, executionID, tool.Obj(rows[0])["id"])
+	require.Equal(t, "failed", tool.Obj(rows[0])["status"])
 
 	require.FileExists(t, filepath.Join(session, "executions", executionID, "execution.json"))
-	require.FileExists(t, str(mainConnection["receipt"]))
-	require.FileExists(t, str(mainConnection["processReceipt"]))
-	require.NoFileExists(t, str(probeConnection["receipt"]))
-	require.NoFileExists(t, str(probeConnection["processReceipt"]))
+	require.FileExists(t, tool.Str(mainConnection["receipt"]))
+	require.FileExists(t, tool.Str(mainConnection["processReceipt"]))
+	require.NoFileExists(t, tool.Str(probeConnection["receipt"]))
+	require.NoFileExists(t, tool.Str(probeConnection["processReceipt"]))
 }
 
 func TestPreparedSourceTamperRejected(t *testing.T) {
 	session, env := consumerSession(t)
-	var descriptor object
-	require.NoError(t, readJSON(filepath.Join(session, "session.json"), &descriptor))
-	sourcePath := str(obj(descriptor["source"])["path"])
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	sourcePath := tool.Str(tool.Obj(descriptor["source"])["path"])
 	require.NoError(t, os.WriteFile(sourcePath, []byte("{}\n"), 0o600))
 	data, err := sessionTool(t, env, "mock", "--session-dir", session, "--version").CombinedOutput()
 	require.Error(t, err, "%s", data)
@@ -247,10 +249,10 @@ func TestPreparedSourceTamperRejected(t *testing.T) {
 func TestPreparedSessionTamperRejected(t *testing.T) {
 	session, env := consumerSession(t)
 	path := filepath.Join(session, "session.json")
-	var descriptor object
-	require.NoError(t, readJSON(path, &descriptor))
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(path, &descriptor))
 	descriptor["toolVersion"] = "tampered"
-	require.NoError(t, writeJSON(path, descriptor))
+	require.NoError(t, tool.WriteJSON(path, descriptor))
 	data, err := sessionTool(t, env, "mock", "--session-dir", session, "--version").CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "session descriptor changed after prepare")
@@ -259,12 +261,12 @@ func TestPreparedSessionTamperRejected(t *testing.T) {
 func TestPreparedMockLauncherRemainsAcrossExecutions(t *testing.T) {
 	session, env := consumerSession(t)
 	recordConsumerCapture(t, session, env)
-	var descriptor object
-	require.NoError(t, readJSON(filepath.Join(session, "session.json"), &descriptor))
-	route := obj(obj(descriptor["routes"])["mock"])
-	connections := array(route["connections"])
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	route := tool.Obj(tool.Obj(descriptor["routes"])["mock"])
+	connections := tool.Array(route["connections"])
 	require.NotEmpty(t, connections)
-	launcher := str(obj(connections[0])["launcher"])
+	launcher := tool.Str(tool.Obj(connections[0])["launcher"])
 	require.FileExists(t, launcher)
 
 	const request = `{"id":1,"method":"ping"}` + "\n"
@@ -287,14 +289,14 @@ func TestPreparedMockLauncherUsesIsolatedExecutionOverlays(t *testing.T) {
 	recordConsumerCapture(t, session, env)
 	resolvedSession, err := filepath.EvalSymlinks(session)
 	require.NoError(t, err)
-	var descriptor object
-	require.NoError(t, readJSON(filepath.Join(session, "session.json"), &descriptor))
-	route := obj(obj(descriptor["routes"])["mock"])
-	routeWorkspace := str(route["workspace"])
-	launcher := str(obj(array(route["connections"])[0])["launcher"])
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	route := tool.Obj(tool.Obj(descriptor["routes"])["mock"])
+	routeWorkspace := tool.Str(route["workspace"])
+	launcher := tool.Str(tool.Obj(tool.Array(route["connections"])[0])["launcher"])
 	require.FileExists(t, launcher)
-	routeRoot := filepath.Join(str(descriptor["resourceRoot"]), "routes", "mock")
-	templateRoot := filepath.Join(str(descriptor["resourceRoot"]), "templates", "mock")
+	routeRoot := filepath.Join(tool.Str(descriptor["resourceRoot"]), "routes", "mock")
+	templateRoot := filepath.Join(tool.Str(descriptor["resourceRoot"]), "templates", "mock")
 	assertRouteSlotsAtTemplate := func() {
 		for _, name := range []string{"workspace", "home", "config", "tmp", "history-seed"} {
 			require.Equal(t, filepath.Join(templateRoot, name), resolvedSymlink(t, filepath.Join(routeRoot, name)))
@@ -314,7 +316,7 @@ exec '%s' "$@"
 `, observe, launcher)
 	require.NoError(t, os.WriteFile(wrapper, []byte(script), 0o700))
 
-	run := func(label string) (object, string, map[string]string) {
+	run := func(label string) (tool.Object, string, map[string]string) {
 		cmd := sessionExecutable(t, routeHostEnvironment(route, map[string]string{
 			"RUN_LABEL": label,
 		}), wrapper, "app-server", "--listen", "stdio://")
@@ -339,43 +341,43 @@ exec '%s' "$@"
 	}
 
 	first, firstID, firstObserved := run("first")
-	firstWorkspace := str(first["workspace"])
+	firstWorkspace := tool.Str(first["workspace"])
 	firstRoot := filepath.Join(resolvedSession, "executions", firstID)
 	require.NotEqual(t, routeWorkspace, firstWorkspace)
 	require.True(t, strings.HasPrefix(firstWorkspace, firstRoot+string(filepath.Separator)))
-	require.Equal(t, str(first["home"]), str(obj(first["env"])["HOME"]))
-	require.Equal(t, str(first["config"]), str(obj(first["env"])["CODEX_HOME"]))
-	require.Equal(t, str(first["tmp"]), str(obj(first["env"])["TMPDIR"]))
+	require.Equal(t, tool.Str(first["home"]), tool.Str(tool.Obj(first["env"])["HOME"]))
+	require.Equal(t, tool.Str(first["config"]), tool.Str(tool.Obj(first["env"])["CODEX_HOME"]))
+	require.Equal(t, tool.Str(first["tmp"]), tool.Str(tool.Obj(first["env"])["TMPDIR"]))
 	require.NotEmpty(t, firstObserved)
 	assertRouteSlotsAtTemplate()
-	firstConnection := obj(array(first["connections"])[0])
-	var firstProcess object
-	require.NoError(t, readJSON(str(firstConnection["processReceipt"]), &firstProcess))
+	firstConnection := tool.Obj(tool.Array(first["connections"])[0])
+	var firstProcess tool.Object
+	require.NoError(t, tool.ReadJSON(tool.Str(firstConnection["processReceipt"]), &firstProcess))
 	require.Equal(t, firstWorkspace, firstProcess["cwd"])
 	require.NoError(t, os.WriteFile(filepath.Join(firstWorkspace, "run-first.txt"), []byte("first\n"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(str(first["home"]), "run-first.txt"), []byte("first\n"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(str(first["config"]), "run-first.txt"), []byte("first\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tool.Str(first["home"]), "run-first.txt"), []byte("first\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(tool.Str(first["config"]), "run-first.txt"), []byte("first\n"), 0o600))
 	firstHashes := workspaceHashes(t, firstWorkspace)
 	require.NoFileExists(t, filepath.Join(templateRoot, "workspace", "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(templateRoot, "home", "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(templateRoot, "config", "run-first.txt"))
 
 	second, secondID, secondObserved := run("second")
-	secondWorkspace := str(second["workspace"])
+	secondWorkspace := tool.Str(second["workspace"])
 	secondRoot := filepath.Join(resolvedSession, "executions", secondID)
 	require.NotEqual(t, firstID, secondID)
 	require.NotEqual(t, firstWorkspace, secondWorkspace)
 	require.True(t, strings.HasPrefix(secondWorkspace, secondRoot+string(filepath.Separator)))
 	require.NotEmpty(t, secondObserved)
 	assertRouteSlotsAtTemplate()
-	secondConnection := obj(array(second["connections"])[0])
-	var secondProcess object
-	require.NoError(t, readJSON(str(secondConnection["processReceipt"]), &secondProcess))
+	secondConnection := tool.Obj(tool.Array(second["connections"])[0])
+	var secondProcess tool.Object
+	require.NoError(t, tool.ReadJSON(tool.Str(secondConnection["processReceipt"]), &secondProcess))
 	require.Equal(t, secondWorkspace, secondProcess["cwd"])
 	require.FileExists(t, filepath.Join(secondWorkspace, "fixture.txt"))
 	require.NoFileExists(t, filepath.Join(secondWorkspace, "run-first.txt"))
-	require.NoFileExists(t, filepath.Join(str(second["home"]), "run-first.txt"))
-	require.NoFileExists(t, filepath.Join(str(second["config"]), "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(tool.Str(second["home"]), "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(tool.Str(second["config"]), "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(firstWorkspace, "run-second.txt"))
 	require.Equal(t, firstHashes, workspaceHashes(t, firstWorkspace))
 
@@ -393,19 +395,19 @@ func resolvedSymlink(t *testing.T, path string) string {
 func TestPreparedExecutionTamperRejectedByFinish(t *testing.T) {
 	session, env := consumerSession(t)
 	recordConsumerCapture(t, session, env)
-	var index object
-	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
-	rows := array(index["executions"])
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	rows := tool.Array(index["executions"])
 	require.NotEmpty(t, rows)
-	path := filepath.Join(session, "executions", str(obj(rows[len(rows)-1])["id"]), "execution.json")
-	var execution object
-	require.NoError(t, readJSON(path, &execution))
-	execution["args"] = append(array(execution["args"]), "--tampered")
-	require.NoError(t, writeJSON(path, execution))
+	path := filepath.Join(session, "executions", tool.Str(tool.Obj(rows[len(rows)-1])["id"]), "execution.json")
+	var execution tool.Object
+	require.NoError(t, tool.ReadJSON(path, &execution))
+	execution["args"] = append(tool.Array(execution["args"]), "--tampered")
+	require.NoError(t, tool.WriteJSON(path, execution))
 
 	data, err := sessionTool(t, env, "finish", "--session-dir", session).Output()
 	require.Error(t, err, "%s", data)
-	var report object
+	var report tool.Object
 	require.NoError(t, json.Unmarshal(data, &report))
 	assert.Equal(t, "failed", report["status"])
 	assert.Contains(t, string(data), "execution descriptor changed after creation")
@@ -417,14 +419,14 @@ func TestPreparedConsumerRecordFailure(t *testing.T) {
 	data, err := record.CombinedOutput()
 	require.Error(t, err, "%s", data)
 
-	var index object
-	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
-	assert.Empty(t, array(index["artifacts"]))
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	assert.Empty(t, tool.Array(index["artifacts"]))
 
 	finish := sessionTool(t, env, "finish", "--session-dir", session)
 	data, err = finish.Output()
 	require.Error(t, err, "%s", data)
-	var report object
+	var report tool.Object
 	require.NoError(t, json.Unmarshal(data, &report))
 	assert.Equal(t, "failed", report["status"])
 	assert.Equal(t, true, report["cleanupComplete"])
@@ -435,7 +437,7 @@ func TestConsumerPlanAgentTypeCannotBeOverriddenByLegacyProvider(t *testing.T) {
 		t.Run(legacy, func(t *testing.T) {
 			base := t.TempDir()
 			plan := filepath.Join(base, "plan.json")
-			require.NoError(t, writeJSON(plan, object{
+			require.NoError(t, tool.WriteJSON(plan, tool.Object{
 				"version":       1,
 				"agentType":     "codex",
 				"provider":      legacy,
@@ -458,7 +460,7 @@ func TestConsumerPlanAgentTypeCannotBeOverriddenByLegacyProvider(t *testing.T) {
 	}
 }
 
-type syntheticMaterialChange func(*testing.T, string, object)
+type syntheticMaterialChange func(*testing.T, string, tool.Object)
 
 func syntheticCaseMaterial(t *testing.T, caseID, provenance string, files map[string]string) string {
 	t.Helper()
@@ -467,7 +469,7 @@ func syntheticCaseMaterial(t *testing.T, caseID, provenance string, files map[st
 	if provenance == "consumer" {
 		profile = "consumer"
 	}
-	require.NoError(t, writeJSON(filepath.Join(root, "plan.json"), object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "plan.json"), tool.Object{
 		"version":       1,
 		"agentType":     "codex",
 		"provider":      "codex",
@@ -482,33 +484,33 @@ func syntheticCaseMaterial(t *testing.T, caseID, provenance string, files map[st
 	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), []byte(raw), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "stderr.raw"), nil, 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "transport.json"), []byte(transport), 0o600))
-	saved := object{}
+	saved := tool.Object{}
 	for name, content := range files {
 		path := filepath.Join(root, filepath.FromSlash(name))
 		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
 		require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
-		saved[name] = digestBytes([]byte(content))
+		saved[name] = tool.DigestBytes([]byte(content))
 	}
-	require.NoError(t, writeJSON(filepath.Join(root, "raw", "manifest.json"), object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "raw", "manifest.json"), tool.Object{
 		"captureStatus": "complete",
-		"files": object{
-			"raw.jsonl":      digestBytes([]byte(raw)),
-			"stderr.raw":     digestBytes(nil),
-			"transport.json": digestBytes([]byte(transport)),
+		"files": tool.Object{
+			"raw.jsonl":      tool.DigestBytes([]byte(raw)),
+			"stderr.raw":     tool.DigestBytes(nil),
+			"transport.json": tool.DigestBytes([]byte(transport)),
 		},
-		"recordingFormat": object{
+		"recordingFormat": tool.Object{
 			"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl",
 		},
-		"native": object{
+		"native": tool.Object{
 			"executable": "/synthetic/agent", "sha256": strings.Repeat("a", 64), "cwd": "/synthetic/project",
 		},
 	}))
-	planHash, err := fileDigest(filepath.Join(root, "plan.json"))
+	planHash, err := tool.FileDigest(filepath.Join(root, "plan.json"))
 	require.NoError(t, err)
-	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), tool.Object{
 		"provenance": provenance,
 		"planSHA256": planHash,
-		"files":      object{"raw.jsonl": digestBytes([]byte(raw))},
+		"files":      tool.Object{"raw.jsonl": tool.DigestBytes([]byte(raw))},
 		"savedFiles": saved,
 	}))
 	return root
@@ -526,15 +528,15 @@ func TestPreparedHistoryRejectsUnboundMissingDriftLinksAndEscapes(t *testing.T) 
 			name:    "unbound",
 			files:   map[string]string{history: "bound\n"},
 			message: "unbound history",
-			mutate: func(t *testing.T, _ string, manifest object) {
-				delete(obj(manifest["savedFiles"]), history)
+			mutate: func(t *testing.T, _ string, manifest tool.Object) {
+				delete(tool.Obj(manifest["savedFiles"]), history)
 			},
 		},
 		{
 			name:    "missing",
 			files:   map[string]string{history: "bound\n"},
 			message: "history.jsonl",
-			mutate: func(t *testing.T, root string, _ object) {
+			mutate: func(t *testing.T, root string, _ tool.Object) {
 				require.NoError(t, os.Remove(filepath.Join(root, history)))
 			},
 		},
@@ -542,7 +544,7 @@ func TestPreparedHistoryRejectsUnboundMissingDriftLinksAndEscapes(t *testing.T) 
 			name:    "drift",
 			files:   map[string]string{history: "bound\n"},
 			message: "hash mismatch",
-			mutate: func(t *testing.T, root string, _ object) {
+			mutate: func(t *testing.T, root string, _ tool.Object) {
 				require.NoError(t, os.WriteFile(filepath.Join(root, history), []byte("changed\n"), 0o600))
 			},
 		},
@@ -550,7 +552,7 @@ func TestPreparedHistoryRejectsUnboundMissingDriftLinksAndEscapes(t *testing.T) 
 			name:    "parent symlink",
 			files:   map[string]string{"config/sessions/target/history.jsonl": "bound\n"},
 			message: "symlink",
-			mutate: func(t *testing.T, root string, _ object) {
+			mutate: func(t *testing.T, root string, _ tool.Object) {
 				target := filepath.Join(root, "config", "sessions", "target")
 				linked := filepath.Join(root, "config", "sessions", "linked")
 				require.NoError(t, os.Rename(target, linked))
@@ -561,10 +563,10 @@ func TestPreparedHistoryRejectsUnboundMissingDriftLinksAndEscapes(t *testing.T) 
 			name:    "path escape",
 			files:   map[string]string{history: "bound\n"},
 			message: "escapes material",
-			mutate: func(t *testing.T, root string, manifest object) {
+			mutate: func(t *testing.T, root string, manifest tool.Object) {
 				outside := filepath.Join(filepath.Dir(root), "outside.jsonl")
 				require.NoError(t, os.WriteFile(outside, []byte("outside\n"), 0o600))
-				obj(manifest["savedFiles"])["../outside.jsonl"] = digestBytes([]byte("outside\n"))
+				tool.Obj(manifest["savedFiles"])["../outside.jsonl"] = tool.DigestBytes([]byte("outside\n"))
 			},
 		},
 		{
@@ -576,10 +578,10 @@ func TestPreparedHistoryRejectsUnboundMissingDriftLinksAndEscapes(t *testing.T) 
 		t.Run(tc.name, func(t *testing.T) {
 			root := syntheticCaseMaterial(t, "SDK-CASE-001", "external", tc.files)
 			if tc.mutate != nil {
-				var manifest object
-				require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
+				var manifest tool.Object
+				require.NoError(t, tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest))
 				tc.mutate(t, root, manifest)
-				require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
+				require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), manifest))
 			}
 			session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
 			cmd := sessionTool(t, env, "mock", "--session-dir", session, "--recording", root, "--", "app-server", "--listen", "stdio://")
@@ -587,9 +589,9 @@ func TestPreparedHistoryRejectsUnboundMissingDriftLinksAndEscapes(t *testing.T) 
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
 			assert.Contains(t, string(data), tc.message)
-			var index object
-			require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
-			assert.Empty(t, array(index["executions"]))
+			var index tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+			assert.Empty(t, tool.Array(index["executions"]))
 		})
 	}
 }
@@ -605,8 +607,8 @@ func TestPreparedMockUsesSelectedArtifactProvenance(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	execution, _ := latestSessionExecution(t, session, "mock")
 	assert.Equal(t, "consumer", execution["provenance"])
-	assert.Equal(t, "external", obj(execution["artifact"])["action"])
-	data, err = os.ReadFile(filepath.Join(str(execution["config"]), "sessions", "history.jsonl"))
+	assert.Equal(t, "external", tool.Obj(execution["artifact"])["action"])
+	data, err = os.ReadFile(filepath.Join(tool.Str(execution["config"]), "sessions", "history.jsonl"))
 	require.NoError(t, err)
 	assert.Equal(t, "consumer\n", string(data))
 }
@@ -617,23 +619,23 @@ func TestPreparedVerifyRejectsConsumerMaterial(t *testing.T) {
 	data, err := sessionTool(t, env, "verify", "--session-dir", session, "--recording", root).CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "consumer material cannot be verified")
-	var index object
-	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
-	assert.Empty(t, array(index["executions"]))
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	assert.Empty(t, tool.Array(index["executions"]))
 }
 
 func TestPreparedMaterialProvenanceConflictFailsBeforeReplay(t *testing.T) {
 	root := syntheticCaseMaterial(t, "SDK-CASE-001", "official", nil)
-	var plan object
-	require.NoError(t, readJSON(filepath.Join(root, "plan.json"), &plan))
+	var plan tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(root, "plan.json"), &plan))
 	plan["driverProfile"] = "consumer"
-	require.NoError(t, writeJSON(filepath.Join(root, "plan.json"), plan))
-	var manifest object
-	require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
-	planHash, err := fileDigest(filepath.Join(root, "plan.json"))
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "plan.json"), plan))
+	var manifest tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest))
+	planHash, err := tool.FileDigest(filepath.Join(root, "plan.json"))
 	require.NoError(t, err)
 	manifest["planSHA256"] = planHash
-	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), manifest))
 	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
 	data, err := sessionTool(t, env, "mock", "--session-dir", session, "--recording", root, "--", "app-server", "--listen", "stdio://").CombinedOutput()
 	require.Error(t, err, "%s", data)
@@ -642,17 +644,17 @@ func TestPreparedMaterialProvenanceConflictFailsBeforeReplay(t *testing.T) {
 
 func TestPreparedMaterialMissingProvenanceFailsBeforeReplay(t *testing.T) {
 	root := syntheticCaseMaterial(t, "SDK-CASE-001", "external", nil)
-	var manifest object
-	require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
+	var manifest tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest))
 	delete(manifest, "provenance")
-	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), manifest))
 	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
 	data, err := sessionTool(t, env, "mock", "--session-dir", session, "--recording", root, "--", "app-server", "--listen", "stdio://").CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "provenance is missing")
-	var index object
-	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
-	assert.Empty(t, array(index["executions"]))
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	assert.Empty(t, tool.Array(index["executions"]))
 }
 
 func preparedSessionWithArgs(t *testing.T, args ...string) (string, []string) {
@@ -672,9 +674,9 @@ func preparedSessionWithArgs(t *testing.T, args ...string) (string, []string) {
 	data, err := sessionTool(t, env, append(args, "--session-dir", session)...).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	t.Cleanup(func() {
-		var descriptor object
-		if readJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
-			_ = os.RemoveAll(str(descriptor["resourceRoot"]))
+		var descriptor tool.Object
+		if tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
+			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
 		}
 	})
 	return session, env

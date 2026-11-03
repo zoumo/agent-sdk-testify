@@ -10,6 +10,8 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // These peers inspect startup inputs, not Codex's runtime skill loader. They
@@ -47,7 +49,7 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 	root, err := filepath.EvalSymlinks(t.TempDir())
 	require.NoError(t, err)
 	personal := filepath.Join(root, "personal")
-	require.NoError(t, writeFiles(personal, object{
+	require.NoError(t, tool.WriteFiles(personal, tool.Object{
 		".agents/skills/private/SKILL.md": "PRIVATE_SKILL\n",
 		".codex/skills/private/SKILL.md":  "PRIVATE_LEGACY_SKILL\n",
 		".codex/AGENTS.md":                "PRIVATE_INSTRUCTIONS\n",
@@ -55,14 +57,14 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 		".codex/auth.json":                "{\"synthetic-auth\":true}",
 	}))
 	// Place the output under a hostile project ancestor as well as a hostile HOME.
-	require.NoError(t, writeFiles(root, object{".git/HEAD": "ref: refs/heads/test\n", ".agents/skills/ancestor/SKILL.md": "ANCESTOR_SKILL", ".codex/config.toml": "developer_instructions=\"ANCESTOR\"", "AGENTS.md": "ANCESTOR_INSTRUCTIONS"}))
+	require.NoError(t, tool.WriteFiles(root, tool.Object{".git/HEAD": "ref: refs/heads/test\n", ".agents/skills/ancestor/SKILL.md": "ANCESTOR_SKILL", ".codex/config.toml": "developer_instructions=\"ANCESTOR\"", "AGENTS.md": "ANCESTOR_INSTRUCTIONS"}))
 	materials := filepath.Join(root, "materials")
 	require.NoError(t, os.Mkdir(materials, 0o700))
-	plan := object{"provider": "codex", "caseId": "isolation", "driverProfile": "children", "scenario": object{"files": object{"numbers.txt": "7\n11\n"}, "parameters": object{}}}
+	plan := tool.Object{"provider": "codex", "caseId": "isolation", "driverProfile": "children", "scenario": tool.Object{"files": tool.Object{"numbers.txt": "7\n11\n"}, "parameters": tool.Object{}}}
 	if args != nil {
 		plan["args"] = args
 	}
-	require.NoError(t, writeJSON(filepath.Join(materials, "plan.json"), plan))
+	require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), plan))
 	for name, body := range map[string]string{"native": codexIsolationNative, "driver": codexIsolationDriver} {
 		require.NoError(t, os.WriteFile(filepath.Join(root, name), []byte("#!"+python+"\n"+body), 0o700))
 	}
@@ -71,12 +73,12 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 	output := filepath.Join(root, "attempt")
 	self, err := os.Executable()
 	require.NoError(t, err)
-	o := options{Mode: "record", Materials: materials, Driver: filepath.Join(root, "driver"), CLI: filepath.Join(root, "native"), Output: output, Peer: binary}
+	o := Options{Mode: "record", Materials: materials, Driver: filepath.Join(root, "driver"), CLI: filepath.Join(root, "native"), Output: output, Peer: binary}
 	if configured {
 		o.Config = filepath.Join(personal, ".codex")
 	}
 	optionPath := filepath.Join(root, "options.json")
-	require.NoError(t, writeJSON(optionPath, o))
+	require.NoError(t, tool.WriteJSON(optionPath, o))
 	cmd := exec.CommandContext(t.Context(), self, "official-engine-fixture", optionPath)
 
 	cmd.Dir = t.TempDir()
@@ -96,7 +98,7 @@ func TestCodexIsolationBeforeRecording(t *testing.T) {
 		Cwd, Config, Auth, Case, Role string
 		Discovery                     []string
 	}
-	require.NoError(t, readJSON(filepath.Join(output, "observation.json"), &observed))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "observation.json"), &observed))
 	assert.Contains(t, observed.Args, "project_root_markers=[]")
 	assert.Contains(t, observed.Args, "project_doc_max_bytes=0")
 	assert.Contains(t, observed.Args, "agents.enabled=true")
@@ -131,7 +133,7 @@ func TestCodexIsolationBeforeRecording(t *testing.T) {
 	assert.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
 	assert.NoFileExists(t, filepath.Join(output, "config", "auth.json"))
 	var summary json.RawMessage
-	require.NoError(t, readJSON(filepath.Join(output, "summary.json"), &summary))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "summary.json"), &summary))
 }
 
 func TestCodexIsolationRejectsCredentialEnvironmentOverrides(t *testing.T) {
@@ -140,15 +142,15 @@ func TestCodexIsolationRejectsCredentialEnvironmentOverrides(t *testing.T) {
 			t.Run(field+"/"+name, func(t *testing.T) {
 				cmd, output, personal := codexIsolationCommand(t, nil, true)
 				path := filepath.Join(personal, ".codex", "config.toml")
-				var config object
+				var config tool.Object
 				data, err := os.ReadFile(path)
 				require.NoError(t, err)
 				require.NoError(t, toml.Unmarshal(data, &config))
-				provider := obj(obj(config["model_providers"])["fixture"])
+				provider := tool.Obj(tool.Obj(config["model_providers"])["fixture"])
 				if field == "env_key" {
 					provider[field] = name
 				} else {
-					provider[field] = object{"X-Unsafe": name}
+					provider[field] = tool.Object{"X-Unsafe": name}
 				}
 				data, err = toml.Marshal(config)
 				require.NoError(t, err)
@@ -191,10 +193,10 @@ func TestCodexIsolationRejectsWorkspaceDiscoveryRoots(t *testing.T) {
 		t.Run(path, func(t *testing.T) {
 			cmd, output, _ := codexIsolationCommand(t, nil, false)
 			materials := filepath.Join(filepath.Dir(output), "materials", "plan.json")
-			var plan object
-			require.NoError(t, readJSON(materials, &plan))
-			obj(obj(plan["scenario"])["files"])[path] = "PRIVATE"
-			require.NoError(t, writeJSON(materials, plan))
+			var plan tool.Object
+			require.NoError(t, tool.ReadJSON(materials, &plan))
+			tool.Obj(tool.Obj(plan["scenario"])["files"])[path] = "PRIVATE"
+			require.NoError(t, tool.WriteJSON(materials, plan))
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
 			assert.Contains(t, string(data), "codex recording isolation")
@@ -218,7 +220,7 @@ func TestCodexIsolationPreservesSuppliedCaseCapabilitiesWithoutConfig(t *testing
 		Args []string
 		Env  map[string]string
 	}
-	require.NoError(t, readJSON(filepath.Join(output, "observation.json"), &observed))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "observation.json"), &observed))
 	assert.Equal(t, append(args, "-c", "project_root_markers=[]", "-c", "project_doc_max_bytes=0"), observed.Args)
 	assert.Equal(t, filepath.Join(output, "home"), observed.Env["HOME"])
 	assert.Empty(t, observed.Env["ISOLATION_AUTH"])

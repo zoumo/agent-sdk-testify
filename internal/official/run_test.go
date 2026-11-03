@@ -23,8 +23,8 @@ func TestMain(m *testing.M) {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "official-engine-fixture":
-			var o options
-			if err := readJSON(os.Args[2], &o); err != nil {
+			var o Options
+			if err := tool.ReadJSON(os.Args[2], &o); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
@@ -101,8 +101,8 @@ func testDriver(args []string) int {
 	if len(args) != 2 || args[0] != "--request" {
 		return 2
 	}
-	var r request
-	if readJSON(args[1], &r) != nil {
+	var r Request
+	if tool.ReadJSON(args[1], &r) != nil {
 		return 2
 	}
 	if r.Case == "crash" {
@@ -148,8 +148,8 @@ func testDriver(args []string) int {
 	field := map[string]string{"wrong-hash": "recordingSHA256", "wrong-provider": "provider", "not-consumed": "fullConsumption", "no-eof": "clientEOF", "native-launched": "nativeLaunched"}[r.Case]
 	if field != "" {
 		path := filepath.Join(r.Output, "replay-peer.json")
-		var receipt object
-		if readJSON(path, &receipt) != nil {
+		var receipt tool.Object
+		if tool.ReadJSON(path, &receipt) != nil {
 			return 2
 		}
 		switch field {
@@ -160,12 +160,12 @@ func testDriver(args []string) int {
 		default:
 			receipt[field] = false
 		}
-		if writeJSON(path, receipt) != nil {
+		if tool.WriteJSON(path, receipt) != nil {
 			return 2
 		}
 	}
-	var plan object
-	if readJSON(filepath.Join(r.Materials, "case.json"), &plan) != nil {
+	var plan tool.Object
+	if tool.ReadJSON(filepath.Join(r.Materials, "case.json"), &plan) != nil {
 		return 2
 	}
 	if plan["corpusTestBusiness"] == true {
@@ -179,31 +179,31 @@ func testDriver(args []string) int {
 		if plan["corpusTestFail"] == true {
 			status = "failed"
 		}
-		business := object{
+		business := tool.Object{
 			"status": status, "branchStatus": status, "captureStatus": "complete",
 			"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
-			"officialSDK": object{"package": "openai-codex", "version": "synthetic-test-only"},
+			"officialSDK": tool.Object{"package": "openai-codex", "version": "synthetic-test-only"},
 		}
-		if writeJSON(filepath.Join(r.Output, name), business) != nil {
+		if tool.WriteJSON(filepath.Join(r.Output, name), business) != nil {
 			return 2
 		}
 	}
 	if os.Getenv("HOME") == "" || os.Getenv("CODEX_HOME") == "" {
 		return 2
 	}
-	if writeJSON(filepath.Join(r.Output, "result.json"), result{Status: status}) != nil {
+	if tool.WriteJSON(filepath.Join(r.Output, "result.json"), tool.Result{Status: status}) != nil {
 		return 2
 	}
 	return 0
 }
 
-func sample(t *testing.T, id string) options {
+func sample(t *testing.T, id string) Options {
 	t.Helper()
 	source := t.TempDir()
 	require.NoError(t, os.Mkdir(filepath.Join(source, "raw"), 0o700))
-	frames := []object{
-		{"ordinal": 1, "direction": "c2s", "channel": "protocol", "epoch": 1, "elapsedMs": 0, "wire": object{"id": 1, "method": "ping"}},
-		{"ordinal": 2, "direction": "s2c", "channel": "protocol", "epoch": 1, "elapsedMs": 1, "wire": object{"id": 1, "result": object{}}},
+	frames := []tool.Object{
+		{"ordinal": 1, "direction": "c2s", "channel": "protocol", "epoch": 1, "elapsedMs": 0, "wire": tool.Object{"id": 1, "method": "ping"}},
+		{"ordinal": 2, "direction": "s2c", "channel": "protocol", "epoch": 1, "elapsedMs": 1, "wire": tool.Object{"id": 1, "result": tool.Object{}}},
 	}
 	var data []byte
 	for _, f := range frames {
@@ -213,19 +213,19 @@ func sample(t *testing.T, id string) options {
 	}
 	require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), data, 0o600))
 	planPath := filepath.Join(source, "plan.json")
-	require.NoError(t, writeJSON(planPath, object{"provider": "codex", "caseId": id, "project": filepath.Join(source, "original-cwd"), "driverProfile": "continuation", "args": []string{"synthetic-agent"}, "scenario": object{"files": object{"numbers.txt": "7\n11\n"}}, "agentMock": object{"sha256": "deliberately-different", "version": "old-version"}}))
-	planDigest, err := fileDigest(planPath)
+	require.NoError(t, tool.WriteJSON(planPath, tool.Object{"provider": "codex", "caseId": id, "project": filepath.Join(source, "original-cwd"), "driverProfile": "continuation", "args": []string{"synthetic-agent"}, "scenario": tool.Object{"files": tool.Object{"numbers.txt": "7\n11\n"}}, "agentMock": tool.Object{"sha256": "deliberately-different", "version": "old-version"}}))
+	planDigest, err := tool.FileDigest(planPath)
 	require.NoError(t, err)
-	require.NoError(t, writeJSON(filepath.Join(source, "manifest.json"), object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), tool.Object{
 		"provenance": "external",
 		"planSHA256": planDigest,
-		"savedFiles": object{},
+		"savedFiles": tool.Object{},
 	}))
 	peer := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	require.NotEmpty(t, peer, "run with make test")
 	self, err := os.Executable()
 	require.NoError(t, err)
-	return options{Mode: "verify", Materials: source, Driver: self, DriverArgs: []string{"driver"}, Peer: peer, Output: filepath.Join(t.TempDir(), "run")}
+	return Options{Mode: "verify", Materials: source, Driver: self, DriverArgs: []string{"driver"}, Peer: peer, Output: filepath.Join(t.TempDir(), "run")}
 }
 
 func TestDriverContract(t *testing.T) {
@@ -243,24 +243,24 @@ func TestDriverContract(t *testing.T) {
 					}
 				}
 				require.NoError(t, e)
-				require.Equal(t, "passed", summary["result"].(result).Status)
+				require.Equal(t, "passed", summary["result"].(tool.Result).Status)
 			} else {
 				require.Error(t, e)
 				if id == "unsupported" {
-					require.Equal(t, "unsupported", summary["result"].(result).Status)
+					require.Equal(t, "unsupported", summary["result"].(tool.Result).Status)
 					require.Contains(t, e.Error(), "peer:")
 				} else if id == "untriggered" {
 					require.ErrorContains(t, e, "main peer:")
 				} else if id != "failed" && id != "crash" && id != "bad-result" {
-					require.Equal(t, "passed", summary["result"].(result).Status)
+					require.Equal(t, "passed", summary["result"].(tool.Result).Status)
 					require.ErrorContains(t, e, "main peer:")
 				}
 			}
 			after, e := os.ReadFile(filepath.Join(o.Materials, "raw", "raw.jsonl"))
 			require.NoError(t, e)
 			require.Equal(t, before, after)
-			var plan object
-			require.NoError(t, readJSON(filepath.Join(o.Output, "materials", "case.json"), &plan))
+			var plan tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(o.Output, "materials", "case.json"), &plan))
 			require.Equal(t, filepath.Join(o.Materials, "original-cwd"), plan["project"])
 			require.FileExists(t, filepath.Join(o.Output, "project", "numbers.txt"))
 		})
@@ -271,7 +271,7 @@ func TestUnselectedPeerMaterialsDoNotRequireReceipt(t *testing.T) {
 	o := sample(t, "passed")
 	probe := filepath.Join(o.Materials, "remote-probe", "raw")
 	require.NoError(t, os.MkdirAll(probe, 0o700))
-	require.NoError(t, copyFile(filepath.Join(o.Materials, "raw", "raw.jsonl"), filepath.Join(probe, "raw.jsonl")))
+	require.NoError(t, tool.CopyFile(filepath.Join(o.Materials, "raw", "raw.jsonl"), filepath.Join(probe, "raw.jsonl")))
 	_, err := Run(context.Background(), o)
 	require.NoError(t, err)
 	require.NoFileExists(t, filepath.Join(o.Output, "remote-probe", "replay-peer.json"))
@@ -299,7 +299,7 @@ func TestCaptureWithSyntheticNative(t *testing.T) {
 		}
 	}
 	require.NoError(t, e)
-	require.Equal(t, "passed", summary["result"].(result).Status)
+	require.Equal(t, "passed", summary["result"].(tool.Result).Status)
 	require.FileExists(t, filepath.Join(o.Output, "raw", "transport.json"))
 	require.NoFileExists(t, filepath.Join(o.Output, "native.env.private.json"))
 	// The recording output itself is the next stage's material directory.
@@ -310,23 +310,23 @@ func TestCaptureWithSyntheticNative(t *testing.T) {
 	validated, e := Run(context.Background(), replay)
 	require.NoError(t, e)
 	for _, name := range []string{"plan.json", "manifest.json"} {
-		digest, err := fileDigest(filepath.Join(replay.Materials, name))
+		digest, err := tool.FileDigest(filepath.Join(replay.Materials, name))
 		require.NoError(t, err)
-		require.Equal(t, digest, obj(validated["source"])[name])
+		require.Equal(t, digest, tool.Obj(validated["source"])[name])
 	}
 }
 
 func TestSharedMaterialsContainNoExecutableSteps(t *testing.T) {
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
-	o := options{Materials: filepath.Join(repository, "data", "scenarios"), Case: "SDK-CASE-008", Provider: "claude"}
+	o := Options{Materials: filepath.Join(repository, "data", "scenarios"), Case: "SDK-CASE-008", Provider: "claude"}
 	p, e := loadMaterials(o)
 	require.NoError(t, e)
-	require.NotContains(t, obj(p["scenario"]), "steps")
+	require.NotContains(t, tool.Obj(p["scenario"]), "steps")
 	require.Equal(t, "approval", p["driverProfile"])
 	o.Materials = t.TempDir()
-	require.NoError(t, writeJSON(filepath.Join(o.Materials, "case.json"), object{"scenario": object{"files": object{"../outside": "bad"}}}))
+	require.NoError(t, tool.WriteJSON(filepath.Join(o.Materials, "case.json"), tool.Object{"scenario": tool.Object{"files": tool.Object{"../outside": "bad"}}}))
 	p, e = loadMaterials(o)
 	require.NoError(t, e)
-	require.ErrorContains(t, writeFiles(t.TempDir(), obj(obj(p["scenario"])["files"])), "escapes")
+	require.ErrorContains(t, tool.WriteFiles(t.TempDir(), tool.Obj(tool.Obj(p["scenario"])["files"])), "escapes")
 }

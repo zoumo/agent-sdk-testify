@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func TestPersistentAttemptsKeepFailureAndNeverOverwrite(t *testing.T) {
@@ -17,7 +19,7 @@ func TestPersistentAttemptsKeepFailureAndNeverOverwrite(t *testing.T) {
 	o.Output = ""
 	first, err := Run(context.Background(), o)
 	require.ErrorContains(t, err, "driver reported failed")
-	path := str(first["output"])
+	path := tool.Str(first["output"])
 	require.Equal(t, filepath.Join(data, "attempts", "verify"), filepath.Dir(path))
 	before, err := os.ReadFile(filepath.Join(path, "summary.json"))
 	require.NoError(t, err)
@@ -46,7 +48,7 @@ func TestPersistentDataRootDefaults(t *testing.T) {
 				base = filepath.Join(root, "data")
 				t.Setenv("XDG_DATA_HOME", base)
 			}
-			path, err := createOutput("", "record")
+			path, err := tool.CreateOutput("", "record")
 			require.NoError(t, err)
 			require.Equal(t, filepath.Join(base, "agent-sdk-testify", "attempts", "record"), filepath.Dir(path))
 			info, err := os.Stat(path)

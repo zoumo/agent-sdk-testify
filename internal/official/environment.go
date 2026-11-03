@@ -12,16 +12,18 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func prepareNative(ctx context.Context, o *options, plan object, root string) error {
+func prepareNative(ctx context.Context, o *Options, plan tool.Object, root string) error {
 	if o.CLI == "" {
-		o.CLI = str(plan["cli"])
+		o.CLI = tool.Str(plan["cli"])
 	}
 	if o.CLI == "" {
-		o.CLI = str(plan["provider"])
+		o.CLI = tool.Str(plan["provider"])
 	}
-	cli, err := absoluteExecutable(o.CLI)
+	cli, err := tool.AbsoluteExecutable(o.CLI)
 	if err != nil {
 		return err
 	}
@@ -38,7 +40,7 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 	}
 	delete(plan, "initialModel")
 	if o.InitialModel != "" {
-		if o.InitialModel == str(plan["model"]) || str(plan["model"]) == "" {
+		if o.InitialModel == tool.Str(plan["model"]) || tool.Str(plan["model"]) == "" {
 			return errors.New("initial model requires a different explicit target model")
 		}
 		plan["initialModel"] = o.InitialModel
@@ -47,26 +49,26 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 	probe := exec.CommandContext(context.WithoutCancel(ctx), cli, "--version")
 	probe.Stdout = &version
 	probe.Dir = root
-	if err := waitDriver(ctx, probe); ctx.Err() != nil {
+	if err := tool.WaitDriver(ctx, probe); ctx.Err() != nil {
 		return ctx.Err()
 	} else if err == nil {
 		plan["cliVersion"] = strings.TrimSpace(version.String())
 	}
-	provider := str(plan["provider"])
-	profile := str(plan["driverProfile"])
-	params := obj(obj(plan["scenario"])["parameters"])
+	provider := tool.Str(plan["provider"])
+	profile := tool.Str(plan["driverProfile"])
+	params := tool.Obj(tool.Obj(plan["scenario"])["parameters"])
 	if o.InitialModel != "" {
-		configuration := obj(obj(plan["scenario"])["configuration"])
-		timing := str(params["configurationTiming"])
+		configuration := tool.Obj(tool.Obj(plan["scenario"])["configuration"])
+		timing := tool.Str(params["configurationTiming"])
 		modelSetting := params["setting"] == "model"
-		if timing == "" && str(configuration["modelSource"]) != "" {
-			timing, modelSetting = str(configuration["timing"]), true
+		if timing == "" && tool.Str(configuration["modelSource"]) != "" {
+			timing, modelSetting = tool.Str(configuration["timing"]), true
 		}
 		if !modelSetting || (timing != "before-first-input" && timing != "between-inputs" && timing != "during-execution") {
 			return errors.New("initial model is only valid for model-change recordings")
 		}
 	}
-	args := stringsOf(plan["args"])
+	args := tool.Strings(plan["args"])
 	if len(args) == 0 {
 		if provider == "codex" {
 			args = codexNativeArgs(profile, params)
@@ -89,7 +91,7 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 		plan["stdinEOFAction"] = "interrupt"
 	}
 	if profile == "children" || profile == "background-children" {
-		if err := writeFiles(str(plan["project"]), object{"child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n"}); err != nil {
+		if err := tool.WriteFiles(tool.Str(plan["project"]), tool.Object{"child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n"}); err != nil {
 			return err
 		}
 		if provider == "codex" {
@@ -120,7 +122,7 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 			} else if e != nil {
 				return e
 			}
-			if err := copyFile(source, filepath.Join(root, "config", name)); err != nil {
+			if err := tool.CopyFile(source, filepath.Join(root, "config", name)); err != nil {
 				return err
 			}
 		}
@@ -151,7 +153,7 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 		}
 	}
 	// No arbitrary source HOME, dependency installation or SDK version probes.
-	return writeJSON(filepath.Join(root, "native.env.private.json"), env)
+	return tool.WriteJSON(filepath.Join(root, "native.env.private.json"), env)
 }
 
 // CopyNativeConfig copies only non-secret agent configuration into the visible
@@ -211,7 +213,7 @@ func CopyNativeConfig(provider, destination, privateDestination string, env map[
 		return fmt.Errorf("native configuration file is not regular: %s", from)
 	}
 	if info != nil {
-		if err := copyFile(from, filepath.Join(destination, configFile)); err != nil {
+		if err := tool.CopyFile(from, filepath.Join(destination, configFile)); err != nil {
 			return err
 		}
 	}
@@ -225,7 +227,7 @@ func CopyNativeConfig(provider, destination, privateDestination string, env map[
 		return fmt.Errorf("native authentication file is not regular: %s", from)
 	}
 	if info != nil {
-		if err := copyFile(from, filepath.Join(privateDestination, authFile)); err != nil {
+		if err := tool.CopyFile(from, filepath.Join(privateDestination, authFile)); err != nil {
 			return err
 		}
 	}

@@ -4,20 +4,22 @@ import (
 	"errors"
 	"path/filepath"
 	"strings"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func claudeHistorySeedReceipts(report object) (string, map[string]bool, []string, error) {
+func claudeHistorySeedReceipts(report tool.Object) (string, map[string]bool, []string, error) {
 	session := ""
 	agents := map[string]bool{}
 	ids := []string{}
-	for _, v := range array(report["receipts"]) {
-		receipt := obj(v)
-		if discovery := obj(receipt["list_subagents"]); len(discovery) > 0 {
-			if session != "" && session != str(discovery["sessionId"]) {
+	for _, v := range tool.Array(report["receipts"]) {
+		receipt := tool.Obj(v)
+		if discovery := tool.Obj(receipt["list_subagents"]); len(discovery) > 0 {
+			if session != "" && session != tool.Str(discovery["sessionId"]) {
 				return "", nil, nil, errors.New("seed has ambiguous parents")
 			}
-			session = str(discovery["sessionId"])
-			for _, id := range stringsOf(discovery["agentIds"]) {
+			session = tool.Str(discovery["sessionId"])
+			for _, id := range tool.Strings(discovery["agentIds"]) {
 				if !agents[id] {
 					ids = append(ids, id)
 				}

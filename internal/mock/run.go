@@ -34,7 +34,7 @@ func mockManagedAlias(ctx context.Context, o Options) (err error) {
 		return bad(err)
 	}
 
-	report := object{
+	report := tool.Object{
 		"schemaVersion":   1,
 		"managed":         true,
 		"status":          "failed",
@@ -158,7 +158,7 @@ type managedIndex struct {
 	} `json:"executions"`
 }
 
-func managedExecutionEvidence(sessionDir string) (*lifecycle.Execution, object, error) {
+func managedExecutionEvidence(sessionDir string) (*lifecycle.Execution, tool.Object, error) {
 	var index managedIndex
 	if err := tool.ReadJSON(lifecycle.IndexPath(sessionDir), &index); err != nil {
 		return nil, nil, err
@@ -177,12 +177,12 @@ func managedExecutionEvidence(sessionDir string) (*lifecycle.Execution, object, 
 	if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
 		return nil, nil, err
 	}
-	evidence := object{}
+	evidence := tool.Object{}
 	for _, connection := range execution.Connections {
 		if connection.ID != "main" {
 			continue
 		}
-		var receipt object
+		var receipt tool.Object
 		if err := tool.ReadJSON(connection.Receipt, &receipt); err != nil {
 			return &execution, evidence, err
 		}
@@ -200,7 +200,7 @@ func managedExecutionEvidence(sessionDir string) (*lifecycle.Execution, object, 
 	return &execution, evidence, nil
 }
 
-func writeManagedReport(path string, value object) error {
+func writeManagedReport(path string, value tool.Object) error {
 	data, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
 		return err

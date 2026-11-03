@@ -7,13 +7,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 const isolatedRecording = "personal-skills-v1"
 
 // A completed capture supplies native saved records. Preparing a later case
 // does not execute an SDK, start a session, or require the replay stage first.
-func prepareHistorySeed(source, root string, plan object) error {
+func prepareHistorySeed(source, root string, plan tool.Object) error {
 	var err error
 	source, err = filepath.Abs(source)
 	if err != nil {
@@ -23,22 +26,22 @@ func prepareHistorySeed(source, root string, plan object) error {
 	if err != nil {
 		return err
 	}
-	if err := verifyMaterials(source, true); err != nil {
+	if err := corpus.VerifyMaterials(source, true); err != nil {
 		return err
 	}
-	var previous, report, manifest object
-	for name, target := range map[string]*object{"plan.json": &previous, "report.json": &report, "manifest.json": &manifest} {
-		if err := readJSON(filepath.Join(source, name), target); err != nil {
+	var previous, report, manifest tool.Object
+	for name, target := range map[string]*tool.Object{"plan.json": &previous, "report.json": &report, "manifest.json": &manifest} {
+		if err := tool.ReadJSON(filepath.Join(source, name), target); err != nil {
 			return err
 		}
 	}
 	// This startup assertion is emitted only by new recording setup and bound
 	// by the capture's existing plan hash. It is not a content-safety verdict.
-	if previous["recordingIsolation"] != isolatedRecording || manifest["provenance"] != "capture" || str(manifest["planSHA256"]) == "" || manifest["captureStatus"] != "complete" || manifest["status"] != "passed" {
+	if previous["recordingIsolation"] != isolatedRecording || manifest["provenance"] != "capture" || tool.Str(manifest["planSHA256"]) == "" || manifest["captureStatus"] != "complete" || manifest["status"] != "passed" {
 		return errors.New("seed must come from an isolated recording")
 	}
-	provider := str(plan["provider"])
-	if previous["provider"] != provider || previous["driverProfile"] != "history" || obj(obj(previous["scenario"])["parameters"])["historyTarget"] != "child-messages" || report["status"] != "passed" {
+	provider := tool.Str(plan["provider"])
+	if previous["provider"] != provider || previous["driverProfile"] != "history" || tool.Obj(tool.Obj(previous["scenario"])["parameters"])["historyTarget"] != "child-messages" || report["status"] != "passed" {
 		return errors.New("seed must be a completed, passed child-history capture for this Agent")
 	}
 	var session string
@@ -55,9 +58,9 @@ func prepareHistorySeed(source, root string, plan object) error {
 	if session == "" || len(agents) == 0 || agents[""] {
 		return errors.New("seed has no saved parent and child identities")
 	}
-	files := object{}
+	files := tool.Object{}
 	found := map[string]bool{}
-	for name, digest := range obj(manifest["savedFiles"]) {
+	for name, digest := range tool.Obj(manifest["savedFiles"]) {
 		if !filepath.IsLocal(name) {
 			return errors.New("seed file escapes source")
 		}
@@ -86,34 +89,34 @@ func prepareHistorySeed(source, root string, plan object) error {
 		}
 		sum := sha256.Sum256(data)
 		actual := hex.EncodeToString(sum[:])
-		if actual != str(digest) {
+		if actual != tool.Str(digest) {
 			return errors.New("seed content changed")
 		}
-		if err := copyFile(filepath.Join(source, name), filepath.Join(root, name)); err != nil {
+		if err := tool.CopyFile(filepath.Join(source, name), filepath.Join(root, name)); err != nil {
 			return err
 		}
 		destination := filepath.Join("history-seed", name)
-		if err := copyFile(filepath.Join(source, name), filepath.Join(root, destination)); err != nil {
+		if err := tool.CopyFile(filepath.Join(source, name), filepath.Join(root, destination)); err != nil {
 			return err
 		}
-		files[destination] = object{"source": name, "sha256": actual}
+		files[destination] = tool.Object{"source": name, "sha256": actual}
 		found[identity] = true
 	}
 	if !found[session] || len(found) != len(agents)+1 {
 		return errors.New("seed manifest lacks saved parent or child records")
 	}
-	project := str(previous["project"])
+	project := tool.Str(previous["project"])
 	if project != filepath.Join(source, "project") {
 		return errors.New("seed project must retain its source identity")
 	}
 	if provider == "codex" {
 		// Resume keeps the source cwd as a native identity. Check its discovery
 		// roots too; prepareNative separately isolates the new workspace/args.
-		if err := prepareCodexIsolation(root, object{"project": project}); err != nil {
+		if err := prepareCodexIsolation(root, tool.Object{"project": project}); err != nil {
 			return err
 		}
 	}
-	projectFiles := object{}
+	projectFiles := tool.Object{}
 	if err := filepath.WalkDir(project, func(p string, d os.DirEntry, e error) error {
 		if e != nil {
 			return e
@@ -132,7 +135,7 @@ func prepareHistorySeed(source, root string, plan object) error {
 		if !d.Type().IsRegular() {
 			return fmt.Errorf("unsupported seed project entry: %s", name)
 		}
-		digest, e := fileDigest(p)
+		digest, e := tool.FileDigest(p)
 		if e == nil {
 			projectFiles[name] = digest
 		}
@@ -140,17 +143,17 @@ func prepareHistorySeed(source, root string, plan object) error {
 	}); err != nil {
 		return err
 	}
-	sourceFiles := object{}
+	sourceFiles := tool.Object{}
 	for _, name := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl"} {
-		digest, e := fileDigest(filepath.Join(source, name))
+		digest, e := tool.FileDigest(filepath.Join(source, name))
 		if e != nil {
 			return e
 		}
 		sourceFiles[name] = digest
 	}
-	plan["historySeed"] = object{"provider": provider, "sourceRoot": source, "sourceProject": project, "sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles, "projectFiles": projectFiles}
+	plan["historySeed"] = tool.Object{"provider": provider, "sourceRoot": source, "sourceProject": project, "sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles, "projectFiles": projectFiles}
 	plan["historyProject"] = project
-	if str(plan["model"]) == "" {
+	if tool.Str(plan["model"]) == "" {
 		plan["model"] = previous["model"]
 	}
 	return nil

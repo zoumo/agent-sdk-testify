@@ -10,6 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/zoumo/agent-sdk-testify/internal/builtin"
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
@@ -60,7 +63,7 @@ func nativeRows(data []byte) ([]json.RawMessage, error) {
 }
 
 func nativeSourceDocument(root, name, id string) (nativeDocument, error) {
-	source, err := corpusRegular(root, name)
+	source, err := corpus.Regular(root, name)
 	if err != nil {
 		return nativeDocument{}, err
 	}
@@ -68,7 +71,7 @@ func nativeSourceDocument(root, name, id string) (nativeDocument, error) {
 	if err != nil {
 		return nativeDocument{}, err
 	}
-	d := nativeDocument{ID: id, SHA256: digestBytes(data), Original: data, Format: "vendor-native-json"}
+	d := nativeDocument{ID: id, SHA256: tool.DigestBytes(data), Original: data, Format: "vendor-native-json"}
 	if strings.HasSuffix(name, ".jsonl") {
 		d.Format = "vendor-native-jsonl"
 		d.Rows, err = nativeRows(data)
@@ -80,8 +83,8 @@ func nativeSourceDocument(root, name, id string) (nativeDocument, error) {
 	return d, err
 }
 
-func builtinAssertionInputs(material *builtinMaterial, manifestHash string) (inputs *assertionInputs, err error) {
-	root, err := extractBuiltin(material)
+func builtinAssertionInputs(material *builtin.Material, manifestHash string) (inputs *assertionInputs, err error) {
+	root, err := builtin.Extract(material)
 	if err != nil {
 		return nil, err
 	}
@@ -89,9 +92,9 @@ func builtinAssertionInputs(material *builtinMaterial, manifestHash string) (inp
 	return sourceAssertionInputs(root, material, manifestHash, true)
 }
 
-func sourceAssertionInputs(root string, material *builtinMaterial, manifestHash string, requireReport bool) (inputs *assertionInputs, err error) {
+func sourceAssertionInputs(root string, material *builtin.Material, manifestHash string, requireReport bool) (inputs *assertionInputs, err error) {
 	inputs = &assertionInputs{SchemaVersion: 1, Provider: material.Provider, CaseID: material.CaseID, Attempt: material.Attempt, ManifestSHA256: manifestHash, SavedHistory: []nativeDocument{}, Connections: []nativeConnection{}, MissingEvidence: []string{}}
-	inputs.SourceManifestSHA256, err = fileDigest(filepath.Join(root, "manifest.json"))
+	inputs.SourceManifestSHA256, err = tool.FileDigest(filepath.Join(root, "manifest.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -121,16 +124,16 @@ func sourceAssertionInputs(root string, material *builtinMaterial, manifestHash 
 		if e != nil {
 			return nil, e
 		}
-		if digestBytes(data) != material.Files[phase.name] {
+		if tool.DigestBytes(data) != material.Files[phase.name] {
 			return nil, errors.New("source connection hash drift")
 		}
 		frames, e := nativeRows(data)
 		if e != nil {
 			return nil, e
 		}
-		inputs.Connections = append(inputs.Connections, nativeConnection{ID: phase.id, Format: "agent-mock-jsonl", Version: 1, SHA256: digestBytes(data), Original: data, Frames: frames})
+		inputs.Connections = append(inputs.Connections, nativeConnection{ID: phase.id, Format: "agent-mock-jsonl", Version: 1, SHA256: tool.DigestBytes(data), Original: data, Frames: frames})
 	}
-	for _, name := range corpusKeys(material.Files) {
+	for _, name := range corpus.Keys(material.Files) {
 		if !strings.HasPrefix(name, "config/projects/") && !strings.HasPrefix(name, "config/sessions/") && !strings.HasPrefix(name, "history-seed/") {
 			continue
 		}
@@ -167,24 +170,24 @@ func describeExternalMock(root, provider string) error {
 		return err
 	}
 	provider = planAgentType(plan)
-	files := object{"raw/raw.jsonl": document.SHA256, "plan.json": manifest["planSHA256"]}
+	files := tool.Object{"raw/raw.jsonl": document.SHA256, "plan.json": manifest["planSHA256"]}
 	for _, group := range []string{"savedFiles", "caseFiles", "remotePhaseFiles"} {
-		maps.Copy(files, obj(manifest[group]))
+		maps.Copy(files, tool.Obj(manifest[group]))
 	}
-	for name, value := range obj(obj(plan["historySeed"])["files"]) {
-		hash := str(obj(value)["sha256"])
-		if err := verifyFile(root, name, hash); err != nil {
+	for name, value := range tool.Obj(tool.Obj(plan["historySeed"])["files"]) {
+		hash := tool.Str(tool.Obj(value)["sha256"])
+		if err := corpus.VerifyFile(root, name, hash); err != nil {
 			return err
 		}
 		files[name] = hash
 	}
 	if _, e := os.Stat(filepath.Join(root, "adoption.json")); e == nil {
-		review, reviewErr := verifyAdoptedFiles(root)
+		review, reviewErr := corpus.VerifyAdoptedFiles(root)
 		if reviewErr != nil {
 			return reviewErr
 		}
-		for _, name := range stringsOf(review["publishFiles"]) {
-			files[name] = obj(review["captureFiles"])[name]
+		for _, name := range tool.Strings(review["publishFiles"]) {
+			files[name] = tool.Obj(review["captureFiles"])[name]
 		}
 	} else if !os.IsNotExist(e) {
 		return e
@@ -200,11 +203,11 @@ func describeExternalMock(root, provider string) error {
 	if err != nil {
 		return err
 	}
-	manifestHash, err := fileDigest(filepath.Join(root, "manifest.json"))
+	manifestHash, err := tool.FileDigest(filepath.Join(root, "manifest.json"))
 	if err != nil {
 		return err
 	}
-	material := &builtinMaterial{Provider: provider, CaseID: str(plan["caseId"]), StoryID: str(plan["storyId"]), Attempt: "external:" + manifestHash, Files: files, Plan: planBytes}
+	material := &builtin.Material{Provider: provider, CaseID: tool.Str(plan["caseId"]), StoryID: tool.Str(plan["storyId"]), Attempt: "external:" + manifestHash, Files: files, Plan: planBytes}
 	inputs, err := sourceAssertionInputs(root, material, "", false)
 	if err != nil {
 		return err
@@ -213,16 +216,16 @@ func describeExternalMock(root, provider string) error {
 	if _, _, _, err = loadMockSource(root, provider); err != nil {
 		return err
 	}
-	currentHash, e := fileDigest(filepath.Join(root, "manifest.json"))
+	currentHash, e := tool.FileDigest(filepath.Join(root, "manifest.json"))
 	if e != nil {
 		return e
 	}
 	if currentHash != manifestHash || inputs.SourceManifestSHA256 != manifestHash {
 		return errors.New("source manifest hash drift")
 	}
-	provenance := str(manifest["provenance"])
+	provenance := tool.Str(manifest["provenance"])
 	if provenance == "" {
 		provenance = "unqualified"
 	}
-	return writeNativeJSON(object{"schemaVersion": 1, "toolVersion": version.Version, "materialKind": "external", "qualification": "unqualified", "provenance": provenance, "provider": provider, "caseId": material.CaseID, "sourceManifestSHA256": manifestHash, "available": true, "plan": json.RawMessage(planBytes), "assertionInputs": inputs})
+	return writeNativeJSON(tool.Object{"schemaVersion": 1, "toolVersion": version.Version, "materialKind": "external", "qualification": "unqualified", "provenance": provenance, "provider": provider, "caseId": material.CaseID, "sourceManifestSHA256": manifestHash, "available": true, "plan": json.RawMessage(planBytes), "assertionInputs": inputs})
 }

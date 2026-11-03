@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func TestRemoteCleanupReceiptExplicitlyExcludesForcedCleanup(t *testing.T) {
@@ -28,8 +30,8 @@ func TestRemoteCleanupReceiptExplicitlyExcludesForcedCleanup(t *testing.T) {
 	}
 	go func() { service.done <- cmd.Wait() }()
 	require.NoError(t, service.close())
-	var receipt object
-	require.NoError(t, readJSON(filepath.Join(root, "remote-service.json"), &receipt))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(root, "remote-service.json"), &receipt))
 	require.Equal(t, true, receipt["cleanupComplete"])
 	require.InDelta(t, float64(0), receipt["serverExitCode"], 0)
 	require.Equal(t, false, receipt["forcedCleanup"])

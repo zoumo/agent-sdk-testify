@@ -18,18 +18,18 @@ func TestBindingsMergeManifestPlanSeedAndAdoption(t *testing.T) {
 	manifestHash := writeHistoryFile(t, root, manifestFile, "manifest\n")
 	seedHash := writeHistoryFile(t, root, seedFile, "seed\n")
 	adoptedHash := writeHistoryFile(t, root, adoptedFile, "adopted\n")
-	writeHistoryJSON(t, root, "plan.json", object{
-		"historySeed": object{
-			"files": object{seedFile: object{"sha256": seedHash}},
+	writeHistoryJSON(t, root, "plan.json", tool.Object{
+		"historySeed": tool.Object{
+			"files": tool.Object{seedFile: tool.Object{"sha256": seedHash}},
 		},
 	})
-	writeHistoryJSON(t, root, "manifest.json", object{
-		"savedFiles": object{manifestFile: manifestHash},
+	writeHistoryJSON(t, root, "manifest.json", tool.Object{
+		"savedFiles": tool.Object{manifestFile: manifestHash},
 	})
-	writeHistoryJSON(t, root, "adoption.json", object{
+	writeHistoryJSON(t, root, "adoption.json", tool.Object{
 		"adoption":        "admitted",
 		"transformations": []any{},
-		"files":           object{adoptedFile: adoptedHash},
+		"files":           tool.Object{adoptedFile: adoptedHash},
 	})
 
 	bindings, err := Bindings(root)
@@ -45,13 +45,13 @@ func TestBindingsRejectConflictingSources(t *testing.T) {
 	root := t.TempDir()
 	name := "config/sessions/conflict.jsonl"
 	actual := writeHistoryFile(t, root, name, "actual\n")
-	writeHistoryJSON(t, root, "plan.json", object{
-		"historySeed": object{
-			"files": object{name: object{"sha256": tool.DigestBytes([]byte("plan\n"))}},
+	writeHistoryJSON(t, root, "plan.json", tool.Object{
+		"historySeed": tool.Object{
+			"files": tool.Object{name: tool.Object{"sha256": tool.DigestBytes([]byte("plan\n"))}},
 		},
 	})
-	writeHistoryJSON(t, root, "manifest.json", object{
-		"savedFiles": object{name: actual},
+	writeHistoryJSON(t, root, "manifest.json", tool.Object{
+		"savedFiles": tool.Object{name: actual},
 	})
 
 	_, err := Bindings(root)

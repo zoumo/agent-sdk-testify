@@ -7,7 +7,9 @@ import (
 	"maps"
 
 	"github.com/zoumo/agent-sdk-testify/data"
+	"github.com/zoumo/agent-sdk-testify/internal/builtin"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func mockQuery(o Options) error {
@@ -23,11 +25,11 @@ func mockQuery(o Options) error {
 	if o.Agent != "" && o.Agent != "claude" && o.Agent != "codex" {
 		return errors.New("unknown agent type")
 	}
-	m, hash, err := readBuiltin()
+	m, hash, err := builtin.Read()
 	if err != nil {
 		return err
 	}
-	rows := []object{}
+	rows := []tool.Object{}
 	for _, coverage := range m.Coverage {
 		if o.Agent != "" && coverage["provider"] != o.Agent {
 			continue
@@ -35,34 +37,34 @@ func mockQuery(o Options) error {
 		if o.Case != "" && coverage["caseId"] != o.Case {
 			continue
 		}
-		row := object{}
+		row := tool.Object{}
 		maps.Copy(row, coverage)
-		catalogPlan, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: str(row["provider"]), Case: str(row["caseId"])})
+		catalogPlan, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: tool.Str(row["provider"]), Case: tool.Str(row["caseId"])})
 		if err != nil {
 			return err
 		}
-		raw, err := fs.ReadFile(data.Scenarios(), str(row["storyId"])+".json")
+		raw, err := fs.ReadFile(data.Scenarios(), tool.Str(row["storyId"])+".json")
 		if err != nil {
 			return err
 		}
-		var story object
+		var story tool.Object
 		if err := json.Unmarshal(raw, &story); err != nil {
 			return err
 		}
-		for _, c := range array(story["cases"]) {
-			if obj(c)["id"] == row["caseId"] {
+		for _, c := range tool.Array(story["cases"]) {
+			if tool.Obj(c)["id"] == row["caseId"] {
 				row["contract"] = c
 			}
 		}
-		raw, err = fs.ReadFile(data.Scenarios(), "bindings/"+str(row["provider"])+".json")
+		raw, err = fs.ReadFile(data.Scenarios(), "bindings/"+tool.Str(row["provider"])+".json")
 		if err != nil {
 			return err
 		}
-		var binding object
+		var binding tool.Object
 		if err := json.Unmarshal(raw, &binding); err != nil {
 			return err
 		}
-		row["binding"] = obj(binding["cases"])[str(row["caseId"])]
+		row["binding"] = tool.Obj(binding["cases"])[tool.Str(row["caseId"])]
 		row["scenario"] = catalogPlan["scenario"]
 		for i := range m.Materials {
 			material := &m.Materials[i]
@@ -89,5 +91,5 @@ func mockQuery(o Options) error {
 		}
 		return writeNativeJSON(rows[0])
 	}
-	return writeNativeJSON(object{"schemaVersion": 1, "toolVersion": m.ToolVersion, "manifestSHA256": hash, "sourceRevision": m.SourceRevision, "scope": m.Scope, "cases": rows})
+	return writeNativeJSON(tool.Object{"schemaVersion": 1, "toolVersion": m.ToolVersion, "manifestSHA256": hash, "sourceRevision": m.SourceRevision, "scope": m.Scope, "cases": rows})
 }

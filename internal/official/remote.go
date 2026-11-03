@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // Only the explicit record path calls this. SDK drivers own client behavior;
@@ -23,7 +25,7 @@ type remoteService struct {
 	root, endpoint, token string
 }
 
-func startRemote(ctx context.Context, o options, plan object) (*remoteService, error) {
+func startRemote(ctx context.Context, o Options, plan tool.Object) (*remoteService, error) {
 	var listenConfig net.ListenConfig
 	listener, err := listenConfig.Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {
@@ -33,7 +35,7 @@ func startRemote(ctx context.Context, o options, plan object) (*remoteService, e
 	if err := listener.Close(); err != nil {
 		return nil, err
 	}
-	r := &remoteService{root: str(plan["root"]), endpoint: "ws://" + address, done: make(chan error, 1)}
+	r := &remoteService{root: tool.Str(plan["root"]), endpoint: "ws://" + address, done: make(chan error, 1)}
 	r.token = filepath.Join(r.root, "remote-token.private")
 	var secret [32]byte
 	if _, err = rand.Read(secret[:]); err != nil {
@@ -48,14 +50,14 @@ func startRemote(ctx context.Context, o options, plan object) (*remoteService, e
 		return nil, err
 	}
 	var args []string
-	for _, arg := range stringsOf(plan["args"]) {
+	for _, arg := range tool.Strings(plan["args"]) {
 		if arg != "--stdio" {
 			args = append(args, arg)
 		}
 	}
 	args = append(args, "--listen", r.endpoint, "--ws-auth", "capability-token", "--ws-token-file", r.token)
-	r.cmd = exec.CommandContext(context.WithoutCancel(ctx), str(plan["cli"]), args...)
-	r.cmd.Dir = str(plan["project"])
+	r.cmd = exec.CommandContext(context.WithoutCancel(ctx), tool.Str(plan["cli"]), args...)
+	r.cmd.Dir = tool.Str(plan["project"])
 	r.cmd.Stdout = r.log
 	r.cmd.Stderr = r.log
 	r.cmd.Env, err = driverEnvironment(o, plan)
@@ -102,7 +104,7 @@ func (r *remoteService) close() error {
 	_ = r.cmd.Process.Signal(os.Interrupt)
 	select {
 	case err := <-r.done:
-		_ = writeJSON(filepath.Join(r.root, "remote-service.json"), object{"cleanupComplete": err == nil, "serverExitCode": r.cmd.ProcessState.ExitCode(), "forcedCleanup": false})
+		_ = tool.WriteJSON(filepath.Join(r.root, "remote-service.json"), tool.Object{"cleanupComplete": err == nil, "serverExitCode": r.cmd.ProcessState.ExitCode(), "forcedCleanup": false})
 		return err
 	case <-time.After(3 * time.Second):
 		_ = r.cmd.Process.Signal(syscall.SIGKILL)

@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // All evidence fabricated by this suite stays in temporary directories.
@@ -33,8 +34,8 @@ func (s *corpusSuite) SetupTest() {
 		Archive:   filepath.Join(s.root, "archive"),
 	}
 	index := s.read(repository, "data/index.json")
-	for _, value := range array(index["cases"]) {
-		e := obj(value)
+	for _, value := range tool.Array(index["cases"]) {
+		e := tool.Obj(value)
 		for _, key := range []string{"materials", "adoptionSHA256"} {
 			delete(e, key)
 		}
@@ -48,17 +49,17 @@ func (s *corpusSuite) SetupTest() {
 func (s *corpusSuite) write(root, name string, value any) {
 	s.T().Helper()
 	s.Require().NoError(os.MkdirAll(filepath.Dir(filepath.Join(root, name)), 0o700))
-	s.Require().NoError(writeJSON(filepath.Join(root, name), value))
+	s.Require().NoError(tool.WriteJSON(filepath.Join(root, name), value))
 }
 
-func (s *corpusSuite) read(root, name string) object {
+func (s *corpusSuite) read(root, name string) tool.Object {
 	s.T().Helper()
 	v, err := Read(filepath.Join(root, name))
 	s.Require().NoError(err)
 	return v
 }
 
-func (s *corpusSuite) inventory(root string) object {
+func (s *corpusSuite) inventory(root string) tool.Object {
 	s.T().Helper()
 	v, err := Inventory(root, false)
 	s.Require().NoError(err)
@@ -74,7 +75,7 @@ func (s *corpusSuite) hash(root, name string) string {
 
 func (s *corpusSuite) bindReplay() {
 	summary := s.read(s.replay, "summary.json")
-	files := object{}
+	files := tool.Object{}
 	for _, name := range SourceEvidence {
 		files[name] = s.hash(s.source, name)
 	}
@@ -82,56 +83,56 @@ func (s *corpusSuite) bindReplay() {
 	s.write(s.replay, "summary.json", summary)
 }
 
-func (s *corpusSuite) evidence() object {
-	plan := object{
+func (s *corpusSuite) evidence() tool.Object {
+	plan := tool.Object{
 		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001",
 		"driverProfile": "continuation", "project": "/original/project", "recordingIsolation": "personal-skills-v1",
-		"scenario": object{"files": object{"numbers.txt": "7\n11\n"}},
+		"scenario": tool.Object{"files": tool.Object{"numbers.txt": "7\n11\n"}},
 	}
 	s.write(s.source, "plan.json", plan)
-	s.write(s.source, "raw/raw.jsonl", object{
+	s.write(s.source, "raw/raw.jsonl", tool.Object{
 		"ordinal": 1, "direction": "c2s", "channel": "protocol",
-		"epoch": 1, "elapsedMs": 0, "wire": object{"id": 1, "method": "ping"},
+		"epoch": 1, "elapsedMs": 0, "wire": tool.Object{"id": 1, "method": "ping"},
 	})
 	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw", "raw.jsonl"), []byte("{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"protocol\",\"epoch\":1,\"elapsedMs\":0,\"wire\":{\"id\":1,\"method\":\"ping\"}}\n"), 0o600))
 	s.Require().NoError(os.WriteFile(filepath.Join(s.source, "raw", "stderr.raw"), nil, 0o600))
-	s.write(s.source, "raw/transport.json", object{
+	s.write(s.source, "raw/transport.json", tool.Object{
 		"captureStatus": "complete", "cleanupComplete": true,
 		"nativeLaunched": true, "reaped": true, "clientEOF": true, "frames": 1,
 	})
-	s.write(s.source, "raw/manifest.json", object{
+	s.write(s.source, "raw/manifest.json", tool.Object{
 		"captureStatus": "complete", "files": s.inventory(filepath.Join(s.source, "raw")),
-		"native":          object{"executable": "/observed/native", "sha256": strings.Repeat("a", 64), "cwd": "/original/project"},
-		"recordingFormat": object{"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl"},
+		"native":          tool.Object{"executable": "/observed/native", "sha256": strings.Repeat("a", 64), "cwd": "/original/project"},
+		"recordingFormat": tool.Object{"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl"},
 	})
-	sdk := object{"package": "openai-codex", "version": "synthetic-test-only"}
-	business := object{
+	sdk := tool.Object{"package": "openai-codex", "version": "synthetic-test-only"}
+	business := tool.Object{
 		"status": "passed", "branchStatus": "passed", "captureStatus": "complete",
 		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "officialSDK": sdk,
 	}
 	s.write(s.source, "report.json", business)
 	s.write(s.replay, "replay-report.json", business)
-	s.write(s.source, "result.json", object{"status": "passed"})
-	s.write(s.replay, "result.json", object{"status": "passed"})
-	s.write(s.source, "manifest.json", object{
+	s.write(s.source, "result.json", tool.Object{"status": "passed"})
+	s.write(s.replay, "result.json", tool.Object{"status": "passed"})
+	s.write(s.source, "manifest.json", tool.Object{
 		"provenance": "capture", "status": "passed", "captureStatus": "complete",
 		"credentialScan": "pass", "planSHA256": s.hash(s.source, "plan.json"), "files": s.inventory(filepath.Join(s.source, "raw")),
 	})
 	hash := s.hash(s.source, "raw/raw.jsonl")
-	s.write(s.source, "summary.json", object{
+	s.write(s.source, "summary.json", tool.Object{
 		"provider": "codex", "case": "SDK-CASE-001", "mode": "record",
-		"result": object{"status": "passed"}, "recordingSHA256": hash,
+		"result": tool.Object{"status": "passed"}, "recordingSHA256": hash,
 	})
-	s.write(s.replay, "summary.json", object{
+	s.write(s.replay, "summary.json", tool.Object{
 		"provider": "codex", "case": "SDK-CASE-001", "mode": "replay",
-		"result": object{"status": "passed"}, "recordingSHA256": hash,
+		"result": tool.Object{"status": "passed"}, "recordingSHA256": hash,
 	})
 	s.bindReplay()
-	s.write(s.replay, "replay-peer.json", object{
+	s.write(s.replay, "replay-peer.json", tool.Object{
 		"provider": "codex", "recordingSHA256": hash,
 		"fullConsumption": true, "clientEOF": true, "nativeLaunched": false, "frames": 1,
 	})
-	return object{
+	return tool.Object{
 		"version": float64(1), "origin": "real-agent", "reviewer": "test reviewer",
 		"reviewedAt": "2026-10-31T00:00:00Z", "sourceReviewed": true, "contentReviewed": true, "credentialsReviewed": true,
 		"officialSDK": sdk, "captureFiles": s.inventory(s.source), "replayFiles": s.inventory(s.replay),
@@ -139,24 +140,24 @@ func (s *corpusSuite) evidence() object {
 	}
 }
 
-func (s *corpusSuite) qualify() object {
+func (s *corpusSuite) qualify() tool.Object {
 	r, err := s.c.Qualification(s.source, s.replay, false)
 	s.Require().NoError(err)
 	return r
 }
 
-func (s *corpusSuite) adopt(review object) string {
+func (s *corpusSuite) adopt(review tool.Object) string {
 	s.write(s.root, "review.json", review)
 	target, err := s.c.Adopt(s.source, s.replay, filepath.Join(s.root, "review.json"))
 	s.Require().NoError(err)
 	return target
 }
 
-func (s *corpusSuite) entry() object {
+func (s *corpusSuite) entry() tool.Object {
 	index, err := s.c.LoadIndex()
 	s.Require().NoError(err)
-	for _, value := range array(index["cases"]) {
-		if e := obj(value); e["adoption"] == "admitted" {
+	for _, value := range tool.Array(index["cases"]) {
+		if e := tool.Obj(value); e["adoption"] == "admitted" {
 			return e
 		}
 	}
@@ -168,29 +169,29 @@ func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 	index, err := s.c.LoadIndex()
 	s.Require().NoError(err)
 	counts := map[string]int{}
-	for _, value := range array(index["cases"]) {
-		counts[str(obj(value)["requirement"])]++
+	for _, value := range tool.Array(index["cases"]) {
+		counts[tool.Str(tool.Obj(value)["requirement"])]++
 	}
 	s.Equal(map[string]int{"required": 63, "optional": 9}, counts)
 	for _, change := range []string{"empty", "omit", "downgrade", "duplicate", "verification", "reason", "unbacked-pass"} {
 		s.Run(change, func() {
 			bad := s.read(filepath.Dir(s.c.Index), "index.json")
-			cases := array(bad["cases"])
+			cases := tool.Array(bad["cases"])
 			switch change {
 			case "empty":
 				cases = nil
 			case "omit":
 				cases = cases[:len(cases)-1]
 			case "downgrade":
-				obj(cases[0])["requirement"] = "planned"
+				tool.Obj(cases[0])["requirement"] = "planned"
 			case "duplicate":
 				cases = append(cases, cases[0])
 			case "verification":
-				obj(cases[0])["verification"] = "planned"
+				tool.Obj(cases[0])["verification"] = "planned"
 			case "reason":
-				delete(obj(cases[0]), "verificationReason")
+				delete(tool.Obj(cases[0]), "verificationReason")
 			case "unbacked-pass":
-				obj(cases[0])["verification"] = "passed"
+				tool.Obj(cases[0])["verification"] = "passed"
 			}
 			bad["cases"] = cases
 			p := filepath.Join(s.root, change+".json")
@@ -201,12 +202,12 @@ func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 			s.Require().Error(err)
 		})
 	}
-	s.Len(array(index["cases"]), 72)
+	s.Len(tool.Array(index["cases"]), 72)
 }
 
 func (s *corpusSuite) TestInventoryRetainsPrivateOriginalsAndRejectsSymlinks() {
-	s.write(s.source, "private.json", object{"retain": true})
-	s.write(s.source, "plan.json", object{})
+	s.write(s.source, "private.json", tool.Object{"retain": true})
+	s.write(s.source, "plan.json", tool.Object{})
 	s.Len(s.inventory(s.source), 2)
 	s.Require().NoError(os.Symlink(filepath.Join(s.source, "plan.json"), filepath.Join(s.source, "linked")))
 	_, err := Inventory(s.source, false)
@@ -217,27 +218,27 @@ func (s *corpusSuite) TestRequirementsAreIndependentOfRoutes() {
 	catalog, err := s.c.Catalog()
 	s.Require().NoError(err)
 	for _, key := range []string{"codex/SDK-CASE-012"} {
-		s.Equal("optional", obj(catalog[key])["requirement"], key)
-		s.NotEqual("live-selected-path", obj(catalog[key])["route"], key)
+		s.Equal("optional", tool.Obj(catalog[key])["requirement"], key)
+		s.NotEqual("live-selected-path", tool.Obj(catalog[key])["route"], key)
 	}
 	for _, id := range []string{"SDK-CASE-017", "SDK-CASE-032"} {
-		s.Equal("optional", obj(catalog["claude/"+id])["requirement"])
-		s.Equal("required", obj(catalog["codex/"+id])["requirement"])
+		s.Equal("optional", tool.Obj(catalog["claude/"+id])["requirement"])
+		s.Equal("required", tool.Obj(catalog["codex/"+id])["requirement"])
 	}
 	for _, provider := range []string{"codex", "claude"} {
 		for _, id := range []string{"SDK-CASE-003", "SDK-CASE-025", "SDK-CASE-026"} {
-			s.Equal("optional", obj(catalog[provider+"/"+id])["requirement"])
+			s.Equal("optional", tool.Obj(catalog[provider+"/"+id])["requirement"])
 		}
-		s.Equal("required", obj(catalog[provider+"/SDK-CASE-027"])["requirement"], "optional thinking mode must not waive effort")
+		s.Equal("required", tool.Obj(catalog[provider+"/SDK-CASE-027"])["requirement"], "optional thinking mode must not waive effort")
 	}
-	s.Equal("unsupported", obj(catalog["codex/SDK-CASE-025"])["route"], "effort cannot substitute for an independent thinking mode")
+	s.Equal("unsupported", tool.Obj(catalog["codex/SDK-CASE-025"])["route"], "effort cannot substitute for an independent thinking mode")
 }
 
 func (s *corpusSuite) TestProviderRequirementOverrideMustBeBoolean() {
 	scenarios := filepath.Join(s.root, "scenarios")
-	s.Require().NoError(copyTree(s.c.Scenarios, scenarios))
+	s.Require().NoError(tool.CopyTree(s.c.Scenarios, scenarios))
 	bindings := s.read(scenarios, "bindings/claude.json")
-	obj(obj(bindings["cases"])["SDK-CASE-017"])["required"] = "optional"
+	tool.Obj(tool.Obj(bindings["cases"])["SDK-CASE-017"])["required"] = "optional"
 	s.write(scenarios, "bindings/claude.json", bindings)
 	c := s.c
 	c.Scenarios = scenarios
@@ -267,8 +268,8 @@ func (s *corpusSuite) TestOptionalAdmissionAndIntegrity() {
 	s.Equal("optional", entry["requirement"])
 	s.Equal("passed", entry["verification"])
 	index := s.read(filepath.Dir(s.c.Index), "index.json")
-	for _, value := range array(index["cases"]) {
-		e := obj(value)
+	for _, value := range tool.Array(index["cases"]) {
+		e := tool.Obj(value)
 		if e["adoption"] == "admitted" {
 			e["verification"], e["verificationReason"] = "failed", "synthetic known business gap"
 		}
@@ -298,7 +299,7 @@ func (s *corpusSuite) TestReviewNeverApprovesCandidate() {
 func (s *corpusSuite) TestOptionalHistoryPreservesFilesAndRejectsLinks() {
 	s.evidence()
 	name := "config/projects/project/session.jsonl"
-	s.write(s.source, name, object{"cwd": "/original/project"})
+	s.write(s.source, name, tool.Object{"cwd": "/original/project"})
 	s.Require().NoError(os.MkdirAll(filepath.Join(s.source, "config", "sessions", "empty"), 0o700))
 	v := &Validation{}
 	s.Equal(true, v.Required(s.source, s.read(s.source, "plan.json"))[name])
@@ -321,9 +322,9 @@ func (s *corpusSuite) TestAdmissionRequiresBusinessAndFrozenReview() {
 	review := s.evidence()
 	_, err := s.c.ValidateAdmission(s.source, s.replay, review)
 	s.Require().NoError(err)
-	for field, value := range (object{
+	for field, value := range (tool.Object{
 		"origin": "synthetic", "sourceReviewed": false, "credentialsReviewed": false,
-		"captureFiles": object{}, "officialSDK": "", "reviewer": "",
+		"captureFiles": tool.Object{}, "officialSDK": "", "reviewer": "",
 	}) {
 		s.Run(field, func() {
 			old := review[field]
@@ -338,7 +339,7 @@ func (s *corpusSuite) TestAdmissionRequiresBusinessAndFrozenReview() {
 		value       any
 	}{
 		{"summary.json", "mode", "simulate"},
-		{"summary.json", "source", object{}},
+		{"summary.json", "source", tool.Object{}},
 		{"result.json", "status", "untriggered"},
 		{"replay-peer.json", "fullConsumption", false},
 		{"replay-peer.json", "clientEOF", false},
@@ -365,7 +366,7 @@ func (s *corpusSuite) TestAdmissionRequiresBusinessAndFrozenReview() {
 
 func (s *corpusSuite) TestAdoptArchivesCompleteOriginalAndSurvivesSourceRemoval() {
 	review := s.evidence()
-	s.write(s.source, "diagnostics.private.json", object{"retain": true})
+	s.write(s.source, "diagnostics.private.json", tool.Object{"retain": true})
 	review["captureFiles"] = s.inventory(s.source)
 	target := s.adopt(review)
 	s.NoFileExists(filepath.Join(target, "diagnostics.private.json"))
@@ -400,23 +401,23 @@ func (s *corpusSuite) TestRejectedAdoptionStillArchivesOriginals() {
 
 func (s *corpusSuite) TestQualificationDoesNotFabricateContentReview() {
 	s.evidence()
-	s.write(s.source, "config/logs_2.sqlite-wal", object{"private": true})
+	s.write(s.source, "config/logs_2.sqlite-wal", tool.Object{"private": true})
 	review := s.qualify()
-	s.Equal("official-sdk", obj(review["qualification"])["method"])
+	s.Equal("official-sdk", tool.Obj(review["qualification"])["method"])
 	s.NotContains(review, "reviewer")
 	s.NotContains(review, "contentReviewed")
-	s.Contains(obj(review["captureFiles"]), "config/logs_2.sqlite-wal")
-	s.NotContains(stringsOf(review["publishFiles"]), "config/logs_2.sqlite-wal")
-	s.write(s.replay, "result.json", object{"status": "failed"})
+	s.Contains(tool.Obj(review["captureFiles"]), "config/logs_2.sqlite-wal")
+	s.NotContains(tool.Strings(review["publishFiles"]), "config/logs_2.sqlite-wal")
+	s.write(s.replay, "result.json", tool.Object{"status": "failed"})
 	_, err := s.c.Qualification(s.source, s.replay, false)
 	s.Require().Error(err)
 }
 
 func (s *corpusSuite) TestAutomaticQualificationCannotExpandPublication() {
 	s.evidence()
-	s.write(s.source, "raw/extra-diagnostic.json", object{"private": true})
+	s.write(s.source, "raw/extra-diagnostic.json", tool.Object{"private": true})
 	review := s.qualify()
-	review["publishFiles"] = append(stringsOf(review["publishFiles"]), "raw/extra-diagnostic.json")
+	review["publishFiles"] = append(tool.Strings(review["publishFiles"]), "raw/extra-diagnostic.json")
 	_, err := s.c.ValidateAdmission(s.source, s.replay, review)
 	s.ErrorContains(err, "only required regression materials")
 }
@@ -434,7 +435,7 @@ func (s *corpusSuite) TestQualificationCLIAndInvalidDestinationPreflight() {
 	s.evidence()
 	review, err := s.c.Qualification(s.source, s.replay, false)
 	s.Require().NoError(err)
-	s.Equal("official-sdk", obj(review["qualification"])["method"])
+	s.Equal("official-sdk", tool.Obj(review["qualification"])["method"])
 	c := s.c
 	c.Archive = filepath.Join(filepath.Dir(c.Index), "private")
 	output := filepath.Join(s.root, "must-not-launch")
@@ -447,7 +448,7 @@ func (s *corpusSuite) TestReplacementArchivesPreviousAndRetainsNewOnFailure() {
 	s.evidence()
 	first := s.adopt(s.qualify())
 	old := s.inventory(first)
-	s.write(s.source, "diagnostic.private.json", object{"second": true})
+	s.write(s.source, "diagnostic.private.json", tool.Object{"second": true})
 	review := s.qualify()
 	second := s.adopt(review)
 	s.NotEqual(first, second)
@@ -538,13 +539,13 @@ func (s *corpusSuite) TestClaudeMaterializationPinsSourceAndDerivedHashes() {
 	plan["provider"] = "claude"
 	s.write(s.source, "plan.json", plan)
 	name := "config/projects/-original-project/session.jsonl"
-	s.write(s.source, name, object{"cwd": "/original/project", "id": "unchanged"})
+	s.write(s.source, name, tool.Object{"cwd": "/original/project", "id": "unchanged"})
 	execution := "/gone-replay/project"
 	target := "config/projects/" + claudeProjectKey(execution) + "/session.jsonl"
-	s.write(s.replay, target, object{"cwd": execution, "id": "unchanged"})
-	s.write(s.replay, "materialization.json", object{
+	s.write(s.replay, target, tool.Object{"cwd": execution, "id": "unchanged"})
+	s.write(s.replay, "materialization.json", tool.Object{
 		"version": 1, "originalProject": "/original/project",
-		"originalHistoryProject": nil, "executionProject": execution, "transformations": []object{{
+		"originalHistoryProject": nil, "executionProject": execution, "transformations": []tool.Object{{
 			"kind": "claude-project-cwd-copy", "source": name, "derived": target,
 			"sourceSHA256": s.hash(s.source, name), "derivedSHA256": s.hash(s.replay, target),
 			"sourceCWD": "/original/project", "executionCWD": execution,
@@ -561,7 +562,7 @@ func (s *corpusSuite) TestClaudeMaterializationPinsSourceAndDerivedHashes() {
 	v := &Validation{}
 	v.Replay(s.source, s.replay, plan, "replay")
 	s.Require().NoError(v.Err)
-	s.write(s.replay, target, object{"cwd": execution, "id": "changed"})
+	s.write(s.replay, target, tool.Object{"cwd": execution, "id": "changed"})
 	v.Replay(s.source, s.replay, plan, "replay")
 	s.Require().Error(v.Err)
 }

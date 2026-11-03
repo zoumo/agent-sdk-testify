@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
@@ -69,7 +70,7 @@ func Digest(p string) (string, error) {
 	return hex.EncodeToString(h[:]), nil
 }
 
-func Inventory(root string, empty bool) (object, error) {
+func Inventory(root string, empty bool) (tool.Object, error) {
 	i, err := os.Lstat(root)
 	if err != nil {
 		return nil, err
@@ -77,7 +78,7 @@ func Inventory(root string, empty bool) (object, error) {
 	if !i.IsDir() || i.Mode()&os.ModeSymlink != 0 {
 		return nil, errors.New("material directory is missing or linked")
 	}
-	out := object{}
+	out := tool.Object{}
 	err = filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -107,7 +108,7 @@ func Inventory(root string, empty bool) (object, error) {
 	return out, err
 }
 
-func Read(p string) (object, error) {
+func Read(p string) (tool.Object, error) {
 	b, err := os.ReadFile(p)
 	if err != nil {
 		return nil, err
@@ -115,7 +116,7 @@ func Read(p string) (object, error) {
 	if _, err = rawjson.Parse(b); err != nil {
 		return nil, err
 	}
-	var v object
+	var v tool.Object
 	err = json.Unmarshal(b, &v)
 	if err == nil && v == nil {
 		err = errors.New("JSON evidence must be an object")
@@ -149,14 +150,14 @@ func (v *Validation) Check(ok bool, message string) {
 	}
 }
 
-func (v *Validation) Read(root, name string) object {
+func (v *Validation) Read(root, name string) tool.Object {
 	if v.Err != nil {
-		return object{}
+		return tool.Object{}
 	}
 	p, err := Regular(root, name)
 	if err != nil {
 		v.Err = err
-		return object{}
+		return tool.Object{}
 	}
 	m, err := Read(p)
 	v.Err = err
@@ -177,23 +178,23 @@ func (v *Validation) Digest(root, name string) string {
 	return h
 }
 
-func (v *Validation) Hashes(root string, hashes object) {
+func (v *Validation) Hashes(root string, hashes tool.Object) {
 	v.Check(len(hashes) > 0, "nonempty hash inventory required")
 	for name, expected := range hashes {
-		v.Check(len(str(expected)) == 64 && v.Digest(root, name) == expected, "material hash mismatch: "+name)
+		v.Check(len(tool.Str(expected)) == 64 && v.Digest(root, name) == expected, "material hash mismatch: "+name)
 	}
 }
 
-func (v *Validation) Inventory(root string, empty bool) object {
+func (v *Validation) Inventory(root string, empty bool) tool.Object {
 	if v.Err != nil {
-		return object{}
+		return tool.Object{}
 	}
 	x, err := Inventory(root, empty)
 	v.Err = err
 	return x
 }
 
-func Keys(m object) []string {
+func Keys(m tool.Object) []string {
 	out := make([]string, 0, len(m))
 	for k := range m {
 		out = append(out, k)
@@ -202,8 +203,8 @@ func Keys(m object) []string {
 	return out
 }
 
-func corpusSet(names []string) object {
-	m := object{}
+func corpusSet(names []string) tool.Object {
+	m := tool.Object{}
 	for _, n := range names {
 		m[n] = true
 	}
@@ -215,24 +216,24 @@ func Within(p, root string) bool {
 	return err == nil && (r == "." || filepath.IsLocal(r))
 }
 
-func (c *Corpus) Catalog() (object, error) {
+func (c *Corpus) Catalog() (tool.Object, error) {
 	v := &Validation{}
 	index := v.Read(c.Scenarios, "index.json")
-	out := object{}
-	for _, story := range stringsOf(index["stories"]) {
+	out := tool.Object{}
+	for _, story := range tool.Strings(index["stories"]) {
 		s := v.Read(c.Scenarios, story+".json")
-		for _, item := range array(s["cases"]) {
-			definition := obj(item)
-			id := str(definition["id"])
+		for _, item := range tool.Array(s["cases"]) {
+			definition := tool.Obj(item)
+			id := tool.Str(definition["id"])
 			for _, provider := range []string{"codex", "claude"} {
 				binding := v.Read(c.Scenarios, "bindings/"+provider+".json")
-				mode := str(obj(definition["execution"])["mode"])
-				if x := str(obj(obj(obj(binding["cases"])[id])["execution"])["mode"]); x != "" {
+				mode := tool.Str(tool.Obj(definition["execution"])["mode"])
+				if x := tool.Str(tool.Obj(tool.Obj(tool.Obj(binding["cases"])[id])["execution"])["mode"]); x != "" {
 					mode = x
 				}
 				required, ok := definition["required"].(bool)
 				v.Check(ok, "case requirement must be explicit")
-				if override, exists := obj(obj(binding["cases"])[id])["required"]; exists {
+				if override, exists := tool.Obj(tool.Obj(binding["cases"])[id])["required"]; exists {
 					required, ok = override.(bool)
 					v.Check(ok, "provider requirement must be boolean")
 				}
@@ -240,14 +241,14 @@ func (c *Corpus) Catalog() (object, error) {
 				if required {
 					requirement = "required"
 				}
-				out[provider+"/"+id] = object{"story": story, "requirement": requirement, "route": mode, "driverProfile": definition["driverProfile"]}
+				out[provider+"/"+id] = tool.Object{"story": story, "requirement": requirement, "route": mode, "driverProfile": definition["driverProfile"]}
 			}
 		}
 	}
 	return out, v.Err
 }
 
-func (c *Corpus) LoadIndex() (object, error) {
+func (c *Corpus) LoadIndex() (tool.Object, error) {
 	index, err := Read(c.Index)
 	if err != nil {
 		return nil, err
@@ -259,19 +260,19 @@ func (c *Corpus) LoadIndex() (object, error) {
 	v := &Validation{}
 	v.Check(index["version"] == float64(1), "unsupported corpus index version")
 	seen := map[string]bool{}
-	for _, item := range array(index["cases"]) {
-		e := obj(item)
-		key := str(e["provider"]) + "/" + str(e["caseId"])
+	for _, item := range tool.Array(index["cases"]) {
+		e := tool.Obj(item)
+		key := tool.Str(e["provider"]) + "/" + tool.Str(e["caseId"])
 		target, ok := expected[key]
 		v.Check(ok && !seen[key], "unknown or duplicate corpus identity")
 		seen[key] = true
-		t := obj(target)
+		t := tool.Obj(target)
 		v.Check(e["storyId"] == t["story"] && e["requirement"] == t["requirement"], "corpus requirement differs from catalog")
-		state := str(e["adoption"])
+		state := tool.Str(e["adoption"])
 		v.Check(state == "" || state == "missing" || state == "untriggered" || state == "admitted", "invalid adoption state")
-		verification := str(e["verification"])
+		verification := tool.Str(e["verification"])
 		v.Check(corpusSet([]string{"passed", "failed", "unverified", "blocked", "unsupported"})[verification] == true, "invalid verification state")
-		v.Check(verification == "passed" || strings.TrimSpace(str(e["verificationReason"])) != "", "non-passing verification needs a reason")
+		v.Check(verification == "passed" || strings.TrimSpace(tool.Str(e["verificationReason"])) != "", "non-passing verification needs a reason")
 		v.Check(verification != "passed" || state == "admitted", "passing verification requires admitted evidence")
 	}
 	v.Check(len(seen) > 0 && len(seen) == len(expected), "corpus index omits required identities")
@@ -294,7 +295,7 @@ func corpusPublishable(name string) bool {
 	return allowed
 }
 
-func Phases(plan object) [][2]string {
+func Phases(plan tool.Object) [][2]string {
 	out := [][2]string{{"", ""}}
 	if plan["driverProfile"] == "remote-close" {
 		out = append(out, [2]string{"remote-probe/", "remote-probe/"})
@@ -302,25 +303,25 @@ func Phases(plan object) [][2]string {
 	return out
 }
 
-func (v *Validation) Summary(root, mode string, plan object) object {
+func (v *Validation) Summary(root, mode string, plan tool.Object) tool.Object {
 	s := v.Read(root, "summary.json")
 	v.Check(s["mode"] == mode && s["provider"] == plan["provider"] && s["case"] == plan["caseId"], "run identity or mode differs")
-	v.Check(s["error"] == nil && obj(s["result"])["status"] == "passed", "run did not pass")
+	v.Check(s["error"] == nil && tool.Obj(s["result"])["status"] == "passed", "run did not pass")
 	v.Check(v.Read(root, "result.json")["status"] == "passed", "business result did not pass")
 	return s
 }
 
-func (v *Validation) Replay(source, replay string, plan object, mode string) {
+func (v *Validation) Replay(source, replay string, plan tool.Object, mode string) {
 	actualMode := mode
 	if mode == "replay" {
-		var summary object
-		if readJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
+		var summary tool.Object
+		if tool.ReadJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
 			actualMode = "verify"
 			attestation := v.Read(replay, "verification.json")
 			v.Check(attestation["schemaVersion"] == float64(1) && attestation["status"] == "passed" && attestation["error"] == nil, "official verification did not pass")
-			v.Hashes(replay, obj(attestation["files"]))
+			v.Hashes(replay, tool.Obj(attestation["files"]))
 			for _, name := range []string{"summary.json", "result.json", "replay-report.json"} {
-				v.Check(obj(attestation["files"])[name] != nil, "verification omits evidence hash")
+				v.Check(tool.Obj(attestation["files"])[name] != nil, "verification omits evidence hash")
 			}
 			for _, phase := range Phases(plan) {
 				name := "main"
@@ -328,12 +329,12 @@ func (v *Validation) Replay(source, replay string, plan object, mode string) {
 					name = "probe"
 				}
 				lifecycle := "peer-" + name + "-lifecycle.json"
-				v.Check(obj(attestation["files"])[phase[0]+"replay-peer.json"] != nil && obj(attestation["files"])[lifecycle] != nil, "verification omits selected connection")
+				v.Check(tool.Obj(attestation["files"])[phase[0]+"replay-peer.json"] != nil && tool.Obj(attestation["files"])[lifecycle] != nil, "verification omits selected connection")
 			}
 		}
 	}
 	s := v.Summary(replay, actualMode, plan)
-	original := object{}
+	original := tool.Object{}
 	for _, name := range SourceEvidence {
 		original[name] = v.Digest(source, name)
 	}
@@ -354,26 +355,26 @@ func (v *Validation) Replay(source, replay string, plan object, mode string) {
 	}
 	v.Check(v.Digest(replay, "materialization.json") == s["materializationSHA256"], "runtime materialization hash differs")
 	m := v.Read(replay, "materialization.json")
-	execution := str(m["executionProject"])
-	output := str(s["output"])
+	execution := tool.Str(m["executionProject"])
+	output := tool.Str(s["output"])
 	v.Check((execution == filepath.Join(output, "project") || execution == filepath.Join(output, "workspace")) &&
 		m["originalProject"] == plan["project"] && m["originalHistoryProject"] == plan["historyProject"], "runtime project mapping differs")
-	for _, item := range array(m["transformations"]) {
-		x := obj(item)
-		cwd := str(x["sourceCWD"])
+	for _, item := range tool.Array(m["transformations"]) {
+		x := tool.Obj(item)
+		cwd := tool.Str(x["sourceCWD"])
 		v.Check(x["kind"] == "claude-project-cwd-copy" && (x["sourceCWD"] == plan["project"] || x["sourceCWD"] == plan["historyProject"]) && x["executionCWD"] == execution, "unsupported runtime transformation")
 		prefix := "config/projects/" + claudeProjectKey(cwd) + "/"
 		target := "config/projects/" + claudeProjectKey(execution) + "/"
-		v.Check(strings.HasPrefix(str(x["source"]), prefix) && x["derived"] == target+strings.TrimPrefix(str(x["source"]), prefix), "runtime history ownership differs")
-		v.Hashes(source, object{str(x["source"]): x["sourceSHA256"]})
-		v.Hashes(replay, object{str(x["derived"]): x["derivedSHA256"]})
+		v.Check(strings.HasPrefix(tool.Str(x["source"]), prefix) && x["derived"] == target+strings.TrimPrefix(tool.Str(x["source"]), prefix), "runtime history ownership differs")
+		v.Hashes(source, tool.Object{tool.Str(x["source"]): x["sourceSHA256"]})
+		v.Hashes(replay, tool.Object{tool.Str(x["derived"]): x["derivedSHA256"]})
 	}
 }
 
-func (v *Validation) ReplayEvidence(replay string, plan object) object {
+func (v *Validation) ReplayEvidence(replay string, plan tool.Object) tool.Object {
 	names := corpusSet([]string{"summary.json", "result.json", "replay-report.json"})
-	var summary object
-	if readJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
+	var summary tool.Object
+	if tool.ReadJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {
 		names["verification.json"] = true
 		for _, phase := range Phases(plan) {
 			name := "main"
@@ -388,18 +389,18 @@ func (v *Validation) ReplayEvidence(replay string, plan object) object {
 	}
 	if plan["provider"] == "claude" {
 		names["materialization.json"] = true
-		for _, item := range array(v.Read(replay, "materialization.json")["transformations"]) {
-			names[str(obj(item)["derived"])] = true
+		for _, item := range tool.Array(v.Read(replay, "materialization.json")["transformations"]) {
+			names[tool.Str(tool.Obj(item)["derived"])] = true
 		}
 	}
 	return names
 }
 
-func (v *Validation) Required(source string, plan object) object {
+func (v *Validation) Required(source string, plan tool.Object) tool.Object {
 	names := corpusSet(SourceEvidence)
 	manifest := v.Read(source, "manifest.json")
 	for _, group := range []string{"savedFiles", "caseFiles", "remotePhaseFiles", "driverFiles"} {
-		hashes := obj(manifest[group])
+		hashes := tool.Obj(manifest[group])
 		if len(hashes) > 0 {
 			v.Hashes(source, hashes)
 			for name := range hashes {
@@ -421,8 +422,8 @@ func (v *Validation) Required(source string, plan object) object {
 			names[prefix+"/"+name] = true
 		}
 	}
-	for name, evidence := range obj(obj(plan["historySeed"])["files"]) {
-		v.Hashes(source, object{name: obj(evidence)["sha256"]})
+	for name, evidence := range tool.Obj(tool.Obj(plan["historySeed"])["files"]) {
+		v.Hashes(source, tool.Object{name: tool.Obj(evidence)["sha256"]})
 		names[name] = true
 	}
 	if plan["driverProfile"] == "remote-close" {

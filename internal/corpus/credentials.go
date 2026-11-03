@@ -8,12 +8,14 @@ import (
 	"strings"
 
 	"github.com/pelletier/go-toml/v2"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // The scan describes this capture only. It never sanitizes or rewrites evidence.
 func ScanCaptureCredentials(root string) (string, error) {
 	var env map[string]string
-	if err := readJSON(filepath.Join(root, "native.env.private.json"), &env); err != nil {
+	if err := tool.ReadJSON(filepath.Join(root, "native.env.private.json"), &env); err != nil {
 		return "unavailable", err
 	}
 	return ScanCaptureCredentialsWithEnvironment(root, env)
@@ -47,8 +49,8 @@ func ScanCaptureCredentialsWithEnvironment(root string, env map[string]string) (
 		}
 	}
 	for _, name := range []string{"config/auth.json", "config/.credentials.json"} {
-		var value object
-		if err := readJSON(filepath.Join(root, name), &value); err == nil {
+		var value tool.Object
+		if err := tool.ReadJSON(filepath.Join(root, name), &value); err == nil {
 			credentials(value)
 		} else if !os.IsNotExist(err) {
 			return "unavailable", err
@@ -56,23 +58,23 @@ func ScanCaptureCredentialsWithEnvironment(root string, env map[string]string) (
 	}
 	data, err := os.ReadFile(filepath.Join(root, "config", "config.toml"))
 	if err == nil {
-		var config object
+		var config tool.Object
 		if err := toml.Unmarshal(data, &config); err != nil {
 			return "unavailable", err
 		}
-		provider := obj(obj(config["model_providers"])[str(config["model_provider"])])
-		names := []string{str(provider["env_key"])}
-		for _, value := range obj(provider["env_http_headers"]) {
-			names = append(names, str(value))
+		provider := tool.Obj(tool.Obj(config["model_providers"])[tool.Str(config["model_provider"])])
+		names := []string{tool.Str(provider["env_key"])}
+		for _, value := range tool.Obj(provider["env_http_headers"]) {
+			names = append(names, tool.Str(value))
 		}
 		for _, name := range names {
 			if env[name] != "" {
 				secrets = append(secrets, env[name])
 			}
 		}
-		for _, value := range obj(provider["http_headers"]) {
-			if str(value) != "" {
-				secrets = append(secrets, str(value))
+		for _, value := range tool.Obj(provider["http_headers"]) {
+			if tool.Str(value) != "" {
+				secrets = append(secrets, tool.Str(value))
 			}
 		}
 	} else if !os.IsNotExist(err) {

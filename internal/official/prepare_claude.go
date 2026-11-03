@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func claudeNativeArgs(profile string, params object) ([]string, error) {
+func claudeNativeArgs(profile string, params tool.Object) ([]string, error) {
 	var args []string
 	args = []string{"--print", "--system-prompt", "Complete the supplied synthetic task in the working directory. Be concise.", "--output-format", "stream-json", "--verbose", "--input-format", "stream-json", "--permission-prompt-tool", "stdio", "--include-partial-messages"}
 	if profile != "history" && profile != "existing-children" {
@@ -30,7 +32,7 @@ func claudeNativeArgs(profile string, params object) ([]string, error) {
 		ask = []string{"Bash"}
 	}
 	if ask != nil {
-		b, err := json.Marshal(object{"permissions": object{"ask": ask}})
+		b, err := json.Marshal(tool.Object{"permissions": tool.Object{"ask": ask}})
 		if err != nil {
 			return nil, fmt.Errorf("encode claude permissions: %w", err)
 		}
@@ -48,7 +50,7 @@ func claudeNativeArgs(profile string, params object) ([]string, error) {
 	return args, nil
 }
 
-func prepareClaudeArgs(plan object, args []string, profile string) ([]string, error) {
+func prepareClaudeArgs(plan tool.Object, args []string, profile string) ([]string, error) {
 	// Apply at the common preparation boundary, including supplied legacy args.
 	// Only the isolated, filtered user settings remain discoverable. Native
 	// project/local sources also control ancestor CLAUDE.md and rules loading.
@@ -93,7 +95,7 @@ func prepareClaudeArgs(plan object, args []string, profile string) ([]string, er
 				return nil, errors.New("claude recording isolation: settings must contain only inline case permissions")
 			}
 			if flag != "--settings" {
-				var fields object
+				var fields tool.Object
 				if json.Unmarshal([]byte(value), &fields) != nil || fields == nil {
 					return nil, fmt.Errorf("claude recording isolation: %s requires inline case JSON", flag)
 				}
@@ -107,7 +109,7 @@ func prepareClaudeArgs(plan object, args []string, profile string) ([]string, er
 			if flag == "--mcp-config" {
 				for i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
 					i++
-					var fields object
+					var fields tool.Object
 					if json.Unmarshal([]byte(args[i]), &fields) != nil || fields == nil {
 						return nil, errors.New("claude recording isolation: MCP requires inline case JSON")
 					}
@@ -120,15 +122,15 @@ func prepareClaudeArgs(plan object, args []string, profile string) ([]string, er
 	}
 	isolated = append(isolated, "--setting-sources", "user", "--disable-slash-commands", "--strict-mcp-config")
 	args = isolated
-	if str(plan["model"]) != "" {
-		model := str(plan["initialModel"])
+	if tool.Str(plan["model"]) != "" {
+		model := tool.Str(plan["initialModel"])
 		if model == "" {
-			model = str(plan["model"])
+			model = tool.Str(plan["model"])
 		}
 		args = append(args, "--model", model)
 	}
 	if profile == "existing-children" {
-		args = append(args, "--resume", str(obj(plan["historySeed"])["sessionId"]), "--forward-subagent-text")
+		args = append(args, "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]), "--forward-subagent-text")
 	}
 	return append(args, positional...), nil
 }
@@ -169,12 +171,12 @@ func claudeCasePermissions(value string) bool {
 }
 
 func claudeAuthEnvironment(path string, env map[string]string) {
-	var settings object
-	if e := readJSON(path, &settings); e == nil {
-		selected := obj(settings["env"])
+	var settings tool.Object
+	if e := tool.ReadJSON(path, &settings); e == nil {
+		selected := tool.Obj(settings["env"])
 		// A selected endpoint must keep its own credentials; inherited
 		// auth from a different endpoint is not a substitute.
-		if str(selected["ANTHROPIC_BASE_URL"]) != "" {
+		if tool.Str(selected["ANTHROPIC_BASE_URL"]) != "" {
 			for _, k := range []string{"ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY"} {
 				delete(env, k)
 			}
@@ -195,15 +197,15 @@ func claudeAuthEnvironment(path string, env map[string]string) {
 }
 
 func filterClaudeConfig(path string) error {
-	var source object
-	if err := readJSON(path, &source); os.IsNotExist(err) {
+	var source tool.Object
+	if err := tool.ReadJSON(path, &source); os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
 		return err
 	}
-	selected := object{}
+	selected := tool.Object{}
 	if model, ok := source["model"]; ok {
 		selected["model"] = model
 	}
-	return writeJSON(path, selected)
+	return tool.WriteJSON(path, selected)
 }

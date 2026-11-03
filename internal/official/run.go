@@ -11,10 +11,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func Run(ctx context.Context, o Options) (summary object, runFailure error) {
+func Run(ctx context.Context, o Options) (summary tool.Object, runFailure error) {
 	var err error
 	if o.Mode != "record" && o.Mode != "verify" {
 		return nil, errors.New("expected official record or verify")
@@ -25,7 +27,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 			return nil, err
 		}
 	}
-	var plan object
+	var plan tool.Object
 	if o.Plan != nil {
 		plan = o.Plan
 	} else {
@@ -36,10 +38,10 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	}
 	// Bind offline receipts to the source before replacing runtime paths. A raw
 	// hash alone cannot prove that official replay used this plan and history.
-	source := object{}
+	source := tool.Object{}
 	if o.Mode != "record" {
 		for _, name := range []string{"plan.json", "manifest.json", "report.json", "result.json", "summary.json"} {
-			digest, e := fileDigest(filepath.Join(o.Materials, name))
+			digest, e := tool.FileDigest(filepath.Join(o.Materials, name))
 			if e != nil && !os.IsNotExist(e) {
 				return nil, e
 			}
@@ -57,7 +59,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 		delete(plan, "historySeed")
 		delete(plan, "historyProject")
 	}
-	provider := str(plan["provider"])
+	provider := tool.Str(plan["provider"])
 	if provider != "codex" && provider != "claude" {
 		return nil, errors.New("materials must identify codex or claude")
 	}
@@ -69,7 +71,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 		plan["args"] = append([]string(nil), o.NativeArgs...)
 	}
 	if !o.OutputPrepared {
-		o.Output, err = createOutput(o.Output, o.Mode)
+		o.Output, err = tool.CreateOutput(o.Output, o.Mode)
 		if err != nil {
 			return nil, err
 		}
@@ -94,8 +96,8 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 			runFailure = errors.Join(runFailure, cleanupErr)
 			// Retain preparation failures too, before driver/transport receipts exist.
 			if runFailure != nil && summary == nil {
-				summary = object{"mode": o.Mode, "provider": provider, "case": str(plan["caseId"]), "output": root, "error": runFailure.Error()}
-				runFailure = errors.Join(runFailure, writeJSON(filepath.Join(root, "summary.json"), summary))
+				summary = tool.Object{"mode": o.Mode, "provider": provider, "case": tool.Str(plan["caseId"]), "output": root, "error": runFailure.Error()}
+				runFailure = errors.Join(runFailure, tool.WriteJSON(filepath.Join(root, "summary.json"), summary))
 			}
 		}
 	}()
@@ -104,7 +106,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 			return nil, err
 		}
 	}
-	if err := writeFiles(workspace, obj(obj(plan["scenario"])["files"])); err != nil {
+	if err := tool.WriteFiles(workspace, tool.Obj(tool.Obj(plan["scenario"])["files"])); err != nil {
 		return nil, err
 	}
 	// Saved material reuse belongs to offline runs. New captures may only
@@ -115,7 +117,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 		}
 	}
 	if o.Mode != "record" && provider == "claude" {
-		if err := materializeClaude(o.Materials, root, workspace, plan); err != nil {
+		if err := history.MaterializeClaude(o.Materials, root, workspace, plan); err != nil {
 			return nil, err
 		}
 	}
@@ -124,13 +126,13 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 			return nil, err
 		}
 	}
-	if o.Mode == "record" && plan["driverProfile"] == "existing-children" && len(obj(plan["historySeed"])) == 0 {
+	if o.Mode == "record" && plan["driverProfile"] == "existing-children" && len(tool.Obj(plan["historySeed"])) == 0 {
 		return nil, errors.New("existing-child recording needs supplied saved-history materials")
 	}
 	if o.Mode != "record" {
 		for _, name := range []string{"remote-service.json"} {
 			if _, e := os.Stat(filepath.Join(o.Materials, name)); e == nil {
-				if err := copyFile(filepath.Join(o.Materials, name), filepath.Join(root, name)); err != nil {
+				if err := tool.CopyFile(filepath.Join(o.Materials, name), filepath.Join(root, name)); err != nil {
 					return nil, err
 				}
 			}
@@ -147,7 +149,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	plan["config"] = filepath.Join(root, "config")
 	plan["raw"] = filepath.Join(root, "raw")
 	plan["_fixtureProject"] = workspace
-	if str(plan["project"]) == "" {
+	if tool.Str(plan["project"]) == "" {
 		plan["project"] = workspace
 	}
 	var service *remoteService
@@ -168,28 +170,28 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	}
 	// Keep original source data for provider-owned assertions; mutable runtime
 	// paths belong to this attempt. No exact SDK or executable version gate.
-	if err := writeJSON(filepath.Join(o.Output, "materials", "case.json"), plan); err != nil {
+	if err := tool.WriteJSON(filepath.Join(o.Output, "materials", "case.json"), plan); err != nil {
 		return nil, err
 	}
-	req := request{Case: str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Workspace: workspace, Peer: peers.driver, Output: root}
+	req := Request{Case: tool.Str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Workspace: workspace, Peer: peers.driver, Output: root}
 	requestPath := filepath.Join(o.Output, "request.json")
-	if err := writeJSON(requestPath, req); err != nil {
+	if err := tool.WriteJSON(requestPath, req); err != nil {
 		return nil, err
 	}
-	if err := writeJSON(filepath.Join(root, "plan.json"), plan); err != nil {
+	if err := tool.WriteJSON(filepath.Join(root, "plan.json"), plan); err != nil {
 		return nil, err
 	}
 	if _, e := os.Stat(filepath.Join(o.Materials, "report.json")); o.Mode != "record" && e == nil {
-		if err := copyFile(filepath.Join(o.Materials, "report.json"), filepath.Join(root, "source-report.json")); err != nil {
+		if err := tool.CopyFile(filepath.Join(o.Materials, "report.json"), filepath.Join(root, "source-report.json")); err != nil {
 			return nil, err
 		}
 	}
 	if _, e := os.Stat(filepath.Join(root, "source-report.json")); e == nil {
-		if err := copyFile(filepath.Join(root, "source-report.json"), filepath.Join(root, "report.json")); err != nil {
+		if err := tool.CopyFile(filepath.Join(root, "source-report.json"), filepath.Join(root, "report.json")); err != nil {
 			return nil, err
 		}
 	}
-	driver, err := absoluteExecutable(o.Driver)
+	driver, err := tool.AbsoluteExecutable(o.Driver)
 	if err != nil {
 		return nil, err
 	}
@@ -212,13 +214,13 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	cmd.Env = env
 	cmd.Stdout = stdout
 	cmd.Stderr = log
-	runErr := waitDriver(ctx, cmd)
+	runErr := tool.WaitDriver(ctx, cmd)
 	if service != nil {
 		runErr = errors.Join(runErr, service.close())
 		service = nil
 	}
-	var outcome result
-	resultErr := readJSON(filepath.Join(root, "result.json"), &outcome)
+	var outcome tool.Result
+	resultErr := tool.ReadJSON(filepath.Join(root, "result.json"), &outcome)
 	if resultErr == nil {
 		switch outcome.Status {
 		case "passed", "failed", "untriggered", "unsupported":
@@ -228,12 +230,12 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	}
 	transportErr := peers.finish(outcome.Status)
 	if o.Mode == "record" {
-		transportErr = errors.Join(transportErr, writeSourceManifest(root, outcome))
+		transportErr = errors.Join(transportErr, corpus.WriteSourceManifest(root, outcome))
 	}
 	runErr = errors.Join(runErr, resultErr, transportErr, scrubNative(root))
-	summary = object{"case": req.Case, "provider": provider, "mode": o.Mode, "result": outcome, "output": o.Output}
+	summary = tool.Object{"case": req.Case, "provider": provider, "mode": o.Mode, "result": outcome, "output": o.Output}
 	if o.Mode == "verify" {
-		process := object{"started": cmd.Process != nil, "reaped": cmd.ProcessState != nil}
+		process := tool.Object{"started": cmd.Process != nil, "reaped": cmd.ProcessState != nil}
 		if cmd.ProcessState != nil {
 			process["exitCode"] = cmd.ProcessState.ExitCode()
 		}
@@ -241,7 +243,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	}
 	if o.Mode != "record" {
 		summary["source"] = source
-		if digest, e := fileDigest(filepath.Join(root, "materialization.json")); e == nil {
+		if digest, e := tool.FileDigest(filepath.Join(root, "materialization.json")); e == nil {
 			summary["materializationSHA256"] = digest
 		}
 	}
@@ -255,7 +257,7 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 		h := sha256.Sum256(b)
 		summary["recordingSHA256"] = hex.EncodeToString(h[:])
 	}
-	if err := writeJSON(filepath.Join(o.Output, "summary.json"), summary); err != nil {
+	if err := tool.WriteJSON(filepath.Join(o.Output, "summary.json"), summary); err != nil {
 		return summary, errors.Join(runErr, err)
 	}
 	if runErr != nil {
@@ -267,18 +269,18 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	return summary, nil
 }
 
-func driverEnvironment(o options, plan object) ([]string, error) {
-	env := map[string]string{"PATH": os.Getenv("PATH"), "HOME": str(plan["home"]), "TMPDIR": filepath.Join(str(plan["root"]), "tmp"), "LANG": "C.UTF-8"}
-	if str(plan["provider"]) == "codex" {
-		env["CODEX_HOME"] = str(plan["config"])
+func driverEnvironment(o Options, plan tool.Object) ([]string, error) {
+	env := map[string]string{"PATH": os.Getenv("PATH"), "HOME": tool.Str(plan["home"]), "TMPDIR": filepath.Join(tool.Str(plan["root"]), "tmp"), "LANG": "C.UTF-8"}
+	if tool.Str(plan["provider"]) == "codex" {
+		env["CODEX_HOME"] = tool.Str(plan["config"])
 	} else {
-		env["CLAUDE_CONFIG_DIR"] = str(plan["config"])
+		env["CLAUDE_CONFIG_DIR"] = tool.Str(plan["config"])
 		env["CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS"] = "1"
 		env["DISABLE_AUTOUPDATER"] = "1"
 	}
 	if o.Mode == "record" {
 		var selected map[string]string
-		if err := readJSON(filepath.Join(str(plan["root"]), "native.env.private.json"), &selected); err != nil {
+		if err := tool.ReadJSON(filepath.Join(tool.Str(plan["root"]), "native.env.private.json"), &selected); err != nil {
 			return nil, err
 		}
 		maps.Copy(env, selected)

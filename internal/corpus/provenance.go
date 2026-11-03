@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // Check source bytes, not runtime identities: current drivers, SDK versions and
@@ -19,8 +21,8 @@ func VerifyMaterials(root string, requireComplete bool) error {
 		}
 	}
 	if requireComplete {
-		var service object
-		if err := readJSON(filepath.Join(root, "remote-service.json"), &service); err == nil {
+		var service tool.Object
+		if err := tool.ReadJSON(filepath.Join(root, "remote-service.json"), &service); err == nil {
 			if service["cleanupComplete"] != true || service["serverExitCode"] != float64(0) || service["forcedCleanup"] == true {
 				return errors.New("source remote service cleanup is incomplete")
 			}
@@ -33,38 +35,38 @@ func VerifyMaterials(root string, requireComplete bool) error {
 
 func VerifySourcePhase(root string, requireComplete bool) error {
 	for _, name := range []string{"manifest.json", "raw/manifest.json"} {
-		var m object
-		if err := readJSON(filepath.Join(root, name), &m); os.IsNotExist(err) {
+		var m tool.Object
+		if err := tool.ReadJSON(filepath.Join(root, name), &m); os.IsNotExist(err) {
 			continue
 		} else if err != nil {
 			return err
 		}
-		if requireComplete && str(m["captureStatus"]) != "" && m["captureStatus"] != "complete" {
-			return fmt.Errorf("source recording capture is %s", str(m["captureStatus"]))
+		if requireComplete && tool.Str(m["captureStatus"]) != "" && m["captureStatus"] != "complete" {
+			return fmt.Errorf("source recording capture is %s", tool.Str(m["captureStatus"]))
 		}
 		if name == "manifest.json" {
-			if digest := str(m["planSHA256"]); digest != "" {
+			if digest := tool.Str(m["planSHA256"]); digest != "" {
 				if err := VerifyFile(root, "plan.json", digest); err != nil {
 					return err
 				}
 			}
 			for _, group := range []string{"savedFiles", "caseFiles", "remotePhaseFiles", "driverFiles"} {
-				for path, digest := range obj(m[group]) {
-					if err := VerifyFile(root, path, str(digest)); err != nil {
+				for path, digest := range tool.Obj(m[group]) {
+					if err := VerifyFile(root, path, tool.Str(digest)); err != nil {
 						return err
 					}
 				}
 			}
 		}
-		for path, digest := range obj(m["files"]) {
-			if err := VerifyFile(filepath.Join(root, "raw"), path, str(digest)); err != nil {
+		for path, digest := range tool.Obj(m["files"]) {
+			if err := VerifyFile(filepath.Join(root, "raw"), path, tool.Str(digest)); err != nil {
 				return err
 			}
 		}
 	}
 	if requireComplete {
-		var transport object
-		if err := readJSON(filepath.Join(root, "raw", "transport.json"), &transport); err == nil {
+		var transport tool.Object
+		if err := tool.ReadJSON(filepath.Join(root, "raw", "transport.json"), &transport); err == nil {
 			if transport["captureStatus"] != "complete" || transport["cleanupComplete"] != true {
 				return errors.New("source recording capture or cleanup is incomplete")
 			}
@@ -99,8 +101,8 @@ func VerifyFile(root, path, digest string) error {
 
 // New captures are reusable as materials; hashes describe source bytes, never
 // the versions or binary identities selected for a later run.
-func WriteSourceManifest(root string, outcome result) error {
-	files, saved, remote := object{}, object{}, object{}
+func WriteSourceManifest(root string, outcome tool.Result) error {
+	files, saved, remote := tool.Object{}, tool.Object{}, tool.Object{}
 	hash := func(path string) (string, error) {
 		b, e := os.ReadFile(path)
 		if e != nil {
@@ -181,11 +183,11 @@ func WriteSourceManifest(root string, outcome result) error {
 	if err != nil {
 		return err
 	}
-	var transport object
-	if err := readJSON(filepath.Join(root, "raw", "transport.json"), &transport); err != nil {
+	var transport tool.Object
+	if err := tool.ReadJSON(filepath.Join(root, "raw", "transport.json"), &transport); err != nil {
 		return err
 	}
 	scan, scanErr := ScanCaptureCredentials(root)
-	manifestErr := writeJSON(filepath.Join(root, "manifest.json"), object{"provenance": "capture", "planSHA256": digest, "files": files, "savedFiles": saved, "remotePhaseFiles": remote, "status": outcome.Status, "captureStatus": transport["captureStatus"], "credentialScan": scan})
+	manifestErr := tool.WriteJSON(filepath.Join(root, "manifest.json"), tool.Object{"provenance": "capture", "planSHA256": digest, "files": files, "savedFiles": saved, "remotePhaseFiles": remote, "status": outcome.Status, "captureStatus": transport["captureStatus"], "credentialScan": scan})
 	return errors.Join(scanErr, manifestErr)
 }

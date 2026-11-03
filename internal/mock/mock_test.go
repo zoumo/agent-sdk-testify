@@ -16,6 +16,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // Synthetic material tests the installed CLI, not a real capture or SDK result.
@@ -29,9 +31,9 @@ func mockCapture(t *testing.T) string {
 	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), raw, 0o600))
 	digest := func(b []byte) string { sum := sha256.Sum256(b); return hex.EncodeToString(sum[:]) }
-	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), tool.Object{
 		"provenance": "synthetic", "captureStatus": "complete", "planSHA256": digest(plan),
-		"files": object{"raw.jsonl": digest(raw)},
+		"files": tool.Object{"raw.jsonl": digest(raw)},
 	}))
 	return root
 }
@@ -58,8 +60,8 @@ func TestMockExternalRecording(t *testing.T) {
 	assert.JSONEq(t, `{"id":"consumer-id","result":{"unknown":9007199254740993}}`, string(out))
 	assert.Contains(t, string(out), "9007199254740993")
 	assert.Empty(t, stderr.String())
-	var receipt object
-	require.NoError(t, readJSON(report, &receipt))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(report, &receipt))
 	assert.Equal(t, "passed", receipt["status"])
 	assert.Equal(t, true, receipt["fullConsumption"])
 	assert.Equal(t, true, receipt["clientEOF"])
@@ -84,32 +86,32 @@ func TestManagedMockAliasProducesPreparedSessionEvidence(t *testing.T) {
 	require.NoError(t, err, "%s", stderr.String())
 	assert.JSONEq(t, `{"id":"alias-id","result":{"unknown":9007199254740993}}`, string(out))
 
-	var receipt object
-	require.NoError(t, readJSON(report, &receipt))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(report, &receipt))
 	assert.Equal(t, true, receipt["managed"])
 	assert.Equal(t, "passed", receipt["status"])
-	sessionID, executionID := str(receipt["sessionId"]), str(receipt["executionId"])
+	sessionID, executionID := tool.Str(receipt["sessionId"]), tool.Str(receipt["executionId"])
 	require.NotEmpty(t, sessionID)
 	require.NotEmpty(t, executionID)
 
-	session := obj(receipt["session"])
+	session := tool.Obj(receipt["session"])
 	assert.InDelta(t, float64(1), session["schemaVersion"], 0)
 	assert.Equal(t, sessionID, session["sessionId"])
 	assert.Equal(t, "codex", session["agentType"])
-	assert.Equal(t, "recording", obj(session["source"])["kind"])
+	assert.Equal(t, "recording", tool.Obj(session["source"])["kind"])
 	assert.Equal(t, before, mockSourceBytes(t, root))
-	assert.NoDirExists(t, str(session["resourceRoot"]))
+	assert.NoDirExists(t, tool.Str(session["resourceRoot"]))
 
-	execution := obj(receipt["execution"])
+	execution := tool.Obj(receipt["execution"])
 	assert.InDelta(t, float64(1), execution["schemaVersion"], 0)
 	assert.Equal(t, executionID, execution["executionId"])
 	assert.Equal(t, sessionID, execution["sessionId"])
 	assert.Equal(t, "mock", execution["command"])
-	connections := array(execution["connections"])
+	connections := tool.Array(execution["connections"])
 	require.Len(t, connections, 1)
-	assert.Equal(t, "main", obj(connections[0])["id"])
+	assert.Equal(t, "main", tool.Obj(connections[0])["id"])
 
-	finish := obj(receipt["finish"])
+	finish := tool.Obj(receipt["finish"])
 	assert.Equal(t, "passed", finish["status"])
 	assert.Equal(t, true, finish["cleanupComplete"])
 }
@@ -133,8 +135,8 @@ func TestMockRequiresClientEOFAfterConsumption(t *testing.T) {
 	assert.JSONEq(t, `{"id":7,"result":{"unknown":9007199254740993}}`, line)
 	require.Error(t, cmd.Wait())
 	assert.Equal(t, 3, cmd.ProcessState.ExitCode())
-	var receipt object
-	require.NoError(t, readJSON(report, &receipt))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(report, &receipt))
 	assert.Equal(t, "failed", receipt["status"])
 	assert.Equal(t, true, receipt["fullConsumption"])
 	assert.Equal(t, false, receipt["clientEOF"])
@@ -147,9 +149,9 @@ func TestMockRejectsUnsupportedSourceFormat(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join(root, "raw", "raw.jsonl"))
 	require.NoError(t, err)
 	sum := sha256.Sum256(raw)
-	require.NoError(t, writeJSON(filepath.Join(root, "raw", "manifest.json"), object{
-		"recordingFormat": object{"name": "agent-mock-jsonl", "version": 999, "transport": "stdio-jsonl"},
-		"files":           object{"raw.jsonl": hex.EncodeToString(sum[:])},
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "raw", "manifest.json"), tool.Object{
+		"recordingFormat": tool.Object{"name": "agent-mock-jsonl", "version": 999, "transport": "stdio-jsonl"},
+		"files":           tool.Object{"raw.jsonl": hex.EncodeToString(sum[:])},
 	}))
 	report := filepath.Join(t.TempDir(), "receipt.json")
 	cmd := mockCommand(t, "--recording", root, "--report", report)
@@ -157,8 +159,8 @@ func TestMockRejectsUnsupportedSourceFormat(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, 2, cmd.ProcessState.ExitCode())
 	assert.Contains(t, string(out), "unsupported recording format")
-	var receipt object
-	require.NoError(t, readJSON(report, &receipt))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(report, &receipt))
 	assert.Equal(t, "failed", receipt["status"])
 }
 
@@ -185,8 +187,8 @@ func TestMockStrictFailuresRetainReceiptsAndSourceBytes(t *testing.T) {
 			require.Error(t, err)
 			assert.Equal(t, 1, cmd.ProcessState.ExitCode())
 			assert.Contains(t, stderr.String(), tc.diagnostic)
-			var receipt object
-			require.NoError(t, readJSON(report, &receipt))
+			var receipt tool.Object
+			require.NoError(t, tool.ReadJSON(report, &receipt))
 			assert.Equal(t, "failed", receipt["status"])
 			assert.Equal(t, tc.consumed, receipt["fullConsumption"])
 			assert.Equal(t, false, receipt["clientEOF"])
@@ -231,13 +233,13 @@ func TestMockRejectsInvalidSourcesBeforeProtocol(t *testing.T) {
 			require.NoError(t, os.Remove(filepath.Join(root, "manifest.json")))
 		}, nil},
 		{"missing source bindings", "requires planSHA256", func(t *testing.T, root string) {
-			require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{"provenance": "synthetic"}))
+			require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), tool.Object{"provenance": "synthetic"}))
 		}, nil},
 		{"incomplete capture", "source recording capture is partial", func(t *testing.T, root string) {
-			var m object
-			require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &m))
+			var m tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(root, "manifest.json"), &m))
 			m["captureStatus"] = "partial"
-			require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), m))
+			require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), m))
 		}, nil},
 		{"agent mismatch", "agent differs from recording agent type", nil, []string{"--agent", "claude"}},
 		{"native transport", "unsupported native transport", nil, []string{"app-server", "--listen", "http://localhost:1234"}},
@@ -258,8 +260,8 @@ func TestMockRejectsInvalidSourcesBeforeProtocol(t *testing.T) {
 			assert.Equal(t, 2, cmd.ProcessState.ExitCode())
 			assert.Empty(t, out)
 			assert.Contains(t, stderr.String(), tc.diagnostic)
-			var receipt object
-			require.NoError(t, readJSON(report, &receipt))
+			var receipt tool.Object
+			require.NoError(t, tool.ReadJSON(report, &receipt))
 			assert.Equal(t, "failed", receipt["status"])
 			assert.Equal(t, false, receipt["nativeLaunched"])
 			assert.Equal(t, before, mockSourceBytes(t, root))
@@ -286,8 +288,8 @@ func TestMockCancellationRetainsReceipt(t *testing.T) {
 	require.NoError(t, cmd.Process.Signal(syscall.SIGTERM))
 	require.Error(t, cmd.Wait())
 	assert.Equal(t, 3, cmd.ProcessState.ExitCode())
-	var receipt object
-	require.NoError(t, readJSON(report, &receipt))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(report, &receipt))
 	assert.Equal(t, "failed", receipt["status"])
 	assert.Equal(t, false, receipt["clientEOF"])
 	assert.Equal(t, true, receipt["cleanupComplete"])
@@ -302,9 +304,9 @@ func TestMockClaudeNativeStdio(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(root, "plan.json"), plan, 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), raw, 0o600))
 	planSum, rawSum := sha256.Sum256(plan), sha256.Sum256(raw)
-	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), tool.Object{
 		"planSHA256": hex.EncodeToString(planSum[:]), "provenance": "synthetic", "captureStatus": "complete",
-		"files": object{"raw.jsonl": hex.EncodeToString(rawSum[:])},
+		"files": tool.Object{"raw.jsonl": hex.EncodeToString(rawSum[:])},
 	}))
 	before := mockSourceBytes(t, root)
 	report := filepath.Join(t.TempDir(), "receipt.json")
@@ -316,8 +318,8 @@ func TestMockClaudeNativeStdio(t *testing.T) {
 	out, err := cmd.Output()
 	require.NoError(t, err, "%s", stderr.String())
 	assert.JSONEq(t, `{"type":"control_response","response":{"subtype":"success","request_id":"consumer","response":{"unknown":true}}}`, string(out))
-	var receipt object
-	require.NoError(t, readJSON(report, &receipt))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(report, &receipt))
 	assert.Equal(t, "passed", receipt["status"])
 	assert.Equal(t, "external", receipt["provenance"])
 	assert.Equal(t, "claude", receipt["provider"])
@@ -339,8 +341,8 @@ func TestMockIndependentConnections(t *testing.T) {
 	}
 	for i, cmd := range commands {
 		require.NoError(t, cmd.Wait())
-		var receipt object
-		require.NoError(t, readJSON(reports[i], &receipt))
+		var receipt tool.Object
+		require.NoError(t, tool.ReadJSON(reports[i], &receipt))
 		assert.Equal(t, "passed", receipt["status"])
 		assert.Equal(t, true, receipt["fullConsumption"])
 	}
