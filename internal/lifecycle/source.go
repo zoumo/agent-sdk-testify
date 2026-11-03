@@ -34,6 +34,7 @@ type sourceSpec struct {
 	source     Source
 	plan       tool.Object
 	planBytes  []byte
+	agentType  string
 	provenance string
 	routes     map[string]bool
 }
@@ -117,7 +118,7 @@ func resolveCase(o PrepareOptions) (*sourceSpec, error) {
 		Provenance:    "official",
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
-	return &sourceSpec{source: source, plan: plan, planBytes: raw, provenance: "official", routes: map[string]bool{"record": true, "verify": true, "mock": true}}, nil
+	return &sourceSpec{source: source, plan: plan, planBytes: raw, agentType: agent, provenance: "official", routes: map[string]bool{"record": true, "verify": true, "mock": true}}, nil
 }
 
 func resolvePlan(o PrepareOptions) (*sourceSpec, error) {
@@ -164,7 +165,7 @@ func resolvePlan(o PrepareOptions) (*sourceSpec, error) {
 		Provenance:    "consumer",
 		DriverProfile: "consumer",
 	}
-	return &sourceSpec{source: source, plan: plan, planBytes: raw, provenance: "consumer", routes: map[string]bool{"record": true, "verify": false, "mock": true}}, nil
+	return &sourceSpec{source: source, plan: plan, planBytes: raw, agentType: agent, provenance: "consumer", routes: map[string]bool{"record": true, "verify": false, "mock": true}}, nil
 }
 
 func validateConsumerPlan(plan tool.Object) error {
@@ -175,6 +176,15 @@ func validateConsumerPlan(plan tool.Object) error {
 	agent := tool.Str(plan["agentType"])
 	if err := validateAgent(agent); err != nil {
 		return err
+	}
+	if legacy, ok := plan["provider"]; ok {
+		provider, ok := legacy.(string)
+		if !ok {
+			return errors.New("consumer plan provider must be a string")
+		}
+		if provider != "" && provider != agent {
+			return fmt.Errorf("consumer plan provider %q conflicts with agentType %q", provider, agent)
+		}
 	}
 	if strings.TrimSpace(tool.Str(plan["caseId"])) == "" {
 		return errors.New("consumer plan caseId is required")
@@ -241,9 +251,9 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err := tool.ReadJSON(filepath.Join(path, "manifest.json"), &manifest); err != nil {
 		return nil, err
 	}
-	agent := tool.Str(plan["provider"])
-	if agent == "" {
-		agent = tool.Str(plan["agentType"])
+	agent, err := materialAgentType(plan)
+	if err != nil {
+		return nil, err
 	}
 	if agent == "" {
 		return nil, errors.New("recording does not identify an agent type")
@@ -276,7 +286,19 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
 	verify := provenance != "consumer" && provenance != "synthetic"
-	return &sourceSpec{source: source, plan: plan, provenance: provenance, routes: map[string]bool{"record": false, "verify": verify, "mock": true}}, nil
+	return &sourceSpec{source: source, plan: plan, agentType: agent, provenance: provenance, routes: map[string]bool{"record": false, "verify": verify, "mock": true}}, nil
+}
+
+func materialAgentType(plan tool.Object) (string, error) {
+	agentType := tool.Str(plan["agentType"])
+	provider := tool.Str(plan["provider"])
+	if agentType != "" && provider != "" && agentType != provider {
+		return "", fmt.Errorf("material provider %q conflicts with agentType %q", provider, agentType)
+	}
+	if agentType != "" {
+		return agentType, nil
+	}
+	return provider, nil
 }
 
 func planFiles(plan tool.Object) (tool.Object, error) {

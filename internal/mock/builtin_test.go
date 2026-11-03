@@ -92,11 +92,7 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 				for _, valid := range []bool{true, false} {
 					t.Run(fmt.Sprintf("%s/%t", mode, valid), func(t *testing.T) {
 						report := filepath.Join(t.TempDir(), "receipt.json")
-						selector := "--provider"
-						if mode == "builtin" {
-							selector = "--agent"
-						}
-						args := []string{selector, provider, "--report", report}
+						args := []string{"--agent", provider, "--report", report}
 						if mode == "builtin" {
 							args = append(args, "--case", "SDK-CASE-001")
 						} else {
@@ -119,8 +115,8 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 							assert.Equal(t, "passed", receipt["status"])
 							if mode == "builtin" {
 								good = out
-								assert.NotEmpty(t, receipt["builtin"])
-								assert.NoDirExists(t, str(receipt["recording"]))
+								assert.Equal(t, "builtin", receipt["provenance"])
+								assert.NoDirExists(t, str(obj(receipt["session"])["resourceRoot"]))
 							} else {
 								assert.Equal(t, string(good), string(out))
 							}
@@ -136,31 +132,21 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 	}
 }
 
-func TestBuiltinPreparedLifecycle(t *testing.T) {
+func TestBuiltinManagedAliasUsesPreparedSession(t *testing.T) {
 	input, _ := builtinTranscript(t, "codex", "SDK-CASE-001")
-	output := filepath.Join(t.TempDir(), "run")
-	data, err := mockCommand(t, "--prepare", "--provider", "codex", "--case", "SDK-CASE-001", "--output", output).CombinedOutput()
-	require.NoError(t, err, "%s", data)
-	var run object
-	require.NoError(t, json.Unmarshal(data, &run))
-	source := str(run["recording"])
-	assert.True(t, strings.HasPrefix(source, str(run["resourceRoot"])+string(filepath.Separator)))
-	assert.NotEmpty(t, run["builtin"])
-	cmd := mockCommand(t, "--run", filepath.Join(output, "run.json"))
+	report := filepath.Join(t.TempDir(), "receipt.json")
+	cmd := mockCommand(t, "--agent", "codex", "--case", "SDK-CASE-001", "--report", report)
 	cmd.Stdin = strings.NewReader(input)
-	data, err = cmd.CombinedOutput()
+	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	for range 2 {
-		data, err = mockCommand(t, "--finish", filepath.Join(output, "run.json")).CombinedOutput()
-		require.NoError(t, err, "%s", data)
-		var finish object
-		require.NoError(t, json.Unmarshal(data, &finish))
-		assert.Equal(t, true, finish["cleanupComplete"])
-	}
-	assert.NoDirExists(t, source)
-	assert.NoDirExists(t, str(run["resourceRoot"]))
-	assert.FileExists(t, filepath.Join(output, "main.receipt.json"))
-	assert.FileExists(t, str(run["contract"]))
+	var receipt object
+	require.NoError(t, readJSON(report, &receipt))
+	assert.Equal(t, "passed", receipt["status"])
+	assert.Equal(t, "builtin", receipt["provenance"])
+	assert.NotEmpty(t, receipt["sessionId"])
+	assert.NotEmpty(t, receipt["executionId"])
+	assert.Equal(t, "passed", obj(receipt["finish"])["status"])
+	assert.NoDirExists(t, str(obj(receipt["session"])["resourceRoot"]))
 }
 
 func TestBuiltinMissingAndUnsupported(t *testing.T) {
@@ -172,41 +158,9 @@ func TestBuiltinMissingAndUnsupported(t *testing.T) {
 		{"codex", "SDK-CASE-999", "unknown"},
 	} {
 		t.Run(test.provider+test.id, func(t *testing.T) {
-			data, err := mockCommand(t, "--provider", test.provider, "--case", test.id, "--report", filepath.Join(t.TempDir(), "receipt.json")).CombinedOutput()
+			data, err := mockCommand(t, "--agent", test.provider, "--case", test.id, "--report", filepath.Join(t.TempDir(), "receipt.json")).CombinedOutput()
 			require.Error(t, err)
 			assert.Contains(t, string(data), test.reason)
-		})
-	}
-}
-
-func TestBuiltinPreparedDriftAndMissingReceiptsPersist(t *testing.T) {
-	for _, damage := range []string{"raw", "official-evidence", "missing-receipt"} {
-		t.Run(damage, func(t *testing.T) {
-			output := filepath.Join(t.TempDir(), "run")
-			data, err := mockCommand(t, "--prepare", "--provider", "codex", "--case", "SDK-CASE-001", "--output", output).CombinedOutput()
-			require.NoError(t, err, "%s", data)
-			var run object
-			require.NoError(t, json.Unmarshal(data, &run))
-			if damage != "missing-receipt" {
-				name := "raw/raw.jsonl"
-				if damage == "official-evidence" {
-					name = "official-replay/summary.json"
-				}
-				require.NoError(t, os.WriteFile(filepath.Join(str(run["recording"]), name), []byte("drift"), 0o600))
-				data, err = mockCommand(t, "--run", filepath.Join(output, "run.json")).CombinedOutput()
-				require.Error(t, err)
-				assert.Contains(t, string(data), "hash mismatch")
-			}
-			for range 2 {
-				data, err = mockCommand(t, "--finish", filepath.Join(output, "run.json")).Output()
-				require.Error(t, err)
-				var finish object
-				require.NoError(t, json.Unmarshal(data, &finish))
-				assert.Equal(t, "failed", finish["status"])
-				assert.Equal(t, true, finish["cleanupComplete"])
-			}
-			assert.NoDirExists(t, str(run["resourceRoot"]))
-			assert.FileExists(t, filepath.Join(output, "cleanup.json"))
 		})
 	}
 }
@@ -274,7 +228,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 func TestBuiltinDescribeAssertionInputsPreserveNativeBytes(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
 		t.Run(provider, func(t *testing.T) {
-			data, err := mockCommand(t, "--describe", "--provider", provider, "--case", "SDK-CASE-018", "--json").Output()
+			data, err := mockCommand(t, "--describe", "--agent", provider, "--case", "SDK-CASE-018", "--json").Output()
 			require.NoError(t, err)
 			var description struct {
 				AssertionInputs struct {
@@ -320,56 +274,6 @@ func TestBuiltinDescribeAssertionInputsPreserveNativeBytes(t *testing.T) {
 			assert.Equal(t, compact.String(), string(inputs.SourceReport.Value))
 		})
 	}
-}
-
-func TestEveryBuiltinCanPrepareAndClean(t *testing.T) {
-	data, err := mockCommand(t, "--list", "--json").Output()
-	require.NoError(t, err)
-	var listing object
-	require.NoError(t, json.Unmarshal(data, &listing))
-	for _, value := range array(listing["cases"]) {
-		row := obj(value)
-		if row["available"] != true {
-			continue
-		}
-		t.Run(str(row["provider"])+"/"+str(row["caseId"]), func(t *testing.T) {
-			description, err := mockCommand(t, "--describe", "--provider", str(row["provider"]), "--case", str(row["caseId"]), "--json").CombinedOutput()
-			require.NoError(t, err, "%s", description)
-			var scene struct {
-				AssertionInputs struct {
-					SchemaVersion int `json:"schemaVersion"`
-				} `json:"assertionInputs"`
-			}
-			require.NoError(t, json.Unmarshal(description, &scene))
-			require.Equal(t, 1, scene.AssertionInputs.SchemaVersion)
-			output := filepath.Join(t.TempDir(), "run")
-			data, err := mockCommand(t, "--prepare", "--provider", str(row["provider"]), "--case", str(row["caseId"]), "--output", output).CombinedOutput()
-			require.NoError(t, err, "%s", data)
-			var run object
-			require.NoError(t, json.Unmarshal(data, &run))
-			data, err = mockCommand(t, "--finish", filepath.Join(output, "run.json")).Output()
-			require.Error(t, err, "no SDK was run; missing receipts must fail")
-			var finish object
-			require.NoError(t, json.Unmarshal(data, &finish))
-			assert.Equal(t, true, finish["cleanupComplete"])
-			assert.NoDirExists(t, str(run["resourceRoot"]))
-		})
-	}
-}
-
-func TestExternalAdoptedHistoryUsesSameImmutableBindings(t *testing.T) {
-	_, source := builtinTranscript(t, "claude", "SDK-CASE-018")
-	root, err := filepath.Abs(source)
-	require.NoError(t, err)
-	before := mockSourceBytes(t, root)
-	path, run := preparedMock(t, root)
-	data, err := mockCommand(t, "--finish", path).Output()
-	require.Error(t, err, "no consumer was run")
-	var finish object
-	require.NoError(t, json.Unmarshal(data, &finish))
-	assert.Equal(t, true, finish["cleanupComplete"])
-	assert.NoDirExists(t, str(run["resourceRoot"]))
-	assert.Equal(t, before, mockSourceBytes(t, root))
 }
 
 func TestExternalSyntheticDescribeRetainsUnqualifiedNativeInputs(t *testing.T) {

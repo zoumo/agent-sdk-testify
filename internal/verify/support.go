@@ -21,8 +21,6 @@ var (
 	writeJSON = tool.WriteJSON
 
 	fileDigest      = tool.FileDigest
-	createOutput    = tool.CreateOutput
-	outputBase      = tool.OutputBase
 	corpusResolved  = corpus.Resolved
 	corpusWithin    = corpus.Within
 	corpusInventory = corpus.Inventory

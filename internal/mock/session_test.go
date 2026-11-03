@@ -341,3 +341,31 @@ func TestPreparedConsumerRecordFailure(t *testing.T) {
 	assert.Equal(t, "failed", report["status"])
 	assert.Equal(t, true, report["cleanupComplete"])
 }
+
+func TestConsumerPlanAgentTypeCannotBeOverriddenByLegacyProvider(t *testing.T) {
+	for _, legacy := range []string{"claude", "unknown-legacy-provider"} {
+		t.Run(legacy, func(t *testing.T) {
+			base := t.TempDir()
+			plan := filepath.Join(base, "plan.json")
+			require.NoError(t, writeJSON(plan, object{
+				"version":       1,
+				"agentType":     "codex",
+				"provider":      legacy,
+				"caseId":        "agent-identity-conflict",
+				"driverProfile": "consumer",
+				"project":       filepath.Join(base, "project"),
+			}))
+			session := filepath.Join(base, "session")
+			cmd := sessionTool(t, []string{
+				"PATH=" + os.Getenv("PATH"),
+				"HOME=" + filepath.Join(base, "home"),
+				"GORACE=atexit_sleep_ms=0",
+			}, "prepare", "--agent", "codex", "--plan", plan, "--session-dir", session)
+			data, err := cmd.CombinedOutput()
+			require.Error(t, err, "%s", data)
+			assert.Contains(t, string(data), "agentType")
+			assert.Contains(t, string(data), "provider")
+			require.NoDirExists(t, session)
+		})
+	}
+}

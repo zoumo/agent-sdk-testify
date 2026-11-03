@@ -21,21 +21,16 @@ type Options struct {
 	List       bool
 	Describe   bool
 	JSON       bool
-	Provider   string
 	Agent      string
 	Case       string
 	Recording  string
 	Report     string
-	Output     string
 	SessionDir string
 	Connection string
-	Run        string
-	Finish     string
 	Timeout    time.Duration
 	ProgressFD int
-	Prepare    bool
-	Phase      string
 	NativeArgs []string
+	phase      string
 }
 
 func bad(err error) error { return exitcode.Fail(exitcode.Configuration, err) }
@@ -48,18 +43,16 @@ func Run(ctx context.Context, o Options) error {
 			return bad(err)
 		}
 		return nil
-	case o.Case != "":
-		return mockBuiltinMode(ctx, o)
 	case o.SessionDir != "":
 		return mockSession(ctx, o)
-	case o.Prepare || o.Run != "" || o.Finish != "":
-		return mockPreparedMode(ctx, o, nil)
+	case o.Case != "" || o.Recording != "":
+		return mockManagedAlias(ctx, o)
 	default:
-		return mockExternalSelected(ctx, o, nil)
+		return bad(errors.New("mock requires --case, --recording, or --session-dir"))
 	}
 }
 
-func mockExternalSelected(ctx context.Context, o Options, selection *builtinSelection) (err error) {
+func mockExternalSelected(ctx context.Context, o Options) (err error) {
 	if !filepath.IsAbs(o.Recording) || o.Report == "" {
 		return bad(errors.New("--recording /absolute/capture and --report FILE are required"))
 	}
@@ -104,12 +97,6 @@ func mockExternalSelected(ctx context.Context, o Options, selection *builtinSele
 		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": version.Version,
 	}
 	defer func() {
-		if selection != nil {
-			receipt["builtin"] = selection
-			cleanupErr := os.RemoveAll(sourceRoot)
-			receipt["cleanupComplete"] = cleanupErr == nil
-			err = errors.Join(err, cleanupErr)
-		}
 		receipt["exitCode"] = exitcode.Code(err)
 		if err != nil {
 			receipt["error"] = err.Error()
@@ -117,20 +104,15 @@ func mockExternalSelected(ctx context.Context, o Options, selection *builtinSele
 		closeErr := receiptFile.Close()
 		err = errors.Join(err, closeErr, atomicMockJSON(reportPath, receipt))
 	}()
-	if selection != nil {
-		if checkErr := checkBuiltinMaterial(sourceRoot, selection.Material); checkErr != nil {
-			return bad(checkErr)
-		}
-	}
-	manifest, plan, document, e := loadMockPhase(sourceRoot, o.Provider, o.Phase)
+	manifest, plan, document, e := loadMockPhase(sourceRoot, o.Agent, o.phase)
 	if e != nil {
 		return bad(e)
 	}
-	o.Provider = planAgentType(plan)
-	if checkErr := protocol.ValidateNativeArgs(o.Provider, o.NativeArgs); checkErr != nil {
+	o.Agent = planAgentType(plan)
+	if checkErr := protocol.ValidateNativeArgs(o.Agent, o.NativeArgs); checkErr != nil {
 		return bad(checkErr)
 	}
-	receipt["provider"] = o.Provider
+	receipt["provider"] = o.Agent
 	receipt["planSHA256"] = manifest["planSHA256"]
 	receipt["provenance"] = manifest["provenance"]
 	receipt["recordingSHA256"] = document.SHA256
@@ -141,7 +123,7 @@ func mockExternalSelected(ctx context.Context, o Options, selection *builtinSele
 	}
 	if timeout == 0 {
 		timeout = 30 * time.Second
-		if o.Provider == "claude" {
+		if o.Agent == "claude" {
 			timeout = 10 * time.Second
 		}
 	}
@@ -223,11 +205,14 @@ func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recordi
 	if err := readJSON(filepath.Join(sourceRoot, "plan.json"), &plan); err != nil {
 		return nil, nil, nil, err
 	}
-	plannedProvider := planAgentType(plan)
+	plannedProvider, err := planAgentIdentity(plan)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	if provider == "" {
 		provider = plannedProvider
 	} else if plannedProvider != "" && provider != plannedProvider {
-		return nil, nil, nil, errors.New("provider differs from selected recording")
+		return nil, nil, nil, errors.New("agent type differs from selected recording")
 	}
 	rawRoot := filepath.Join(sourceRoot, "raw")
 	expected := str(obj(manifest["files"])["raw.jsonl"])

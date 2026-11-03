@@ -42,7 +42,7 @@ func mockCommand(t *testing.T, args ...string) *exec.Cmd {
 	t.Cleanup(cancel)
 	cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"mock"}, args...)...)
 	cmd.Dir = t.TempDir()
-	cmd.Env = []string{"PATH=/missing", "GORACE=atexit_sleep_ms=0"}
+	cmd.Env = []string{"PATH=/missing", "HOME=" + t.TempDir(), "GORACE=atexit_sleep_ms=0"}
 	return cmd
 }
 
@@ -69,6 +69,49 @@ func TestMockExternalRecording(t *testing.T) {
 	assert.InDelta(t, float64(0), receipt["exitCode"], 0)
 	assert.NotEmpty(t, receipt["planSHA256"])
 	assert.NotEmpty(t, receipt["recordingSHA256"])
+}
+
+func TestManagedMockAliasProducesPreparedSessionEvidence(t *testing.T) {
+	root := mockCapture(t)
+	before := mockSourceBytes(t, root)
+	report := filepath.Join(t.TempDir(), "receipt.json")
+	cmd := mockCommand(t, "--agent", "codex", "--recording", root, "--report", report,
+		"--", "app-server", "--listen", "stdio://")
+	cmd.Stdin = strings.NewReader(`{"id":"alias-id","method":"ping","params":{"unknown":9007199254740993}}` + "\n")
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	require.NoError(t, err, "%s", stderr.String())
+	assert.JSONEq(t, `{"id":"alias-id","result":{"unknown":9007199254740993}}`, string(out))
+
+	var receipt object
+	require.NoError(t, readJSON(report, &receipt))
+	assert.Equal(t, true, receipt["managed"])
+	assert.Equal(t, "passed", receipt["status"])
+	sessionID, executionID := str(receipt["sessionId"]), str(receipt["executionId"])
+	require.NotEmpty(t, sessionID)
+	require.NotEmpty(t, executionID)
+
+	session := obj(receipt["session"])
+	assert.InDelta(t, float64(1), session["schemaVersion"], 0)
+	assert.Equal(t, sessionID, session["sessionId"])
+	assert.Equal(t, "codex", session["agentType"])
+	assert.Equal(t, "recording", obj(session["source"])["kind"])
+	assert.Equal(t, before, mockSourceBytes(t, root))
+	assert.NoDirExists(t, str(session["resourceRoot"]))
+
+	execution := obj(receipt["execution"])
+	assert.InDelta(t, float64(1), execution["schemaVersion"], 0)
+	assert.Equal(t, executionID, execution["executionId"])
+	assert.Equal(t, sessionID, execution["sessionId"])
+	assert.Equal(t, "mock", execution["command"])
+	connections := array(execution["connections"])
+	require.Len(t, connections, 1)
+	assert.Equal(t, "main", obj(connections[0])["id"])
+
+	finish := obj(receipt["finish"])
+	assert.Equal(t, "passed", finish["status"])
+	assert.Equal(t, true, finish["cleanupComplete"])
 }
 
 func TestMockRequiresClientEOFAfterConsumption(t *testing.T) {
@@ -134,7 +177,7 @@ func TestMockStrictFailuresRetainReceiptsAndSourceBytes(t *testing.T) {
 			root := mockCapture(t)
 			before := mockSourceBytes(t, root)
 			report := filepath.Join(t.TempDir(), "receipt.json")
-			cmd := mockCommand(t, "--recording", root, "--provider", "codex", "--report", report)
+			cmd := mockCommand(t, "--recording", root, "--agent", "codex", "--report", report)
 			cmd.Stdin = strings.NewReader(tc.input)
 			var stderr bytes.Buffer
 			cmd.Stderr = &stderr
@@ -196,7 +239,7 @@ func TestMockRejectsInvalidSourcesBeforeProtocol(t *testing.T) {
 			m["captureStatus"] = "partial"
 			require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), m))
 		}, nil},
-		{"provider mismatch", "provider differs", nil, []string{"--provider", "claude"}},
+		{"agent mismatch", "agent differs from recording agent type", nil, []string{"--agent", "claude"}},
 		{"native transport", "unsupported native transport", nil, []string{"app-server", "--listen", "http://localhost:1234"}},
 		{"no matcher relaxation", "unsupported native startup argument", nil, []string{"--sdk-test-handshakes", "answer"}},
 	} {
@@ -265,7 +308,7 @@ func TestMockClaudeNativeStdio(t *testing.T) {
 	}))
 	before := mockSourceBytes(t, root)
 	report := filepath.Join(t.TempDir(), "receipt.json")
-	cmd := mockCommand(t, "--recording", root, "--provider", "claude", "--report", report,
+	cmd := mockCommand(t, "--recording", root, "--agent", "claude", "--report", report,
 		"--output-format", "stream-json", "--input-format", "stream-json", "--verbose", "--permission-prompt-tool", "stdio")
 	cmd.Stdin = strings.NewReader(`{"type":"control_request","request_id":"consumer","request":{"subtype":"initialize","unknown":true}}` + "\n")
 	var stderr bytes.Buffer

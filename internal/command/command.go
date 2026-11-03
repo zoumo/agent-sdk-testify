@@ -188,19 +188,19 @@ func verifyCommand() *cobra.Command {
 	}
 	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
 	c.Flags().StringVar(&o.Recording, "recording", "", "existing recording directory")
-	c.Flags().StringVar(&o.Output, "output", "", "new separate verification directory")
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-task timeout; zero disables it")
 	c.Flags().StringVar(&o.Index, "index", "", "optional fixed index: qualify and atomically adopt after verification")
 	c.Flags().StringVar(&o.Scenarios, "scenarios", "", "scenario catalog for admission (default: index sibling ../scenarios)")
 	c.Flags().StringVar(&o.Archive, "archive", "", "private admission archive (default: persistent data directory)")
 	c.RunE = func(c *cobra.Command, _ []string) error {
-		if o.SessionDir != "" && !filepath.IsAbs(o.SessionDir) {
+		if o.SessionDir == "" {
+			return exitcode.Fail(exitcode.Configuration, errors.New("verify requires --session-dir"))
+		}
+		if !filepath.IsAbs(o.SessionDir) {
 			return exitcode.Fail(exitcode.Configuration, errors.New("--session-dir must be an absolute path"))
 		}
-		if o.SessionDir != "" {
-			if _, err := requireOpenSession(o.SessionDir); err != nil {
-				return err
-			}
+		if _, err := requireOpenSession(o.SessionDir); err != nil {
+			return err
 		}
 		return runtimeError(verify.Run(c.Context(), o))
 	}

@@ -94,11 +94,11 @@ func checkMaterialAgent(session *Session, root string) (tool.Object, error) {
 	if err := tool.ReadJSON(filepath.Join(root, "plan.json"), &plan); err != nil {
 		return nil, err
 	}
-	provider := tool.Str(plan["provider"])
-	if provider == "" {
-		provider = tool.Str(plan["agentType"])
+	agentType, err := materialAgentType(plan)
+	if err != nil {
+		return nil, err
 	}
-	if provider != session.AgentType {
+	if agentType != session.AgentType {
 		return nil, errors.New("material agent type differs from session")
 	}
 	if (session.Source.Kind == "case" || session.Source.Kind == "plan") && tool.Str(plan["caseId"]) != session.Source.ID {
@@ -143,6 +143,13 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 	}
 	if verify {
 		if index.LatestCapture == "" {
+			if session.Source.Kind == "recording" {
+				for _, artifact := range slices.Backward(index.Artifacts) {
+					if artifact.Kind == "material" {
+						return &artifact, nil
+					}
+				}
+			}
 			return nil, errors.New("session has no record capture to verify")
 		}
 		for _, artifact := range index.Artifacts {

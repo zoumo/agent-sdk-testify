@@ -103,6 +103,41 @@ func TestPublicCommandExitContract(t *testing.T) {
 	}
 }
 
+func TestSinglePreparedSessionCLIContract(t *testing.T) {
+	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
+	for _, command := range []string{"mock", "verify"} {
+		out, stderr, code := publicCLI(t, binary, command, "--help")
+		require.Zero(t, code, stderr)
+		help := string(out)
+		for _, legacy := range []string{"--prepare", "--run", "--finish", "--output", "--provider"} {
+			require.NotContains(t, help, legacy)
+		}
+	}
+
+	for _, args := range [][]string{
+		{"mock", "--prepare"},
+		{"mock", "--run", "/absolute/run.json"},
+		{"mock", "--finish", "/absolute/run.json"},
+	} {
+		out, stderr, code := publicCLI(t, binary, args...)
+		require.Equal(t, 2, code, stderr)
+		require.Empty(t, out)
+		require.Contains(t, stderr, "prepare, mock --session-dir, and finish")
+	}
+
+	root := t.TempDir()
+	out, stderr, code := publicCLI(t, binary,
+		"verify", "--recording", filepath.Join(root, "capture"), "--output", filepath.Join(root, "output"))
+	require.Equal(t, 2, code, stderr)
+	require.Empty(t, out)
+	require.Contains(t, stderr, "unknown flag: --output")
+
+	out, stderr, code = publicCLI(t, binary, "verify", "--recording", filepath.Join(root, "capture"))
+	require.Equal(t, 2, code, stderr)
+	require.Empty(t, out)
+	require.Contains(t, stderr, "--session-dir")
+}
+
 func TestPublicCommandParseFailuresDoNotStartHandlers(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	marker := filepath.Join(t.TempDir(), "launched")

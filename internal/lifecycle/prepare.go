@@ -263,10 +263,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	if err != nil {
 		return nil, err
 	}
-	agentType := tool.Str(spec.plan["provider"])
-	if agentType == "" {
-		agentType = tool.Str(spec.plan["agentType"])
-	}
+	agentType := spec.agentType
 	if err := validateAgent(agentType); err != nil {
 		return nil, err
 	}

@@ -10,5 +10,5 @@ import (
 func TestCLIRejectsMissingSelection(t *testing.T) {
 	err := Run(context.Background(), Options{})
 	require.Error(t, err)
-	require.ErrorContains(t, err, "recording")
+	require.ErrorContains(t, err, "session-dir")
 }

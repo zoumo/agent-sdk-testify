@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"fmt"
+
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
@@ -45,8 +47,18 @@ var (
 )
 
 func planAgentType(plan object) string {
-	if provider := str(plan["provider"]); provider != "" {
-		return provider
+	agentType, _ := planAgentIdentity(plan)
+	return agentType
+}
+
+func planAgentIdentity(plan object) (string, error) {
+	agentType := str(plan["agentType"])
+	provider := str(plan["provider"])
+	if agentType != "" && provider != "" && agentType != provider {
+		return "", fmt.Errorf("material provider %q conflicts with agentType %q", provider, agentType)
 	}
-	return str(plan["agentType"])
+	if agentType != "" {
+		return agentType, nil
+	}
+	return provider, nil
 }

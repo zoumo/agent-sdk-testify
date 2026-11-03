@@ -1,36 +1,27 @@
 package mock
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"io/fs"
 	"maps"
-	"os"
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 )
 
 func mockQuery(o Options) error {
-	if o.Provider != "" && o.Agent != "" && o.Provider != o.Agent {
-		return errors.New("--provider and --agent differ")
-	}
-	if o.Provider == "" {
-		o.Provider = o.Agent
-	}
 	if o.Recording != "" {
 		if !o.Describe || o.List || o.Case != "" || len(o.NativeArgs) != 0 {
 			return errors.New("external query requires --describe --recording ABS, without --case")
 		}
-		return describeExternalMock(o.Recording, o.Provider)
+		return describeExternalMock(o.Recording, o.Agent)
 	}
-	if o.List == o.Describe || len(o.NativeArgs) != 0 || (o.Describe && (o.Provider == "" || o.Case == "")) || (o.List && o.Case != "") {
+	if o.List == o.Describe || len(o.NativeArgs) != 0 || (o.Describe && (o.Agent == "" || o.Case == "")) || (o.List && o.Case != "") {
 		return errors.New("select --list or --describe --agent AGENT --case CASE")
 	}
-	if o.Provider != "" && o.Provider != "claude" && o.Provider != "codex" {
-		return errors.New("unknown provider")
+	if o.Agent != "" && o.Agent != "claude" && o.Agent != "codex" {
+		return errors.New("unknown agent type")
 	}
 	m, hash, err := readBuiltin()
 	if err != nil {
@@ -38,7 +29,7 @@ func mockQuery(o Options) error {
 	}
 	rows := []object{}
 	for _, coverage := range m.Coverage {
-		if o.Provider != "" && coverage["provider"] != o.Provider {
+		if o.Agent != "" && coverage["provider"] != o.Agent {
 			continue
 		}
 		if o.Case != "" && coverage["caseId"] != o.Case {
@@ -99,28 +90,4 @@ func mockQuery(o Options) error {
 		return writeNativeJSON(rows[0])
 	}
 	return writeNativeJSON(object{"schemaVersion": 1, "toolVersion": m.ToolVersion, "manifestSHA256": hash, "sourceRevision": m.SourceRevision, "scope": m.Scope, "cases": rows})
-}
-
-func mockBuiltinMode(ctx context.Context, o Options) (err error) {
-	if o.Provider == "" {
-		o.Provider = o.Agent
-	}
-	if o.Recording != "" || o.Provider == "" {
-		return exitcode.Fail(exitcode.Configuration, errors.New("--case requires --agent or --provider and excludes --recording"))
-	}
-	material, hash, err := selectBuiltin(o.Provider, o.Case)
-	if err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
-	}
-	root, err := extractBuiltin(material)
-	if err != nil {
-		return err
-	}
-	defer func() { err = errors.Join(err, os.RemoveAll(root)) }()
-	selection := &builtinSelection{ManifestSHA256: hash, Material: material}
-	o.Recording = root
-	if o.Prepare {
-		return mockPreparedMode(ctx, o, selection)
-	}
-	return mockExternalSelected(ctx, o, selection)
 }

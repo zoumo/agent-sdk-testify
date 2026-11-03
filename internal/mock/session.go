@@ -93,12 +93,12 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	}
 	external := o
 	external.Recording = artifact.Path
-	external.Provider = session.AgentType
+	external.Agent = session.AgentType
 	external.Report = connectionPath
-	external.Phase = o.Connection
+	external.phase = o.Connection
 	external.SessionDir = ""
 	external.Connection = ""
-	return mockExternalSelected(ctx, external, nil)
+	return mockExternalSelected(ctx, external)
 }
 
 func declaredMockConnection(session *lifecycle.Session, plan tool.Object, id string) bool {

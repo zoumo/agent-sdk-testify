@@ -26,7 +26,6 @@ import (
 type Options struct {
 	SessionDir string
 	Recording  string
-	Output     string
 	Timeout    time.Duration
 	Index      string
 	Scenarios  string
@@ -34,14 +33,11 @@ type Options struct {
 }
 
 func Run(ctx context.Context, o Options) error {
-	officialOptions := official.Options{Mode: "verify", Materials: o.Recording, Output: o.Output}
-	timeout := o.Timeout
-	sessionDir := o.SessionDir
 	c := corpus.Corpus{Index: o.Index, Scenarios: o.Scenarios, Archive: o.Archive}
-	if sessionDir == "" && officialOptions.Materials == "" {
-		return exitcode.Fail(exitcode.Configuration, errors.New("verify requires --recording"))
+	if o.SessionDir == "" {
+		return exitcode.Fail(exitcode.Configuration, errors.New("verify requires --session-dir"))
 	}
-	if timeout < 0 {
+	if o.Timeout < 0 {
 		return exitcode.Fail(exitcode.Configuration, errors.New("timeout must be nonnegative"))
 	}
 	if c.Index == "" && c.Scenarios != "" {
@@ -59,27 +55,7 @@ func Run(ctx context.Context, o Options) error {
 			return exitcode.Fail(exitcode.Configuration, err)
 		}
 	}
-	if sessionDir != "" {
-		if officialOptions.Output != "" {
-			return exitcode.Fail(exitcode.Configuration, errors.New("--output is unavailable with --session-dir"))
-		}
-		return verifyPrepared(ctx, sessionDir, officialOptions.Materials, timeout, c)
-	}
-	if timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
-		defer cancel()
-	}
-	summary, err := verifyRecording(ctx, officialOptions)
-	err = admitVerified(officialOptions.Materials, summary, err, c)
-	if summary != nil {
-		b, encodeErr := json.Marshal(summary)
-		if encodeErr != nil {
-			return errors.Join(err, fmt.Errorf("encode verify summary: %w", encodeErr))
-		}
-		fmt.Println(string(b))
-	}
-	return err
+	return verifyPrepared(ctx, o.SessionDir, o.Recording, o.Timeout, c)
 }
 
 func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout time.Duration, c corpus.Corpus) (err error) {
@@ -173,6 +149,8 @@ func snapshotVerification(source, target string) error {
 		"replay-report.json",
 		"replay-peer.json",
 		"remote-probe/replay-peer.json",
+		"peer-main.json",
+		"peer-probe.json",
 		"peer-main-lifecycle.json",
 		"peer-probe-lifecycle.json",
 		"remote-probe/peer-probe-lifecycle.json",
@@ -203,30 +181,17 @@ func snapshotVerification(source, target string) error {
 	return nil
 }
 
-// A verification attempt owns its new evidence. The source plan, raw bytes and
-// prior results remain immutable, including their original mode and SDK identity.
-func verifyRecording(ctx context.Context, o official.Options) (summary object, err error) {
-	return verifyRecordingAt(ctx, o, "")
-}
-
 func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput string) (summary object, err error) {
 	o.Mode = "verify"
 	o.Materials, err = corpusResolved(o.Materials)
 	if err != nil {
 		return nil, err
 	}
-	outputPath := preparedOutput
-	if outputPath == "" {
-		outputPath = o.Output
-		if outputPath == "" {
-			outputPath, err = outputBase("verify")
-			if err != nil {
-				return nil, err
-			}
-		}
+	if preparedOutput == "" {
+		return nil, errors.New("verify requires a prepared execution output")
 	}
 	{
-		resolved, e := corpusResolved(outputPath)
+		resolved, e := corpusResolved(preparedOutput)
 		if e != nil {
 			return nil, e
 		}
@@ -234,15 +199,8 @@ func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput s
 			return nil, errors.New("verification output must be separate from recording")
 		}
 	}
-	if preparedOutput == "" {
-		o.Output, err = createOutput(o.Output, "verify")
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		o.Output = preparedOutput
-		o.OutputPrepared = true
-	}
+	o.Output = preparedOutput
+	o.OutputPrepared = true
 	o.Output, err = filepath.EvalSymlinks(o.Output)
 	if err != nil {
 		return nil, err

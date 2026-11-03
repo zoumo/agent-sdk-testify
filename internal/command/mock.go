@@ -20,34 +20,29 @@ func newMockCommand() *cobra.Command {
 	var seconds float64
 	var help bool
 	o.ProgressFD = -1
-	o.Phase = "main"
 	c := &cobra.Command{
 		Use:                "mock [flags] [native startup arguments]",
 		Short:              "Replay recorded native protocol",
-		Long:               "Replay a capture or expose a prepared session. Builtin queries use mock --list/--describe; managed compatibility modes use --prepare, --run and --finish.",
+		Long:               "Replay a capture or expose a prepared session. Builtin queries use mock --list/--describe. The single-connection compatibility alias prepares, runs and finishes one transient session.",
 		DisableFlagParsing: true,
 	}
 	f := c.Flags()
 	f.BoolVar(&o.List, "list", false, "List full builtin coverage")
 	f.BoolVar(&o.Describe, "describe", false, "Describe one builtin or external material")
 	f.BoolVar(&o.JSON, "json", false, "JSON output (schemaVersion 1)")
-	f.StringVar(&o.Provider, "provider", "", "Agent type filter or selector")
 	f.StringVar(&o.Agent, "agent", "", "Agent type filter or selector")
 	f.StringVar(&o.Case, "case", "", "Builtin case ID")
 	f.StringVar(&o.Recording, "recording", "", "Absolute capture directory")
 	f.StringVar(&o.Report, "report", "", "New persistent receipt file")
-	f.StringVar(&o.Output, "output", "", "New persistent managed output directory")
 	f.StringVar(&o.SessionDir, "session-dir", "", "Prepared session directory")
 	f.StringVar(&o.Connection, "connection", "main", "Declared connection ID")
-	f.StringVar(&o.Run, "run", "", "Persistent managed run descriptor")
-	f.StringVar(&o.Finish, "finish", "", "Finish a persistent managed run descriptor")
-	f.Lookup("finish").NoOptDefVal = "true"
 	f.Float64Var(&seconds, "timeout", 0, "Seconds; zero uses material/session defaults")
 	f.IntVar(&o.ProgressFD, "progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
-	f.BoolVar(&o.Prepare, "prepare", false, "Prepare an isolated managed SDK-host environment")
-	f.StringVar(&o.Phase, "phase", "main", "Declared stream: main or probe")
 	f.BoolVarP(&help, "help", "h", false, "Help for mock")
 	c.RunE = func(c *cobra.Command, args []string) error {
+		if err := rejectLegacyMockModes(args); err != nil {
+			return exitcode.Fail(exitcode.Configuration, err)
+		}
 		native, help, err := parseInterleavedFlags(f, args)
 		if err != nil {
 			return exitcode.Fail(exitcode.Configuration, err)
@@ -68,14 +63,27 @@ func newMockCommand() *cobra.Command {
 	return c
 }
 
+func rejectLegacyMockModes(args []string) error {
+	for _, arg := range args {
+		if arg == "--" {
+			return nil
+		}
+		name, _, _ := strings.Cut(strings.TrimPrefix(arg, "--"), "=")
+		switch name {
+		case "prepare", "run", "finish", "output":
+			return fmt.Errorf("legacy mock --%s is unavailable; use prepare, mock --session-dir, and finish", name)
+		case "provider":
+			return errors.New("--provider is unavailable; use --agent")
+		}
+	}
+	return nil
+}
+
 func validateMockModes(o mock.Options) error {
-	if (o.List || o.Describe) && (o.SessionDir != "" || o.Prepare || o.Run != "" || o.Finish != "" || len(o.NativeArgs) != 0) {
-		return errors.New("builtin query cannot be combined with a session or managed run")
+	if (o.List || o.Describe) && (o.SessionDir != "" || len(o.NativeArgs) != 0) {
+		return errors.New("builtin query cannot be combined with a session")
 	}
-	if o.SessionDir != "" && (o.Case != "" || o.Prepare || o.Run != "" || o.Finish != "") {
-		return errors.New("mock modes are mutually exclusive")
-	}
-	if o.Case != "" && (o.SessionDir != "" || o.Run != "" || o.Finish != "") {
+	if o.SessionDir != "" && o.Case != "" {
 		return errors.New("mock modes are mutually exclusive")
 	}
 	if o.SessionDir != "" && o.Recording != "" && !filepath.IsAbs(o.Recording) {
