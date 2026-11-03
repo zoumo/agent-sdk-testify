@@ -35,6 +35,10 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	if err != nil {
 		return err
 	}
+	o.SessionDir, err = filepath.EvalSymlinks(o.SessionDir)
+	if err != nil {
+		return err
+	}
 	session, err := lifecycle.OpenSession(o.SessionDir)
 	if err != nil {
 		return err
@@ -54,6 +58,11 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	}
 	status, artifactID := "failed", ""
 	defer func() {
+		if scrubErr := lifecycle.ScrubExecutionAuthentication(run); scrubErr != nil {
+			runErr = errors.Join(runErr, scrubErr)
+			status = "failed"
+			artifactID = ""
+		}
 		runErr = errors.Join(runErr, lifecycle.FinishAction(run, status, artifactID), run.Close())
 	}()
 	if session.Source.Kind == "case" {
@@ -108,6 +117,7 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 		HistorySeed:    run.Session.HistorySeed,
 		NativeCommand:  command,
 		NativeArgs:     args,
+		RuntimeEnv:     run.Execution.RuntimeEnv,
 	})
 	if summary != nil {
 		if encodeErr := json.NewEncoder(stdout).Encode(summary); encodeErr != nil {
@@ -138,7 +148,7 @@ func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command strin
 	captureErr := capture.Run(ctx, capture.Options{
 		Output:         filepath.Join(run.ArtifactRoot, "raw"),
 		CWD:            run.Execution.Workspace,
-		Env:            environment(run.Execution.Env),
+		Env:            environment(run.Execution.RuntimeEnv),
 		ClearEnv:       true,
 		Command:        append([]string{command}, args...),
 		NativeVersion:  tool.Str(run.Plan["cliVersion"]),
@@ -160,7 +170,7 @@ func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command strin
 	if err := snapshotHistory(run.OverlayRoot, run.ArtifactRoot); err != nil {
 		return errors.Join(captureErr, err)
 	}
-	manifest, manifestErr := writeConsumerManifest(run.ArtifactRoot, run.Execution.Env, captureErr)
+	manifest, manifestErr := writeConsumerManifest(run.ArtifactRoot, run.Execution.RuntimeEnv, captureErr)
 	if manifestErr != nil {
 		return errors.Join(captureErr, manifestErr)
 	}

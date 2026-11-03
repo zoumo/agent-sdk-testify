@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 
@@ -14,13 +15,16 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-// mockManagedAlias is the only no-session compatibility path. It creates one
+// mockManagedAlias is the only no-session managed path. It creates one
 // transient prepared session, executes one main mock connection, then finishes
 // that same session. The caller's report receives the session, execution and
 // finish evidence before the transient session directory is removed.
 func mockManagedAlias(ctx context.Context, o Options) (err error) {
 	if o.Connection != "" && o.Connection != "main" {
 		return bad(errors.New("managed mock alias supports only the main connection"))
+	}
+	if versionProbe(o.NativeArgs) {
+		return bad(errors.New("managed mock alias does not support --version; use the prepared route launcher"))
 	}
 	if o.Report == "" {
 		return bad(errors.New("managed mock requires --report FILE"))
@@ -87,9 +91,7 @@ func mockManagedAlias(ctx context.Context, o Options) (err error) {
 		report["executionId"] = execution.ExecutionID
 		report["execution"] = execution
 	}
-	for key, value := range evidence {
-		report[key] = value
-	}
+	maps.Copy(report, evidence)
 	finish, finishErr := lifecycle.Finish(sessionDir)
 	report["finish"] = finish
 	if finish != nil {

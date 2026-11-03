@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func TestLoadPlanRejectsChangedRecordingSource(t *testing.T) {
@@ -18,7 +20,7 @@ func TestLoadPlanRejectsChangedRecordingSource(t *testing.T) {
 		Source: Source{
 			Kind:   "recording",
 			Path:   root,
-			SHA256: digestBytes([]byte(digestBytes(plan) + "\n" + digestBytes(manifest) + "\n")),
+			SHA256: tool.DigestBytes([]byte(tool.DigestBytes(plan) + "\n" + tool.DigestBytes(manifest) + "\n")),
 		},
 	}
 	_, err := LoadPlan(session)

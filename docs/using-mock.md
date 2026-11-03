@@ -22,8 +22,7 @@ agent-sdk-testify prepare --agent codex \
 ```
 
 prepare 在会话目录中写入 `session.json`，其中 record route 有稳定的 `env`、
-workspace 和连接模板。消费者先应用这些值，再把 SDK 的 Agent executable 指向
-record 命令：
+workspace、私有变量名和 `record` 调用前缀。消费者先应用这些值，再显式执行：
 
 ```sh
 agent-sdk-testify record --session-dir /absolute/session \
@@ -91,7 +90,7 @@ unqualified` 和原始 provenance 是明确结论，不会因为来源报告写�
 SDK 应继续调用自己的公共方法；不要直接把捕获帧发给 mock，也不要另写 matcher。
 不要自行打开 recording/raw/report 文件来替代 `assertionInputs`。
 
-## 2. 直接替换 Agent（兼容别名）
+## 2. 直接替换 Agent（managed mock 别名）
 
 规范形态是下一节的 prepared 会话。只需要一个协议连接且宿主环境已经一致时，
 可以直接让 SDK 把 `mock` 当作 Agent executable：
@@ -213,8 +212,8 @@ prepared 会话在 `--session-dir` 目录下保留：
 
 - `session.json`：会话的 source、agentType 和 route 环境。
 - `executions/<executionId>/execution.json`：本次 action 的 descriptor。
-- `executions/<executionId>/<connection>.receipt.json`：协议匹配、完整消费、EOF、退出和错误。
-- `executions/<executionId>/<connection>.process.json`：监督进程看到的实际工具身份和退出状态。
+- `executions/<executionId>/receipts/<connection>.json`：协议匹配、完整消费、EOF、退出和错误。
+- `executions/<executionId>/receipts/<connection>.process.json`：监督进程看到的实际工具身份和退出状态。
 - `executions/index.json`：append-only execution/artifact 索引及最新 capture。
 - `finish.json`：全部 execution、历史、清理和最终状态。
 - `cleanup.json`：重复 finish 使用的清理证据。

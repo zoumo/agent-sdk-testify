@@ -70,7 +70,7 @@ record 把本次 capture 登记到会话，供后续 verify/mock 选择；默认
 capture，verify 不消费或改写它。
 
 **Managed alias（托管别名）**:
-`mock` 直接作为 Agent executable、无需显式会话的单连接兼容入口。它复用相同的
+`mock` 直接作为 Agent executable、无需显式会话的单连接托管入口。它复用相同的
 prepare、action、finish 状态机和证据语义，不是独立生命周期。
 
 ## 材料与发布

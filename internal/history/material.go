@@ -24,8 +24,42 @@ func Bindings(root string) (map[string]string, error) {
 	if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err != nil {
 		return nil, err
 	}
-	bindings, err := manifestBindings(root, tool.Obj(manifest["savedFiles"]))
-	if err != nil {
+	var plan tool.Object
+	if err := tool.ReadJSON(filepath.Join(root, "plan.json"), &plan); err != nil {
+		return nil, err
+	}
+	bindings := map[string]string{}
+	if err := addBindings(root, bindings, "manifest.savedFiles", tool.Obj(manifest["savedFiles"]), func(value any) string {
+		digest, _ := value.(string)
+		return digest
+	}); err != nil {
+		return nil, err
+	}
+	if err := addBindings(root, bindings, "plan.historySeed.files", tool.Obj(tool.Obj(plan["historySeed"])["files"]), func(value any) string {
+		return tool.Str(tool.Obj(value)["sha256"])
+	}); err != nil {
+		return nil, err
+	}
+	var adoption tool.Object
+	if err := tool.ReadJSON(filepath.Join(root, "adoption.json"), &adoption); err == nil {
+		transformations, transformationsOK := adoption["transformations"].([]any)
+		files, filesOK := adoption["files"].(map[string]any)
+		if adoption["adoption"] != "admitted" || !transformationsOK || len(transformations) != 0 || !filesOK {
+			return nil, errors.New("unsupported adopted history evidence")
+		}
+		historyFiles := tool.Object{}
+		for name, value := range files {
+			if allowed(name) {
+				historyFiles[name] = value
+			}
+		}
+		if err := addBindings(root, bindings, "adoption.files", historyFiles, func(value any) string {
+			digest, _ := value.(string)
+			return digest
+		}); err != nil {
+			return nil, err
+		}
+	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
 	if err := checkUnbound(root, bindings); err != nil {
@@ -34,25 +68,27 @@ func Bindings(root string) (map[string]string, error) {
 	return bindings, nil
 }
 
-func manifestBindings(root string, saved tool.Object) (map[string]string, error) {
-	bindings := make(map[string]string, len(saved))
-	for name, value := range saved {
+func addBindings(root string, bindings map[string]string, source string, values tool.Object, digestOf func(any) string) error {
+	for name, value := range values {
 		if name == "" || name != path.Clean(name) || !filepath.IsLocal(filepath.FromSlash(name)) {
-			return nil, fmt.Errorf("history path escapes material: %s", name)
+			return fmt.Errorf("history path escapes material: %s", name)
 		}
 		if !allowed(name) {
-			return nil, fmt.Errorf("history path is outside allowed history: %s", name)
+			return fmt.Errorf("history path is outside allowed history in %s: %s", source, name)
 		}
-		digest, ok := value.(string)
-		if !ok || !validDigest(digest) {
-			return nil, fmt.Errorf("history omits a valid SHA-256 binding: %s", name)
+		digest := digestOf(value)
+		if !validDigest(digest) {
+			return fmt.Errorf("history omits a valid SHA-256 binding in %s: %s", source, name)
+		}
+		if existing, ok := bindings[name]; ok && existing != digest {
+			return fmt.Errorf("history bindings conflict for %s", name)
 		}
 		if err := checkFile(root, name, digest); err != nil {
-			return nil, err
+			return err
 		}
 		bindings[name] = digest
 	}
-	return bindings, nil
+	return nil
 }
 
 func checkUnbound(root string, bindings map[string]string) error {
@@ -194,8 +230,8 @@ func VerifyTree(root string, bindings map[string]string) error {
 	return nil
 }
 
-// Materialize copies only manifest-bound history files and verifies both the
-// source and destination bytes.
+// Materialize copies only independently bound history files and verifies both
+// the source and destination bytes.
 func Materialize(source, target string) (map[string]string, error) {
 	bindings, err := Bindings(source)
 	if err != nil {
@@ -290,7 +326,7 @@ func split(name string) []string {
 }
 
 func cut(value string, separator byte) (string, string, bool) {
-	for i := 0; i < len(value); i++ {
+	for i := range len(value) {
 		if value[i] == separator {
 			return value[:i], value[i+1:], true
 		}

@@ -77,9 +77,10 @@ workspace、回执、材料和失败证据。
 - `--plan FILE`：consumer plan；可直接 `record`，录制完成后可 `mock`。
 - `--recording PATH`：官方或外部材料；可直接 `verify` 或 `mock`。
 
-`--case`、`--plan` 和 `--recording` 只在 `prepare` 出现，彼此互斥。业务动作不再
-重复 case 或 plan；它从 `session.json` 和会话 execution 索引读取不可变初始来源、允许
-动作、最新兼容录制和环境。
+prepared session 的 `--case`、`--plan` 和 `--recording` 只在 `prepare` 选择且彼此
+互斥；后续业务动作不重复 case 或 plan，而是从 `session.json` 和会话 execution 索引
+读取不可变初始来源、允许动作、最新兼容录制和环境。managed mock 别名没有 prepared
+session 时，可一次性选择 `--case` 或 `--recording`。
 
 ### 三个阶段
 
@@ -114,6 +115,11 @@ execution 的产物而改写；可变状态只写入受锁保护的 append-only 
 索引。显式提供 `--history-seed` 时，case/plan 会话另在 `historySeed` 保存其规范化
 来源路径。
 
+`env` 只包含可持久化的隔离路径和非秘密运行配置。认证、代理凭据和原生配置派生的
+私有变量只写入 `resourceRoot` 内的私有文件，record 启动时从当前进程或该文件合并；
+变量名在 record route 的 `runtimeEnv` 中声明，值不进入 `session.json`、
+`execution.json`、capture 或 finish 证据。
+
 `session.json` 不是用户配置，也不是 Codex 的 `config.toml`、Claude 的
 `settings.json` 或任何原生 session 文件。它是工具生成的内部只读会话合同，绑定
 session 身份、工具和 source 身份、派生环境路径、允许 action 及 route 合同；
@@ -125,6 +131,10 @@ session 身份、工具和 source 身份、派生环境路径、允许 action �
 `artifactRoot` 和 `limits`。`timeout`、采集上限、验证采用参数等 action 选项在创建
 该 execution 时写入，finish 不重新解释。环境基线只读；每个 execution 使用独立可写
 overlay，所以一个 execution 的历史、fixture 或失败不会污染后续 action。
+
+verify/mock connection 的材料路径和 plan/manifest/raw 哈希指向本次输入材料。record
+的输入是原生交互；capture 发布后，execution connection 和 `artifact` 共同绑定输出
+材料的路径及 plan/manifest/raw 哈希，不在启动前伪造未知的输入哈希。
 
 `record` 完成后把 capture 登记为会话内不可变 artifact。后续 `verify` 和 `mock`
 默认选择最新的兼容 capture：
@@ -203,9 +213,10 @@ source 校验、原生配置发现与筛选、历史派生、fixture 写入仍�
 finished 会话不能再创建 execution。准备阶段失败、action 失败或 finish 失败都保留已有
 核对证据；成功 execution 和失败 execution 在会话级 `finish.json` 中分别列出，不能互相抵消。
 
-### 便利别名
+### Managed mock 别名
 
-`mock` 继续支持不经过显式会话、直接作为 Agent executable 的单连接兼容别名：
+`mock` 继续支持不经过显式会话、直接作为 Agent executable 的单连接 managed mock
+别名：
 
 ```sh
 agent-sdk-testify mock --agent codex --case SDK-CASE-001 \
@@ -214,13 +225,15 @@ agent-sdk-testify mock --recording /captures/attempt \
   --report /reports/direct.json
 ```
 
-该别名内部仍使用同一 prepare、action、回放和 finish 状态机，只省略持久会话。它只
-适用于宿主已经拥有一致环境、单连接且不需要外部收尾的场景；`record` 和 `verify`
-没有隐式会话别名。
+该托管别名内部仍使用同一 prepare、action、回放和 finish 状态机，只省略持久会话。
+它只适用于宿主已经拥有一致环境、单连接且不需要外部收尾的场景；`record` 和
+`verify` 没有隐式会话别名。
 
 ### 不变量
 
-- `--case`、`--plan` 和 `--recording` 只在 prepare 选择，prepare 后不可改写。
+- prepared-session 生命周期只在 prepare 选择 `--case`、`--plan` 或 `--recording`，
+  prepare 后不可改写；managed mock 别名的一次性 `--case`/`--recording` 选择不属于
+  第二个生命周期。
 - prepare 不启动客户端、SDK、driver 或真实 Agent，也不执行业务断言。
 - 一次会话可以包含多个 execution；每个 execution 使用唯一 `executionId` 和不可变
   `execution.json`。
@@ -330,7 +343,7 @@ capture 时，recording source 使用 prepared 材料，case source 使用内置
 receipt、进程生命周期和 EOF，不能合并成一条协议流。其他普通 case 只有 `main`；
 consumer plan v1 也只支持 `main`。
 
-单连接、无宿主环境要求时，直接替换 Agent executable 的兼容别名仍可使用：
+单连接、无宿主环境要求时，直接替换 Agent executable 的 managed mock 别名仍可使用：
 
 ```sh
 agent-sdk-testify mock --agent codex --case SDK-CASE-008 \
@@ -384,8 +397,9 @@ Claude 使用
 mock 子进程的环境不能配置父进程。
 
 record 完成后原子发布 capture 并刷新下游 route 槽；verify 和 mock 使用新的 execution
-overlay 消费该 artifact。plan source 的 record 与 mock 使用相同的 route 消费步骤，只
-替换 connection 背后的录制或回放进程，消费者宿主不需要为两者维护不同的协议接入。
+overlay 消费该 artifact。plan source 的 record 由消费者显式执行 `record --cmd ... --`
+并应用 route 环境；mock 使用同一 route 的连接模板启动严格回放。两者共享环境和历史
+身份，但 record 的启动参数不能被伪装成预先已知的回放连接。
 record 在 execution 完成时快照隔离环境中的历史；finish 只重新核验快照和哈希，不读取消费者
 个人目录。
 

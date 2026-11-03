@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -98,9 +99,13 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 		}
 	}
 	env := map[string]string{}
-	for _, key := range []string{"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR", "OPENAI_API_KEY", "OPENAI_BASE_URL", "CODEX_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL", "ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_HAIKU_MODEL"} {
-		if v, ok := os.LookupEnv(key); ok {
-			env[key] = v
+	if len(o.RuntimeEnv) > 0 {
+		maps.Copy(env, o.RuntimeEnv)
+	} else {
+		for _, key := range nativeEnvironmentNames(provider) {
+			if v, ok := os.LookupEnv(key); ok {
+				env[key] = v
+			}
 		}
 	}
 	if o.Config != "" {
@@ -149,21 +154,16 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 	return writeJSON(filepath.Join(root, "native.env.private.json"), env)
 }
 
-// CopyNativeConfig copies only the agent configuration files that participate
-// in a native recording. The source is discovered from the standard environment
-// or HOME location; callers cannot inject an arbitrary configuration path.
-func CopyNativeConfig(provider, destination string, env map[string]string) error {
+// CopyNativeConfig copies only non-secret agent configuration into the visible
+// config directory. Authentication files stay in privateDestination so an
+// execution overlay can link them for one record run without retaining them.
+// The source is discovered from the standard environment or HOME location;
+// callers cannot inject an arbitrary configuration path.
+func CopyNativeConfig(provider, destination, privateDestination string, env map[string]string) error {
 	if provider != "codex" && provider != "claude" {
 		return errors.New("unsupported provider")
 	}
-	for _, key := range []string{
-		"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR",
-		"OPENAI_API_KEY", "OPENAI_BASE_URL", "CODEX_API_KEY",
-		"ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",
-		"ANTHROPIC_CUSTOM_HEADERS", "CLAUDE_CODE_OAUTH_TOKEN",
-		"ANTHROPIC_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL",
-		"ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-	} {
+	for _, key := range nativeEnvironmentNames(provider) {
 		if value, ok := os.LookupEnv(key); ok {
 			env[key] = value
 		}
@@ -197,23 +197,35 @@ func CopyNativeConfig(provider, destination string, env map[string]string) error
 	if err := os.MkdirAll(destination, 0o700); err != nil {
 		return err
 	}
-	files := []string{"config.toml", "auth.json"}
+	configFile, authFile := "config.toml", "auth.json"
 	if provider == "claude" {
-		files = []string{"settings.json", ".credentials.json"}
+		configFile, authFile = "settings.json", ".credentials.json"
 	}
-	for _, file := range files {
-		from := filepath.Join(source, file)
-		info, err := os.Lstat(from)
-		if os.IsNotExist(err) {
-			continue
-		}
-		if err != nil {
+	from := filepath.Join(source, configFile)
+	info, err = os.Lstat(from)
+	if os.IsNotExist(err) {
+		info = nil
+	} else if err != nil {
+		return err
+	} else if !info.Mode().IsRegular() {
+		return fmt.Errorf("native configuration file is not regular: %s", from)
+	}
+	if info != nil {
+		if err := copyFile(from, filepath.Join(destination, configFile)); err != nil {
 			return err
 		}
-		if !info.Mode().IsRegular() {
-			return fmt.Errorf("native configuration file is not regular: %s", from)
-		}
-		if err := copyFile(from, filepath.Join(destination, file)); err != nil {
+	}
+	from = filepath.Join(source, authFile)
+	info, err = os.Lstat(from)
+	if os.IsNotExist(err) {
+		info = nil
+	} else if err != nil {
+		return err
+	} else if !info.Mode().IsRegular() {
+		return fmt.Errorf("native authentication file is not regular: %s", from)
+	}
+	if info != nil {
+		if err := copyFile(from, filepath.Join(privateDestination, authFile)); err != nil {
 			return err
 		}
 	}
@@ -225,6 +237,27 @@ func CopyNativeConfig(provider, destination string, env map[string]string) error
 		return err
 	}
 	return filterCodexConfig(filepath.Join(destination, "config.toml"))
+}
+
+func nativeEnvironmentNames(provider string) []string {
+	names := []string{
+		"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+		"SSL_CERT_FILE", "SSL_CERT_DIR",
+	}
+	switch provider {
+	case "codex":
+		names = append(names,
+			"OPENAI_API_KEY", "OPENAI_BASE_URL", "CODEX_API_KEY",
+		)
+	case "claude":
+		names = append(names,
+			"ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",
+			"ANTHROPIC_CUSTOM_HEADERS", "CLAUDE_CODE_OAUTH_TOKEN",
+			"ANTHROPIC_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL",
+			"ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+		)
+	}
+	return names
 }
 
 func scrubNative(root string) error {

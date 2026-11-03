@@ -3,12 +3,11 @@ package lifecycle
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
@@ -87,35 +86,20 @@ func baseEnvironment(provider, root string) map[string]string {
 		"XDG_DATA_HOME":   filepath.Join(root, "home", ".local", "share"),
 		"LANG":            "C.UTF-8",
 	}
-	if provider == "codex" {
-		env["CODEX_HOME"] = filepath.Join(root, "config")
-	} else {
-		env["CLAUDE_CONFIG_DIR"] = filepath.Join(root, "config")
-		env["CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS"] = "1"
-		env["DISABLE_AUTOUPDATER"] = "1"
+	if profile, ok := agentProfiles[provider]; ok {
+		maps.Copy(env, profile.environment(root))
 	}
 	return env
 }
 
-func routeEnvironment(session *Session, action string, withAuthentication bool) map[string]string {
+func routeEnvironment(session *Session, action string) map[string]string {
 	root := filepath.Join(session.ResourceRoot, "routes", action)
-	return environmentAt(session, action, root, withAuthentication)
+	return environmentAt(session, root)
 }
 
-func environmentAt(session *Session, action, root string, withAuthentication bool) map[string]string {
+func environmentAt(session *Session, root string) map[string]string {
 	env := baseEnvironment(session.AgentType, root)
-	if withAuthentication {
-		for key, value := range session.Env {
-			if _, special := env[key]; !special {
-				env[key] = value
-			}
-		}
-	}
 	return env
-}
-
-func executionEnvironment(session *Session, action, root string) map[string]string {
-	return environmentAt(session, action, root, action == "record")
 }
 
 var routeEnvironmentEntries = []string{"workspace", "home", "config", "tmp", "history-seed"}
@@ -164,26 +148,11 @@ func restoreRouteSlots(session *Session, action string) error {
 }
 
 func cleanMockConfig(root string, plan tool.Object, provider string) error {
-	config := filepath.Join(root, "config")
-	if err := os.RemoveAll(config); err != nil {
+	profile, err := agentProfileFor(provider)
+	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(config, 0o700); err != nil {
-		return err
-	}
-	if provider == "claude" {
-		value := map[string]any{"model": planModel(plan)}
-		data, err := json.Marshal(value)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(filepath.Join(config, "settings.json"), data, 0o600)
-	}
-	line := ""
-	if model := planModel(plan); model != "" {
-		line = "model = " + strconv.Quote(model) + "\n"
-	}
-	return os.WriteFile(filepath.Join(config, "config.toml"), []byte(line), 0o600)
+	return profile.writeConfig(root, plan)
 }
 
 func writeConnectionLauncher(root, id, self, sessionDir string) (string, error) {
@@ -197,7 +166,7 @@ func writeConnectionLauncher(root, id, self, sessionDir string) (string, error) 
 	return path, os.WriteFile(path, []byte(script), 0o700)
 }
 
-func connectionIDs(source Source, plan tool.Object) []string {
+func ConnectionIDs(source Source, plan tool.Object) []string {
 	if source.Kind == "plan" {
 		return []string{"main"}
 	}
@@ -239,7 +208,7 @@ func initialBuiltin(session *Session, materialRoot string) (*builtin.Material, e
 	if err := builtin.CheckMaterial(extracted, material); err != nil {
 		return nil, err
 	}
-	if err := copyTree(extracted, materialRoot); err != nil {
+	if err := tool.CopyTree(extracted, materialRoot); err != nil {
 		return nil, err
 	}
 	return material, nil
@@ -299,7 +268,8 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		return nil, err
 	}
 	baselineEnv := baseEnvironment(agentType, baseline)
-	if err := official.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), baselineEnv); err != nil {
+	privateEnv := map[string]string{}
+	if err := official.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), filepath.Join(root, "private-config"), privateEnv); err != nil {
 		return nil, err
 	}
 	files, err := planFiles(spec.plan)
@@ -334,7 +304,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			return nil, errors.New("--session-dir must be outside the history seed")
 		}
 		historySeed = filepath.Join(sessionDir, "source", "history-seed")
-		if err := copyTree(sourceSeed, historySeed); err != nil {
+		if err := tool.CopyTree(sourceSeed, historySeed); err != nil {
 			return nil, err
 		}
 		files, err := history.HashTree(historySeed)
@@ -346,7 +316,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			historySeedFiles["history-seed/"+name] = digest
 		}
 		if spec.source.Kind == "plan" {
-			err = copyTree(historySeed, filepath.Join(baseline, "history-seed"))
+			err = tool.CopyTree(historySeed, filepath.Join(baseline, "history-seed"))
 		}
 		if err != nil {
 			return nil, err
@@ -382,6 +352,9 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	if err := os.WriteFile(filepath.Join(root, ".owner"), []byte(sessionID), 0o600); err != nil {
 		return nil, err
 	}
+	if err := writePrivateEnvironment(root, privateEnv); err != nil {
+		return nil, err
+	}
 	if spec.source.Kind == "case" || spec.source.Kind == "plan" {
 		path, err := writePlanSnapshot(sessionDir, spec.planBytes)
 		if err != nil {
@@ -389,7 +362,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 		session.Source.Path = path
 	}
-	ids := connectionIDs(session.Source, spec.plan)
+	ids := ConnectionIDs(session.Source, spec.plan)
 	for _, action := range []string{"record", "verify", "mock"} {
 		if !spec.routes[action] {
 			session.Routes[action] = Route{Enabled: false}
@@ -400,7 +373,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			return nil, err
 		}
 		templateRoot := filepath.Join(root, "templates", action)
-		if err := copyTree(baseline, templateRoot); err != nil {
+		if err := tool.CopyTree(baseline, templateRoot); err != nil {
 			return nil, err
 		}
 		if action == "mock" || action == "verify" {
@@ -418,7 +391,10 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			Provenance:  spec.provenance,
 			Workspace:   filepath.Join(routeRoot, "workspace"),
 			ProtocolCwd: planProtocolCwd(spec.plan, filepath.Join(routeRoot, "workspace")),
-			Env:         routeEnvironment(session, action, action == "record"),
+			Env:         routeEnvironment(session, action),
+		}
+		if action == "record" {
+			route.RuntimeEnv = environmentNames(privateEnv)
 		}
 		if action == "record" && spec.source.Kind == "plan" {
 			route.Executor = "external-sdk"
@@ -428,7 +404,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			template := ConnectionTemplate{ID: id, Command: self.Command, Args: []string{"mock", "--session-dir", sessionDir, "--connection", id}}
 			switch action {
 			case "record":
-				template.Args = []string{"record", "--session-dir", sessionDir}
+				template.Args = []string{"record", "--session-dir", sessionDir, "--cmd"}
 			case "verify":
 				template.Args = []string{"verify", "--session-dir", sessionDir}
 			}
@@ -471,7 +447,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	if err := writeExclusive(sessionPath, session); err != nil {
 		return nil, err
 	}
-	sessionHash, err := digestFile(sessionPath)
+	sessionHash, err := tool.FileDigest(sessionPath)
 	if err != nil {
 		return nil, err
 	}

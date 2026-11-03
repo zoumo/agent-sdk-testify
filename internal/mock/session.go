@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
@@ -30,11 +31,17 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	if err := lifecycle.SessionOpen(o.SessionDir); err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
+	if o.Agent != "" && o.Agent != session.AgentType {
+		return exitcode.Fail(exitcode.Configuration, errors.New("mock agent type differs from the prepared session"))
+	}
+	if o.Report != "" {
+		return exitcode.Fail(exitcode.Configuration, errors.New("prepared mock writes connection receipts; --report is only valid for the managed alias"))
+	}
 	plan, err := lifecycle.LoadPlan(session)
 	if err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
-	if len(o.NativeArgs) == 1 && (o.NativeArgs[0] == "--version" || o.NativeArgs[0] == "-v") {
+	if versionProbe(o.NativeArgs) {
 		if !declaredMockConnection(session, plan, o.Connection) {
 			return exitcode.Fail(exitcode.Configuration, errors.New("undeclared mock connection"))
 		}
@@ -50,7 +57,7 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	if err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
-	run, err := lifecycle.BeginMock(o.SessionDir, o.Connection, o.NativeArgs, o.Timeout, artifact)
+	run, err := lifecycle.BeginMock(o.SessionDir, o.Connection, o.NativeArgs, o.Timeout, o.ProgressFD, artifact)
 	if err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
@@ -105,14 +112,12 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	return mockExternalSelected(ctx, external)
 }
 
+func versionProbe(args []string) bool {
+	return len(args) == 1 && (args[0] == "--version" || args[0] == "-v")
+}
+
 func declaredMockConnection(session *lifecycle.Session, plan tool.Object, id string) bool {
-	if session.Source.Kind == "plan" {
-		return id == "main"
-	}
-	if tool.Str(plan["driverProfile"]) == "remote-close" && session.Source.Provenance != "consumer" {
-		return id == "main" || id == "probe"
-	}
-	return id == "main"
+	return slices.Contains(lifecycle.ConnectionIDs(session.Source, plan), id)
 }
 
 func mockConnectionPaths(run *lifecycle.ActionRun, id string) (string, string, error) {

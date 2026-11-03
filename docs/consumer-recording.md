@@ -49,25 +49,9 @@ CLI 和原生参数属于本次 record execution，不改变已准备的 source�
 
 ### 配置发现
 
-`prepare` 按 agent type 解析只读配置来源：
-
-- Codex：调用进程已设置且为绝对路径的 `CODEX_HOME`，否则调用进程的 `$HOME/.codex`。
-- Claude：调用进程已设置且为绝对路径的 `CLAUDE_CONFIG_DIR`，否则调用进程的
-  `$HOME/.claude`。
-
-非绝对路径、符号链接、不可读目录或格式错误的配置使 `prepare` 失败。来源不存在时，
-工具创建空隔离配置；它不推断其他配置目录，不执行登录，也不生成认证。真实 Agent 仍
-可使用当前进程中白名单内的 agent 认证环境变量。
-
-工具只复制并筛选以下原生文件：
-
-- Codex：`config.toml`、`auth.json`，保留选中 agent 的设置和认证引用。
-- Claude：`settings.json`、`.credentials.json`，只保留模型设置和白名单认证环境。
-
-个人 skills、插件、记忆、项目指令、hooks、MCP 配置、agents 和无关会话不会进入隔离
-环境。目标 `config` 目录以及 `CODEX_HOME`/`CLAUDE_CONFIG_DIR` 由工具决定；
-`resourceRoot`、`workspace`、`home` 和 `tmp` 也是工具生成的路径。消费者不能通过
-flag 覆盖，只能使用 descriptor 返回值。
+配置来源、允许文件、认证变量和隔离路径由[工具设计](design.md#环境与隔离)统一维护。
+消费者不能通过 flag 覆盖这些路径，只使用 prepare 返回的 descriptor；认证值不进入
+`session.json`，调用进程只需保留 record route `runtimeEnv` 列出的变量。
 
 ### record
 
@@ -77,10 +61,13 @@ agent-sdk-testify record --session-dir /absolute/session \
   --cmd /absolute/codex -- app-server --listen stdio://
 ```
 
-消费者必须先应用 record route 的 `env`，把 SDK 宿主 cwd 设为 `workspace`，再把
-自己的 Agent executable 指向 route 的 `connection` 命令或 launcher。record 从环境
-基线创建独立 execution overlay，在已准备好的环境中启动真实 Agent，转发 stdio，并写入
-原始帧和传输报告。每个连接只能启动一次；失败也保留原始证据。
+消费者必须先应用 record route 的 `env`，把 SDK 宿主 cwd 设为 `workspace`，然后执行
+下文的 `record` 命令；Agent executable 和原生参数属于这次显式调用。record route 的
+`connection.command`/`args` 是稳定调用前缀，其 `args` 已包含 `--cmd`，调用方在其后
+追加 `/absolute/agent -- ARG...`。route 的 `runtimeEnv` 只列出来自调用进程或私有
+运行环境的变量名，不包含值。record 从环境基线创建独立 execution overlay，在已准备
+好的环境中启动真实 Agent，转发 stdio，并写入原始帧和传输报告。每个连接只能启动
+一次；失败也保留原始证据。
 
 record 完成后把 capture 登记到会话，更新最新兼容 artifact；随后可以直接在同一会话
 执行 `mock`，不需要重新 prepare。consumer material 永远不能进入 `verify`。
@@ -115,17 +102,8 @@ finish 失败可重试；清理成功后再次 finish 使用持久 cleanup 证�
 - 同一会话的 action 串行执行；上一个 action 完成后才可以开始下一个。
 - consumer capture 不进入 verify；需要官方验证时必须重新走官方 case 录制。
 
-## 环境职责
-
-| 事项 | 工具负责 | 消费者负责 |
-| --- | --- | --- |
-| 隔离根、workspace、HOME、tmp | 创建、隔离、清理 | 使用 descriptor 路径 |
-| 原生配置、认证副本 | 按 agent type 标准位置发现、筛选并复制 | 使用 descriptor，不提供配置路径 |
-| model、fixtures、历史种子 | 写入隔离环境 | 在 plan/参数中声明 |
-| 真实 Agent executable/args | 校验、启动 | 提供绝对路径和受支持参数 |
-| SDK 宿主环境 | 生成 `env` descriptor | 在启动 SDK 前应用 |
-| 协议请求和响应 | 原样代理、录制、严格回放 | 发送请求、接收响应 |
-| 业务断言和产品 E2E | 不参与 | 执行并报告 |
+环境职责和认证边界见[工具设计](design.md#环境与隔离)。本路径的差异只有：消费者提供
+plan、真实 Agent executable/args、自己的 SDK 宿主和业务断言。
 
 ## Consumer plan
 
@@ -167,33 +145,22 @@ consumer plan；需要历史的消费者使用 `--history-seed`。
 
 ## Session 与 execution descriptor
 
-`session.json` 是 prepare 在会话目录内创建的持久、只读合同，至少包含：
-
-| 字段 | 用途 |
-| --- | --- |
-| `schemaVersion` | 当前为 `1`；不支持的版本必须拒绝 |
-| `sessionId` | 本次会话的唯一身份 |
-| `tool`, `toolVersion`, `toolSHA256` | 实际执行的工具及身份 |
-| `agentType`, `source`, `sourceSHA256` | 本次会话的来源身份 |
-| `historySeed` | 可选的规范化历史种子来源路径 |
-| `resourceRoot` | 工具拥有的临时根 |
-| `workspace` | SDK 宿主 cwd 和可写 fixture |
-| `protocolCwd` | Codex 原始项目 cwd；Claude 使用 workspace |
-| `routes` | record、mock 等 route 的稳定环境、连接模板和证据策略 |
-| `finish` | 会话收尾命令 |
+`session.json` 和 `execution.json` 的字段合同见
+[工具设计](design.md#prepared-session-生命周期)。plan source 的 `protocolCwd` 保持
+plan 声明的原始项目身份；消费者仍使用 execution 返回的 overlay `workspace`。
 
 每次 record 或 mock 另在 `executions/<executionId>/execution.json` 写入本次
-execution 的只读合同，包含 `executionId`、`sessionId`、`command`、`args`、
-source artifact、workspace overlay、`env`、
-`connections`、receipts、artifactRoot 和 limits。消费者不得 source、eval 或改写
-`session.json` 或 `execution.json`。当前 route 的 `env` 必须应用到自己的 SDK 宿主，
-不能只设置录制或 mock 子进程。execution 创建后不得重新生成或覆盖。
+execution 的只读合同，字段见[工具设计](design.md#prepared-session-生命周期)。
+消费者不得 source、eval 或改写 `session.json` 或 `execution.json`。当前 route 的
+`env` 必须应用到自己的 SDK 宿主，不能只设置录制或 mock 子进程。execution 创建后
+不得重新生成或覆盖。
 
 finish 删除工具临时根后，其中 `resourceRoot` 等路径失效；会话目录里的材料仍可按
 `mock --recording` 消费，但不能再次启动已经结束的 execution。
 
-如果消费者的 SDK 会向 Agent executable 追加原生参数，应使用 `connection.launcher`；
-launcher 把受支持的追加参数转发给真实 Agent，并拒绝重复或白名单外的参数。
+mock route 的 `connection.launcher` 用于只接受 executable 的 SDK；launcher 把受支持
+的追加参数转发给回放连接，并拒绝重复或白名单外的参数。record 使用上文的显式
+`--cmd ... --` 调用，不把 route 前缀当作完整 executable。
 
 ## 原生启动参数
 

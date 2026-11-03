@@ -22,6 +22,7 @@ agent-sdk-testify/
   internal/
     lifecycle/              # prepare、finish 与会话/execution 状态
     record/ verify/ mock/   # 公开业务动作
+    conformance/            # installed CLI 的离线纵向合同
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
     builtin/ official/      # 内置快照与官方 SDK 执行
     history/ tool/          # 历史派生与共享基础能力
@@ -87,6 +88,8 @@ required/optional、planned/unsupported 及原因必须保留。
 默认测试离线，不启动真实 Agent、不需要认证、不安装官方 SDK、不新增录制。
 进程测试保留分片、大消息、关联 ID、超时、取消、背压、多连接、历史派生、
 prepare/action/finish 失败保留、会话多次使用、execution overlay 隔离和自有资源清理。
+`internal/conformance` 是由 installed CLI 的 argv、stdio、退出码、descriptor、文件和
+哈希驱动的唯一纵向验收入口；它不直接调用 lifecycle 函数。
 合同和材料存在不证明当前 SDK 通过，合成材料必须保持 synthetic 身份。
 官方验证、SDK 仿真和真实 E2E 分别报告，不互相背书。
 

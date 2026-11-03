@@ -49,16 +49,16 @@ func artifactForMaterial(root, provenance, action string, connections []string) 
 	default:
 		return nil, errors.New("material provenance is invalid")
 	}
-	planHash, err := digestFile(filepath.Join(root, "plan.json"))
+	planHash, err := tool.FileDigest(filepath.Join(root, "plan.json"))
 	if err != nil {
 		return nil, err
 	}
-	manifestHash, err := digestFile(filepath.Join(root, "manifest.json"))
+	manifestHash, err := tool.FileDigest(filepath.Join(root, "manifest.json"))
 	if err != nil {
 		return nil, err
 	}
 	recordingHash := ""
-	if digest, err := digestFile(filepath.Join(root, "raw", "raw.jsonl")); err == nil {
+	if digest, err := tool.FileDigest(filepath.Join(root, "raw", "raw.jsonl")); err == nil {
 		recordingHash = digest
 	} else if !os.IsNotExist(err) {
 		return nil, err
@@ -94,7 +94,7 @@ func LoadPlan(session *Session) (tool.Object, error) {
 		return nil, errors.New("unknown session source")
 	}
 	if session.Source.Kind == "case" || session.Source.Kind == "plan" {
-		hash, err := digestFile(path)
+		hash, err := tool.FileDigest(path)
 		if err != nil {
 			return nil, err
 		}
@@ -102,15 +102,15 @@ func LoadPlan(session *Session) (tool.Object, error) {
 			return nil, errors.New("session source changed after prepare")
 		}
 	} else {
-		planHash, err := digestFile(path)
+		planHash, err := tool.FileDigest(path)
 		if err != nil {
 			return nil, err
 		}
-		manifestHash, err := digestFile(filepath.Join(session.Source.Path, "manifest.json"))
+		manifestHash, err := tool.FileDigest(filepath.Join(session.Source.Path, "manifest.json"))
 		if err != nil {
 			return nil, err
 		}
-		if digestBytes([]byte(planHash+"\n"+manifestHash+"\n")) != session.Source.SHA256 {
+		if tool.DigestBytes([]byte(planHash+"\n"+manifestHash+"\n")) != session.Source.SHA256 {
 			return nil, errors.New("session source changed after prepare")
 		}
 	}
@@ -171,7 +171,7 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 		if verify && provenance == "consumer" {
 			return nil, errors.New("consumer material cannot be verified")
 		}
-		connections := connectionIDs(session.Source, plan)
+		connections := ConnectionIDs(session.Source, plan)
 		artifact, err := artifactForMaterial(root, provenance, "external", connections)
 		if err != nil {
 			return nil, err
@@ -203,25 +203,24 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 			}
 			return nil, errors.New("session has no record capture to verify")
 		}
-		for _, artifact := range index.Artifacts {
-			if artifact.ID == index.LatestCapture {
-				if _, err := inspectMaterial(session, artifact, "verify"); err != nil {
-					return nil, err
-				}
-				return &artifact, nil
-			}
+		artifact, err := latestCaptureArtifact(index)
+		if err != nil {
+			return nil, err
 		}
-		return nil, errors.New("latest capture is absent from artifact index")
+		if _, err := inspectMaterial(session, *artifact, "verify"); err != nil {
+			return nil, err
+		}
+		return artifact, nil
 	}
 	if index.LatestCapture != "" {
-		for _, artifact := range index.Artifacts {
-			if artifact.ID == index.LatestCapture {
-				if _, err := inspectMaterial(session, artifact, "mock"); err != nil {
-					return nil, err
-				}
-				return &artifact, nil
-			}
+		artifact, err := latestCaptureArtifact(index)
+		if err != nil {
+			return nil, err
 		}
+		if _, err := inspectMaterial(session, *artifact, "mock"); err != nil {
+			return nil, err
+		}
+		return artifact, nil
 	}
 	for _, artifact := range slices.Backward(index.Artifacts) {
 		if artifact.Kind == "material" {
@@ -232,6 +231,20 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 		}
 	}
 	return nil, errors.New("no mock material or record capture is available")
+}
+
+func latestCaptureArtifact(index *Index) (*Artifact, error) {
+	for i := range index.Artifacts {
+		artifact := &index.Artifacts[i]
+		if artifact.ID != index.LatestCapture {
+			continue
+		}
+		if artifact.Kind != "capture" || artifact.Action != "record" {
+			return nil, errors.New("latest capture is not a record capture")
+		}
+		return artifact, nil
+	}
+	return nil, errors.New("latest capture is absent from artifact index")
 }
 
 func artifactAction(verify bool) string {

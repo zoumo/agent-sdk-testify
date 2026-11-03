@@ -5,15 +5,12 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
-	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 type (
-	object           = tool.Object
-	command          = tool.Command
-	builtinMaterial  = builtin.Material
-	builtinSelection = builtin.Selection
+	object          = tool.Object
+	builtinMaterial = builtin.Material
 )
 
 var (
@@ -24,13 +21,9 @@ var (
 	readJSON  = tool.ReadJSON
 	writeJSON = tool.WriteJSON
 
-	fileDigest        = tool.FileDigest
-	digestBytes       = tool.DigestBytes
-	copyFile          = tool.CopyFile
-	copyTree          = tool.CopyTree
-	writeFiles        = tool.WriteFiles
-	waitDriver        = tool.WaitDriver
-	materializeClaude = history.MaterializeClaude
+	fileDigest  = tool.FileDigest
+	digestBytes = tool.DigestBytes
+	copyTree    = tool.CopyTree
 
 	verifyFile         = corpus.VerifyFile
 	verifySourcePhase  = corpus.VerifySourcePhase
@@ -38,11 +31,8 @@ var (
 	corpusRegular      = corpus.Regular
 	corpusKeys         = corpus.Keys
 
-	readBuiltin           = builtin.Read
-	selectBuiltin         = builtin.Select
-	extractBuiltin        = builtin.Extract
-	checkBuiltinSelection = builtin.CheckSelection
-	checkBuiltinMaterial  = builtin.CheckMaterial
+	readBuiltin    = builtin.Read
+	extractBuiltin = builtin.Extract
 )
 
 func planAgentType(plan object) string {

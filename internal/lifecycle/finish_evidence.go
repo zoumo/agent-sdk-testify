@@ -48,10 +48,24 @@ func validateExecutionInventory(sessionDir string, index *Index) ([]string, erro
 		if artifact.ID == "" || artifacts[artifact.ID] {
 			errs = append(errs, fmt.Errorf("duplicate or empty artifact identity %q in index", artifact.ID))
 		}
+		switch artifact.Kind {
+		case "capture":
+			if artifact.Action != "record" {
+				errs = append(errs, fmt.Errorf("capture artifact %s does not identify a record action", artifact.ID))
+			}
+		case "material":
+			if artifact.Action != "mock" && artifact.Action != "verify" {
+				errs = append(errs, fmt.Errorf("material artifact %s has an invalid action", artifact.ID))
+			}
+		default:
+			errs = append(errs, fmt.Errorf("artifact %s has invalid kind %q", artifact.ID, artifact.Kind))
+		}
 		artifacts[artifact.ID] = true
 	}
-	if index.LatestCapture != "" && !artifacts[index.LatestCapture] {
-		errs = append(errs, errors.New("latest capture is absent from the artifact index"))
+	if index.LatestCapture != "" {
+		if _, err := latestCaptureArtifact(index); err != nil {
+			errs = append(errs, err)
+		}
 	}
 	var orphans []string
 	for _, entry := range entries {

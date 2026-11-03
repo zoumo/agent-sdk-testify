@@ -269,7 +269,7 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 	}
 	dir := ExecutionDir(sessionDir, indexed.ID)
 	descriptorPath := filepath.Join(dir, "execution.json")
-	digest, err := digestFile(descriptorPath)
+	digest, err := tool.FileDigest(descriptorPath)
 	if err != nil {
 		fail(err)
 	} else if digest != indexed.DescriptorSHA256 {
@@ -305,6 +305,9 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 					value.Action != execution.Artifact.Action ||
 					value.Provenance != execution.Artifact.Provenance ||
 					value.Path != execution.Artifact.Path ||
+					value.PlanSHA256 != execution.Artifact.PlanSHA256 ||
+					value.ManifestSHA256 != execution.Artifact.ManifestSHA256 ||
+					value.RecordingSHA256 != execution.Artifact.RecordingSHA256 ||
 					!reflect.DeepEqual(value.Connections, execution.Artifact.Connections) {
 					fail(errors.New("execution artifact identity differs from published artifact"))
 				}
@@ -487,19 +490,16 @@ func validateExecutionEnvironment(session *Session, execution Execution) error {
 			return fmt.Errorf("execution environment %s differs from its overlay", key)
 		}
 	}
-	configKey := "CODEX_HOME"
-	if session.AgentType == "claude" {
-		configKey = "CLAUDE_CONFIG_DIR"
+	profile, err := agentProfileFor(session.AgentType)
+	if err != nil {
+		return err
 	}
-	if execution.Env[configKey] != execution.Config {
-		return fmt.Errorf("execution environment %s differs from its config", configKey)
+	if execution.Env[profile.configKey] != execution.Config {
+		return fmt.Errorf("execution environment %s differs from its config", profile.configKey)
 	}
-	for key, value := range execution.Env {
-		switch key {
-		case "CODEX_HOME", "CLAUDE_CONFIG_DIR":
-			if value != execution.Config {
-				return fmt.Errorf("execution environment %s differs from its config", key)
-			}
+	for _, known := range agentProfiles {
+		if value, ok := execution.Env[known.configKey]; ok && value != execution.Config {
+			return fmt.Errorf("execution environment %s differs from its config", known.configKey)
 		}
 	}
 	return nil

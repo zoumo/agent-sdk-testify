@@ -107,7 +107,7 @@ func inspectMaterial(session *Session, artifact Artifact, action string) (*mater
 		if expected == "" {
 			return nil, fmt.Errorf("artifact omits %s hash", name)
 		}
-		actual, err := digestFile(filepath.Join(artifact.Path, filepath.FromSlash(name)))
+		actual, err := tool.FileDigest(filepath.Join(artifact.Path, filepath.FromSlash(name)))
 		if err != nil {
 			return nil, err
 		}

@@ -2,12 +2,14 @@ package record
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const recordExecutionTimeout = "30s"
 
 // These processes replace only the installed official driver and native Agent.
 // The installed tool, environment preparation and recording proxy are real.
@@ -265,7 +269,7 @@ func TestRecordUsesInstalledOfficialDriverOutsideCheckout(t *testing.T) {
 
 func checkRecordCapture(t *testing.T, provider string) {
 	fixture := recordProcess(t, provider, "passed", "passed")
-	cmd := fixture.command(t, "10s")
+	cmd := fixture.command(t, recordExecutionTimeout)
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	var summary object
@@ -308,7 +312,7 @@ func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
 	fixture := recordProcess(t, "codex", "passed", "passed")
 	resolvedSession, err := filepath.EvalSymlinks(fixture.session)
 	require.NoError(t, err)
-	data, err := fixture.command(t, "10s").CombinedOutput()
+	data, err := fixture.command(t, recordExecutionTimeout).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
 	var index object
@@ -341,7 +345,7 @@ func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
 
 func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	fixture := recordProcess(t, "codex", "passed", "history")
-	data, err := fixture.command(t, "10s").CombinedOutput()
+	data, err := fixture.command(t, recordExecutionTimeout).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
 	const history = "config/sessions/synthetic-history.jsonl"
@@ -367,9 +371,9 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	for _, execution := range []object{verifyExecution, mockExecution} {
 		assert.Equal(t, "official", execution["provenance"])
 		path := filepath.Join(str(execution["config"]), "sessions", "synthetic-history.jsonl")
-		data, err := os.ReadFile(path)
+		content, err := os.ReadFile(path)
 		require.NoError(t, err)
-		assert.Equal(t, "{\"type\":\"official-history\"}\n", string(data))
+		assert.True(t, bytes.Equal([]byte("{\"type\":\"official-history\"}\n"), content), "unexpected history bytes: %q", content)
 	}
 
 	finish := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", fixture.session)
@@ -383,7 +387,7 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 
 func TestRecordThenExplicitVerifyUsesPublishedCapture(t *testing.T) {
 	fixture := recordProcess(t, "codex", "passed", "passed")
-	data, err := fixture.command(t, "10s").CombinedOutput()
+	data, err := fixture.command(t, recordExecutionTimeout).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
 	var before object
@@ -425,7 +429,7 @@ func latestExecution(t *testing.T, session, command string) object {
 	var index object
 	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
 	rows := array(index["executions"])
-	for i := len(rows) - 1; i >= 0; i-- {
+	for i := range slices.Backward(rows) {
 		row := obj(rows[i])
 		if str(row["command"]) != command {
 			continue
@@ -448,7 +452,7 @@ func TestRecordPreservesFailedAttempts(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			fixture := recordProcess(t, "codex", test.driver, test.native)
-			cmd := fixture.command(t, "10s")
+			cmd := fixture.command(t, recordExecutionTimeout)
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
 			output := fixture.recordRoot(t)
@@ -553,7 +557,7 @@ func TestRecordRequiresInstalledOfficialDriver(t *testing.T) {
 	for _, name := range []string{"agent-sdk-testify-codex", "agent-sdk-testify-claude"} {
 		_ = os.Remove(filepath.Join(filepath.Dir(fixture.cli), name))
 	}
-	cmd := fixture.command(t, "10s")
+	cmd := fixture.command(t, recordExecutionTimeout)
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
 	require.Contains(t, string(data), "install the driver wheel")

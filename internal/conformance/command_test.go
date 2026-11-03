@@ -1,10 +1,8 @@
-package corpus
+package conformance
 
 import (
-	"bytes"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,7 +12,7 @@ import (
 
 func TestPublicCommands(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	out, stderr, code := publicCLI(t, binary, "--help")
+	out, stderr, code := runCLI(t, binary, nil, "--help")
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	rootHelp := string(out)
@@ -24,8 +22,9 @@ func TestPublicCommands(t *testing.T) {
 	for _, name := range []string{"internal-protocol", "internal-peer", "completion"} {
 		require.NotContains(t, rootHelp, name)
 	}
+	require.NotContains(t, strings.ToLower(rootHelp), "replay and finish")
 	for _, name := range []string{"simulate", "replay", "corpus", "protocol", "peer"} {
-		out, stderr, code = publicCLI(t, binary, name)
+		out, stderr, code = runCLI(t, binary, nil, name)
 		require.Equal(t, 2, code, string(out))
 		require.Empty(t, out)
 		require.Contains(t, stderr, "unknown command")
@@ -35,25 +34,25 @@ func TestPublicCommands(t *testing.T) {
 		{"--version"},
 		{"version"},
 	} {
-		out, stderr, code = publicCLI(t, binary, args...)
+		out, stderr, code = runCLI(t, binary, nil, args...)
 		require.Zero(t, code, stderr)
 		require.Empty(t, stderr)
 		require.Contains(t, string(out), "agent-sdk-testify 0.1.0-dev")
 	}
 
-	out, stderr, code = publicCLI(t, binary, "--internal-protocol", "--help")
+	out, stderr, code = runCLI(t, binary, nil, "--internal-protocol", "--help")
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	require.Contains(t, string(out), "record")
 	require.Contains(t, string(out), "mock")
 	require.Contains(t, string(out), "connect")
 
-	out, stderr, code = publicCLI(t, binary, "--internal-peer", "--help")
+	out, stderr, code = runCLI(t, binary, nil, "--internal-peer", "--help")
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	require.Contains(t, string(out), "--request")
 
-	out, stderr, code = publicCLI(t, binary, "--internal-protocol", "version")
+	out, stderr, code = runCLI(t, binary, nil, "--internal-protocol", "version")
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	require.Contains(t, string(out), "agent-sdk-testify 0.1.0-dev")
@@ -95,7 +94,7 @@ func TestPublicCommandExitContract(t *testing.T) {
 			}
 			args := []string{"--internal-protocol", "mock", "--provider", "codex", "--scenario", tc.source}
 			args = append(args, tc.extra...)
-			out, stderr, code := publicCLIInput(t, binary, input, args...)
+			out, stderr, code := runCLI(t, binary, input, args...)
 			require.Equal(t, tc.code, code, stderr)
 			require.Equal(t, tc.stdout, string(out))
 			require.Contains(t, stderr, tc.stderr)
@@ -105,34 +104,39 @@ func TestPublicCommandExitContract(t *testing.T) {
 
 func TestSinglePreparedSessionCLIContract(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	for _, command := range []string{"mock", "verify"} {
-		out, stderr, code := publicCLI(t, binary, command, "--help")
+	for _, command := range []string{"prepare", "record", "verify", "mock", "finish"} {
+		out, stderr, code := runCLI(t, binary, nil, command, "--help")
 		require.Zero(t, code, stderr)
 		help := string(out)
-		for _, legacy := range []string{"--prepare", "--run", "--finish", "--output", "--provider"} {
-			require.NotContains(t, help, legacy)
+		for _, retired := range []string{"--prepare", "--run", "--finish", "--output", "--provider", "--consumer", "--materials"} {
+			require.NotContains(t, help, retired)
 		}
 	}
+	out, stderr, code := runCLI(t, binary, nil, "mock", "--help")
+	require.Zero(t, code, stderr)
+	require.Contains(t, string(out), "managed mock alias")
+	require.NotContains(t, strings.ToLower(string(out)), "compatibility alias")
 
 	for _, args := range [][]string{
 		{"mock", "--prepare"},
 		{"mock", "--run", "/absolute/run.json"},
 		{"mock", "--finish", "/absolute/run.json"},
+		{"mock", "--provider", "codex", "--case", "SDK-CASE-001", "--report", "/tmp/report.json"},
 	} {
-		out, stderr, code := publicCLI(t, binary, args...)
+		out, stderr, code = runCLI(t, binary, nil, args...)
 		require.Equal(t, 2, code, stderr)
 		require.Empty(t, out)
-		require.Contains(t, stderr, "prepare, mock --session-dir, and finish")
+		require.NotContains(t, strings.ToLower(stderr), "legacy")
 	}
 
 	root := t.TempDir()
-	out, stderr, code := publicCLI(t, binary,
+	out, stderr, code = runCLI(t, binary, nil,
 		"verify", "--recording", filepath.Join(root, "capture"), "--output", filepath.Join(root, "output"))
 	require.Equal(t, 2, code, stderr)
 	require.Empty(t, out)
 	require.Contains(t, stderr, "unknown flag: --output")
 
-	out, stderr, code = publicCLI(t, binary, "verify", "--recording", filepath.Join(root, "capture"))
+	out, stderr, code = runCLI(t, binary, nil, "verify", "--recording", filepath.Join(root, "capture"))
 	require.Equal(t, 2, code, stderr)
 	require.Empty(t, out)
 	require.Contains(t, stderr, "--session-dir")
@@ -146,7 +150,7 @@ func TestPublicCommandParseFailuresDoNotStartHandlers(t *testing.T) {
 	for _, extra := range [][]string{{"--bogus"}, {"--timeout", "not-a-duration"}} {
 		args := append([]string{"record", "--session-dir", t.TempDir(), "--cmd", launcher}, extra...)
 		args = append(args, "--", "app-server")
-		out, stderr, code := publicCLI(t, binary, args...)
+		out, stderr, code := runCLI(t, binary, nil, args...)
 		require.Equal(t, 2, code)
 		require.Empty(t, out)
 		require.NotEmpty(t, stderr)
@@ -192,7 +196,7 @@ func TestPublicCommandConfigurationClassification(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			out, stderr, code := publicCLI(t, binary, tc.args...)
+			out, stderr, code := runCLI(t, binary, nil, tc.args...)
 			require.Equal(t, 2, code, stderr)
 			require.Empty(t, out)
 			require.Contains(t, stderr, "Usage:")
@@ -241,29 +245,10 @@ func TestInternalProtocolArgumentErrors(t *testing.T) {
 	cases = append(cases, []string{"--internal-protocol", "mock", "--provider", "claude", "--scenario", "x", "--sdk-test-handshakes", "answer"})
 	for _, args := range cases {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
-			out, stderr, code := publicCLI(t, binary, args...)
+			out, stderr, code := runCLI(t, binary, nil, args...)
 			require.Equal(t, 2, code, stderr)
 			require.Empty(t, out)
 			require.Contains(t, stderr, "Usage:")
 		})
 	}
-}
-
-func publicCLI(t *testing.T, binary string, args ...string) ([]byte, string, int) {
-	return publicCLIInput(t, binary, nil, args...)
-}
-
-func publicCLIInput(t *testing.T, binary string, input io.Reader, args ...string) ([]byte, string, int) {
-	t.Helper()
-	cmd := exec.CommandContext(t.Context(), binary, args...)
-	cmd.Stdin = input
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &stdout, &stderr
-	err := cmd.Run()
-	if err == nil {
-		return stdout.Bytes(), stderr.String(), 0
-	}
-	var exit *exec.ExitError
-	require.ErrorAs(t, err, &exit)
-	return stdout.Bytes(), stderr.String(), exit.ExitCode()
 }

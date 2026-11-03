@@ -13,6 +13,26 @@ func ValidateNativeArgs(provider string, args []string) error {
 	if _, err := recording.DefaultLimits(provider); err != nil {
 		return err
 	}
+	spec, ok := nativeArgumentSpecs[provider]
+	if !ok {
+		return fmt.Errorf("unsupported native provider %q", provider)
+	}
+	return validateNativeArguments(spec, args)
+}
+
+type nativeArgumentSpec struct {
+	bare         map[string]bool
+	flags        map[string]bool
+	values       map[string]string
+	equalsValues map[string]bool
+}
+
+var nativeArgumentSpecs = map[string]nativeArgumentSpec{
+	"codex":  codexNativeArguments,
+	"claude": claudeNativeArguments,
+}
+
+func validateNativeArguments(spec nativeArgumentSpec, args []string) error {
 	seen := map[string]bool{}
 	for i := 0; i < len(args); i++ {
 		name, value, equals := strings.Cut(args[i], "=")
@@ -20,19 +40,13 @@ func ValidateNativeArgs(provider string, args []string) error {
 			return fmt.Errorf("duplicate native startup argument %q", name)
 		}
 		seen[name] = true
-		if provider == "codex" && name == "app-server" && !equals {
+		if spec.bare[name] && !equals {
 			continue
 		}
-		values := map[string]string{"--listen": "stdio://"}
-		flags := map[string]bool{}
-		if provider == "claude" {
-			values = map[string]string{"--output-format": "stream-json", "--input-format": "stream-json", "--permission-prompt-tool": "stdio"}
-			flags = map[string]bool{"--verbose": true, "--include-partial-messages": true}
-			if (name == "--model" || name == "--resume") && equals && value != "" {
-				continue
-			}
+		if spec.equalsValues[name] && equals && value != "" {
+			continue
 		}
-		if want, ok := values[name]; ok {
+		if want, ok := spec.values[name]; ok {
 			if !equals {
 				i++
 				if i == len(args) {
@@ -43,7 +57,7 @@ func ValidateNativeArgs(provider string, args []string) error {
 			if value != want {
 				return fmt.Errorf("unsupported native transport/format for %s", name)
 			}
-		} else if !flags[name] || equals {
+		} else if !spec.flags[name] || equals {
 			return fmt.Errorf("unsupported native startup argument %q", name)
 		}
 	}

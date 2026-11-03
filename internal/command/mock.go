@@ -23,7 +23,7 @@ func newMockCommand() *cobra.Command {
 	c := &cobra.Command{
 		Use:                "mock [flags] [native startup arguments]",
 		Short:              "Replay recorded native protocol",
-		Long:               "Replay a capture or expose a prepared session. Builtin queries use mock --list/--describe. The single-connection compatibility alias prepares, runs and finishes one transient session.",
+		Long:               "Replay a capture or expose a prepared session. Builtin queries use mock --list/--describe. The managed mock alias prepares, runs and finishes one transient session.",
 		DisableFlagParsing: true,
 	}
 	f := c.Flags()
@@ -40,7 +40,7 @@ func newMockCommand() *cobra.Command {
 	f.IntVar(&o.ProgressFD, "progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
 	f.BoolVarP(&help, "help", "h", false, "Help for mock")
 	c.RunE = func(c *cobra.Command, args []string) error {
-		if err := rejectLegacyMockModes(args); err != nil {
+		if err := rejectRemovedMockModes(args); err != nil {
 			return exitcode.Fail(exitcode.Configuration, err)
 		}
 		native, help, err := parseInterleavedFlags(f, args)
@@ -63,7 +63,7 @@ func newMockCommand() *cobra.Command {
 	return c
 }
 
-func rejectLegacyMockModes(args []string) error {
+func rejectRemovedMockModes(args []string) error {
 	for _, arg := range args {
 		if arg == "--" {
 			return nil
@@ -71,7 +71,7 @@ func rejectLegacyMockModes(args []string) error {
 		name, _, _ := strings.Cut(strings.TrimPrefix(arg, "--"), "=")
 		switch name {
 		case "prepare", "run", "finish", "output":
-			return fmt.Errorf("legacy mock --%s is unavailable; use prepare, mock --session-dir, and finish", name)
+			return fmt.Errorf("mock --%s is unavailable; use prepare, mock --session-dir, and finish", name)
 		case "provider":
 			return errors.New("--provider is unavailable; use --agent")
 		}
@@ -85,6 +85,9 @@ func validateMockModes(o mock.Options) error {
 	}
 	if o.SessionDir != "" && o.Case != "" {
 		return errors.New("mock modes are mutually exclusive")
+	}
+	if o.JSON && !o.List && !o.Describe {
+		return errors.New("--json is only valid with --list or --describe")
 	}
 	if o.SessionDir != "" && o.Recording != "" && !filepath.IsAbs(o.Recording) {
 		return errors.New("--recording must be an absolute path")
@@ -111,14 +114,8 @@ func parseInterleavedFlags(flags *pflag.FlagSet, args []string) ([]string, bool,
 			native = append(native, arg)
 			continue
 		}
-		optionalValue := name == "finish" && !hasValue && i+1 < len(args) && !strings.HasPrefix(args[i+1], "-")
-		if optionalValue {
-			parsed = append(parsed, arg+"="+args[i+1])
-			i++
-			continue
-		}
 		parsed = append(parsed, arg)
-		if !hasValue && (flag.NoOptDefVal == "" || optionalValue) {
+		if !hasValue && flag.NoOptDefVal == "" {
 			if i+1 == len(args) {
 				return nil, false, fmt.Errorf("missing value for --%s", name)
 			}

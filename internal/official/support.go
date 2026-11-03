@@ -19,6 +19,7 @@ type Options struct {
 	DriverArgs                                                                           []string
 	NativeCommand                                                                        string
 	NativeArgs                                                                           []string
+	RuntimeEnv                                                                           map[string]string
 	Plan                                                                                 tool.Object
 }
 

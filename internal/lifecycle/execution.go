@@ -20,7 +20,6 @@ type ActionRun struct {
 	Dir          string
 	OverlayRoot  string
 	ArtifactRoot string
-	Created      bool
 	lock         *Lock
 }
 
@@ -63,7 +62,7 @@ func readSessionUnlocked(sessionDir string) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	hash, err := digestFile(SessionPath(dir))
+	hash, err := tool.FileDigest(SessionPath(dir))
 	if err != nil {
 		return nil, err
 	}
@@ -168,12 +167,15 @@ func executionConnections(dir, action string, ids []string, material *Artifact, 
 			connection.Receipt = filepath.Join(dir, "receipts", id+".json")
 			connection.ProcessReceipt = filepath.Join(dir, "receipts", id+".process.json")
 		}
-		if material != nil && action != "record" {
+		if action == "record" {
+			connection.Material = dir
+		}
+		if material != nil {
 			recording := filepath.Join(material.Path, "raw", "raw.jsonl")
 			if id == "probe" {
 				recording = filepath.Join(material.Path, "remote-probe", "raw", "raw.jsonl")
 			}
-			recordingHash, err := digestFile(recording)
+			recordingHash, err := tool.FileDigest(recording)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -207,7 +209,10 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 			_ = os.RemoveAll(overlayRoot)
 		}
 	}()
-	if err := copyTree(filepath.Join(session.ResourceRoot, "baseline"), overlayRoot); err != nil {
+	if err := tool.CopyTree(filepath.Join(session.ResourceRoot, "baseline"), overlayRoot); err != nil {
+		return "", nil, err
+	}
+	if err := prepareExecutionAuthentication(session, action, overlayRoot); err != nil {
 		return "", nil, err
 	}
 	if action == "mock" || action == "verify" {
@@ -249,6 +254,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	limits := session.Limits
 	if timeout > 0 {
 		limits.TimeoutMS = timeout.Milliseconds()
+		limits.TimeoutNS = int64(timeout)
 	}
 	route := session.Routes[action]
 	provenance, err := executionProvenance(session, action, material)
@@ -277,7 +283,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 		Tmp:           filepath.Join(overlayRoot, "tmp"),
 		HistorySeed:   filepath.Join(overlayRoot, "history-seed"),
 		HistoryFiles:  historyFiles,
-		Env:           executionEnvironment(session, action, overlayRoot),
+		Env:           environmentAt(session, overlayRoot),
 		Connections:   connections,
 		Receipts:      receipts,
 		ArtifactRoot:  artifactRoot,
@@ -285,6 +291,11 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 		Limits:        limits,
 		StartedAt:     now(),
 	}
+	runtimeEnv, err := executionRuntimeEnvironment(session, action, overlayRoot)
+	if err != nil {
+		return Execution{}, err
+	}
+	execution.RuntimeEnv = runtimeEnv
 	if action == "record" {
 		artifactID, err := randomID()
 		if err != nil {
@@ -371,7 +382,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 		return nil, err
 	}
 	routeBound = true
-	ids := connectionIDs(session.Source, plan)
+	ids := ConnectionIDs(session.Source, plan)
 	if material != nil {
 		if len(material.Connections) > 0 {
 			ids = append([]string(nil), material.Connections...)
@@ -388,7 +399,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	if err := writeExclusive(descriptorPath, execution); err != nil {
 		return nil, err
 	}
-	descriptorHash, err := digestFile(descriptorPath)
+	descriptorHash, err := tool.FileDigest(descriptorPath)
 	if err != nil {
 		return nil, err
 	}
@@ -415,7 +426,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	}); err != nil {
 		return nil, err
 	}
-	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, Created: true, lock: lock}
+	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, lock: lock}
 	success = true
 	return run, nil
 }
@@ -430,7 +441,7 @@ func BeginVerify(sessionDir string, args []string, timeout time.Duration, materi
 
 // BeginMock either creates the execution that declares all connections or
 // joins its unstarted connection slot. The returned lock covers the peer life.
-func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.Duration, material *Artifact) (*ActionRun, error) {
+func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *Artifact) (*ActionRun, error) {
 	if material == nil {
 		return nil, errors.New("mock requires an input material")
 	}
@@ -477,7 +488,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 			if connectionStarted(&existing, connection) {
 				return nil, fmt.Errorf("mock connection %s already started for execution %s", connection, existing.ID)
 			}
-			run, joinErr := joinMock(sessionDir, session, &existing, connection, nativeArgs, timeout, material, lock)
+			run, joinErr := joinMock(sessionDir, session, &existing, connection, nativeArgs, timeout, progressFD, material, lock)
 			if joinErr != nil {
 				return nil, joinErr
 			}
@@ -493,7 +504,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if err != nil {
 		return nil, err
 	}
-	ids := connectionIDs(session.Source, plan)
+	ids := ConnectionIDs(session.Source, plan)
 	if material != nil && len(material.Connections) > 0 {
 		ids = append([]string(nil), material.Connections...)
 	}
@@ -528,6 +539,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if err != nil {
 		return nil, err
 	}
+	execution.ProgressFD = progressFD
 	if err := execution.Validate(*session); err != nil {
 		return nil, err
 	}
@@ -535,7 +547,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if err := writeExclusive(descriptorPath, execution); err != nil {
 		return nil, err
 	}
-	descriptorHash, err := digestFile(descriptorPath)
+	descriptorHash, err := tool.FileDigest(descriptorPath)
 	if err != nil {
 		return nil, err
 	}
@@ -566,7 +578,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if err := lock.Downgrade(); err != nil {
 		return nil, err
 	}
-	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, Created: true, lock: lock}
+	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, lock: lock}
 	success = true
 	return run, nil
 }
@@ -586,7 +598,7 @@ func beginMockLock(sessionDir string) (*Lock, bool, error) {
 	return lock, false, nil
 }
 
-func joinMock(sessionDir string, session *Session, indexed *IndexExecution, connection string, nativeArgs []string, timeout time.Duration, material *Artifact, lock *Lock) (*ActionRun, error) {
+func joinMock(sessionDir string, session *Session, indexed *IndexExecution, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *Artifact, lock *Lock) (*ActionRun, error) {
 	dir := ExecutionDir(sessionDir, indexed.ID)
 	var execution Execution
 	if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
@@ -604,7 +616,7 @@ func joinMock(sessionDir string, session *Session, indexed *IndexExecution, conn
 	if !found {
 		return nil, fmt.Errorf("undeclared mock connection %s", connection)
 	}
-	if err := validateMockJoin(execution, nativeArgs, timeout, material); err != nil {
+	if err := validateMockJoin(execution, nativeArgs, timeout, progressFD, material); err != nil {
 		return nil, err
 	}
 	if err := claimMockConnection(execution, connection); err != nil {
@@ -620,7 +632,7 @@ func joinMock(sessionDir string, session *Session, indexed *IndexExecution, conn
 	return &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: filepath.Dir(execution.Home), ArtifactRoot: execution.ArtifactRoot, lock: lock}, nil
 }
 
-func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Duration, material *Artifact) error {
+func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Duration, progressFD int, material *Artifact) error {
 	if material == nil {
 		return errors.New("mock join requires an input material")
 	}
@@ -630,8 +642,11 @@ func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Dur
 		material.RecordingSHA256 != execution.Artifact.RecordingSHA256 {
 		return errors.New("mock join material differs from the open execution")
 	}
-	if timeout.Milliseconds() != execution.Limits.TimeoutMS {
+	if int64(timeout) != execution.Limits.TimeoutNS {
 		return errors.New("mock join timeout differs from the open execution")
+	}
+	if progressFD != execution.ProgressFD {
+		return errors.New("mock join progress descriptor differs from the open execution")
 	}
 	if !slices.Equal(nativeArgs, execution.NativeArgs) {
 		return errors.New("mock join native arguments differ from the open execution")
@@ -783,7 +798,16 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error 
 			}
 		}
 	}
-	return updateIndex(sessionDir, func(index *Index) error {
+	descriptorPath := filepath.Join(run.Dir, "execution.json")
+	previousDescriptor, err := os.ReadFile(descriptorPath)
+	if err != nil {
+		return err
+	}
+	descriptorSHA256, err := bindExecutionCapture(run, artifact)
+	if err != nil {
+		return err
+	}
+	err = updateIndex(sessionDir, func(index *Index) error {
 		for _, existing := range index.Artifacts {
 			if existing.ID == artifact.ID {
 				return errors.New("artifact identity already exists")
@@ -794,8 +818,36 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error 
 		for i := range index.Executions {
 			if index.Executions[i].ID == run.Execution.ExecutionID {
 				index.Executions[i].ArtifactID = artifact.ID
+				index.Executions[i].DescriptorSHA256 = descriptorSHA256
 			}
 		}
 		return nil
 	})
+	if err != nil {
+		_ = os.WriteFile(descriptorPath, previousDescriptor, 0o600)
+		return err
+	}
+	return nil
+}
+
+func bindExecutionCapture(run *ActionRun, artifact Artifact) (string, error) {
+	var ids []string
+	for _, connection := range run.Execution.Connections {
+		ids = append(ids, connection.ID)
+	}
+	connections, receipts, err := executionConnections(artifact.Path, "record", ids, &artifact, run.Session.Routes["record"])
+	if err != nil {
+		return "", err
+	}
+	run.Execution.Connections = connections
+	run.Execution.Receipts = receipts
+	run.Execution.Artifact = artifact
+	if err := run.Execution.Validate(*run.Session); err != nil {
+		return "", err
+	}
+	path := filepath.Join(run.Dir, "execution.json")
+	if err := writeAtomic(path, run.Execution); err != nil {
+		return "", err
+	}
+	return tool.FileDigest(path)
 }

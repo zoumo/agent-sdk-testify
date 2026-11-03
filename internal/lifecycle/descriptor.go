@@ -35,6 +35,7 @@ type Source struct {
 
 type Limits struct {
 	TimeoutMS     int64 `json:"timeoutMs,omitempty"`
+	TimeoutNS     int64 `json:"timeoutNs,omitempty"`
 	ProtocolBytes int64 `json:"protocolBytes,omitempty"`
 	StderrBytes   int64 `json:"stderrBytes,omitempty"`
 	MaxFrames     int64 `json:"maxFrames,omitempty"`
@@ -56,6 +57,7 @@ type Route struct {
 	Workspace   string               `json:"workspace"`
 	ProtocolCwd string               `json:"protocolCwd"`
 	Env         map[string]string    `json:"env"`
+	RuntimeEnv  []string             `json:"runtimeEnv,omitempty"`
 	Connections []ConnectionTemplate `json:"connections"`
 }
 
@@ -120,12 +122,14 @@ type Execution struct {
 	HistorySeed   string                `json:"historySeed"`
 	HistoryFiles  map[string]string     `json:"historyFiles,omitempty"`
 	Env           map[string]string     `json:"env"`
+	RuntimeEnv    map[string]string     `json:"-"`
 	Connections   []ExecutionConnection `json:"connections"`
 	Receipts      []string              `json:"receipts"`
 	ArtifactRoot  string                `json:"artifactRoot"`
 	Artifact      Artifact              `json:"artifact"`
 	Admission     *Admission            `json:"admission,omitempty"`
 	Limits        Limits                `json:"limits"`
+	ProgressFD    int                   `json:"progressFd,omitempty"`
 	StartedAt     string                `json:"startedAt"`
 }
 
@@ -294,6 +298,13 @@ func (e Execution) Validate(s Session) error {
 	if e.Executor == "" || e.Target == "" || e.Provenance == "" {
 		return errors.New("incomplete execution action")
 	}
+	if e.Command == "mock" {
+		if e.ProgressFD != -1 && e.ProgressFD < 3 {
+			return errors.New("invalid mock progress descriptor")
+		}
+	} else if e.ProgressFD != 0 {
+		return errors.New("non-mock execution declares a progress descriptor")
+	}
 	if err := history.ValidateBindings(e.HistoryFiles); err != nil {
 		return err
 	}
@@ -323,7 +334,14 @@ func (e Execution) Validate(s Session) error {
 		if c.ProcessReceipt != "" && !filepath.IsAbs(c.ProcessReceipt) {
 			return errors.New("connection process receipt must be absolute")
 		}
-		if e.Command != "record" {
+		if e.Command == "record" {
+			if c.Material != e.Artifact.Path ||
+				c.PlanSHA256 != e.Artifact.PlanSHA256 ||
+				c.ManifestSHA256 != e.Artifact.ManifestSHA256 ||
+				(e.Artifact.RecordingSHA256 != "" && c.RecordingSHA256 == "") {
+				return fmt.Errorf("connection %s material differs from the execution capture", c.ID)
+			}
+		} else {
 			if c.Material != e.Artifact.Path ||
 				c.PlanSHA256 != e.Artifact.PlanSHA256 ||
 				c.ManifestSHA256 != e.Artifact.ManifestSHA256 ||
@@ -366,6 +384,11 @@ func readIndex(path string) (*Index, error) {
 	}
 	if index.SchemaVersion != SchemaVersion || index.SessionID == "" || index.SessionSHA256 == "" {
 		return nil, errors.New("invalid execution index")
+	}
+	if index.LatestCapture != "" {
+		if _, err := latestCaptureArtifact(&index); err != nil {
+			return nil, err
+		}
 	}
 	return &index, nil
 }

@@ -60,16 +60,18 @@ func resolveSource(o PrepareOptions) (*sourceSpec, error) {
 }
 
 func validateAgent(agent string) error {
-	if agent != "codex" && agent != "claude" {
-		return fmt.Errorf("unsupported agent type %q: expected codex or claude", agent)
-	}
-	return nil
+	_, err := agentProfileFor(agent)
+	return err
 }
 
 func caseBindings(id string) ([]string, error) {
 	var found []string
-	for _, provider := range []string{"codex", "claude"} {
-		raw, err := fs.ReadFile(data.Scenarios(), "bindings/"+provider+".json")
+	for _, provider := range agentTypes() {
+		profile, err := agentProfileFor(provider)
+		if err != nil {
+			return nil, err
+		}
+		raw, err := fs.ReadFile(data.Scenarios(), profile.binding)
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +116,7 @@ func resolveCase(o PrepareOptions) (*sourceSpec, error) {
 	source := Source{
 		Kind:          "case",
 		ID:            o.Case,
-		SHA256:        digestBytes(raw),
+		SHA256:        tool.DigestBytes(raw),
 		Provenance:    "official",
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
@@ -161,7 +163,7 @@ func resolvePlan(o PrepareOptions) (*sourceSpec, error) {
 		Kind:          "plan",
 		ID:            tool.Str(plan["caseId"]),
 		Path:          path,
-		SHA256:        digestBytes(raw),
+		SHA256:        tool.DigestBytes(raw),
 		Provenance:    "consumer",
 		DriverProfile: "consumer",
 	}
@@ -251,9 +253,24 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err := tool.ReadJSON(filepath.Join(path, "manifest.json"), &manifest); err != nil {
 		return nil, err
 	}
-	agent, err := materialAgentType(plan)
+	var rawManifest tool.Object
+	if err := tool.ReadJSON(filepath.Join(path, "raw", "manifest.json"), &rawManifest); err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	manifestAgent, err := materialManifestAgentType(manifest, rawManifest)
 	if err != nil {
 		return nil, err
+	}
+	planAgent, err := materialAgentType(plan)
+	if err != nil {
+		return nil, err
+	}
+	if manifestAgent != "" && planAgent != "" && manifestAgent != planAgent {
+		return nil, fmt.Errorf("recording manifest agent %q conflicts with plan provider %q", manifestAgent, planAgent)
+	}
+	agent := manifestAgent
+	if agent == "" {
+		agent = planAgent
 	}
 	if agent == "" {
 		return nil, errors.New("recording does not identify an agent type")
@@ -268,15 +285,15 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err != nil {
 		return nil, err
 	}
-	planHash, err := digestFile(filepath.Join(path, "plan.json"))
+	planHash, err := tool.FileDigest(filepath.Join(path, "plan.json"))
 	if err != nil {
 		return nil, err
 	}
-	manifestHash, err := digestFile(filepath.Join(path, "manifest.json"))
+	manifestHash, err := tool.FileDigest(filepath.Join(path, "manifest.json"))
 	if err != nil {
 		return nil, err
 	}
-	sourceHash := digestBytes([]byte(planHash + "\n" + manifestHash + "\n"))
+	sourceHash := tool.DigestBytes([]byte(planHash + "\n" + manifestHash + "\n"))
 	source := Source{
 		Kind:          "recording",
 		ID:            tool.Str(plan["caseId"]),
@@ -301,6 +318,52 @@ func materialAgentType(plan tool.Object) (string, error) {
 	return provider, nil
 }
 
+func materialManifestAgentType(manifest, rawManifest tool.Object) (string, error) {
+	var found []string
+	for _, value := range []tool.Object{manifest, rawManifest, tool.Obj(rawManifest["native"])} {
+		agentType := tool.Str(value["agentType"])
+		provider := tool.Str(value["provider"])
+		if agentType != "" && provider != "" && agentType != provider {
+			return "", fmt.Errorf("material manifest provider %q conflicts with agentType %q", provider, agentType)
+		}
+		identity := agentType
+		if identity == "" {
+			identity = provider
+		}
+		if identity != "" {
+			found = append(found, identity)
+		}
+	}
+	if len(found) > 0 {
+		agent := found[0]
+		for _, value := range found[1:] {
+			if value != agent {
+				return "", errors.New("material manifest contains conflicting agent identities")
+			}
+		}
+		if err := validateAgent(agent); err != nil {
+			return "", err
+		}
+		return agent, nil
+	}
+	native := tool.Obj(rawManifest["native"])
+	agent := ""
+	for _, name := range agentTypes() {
+		profile, err := agentProfileFor(name)
+		if err != nil {
+			return "", err
+		}
+		if !profile.matchesNative(native) {
+			continue
+		}
+		if agent != "" {
+			return "", errors.New("material manifest does not uniquely identify its agent")
+		}
+		agent = name
+	}
+	return agent, nil
+}
+
 func planFiles(plan tool.Object) (tool.Object, error) {
 	files := tool.Obj(tool.Obj(plan["scenario"])["files"])
 	for name, value := range files {
@@ -315,11 +378,12 @@ func planFiles(plan tool.Object) (tool.Object, error) {
 }
 
 func planProtocolCwd(plan tool.Object, workspace string) string {
-	if tool.Str(plan["provider"]) == "claude" || tool.Str(plan["agentType"]) == "claude" {
-		return workspace
+	agentType := tool.Str(plan["provider"])
+	if agentType == "" {
+		agentType = tool.Str(plan["agentType"])
 	}
-	if project := tool.Str(plan["project"]); project != "" {
-		return project
+	if profile, ok := agentProfiles[agentType]; ok {
+		return profile.protocolCWD(plan, workspace)
 	}
 	return workspace
 }

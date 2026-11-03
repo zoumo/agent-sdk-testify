@@ -26,7 +26,7 @@ type IO struct{ In, Out, Err *os.File }
 
 func Execute(ctx context.Context, args []string, streams IO) int {
 	root := New(streams)
-	root.SetArgs(compatibilityArgs(args))
+	root.SetArgs(internalArgs(args))
 	err := root.ExecuteContext(ctx)
 	if err == nil {
 		return exitcode.OK
@@ -42,7 +42,7 @@ func Execute(ctx context.Context, args []string, streams IO) int {
 }
 
 func usageTarget(root *cobra.Command, args []string, out *os.File) {
-	cmd, _, err := root.Find(compatibilityArgs(args))
+	cmd, _, err := root.Find(internalArgs(args))
 	if err != nil || cmd == nil {
 		cmd = root
 	}
@@ -57,7 +57,7 @@ func hasClassifiedError(err error) bool {
 func New(streams IO) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "agent-sdk-testify",
-		Short:         "Prepare, record, verify, replay and finish SDK protocol sessions",
+		Short:         "Prepare, record, verify, mock and finish SDK protocol sessions",
 		Version:       version.Version,
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -262,12 +262,12 @@ func peerCommand(streams IO) *cobra.Command {
 	return c
 }
 
-func compatibilityArgs(args []string) []string {
+func internalArgs(args []string) []string {
 	if len(args) == 0 {
 		return args
 	}
-	// Normalize only legacy hidden spellings. The single Cobra root still owns
-	// command selection, validation and handler execution.
+	// Normalize the hidden process-interface spellings. The single Cobra root
+	// still owns command selection, validation and handler execution.
 	switch args[0] {
 	case "--internal-protocol":
 		return append([]string{"internal-protocol"}, args[1:]...)

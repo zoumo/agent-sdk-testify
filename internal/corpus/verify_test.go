@@ -444,7 +444,7 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 }
 
 func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
-	cmd, _, session := verifyFixture(t, "passed")
+	cmd, _, _ := verifyFixture(t, "passed")
 	s := &corpusSuite{}
 	s.SetT(t)
 	s.SetupTest()
@@ -455,7 +455,7 @@ func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
 	report["facts"] = []string{"changed after adoption"}
 	require.NoError(t, writeJSON(filepath.Join(source, "report.json"), report))
 	env := cmd.Env
-	session = prepareVerifySession(t, source, env)
+	session := prepareVerifySession(t, source, env)
 	cmd = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--session-dir", session)
 	cmd.Dir = t.TempDir()
 	cmd.Env = env

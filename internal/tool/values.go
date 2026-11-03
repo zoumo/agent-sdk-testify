@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -70,6 +71,13 @@ func DigestBytes(data []byte) string {
 }
 
 func FileDigest(path string) (string, error) {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return "", err
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("source is not a regular file: %s", path)
+	}
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
