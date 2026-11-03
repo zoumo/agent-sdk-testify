@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -170,10 +171,10 @@ func executionConnections(dir, action string, ids []string, material string) ([]
 	return connections, receipts
 }
 
-func createExecutionOverlay(session *Session, action, dir string, plan tool.Object) (string, error) {
+func createExecutionOverlay(session *Session, action, dir string, plan tool.Object, material *Artifact) (string, map[string]string, error) {
 	route, ok := session.Routes[action]
 	if !ok || !route.Enabled {
-		return "", fmt.Errorf("%s is not available for this session", action)
+		return "", nil, fmt.Errorf("%s is not available for this session", action)
 	}
 	overlayRoot := filepath.Join(dir, "overlay")
 	success := false
@@ -187,19 +188,33 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 		}
 	}()
 	if err := copyTree(filepath.Join(session.ResourceRoot, "baseline"), overlayRoot); err != nil {
-		return "", err
+		return "", nil, err
 	}
 	if action == "mock" || action == "verify" {
 		if err := cleanMockConfig(overlayRoot, plan, session.AgentType); err != nil {
-			return "", err
+			return "", nil, err
+		}
+		if err := history.Reset(overlayRoot); err != nil {
+			return "", nil, err
+		}
+		if err := os.MkdirAll(filepath.Join(overlayRoot, "history-seed"), 0o700); err != nil {
+			return "", nil, err
+		}
+	}
+	var historyFiles map[string]string
+	if (action == "mock" || action == "verify") && material != nil {
+		var err error
+		historyFiles, err = history.Materialize(material.Path, overlayRoot)
+		if err != nil {
+			return "", nil, err
 		}
 	}
 	slotsTouched = true
 	if err := bindRouteSlots(filepath.Join(session.ResourceRoot, "routes", action), overlayRoot); err != nil {
-		return "", err
+		return "", nil, err
 	}
 	success = true
-	return overlayRoot, nil
+	return overlayRoot, historyFiles, nil
 }
 
 func executionProtocolCwd(action string, plan tool.Object, workspace string) string {
@@ -209,13 +224,17 @@ func executionProtocolCwd(action string, plan tool.Object, workspace string) str
 	return planProtocolCwd(plan, workspace)
 }
 
-func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs []string, timeout time.Duration, ids []string, material *Artifact, plan tool.Object) (Execution, error) {
+func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs []string, timeout time.Duration, ids []string, material *Artifact, plan tool.Object, historyFiles map[string]string) (Execution, error) {
 	workspace := filepath.Join(overlayRoot, "workspace")
 	limits := session.Limits
 	if timeout > 0 {
 		limits.TimeoutMS = timeout.Milliseconds()
 	}
 	route := session.Routes[action]
+	provenance, err := executionProvenance(session, action, material)
+	if err != nil {
+		return Execution{}, err
+	}
 	materialPath := ""
 	if material != nil {
 		materialPath = material.Path
@@ -230,13 +249,14 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 		Source:        session.Source,
 		Executor:      route.Executor,
 		Target:        route.Target,
-		Provenance:    route.Provenance,
+		Provenance:    provenance,
 		Workspace:     workspace,
 		ProtocolCwd:   executionProtocolCwd(action, plan, workspace),
 		Home:          filepath.Join(overlayRoot, "home"),
 		Config:        filepath.Join(overlayRoot, "config"),
 		Tmp:           filepath.Join(overlayRoot, "tmp"),
 		HistorySeed:   filepath.Join(overlayRoot, "history-seed"),
+		HistoryFiles:  historyFiles,
 		Env:           executionEnvironment(session, action, overlayRoot),
 		Connections:   connections,
 		Receipts:      receipts,
@@ -253,7 +273,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 			ID:          artifactID,
 			Kind:        "capture",
 			Action:      "record",
-			Provenance:  route.Provenance,
+			Provenance:  provenance,
 			Path:        artifactRoot,
 			Connections: append([]string(nil), ids...),
 			CreatedAt:   now(),
@@ -325,7 +345,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
-	overlayRoot, err := createExecutionOverlay(session, action, dir, plan)
+	overlayRoot, historyFiles, err := createExecutionOverlay(session, action, dir, plan, material)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +356,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 			ids = append([]string(nil), material.Connections...)
 		}
 	}
-	execution, err := newExecution(session, action, id, overlayRoot, artifactRoot, commandArgs, timeout, ids, material, plan)
+	execution, err := newExecution(session, action, id, overlayRoot, artifactRoot, commandArgs, timeout, ids, material, plan, historyFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -477,12 +497,12 @@ func BeginMock(sessionDir, connection string, commandArgs []string, timeout time
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
-	overlayRoot, err := createExecutionOverlay(session, "mock", dir, plan)
+	overlayRoot, historyFiles, err := createExecutionOverlay(session, "mock", dir, plan, material)
 	if err != nil {
 		return nil, err
 	}
 	routeBound = true
-	execution, err := newExecution(session, "mock", id, overlayRoot, artifactRoot, commandArgs, timeout, ids, material, plan)
+	execution, err := newExecution(session, "mock", id, overlayRoot, artifactRoot, commandArgs, timeout, ids, material, plan, historyFiles)
 	if err != nil {
 		return nil, err
 	}

@@ -17,11 +17,12 @@ type (
 )
 
 var (
-	obj       = tool.Obj
-	str       = tool.Str
-	array     = tool.Array
-	readJSON  = tool.ReadJSON
-	writeJSON = tool.WriteJSON
+	obj         = tool.Obj
+	str         = tool.Str
+	array       = tool.Array
+	readJSON    = tool.ReadJSON
+	writeJSON   = tool.WriteJSON
+	digestBytes = tool.DigestBytes
 )
 
 func writePeerLauncher(root, phase string, peer command) (string, error) {

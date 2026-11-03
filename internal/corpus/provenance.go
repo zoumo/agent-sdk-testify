@@ -125,7 +125,7 @@ func WriteSourceManifest(root string, outcome result) error {
 			files[entry.Name()] = digest
 		}
 	}
-	for _, dir := range []string{"config/projects", "config/sessions"} {
+	for _, dir := range []string{"config/projects", "config/sessions", "history-seed"} {
 		if _, e := os.Stat(filepath.Join(root, dir)); os.IsNotExist(e) {
 			continue
 		}
@@ -133,17 +133,24 @@ func WriteSourceManifest(root string, outcome result) error {
 			if e != nil {
 				return e
 			}
-			if !d.IsDir() && filepath.Ext(p) == ".jsonl" {
-				rel, e := filepath.Rel(root, p)
-				if e != nil {
-					return e
-				}
-				digest, e := hash(p)
-				if e != nil {
-					return e
-				}
-				saved[rel] = digest
+			if d.Type()&os.ModeSymlink != 0 {
+				return fmt.Errorf("source history symlink is forbidden: %s", p)
 			}
+			if d.IsDir() {
+				return nil
+			}
+			if !d.Type().IsRegular() {
+				return fmt.Errorf("source history is not a regular file: %s", p)
+			}
+			rel, e := filepath.Rel(root, p)
+			if e != nil {
+				return e
+			}
+			digest, e := hash(p)
+			if e != nil {
+				return e
+			}
+			saved[filepath.ToSlash(rel)] = digest
 			return nil
 		}); err != nil {
 			return err

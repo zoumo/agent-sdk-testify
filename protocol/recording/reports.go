@@ -48,6 +48,7 @@ type Manifest struct {
 
 type Receipt struct {
 	Version         int    `json:"version"`
+	Status          string `json:"status"`
 	FullConsumption bool   `json:"fullConsumption"`
 	NativeLaunched  bool   `json:"nativeLaunched"`
 	Peer            string `json:"peer"`
@@ -55,6 +56,7 @@ type Receipt struct {
 	Frames          int    `json:"frames"`
 	RecordingSHA256 string `json:"recordingSHA256"`
 	ClientEOF       bool   `json:"clientEOF"`
+	CleanupComplete bool   `json:"cleanupComplete"`
 }
 
 // ValidateManifest validates an explicitly supplied v1 format descriptor and the

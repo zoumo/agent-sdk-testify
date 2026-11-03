@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
@@ -58,25 +59,26 @@ type Route struct {
 }
 
 type Session struct {
-	SchemaVersion int               `json:"schemaVersion"`
-	SessionID     string            `json:"sessionId"`
-	Tool          Command           `json:"tool"`
-	ToolVersion   string            `json:"toolVersion"`
-	ToolSHA256    string            `json:"toolSHA256"`
-	AgentType     string            `json:"agentType"`
-	Source        Source            `json:"source"`
-	SourceSHA256  string            `json:"sourceSHA256"`
-	HistorySeed   string            `json:"historySeed,omitempty"`
-	ResourceRoot  string            `json:"resourceRoot"`
-	Workspace     string            `json:"workspace"`
-	Home          string            `json:"home"`
-	Config        string            `json:"config"`
-	Tmp           string            `json:"tmp"`
-	ProtocolCwd   string            `json:"protocolCwd,omitempty"`
-	Env           map[string]string `json:"env"`
-	Routes        map[string]Route  `json:"routes"`
-	Finish        Command           `json:"finish"`
-	Limits        Limits            `json:"limits"`
+	SchemaVersion    int               `json:"schemaVersion"`
+	SessionID        string            `json:"sessionId"`
+	Tool             Command           `json:"tool"`
+	ToolVersion      string            `json:"toolVersion"`
+	ToolSHA256       string            `json:"toolSHA256"`
+	AgentType        string            `json:"agentType"`
+	Source           Source            `json:"source"`
+	SourceSHA256     string            `json:"sourceSHA256"`
+	HistorySeed      string            `json:"historySeed,omitempty"`
+	HistorySeedFiles map[string]string `json:"historySeedFiles,omitempty"`
+	ResourceRoot     string            `json:"resourceRoot"`
+	Workspace        string            `json:"workspace"`
+	Home             string            `json:"home"`
+	Config           string            `json:"config"`
+	Tmp              string            `json:"tmp"`
+	ProtocolCwd      string            `json:"protocolCwd,omitempty"`
+	Env              map[string]string `json:"env"`
+	Routes           map[string]Route  `json:"routes"`
+	Finish           Command           `json:"finish"`
+	Limits           Limits            `json:"limits"`
 }
 
 type ExecutionConnection struct {
@@ -102,6 +104,7 @@ type Execution struct {
 	Config        string                `json:"config"`
 	Tmp           string                `json:"tmp"`
 	HistorySeed   string                `json:"historySeed"`
+	HistoryFiles  map[string]string     `json:"historyFiles,omitempty"`
 	Env           map[string]string     `json:"env"`
 	Connections   []ExecutionConnection `json:"connections"`
 	Receipts      []string              `json:"receipts"`
@@ -240,6 +243,9 @@ func (s Session) Validate() error {
 	if s.HistorySeed != "" && !filepath.IsAbs(s.HistorySeed) {
 		return errors.New("session history seed must be absolute")
 	}
+	if err := history.ValidateBindings(s.HistorySeedFiles); err != nil {
+		return fmt.Errorf("session history seed: %w", err)
+	}
 	if s.Source.SHA256 == "" || s.SourceSHA256 == "" || s.Source.SHA256 != s.SourceSHA256 {
 		return errors.New("session source identity mismatch")
 	}
@@ -272,6 +278,9 @@ func (e Execution) Validate(s Session) error {
 	}
 	if e.Executor == "" || e.Target == "" || e.Provenance == "" {
 		return errors.New("incomplete execution action")
+	}
+	if err := history.ValidateBindings(e.HistoryFiles); err != nil {
+		return err
 	}
 	if len(e.Connections) == 0 {
 		return errors.New("execution omits declared connections")

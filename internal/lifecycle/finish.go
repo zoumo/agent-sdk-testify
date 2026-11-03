@@ -3,10 +3,12 @@ package lifecycle
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 
-	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -79,6 +81,11 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 		artifacts[artifact.ID] = artifact
 	}
 	var validationErr error
+	if session.HistorySeed != "" {
+		if err := history.VerifyTree(filepath.Dir(session.HistorySeed), session.HistorySeedFiles); err != nil {
+			validationErr = fmt.Errorf("session history seed: %w", err)
+		}
+	}
 	for _, indexed := range index.Executions {
 		result := validateFinishedExecution(sessionDir, session, indexed, artifacts)
 		report.Executions = append(report.Executions, result)
@@ -256,6 +263,12 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 				artifact = &value
 				if value.ID != execution.Artifact.ID {
 					fail(errors.New("execution artifact differs from published artifact"))
+				} else if value.Kind != execution.Artifact.Kind ||
+					value.Action != execution.Artifact.Action ||
+					value.Provenance != execution.Artifact.Provenance ||
+					value.Path != execution.Artifact.Path ||
+					!reflect.DeepEqual(value.Connections, execution.Artifact.Connections) {
+					fail(errors.New("execution artifact identity differs from published artifact"))
 				}
 			}
 		} else if execution.Artifact.Path != "" && execution.Artifact.PlanSHA256 != "" {
@@ -266,7 +279,22 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 			fail(errors.New("record execution has no published capture"))
 		}
 		if artifact != nil {
-			fail(validateMaterialArtifact(session, *artifact))
+			inspection, materialErr := inspectMaterial(session, *artifact, execution.Command)
+			fail(materialErr)
+			if materialErr == nil {
+				expected, provenanceErr := expectedFinishedProvenance(session, execution.Command, inspection)
+				fail(provenanceErr)
+				if provenanceErr == nil && execution.Provenance != expected {
+					fail(fmt.Errorf("execution provenance %q differs from %s material %q", execution.Provenance, execution.Command, expected))
+				}
+				if execution.Command == "mock" || execution.Command == "verify" {
+					if !maps.Equal(execution.HistoryFiles, inspection.HistoryFiles) {
+						fail(errors.New("execution history bindings differ from selected material"))
+					} else {
+						fail(history.Check(filepath.Join(ExecutionDir(sessionDir, execution.ExecutionID), "overlay"), execution.HistoryFiles))
+					}
+				}
+			}
 			result.Evidence["material"] = tool.Object{
 				"path":            artifact.Path,
 				"planSHA256":      artifact.PlanSHA256,
@@ -350,8 +378,6 @@ func validateExecutionLocation(sessionDir string, session *Session, dir string, 
 		return errors.New("execution executor differs from session")
 	case execution.Target != route.Target:
 		return errors.New("execution target differs from session")
-	case execution.Provenance != route.Provenance:
-		return errors.New("execution provenance differs from session")
 	}
 	for _, connection := range execution.Connections {
 		if !withinPath(dir, connection.Receipt) {
@@ -418,52 +444,19 @@ func withinPath(root, path string) bool {
 	return err == nil && (rel == "." || (rel != ".." && filepath.IsLocal(rel)))
 }
 
-func validateMaterialArtifact(session *Session, artifact Artifact) error {
-	if artifact.Path == "" || !filepath.IsAbs(artifact.Path) {
-		return errors.New("material path must be absolute")
-	}
-	info, err := os.Lstat(artifact.Path)
-	if err != nil {
-		return err
-	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return errors.New("material path is not an unlinked directory")
-	}
-	if err := corpus.VerifyMaterials(artifact.Path, true); err != nil {
-		return err
-	}
-	var plan tool.Object
-	if err := tool.ReadJSON(filepath.Join(artifact.Path, "plan.json"), &plan); err != nil {
-		return err
-	}
-	provider := tool.Str(plan["provider"])
-	if provider == "" {
-		provider = tool.Str(plan["agentType"])
-	}
-	if provider != session.AgentType {
-		return errors.New("material agent type differs from session")
-	}
-	if (session.Source.Kind == "case" || session.Source.Kind == "plan") &&
-		tool.Str(plan["caseId"]) != session.Source.ID {
-		return errors.New("material case differs from session source")
-	}
-	for name, expected := range map[string]string{
-		"plan.json":     artifact.PlanSHA256,
-		"manifest.json": artifact.ManifestSHA256,
-		"raw/raw.jsonl": artifact.RecordingSHA256,
-	} {
-		if expected == "" {
-			return fmt.Errorf("artifact omits %s hash", name)
+func expectedFinishedProvenance(session *Session, action string, material *materialInspection) (string, error) {
+	switch action {
+	case "record":
+		switch session.Source.Kind {
+		case "case":
+			return "official", nil
+		case "plan":
+			return "consumer", nil
 		}
-		actual, err := digestFile(filepath.Join(artifact.Path, filepath.FromSlash(name)))
-		if err != nil {
-			return err
-		}
-		if actual != expected {
-			return fmt.Errorf("artifact hash mismatch: %s", name)
-		}
+	case "mock", "verify":
+		return material.Provenance, nil
 	}
-	return nil
+	return "", fmt.Errorf("unknown execution action %q", action)
 }
 
 func validateTransport(path string) error {

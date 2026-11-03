@@ -10,6 +10,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 )
 
 func Run(ctx context.Context, o Options) (summary object, runFailure error) {
@@ -107,8 +109,8 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	}
 	// Saved material reuse belongs to offline runs. New captures may only
 	// import history through the explicit, provenance-checked seed path.
-	if o.Mode != "record" {
-		if err := copySaved(o.Materials, root); err != nil {
+	if o.Mode != "record" && !o.HistoryPrepared {
+		if _, err := history.Materialize(o.Materials, root); err != nil {
 			return nil, err
 		}
 	}

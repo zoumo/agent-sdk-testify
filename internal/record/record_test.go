@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -98,6 +99,15 @@ func recordAgentSubstitute(args []string) int {
 		fmt.Fprintln(os.Stderr, "synthetic native crash")
 		return 7
 	}
+	if args[0] == "history" {
+		history := filepath.Join(os.Getenv("CODEX_HOME"), "sessions", "synthetic-history.jsonl")
+		if err := os.MkdirAll(filepath.Dir(history), 0o700); err != nil {
+			return 8
+		}
+		if err := os.WriteFile(history, []byte("{\"type\":\"official-history\"}\n"), 0o600); err != nil {
+			return 8
+		}
+	}
 	reader := bufio.NewReader(os.Stdin)
 	if _, err := reader.ReadBytes('\n'); err != nil {
 		return 2
@@ -114,6 +124,7 @@ func recordAgentSubstitute(args []string) int {
 type preparedRecord struct {
 	session  string
 	cli      string
+	bin      string
 	env      []string
 	provider string
 }
@@ -151,7 +162,7 @@ func recordProcess(t *testing.T, provider, status, native string) *preparedRecor
 	prepare.Env = env
 	data, err := prepare.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	fixture := &preparedRecord{session: session, cli: cli, env: env, provider: provider}
+	fixture := &preparedRecord{session: session, cli: cli, bin: bin, env: env, provider: provider}
 	t.Cleanup(func() {
 		var descriptor object
 		if readJSON(filepath.Join(session, "session.json"), &descriptor) != nil {
@@ -160,6 +171,60 @@ func recordProcess(t *testing.T, provider, status, native string) *preparedRecor
 		_ = os.RemoveAll(str(descriptor["resourceRoot"]))
 	})
 	return fixture
+}
+
+func recordVerifyDriverSubstitute(args []string) int {
+	status := args[0]
+	var req request
+	if len(args) != 3 || args[1] != "--request" || readJSON(args[2], &req) != nil {
+		return 2
+	}
+	var plan object
+	if readJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
+		return 2
+	}
+	cmd := exec.CommandContext(context.Background(), req.Peer.Command.Command, req.Peer.Command.Args...)
+	in, err := cmd.StdinPipe()
+	if err != nil {
+		return 3
+	}
+	out, err := cmd.StdoutPipe()
+	if err != nil {
+		return 3
+	}
+	cmd.Stderr = os.Stderr
+	if cmd.Start() != nil {
+		return 3
+	}
+	fmt.Fprintln(in, `{"id":1,"method":"synthetic","unknown":9007199254740993}`)
+	_ = in.Close()
+	_, _ = bufio.NewReader(out).ReadBytes('\n')
+	if cmd.Wait() != nil {
+		status = "failed"
+	}
+	if writeJSON(filepath.Join(req.Output, "replay-report.json"), object{
+		"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
+		"status": status, "branchStatus": status, "captureStatus": "complete",
+		"officialSDK": object{
+			"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[str(plan["provider"])],
+			"version": "synthetic-test-only",
+		},
+	}) != nil {
+		return 4
+	}
+	if writeJSON(filepath.Join(req.Output, "result.json"), object{"status": status}) != nil {
+		return 4
+	}
+	return 0
+}
+
+func (p *preparedRecord) installVerifyDriver(t *testing.T) {
+	t.Helper()
+	self, err := os.Executable()
+	require.NoError(t, err)
+	driver := filepath.Join(p.bin, "agent-sdk-testify-"+p.provider)
+	script := fmt.Sprintf("#!/bin/sh\nexec %q record-verify-driver-substitute passed \"$@\"\n", self)
+	require.NoError(t, os.WriteFile(driver, []byte(script), 0o700))
 }
 
 func (p *preparedRecord) command(t *testing.T, timeout string) *exec.Cmd {
@@ -272,6 +337,66 @@ func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
 
 	data, err = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", fixture.session).CombinedOutput()
 	require.NoError(t, err, "%s", data)
+}
+
+func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
+	fixture := recordProcess(t, "codex", "passed", "history")
+	data, err := fixture.command(t, "10s").CombinedOutput()
+	require.NoError(t, err, "%s", data)
+
+	const history = "config/sessions/synthetic-history.jsonl"
+	var manifest object
+	require.NoError(t, readJSON(filepath.Join(fixture.recordRoot(t), "manifest.json"), &manifest))
+	require.Equal(t, digestBytes([]byte("{\"type\":\"official-history\"}\n")), obj(manifest["savedFiles"])[history])
+
+	fixture.installVerifyDriver(t)
+	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--session-dir", fixture.session)
+	verify.Env = fixture.env
+	data, err = verify.CombinedOutput()
+	require.NoError(t, err, "%s", data)
+	verifyExecution := latestExecution(t, fixture.session, "verify")
+
+	mock := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "mock", "--session-dir", fixture.session, "--", "app-server", "--listen", "stdio://")
+	mock.Env = fixture.env
+	mock.Stdin = strings.NewReader(`{"id":1,"method":"synthetic","unknown":9007199254740993}` + "\n")
+	data, err = mock.Output()
+	require.NoError(t, err, "%s", data)
+	require.JSONEq(t, `{"id":1,"result":{"unknown":1.2300}}`, string(data))
+	mockExecution := latestExecution(t, fixture.session, "mock")
+
+	for _, execution := range []object{verifyExecution, mockExecution} {
+		assert.Equal(t, "official", execution["provenance"])
+		path := filepath.Join(str(execution["config"]), "sessions", "synthetic-history.jsonl")
+		data, err := os.ReadFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, "{\"type\":\"official-history\"}\n", string(data))
+	}
+
+	finish := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", fixture.session)
+	finish.Env = fixture.env
+	data, err = finish.CombinedOutput()
+	require.NoError(t, err, "%s", data)
+	var report object
+	require.NoError(t, json.Unmarshal(data, &report))
+	assert.Equal(t, "passed", report["status"])
+}
+
+func latestExecution(t *testing.T, session, command string) object {
+	t.Helper()
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	rows := array(index["executions"])
+	for i := len(rows) - 1; i >= 0; i-- {
+		row := obj(rows[i])
+		if str(row["command"]) != command {
+			continue
+		}
+		var execution object
+		require.NoError(t, readJSON(filepath.Join(session, "executions", str(row["id"]), "execution.json"), &execution))
+		return execution
+	}
+	t.Fatalf("session has no %s execution", command)
+	return nil
 }
 
 func TestRecordPreservesFailedAttempts(t *testing.T) {

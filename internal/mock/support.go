@@ -29,7 +29,6 @@ var (
 	copyFile          = tool.CopyFile
 	copyTree          = tool.CopyTree
 	writeFiles        = tool.WriteFiles
-	copySaved         = tool.CopySaved
 	waitDriver        = tool.WaitDriver
 	materializeClaude = history.MaterializeClaude
 

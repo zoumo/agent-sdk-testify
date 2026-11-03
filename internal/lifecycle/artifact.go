@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"slices"
 
+	"github.com/zoumo/agent-sdk-testify/internal/builtin"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -16,6 +18,36 @@ func artifactForMaterial(root, provenance, action string, connections []string) 
 	}
 	if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err != nil {
 		return nil, err
+	}
+	if provenance == "" {
+		return nil, errors.New("material provenance is missing")
+	}
+	if _, err := history.Bindings(root); err != nil {
+		return nil, err
+	}
+	selected, err := selectionProvenance(plan, manifest)
+	if err != nil {
+		return nil, err
+	}
+	switch provenance {
+	case "builtin":
+		if _, err := builtin.CheckRoot(root); err != nil {
+			return nil, err
+		}
+	case "official":
+		if selected != "official" && tool.Str(manifest["provenance"]) != "capture" {
+			return nil, errors.New("official provenance conflicts with its material manifest")
+		}
+	case "consumer":
+		if selected != "consumer" {
+			return nil, errors.New("consumer provenance conflicts with its material manifest")
+		}
+	case "external":
+		if selected != "external" {
+			return nil, errors.New("external provenance conflicts with its material manifest")
+		}
+	default:
+		return nil, errors.New("material provenance is invalid")
 	}
 	planHash, err := digestFile(filepath.Join(root, "plan.json"))
 	if err != nil {
@@ -120,12 +152,13 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 		if err != nil {
 			return nil, err
 		}
-		provenance := "external"
 		var manifest tool.Object
-		if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err == nil {
-			if value := tool.Str(manifest["provenance"]); value != "" {
-				provenance = value
-			}
+		if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err != nil {
+			return nil, err
+		}
+		provenance, err := selectionProvenance(plan, manifest)
+		if err != nil {
+			return nil, err
 		}
 		if verify && provenance == "consumer" {
 			return nil, errors.New("consumer material cannot be verified")
@@ -133,6 +166,13 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 		connections := connectionIDs(session.Source, plan)
 		artifact, err := artifactForMaterial(root, provenance, "external", connections)
 		if err != nil {
+			return nil, err
+		}
+		action := "mock"
+		if verify {
+			action = "verify"
+		}
+		if _, err := inspectMaterial(session, *artifact, action); err != nil {
 			return nil, err
 		}
 		return artifact, nil
@@ -146,6 +186,9 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 			if session.Source.Kind == "recording" {
 				for _, artifact := range slices.Backward(index.Artifacts) {
 					if artifact.Kind == "material" {
+						if _, err := inspectMaterial(session, artifact, "verify"); err != nil {
+							return nil, err
+						}
 						return &artifact, nil
 					}
 				}
@@ -154,6 +197,9 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 		}
 		for _, artifact := range index.Artifacts {
 			if artifact.ID == index.LatestCapture {
+				if _, err := inspectMaterial(session, artifact, "verify"); err != nil {
+					return nil, err
+				}
 				return &artifact, nil
 			}
 		}
@@ -162,12 +208,18 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 	if index.LatestCapture != "" {
 		for _, artifact := range index.Artifacts {
 			if artifact.ID == index.LatestCapture {
+				if _, err := inspectMaterial(session, artifact, "mock"); err != nil {
+					return nil, err
+				}
 				return &artifact, nil
 			}
 		}
 	}
 	for _, artifact := range slices.Backward(index.Artifacts) {
 		if artifact.Kind == "material" {
+			if _, err := inspectMaterial(session, artifact, "mock"); err != nil {
+				return nil, err
+			}
 			return &artifact, nil
 		}
 	}

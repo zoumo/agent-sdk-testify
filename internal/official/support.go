@@ -13,6 +13,7 @@ import (
 type Options struct {
 	Mode, Materials, Case, Provider, Output, Workspace, Driver, Peer, CLI, Config, Model string
 	OutputPrepared                                                                       bool
+	HistoryPrepared                                                                      bool
 	HistorySeed                                                                          string
 	InitialModel                                                                         string
 	DriverArgs                                                                           []string
@@ -56,7 +57,6 @@ var (
 	createOutput           = tool.CreateOutput
 	copyFile               = tool.CopyFile
 	writeFiles             = tool.WriteFiles
-	copySaved              = tool.CopySaved
 	verifyFile             = corpus.VerifyFile
 	verifyMaterials        = corpus.VerifyMaterials
 	writeSourceManifest    = corpus.WriteSourceManifest

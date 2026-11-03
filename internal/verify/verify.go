@@ -90,7 +90,7 @@ func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout ti
 		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
-	o := official.Options{Mode: "verify", Materials: artifact.Path}
+	o := official.Options{Mode: "verify", Materials: artifact.Path, HistoryPrepared: true}
 	summary, verifyErr := verifyRecordingAt(ctx, o, run.OverlayRoot, run.Execution.Workspace)
 	err = admitVerified(artifact.Path, summary, verifyErr, c)
 	if snapshotErr := snapshotVerification(run.OverlayRoot, run.ArtifactRoot); snapshotErr != nil {

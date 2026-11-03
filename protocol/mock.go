@@ -78,9 +78,9 @@ func Mock(ctx context.Context, options MockOptions, streams IO) error {
 	}
 	if options.Receipt != "" {
 		err = writeMockReceipt(ctx, options.Receipt, recording.Receipt{
-			Version: 1, FullConsumption: true, NativeLaunched: false,
+			Version: 1, Status: "passed", FullConsumption: true, NativeLaunched: false,
 			Peer: "Go native mock", Provider: options.Provider, Frames: len(document.Frames),
-			RecordingSHA256: document.SHA256, ClientEOF: true,
+			RecordingSHA256: document.SHA256, ClientEOF: true, CleanupComplete: true,
 		})
 	} else {
 		err = ctx.Err()

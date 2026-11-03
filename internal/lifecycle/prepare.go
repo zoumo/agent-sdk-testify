@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/official"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -309,6 +310,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		return nil, err
 	}
 	historySeed := ""
+	var historySeedFiles map[string]string
 	if o.HistorySeed != "" {
 		if !filepath.IsAbs(o.HistorySeed) {
 			return nil, errors.New("--history-seed must be absolute")
@@ -335,6 +337,14 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if err := copyTree(sourceSeed, historySeed); err != nil {
 			return nil, err
 		}
+		files, err := history.HashTree(historySeed)
+		if err != nil {
+			return nil, err
+		}
+		historySeedFiles = make(map[string]string, len(files))
+		for name, digest := range files {
+			historySeedFiles["history-seed/"+name] = digest
+		}
 		if spec.source.Kind == "plan" {
 			err = copyTree(historySeed, filepath.Join(baseline, "history-seed"))
 		}
@@ -343,24 +353,25 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 	}
 	session := &Session{
-		SchemaVersion: SchemaVersion,
-		SessionID:     sessionID,
-		Tool:          self,
-		ToolVersion:   version,
-		ToolSHA256:    toolHash,
-		AgentType:     agentType,
-		Source:        spec.source,
-		SourceSHA256:  spec.source.SHA256,
-		HistorySeed:   historySeed,
-		ResourceRoot:  root,
-		Workspace:     filepath.Join(baseline, "workspace"),
-		Home:          filepath.Join(baseline, "home"),
-		Config:        filepath.Join(baseline, "config"),
-		Tmp:           filepath.Join(baseline, "tmp"),
-		ProtocolCwd:   planProtocolCwd(spec.plan, filepath.Join(baseline, "workspace")),
-		Env:           baselineEnv,
-		Routes:        map[string]Route{},
-		Finish:        Command{Command: self.Command, Args: []string{"finish", "--session-dir", sessionDir}},
+		SchemaVersion:    SchemaVersion,
+		SessionID:        sessionID,
+		Tool:             self,
+		ToolVersion:      version,
+		ToolSHA256:       toolHash,
+		AgentType:        agentType,
+		Source:           spec.source,
+		SourceSHA256:     spec.source.SHA256,
+		HistorySeed:      historySeed,
+		HistorySeedFiles: historySeedFiles,
+		ResourceRoot:     root,
+		Workspace:        filepath.Join(baseline, "workspace"),
+		Home:             filepath.Join(baseline, "home"),
+		Config:           filepath.Join(baseline, "config"),
+		Tmp:              filepath.Join(baseline, "tmp"),
+		ProtocolCwd:      planProtocolCwd(spec.plan, filepath.Join(baseline, "workspace")),
+		Env:              baselineEnv,
+		Routes:           map[string]Route{},
+		Finish:           Command{Command: self.Command, Args: []string{"finish", "--session-dir", sessionDir}},
 		Limits: Limits{
 			ProtocolBytes: o.ProtocolBytes,
 			StderrBytes:   o.StderrBytes,

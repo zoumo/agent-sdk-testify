@@ -22,6 +22,16 @@ func mockTestAgent() int {
 		fmt.Println("synthetic-consumer-native")
 		return 0
 	}
+	config := os.Getenv("CODEX_HOME")
+	if config != "" {
+		history := filepath.Join(config, "sessions", "synthetic-history.jsonl")
+		if err := os.MkdirAll(filepath.Dir(history), 0o700); err != nil {
+			return 3
+		}
+		if err := os.WriteFile(history, []byte("{\"type\":\"consumer-history\"}\n"), 0o600); err != nil {
+			return 3
+		}
+	}
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		line, err := reader.ReadBytes('\n')
@@ -210,6 +220,7 @@ func TestPreparedConsumerRecordMockFinish(t *testing.T) {
 	assert.Equal(t, "captured", manifest["status"])
 	assert.Equal(t, "complete", manifest["captureStatus"])
 	assert.Equal(t, "consumer-session", plan["caseId"])
+	assert.NotEmpty(t, obj(manifest["savedFiles"])["config/sessions/synthetic-history.jsonl"])
 
 	mock := sessionTool(t, env, "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
 	mock.Stdin = strings.NewReader(request)
@@ -218,9 +229,15 @@ func TestPreparedConsumerRecordMockFinish(t *testing.T) {
 	out, err := mock.Output()
 	require.NoError(t, err, "%s", stderr.String())
 	assert.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, string(out))
+	execution, _ := latestSessionExecution(t, session, "mock")
+	assert.Equal(t, "consumer", execution["provenance"])
+	history := filepath.Join(str(execution["config"]), "sessions", "synthetic-history.jsonl")
+	data, err := os.ReadFile(history)
+	require.NoError(t, err)
+	assert.Equal(t, "{\"type\":\"consumer-history\"}\n", string(data))
 
 	finish := sessionTool(t, env, "finish", "--session-dir", session)
-	data, err := finish.Output()
+	data, err = finish.Output()
 	require.NoError(t, err, "%s", data)
 	var report object
 	require.NoError(t, json.Unmarshal(data, &report))
@@ -265,6 +282,24 @@ func TestPreparedMockFailureAndFinishRetry(t *testing.T) {
 		assert.Equal(t, "failed", report["status"], string(data))
 		assert.Equal(t, true, report["cleanupComplete"], string(data))
 	}
+}
+
+func TestPreparedFinishRejectsHistoryDrift(t *testing.T) {
+	session, env := consumerSession(t)
+	recordConsumerCapture(t, session, env)
+	mock := sessionTool(t, env, "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
+	mock.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
+	data, err := mock.Output()
+	require.NoError(t, err, "%s", data)
+	execution, _ := latestSessionExecution(t, session, "mock")
+	require.NoError(t, os.WriteFile(filepath.Join(str(execution["config"]), "sessions", "synthetic-history.jsonl"), []byte("changed\n"), 0o600))
+
+	data, err = sessionTool(t, env, "finish", "--session-dir", session).Output()
+	require.Error(t, err, "%s", data)
+	var report object
+	require.NoError(t, json.Unmarshal(data, &report))
+	assert.Equal(t, "failed", report["status"])
+	assert.Contains(t, str(report["error"]), "history hash mismatch")
 }
 
 func TestPreparedFinishWithoutExecutionsIsAbandoned(t *testing.T) {
@@ -534,4 +569,226 @@ func TestConsumerPlanAgentTypeCannotBeOverriddenByLegacyProvider(t *testing.T) {
 			require.NoDirExists(t, session)
 		})
 	}
+}
+
+type syntheticMaterialChange func(*testing.T, string, object)
+
+func syntheticCaseMaterial(t *testing.T, caseID, provenance string, files map[string]string) string {
+	t.Helper()
+	root := t.TempDir()
+	profile := "continuation"
+	if provenance == "consumer" {
+		profile = "consumer"
+	}
+	require.NoError(t, writeJSON(filepath.Join(root, "plan.json"), object{
+		"version":       1,
+		"agentType":     "codex",
+		"provider":      "codex",
+		"caseId":        caseID,
+		"driverProfile": profile,
+		"project":       filepath.Join(t.TempDir(), "project"),
+	}))
+	const raw = "{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"protocol\",\"epoch\":1,\"elapsedMs\":0,\"wire\":{\"id\":1,\"method\":\"ping\"}}\n" +
+		"{\"ordinal\":2,\"direction\":\"s2c\",\"channel\":\"protocol\",\"epoch\":1,\"elapsedMs\":0,\"wire\":{\"id\":1,\"result\":{\"synthetic\":true}}}\n"
+	const transport = "{\"captureStatus\":\"complete\",\"cleanupComplete\":true,\"nativeLaunched\":true,\"clientEOF\":true,\"reaped\":true}\n"
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "raw"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), []byte(raw), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "stderr.raw"), nil, 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "transport.json"), []byte(transport), 0o600))
+	saved := object{}
+	for name, content := range files {
+		path := filepath.Join(root, filepath.FromSlash(name))
+		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
+		require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
+		saved[name] = digestBytes([]byte(content))
+	}
+	require.NoError(t, writeJSON(filepath.Join(root, "raw", "manifest.json"), object{
+		"captureStatus": "complete",
+		"files": object{
+			"raw.jsonl":      digestBytes([]byte(raw)),
+			"stderr.raw":     digestBytes(nil),
+			"transport.json": digestBytes([]byte(transport)),
+		},
+		"recordingFormat": object{
+			"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl",
+		},
+		"native": object{
+			"executable": "/synthetic/agent", "sha256": strings.Repeat("a", 64), "cwd": "/synthetic/project",
+		},
+	}))
+	planHash, err := fileDigest(filepath.Join(root, "plan.json"))
+	require.NoError(t, err)
+	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{
+		"provenance": provenance,
+		"planSHA256": planHash,
+		"files":      object{"raw.jsonl": digestBytes([]byte(raw))},
+		"savedFiles": saved,
+	}))
+	return root
+}
+
+func TestPreparedHistoryRejectsUnboundMissingDriftLinksAndEscapes(t *testing.T) {
+	const history = "config/sessions/history.jsonl"
+	for _, tc := range []struct {
+		name    string
+		files   map[string]string
+		mutate  syntheticMaterialChange
+		message string
+	}{
+		{
+			name:    "unbound",
+			files:   map[string]string{history: "bound\n"},
+			message: "unbound history",
+			mutate: func(t *testing.T, _ string, manifest object) {
+				delete(obj(manifest["savedFiles"]), history)
+			},
+		},
+		{
+			name:    "missing",
+			files:   map[string]string{history: "bound\n"},
+			message: "history.jsonl",
+			mutate: func(t *testing.T, root string, _ object) {
+				require.NoError(t, os.Remove(filepath.Join(root, history)))
+			},
+		},
+		{
+			name:    "drift",
+			files:   map[string]string{history: "bound\n"},
+			message: "hash mismatch",
+			mutate: func(t *testing.T, root string, _ object) {
+				require.NoError(t, os.WriteFile(filepath.Join(root, history), []byte("changed\n"), 0o600))
+			},
+		},
+		{
+			name:    "parent symlink",
+			files:   map[string]string{"config/sessions/target/history.jsonl": "bound\n"},
+			message: "symlink",
+			mutate: func(t *testing.T, root string, _ object) {
+				target := filepath.Join(root, "config", "sessions", "target")
+				linked := filepath.Join(root, "config", "sessions", "linked")
+				require.NoError(t, os.Rename(target, linked))
+				require.NoError(t, os.Symlink(linked, target))
+			},
+		},
+		{
+			name:    "path escape",
+			files:   map[string]string{history: "bound\n"},
+			message: "escapes material",
+			mutate: func(t *testing.T, root string, manifest object) {
+				outside := filepath.Join(filepath.Dir(root), "outside.jsonl")
+				require.NoError(t, os.WriteFile(outside, []byte("outside\n"), 0o600))
+				obj(manifest["savedFiles"])["../outside.jsonl"] = digestBytes([]byte("outside\n"))
+			},
+		},
+		{
+			name:    "unapproved subtree",
+			files:   map[string]string{"config/auth.json": "secret\n"},
+			message: "outside allowed history",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := syntheticCaseMaterial(t, "SDK-CASE-001", "external", tc.files)
+			if tc.mutate != nil {
+				var manifest object
+				require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
+				tc.mutate(t, root, manifest)
+				require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
+			}
+			session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
+			cmd := sessionTool(t, env, "mock", "--session-dir", session, "--recording", root, "--", "app-server", "--listen", "stdio://")
+			cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
+			data, err := cmd.CombinedOutput()
+			require.Error(t, err, "%s", data)
+			assert.Contains(t, string(data), tc.message)
+			var index object
+			require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+			assert.Empty(t, array(index["executions"]))
+		})
+	}
+}
+
+func TestPreparedMockUsesSelectedArtifactProvenance(t *testing.T) {
+	root := syntheticCaseMaterial(t, "SDK-CASE-001", "consumer", map[string]string{
+		"config/sessions/history.jsonl": "consumer\n",
+	})
+	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
+	cmd := sessionTool(t, env, "mock", "--session-dir", session, "--recording", root, "--", "app-server", "--listen", "stdio://")
+	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
+	data, err := cmd.CombinedOutput()
+	require.NoError(t, err, "%s", data)
+	execution, _ := latestSessionExecution(t, session, "mock")
+	assert.Equal(t, "consumer", execution["provenance"])
+	assert.Equal(t, "external", obj(execution["artifact"])["action"])
+	data, err = os.ReadFile(filepath.Join(str(execution["config"]), "sessions", "history.jsonl"))
+	require.NoError(t, err)
+	assert.Equal(t, "consumer\n", string(data))
+}
+
+func TestPreparedVerifyRejectsConsumerMaterial(t *testing.T) {
+	root := syntheticCaseMaterial(t, "SDK-CASE-001", "consumer", nil)
+	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
+	data, err := sessionTool(t, env, "verify", "--session-dir", session, "--recording", root).CombinedOutput()
+	require.Error(t, err, "%s", data)
+	assert.Contains(t, string(data), "consumer material cannot be verified")
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	assert.Empty(t, array(index["executions"]))
+}
+
+func TestPreparedMaterialProvenanceConflictFailsBeforeReplay(t *testing.T) {
+	root := syntheticCaseMaterial(t, "SDK-CASE-001", "official", nil)
+	var plan object
+	require.NoError(t, readJSON(filepath.Join(root, "plan.json"), &plan))
+	plan["driverProfile"] = "consumer"
+	require.NoError(t, writeJSON(filepath.Join(root, "plan.json"), plan))
+	var manifest object
+	require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
+	planHash, err := fileDigest(filepath.Join(root, "plan.json"))
+	require.NoError(t, err)
+	manifest["planSHA256"] = planHash
+	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
+	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
+	data, err := sessionTool(t, env, "mock", "--session-dir", session, "--recording", root, "--", "app-server", "--listen", "stdio://").CombinedOutput()
+	require.Error(t, err, "%s", data)
+	assert.Contains(t, string(data), "provenance")
+}
+
+func TestPreparedMaterialMissingProvenanceFailsBeforeReplay(t *testing.T) {
+	root := syntheticCaseMaterial(t, "SDK-CASE-001", "external", nil)
+	var manifest object
+	require.NoError(t, readJSON(filepath.Join(root, "manifest.json"), &manifest))
+	delete(manifest, "provenance")
+	require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), manifest))
+	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-001")
+	data, err := sessionTool(t, env, "mock", "--session-dir", session, "--recording", root, "--", "app-server", "--listen", "stdio://").CombinedOutput()
+	require.Error(t, err, "%s", data)
+	assert.Contains(t, string(data), "provenance is missing")
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	assert.Empty(t, array(index["executions"]))
+}
+
+func preparedSessionWithArgs(t *testing.T, args ...string) (string, []string) {
+	t.Helper()
+	base := t.TempDir()
+	home := filepath.Join(base, "home")
+	config := filepath.Join(base, "config")
+	require.NoError(t, os.MkdirAll(home, 0o700))
+	require.NoError(t, os.MkdirAll(config, 0o700))
+	env := []string{
+		"PATH=" + os.Getenv("PATH"),
+		"HOME=" + home,
+		"CODEX_HOME=" + config,
+		"GORACE=atexit_sleep_ms=0",
+	}
+	session := filepath.Join(base, "session")
+	data, err := sessionTool(t, env, append(args, "--session-dir", session)...).CombinedOutput()
+	require.NoError(t, err, "%s", data)
+	t.Cleanup(func() {
+		var descriptor object
+		if readJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
+			_ = os.RemoveAll(str(descriptor["resourceRoot"]))
+		}
+	})
+	return session, env
 }

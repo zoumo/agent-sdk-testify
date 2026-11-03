@@ -234,3 +234,34 @@ func CheckMaterial(root string, material *Material) error {
 	}
 	return nil
 }
+
+func CheckRoot(root string) (*Material, error) {
+	files, err := corpus.Inventory(root, false)
+	if err != nil {
+		return nil, err
+	}
+	m, _, err := Read()
+	if err != nil {
+		return nil, err
+	}
+	for i := range m.Materials {
+		material := &m.Materials[i]
+		if len(files) != len(material.Files) {
+			continue
+		}
+		matches := true
+		for name, expected := range material.Files {
+			if files[name] != expected {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			if err := CheckMaterial(root, material); err != nil {
+				return nil, err
+			}
+			return material, nil
+		}
+	}
+	return nil, errors.New("material is not a builtin snapshot")
+}

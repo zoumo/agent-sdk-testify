@@ -264,9 +264,9 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if o.Agent != "" && o.Agent != agent {
 		return nil, errors.New("--agent differs from recording agent type")
 	}
-	provenance := tool.Str(manifest["provenance"])
-	if provenance == "" {
-		provenance = "external"
+	provenance, err := selectionProvenance(plan, manifest)
+	if err != nil {
+		return nil, err
 	}
 	planHash, err := digestFile(filepath.Join(path, "plan.json"))
 	if err != nil {
@@ -285,7 +285,7 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 		Provenance:    provenance,
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
-	verify := provenance != "consumer" && provenance != "synthetic"
+	verify := provenance != "consumer"
 	return &sourceSpec{source: source, plan: plan, agentType: agent, provenance: provenance, routes: map[string]bool{"record": false, "verify": verify, "mock": true}}, nil
 }
 

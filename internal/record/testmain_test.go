@@ -13,6 +13,8 @@ func TestMain(m *testing.M) {
 		switch os.Args[1] {
 		case "record-driver-substitute":
 			os.Exit(recordDriverSubstitute(os.Args[2:]))
+		case "record-verify-driver-substitute":
+			os.Exit(recordVerifyDriverSubstitute(os.Args[2:]))
 		case "record-agent-substitute":
 			os.Exit(recordAgentSubstitute(os.Args[2:]))
 		}

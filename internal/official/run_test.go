@@ -212,11 +212,19 @@ func sample(t *testing.T, id string) options {
 		data = append(append(data, b...), '\n')
 	}
 	require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), data, 0o600))
-	require.NoError(t, writeJSON(filepath.Join(source, "plan.json"), object{"provider": "codex", "caseId": id, "project": filepath.Join(source, "original-cwd"), "driverProfile": "continuation", "args": []string{"synthetic-agent"}, "scenario": object{"files": object{"numbers.txt": "7\n11\n"}}, "agentMock": object{"sha256": "deliberately-different", "version": "old-version"}}))
+	planPath := filepath.Join(source, "plan.json")
+	require.NoError(t, writeJSON(planPath, object{"provider": "codex", "caseId": id, "project": filepath.Join(source, "original-cwd"), "driverProfile": "continuation", "args": []string{"synthetic-agent"}, "scenario": object{"files": object{"numbers.txt": "7\n11\n"}}, "agentMock": object{"sha256": "deliberately-different", "version": "old-version"}}))
+	planDigest, err := fileDigest(planPath)
+	require.NoError(t, err)
+	require.NoError(t, writeJSON(filepath.Join(source, "manifest.json"), object{
+		"provenance": "external",
+		"planSHA256": planDigest,
+		"savedFiles": object{},
+	}))
 	peer := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	require.NotEmpty(t, peer, "run with make test")
-	self, e := os.Executable()
-	require.NoError(t, e)
+	self, err := os.Executable()
+	require.NoError(t, err)
 	return options{Mode: "verify", Materials: source, Driver: self, DriverArgs: []string{"driver"}, Peer: peer, Output: filepath.Join(t.TempDir(), "run")}
 }
 

@@ -143,9 +143,11 @@ func mockCLIBasics(t *testing.T, binary, provider string) {
 			var got recording.Receipt
 			require.NoError(t, json.Unmarshal(data, &got))
 			assert.Equal(t, 1, got.Version)
+			assert.Equal(t, "passed", got.Status)
 			assert.True(t, got.FullConsumption)
 			assert.False(t, got.NativeLaunched)
 			assert.True(t, got.ClientEOF)
+			assert.True(t, got.CleanupComplete)
 			assert.Equal(t, "Go native mock", got.Peer)
 			assert.Equal(t, provider, got.Provider)
 			assert.Equal(t, recording.Hash([]byte(tc.source)), got.RecordingSHA256)
