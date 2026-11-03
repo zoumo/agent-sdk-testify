@@ -172,16 +172,290 @@ func consumerSession(t *testing.T) (string, []string) {
 
 func recordConsumerCapture(t *testing.T, session string, env []string) {
 	t.Helper()
+	recordConsumerRequest(t, session, env, `{"id":1,"method":"ping"}`+"\n")
+}
+
+func recordConsumerRequest(t *testing.T, session string, env []string, request string) {
+	t.Helper()
 	agent, err := os.Executable()
 	require.NoError(t, err)
-	const request = `{"id":1,"method":"ping"}` + "\n"
 	record := sessionTool(t, env, "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	record.Stdin = strings.NewReader(request)
 	var stderr bytes.Buffer
 	record.Stderr = &stderr
 	out, err := record.Output()
 	require.NoError(t, err, "%s", stderr.String())
+	var requestObject object
+	require.NoError(t, json.Unmarshal([]byte(request), &requestObject))
+	assert.JSONEq(t, fmt.Sprintf(`{"id":%v,"result":{"synthetic":true}}`, requestObject["id"]), string(out))
+}
+
+func TestPreparedRecordHandoffSelectsLatestAndHonorsExplicitCapture(t *testing.T) {
+	session, env := consumerSession(t)
+	recordConsumerRequest(t, session, env, `{"id":1,"method":"ping"}`+"\n")
+	recordConsumerRequest(t, session, env, `{"id":2,"method":"ping"}`+"\n")
+
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	artifacts := array(index["artifacts"])
+	require.Len(t, artifacts, 2)
+	first, second := obj(artifacts[0]), obj(artifacts[1])
+	require.NotEqual(t, str(first["path"]), str(second["path"]))
+	require.Equal(t, str(second["id"]), str(index["latestCapture"]))
+
+	runMock := func(expected, request string, extra ...string) object {
+		args := append([]string{"mock", "--session-dir", session}, extra...)
+		args = append(args, "--", "app-server", "--listen", "stdio://")
+		cmd := sessionTool(t, env, args...)
+		cmd.Stdin = strings.NewReader(request)
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		out, err := cmd.Output()
+		require.NoError(t, err, "%s", stderr.String())
+		assert.JSONEq(t, expected, string(out))
+		execution, _ := latestSessionExecution(t, session, "mock")
+		return execution
+	}
+
+	latest := runMock(`{"id":2,"result":{"synthetic":true}}`, `{"id":2,"method":"ping"}`+"\n")
+	require.Equal(t, str(second["path"]), str(obj(latest["artifact"])["path"]))
+
+	explicit := runMock(`{"id":1,"result":{"synthetic":true}}`, `{"id":1,"method":"ping"}`+"\n", "--recording", str(first["path"]))
+	require.Equal(t, str(first["path"]), str(obj(explicit["artifact"])["path"]))
+	require.Equal(t, str(first["recordingSHA256"]), str(obj(explicit["artifact"])["recordingSHA256"]))
+
+	var after object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &after))
+	require.Equal(t, str(second["id"]), str(after["latestCapture"]))
+	require.Len(t, array(after["artifacts"]), 2)
+}
+
+func TestPreparedMockConnectionDescriptorMatchesSelectedCapture(t *testing.T) {
+	session, env := consumerSession(t)
+	recordConsumerCapture(t, session, env)
+	cmd := sessionTool(t, env, "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
+	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
+	out, err := cmd.Output()
+	require.NoError(t, err, "%s", out)
+
+	execution, _ := latestSessionExecution(t, session, "mock")
+	artifact := obj(execution["artifact"])
+	connections := array(execution["connections"])
+	require.Len(t, connections, 1)
+	connection := obj(connections[0])
+	require.Equal(t, "main", connection["id"])
+	require.Equal(t, str(artifact["path"]), connection["material"])
+	require.Equal(t, str(artifact["planSHA256"]), connection["planSHA256"])
+	require.Equal(t, str(artifact["manifestSHA256"]), connection["manifestSHA256"])
+	require.Equal(t, str(artifact["recordingSHA256"]), connection["recordingSHA256"])
+	require.FileExists(t, str(connection["receipt"]))
+	require.FileExists(t, str(connection["processReceipt"]))
+
+	var descriptor object
+	require.NoError(t, readJSON(filepath.Join(session, "session.json"), &descriptor))
+	routeConnection := obj(array(obj(obj(descriptor["routes"])["mock"])["connections"])[0])
+	require.Equal(t, str(routeConnection["command"]), connection["command"])
+	require.Equal(t, array(routeConnection["args"]), array(connection["args"]))
+	require.Equal(t, str(routeConnection["launcher"]), connection["launcher"])
+	require.FileExists(t, str(connection["launcher"]))
+}
+
+func TestPreparedFailedRecordDoesNotReplaceLatestCapture(t *testing.T) {
+	session, env := consumerSession(t)
+	recordConsumerCapture(t, session, env)
+
+	var before object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &before))
+	require.Len(t, array(before["artifacts"]), 1)
+	capture := obj(array(before["artifacts"])[0])
+	require.Equal(t, str(capture["id"]), str(before["latestCapture"]))
+
+	failed := sessionTool(t, env, "record", "--session-dir", session, "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
+	data, err := failed.CombinedOutput()
+	require.Error(t, err, "%s", data)
+
+	var after object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &after))
+	require.Len(t, array(after["artifacts"]), 1)
+	require.Equal(t, str(capture["id"]), str(after["latestCapture"]))
+
+	var descriptor object
+	require.NoError(t, readJSON(filepath.Join(session, "session.json"), &descriptor))
+	launcher := str(obj(array(obj(obj(descriptor["routes"])["mock"])["connections"])[0])["launcher"])
+	require.FileExists(t, launcher)
+	cmd := sessionExecutable(t, env, launcher, "app-server", "--listen", "stdio://")
+	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	require.NoError(t, err, "%s", stderr.String())
 	assert.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, string(out))
+}
+
+func TestPreparedMockMultiConnectionReceiptsAndJoinAdmission(t *testing.T) {
+	mainInput, source := builtinConnectionTranscript(t, "codex", "SDK-CASE-032", "main")
+	probeInput, _ := builtinConnectionTranscript(t, "codex", "SDK-CASE-032", "probe")
+	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-032")
+
+	run := func(connection, input string, extra ...string) ([]byte, error) {
+		args := append([]string{"mock", "--session-dir", session, "--connection", connection}, extra...)
+		args = append(args, "--", "app-server", "--listen", "stdio://")
+		cmd := sessionTool(t, env, args...)
+		cmd.Stdin = strings.NewReader(input)
+		return cmd.CombinedOutput()
+	}
+
+	data, err := run("main", mainInput)
+	require.NoError(t, err, "%s", data)
+	execution, executionID := latestSessionExecution(t, session, "mock")
+	connections := array(execution["connections"])
+	require.Len(t, connections, 2)
+
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	pending := false
+	for _, value := range array(index["executions"]) {
+		row := obj(value)
+		if str(row["id"]) != executionID {
+			continue
+		}
+		require.Equal(t, "open", row["status"])
+		statuses := map[string]string{}
+		for _, item := range array(row["connections"]) {
+			connection := obj(item)
+			statuses[str(connection["id"])] = str(connection["status"])
+		}
+		require.Equal(t, "passed", statuses["main"])
+		require.Equal(t, "pending", statuses["probe"])
+		pending = true
+	}
+	require.True(t, pending)
+
+	data, err = run("main", mainInput)
+	require.Error(t, err, "%s", data)
+	require.Contains(t, string(data), "already started")
+
+	recordingCopy := filepath.Join(t.TempDir(), "alternate-capture")
+	require.NoError(t, copyTree(source, recordingCopy))
+	for _, tc := range []struct {
+		name  string
+		extra []string
+	}{
+		{name: "recording", extra: []string{"--recording", recordingCopy}},
+		{name: "timeout", extra: []string{"--timeout", "1"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := run("probe", probeInput, tc.extra...)
+			require.Error(t, err, "%s", data)
+			require.Contains(t, string(data), "mock join")
+
+			var current object
+			require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &current))
+			for _, value := range array(current["executions"]) {
+				row := obj(value)
+				if str(row["id"]) != executionID {
+					continue
+				}
+				for _, item := range array(row["connections"]) {
+					connection := obj(item)
+					if str(connection["id"]) == "probe" {
+						require.Equal(t, "pending", connection["status"])
+					}
+				}
+			}
+			var probeConnection object
+			for _, item := range connections {
+				connection := obj(item)
+				if connection["id"] == "probe" {
+					probeConnection = connection
+				}
+			}
+			require.NotEmpty(t, probeConnection)
+			require.NoFileExists(t, filepath.Join(filepath.Dir(str(probeConnection["receipt"])), ".probe.started"))
+		})
+	}
+
+	data, err = run("probe", probeInput)
+	require.NoError(t, err, "%s", data)
+
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	for _, value := range array(index["executions"]) {
+		row := obj(value)
+		if str(row["id"]) != executionID {
+			continue
+		}
+		require.Equal(t, "passed", row["status"])
+		for _, item := range array(row["connections"]) {
+			connection := obj(item)
+			require.Equal(t, "passed", connection["status"])
+		}
+	}
+	require.NoError(t, readJSON(filepath.Join(session, "executions", executionID, "execution.json"), &execution))
+	artifact := obj(execution["artifact"])
+	var manifest object
+	require.NoError(t, readJSON(filepath.Join(str(artifact["path"]), "manifest.json"), &manifest))
+	receipts := map[string]bool{}
+	for _, item := range array(execution["connections"]) {
+		connection := obj(item)
+		require.Equal(t, str(artifact["path"]), connection["material"])
+		require.Equal(t, str(artifact["planSHA256"]), connection["planSHA256"])
+		require.Equal(t, str(artifact["manifestSHA256"]), connection["manifestSHA256"])
+		switch connection["id"] {
+		case "main":
+			require.Equal(t, str(artifact["recordingSHA256"]), connection["recordingSHA256"])
+		case "probe":
+			require.Equal(t, obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"], connection["recordingSHA256"])
+		default:
+			t.Fatalf("unexpected connection %v", connection["id"])
+		}
+		receipts[str(connection["receipt"])] = true
+		require.FileExists(t, str(connection["receipt"]))
+		require.FileExists(t, str(connection["processReceipt"]))
+	}
+	require.Len(t, receipts, 2)
+}
+
+func TestPreparedHalfOpenMockFailsFinishAndRetainsEvidence(t *testing.T) {
+	mainInput, _ := builtinConnectionTranscript(t, "codex", "SDK-CASE-032", "main")
+	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-032")
+	main := sessionTool(t, env, "mock", "--session-dir", session, "--connection", "main", "--", "app-server", "--listen", "stdio://")
+	main.Stdin = strings.NewReader(mainInput)
+	data, err := main.CombinedOutput()
+	require.NoError(t, err, "%s", data)
+
+	execution, executionID := latestSessionExecution(t, session, "mock")
+	var mainConnection, probeConnection object
+	for _, value := range array(execution["connections"]) {
+		connection := obj(value)
+		switch connection["id"] {
+		case "main":
+			mainConnection = connection
+		case "probe":
+			probeConnection = connection
+		}
+	}
+	require.NotEmpty(t, mainConnection)
+	require.NotEmpty(t, probeConnection)
+	require.FileExists(t, str(mainConnection["receipt"]))
+	require.NoFileExists(t, str(probeConnection["receipt"]))
+
+	finish := sessionTool(t, env, "finish", "--session-dir", session)
+	data, err = finish.Output()
+	require.Error(t, err, "%s", data)
+	var report object
+	require.NoError(t, json.Unmarshal(data, &report))
+	require.Equal(t, "failed", report["status"])
+	require.Equal(t, true, report["cleanupComplete"])
+	rows := array(report["executions"])
+	require.Len(t, rows, 1)
+	require.Equal(t, executionID, obj(rows[0])["id"])
+	require.Equal(t, "failed", obj(rows[0])["status"])
+
+	require.FileExists(t, filepath.Join(session, "executions", executionID, "execution.json"))
+	require.FileExists(t, str(mainConnection["receipt"]))
+	require.FileExists(t, str(mainConnection["processReceipt"]))
+	require.NoFileExists(t, str(probeConnection["receipt"]))
+	require.NoFileExists(t, str(probeConnection["processReceipt"]))
 }
 
 func TestPreparedConsumerRecordMockFinish(t *testing.T) {

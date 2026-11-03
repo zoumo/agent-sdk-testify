@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/history"
@@ -82,10 +83,22 @@ type Session struct {
 }
 
 type ExecutionConnection struct {
-	ID             string `json:"id"`
-	Material       string `json:"material,omitempty"`
-	Receipt        string `json:"receipt"`
-	ProcessReceipt string `json:"processReceipt,omitempty"`
+	ID              string   `json:"id"`
+	Command         string   `json:"command"`
+	Args            []string `json:"args,omitempty"`
+	Launcher        string   `json:"launcher,omitempty"`
+	Material        string   `json:"material,omitempty"`
+	PlanSHA256      string   `json:"planSHA256,omitempty"`
+	ManifestSHA256  string   `json:"manifestSHA256,omitempty"`
+	RecordingSHA256 string   `json:"recordingSHA256,omitempty"`
+	Receipt         string   `json:"receipt"`
+	ProcessReceipt  string   `json:"processReceipt,omitempty"`
+}
+
+type Admission struct {
+	Index     string `json:"index"`
+	Scenarios string `json:"scenarios"`
+	Archive   string `json:"archive"`
 }
 
 type Execution struct {
@@ -94,6 +107,7 @@ type Execution struct {
 	SessionID     string                `json:"sessionId"`
 	Command       string                `json:"command"`
 	Args          []string              `json:"args,omitempty"`
+	NativeArgs    []string              `json:"nativeArgs,omitempty"`
 	Source        Source                `json:"source"`
 	Executor      string                `json:"executor"`
 	Target        string                `json:"target"`
@@ -110,6 +124,7 @@ type Execution struct {
 	Receipts      []string              `json:"receipts"`
 	ArtifactRoot  string                `json:"artifactRoot"`
 	Artifact      Artifact              `json:"artifact"`
+	Admission     *Admission            `json:"admission,omitempty"`
 	Limits        Limits                `json:"limits"`
 	StartedAt     string                `json:"startedAt"`
 }
@@ -286,9 +301,21 @@ func (e Execution) Validate(s Session) error {
 		return errors.New("execution omits declared connections")
 	}
 	seen := map[string]bool{}
+	route := s.Routes[e.Command]
 	for _, c := range e.Connections {
 		if c.ID == "" || !filepath.IsAbs(c.Receipt) || seen[c.ID] {
 			return errors.New("invalid or duplicate execution connection")
+		}
+		template, ok := connectionTemplate(route, c.ID)
+		if !ok {
+			return fmt.Errorf("connection %s is not declared by its route", c.ID)
+		}
+		if !filepath.IsAbs(c.Command) || c.Command != template.Command ||
+			!slices.Equal(c.Args, template.Args) || c.Launcher != template.Launcher {
+			return fmt.Errorf("connection %s launch contract differs from its route", c.ID)
+		}
+		if c.Launcher != "" && !filepath.IsAbs(c.Launcher) {
+			return fmt.Errorf("connection %s launcher must be absolute", c.ID)
 		}
 		if c.Material != "" && !filepath.IsAbs(c.Material) {
 			return errors.New("connection material must be absolute")
@@ -296,9 +323,29 @@ func (e Execution) Validate(s Session) error {
 		if c.ProcessReceipt != "" && !filepath.IsAbs(c.ProcessReceipt) {
 			return errors.New("connection process receipt must be absolute")
 		}
+		if e.Command != "record" {
+			if c.Material != e.Artifact.Path ||
+				c.PlanSHA256 != e.Artifact.PlanSHA256 ||
+				c.ManifestSHA256 != e.Artifact.ManifestSHA256 ||
+				c.RecordingSHA256 == "" {
+				return fmt.Errorf("connection %s material differs from the execution artifact", c.ID)
+			}
+			if c.ID == "main" && c.RecordingSHA256 != e.Artifact.RecordingSHA256 {
+				return errors.New("main connection recording differs from the execution artifact")
+			}
+		}
 		seen[c.ID] = true
 	}
 	return nil
+}
+
+func connectionTemplate(route Route, id string) (ConnectionTemplate, bool) {
+	for _, connection := range route.Connections {
+		if connection.ID == id {
+			return connection, true
+		}
+	}
+	return ConnectionTemplate{}, false
 }
 
 func readSession(path string) (*Session, error) {

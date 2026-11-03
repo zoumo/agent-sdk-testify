@@ -148,6 +148,14 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 		if err != nil {
 			return nil, err
 		}
+		if artifact, ok, err := indexedArtifactAt(sessionDir, root, verify); err != nil {
+			return nil, err
+		} else if ok {
+			if _, err := inspectMaterial(session, *artifact, artifactAction(verify)); err != nil {
+				return nil, err
+			}
+			return artifact, nil
+		}
 		plan, err := checkMaterialAgent(session, root)
 		if err != nil {
 			return nil, err
@@ -224,4 +232,32 @@ func LatestArtifact(sessionDir string, session *Session, explicit string, verify
 		}
 	}
 	return nil, errors.New("no mock material or record capture is available")
+}
+
+func artifactAction(verify bool) string {
+	if verify {
+		return "verify"
+	}
+	return "mock"
+}
+
+func indexedArtifactAt(sessionDir, root string, verify bool) (*Artifact, bool, error) {
+	index, err := readIndex(IndexPath(sessionDir))
+	if err != nil {
+		return nil, false, err
+	}
+	for _, artifact := range index.Artifacts {
+		artifactRoot, err := filepath.EvalSymlinks(artifact.Path)
+		if err != nil {
+			return nil, false, err
+		}
+		if artifactRoot != root {
+			continue
+		}
+		if verify && artifact.Provenance == "consumer" {
+			return nil, false, errors.New("consumer material cannot be verified")
+		}
+		return &artifact, true, nil
+	}
+	return nil, false, nil
 }

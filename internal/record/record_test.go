@@ -381,6 +381,45 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	assert.Equal(t, "passed", report["status"])
 }
 
+func TestRecordThenExplicitVerifyUsesPublishedCapture(t *testing.T) {
+	fixture := recordProcess(t, "codex", "passed", "passed")
+	data, err := fixture.command(t, "10s").CombinedOutput()
+	require.NoError(t, err, "%s", data)
+
+	var before object
+	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", "index.json"), &before))
+	var capture object
+	for _, value := range array(before["artifacts"]) {
+		artifact := obj(value)
+		if str(artifact["id"]) == str(before["latestCapture"]) {
+			capture = artifact
+		}
+	}
+	require.NotEmpty(t, capture)
+
+	fixture.installVerifyDriver(t)
+	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"),
+		"verify", "--session-dir", fixture.session, "--recording", str(capture["path"]))
+	verify.Env = fixture.env
+	data, err = verify.CombinedOutput()
+	require.NoError(t, err, "%s", data)
+
+	execution := latestExecution(t, fixture.session, "verify")
+	artifact := obj(execution["artifact"])
+	require.Equal(t, str(capture["path"]), artifact["path"])
+	require.Equal(t, "official", execution["provenance"])
+	connection := obj(array(execution["connections"])[0])
+	require.Equal(t, str(artifact["path"]), connection["material"])
+	require.Equal(t, str(artifact["planSHA256"]), connection["planSHA256"])
+	require.Equal(t, str(artifact["manifestSHA256"]), connection["manifestSHA256"])
+	require.Equal(t, str(artifact["recordingSHA256"]), connection["recordingSHA256"])
+
+	var after object
+	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", "index.json"), &after))
+	require.Equal(t, str(capture["id"]), str(after["latestCapture"]))
+	require.Len(t, array(after["artifacts"]), len(array(before["artifacts"])))
+}
+
 func latestExecution(t *testing.T, session, command string) object {
 	t.Helper()
 	var index object

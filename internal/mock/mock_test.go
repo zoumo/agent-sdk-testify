@@ -231,7 +231,7 @@ func TestMockRejectsInvalidSourcesBeforeProtocol(t *testing.T) {
 			require.NoError(t, os.Remove(filepath.Join(root, "manifest.json")))
 		}, nil},
 		{"missing source bindings", "requires planSHA256", func(t *testing.T, root string) {
-			require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{}))
+			require.NoError(t, writeJSON(filepath.Join(root, "manifest.json"), object{"provenance": "synthetic"}))
 		}, nil},
 		{"incomplete capture", "source recording capture is partial", func(t *testing.T, root string) {
 			var m object
@@ -319,7 +319,7 @@ func TestMockClaudeNativeStdio(t *testing.T) {
 	var receipt object
 	require.NoError(t, readJSON(report, &receipt))
 	assert.Equal(t, "passed", receipt["status"])
-	assert.Equal(t, "synthetic", receipt["provenance"])
+	assert.Equal(t, "external", receipt["provenance"])
 	assert.Equal(t, "claude", receipt["provider"])
 	assert.Equal(t, before, mockSourceBytes(t, root))
 }

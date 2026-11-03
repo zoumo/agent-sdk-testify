@@ -43,6 +43,10 @@ func Run(ctx context.Context, o Options) error {
 	if c.Index == "" && c.Scenarios != "" {
 		return exitcode.Fail(exitcode.Configuration, errors.New("scenarios requires index"))
 	}
+	if c.Index == "" && c.Archive != "" {
+		return exitcode.Fail(exitcode.Configuration, errors.New("archive requires index"))
+	}
+	var admission *lifecycle.Admission
 	if c.Index != "" {
 		if c.Archive == "" {
 			archive, err := corpus.DefaultArchive()
@@ -54,11 +58,12 @@ func Run(ctx context.Context, o Options) error {
 		if err := c.Normalize(); err != nil {
 			return exitcode.Fail(exitcode.Configuration, err)
 		}
+		admission = &lifecycle.Admission{Index: c.Index, Scenarios: c.Scenarios, Archive: c.Archive}
 	}
-	return verifyPrepared(ctx, o.SessionDir, o.Recording, o.Timeout, c)
+	return verifyPrepared(ctx, o.SessionDir, o.Recording, o.Timeout, c, admission)
 }
 
-func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout time.Duration, c corpus.Corpus) (err error) {
+func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout time.Duration, c corpus.Corpus, admission *lifecycle.Admission) (err error) {
 	if !filepath.IsAbs(sessionDir) {
 		return errors.New("--session-dir must be an absolute path")
 	}
@@ -77,7 +82,14 @@ func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout ti
 	if explicit != "" {
 		args = append(args, "--recording", explicit)
 	}
-	run, err := lifecycle.BeginVerify(sessionDir, args, timeout, artifact)
+	if admission != nil {
+		args = append(args,
+			"--index", admission.Index,
+			"--scenarios", admission.Scenarios,
+			"--archive", admission.Archive,
+		)
+	}
+	run, err := lifecycle.BeginVerify(sessionDir, args, timeout, artifact, admission)
 	if err != nil {
 		return err
 	}

@@ -314,11 +314,10 @@ func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), []byte("corrupt\n"), 0o600))
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
-	output := verifyOutput(t, session)
-	var evidence object
-	require.NoError(t, readJSON(filepath.Join(output, "verification.json"), &evidence))
-	require.Contains(t, evidence["error"], "hash mismatch")
-	require.NoFileExists(t, filepath.Join(output, "request.json"))
+	require.Contains(t, string(data), "hash mismatch")
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	require.Empty(t, array(index["executions"]))
 }
 
 func TestVerifyAllSelectedPeers(t *testing.T) {
@@ -358,7 +357,15 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	s.SetupTest()
 	scenarios, err := filepath.Abs(s.c.Scenarios)
 	require.NoError(t, err)
-	cmd.Args = append(cmd.Args, "--index", s.c.Index, "--scenarios", scenarios, "--archive", s.c.Archive)
+	workingDir, err := filepath.EvalSymlinks(cmd.Dir)
+	require.NoError(t, err)
+	indexArg, err := filepath.Rel(workingDir, s.c.Index)
+	require.NoError(t, err)
+	scenariosArg, err := filepath.Rel(workingDir, scenarios)
+	require.NoError(t, err)
+	archiveArg, err := filepath.Rel(workingDir, s.c.Archive)
+	require.NoError(t, err)
+	cmd.Args = append(cmd.Args, "--index", indexArg, "--scenarios", scenariosArg, "--archive", archiveArg)
 	before, err := Inventory(source, false)
 	require.NoError(t, err)
 	data, err := cmd.CombinedOutput()
@@ -368,6 +375,26 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	require.NoError(t, readJSON(filepath.Join(output, "admission-summary.json"), &admission))
 	require.Equal(t, "admitted", admission["status"])
 	require.FileExists(t, filepath.Join(str(admission["materials"]), "official-replay", "verification.json"))
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	var execution object
+	for _, value := range array(index["executions"]) {
+		row := obj(value)
+		if row["command"] != "verify" {
+			continue
+		}
+		require.NoError(t, readJSON(filepath.Join(session, "executions", str(row["id"]), "execution.json"), &execution))
+	}
+	persisted := obj(execution["admission"])
+	normalizedIndex, err := filepath.Abs(s.c.Index)
+	require.NoError(t, err)
+	normalizedScenarios, err := filepath.Abs(scenarios)
+	require.NoError(t, err)
+	normalizedArchive, err := Resolved(s.c.Archive)
+	require.NoError(t, err)
+	require.Equal(t, normalizedIndex, persisted["index"])
+	require.Equal(t, normalizedScenarios, persisted["scenarios"])
+	require.Equal(t, normalizedArchive, persisted["archive"])
 	_, err = s.c.VerifyAdopted(s.entry())
 	require.NoError(t, err)
 	after, err := Inventory(source, false)

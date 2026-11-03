@@ -53,6 +53,10 @@ func TestBuiltinCatalogOutsideCheckout(t *testing.T) {
 
 // Byte transcripts are transport probes, not official SDK/business verification.
 func builtinTranscript(t *testing.T, provider, id string) (string, string) {
+	return builtinConnectionTranscript(t, provider, id, "main")
+}
+
+func builtinConnectionTranscript(t *testing.T, provider, id, connection string) (string, string) {
 	t.Helper()
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
@@ -64,7 +68,13 @@ func builtinTranscript(t *testing.T, provider, id string) (string, string) {
 			continue
 		}
 		root := filepath.Join(repository, "data", str(row["materials"]))
-		data, err := os.ReadFile(filepath.Join(root, "raw", "raw.jsonl"))
+		rawRoot := filepath.Join(root, "raw")
+		if connection == "probe" {
+			rawRoot = filepath.Join(root, "remote-probe", "raw")
+		} else if connection != "main" {
+			t.Fatalf("unknown builtin connection %q", connection)
+		}
+		data, err := os.ReadFile(filepath.Join(rawRoot, "raw.jsonl"))
 		require.NoError(t, err)
 		var input strings.Builder
 		for line := range bytes.SplitSeq(bytes.TrimSpace(data), []byte("\n")) {

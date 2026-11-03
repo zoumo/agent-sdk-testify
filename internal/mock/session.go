@@ -50,7 +50,7 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	if err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
-	run, err := lifecycle.BeginMock(o.SessionDir, o.Connection, append([]string{"--session-dir", o.SessionDir, "--connection", o.Connection}, o.NativeArgs...), o.Timeout, artifact)
+	run, err := lifecycle.BeginMock(o.SessionDir, o.Connection, o.NativeArgs, o.Timeout, artifact)
 	if err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
