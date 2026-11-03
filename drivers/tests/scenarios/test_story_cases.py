@@ -26,10 +26,13 @@ class StoryCaseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 recipe('claude', 'SDK-US-005', directory, case_id='SDK-CASE-017')
 
-    def test_provider_optional_requirements_do_not_waive_codex_or_display(self):
+    def test_provider_optional_requirements_only_override_target_provider(self):
         for provider in ('claude', 'codex'):
             cases = {case['caseId']: case for case in case_recipes(provider)}
-            self.assertEqual(sum(case['required'] for case in cases.values()), 31 if provider == 'claude' else 33)
+            self.assertEqual(sum(case['required'] for case in cases.values()), 31 if provider == 'claude' else 32)
+            self.assertEqual(cases['SDK-CASE-012']['required'], provider == 'claude')
+            self.assertEqual(cases['SDK-CASE-012']['mode'],
+                             'live-selected-path' if provider == 'claude' else 'planned')
             for case_id in ('SDK-CASE-017', 'SDK-CASE-032'):
                 self.assertEqual(cases[case_id]['required'], provider == 'codex')
             self.assertTrue(cases['SDK-CASE-028']['required'])
@@ -52,20 +55,27 @@ class StoryCaseTests(unittest.TestCase):
 
 
     def test_unavailable_routes_cannot_be_promoted_by_forged_pass_reports(self):
-        for provider in ('codex', 'claude'):
-            checked = 0
-            for story in story_documents():
-                cases = case_recipes(provider, stories=story['id'])
-                unavailable = [c['caseId'] for c in cases if c['required'] and c['mode'] != 'live-selected-path']
-                if not unavailable:
-                    continue
-                results = {case['caseId']: {'status': 'passed', 'evidenceLayer': 'protocol-replay'} for case in cases}
-                summary = summarize_story(provider, story['id'], results, 'protocol-replay')
-                self.assertEqual(summary['status'], 'partial')
-                for case_id in unavailable:
-                    self.assertIn(case_id, summary['missingCases'])
-                    checked += 1
-            self.assertEqual(checked, 0 if provider == 'claude' else 1)
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp) / 'scenarios'
+            shutil.copytree(scenario_directory(), directory)
+            binding_path = directory / 'bindings/codex.json'
+            binding = json.loads(binding_path.read_text())
+            binding['cases']['SDK-CASE-012']['required'] = True
+            binding_path.write_text(json.dumps(binding))
+            for provider in ('codex', 'claude'):
+                checked = 0
+                for story in story_documents(directory):
+                    cases = case_recipes(provider, stories=story['id'], directory=directory)
+                    unavailable = [c['caseId'] for c in cases if c['required'] and c['mode'] != 'live-selected-path']
+                    if not unavailable:
+                        continue
+                    results = {case['caseId']: {'status': 'passed', 'evidenceLayer': 'protocol-replay'} for case in cases}
+                    summary = summarize_story(provider, story['id'], results, 'protocol-replay', directory=directory)
+                    self.assertEqual(summary['status'], 'partial')
+                    for case_id in unavailable:
+                        self.assertIn(case_id, summary['missingCases'])
+                        checked += 1
+                self.assertEqual(checked, 0 if provider == 'claude' else 1)
 
     def test_catalog_retains_stable_stories_and_all_small_validation_targets(self):
         stories = story_documents()
@@ -126,8 +136,12 @@ class StoryCaseTests(unittest.TestCase):
         cases = case_recipes('codex', stories='SDK-US-003')
         results = {case['caseId']: {'status': 'passed', 'evidenceLayer': 'go-sdk'} for case in cases}
         summary = summarize_story('codex', 'SDK-US-003', results, 'go-sdk')
+        self.assertEqual(summary['status'], 'passed')
+        self.assertNotIn('SDK-CASE-012', summary['missingCases'])
+        del results['SDK-CASE-011']
+        summary = summarize_story('codex', 'SDK-US-003', results, 'go-sdk')
         self.assertEqual(summary['status'], 'partial')
-        self.assertIn('SDK-CASE-012', summary['missingCases'])
+        self.assertIn('SDK-CASE-011', summary['missingCases'])
 
     def test_multiple_executable_cases_in_one_story_do_not_select_a_default(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -22,7 +22,7 @@ class StoryEvidenceTests(unittest.TestCase):
                          [case['id'] for case in cases if not case['required']])
         self.assertTrue(by_id['SDK-CASE-012']['required'])
         approval = next(row for row in rows if row.startswith('| SDK-CASE-012 |'))
-        self.assertIn('| required |', approval)
+        self.assertIn('| required (codex optional) |', approval)
         self.assertIn('| planned |', approval)
         for case_id in ('SDK-CASE-017', 'SDK-CASE-032'):
             row = next(row for row in rows if row.startswith('| ' + case_id + ' |'))

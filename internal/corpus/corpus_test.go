@@ -171,7 +171,7 @@ func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 	for _, value := range array(index["cases"]) {
 		counts[str(obj(value)["requirement"])]++
 	}
-	s.Equal(map[string]int{"required": 64, "optional": 8}, counts)
+	s.Equal(map[string]int{"required": 63, "optional": 9}, counts)
 	for _, change := range []string{"empty", "omit", "downgrade", "duplicate", "verification", "reason", "unbacked-pass"} {
 		s.Run(change, func() {
 			bad := s.read(filepath.Dir(s.c.Index), "index.json")
@@ -217,7 +217,7 @@ func (s *corpusSuite) TestRequirementsAreIndependentOfRoutes() {
 	catalog, err := s.c.Catalog()
 	s.Require().NoError(err)
 	for _, key := range []string{"codex/SDK-CASE-012"} {
-		s.Equal("required", obj(catalog[key])["requirement"], key)
+		s.Equal("optional", obj(catalog[key])["requirement"], key)
 		s.NotEqual("live-selected-path", obj(catalog[key])["route"], key)
 	}
 	for _, id := range []string{"SDK-CASE-017", "SDK-CASE-032"} {

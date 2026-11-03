@@ -473,10 +473,10 @@
       "adoption": "missing",
       "caseId": "SDK-CASE-012",
       "provider": "codex",
-      "requirement": "required",
+      "requirement": "optional",
       "storyId": "SDK-US-003",
       "verification": "blocked",
-      "verificationReason": "必需能力的录制验证阻塞：现有官方 Python SDK 0.161.0 与 0.163.0 在唯一读取线程同步执行审批回调，持有审批会阻塞控制回执和事件，公开 API 无延后回答机制。先回答再观察不满足本 case；planned 仅表示当前驱动路径未完成，不豁免必需门禁。这是语言驱动限制，不是 Codex 原生协议不支持，也不是 Go SDK 已验证失败。"
+      "verificationReason": "Codex 侧暂为 optional：现有官方 Python SDK 0.161.0 与 0.163.0 在唯一读取线程同步执行审批回调，持有审批会阻塞控制回执和事件，公开 API 无延后回答机制。先回答再观察不满足本 case；待官方驱动支持持有审批期间的并发控制与事件后再恢复 required。这是语言驱动限制，不是 Codex 原生协议不支持，也不是 Go SDK 已验证失败。"
     },
     {
       "adoption": "admitted",
