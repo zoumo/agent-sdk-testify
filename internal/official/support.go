@@ -16,6 +16,9 @@ type Options struct {
 	HistorySeed                                                               string
 	InitialModel                                                              string
 	DriverArgs                                                                []string
+	NativeCommand                                                             string
+	NativeArgs                                                                []string
+	Plan                                                                      tool.Object
 }
 
 type DriverPeer struct {

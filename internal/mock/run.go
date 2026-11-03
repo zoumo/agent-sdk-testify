@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,7 +14,9 @@ import (
 	"strings"
 	"syscall"
 
-	protocolcmd "github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
+	"github.com/zoumo/agent-sdk-testify/protocol"
 )
 
 // The descriptor is the installed-process contract, not a workflow runner.
@@ -53,92 +54,37 @@ type mockConnection struct {
 	ProcessReceipt  string `json:"processReceipt"`
 }
 
-func mockMode(ctx context.Context, args []string) error {
-	prepared := false
-	for _, arg := range args {
-		if arg == "--" {
-			break
-		}
-		name, _, _ := strings.Cut(arg, "=")
-		if name == "--prepare" || name == "--run" || name == "--finish" {
-			prepared = true
-			break
-		}
-	}
-	if !prepared {
-		return mockExternal(ctx, args)
-	}
-	return mockPreparedMode(ctx, args, nil)
-}
-
-func mockPreparedMode(ctx context.Context, args []string, selection *builtinSelection) error {
-	bad := func(err error) error { return protocolcmd.Fail(protocolcmd.ExitConfiguration, err) }
-	f := flag.NewFlagSet("mock", flag.ContinueOnError)
-	prepare := f.Bool("prepare", false, "Prepare isolated SDK-host environment")
-	run := f.String("run", "", "Persistent run.json")
-	finish := f.String("finish", "", "Finish persistent run.json")
-	root := f.String("recording", "", "Absolute external recording")
-	output := f.String("output", "", "New persistent output directory")
-	connection := f.String("connection", "main", "Declared connection ID")
-	provider := f.String("provider", "", "Expected provider")
-	// Also accept the design's --finish --run FILE spelling.
-	normalized := append([]string(nil), args...)
-	for i, arg := range normalized {
-		if arg == "--finish" && (i+1 == len(normalized) || strings.HasPrefix(normalized[i+1], "--")) {
-			normalized[i] = "--finish=true"
-		}
-	}
-	var flags, native []string
-	for i := 0; i < len(normalized); i++ {
-		arg := normalized[i]
-		if arg == "--" {
-			native = append(native, normalized[i+1:]...)
-			break
-		}
-		name, _, equals := strings.Cut(strings.TrimPrefix(arg, "--"), "=")
-		if !strings.HasPrefix(arg, "--") || f.Lookup(name) == nil {
-			native = append(native, arg)
-			continue
-		}
-		flags = append(flags, arg)
-		if !equals && name != "prepare" {
-			if i+1 == len(normalized) {
-				return bad(fmt.Errorf("missing --%s value", name))
-			}
-			i++
-			flags = append(flags, normalized[i])
-		}
-	}
-	if err := f.Parse(flags); err != nil {
-		return bad(err)
-	}
-	if *prepare {
-		if *run != "" || *finish != "" || len(native) > 0 {
+func mockPreparedMode(ctx context.Context, o Options, selection *builtinSelection) error {
+	if o.Prepare {
+		if o.Run != "" || o.Finish != "" || len(o.NativeArgs) > 0 {
 			return bad(errors.New("mock modes are mutually exclusive"))
 		}
-		return prepareMockSelected(ctx, *root, *output, *provider, selection)
+		return prepareMockSelected(ctx, o.Recording, o.Output, o.Provider, selection)
 	}
-	if *root != "" || *output != "" || *provider != "" {
+	if o.Recording != "" || o.Output != "" || o.Provider != "" {
 		return bad(errors.New("recording/output/provider belong to prepare"))
 	}
-	if *finish != "" {
-		path := *finish
+	if o.Finish != "" {
+		path := o.Finish
 		if path == "true" {
-			path = *run
-		} else if *run != "" {
+			path = o.Run
+		} else if o.Run != "" {
 			return bad(errors.New("specify one run descriptor"))
 		}
-		if len(native) > 0 {
+		if len(o.NativeArgs) > 0 {
 			return bad(errors.New("finish takes no native arguments"))
 		}
 		return finishMock(path)
 	}
-	return runPreparedMock(ctx, *run, *connection, native)
+	if o.Connection == "" {
+		o.Connection = "main"
+	}
+	return runPreparedMock(ctx, o.Run, o.Connection, o.NativeArgs)
 }
 
 func prepareMockSelected(ctx context.Context, source, output, provider string, selection *builtinSelection) (err error) {
 	if !filepath.IsAbs(source) || !filepath.IsAbs(output) {
-		return protocolcmd.Fail(protocolcmd.ExitConfiguration, errors.New("prepare requires --recording ABS and --output ABS"))
+		return exitcode.Fail(exitcode.Configuration, errors.New("prepare requires --recording ABS and --output ABS"))
 	}
 	source, err = filepath.EvalSymlinks(source)
 	if err != nil {
@@ -158,7 +104,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 	var r mockRun
 	defer func() {
 		if ctx.Err() != nil {
-			err = errors.Join(err, protocolcmd.Fail(protocolcmd.ExitCanceled, ctx.Err()))
+			err = errors.Join(err, exitcode.Fail(exitcode.Canceled, ctx.Err()))
 		}
 		if err != nil {
 			cleanup := error(nil)
@@ -176,7 +122,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 	if e != nil {
 		return e
 	}
-	r.Provider = str(plan["provider"])
+	r.Provider = planAgentType(plan)
 	var id [16]byte
 	if _, err = rand.Read(id[:]); err != nil {
 		return err
@@ -190,7 +136,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 		return e
 	}
 	r.Tool = command{Command: self}
-	r.ToolVersion = protocolcmd.Version
+	r.ToolVersion = version.Version
 	r.ToolSHA256, err = fileDigest(self)
 	if err != nil {
 		return err
@@ -371,7 +317,7 @@ func prepareMockSelected(ctx context.Context, source, output, provider string, s
 	}
 	r.Finish = command{Command: self, Args: []string{"mock", "--finish", path}}
 	if ctx.Err() != nil {
-		return protocolcmd.Fail(protocolcmd.ExitCanceled, ctx.Err())
+		return exitcode.Fail(exitcode.Canceled, ctx.Err())
 	}
 	if err := atomicMockJSON(path, r); err != nil {
 		return err
@@ -419,11 +365,11 @@ func mockNativeVersion(path, id string, r *mockRun) error {
 	if err := readJSON(r.Contract, &plan); err != nil {
 		return err
 	}
-	version := strings.TrimSpace(str(plan["cliVersion"]))
-	if version == "" {
-		version = "unknown (mock; recorded native CLI version unavailable)"
+	cliVersion := strings.TrimSpace(str(plan["cliVersion"]))
+	if cliVersion == "" {
+		cliVersion = "unknown (mock; recorded native CLI version unavailable)"
 	}
-	_, err := fmt.Fprintln(os.Stdout, version)
+	_, err := fmt.Fprintln(os.Stdout, cliVersion)
 	return err
 }
 
@@ -516,7 +462,7 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	if err := claim.Close(); err != nil {
 		return err
 	}
-	process := object{"schemaVersion": 1, "runId": r.RunID, "connectionId": id, "status": "failed", "exitCode": -1, "toolVersion": protocolcmd.Version}
+	process := object{"schemaVersion": 1, "runId": r.RunID, "connectionId": id, "status": "failed", "exitCode": -1, "toolVersion": version.Version}
 	defer func() {
 		if err != nil {
 			process["error"] = err.Error()
@@ -531,8 +477,8 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	if err := errors.Join(checkMockIdentity(*c), checkMockHistory(r)); err != nil {
 		return err
 	}
-	if err := protocolcmd.ValidateNativeArgs(r.Provider, native); err != nil {
-		return protocolcmd.Fail(protocolcmd.ExitConfiguration, err)
+	if err := protocol.ValidateNativeArgs(r.Provider, native); err != nil {
+		return exitcode.Fail(exitcode.Configuration, err)
 	}
 	self, e := os.Executable()
 	if e != nil {
@@ -574,13 +520,13 @@ func runPreparedMock(ctx context.Context, path, id string, native []string) (err
 	if err == nil {
 		process["status"] = "passed"
 	} else if ctx.Err() != nil {
-		err = protocolcmd.Fail(protocolcmd.ExitCanceled, ctx.Err())
+		err = exitcode.Fail(exitcode.Canceled, ctx.Err())
 	} else if cmd.ProcessState != nil {
 		code := cmd.ProcessState.ExitCode()
 		if code <= 0 {
-			code = protocolcmd.ExitFailure
+			code = exitcode.Failure
 		}
-		err = protocolcmd.Fail(code, err)
+		err = exitcode.Fail(code, err)
 	}
 	return err
 }

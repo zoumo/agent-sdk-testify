@@ -72,8 +72,9 @@ git -C /absolute/codex-source rev-parse HEAD
   --no-deps /absolute/agent_sdk_testify_driver-0.1.0-py3-none-any.whl
 ```
 
-`--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。`record` 通过 `--cli ABS`
-显式指定 native executable；`verify` 使用 driver 提供的 strict mock/proxy，
+`--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。`record` 通过 `--cmd ABS` 和
+`--` 后的原生 argv 显式指定 executable 及其参数；`verify` 使用 driver 提供的
+strict mock/proxy，
 不得回落到已安装的真实 Codex 或 Claude。源码 SDK、录制中的原生 CLI 和工具自身
 是三个独立版本身份。
 
@@ -94,7 +95,7 @@ git -C /absolute/codex-source rev-parse HEAD
 业务协议，原生 SDK 进程使用独立管道。
 
 driver 只执行一个请求，不实现 registry、双向命令、步骤 DSL 或 SDK 覆盖门禁。
-case 输入、provider 参数和断言边界来自 [场景目录](../data/scenarios) 与
+case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios) 与
 [case 规范](../docs/cases.md)。
 
 <a id="fixtures-仿真录制与测试输入"></a>
@@ -104,7 +105,7 @@ case 输入、provider 参数和断言边界来自 [场景目录](../data/scenar
 `record` 的原始尝试保存在私有输出目录；经 `verify`、资格审核和采用后，材料进入：
 
 ```text
-data/<provider>/<story>/<case>/<attempt>/
+data/<agentType>/<story>/<case>/<attempt>/
 ```
 
 每个采用目录保留原始 `plan.json`、`manifest.json`、`raw/raw.jsonl`、业务报告、
@@ -120,4 +121,4 @@ attempt 身份不可改写；失败与未触发结果不伪装成通过。
 当前材料状态、缺口和采用身份以
 [固定索引](../data/index.json)和
 [内置清单](../data/builtin/manifest.json)为准。文档中的 case 列表描述目标流程，
-不代表每个 provider 已有通过材料。
+不代表每个 agent type 已有通过材料。

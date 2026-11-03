@@ -19,13 +19,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/command"
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 )
 
-// The subprocess runs the protocol dispatcher (including signal context
-// and exit codes), or an explicitly synthetic native peer. Under -race both
-// the proxy and peer are instrumented, without requiring a nested go build.
+// The subprocess is an explicitly synthetic native peer. The installed CLI is
+// exercised separately so the test cannot bypass its Cobra command boundary.
 func TestRecordCLIHelper(t *testing.T) {
 	role := os.Getenv("AGENT_MOCK_RECORD_TEST_ROLE")
 	if role == "" {
@@ -40,11 +38,6 @@ func TestRecordCLIHelper(t *testing.T) {
 	}
 	if at == 0 {
 		os.Exit(99)
-	}
-	if role == "cli" {
-		os.Args = append([]string{os.Args[0]}, os.Args[at:]...)
-		protocolTestMain()
-		return
 	}
 	args := os.Args[at:]
 	if role != "peer" || len(args) == 0 {
@@ -168,16 +161,17 @@ func startRecordAt(t *testing.T, dir string, flags []string, mode ...string) *re
 
 func startRecordCommand(t *testing.T, dir string, flags, native []string) *recordProcess {
 	t.Helper()
-	executable, err := os.Executable()
-	require.NoError(t, err)
-	args := []string{"-test.run=^TestRecordCLIHelper$", "--", "record", "--output", dir, "--cleanup-timeout", "0.3", "--env", "AGENT_MOCK_RECORD_TEST_ROLE=peer"}
+	executable := os.Getenv("AGENT_SDK_TESTIFY_BIN")
+	require.NotEmpty(t, executable, "run with make test")
+	args := []string{"--internal-protocol", "record", "--output", dir, "--cleanup-timeout", "0.3", "--env", "AGENT_MOCK_RECORD_TEST_ROLE=peer"}
 	args = append(args, flags...)
 	args = append(args, "--")
 	args = append(args, native...)
 	p := &recordProcess{cmd: exec.CommandContext(t.Context(), executable, args...), dir: dir, done: make(chan error, 1)}
-	p.cmd.Env = append(os.Environ(), "AGENT_MOCK_RECORD_TEST_ROLE=cli", "RECORD_INHERITED=outer", "GORACE=atexit_sleep_ms=0")
-	p.in, err = p.cmd.StdinPipe()
+	p.cmd.Env = append(os.Environ(), "AGENT_MOCK_RECORD_TEST_ROLE=peer", "RECORD_INHERITED=outer", "GORACE=atexit_sleep_ms=0")
+	in, err := p.cmd.StdinPipe()
 	require.NoError(t, err)
+	p.in = in
 	// An explicit pipe remains readable after Cmd.Wait; StdoutPipe can close
 	// before a concurrently waiting test has drained the final bytes.
 	out, writeOut, err := os.Pipe()
@@ -604,12 +598,4 @@ func TestRecordCLIEarlyExitRejectsPendingClientFragment(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join(p.dir, "c2s.partial.raw"))
 	require.NoError(t, err)
 	assert.Equal(t, "{\"partial\":", string(data))
-}
-
-// Exercise the same protocol dispatcher with an instrumented subprocess.
-func protocolTestMain() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	code := Execute(ctx, os.Args[1:], command.IO{In: os.Stdin, Out: os.Stdout, Err: os.Stderr})
-	cancel()
-	os.Exit(code)
 }

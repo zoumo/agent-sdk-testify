@@ -3,7 +3,7 @@ package tool
 import (
 	"context"
 	"errors"
-	"flag"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -54,35 +54,40 @@ func WaitDriver(ctx context.Context, cmd *exec.Cmd) error {
 	}
 }
 
-func RunPeer(args []string) (runErr error) {
-	flags := flag.NewFlagSet("peer", flag.ContinueOnError)
-	requestPath := flags.String("request", "", "peer command file")
-	lifecycle := flags.String("lifecycle", "", "internal protocol child exit evidence")
-	if err := flags.Parse(args); err != nil {
-		return err
+type PeerOptions struct {
+	Request   string
+	Lifecycle string
+	In        io.Reader
+	Out       io.Writer
+	Err       io.Writer
+}
+
+func RunPeer(o PeerOptions) (runErr error) {
+	if o.Request == "" {
+		return errors.New("peer requires --request")
 	}
 	var c Command
-	if err := ReadJSON(*requestPath, &c); err != nil {
+	if err := ReadJSON(o.Request, &c); err != nil {
 		return err
 	}
 	cmd := exec.CommandContext(context.Background(), c.Command, c.Args...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdin = o.In
+	cmd.Stdout = o.Out
+	cmd.Stderr = o.Err
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(ch)
 	if err := cmd.Start(); err != nil {
 		return err
 	}
-	if *lifecycle != "" {
+	if o.Lifecycle != "" {
 		defer func() {
 			code := cmd.ProcessState.ExitCode()
 			report := Object{"schemaVersion": 1, "exitCode": code, "reaped": cmd.ProcessState != nil, "cleanupComplete": true}
 			if runErr != nil {
 				report["error"] = runErr.Error()
 			}
-			runErr = errors.Join(runErr, WriteJSON(*lifecycle, report))
+			runErr = errors.Join(runErr, WriteJSON(o.Lifecycle, report))
 		}()
 	}
 	done := make(chan error, 1)

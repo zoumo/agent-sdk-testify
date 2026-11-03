@@ -18,7 +18,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	protocolcmd "github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 type Manifest struct {
@@ -60,7 +60,7 @@ func Read() (*Manifest, string, error) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		return nil, "", err
 	}
-	if m.SchemaVersion != 1 || m.ToolVersion != protocolcmd.Version || len(m.Materials) == 0 {
+	if m.SchemaVersion != 1 || m.ToolVersion != version.Version || len(m.Materials) == 0 {
 		return nil, "", errors.New("invalid or empty builtin manifest; regenerate")
 	}
 	catalog := data.Scenarios()
@@ -93,6 +93,34 @@ func Select(provider, id string) (*Material, string, error) {
 		}
 	}
 	return nil, "", fmt.Errorf("unknown builtin case %s/%s", provider, id)
+}
+
+// SelectOptional distinguishes an absent case material from an unavailable or
+// corrupt builtin snapshot.
+func SelectOptional(provider, id string) (*Material, string, bool, error) {
+	m, hash, err := Read()
+	if err != nil {
+		return nil, "", false, err
+	}
+	foundCoverage := false
+	for _, row := range m.Coverage {
+		if row["provider"] == provider && row["caseId"] == id {
+			foundCoverage = true
+			if row["available"] != true {
+				return nil, "", false, nil
+			}
+		}
+	}
+	for i := range m.Materials {
+		material := &m.Materials[i]
+		if material.Provider == provider && material.CaseID == id {
+			return material, hash, true, nil
+		}
+	}
+	if foundCoverage {
+		return nil, "", false, fmt.Errorf("builtin coverage has no material for %s/%s", provider, id)
+	}
+	return nil, "", false, nil
 }
 
 func Extract(material *Material) (root string, err error) {

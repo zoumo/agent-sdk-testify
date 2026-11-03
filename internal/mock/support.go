@@ -43,3 +43,10 @@ var (
 	checkBuiltinSelection = builtin.CheckSelection
 	checkBuiltinMaterial  = builtin.CheckMaterial
 )
+
+func planAgentType(plan object) string {
+	if provider := str(plan["provider"]); provider != "" {
+		return provider
+	}
+	return str(plan["agentType"])
+}

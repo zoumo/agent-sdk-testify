@@ -22,7 +22,7 @@ func TestVerifyOfficialOnlySelection(t *testing.T) {
 			require.Contains(t, string(data), "recording")
 		} else {
 			require.Error(t, err)
-			require.Contains(t, string(data), "flag provided but not defined")
+			require.Contains(t, string(data), "unknown flag")
 		}
 	}
 }

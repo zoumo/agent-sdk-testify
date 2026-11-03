@@ -9,8 +9,8 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -19,44 +19,40 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	protocolcmd "github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-func init() {
-	f := flag.NewFlagSet("builtin generation", flag.ExitOnError)
-	check := f.Bool("check", false, "Reject stale or missing generated artifacts")
-	revision := f.String("revision", "", "Source repository revision (required when generating)")
-	root := f.String("root", ".", "Authoritative repository root")
-	_ = f.Parse(os.Args[1:])
-	if f.NArg() != 0 {
-		fmt.Fprintln(os.Stderr, "unexpected generation arguments")
-		os.Exit(2)
-	}
-	if err := generateBuiltin(*root, *revision, *check); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	os.Exit(0)
+type GenerateOptions struct {
+	Root        string
+	Revision    string
+	Check       bool
+	Diagnostics io.Writer
 }
 
-func generateBuiltin(root, revision string, check bool) error {
-	target := filepath.Join(root, "data", "builtin")
-	if check && revision == "" {
+func Generate(o GenerateOptions) error {
+	if o.Root == "" {
+		o.Root = "."
+	}
+	if o.Diagnostics == nil {
+		o.Diagnostics = io.Discard
+	}
+	target := filepath.Join(o.Root, "data", "builtin")
+	if o.Check && o.Revision == "" {
 		var old Manifest
 		if err := tool.ReadJSON(filepath.Join(target, "manifest.json"), &old); err != nil {
 			return err
 		}
-		revision = old.SourceRevision
+		o.Revision = old.SourceRevision
 	}
-	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(revision) {
+	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(o.Revision) {
 		return errors.New("full source --revision required")
 	}
-	c := corpus.Corpus{Index: filepath.Join(root, "data", "index.json"), Scenarios: filepath.Join(root, "data", "scenarios")}
+	c := corpus.Corpus{Index: filepath.Join(o.Root, "data", "index.json"), Scenarios: filepath.Join(o.Root, "data", "scenarios")}
 	index, err := c.LoadIndex()
 	if err != nil {
 		return err
 	}
-	m := Manifest{SchemaVersion: 1, ToolVersion: protocolcmd.Version, SourceRevision: revision, Scope: "local technical candidates; public release not authorized", Catalog: map[string]string{}, Coverage: []tool.Object{}, Materials: []Material{}}
+	m := Manifest{SchemaVersion: 1, ToolVersion: version.Version, SourceRevision: o.Revision, Scope: "local technical candidates; public release not authorized", Catalog: map[string]string{}, Coverage: []tool.Object{}, Materials: []Material{}}
 	m.IndexSHA256, err = tool.FileDigest(c.Index)
 	if err != nil {
 		return err
@@ -160,7 +156,7 @@ func generateBuiltin(root, revision string, check bool) error {
 		data []byte
 	}{{"manifest.json", data}, {"materials.tar.gz", archive.Bytes()}} {
 		path := filepath.Join(target, output.name)
-		if check {
+		if o.Check {
 			old, e := os.ReadFile(path)
 			if e != nil {
 				return e
@@ -174,6 +170,6 @@ func generateBuiltin(root, revision string, check bool) error {
 			}
 		}
 	}
-	fmt.Fprintf(os.Stderr, "builtin: %d materials / %d coverage entries, archive %d bytes (check=%t)\n", len(m.Materials), len(m.Coverage), archive.Len(), check)
+	fmt.Fprintf(o.Diagnostics, "builtin: %d materials / %d coverage entries, archive %d bytes (check=%t)\n", len(m.Materials), len(m.Coverage), archive.Len(), o.Check)
 	return nil
 }

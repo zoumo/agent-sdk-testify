@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io/fs"
 	"os"
@@ -17,36 +16,36 @@ import (
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
+	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/official"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	protocolcmd "github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-func Execute(ctx context.Context, args []string) error {
-	o := official.Options{Mode: "verify"}
-	var timeout time.Duration
-	c := corpus.Corpus{}
-	f := flag.NewFlagSet("verify", flag.ContinueOnError)
-	f.StringVar(&o.Materials, "recording", "", "existing recording directory")
-	f.StringVar(&o.Output, "output", "", "new separate verification directory")
-	f.DurationVar(&timeout, "timeout", 0, "whole-task timeout; zero disables it")
-	f.StringVar(&c.Index, "index", "", "optional fixed index: qualify and atomically adopt after verification")
-	f.StringVar(&c.Scenarios, "scenarios", "", "scenario catalog for admission (default: index sibling ../scenarios)")
-	f.StringVar(&c.Archive, "archive", "", "private admission archive (default: persistent data directory)")
-	if err := f.Parse(args); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			return nil
-		}
-		return err
-	}
-	if f.NArg() != 0 || o.Materials == "" {
-		return errors.New("verify requires --recording")
+type Options struct {
+	SessionDir string
+	Recording  string
+	Output     string
+	Timeout    time.Duration
+	Index      string
+	Scenarios  string
+	Archive    string
+}
+
+func Run(ctx context.Context, o Options) error {
+	officialOptions := official.Options{Mode: "verify", Materials: o.Recording, Output: o.Output}
+	timeout := o.Timeout
+	sessionDir := o.SessionDir
+	c := corpus.Corpus{Index: o.Index, Scenarios: o.Scenarios, Archive: o.Archive}
+	if sessionDir == "" && officialOptions.Materials == "" {
+		return exitcode.Fail(exitcode.Configuration, errors.New("verify requires --recording"))
 	}
 	if timeout < 0 {
-		return errors.New("timeout must be nonnegative")
+		return exitcode.Fail(exitcode.Configuration, errors.New("timeout must be nonnegative"))
 	}
 	if c.Index == "" && c.Scenarios != "" {
-		return errors.New("scenarios requires index")
+		return exitcode.Fail(exitcode.Configuration, errors.New("scenarios requires index"))
 	}
 	if c.Index != "" {
 		if c.Archive == "" {
@@ -57,39 +56,22 @@ func Execute(ctx context.Context, args []string) error {
 			c.Archive = archive
 		}
 		if err := c.Normalize(); err != nil {
-			return err
+			return exitcode.Fail(exitcode.Configuration, err)
 		}
+	}
+	if sessionDir != "" {
+		if officialOptions.Output != "" {
+			return exitcode.Fail(exitcode.Configuration, errors.New("--output is unavailable with --session-dir"))
+		}
+		return verifyPrepared(ctx, sessionDir, officialOptions.Materials, timeout, c)
 	}
 	if timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
-	summary, err := verifyRecording(ctx, o)
-	if summary != nil && c.Index != "" {
-		root := str(summary["output"])
-		admission := object{"status": "rejected"}
-		if err == nil {
-			var review object
-			review, err = c.Qualification(o.Materials, root, false)
-			reviewPath := filepath.Join(root, "qualification.json")
-			if err == nil {
-				err = corpusWrite(reviewPath, review)
-			}
-			if err == nil {
-				var target string
-				target, err = c.Adopt(o.Materials, root, reviewPath)
-				admission["materials"] = target
-				if err == nil {
-					admission["status"] = "admitted"
-				}
-			}
-		}
-		if err != nil {
-			admission["error"] = err.Error()
-		}
-		err = errors.Join(err, writeJSON(filepath.Join(root, "admission-summary.json"), admission))
-	}
+	summary, err := verifyRecording(ctx, officialOptions)
+	err = admitVerified(officialOptions.Materials, summary, err, c)
 	if summary != nil {
 		b, encodeErr := json.Marshal(summary)
 		if encodeErr != nil {
@@ -100,19 +82,147 @@ func Execute(ctx context.Context, args []string) error {
 	return err
 }
 
+func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout time.Duration, c corpus.Corpus) (err error) {
+	if !filepath.IsAbs(sessionDir) {
+		return errors.New("--session-dir must be an absolute path")
+	}
+	session, err := lifecycle.OpenSession(sessionDir)
+	if err != nil {
+		return err
+	}
+	if err := lifecycle.SessionOpen(sessionDir); err != nil {
+		return err
+	}
+	artifact, err := lifecycle.LatestArtifact(sessionDir, session, explicit, true)
+	if err != nil {
+		return err
+	}
+	args := []string{"--session-dir", sessionDir}
+	if explicit != "" {
+		args = append(args, "--recording", explicit)
+	}
+	run, err := lifecycle.BeginVerify(sessionDir, args, timeout, artifact)
+	if err != nil {
+		return err
+	}
+	status := "failed"
+	defer func() {
+		err = errors.Join(err, lifecycle.FinishAction(run, status, ""), run.Close())
+	}()
+	if timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+	o := official.Options{Mode: "verify", Materials: artifact.Path}
+	summary, verifyErr := verifyRecordingAt(ctx, o, run.RouteRoot)
+	err = admitVerified(artifact.Path, summary, verifyErr, c)
+	if snapshotErr := snapshotVerification(run.RouteRoot, run.ArtifactRoot); snapshotErr != nil {
+		err = errors.Join(err, snapshotErr)
+	}
+	if summary != nil {
+		b, encodeErr := json.Marshal(summary)
+		if encodeErr != nil {
+			err = errors.Join(err, fmt.Errorf("encode verify summary: %w", encodeErr))
+		} else if _, encodeErr = fmt.Fprintln(os.Stdout, string(b)); encodeErr != nil {
+			err = errors.Join(err, encodeErr)
+		}
+	}
+	if err == nil {
+		status = "passed"
+	}
+	return err
+}
+
+func admitVerified(materials string, summary object, err error, c corpus.Corpus) error {
+	if summary == nil || c.Index == "" {
+		return err
+	}
+	root := str(summary["output"])
+	admission := object{"status": "rejected"}
+	if err == nil {
+		var review object
+		review, err = c.Qualification(materials, root, false)
+		reviewPath := filepath.Join(root, "qualification.json")
+		if err == nil {
+			err = corpusWrite(reviewPath, review)
+		}
+		if err == nil {
+			var target string
+			target, err = c.Adopt(materials, root, reviewPath)
+			admission["materials"] = target
+			if err == nil {
+				admission["status"] = "admitted"
+			}
+		}
+	}
+	if err != nil {
+		admission["error"] = err.Error()
+	}
+	return errors.Join(err, writeJSON(filepath.Join(root, "admission-summary.json"), admission))
+}
+
+func snapshotVerification(source, target string) error {
+	files := []string{
+		"plan.json",
+		"manifest.json",
+		"report.json",
+		"result.json",
+		"summary.json",
+		"verification.json",
+		"replay-report.json",
+		"replay-peer.json",
+		"remote-probe/replay-peer.json",
+		"peer-main-lifecycle.json",
+		"peer-probe-lifecycle.json",
+		"remote-probe/peer-probe-lifecycle.json",
+		"materialization.json",
+		"qualification.json",
+		"admission-summary.json",
+		"remote-service.json",
+		"source-report.json",
+		"stderr.log",
+		"stdout.log",
+	}
+	for _, name := range files {
+		from := filepath.Join(source, filepath.FromSlash(name))
+		info, err := os.Lstat(from)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("verification evidence is not regular: %s", name)
+		}
+		if err := tool.CopyFile(from, filepath.Join(target, filepath.FromSlash(name))); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // A verification attempt owns its new evidence. The source plan, raw bytes and
 // prior results remain immutable, including their original mode and SDK identity.
 func verifyRecording(ctx context.Context, o official.Options) (summary object, err error) {
+	return verifyRecordingAt(ctx, o, "")
+}
+
+func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput string) (summary object, err error) {
 	o.Mode = "verify"
 	o.Materials, err = corpusResolved(o.Materials)
 	if err != nil {
 		return nil, err
 	}
-	outputPath := o.Output
+	outputPath := preparedOutput
 	if outputPath == "" {
-		outputPath, err = outputBase("verify")
-		if err != nil {
-			return nil, err
+		outputPath = o.Output
+		if outputPath == "" {
+			outputPath, err = outputBase("verify")
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	{
@@ -124,9 +234,14 @@ func verifyRecording(ctx context.Context, o official.Options) (summary object, e
 			return nil, errors.New("verification output must be separate from recording")
 		}
 	}
-	o.Output, err = createOutput(o.Output, "verify")
-	if err != nil {
-		return nil, err
+	if preparedOutput == "" {
+		o.Output, err = createOutput(o.Output, "verify")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		o.Output = preparedOutput
+		o.OutputPrepared = true
 	}
 	o.Output, err = filepath.EvalSymlinks(o.Output)
 	if err != nil {
@@ -161,7 +276,7 @@ func verifyRecording(ctx context.Context, o official.Options) (summary object, e
 	if e != nil {
 		return nil, e
 	}
-	evidence["tool"] = object{"version": protocolcmd.Version, "sha256": digest}
+	evidence["tool"] = object{"version": version.Version, "sha256": digest}
 	before, e := corpusInventory(o.Materials, false)
 	if e != nil {
 		return nil, e

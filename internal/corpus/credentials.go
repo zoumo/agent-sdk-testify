@@ -16,6 +16,13 @@ func ScanCaptureCredentials(root string) (string, error) {
 	if err := readJSON(filepath.Join(root, "native.env.private.json"), &env); err != nil {
 		return "unavailable", err
 	}
+	return ScanCaptureCredentialsWithEnvironment(root, env)
+}
+
+// ScanCaptureCredentialsWithEnvironment is for prepared actions whose selected
+// environment is already represented by a descriptor and must not be copied
+// into material as a private native.env file.
+func ScanCaptureCredentialsWithEnvironment(root string, env map[string]string) (string, error) {
 	var secrets []string
 	for key, value := range env {
 		if value != "" && (strings.Contains(key, "TOKEN") || strings.Contains(key, "KEY")) {

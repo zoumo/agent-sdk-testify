@@ -7,27 +7,39 @@ import (
 	"os"
 	"time"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/protocol/replay"
 )
 
-func runMock(ctx context.Context, options command.MockOptions, streams command.IO) error {
+type MockOptions struct {
+	Provider         string
+	Scenario         string
+	Receipt          string
+	Timeout          time.Duration
+	Limits           recording.Limits
+	Handshakes       string
+	ProgressFD       int
+	RecordingVersion string
+	NativeArgs       []string
+}
+
+func Mock(ctx context.Context, options MockOptions, streams IO) error {
 	source, err := os.Open(options.Scenario)
 	if err != nil {
-		return command.Fail(command.ExitConfiguration, err)
+		return exitcode.Fail(exitcode.Configuration, err)
 	}
 	document, readErr := recording.Read(source, options.Provider, options.Limits)
 	err = errors.Join(readErr, source.Close())
 	if err != nil {
-		return command.Fail(command.ExitConfiguration, err)
+		return exitcode.Fail(exitcode.Configuration, err)
 	}
 	if options.RecordingVersion != "" {
 		for _, frame := range document.Frames {
 			if value, present := frame.Wire.Member("claude_code_version"); present {
 				version, e := value.String()
 				if e != nil || version != options.RecordingVersion {
-					return command.Fail(command.ExitConfiguration, fmt.Errorf("ordinal %d: native source version mismatch", frame.Ordinal))
+					return exitcode.Fail(exitcode.Configuration, fmt.Errorf("ordinal %d: native source version mismatch", frame.Ordinal))
 				}
 			}
 		}
@@ -36,10 +48,10 @@ func runMock(ctx context.Context, options command.MockOptions, streams command.I
 	if options.Receipt != "" {
 		_, err = os.Lstat(options.Receipt)
 		if err == nil {
-			return command.Fail(command.ExitConfiguration, errors.New("receipt already exists"))
+			return exitcode.Fail(exitcode.Configuration, errors.New("receipt already exists"))
 		}
 		if !errors.Is(err, os.ErrNotExist) {
-			return command.Fail(command.ExitConfiguration, err)
+			return exitcode.Fail(exitcode.Configuration, err)
 		}
 	}
 	timeout := options.Timeout
@@ -56,13 +68,13 @@ func runMock(ctx context.Context, options command.MockOptions, streams command.I
 	defer cancel()
 	err = replay.Run(ctx, document, options.Limits, options.Handshakes, streams.In, streams.Out, options.ProgressFD)
 	if err != nil {
-		code := command.ExitFailure
+		code := exitcode.Failure
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-			code = command.ExitCanceled
+			code = exitcode.Canceled
 		} else if errors.Is(err, replay.ErrDisconnected) {
-			code = command.ExitDisconnect
+			code = exitcode.Disconnect
 		}
-		return command.Fail(code, err)
+		return exitcode.Fail(code, err)
 	}
 	if options.Receipt != "" {
 		err = writeMockReceipt(ctx, options.Receipt, recording.Receipt{
@@ -74,11 +86,11 @@ func runMock(ctx context.Context, options command.MockOptions, streams command.I
 		err = ctx.Err()
 	}
 	if err != nil {
-		code := command.ExitFailure
+		code := exitcode.Failure
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-			code = command.ExitCanceled
+			code = exitcode.Canceled
 		}
-		return command.Fail(code, err)
+		return exitcode.Fail(code, err)
 	}
 	return nil
 }

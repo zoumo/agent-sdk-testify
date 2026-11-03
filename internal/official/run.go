@@ -23,9 +23,14 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 			return nil, err
 		}
 	}
-	plan, err := loadMaterials(o)
-	if err != nil {
-		return nil, err
+	var plan object
+	if o.Plan != nil {
+		plan = o.Plan
+	} else {
+		plan, err = loadMaterials(o)
+		if err != nil {
+			return nil, err
+		}
 	}
 	// Bind offline receipts to the source before replacing runtime paths. A raw
 	// hash alone cannot prove that official replay used this plan and history.
@@ -53,6 +58,13 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 	provider := str(plan["provider"])
 	if provider != "codex" && provider != "claude" {
 		return nil, errors.New("materials must identify codex or claude")
+	}
+	if o.NativeCommand != "" {
+		if o.Mode != "record" {
+			return nil, errors.New("native command override belongs to record")
+		}
+		plan["cli"] = o.NativeCommand
+		plan["args"] = append([]string(nil), o.NativeArgs...)
 	}
 	if !o.OutputPrepared {
 		o.Output, err = createOutput(o.Output, o.Mode)

@@ -41,7 +41,7 @@ func TestBuiltinCatalogOutsideCheckout(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 64, available)
-	data, err = mockCommand(t, "--describe", "--provider", "codex", "--case", "SDK-CASE-001", "--json").CombinedOutput()
+	data, err = mockCommand(t, "--describe", "--agent", "codex", "--case", "SDK-CASE-001", "--json").CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	var description object
 	require.NoError(t, json.Unmarshal(data, &description))
@@ -92,7 +92,11 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 				for _, valid := range []bool{true, false} {
 					t.Run(fmt.Sprintf("%s/%t", mode, valid), func(t *testing.T) {
 						report := filepath.Join(t.TempDir(), "receipt.json")
-						args := []string{"--provider", provider, "--report", report}
+						selector := "--provider"
+						if mode == "builtin" {
+							selector = "--agent"
+						}
+						args := []string{selector, provider, "--report", report}
 						if mode == "builtin" {
 							args = append(args, "--case", "SDK-CASE-001")
 						} else {

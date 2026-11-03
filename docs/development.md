@@ -7,8 +7,11 @@
 生产代码及默认测试不得导入 agent-sdk-go、Go driver 或 SDK fixture 容器。
 官方 SDK 仅作为 record/verify 的显式环境依赖，不在运行时自动安装。
 
-消费者通过 mock 进程、场景/运行描述与独立回执接入，不通过跨仓库 Go 库。
-公开业务入口限定为 record、verify、mock；材料资格、归档、采用和协议桥接为内部能力。
+消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立回执接入，
+不通过跨仓库 Go 库。
+公开 CLI 入口为 prepare、record、verify、mock、finish；业务动作限定为
+record、verify、mock，prepare/finish 只管理会话生命周期。材料资格、归档、采用和
+协议桥接为内部能力。
 
 ## 代码布局
 
@@ -17,14 +20,15 @@ agent-sdk-testify/
   go.mod / go.sum / Makefile / .golangci.yaml
   main.go                   # 唯一根目录 Go 文件
   internal/
-    record/ verify/ mock/   # 公开业务命令
+    lifecycle/              # prepare、finish 与会话/execution 状态
+    record/ verify/ mock/   # 公开业务动作
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
     builtin/ official/      # 内置快照与官方 SDK 执行
     history/ tool/          # 历史派生与共享基础能力
   protocol/                 # 录制、严格回放、传输与命令接口
   data/
     scenarios/              # 权威 case、binding、输入与预期
-    claude/ codex/          # 审核采用的 provider/case/attempt 材料
+    claude/ codex/          # 审核采用的 agentType/case/attempt 材料
     index.json              # 固定索引
     builtin/                # 生成的发布快照
   drivers/                  # 官方 driver 与 Python wheel
@@ -35,14 +39,15 @@ agent-sdk-testify/
 框架、转发层、动态插件或通用流程 DSL。
 
 协议包不依赖 case 编号、driver 或 SDK。capture 拥有自己的 I/O、选项和类型化错误，
-只在命令边界映射退出码。provider 的配置、启动参数和历史解释留在 provider 文件。
+只在命令边界映射退出码。agent type 的配置、启动参数和历史解释留在对应 agent 文件。
 测试使用与消费者相同的进程接口，不导入被测 SDK 来间接证明工具正确性。
 
 ## 材料与测试输入
 
-原件及失败尝试保存在 Git 外私有归档。已跟踪材料按 provider/story/case/attempt 归属；
+原件及失败尝试保存在 Git 外私有归档。已跟踪材料按 agentType/story/case/attempt 归属；
 固定索引保留所有要求、失败和缺口。移动不改变原始 plan/raw、attempt 身份或来源哈希。
 派生运行副本须保留原/派生路径及双向哈希关联，不改写原件或放宽协议字段。
+consumer material 保持在消费者私有目录，不登记固定索引、不进入内置快照。
 材料发布须遵守[工具设计](design.md#录制材料与发布)。
 
 合成输入只用于专项测试，不能登记为真实录制或用户故事成功证据。
@@ -69,7 +74,7 @@ go run -tags builtin_generate . --check
 ## 测试
 
 工具测试通过消费者实际使用的进程接口检查协议、环境、材料、回执和清理。
-[共同验收](cases.md)定义 8 个用户故事、36 个 case；provider binding 的
+[共同验收](cases.md)定义 8 个用户故事、36 个 case；agent binding 的
 required/optional、planned/unsupported 及原因必须保留。
 
 | 层级 | 工具负责 | 归消费者负责 |
@@ -81,7 +86,7 @@ required/optional、planned/unsupported 及原因必须保留。
 
 默认测试离线，不启动真实 Agent、不需要认证、不安装官方 SDK、不新增录制。
 进程测试保留分片、大消息、关联 ID、超时、取消、背压、多连接、历史派生、
-workspace 隔离、prepare/run/finish 失败保留和自有资源清理。
+prepare/action/finish 失败保留、会话多次使用、execution overlay 隔离和自有资源清理。
 合同和材料存在不证明当前 SDK 通过，合成材料必须保持 synthetic 身份。
 官方验证、SDK 仿真和真实 E2E 分别报告，不互相背书。
 

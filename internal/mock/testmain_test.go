@@ -9,6 +9,12 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "app-server":
+			os.Exit(mockTestAgent())
+		}
+	}
 	cleanup, err := testutil.PrepareBinary()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

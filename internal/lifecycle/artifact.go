@@ -1,0 +1,168 @@
+package lifecycle
+
+import (
+	"errors"
+	"os"
+	"path/filepath"
+	"slices"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
+)
+
+func artifactForMaterial(root, provenance, action string, connections []string) (*Artifact, error) {
+	var plan, manifest tool.Object
+	if err := tool.ReadJSON(filepath.Join(root, "plan.json"), &plan); err != nil {
+		return nil, err
+	}
+	if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err != nil {
+		return nil, err
+	}
+	planHash, err := digestFile(filepath.Join(root, "plan.json"))
+	if err != nil {
+		return nil, err
+	}
+	manifestHash, err := digestFile(filepath.Join(root, "manifest.json"))
+	if err != nil {
+		return nil, err
+	}
+	recordingHash := ""
+	if digest, err := digestFile(filepath.Join(root, "raw", "raw.jsonl")); err == nil {
+		recordingHash = digest
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
+	if recordingHash == "" {
+		return nil, errors.New("material omits raw/raw.jsonl")
+	}
+	id, err := randomID()
+	if err != nil {
+		return nil, err
+	}
+	return &Artifact{
+		ID:              id,
+		Kind:            "material",
+		Action:          action,
+		Provenance:      provenance,
+		Path:            root,
+		PlanSHA256:      planHash,
+		ManifestSHA256:  manifestHash,
+		RecordingSHA256: recordingHash,
+		Connections:     append([]string(nil), connections...),
+		CreatedAt:       now(),
+	}, nil
+}
+
+func LoadPlan(session *Session) (tool.Object, error) {
+	path := session.Source.Path
+	switch session.Source.Kind {
+	case "case", "plan":
+	case "recording":
+		path = filepath.Join(session.Source.Path, "plan.json")
+	default:
+		return nil, errors.New("unknown session source")
+	}
+	if session.Source.Kind == "case" || session.Source.Kind == "plan" {
+		hash, err := digestFile(path)
+		if err != nil {
+			return nil, err
+		}
+		if hash != session.Source.SHA256 {
+			return nil, errors.New("session source changed after prepare")
+		}
+	} else {
+		planHash, err := digestFile(path)
+		if err != nil {
+			return nil, err
+		}
+		manifestHash, err := digestFile(filepath.Join(session.Source.Path, "manifest.json"))
+		if err != nil {
+			return nil, err
+		}
+		if digestBytes([]byte(planHash+"\n"+manifestHash+"\n")) != session.Source.SHA256 {
+			return nil, errors.New("session source changed after prepare")
+		}
+	}
+	var plan tool.Object
+	if err := tool.ReadJSON(path, &plan); err != nil {
+		return nil, err
+	}
+	return plan, nil
+}
+
+func checkMaterialAgent(session *Session, root string) (tool.Object, error) {
+	var plan tool.Object
+	if err := tool.ReadJSON(filepath.Join(root, "plan.json"), &plan); err != nil {
+		return nil, err
+	}
+	provider := tool.Str(plan["provider"])
+	if provider == "" {
+		provider = tool.Str(plan["agentType"])
+	}
+	if provider != session.AgentType {
+		return nil, errors.New("material agent type differs from session")
+	}
+	if (session.Source.Kind == "case" || session.Source.Kind == "plan") && tool.Str(plan["caseId"]) != session.Source.ID {
+		return nil, errors.New("material case differs from session source")
+	}
+	return plan, nil
+}
+
+func LatestArtifact(sessionDir string, session *Session, explicit string, verify bool) (*Artifact, error) {
+	if explicit != "" {
+		if !filepath.IsAbs(explicit) {
+			return nil, errors.New("--recording must be an absolute path")
+		}
+		root, err := filepath.EvalSymlinks(explicit)
+		if err != nil {
+			return nil, err
+		}
+		plan, err := checkMaterialAgent(session, root)
+		if err != nil {
+			return nil, err
+		}
+		provenance := "external"
+		var manifest tool.Object
+		if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err == nil {
+			if value := tool.Str(manifest["provenance"]); value != "" {
+				provenance = value
+			}
+		}
+		if verify && provenance == "consumer" {
+			return nil, errors.New("consumer material cannot be verified")
+		}
+		connections := connectionIDs(session.Source, plan)
+		artifact, err := artifactForMaterial(root, provenance, "external", connections)
+		if err != nil {
+			return nil, err
+		}
+		return artifact, nil
+	}
+	index, err := readIndex(IndexPath(sessionDir))
+	if err != nil {
+		return nil, err
+	}
+	if verify {
+		if index.LatestCapture == "" {
+			return nil, errors.New("session has no record capture to verify")
+		}
+		for _, artifact := range index.Artifacts {
+			if artifact.ID == index.LatestCapture {
+				return &artifact, nil
+			}
+		}
+		return nil, errors.New("latest capture is absent from artifact index")
+	}
+	if index.LatestCapture != "" {
+		for _, artifact := range index.Artifacts {
+			if artifact.ID == index.LatestCapture {
+				return &artifact, nil
+			}
+		}
+	}
+	for _, artifact := range slices.Backward(index.Artifacts) {
+		if artifact.Kind == "material" {
+			return &artifact, nil
+		}
+	}
+	return nil, errors.New("no mock material or record capture is available")
+}

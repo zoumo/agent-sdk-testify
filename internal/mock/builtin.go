@@ -4,38 +4,32 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"flag"
 	"io/fs"
 	"maps"
 	"os"
-	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
-	protocolcmd "github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 )
 
-func mockQuery(args []string) error {
-	f := flag.NewFlagSet("mock query", flag.ContinueOnError)
-	list := f.Bool("list", false, "List full coverage")
-	describe := f.Bool("describe", false, "Describe one case")
-	provider := f.String("provider", "", "Provider filter")
-	id := f.String("case", "", "Case ID")
-	recording := f.String("recording", "", "Absolute external recording to describe")
-	_ = f.Bool("json", false, "JSON output (schemaVersion 1)")
-	if err := f.Parse(args); err != nil {
-		return err
+func mockQuery(o Options) error {
+	if o.Provider != "" && o.Agent != "" && o.Provider != o.Agent {
+		return errors.New("--provider and --agent differ")
 	}
-	if *recording != "" {
-		if !*describe || *list || *id != "" || f.NArg() != 0 {
+	if o.Provider == "" {
+		o.Provider = o.Agent
+	}
+	if o.Recording != "" {
+		if !o.Describe || o.List || o.Case != "" || len(o.NativeArgs) != 0 {
 			return errors.New("external query requires --describe --recording ABS, without --case")
 		}
-		return describeExternalMock(*recording, *provider)
+		return describeExternalMock(o.Recording, o.Provider)
 	}
-	if *list == *describe || f.NArg() != 0 || (*describe && (*provider == "" || *id == "")) || (*list && *id != "") {
-		return errors.New("select --list or --describe --provider PROVIDER --case CASE")
+	if o.List == o.Describe || len(o.NativeArgs) != 0 || (o.Describe && (o.Provider == "" || o.Case == "")) || (o.List && o.Case != "") {
+		return errors.New("select --list or --describe --agent AGENT --case CASE")
 	}
-	if *provider != "" && *provider != "claude" && *provider != "codex" {
+	if o.Provider != "" && o.Provider != "claude" && o.Provider != "codex" {
 		return errors.New("unknown provider")
 	}
 	m, hash, err := readBuiltin()
@@ -44,10 +38,10 @@ func mockQuery(args []string) error {
 	}
 	rows := []object{}
 	for _, coverage := range m.Coverage {
-		if *provider != "" && coverage["provider"] != *provider {
+		if o.Provider != "" && coverage["provider"] != o.Provider {
 			continue
 		}
-		if *id != "" && coverage["caseId"] != *id {
+		if o.Case != "" && coverage["caseId"] != o.Case {
 			continue
 		}
 		row := object{}
@@ -84,7 +78,7 @@ func mockQuery(args []string) error {
 			if material.Provider == row["provider"] && material.CaseID == row["caseId"] {
 				row["material"] = material
 				row["plan"] = material.Plan
-				if *describe {
+				if o.Describe {
 					inputs, e := builtinAssertionInputs(material, hash)
 					if e != nil {
 						return e
@@ -98,7 +92,7 @@ func mockQuery(args []string) error {
 		row["toolVersion"] = m.ToolVersion
 		rows = append(rows, row)
 	}
-	if *describe {
+	if o.Describe {
 		if len(rows) != 1 {
 			return errors.New("unknown case")
 		}
@@ -107,70 +101,16 @@ func mockQuery(args []string) error {
 	return writeNativeJSON(object{"schemaVersion": 1, "toolVersion": m.ToolVersion, "manifestSHA256": hash, "sourceRevision": m.SourceRevision, "scope": m.Scope, "cases": rows})
 }
 
-// Selection flags are removed before the existing direct/prepared parsers.
-func mockBuiltinMode(ctx context.Context, args []string) (err error) {
-	query := false
-	for _, arg := range args {
-		if arg == "--" {
-			break
-		}
-		name, _, _ := strings.Cut(arg, "=")
-		if name == "--list" || name == "--describe" {
-			query = true
-		}
+func mockBuiltinMode(ctx context.Context, o Options) (err error) {
+	if o.Provider == "" {
+		o.Provider = o.Agent
 	}
-	if query {
-		if err := mockQuery(args); err != nil {
-			return protocolcmd.Fail(protocolcmd.ExitConfiguration, err)
-		}
-		return nil
+	if o.Recording != "" || o.Provider == "" {
+		return exitcode.Fail(exitcode.Configuration, errors.New("--case requires --agent or --provider and excludes --recording"))
 	}
-	var rest []string
-	var id, provider string
-	external, prepared := false, false
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		if arg == "--" {
-			rest = append(rest, args[i:]...)
-			break
-		}
-		name, value, eq := strings.Cut(arg, "=")
-		if name == "--recording" {
-			external = true
-		}
-		if name == "--prepare" {
-			prepared = true
-		}
-		if name == "--case" || name == "--provider" {
-			if !eq {
-				if i+1 == len(args) {
-					return protocolcmd.Fail(protocolcmd.ExitConfiguration, errors.New("missing selector value"))
-				}
-				i++
-				value = args[i]
-			}
-			if name == "--case" {
-				if id != "" {
-					return errors.New("duplicate case selector")
-				}
-				id = value
-			} else {
-				provider = value
-				rest = append(rest, "--provider", value)
-			}
-		} else {
-			rest = append(rest, arg)
-		}
-	}
-	if id == "" {
-		return mockMode(ctx, args)
-	}
-	if external || provider == "" {
-		return protocolcmd.Fail(protocolcmd.ExitConfiguration, errors.New("--case requires --provider and excludes --recording"))
-	}
-	material, hash, err := selectBuiltin(provider, id)
+	material, hash, err := selectBuiltin(o.Provider, o.Case)
 	if err != nil {
-		return protocolcmd.Fail(protocolcmd.ExitConfiguration, err)
+		return exitcode.Fail(exitcode.Configuration, err)
 	}
 	root, err := extractBuiltin(material)
 	if err != nil {
@@ -178,8 +118,9 @@ func mockBuiltinMode(ctx context.Context, args []string) (err error) {
 	}
 	defer func() { err = errors.Join(err, os.RemoveAll(root)) }()
 	selection := &builtinSelection{ManifestSHA256: hash, Material: material}
-	if prepared {
-		return mockPreparedMode(ctx, append(rest, "--recording", root), selection)
+	o.Recording = root
+	if o.Prepare {
+		return mockPreparedMode(ctx, o, selection)
 	}
-	return mockExternalSelected(ctx, append([]string{"--recording", root}, rest...), selection)
+	return mockExternalSelected(ctx, o, selection)
 }

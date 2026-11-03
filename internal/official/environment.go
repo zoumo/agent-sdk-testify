@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -146,6 +147,84 @@ func prepareNative(ctx context.Context, o *options, plan object, root string) er
 	}
 	// No arbitrary source HOME, dependency installation or SDK version probes.
 	return writeJSON(filepath.Join(root, "native.env.private.json"), env)
+}
+
+// CopyNativeConfig copies only the agent configuration files that participate
+// in a native recording. The source is discovered from the standard environment
+// or HOME location; callers cannot inject an arbitrary configuration path.
+func CopyNativeConfig(provider, destination string, env map[string]string) error {
+	if provider != "codex" && provider != "claude" {
+		return errors.New("unsupported provider")
+	}
+	for _, key := range []string{
+		"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR",
+		"OPENAI_API_KEY", "OPENAI_BASE_URL", "CODEX_API_KEY",
+		"ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",
+		"ANTHROPIC_CUSTOM_HEADERS", "CLAUDE_CODE_OAUTH_TOKEN",
+		"ANTHROPIC_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL",
+		"ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+	} {
+		if value, ok := os.LookupEnv(key); ok {
+			env[key] = value
+		}
+	}
+	name, fallback := "CODEX_HOME", ".codex"
+	if provider == "claude" {
+		name, fallback = "CLAUDE_CONFIG_DIR", ".claude"
+	}
+	source, found := os.LookupEnv(name)
+	if found {
+		if !filepath.IsAbs(source) {
+			return fmt.Errorf("%s must be an absolute path", name)
+		}
+	} else {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+		source = filepath.Join(home, fallback)
+	}
+	info, err := os.Lstat(source)
+	if os.IsNotExist(err) {
+		return os.MkdirAll(destination, 0o700)
+	}
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return fmt.Errorf("native configuration source is not an unlinked directory: %s", source)
+	}
+	if err := os.MkdirAll(destination, 0o700); err != nil {
+		return err
+	}
+	files := []string{"config.toml", "auth.json"}
+	if provider == "claude" {
+		files = []string{"settings.json", ".credentials.json"}
+	}
+	for _, file := range files {
+		from := filepath.Join(source, file)
+		info, err := os.Lstat(from)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("native configuration file is not regular: %s", from)
+		}
+		if err := copyFile(from, filepath.Join(destination, file)); err != nil {
+			return err
+		}
+	}
+	if provider == "claude" {
+		claudeAuthEnvironment(filepath.Join(destination, "settings.json"), env)
+		return filterClaudeConfig(filepath.Join(destination, "settings.json"))
+	}
+	if err := codexAuthEnvironment(filepath.Join(destination, "config.toml"), env); err != nil {
+		return err
+	}
+	return filterCodexConfig(filepath.Join(destination, "config.toml"))
 }
 
 func scrubNative(root string) error {

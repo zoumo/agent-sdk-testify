@@ -8,7 +8,7 @@ import (
 )
 
 func TestCLIRejectsMissingSelection(t *testing.T) {
-	err := Execute(context.Background(), nil)
+	err := Run(context.Background(), Options{})
 	require.Error(t, err)
 	require.ErrorContains(t, err, "recording")
 }

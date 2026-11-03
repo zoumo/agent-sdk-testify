@@ -15,11 +15,17 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 )
 
-func runConnect(ctx context.Context, o command.ConnectOptions, streams command.IO) error {
-	fail := func(message string) error { return command.Fail(command.ExitFailure, errors.New(message)) }
+type ConnectOptions struct {
+	URL           string
+	TokenFile     string
+	MaxFrameBytes int64
+}
+
+func Connect(ctx context.Context, o ConnectOptions, streams IO) error {
+	fail := func(message string) error { return exitcode.Fail(exitcode.Failure, errors.New(message)) }
 	u, err := url.Parse(o.URL)
 	if err != nil || (u.Scheme != "ws" && u.Scheme != "wss") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
 		return fail("invalid WebSocket endpoint")

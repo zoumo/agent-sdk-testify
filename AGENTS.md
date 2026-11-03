@@ -1,6 +1,6 @@
 # Agent guide
 
-本仓库维护独立的 record、verify、mock 工具。先读[工具设计](docs/design.md)，再按任务读取：
+本仓库维护独立的 prepare、record、verify、mock、finish 工具。先读[工具设计](docs/design.md)，再按任务读取：
 
 - SDK、协议、模块、依赖、路径、测试或生成器：[开发规范](docs/development.md)
 - 用户故事与 case：[共同验收](docs/cases.md)
@@ -8,8 +8,15 @@
 
 ## 仓库边界
 
-- 最终公开业务入口仅 record、verify、mock；simulate、Go driver 及 SDK 业务编排留在 agent-sdk-go。
-- case、官方 driver、录制、材料及索引归本仓库。测试接入点为 mock 的进程接口。
+- 公开 CLI 入口为 prepare、record、verify、mock、finish。prepare 按
+  case/plan/recording 创建可复用会话；record、verify、mock 是业务动作；finish
+  汇总全部 execution 并清理。simulate、Go driver 及 SDK 业务编排留在 agent-sdk-go。
+- 一次 prepare 可以承载多个 action execution。环境基线不可变，每个 execution 使用独立 overlay；
+  record 发布的 capture 可被后续 verify、mock 默认消费，verify 不消费或改写 capture。
+- record、verify、mock 共用 source/executor/target 模型和逐 execution `execution.json` 合同；
+  不得为单个命令新增不兼容的生命周期。
+- case、官方 driver、官方录制、材料及索引归本仓库；plan source 的 record consumer
+  material 归消费者，不进入本仓库索引或内置快照。测试接入点为 mock 的进程接口。
 - 保留录制原字节与来源；默认离线，不启动真实 Agent 或新增录制。
 - SDK 参考合同仅定义消费者行为；SDK 编排由 SDK 仓库负责。
 - Issue tracker：GitHub Issues，仓库 zoumo/agent-sdk-testify；规格 triage 标签 ready-for-agent。

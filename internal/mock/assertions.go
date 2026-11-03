@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	protocolcmd "github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 // JSON values never pass through float64 maps. Original bytes remain available
@@ -166,7 +166,7 @@ func describeExternalMock(root, provider string) error {
 	if err != nil {
 		return err
 	}
-	provider = str(plan["provider"])
+	provider = planAgentType(plan)
 	files := object{"raw/raw.jsonl": document.SHA256, "plan.json": manifest["planSHA256"]}
 	for _, group := range []string{"savedFiles", "caseFiles", "remotePhaseFiles"} {
 		maps.Copy(files, obj(manifest[group]))
@@ -224,5 +224,5 @@ func describeExternalMock(root, provider string) error {
 	if provenance == "" {
 		provenance = "unqualified"
 	}
-	return writeNativeJSON(object{"schemaVersion": 1, "toolVersion": protocolcmd.Version, "materialKind": "external", "qualification": "unqualified", "provenance": provenance, "provider": provider, "caseId": material.CaseID, "sourceManifestSHA256": manifestHash, "available": true, "plan": json.RawMessage(planBytes), "assertionInputs": inputs})
+	return writeNativeJSON(object{"schemaVersion": 1, "toolVersion": version.Version, "materialKind": "external", "qualification": "unqualified", "provenance": provenance, "provider": provider, "caseId": material.CaseID, "sourceManifestSHA256": manifestHash, "available": true, "plan": json.RawMessage(planBytes), "assertionInputs": inputs})
 }

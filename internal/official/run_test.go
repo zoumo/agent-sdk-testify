@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -56,7 +57,7 @@ func TestMain(m *testing.M) {
 			<-interrupted
 			os.Exit(0)
 		case "--internal-peer":
-			if err := tool.RunPeer(os.Args[2:]); err != nil {
+			if err := runPeerFixture(os.Args[2:]); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
@@ -71,6 +72,29 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	cleanup()
 	os.Exit(code)
+}
+
+func runPeerFixture(args []string) error {
+	o := tool.PeerOptions{In: os.Stdin, Out: os.Stdout, Err: os.Stderr}
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--request":
+			i++
+			if i == len(args) {
+				return errors.New("missing peer request path")
+			}
+			o.Request = args[i]
+		case "--lifecycle":
+			i++
+			if i == len(args) {
+				return errors.New("missing peer lifecycle path")
+			}
+			o.Lifecycle = args[i]
+		default:
+			return fmt.Errorf("unexpected peer argument %q", args[i])
+		}
+	}
+	return tool.RunPeer(o)
 }
 
 func testDriver(args []string) int {

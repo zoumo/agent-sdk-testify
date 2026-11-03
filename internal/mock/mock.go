@@ -4,92 +4,74 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"flag"
-	"fmt"
 	"io"
-	"math"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 
-	protocolcmd "github.com/zoumo/agent-sdk-testify/protocol/command"
+	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
+	"github.com/zoumo/agent-sdk-testify/protocol"
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/protocol/replay"
 )
 
-// Execute is the public mock entry point. It owns protocol descriptors and the
-// persistent receipt, but never starts a native Agent.
-func Execute(ctx context.Context, args []string) int {
-	err := mockBuiltinMode(ctx, args)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "agent-sdk-testify mock:", err)
-	}
-	return protocolcmd.ExitCode(err)
+type Options struct {
+	List       bool
+	Describe   bool
+	JSON       bool
+	Provider   string
+	Agent      string
+	Case       string
+	Recording  string
+	Report     string
+	Output     string
+	SessionDir string
+	Connection string
+	Run        string
+	Finish     string
+	Timeout    time.Duration
+	ProgressFD int
+	Prepare    bool
+	Phase      string
+	NativeArgs []string
 }
 
-func mockExternal(ctx context.Context, args []string) error {
-	return mockExternalSelected(ctx, args, nil)
-}
+func bad(err error) error { return exitcode.Fail(exitcode.Configuration, err) }
 
-func mockExternalSelected(ctx context.Context, args []string, selection *builtinSelection) (err error) {
-	f := flag.NewFlagSet("mock", flag.ContinueOnError)
-	f.SetOutput(os.Stderr)
-	root := f.String("recording", "", "Absolute external capture directory")
-	provider := f.String("provider", "", "codex or claude (default: plan provider)")
-	report := f.String("report", "", "New persistent receipt file")
-	seconds := f.Float64("timeout", 0, "Seconds; default: scenario timeout, then provider default")
-	phase := f.String("phase", "main", "Declared stream: main or probe")
-	progress := f.Int("progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
-	help := f.Bool("help", false, "Show mock usage")
-	var flags, native []string
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		if arg == "--" {
-			native = append(native, args[i+1:]...)
-			break
+// Run executes one typed public mock mode. It never starts a native Agent.
+func Run(ctx context.Context, o Options) error {
+	switch {
+	case o.List || o.Describe:
+		if err := mockQuery(o); err != nil {
+			return bad(err)
 		}
-		if arg == "-h" {
-			arg = "--help"
-		}
-		name, _, equals := strings.Cut(strings.TrimPrefix(arg, "--"), "=")
-		if !strings.HasPrefix(arg, "--") || f.Lookup(name) == nil {
-			native = append(native, arg)
-			continue
-		}
-		flags = append(flags, arg)
-		if !equals && name != "help" {
-			if i+1 == len(args) {
-				return protocolcmd.Fail(protocolcmd.ExitConfiguration, fmt.Errorf("missing value for --%s", name))
-			}
-			i++
-			flags = append(flags, args[i])
-		}
-	}
-	if e := f.Parse(flags); e != nil {
-		return protocolcmd.Fail(protocolcmd.ExitConfiguration, e)
-	}
-	if *help {
-		fmt.Fprintln(os.Stderr, "Builtin: mock --list [--provider PROVIDER] --json; mock --describe --provider PROVIDER --case CASE --json; mock [--prepare] --provider PROVIDER --case CASE (see docs/using-mock.md)")
-		fmt.Fprintln(os.Stderr, "Prepared modes: mock --prepare --recording ABS --output ABS; mock --run ABS/run.json [--connection main|probe]; mock --finish ABS/run.json")
-		f.PrintDefaults()
 		return nil
+	case o.Case != "":
+		return mockBuiltinMode(ctx, o)
+	case o.SessionDir != "":
+		return mockSession(ctx, o)
+	case o.Prepare || o.Run != "" || o.Finish != "":
+		return mockPreparedMode(ctx, o, nil)
+	default:
+		return mockExternalSelected(ctx, o, nil)
 	}
-	bad := func(e error) error { return protocolcmd.Fail(protocolcmd.ExitConfiguration, e) }
-	if !filepath.IsAbs(*root) || *report == "" {
+}
+
+func mockExternalSelected(ctx context.Context, o Options, selection *builtinSelection) (err error) {
+	if !filepath.IsAbs(o.Recording) || o.Report == "" {
 		return bad(errors.New("--recording /absolute/capture and --report FILE are required"))
 	}
-	if math.IsNaN(*seconds) || math.IsInf(*seconds, 0) || *seconds < 0 || *seconds >= float64(math.MaxInt64)/float64(time.Second) || (*seconds > 0 && time.Duration(*seconds*float64(time.Second)) == 0) {
-		return bad(errors.New("invalid mock timeout"))
+	if o.Timeout < 0 {
+		return bad(errors.New("mock timeout must be nonnegative"))
 	}
-	// Resolve parents before opening so report aliases cannot overwrite evidence.
-	if *progress != -1 && *progress < 3 {
+	if o.ProgressFD != -1 && o.ProgressFD < 3 {
 		return bad(errors.New("progress-fd must be >=3"))
 	}
 	var notification *os.File
-	if *progress >= 3 {
-		fd, e := syscall.Dup(*progress)
+	if o.ProgressFD >= 3 {
+		fd, e := syscall.Dup(o.ProgressFD)
 		if e != nil {
 			return bad(e)
 		}
@@ -97,11 +79,11 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 		notification = os.NewFile(uintptr(fd), "consumption-notification")
 		defer notification.Close()
 	}
-	sourceRoot, e := filepath.EvalSymlinks(*root)
+	sourceRoot, e := filepath.EvalSymlinks(o.Recording)
 	if e != nil {
 		return bad(e)
 	}
-	reportPath, e := filepath.Abs(*report)
+	reportPath, e := filepath.Abs(o.Report)
 	if e != nil {
 		return bad(e)
 	}
@@ -119,7 +101,7 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 	}
 	receipt := object{
 		"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
-		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": protocolcmd.Version,
+		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": version.Version,
 	}
 	defer func() {
 		if selection != nil {
@@ -128,7 +110,7 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 			receipt["cleanupComplete"] = cleanupErr == nil
 			err = errors.Join(err, cleanupErr)
 		}
-		receipt["exitCode"] = protocolcmd.ExitCode(err)
+		receipt["exitCode"] = exitcode.Code(err)
 		if err != nil {
 			receipt["error"] = err.Error()
 		}
@@ -140,26 +122,26 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 			return bad(checkErr)
 		}
 	}
-	manifest, plan, document, e := loadMockPhase(sourceRoot, *provider, *phase)
+	manifest, plan, document, e := loadMockPhase(sourceRoot, o.Provider, o.Phase)
 	if e != nil {
 		return bad(e)
 	}
-	*provider = str(plan["provider"])
-	if checkErr := protocolcmd.ValidateNativeArgs(*provider, native); checkErr != nil {
+	o.Provider = planAgentType(plan)
+	if checkErr := protocol.ValidateNativeArgs(o.Provider, o.NativeArgs); checkErr != nil {
 		return bad(checkErr)
 	}
-	receipt["provider"] = *provider
+	receipt["provider"] = o.Provider
 	receipt["planSHA256"] = manifest["planSHA256"]
 	receipt["provenance"] = manifest["provenance"]
 	receipt["recordingSHA256"] = document.SHA256
 	receipt["frames"] = len(document.Frames)
-	timeout := time.Duration(*seconds * float64(time.Second))
+	timeout := o.Timeout
 	if timeout == 0 {
 		timeout = document.Timeout
 	}
 	if timeout == 0 {
 		timeout = 30 * time.Second
-		if *provider == "claude" {
+		if o.Provider == "claude" {
 			timeout = 10 * time.Second
 		}
 	}
@@ -168,13 +150,13 @@ func mockExternalSelected(ctx context.Context, args []string, selection *builtin
 	consumed, e := mockProtocolNotifying(ctx, document, notification)
 	receipt["fullConsumption"] = consumed
 	if e != nil {
-		code := protocolcmd.ExitFailure
+		code := exitcode.Failure
 		if errors.Is(e, context.Canceled) || errors.Is(e, context.DeadlineExceeded) {
-			code = protocolcmd.ExitCanceled
+			code = exitcode.Canceled
 		} else if errors.Is(e, replay.ErrDisconnected) {
-			code = protocolcmd.ExitDisconnect
+			code = exitcode.Disconnect
 		}
-		return protocolcmd.Fail(code, e)
+		return exitcode.Fail(code, e)
 	}
 	receipt["status"], receipt["fullConsumption"], receipt["clientEOF"] = "passed", true, true
 	return nil
@@ -241,9 +223,10 @@ func loadMockPhase(sourceRoot, provider, phase string) (object, object, *recordi
 	if err := readJSON(filepath.Join(sourceRoot, "plan.json"), &plan); err != nil {
 		return nil, nil, nil, err
 	}
+	plannedProvider := planAgentType(plan)
 	if provider == "" {
-		provider = str(plan["provider"])
-	} else if str(plan["provider"]) != "" && provider != str(plan["provider"]) {
+		provider = plannedProvider
+	} else if plannedProvider != "" && provider != plannedProvider {
 		return nil, nil, nil, errors.New("provider differs from selected recording")
 	}
 	rawRoot := filepath.Join(sourceRoot, "raw")

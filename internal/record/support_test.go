@@ -19,6 +19,7 @@ type (
 var (
 	obj       = tool.Obj
 	str       = tool.Str
+	array     = tool.Array
 	readJSON  = tool.ReadJSON
 	writeJSON = tool.WriteJSON
 )
