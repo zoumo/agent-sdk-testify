@@ -103,7 +103,7 @@ func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout ti
 		defer cancel()
 	}
 	o := official.Options{Mode: "verify", Materials: artifact.Path, HistoryPrepared: true}
-	summary, verifyErr := verifyRecordingAt(ctx, o, run.OverlayRoot, run.Execution.Workspace)
+	summary, verifyErr := verifyRecordingAt(ctx, o, admission, run.OverlayRoot, run.Execution.Workspace)
 	err = admitVerified(artifact.Path, summary, verifyErr, c)
 	if snapshotErr := snapshotVerification(run.OverlayRoot, run.ArtifactRoot); snapshotErr != nil {
 		err = errors.Join(err, snapshotErr)
@@ -193,7 +193,7 @@ func snapshotVerification(source, target string) error {
 	return nil
 }
 
-func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput, preparedWorkspace string) (summary object, err error) {
+func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifecycle.Admission, preparedOutput, preparedWorkspace string) (summary object, err error) {
 	o.Mode = "verify"
 	o.Materials, err = corpusResolved(o.Materials)
 	if err != nil {
@@ -220,6 +220,9 @@ func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput, 
 	}
 	o.OutputPrepared = true
 	evidence := object{"schemaVersion": 1, "status": "failed", "recording": o.Materials, "output": o.Output}
+	if admission != nil {
+		evidence["admission"] = admission
+	}
 	defer func() {
 		if summary == nil {
 			summary = object{"mode": "verify", "output": o.Output, "result": tool.Result{Status: "failed"}}

@@ -413,6 +413,9 @@ func TestPreparedMockMultiConnectionReceiptsAndJoinAdmission(t *testing.T) {
 		require.FileExists(t, str(connection["processReceipt"]))
 	}
 	require.Len(t, receipts, 2)
+
+	data, err = sessionTool(t, env, "finish", "--session-dir", session).CombinedOutput()
+	require.NoError(t, err, "%s", data)
 }
 
 func TestPreparedHalfOpenMockFailsFinishAndRetainsEvidence(t *testing.T) {

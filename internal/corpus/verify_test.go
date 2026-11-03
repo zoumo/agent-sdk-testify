@@ -3,6 +3,7 @@ package corpus
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func TestVerifyOfficialOnlySelection(t *testing.T) {
@@ -378,14 +381,20 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	var index object
 	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
 	var execution object
+	executionID := ""
 	for _, value := range array(index["executions"]) {
 		row := obj(value)
 		if row["command"] != "verify" {
 			continue
 		}
-		require.NoError(t, readJSON(filepath.Join(session, "executions", str(row["id"]), "execution.json"), &execution))
+		executionID = str(row["id"])
+		require.NoError(t, readJSON(filepath.Join(session, "executions", executionID, "execution.json"), &execution))
 	}
+	require.NotEmpty(t, executionID)
 	persisted := obj(execution["admission"])
+	var evidence object
+	require.NoError(t, readJSON(filepath.Join(output, "verification.json"), &evidence))
+	require.Equal(t, persisted, obj(evidence["admission"]))
 	normalizedIndex, err := filepath.Abs(s.c.Index)
 	require.NoError(t, err)
 	normalizedScenarios, err := filepath.Abs(scenarios)
@@ -400,6 +409,38 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	after, err := Inventory(source, false)
 	require.NoError(t, err)
 	require.Equal(t, before, after)
+
+	tamperedIndex := filepath.Join(t.TempDir(), "tampered-index.json")
+	persisted["index"] = tamperedIndex
+	execution["admission"] = persisted
+	args := stringsOf(execution["args"])
+	for i := range args {
+		if args[i] == "--index" && i+1 < len(args) {
+			args[i+1] = tamperedIndex
+		}
+	}
+	execution["args"] = args
+	executionPath := filepath.Join(session, "executions", executionID, "execution.json")
+	require.NoError(t, tool.WriteJSON(executionPath, execution))
+	descriptorHash, err := Digest(executionPath)
+	require.NoError(t, err)
+	for _, value := range array(index["executions"]) {
+		row := obj(value)
+		if row["id"] == executionID {
+			row["descriptorSHA256"] = descriptorHash
+		}
+	}
+	require.NoError(t, tool.WriteJSON(filepath.Join(session, "executions", "index.json"), index))
+
+	finish := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", session)
+	finish.Dir = t.TempDir()
+	finish.Env = cmd.Env
+	data, err = finish.Output()
+	require.Error(t, err, "%s", data)
+	var finishReport object
+	require.NoError(t, json.Unmarshal(data, &finishReport))
+	require.Equal(t, "failed", finishReport["status"])
+	require.Contains(t, str(finishReport["error"]), "admission")
 }
 
 func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {

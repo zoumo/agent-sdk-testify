@@ -80,10 +80,23 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 	for _, artifact := range index.Artifacts {
 		artifacts[artifact.ID] = artifact
 	}
-	var validationErr error
+	orphans, inventoryErr := validateExecutionInventory(sessionDir, index)
+	validationErr := inventoryErr
+	for _, id := range orphans {
+		result := FinishExecution{
+			ID:      id,
+			Command: "unknown",
+			Status:  "failed",
+			Error:   "execution directory is absent from execution index",
+		}
+		report.Executions = append(report.Executions, result)
+		if err := writeAtomic(filepath.Join(ExecutionDir(sessionDir, id), "finish.json"), result); err != nil {
+			validationErr = errors.Join(validationErr, fmt.Errorf("%s: write execution finish result: %w", id, err))
+		}
+	}
 	if session.HistorySeed != "" {
 		if err := history.VerifyTree(filepath.Dir(session.HistorySeed), session.HistorySeedFiles); err != nil {
-			validationErr = fmt.Errorf("session history seed: %w", err)
+			validationErr = errors.Join(validationErr, fmt.Errorf("session history seed: %w", err))
 		}
 	}
 	for _, indexed := range index.Executions {
@@ -92,7 +105,11 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 		if result.Status != "passed" {
 			validationErr = errors.Join(validationErr, fmt.Errorf("%s: %s", result.ID, result.Error))
 		}
-		_ = writeAtomic(filepath.Join(ExecutionDir(sessionDir, result.ID), "finish.json"), result)
+		if validateExecutionID(result.ID) == nil {
+			if err := writeAtomic(filepath.Join(ExecutionDir(sessionDir, result.ID), "finish.json"), result); err != nil {
+				validationErr = errors.Join(validationErr, fmt.Errorf("%s: write execution finish result: %w", result.ID, err))
+			}
+		}
 	}
 	if validationErr == nil && len(report.Executions) == 0 {
 		report.Status = "abandoned"
@@ -206,9 +223,17 @@ func finishCleanup(sessionDir string, session *Session) (bool, error) {
 	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return false, errors.New("temporary resource root is not an unlinked directory")
 	}
-	owner, err := os.ReadFile(filepath.Join(session.ResourceRoot, ".owner"))
+	ownerPath := filepath.Join(session.ResourceRoot, ".owner")
+	ownerInfo, err := os.Lstat(ownerPath)
 	if err != nil {
 		return false, fmt.Errorf("temporary resource ownership is missing: %w", err)
+	}
+	if !ownerInfo.Mode().IsRegular() {
+		return false, errors.New("temporary resource ownership is not a regular unlinked file")
+	}
+	owner, err := os.ReadFile(ownerPath)
+	if err != nil {
+		return false, fmt.Errorf("temporary resource ownership is unreadable: %w", err)
 	}
 	if string(owner) != session.SessionID {
 		return false, errors.New("temporary resource ownership mismatch")
@@ -233,6 +258,12 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 			errs = append(errs, err)
 		}
 	}
+	if err := validateExecutionID(indexed.ID); err != nil {
+		fail(err)
+		result.Status = "failed"
+		result.Error = errors.Join(errs...).Error()
+		return result
+	}
 	if indexed.Status != "passed" {
 		fail(fmt.Errorf("execution status is %s", indexed.Status))
 	}
@@ -250,10 +281,17 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 	} else if err := execution.Validate(*session); err != nil {
 		fail(err)
 	} else {
-		fail(validateExecutionLocation(sessionDir, session, dir, execution))
-		if execution.Command != indexed.Command {
+		if indexed.ID != execution.ExecutionID {
+			fail(errors.New("execution identity differs from index"))
+		}
+		if indexed.Command != execution.Command {
 			fail(errors.New("execution command differs from index"))
 		}
+		if indexed.StartedAt != execution.StartedAt {
+			fail(errors.New("execution start time differs from index"))
+		}
+		fail(validateIndexedConnections(indexed, execution))
+		fail(validateExecutionLocation(sessionDir, session, dir, execution))
 		var artifact *Artifact
 		if indexed.ArtifactID != "" {
 			value, ok := artifacts[indexed.ArtifactID]
@@ -278,10 +316,14 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 		if execution.Command == "record" && artifact == nil {
 			fail(errors.New("record execution has no published capture"))
 		}
+		if execution.Command == "record" && artifact != nil && artifact.Path != execution.ArtifactRoot {
+			fail(errors.New("record capture differs from its execution artifact root"))
+		}
 		if artifact != nil {
 			inspection, materialErr := inspectMaterial(session, *artifact, execution.Command)
 			fail(materialErr)
 			if materialErr == nil {
+				fail(validateConnectionInventory(execution, artifact, session.Routes[execution.Command]))
 				expected, provenanceErr := expectedFinishedProvenance(session, execution.Command, inspection)
 				fail(provenanceErr)
 				if provenanceErr == nil && execution.Provenance != expected {
@@ -304,17 +346,42 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 		}
 		for _, connection := range execution.Connections {
 			peer := FinishPeer{ID: connection.ID, Status: "passed"}
+			expected := replayReceiptExpectation{
+				Provider:        session.AgentType,
+				RecordingSHA256: connection.RecordingSHA256,
+				PlanSHA256:      connection.PlanSHA256,
+				RequirePlan:     execution.Command == "mock",
+				RequireExitCode: execution.Command == "mock",
+			}
+			if execution.Command == "mock" {
+				expected.Material = connection.Material
+			}
+			if artifact != nil {
+				path, pathErr := connectionRecordingPath(artifact.Path, connection.ID)
+				if pathErr == nil {
+					expected.Frames, pathErr = recordingFrameCount(path, session.AgentType)
+				}
+				if pathErr != nil {
+					peer.Status, peer.Error = "failed", pathErr.Error()
+					fail(pathErr)
+					result.Connections = append(result.Connections, peer)
+					continue
+				}
+			}
 			switch execution.Command {
 			case "record":
-				peerErr := validateTransport(connection.Receipt)
+				peerErr := validateCaptureTransport(connection.Receipt, expected.Frames)
 				peer.Status, peer.Error = peerResult(peerErr)
 				fail(peerErr)
 			case "verify":
-				peerErr := validateReplayReceipt(connection.Receipt, session.AgentType)
+				peerErr := errors.Join(
+					validateReplayReceipt(connection.Receipt, expected),
+					validatePeerLifecycle(execution.ArtifactRoot, connection.ID),
+				)
 				peer.Status, peer.Error = peerResult(peerErr)
 				fail(peerErr)
 			case "mock":
-				peerErr := validateMockReceipts(connection.Receipt, connection.ProcessReceipt, execution, session.AgentType)
+				peerErr := validateMockReceipts(connection.Receipt, connection.ProcessReceipt, execution, connection, expected)
 				peer.Status, peer.Error = peerResult(peerErr)
 				fail(peerErr)
 			default:
@@ -325,9 +392,16 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 		switch execution.Command {
 		case "record":
 			fail(validateRecordReport(execution.ArtifactRoot))
+			if execution.Admission != nil {
+				fail(errors.New("record execution has verify admission parameters"))
+			}
 		case "verify":
 			fail(validateVerifyReport(execution.ArtifactRoot))
+			fail(validateAdmission(execution, execution.ArtifactRoot))
 		case "mock":
+			if execution.Admission != nil {
+				fail(errors.New("mock execution has verify admission parameters"))
+			}
 			fail(validateMockExecution(execution.ArtifactRoot))
 		}
 	}
@@ -460,8 +534,8 @@ func expectedFinishedProvenance(session *Session, action string, material *mater
 }
 
 func validateTransport(path string) error {
-	var transport tool.Object
-	if err := tool.ReadJSON(path, &transport); err != nil {
+	transport, err := readEvidenceObject(path, "capture transport receipt")
+	if err != nil {
 		return err
 	}
 	if transport["captureStatus"] != "complete" ||
@@ -478,49 +552,13 @@ func validateTransport(path string) error {
 	return nil
 }
 
-func validateReplayReceipt(path, provider string) error {
-	var receipt tool.Object
-	if err := tool.ReadJSON(path, &receipt); err != nil {
-		return err
-	}
-	if receipt["status"] != "passed" ||
-		receipt["provider"] != provider ||
-		receipt["fullConsumption"] != true ||
-		receipt["clientEOF"] != true ||
-		receipt["cleanupComplete"] != true ||
-		receipt["nativeLaunched"] != false ||
-		receipt["error"] != nil {
-		return errors.New("replay receipt does not prove strict full consumption, EOF and cleanup")
-	}
-	return nil
-}
-
-func validateMockReceipts(receiptPath, processPath string, execution Execution, provider string) error {
-	if err := validateReplayReceipt(receiptPath, provider); err != nil {
-		return err
-	}
-	var process tool.Object
-	if err := tool.ReadJSON(processPath, &process); err != nil {
-		return err
-	}
-	if process["status"] != "passed" ||
-		process["executionId"] != execution.ExecutionID ||
-		process["sessionId"] != execution.SessionID ||
-		process["error"] != nil {
-		return errors.New("mock process receipt is absent or unsuccessful")
-	}
-	if code, ok := process["exitCode"].(float64); !ok || code != 0 {
-		return errors.New("mock process exit is absent or nonzero")
-	}
-	return nil
-}
-
 func validateRecordReport(root string) error {
 	var report, manifest tool.Object
-	if err := tool.ReadJSON(filepath.Join(root, "report.json"), &report); err != nil {
+	var err error
+	if report, err = readEvidenceObject(filepath.Join(root, "report.json"), "record report"); err != nil {
 		return err
 	}
-	if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err != nil {
+	if manifest, err = readEvidenceObject(filepath.Join(root, "manifest.json"), "record manifest"); err != nil {
 		return err
 	}
 	if manifest["captureStatus"] != "complete" {
@@ -531,8 +569,8 @@ func validateRecordReport(root string) error {
 		return fmt.Errorf("record report status is %q", status)
 	}
 	if _, err := os.Stat(filepath.Join(root, "result.json")); err == nil {
-		var result tool.Object
-		if err := tool.ReadJSON(filepath.Join(root, "result.json"), &result); err != nil {
+		result, err := readEvidenceObject(filepath.Join(root, "result.json"), "record result")
+		if err != nil {
 			return err
 		}
 		if result["status"] != "passed" {
@@ -546,13 +584,17 @@ func validateRecordReport(root string) error {
 
 func validateVerifyReport(root string) error {
 	var verification, replay, summary tool.Object
-	if err := tool.ReadJSON(filepath.Join(root, "verification.json"), &verification); err != nil {
+	var err error
+	if verification, err = readEvidenceObject(filepath.Join(root, "verification.json"), "verification evidence"); err != nil {
 		return err
 	}
-	if verification["status"] != "passed" {
+	if verification["schemaVersion"] != float64(1) || verification["status"] != "passed" || verification["error"] != nil {
 		return fmt.Errorf("verification status is %q", tool.Str(verification["status"]))
 	}
-	if err := tool.ReadJSON(filepath.Join(root, "replay-report.json"), &replay); err != nil {
+	if err := validateEvidenceHashes(root, tool.Obj(verification["files"])); err != nil {
+		return err
+	}
+	if replay, err = readEvidenceObject(filepath.Join(root, "replay-report.json"), "replay report"); err != nil {
 		return err
 	}
 	if replay["status"] != "passed" ||
@@ -561,7 +603,7 @@ func validateVerifyReport(root string) error {
 		len(tool.Array(replay["gaps"])) != 0 {
 		return errors.New("official replay report is absent or incomplete")
 	}
-	if err := tool.ReadJSON(filepath.Join(root, "summary.json"), &summary); err != nil {
+	if summary, err = readEvidenceObject(filepath.Join(root, "summary.json"), "verification summary"); err != nil {
 		return err
 	}
 	if summary["error"] != nil {
