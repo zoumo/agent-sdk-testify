@@ -55,6 +55,9 @@ func mockSession(ctx context.Context, o Options) (err error) {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
 	defer func() { err = errors.Join(err, run.Close()) }()
+	if err := os.Chdir(run.Execution.Workspace); err != nil {
+		return exitcode.Fail(exitcode.Configuration, err)
+	}
 
 	connectionPath, processPath, err := mockConnectionPaths(run, o.Connection)
 	if err != nil {
@@ -67,6 +70,7 @@ func mockSession(ctx context.Context, o Options) (err error) {
 		"connectionId":  o.Connection,
 		"status":        "failed",
 		"exitCode":      -1,
+		"cwd":           run.Execution.Workspace,
 		"toolVersion":   version.Version,
 	}
 	if self, toolVersion, hash, selfErr := lifecycle.SelfCommand(); selfErr == nil {

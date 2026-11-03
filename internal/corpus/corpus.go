@@ -355,7 +355,9 @@ func (v *Validation) Replay(source, replay string, plan object, mode string) {
 	v.Check(v.Digest(replay, "materialization.json") == s["materializationSHA256"], "runtime materialization hash differs")
 	m := v.Read(replay, "materialization.json")
 	execution := str(m["executionProject"])
-	v.Check(execution == filepath.Join(str(s["output"]), "project") && m["originalProject"] == plan["project"] && m["originalHistoryProject"] == plan["historyProject"], "runtime project mapping differs")
+	output := str(s["output"])
+	v.Check((execution == filepath.Join(output, "project") || execution == filepath.Join(output, "workspace")) &&
+		m["originalProject"] == plan["project"] && m["originalHistoryProject"] == plan["historyProject"], "runtime project mapping differs")
 	for _, item := range array(m["transformations"]) {
 		x := obj(item)
 		cwd := str(x["sourceCWD"])

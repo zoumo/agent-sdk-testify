@@ -77,7 +77,15 @@ func Run(ctx context.Context, o Options) (summary object, runFailure error) {
 		return nil, err
 	}
 	root := o.Output
-	workspace := filepath.Join(o.Output, "project")
+	workspace := o.Workspace
+	if workspace == "" {
+		workspace = filepath.Join(o.Output, "project")
+	} else {
+		workspace, err = filepath.EvalSymlinks(workspace)
+		if err != nil {
+			return nil, err
+		}
+	}
 	defer func() {
 		cleanupErr := scrubNative(root)
 		if o.Mode == "record" {

@@ -98,6 +98,10 @@ type Execution struct {
 	Provenance    string                `json:"provenance"`
 	Workspace     string                `json:"workspace"`
 	ProtocolCwd   string                `json:"protocolCwd"`
+	Home          string                `json:"home"`
+	Config        string                `json:"config"`
+	Tmp           string                `json:"tmp"`
+	HistorySeed   string                `json:"historySeed"`
 	Env           map[string]string     `json:"env"`
 	Connections   []ExecutionConnection `json:"connections"`
 	Receipts      []string              `json:"receipts"`
@@ -255,8 +259,16 @@ func (e Execution) Validate(s Session) error {
 	if e.SchemaVersion != SchemaVersion || e.ExecutionID == "" || e.SessionID != s.SessionID {
 		return errors.New("invalid execution identity or schemaVersion")
 	}
-	if e.Source != s.Source || e.Command == "" || !filepath.IsAbs(e.Workspace) || !filepath.IsAbs(e.ArtifactRoot) {
+	if e.Source != s.Source || e.Command == "" {
 		return errors.New("execution differs from session source or paths")
+	}
+	if !filepath.IsAbs(e.Workspace) || !filepath.IsAbs(e.ProtocolCwd) ||
+		!filepath.IsAbs(e.Home) || !filepath.IsAbs(e.Config) || !filepath.IsAbs(e.Tmp) ||
+		!filepath.IsAbs(e.HistorySeed) || !filepath.IsAbs(e.ArtifactRoot) {
+		return errors.New("execution paths must be absolute")
+	}
+	if len(e.Env) == 0 {
+		return errors.New("execution omits its effective environment")
 	}
 	if e.Executor == "" || e.Target == "" || e.Provenance == "" {
 		return errors.New("incomplete execution action")

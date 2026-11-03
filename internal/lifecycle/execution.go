@@ -16,7 +16,7 @@ type ActionRun struct {
 	Execution    Execution
 	Connection   string
 	Dir          string
-	RouteRoot    string
+	OverlayRoot  string
 	ArtifactRoot string
 	Created      bool
 	lock         *Lock
@@ -170,6 +170,100 @@ func executionConnections(dir, action string, ids []string, material string) ([]
 	return connections, receipts
 }
 
+func createExecutionOverlay(session *Session, action, dir string, plan tool.Object) (string, error) {
+	route, ok := session.Routes[action]
+	if !ok || !route.Enabled {
+		return "", fmt.Errorf("%s is not available for this session", action)
+	}
+	overlayRoot := filepath.Join(dir, "overlay")
+	success := false
+	slotsTouched := false
+	defer func() {
+		if !success {
+			if slotsTouched {
+				_ = restoreRouteSlots(session, action)
+			}
+			_ = os.RemoveAll(overlayRoot)
+		}
+	}()
+	if err := copyTree(filepath.Join(session.ResourceRoot, "baseline"), overlayRoot); err != nil {
+		return "", err
+	}
+	if action == "mock" || action == "verify" {
+		if err := cleanMockConfig(overlayRoot, plan, session.AgentType); err != nil {
+			return "", err
+		}
+	}
+	slotsTouched = true
+	if err := bindRouteSlots(filepath.Join(session.ResourceRoot, "routes", action), overlayRoot); err != nil {
+		return "", err
+	}
+	success = true
+	return overlayRoot, nil
+}
+
+func executionProtocolCwd(action string, plan tool.Object, workspace string) string {
+	if action == "record" || action == "verify" {
+		return workspace
+	}
+	return planProtocolCwd(plan, workspace)
+}
+
+func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs []string, timeout time.Duration, ids []string, material *Artifact, plan tool.Object) (Execution, error) {
+	workspace := filepath.Join(overlayRoot, "workspace")
+	limits := session.Limits
+	if timeout > 0 {
+		limits.TimeoutMS = timeout.Milliseconds()
+	}
+	route := session.Routes[action]
+	materialPath := ""
+	if material != nil {
+		materialPath = material.Path
+	}
+	connections, receipts := executionConnections(artifactRoot, action, ids, materialPath)
+	execution := Execution{
+		SchemaVersion: SchemaVersion,
+		ExecutionID:   id,
+		SessionID:     session.SessionID,
+		Command:       action,
+		Args:          append([]string(nil), commandArgs...),
+		Source:        session.Source,
+		Executor:      route.Executor,
+		Target:        route.Target,
+		Provenance:    route.Provenance,
+		Workspace:     workspace,
+		ProtocolCwd:   executionProtocolCwd(action, plan, workspace),
+		Home:          filepath.Join(overlayRoot, "home"),
+		Config:        filepath.Join(overlayRoot, "config"),
+		Tmp:           filepath.Join(overlayRoot, "tmp"),
+		HistorySeed:   filepath.Join(overlayRoot, "history-seed"),
+		Env:           executionEnvironment(session, action, overlayRoot),
+		Connections:   connections,
+		Receipts:      receipts,
+		ArtifactRoot:  artifactRoot,
+		Limits:        limits,
+		StartedAt:     now(),
+	}
+	if action == "record" {
+		artifactID, err := randomID()
+		if err != nil {
+			return Execution{}, err
+		}
+		execution.Artifact = Artifact{
+			ID:          artifactID,
+			Kind:        "capture",
+			Action:      "record",
+			Provenance:  route.Provenance,
+			Path:        artifactRoot,
+			Connections: append([]string(nil), ids...),
+			CreatedAt:   now(),
+		}
+	} else if material != nil {
+		execution.Artifact = *material
+	}
+	return execution, nil
+}
+
 func createAction(sessionDir, action string, commandArgs []string, timeout time.Duration, material *Artifact) (*ActionRun, error) {
 	sessionDir, err := canonicalSessionDir(sessionDir)
 	if err != nil {
@@ -199,6 +293,12 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 			_ = lock.Close()
 		}
 	}()
+	routeBound := false
+	defer func() {
+		if !success && routeBound {
+			_ = restoreRouteSlots(session, action)
+		}
+	}()
 	if err := checkOpen(sessionDir); err != nil {
 		return nil, err
 	}
@@ -210,10 +310,6 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 		return nil, fmt.Errorf("session has unfinished execution %s", pending.ID)
 	}
 	plan, err := LoadPlan(session)
-	if err != nil {
-		return nil, err
-	}
-	routeRoot, err := resetRoute(session, action, plan)
 	if err != nil {
 		return nil, err
 	}
@@ -229,54 +325,20 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
+	overlayRoot, err := createExecutionOverlay(session, action, dir, plan)
+	if err != nil {
+		return nil, err
+	}
+	routeBound = true
 	ids := connectionIDs(session.Source, plan)
-	materialPath := ""
 	if material != nil {
-		materialPath = material.Path
 		if len(material.Connections) > 0 {
 			ids = append([]string(nil), material.Connections...)
 		}
 	}
-	connections, receipts := executionConnections(artifactRoot, action, ids, materialPath)
-	limits := session.Limits
-	if timeout > 0 {
-		limits.TimeoutMS = timeout.Milliseconds()
-	}
-	execution := Execution{
-		SchemaVersion: SchemaVersion,
-		ExecutionID:   id,
-		SessionID:     session.SessionID,
-		Command:       action,
-		Args:          append([]string(nil), commandArgs...),
-		Source:        session.Source,
-		Executor:      route.Executor,
-		Target:        route.Target,
-		Provenance:    route.Provenance,
-		Workspace:     route.Workspace,
-		ProtocolCwd:   route.ProtocolCwd,
-		Env:           route.Env,
-		Connections:   connections,
-		Receipts:      receipts,
-		ArtifactRoot:  artifactRoot,
-		Limits:        limits,
-		StartedAt:     now(),
-	}
-	if action == "record" {
-		artifactID, e := randomID()
-		if e != nil {
-			return nil, e
-		}
-		execution.Artifact = Artifact{
-			ID:          artifactID,
-			Kind:        "capture",
-			Action:      "record",
-			Provenance:  route.Provenance,
-			Path:        artifactRoot,
-			Connections: append([]string(nil), ids...),
-			CreatedAt:   now(),
-		}
-	} else if material != nil {
-		execution.Artifact = *material
+	execution, err := newExecution(session, action, id, overlayRoot, artifactRoot, commandArgs, timeout, ids, material, plan)
+	if err != nil {
+		return nil, err
 	}
 	if err := execution.Validate(*session); err != nil {
 		return nil, err
@@ -289,8 +351,8 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	if err != nil {
 		return nil, err
 	}
-	indexConnections := make([]IndexConnection, 0, len(connections))
-	for _, connection := range connections {
+	indexConnections := make([]IndexConnection, 0, len(execution.Connections))
+	for _, connection := range execution.Connections {
 		indexConnections = append(indexConnections, IndexConnection{ID: connection.ID, Status: "pending"})
 	}
 	if err := updateIndex(sessionDir, func(value *Index) error {
@@ -312,7 +374,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	}); err != nil {
 		return nil, err
 	}
-	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, RouteRoot: routeRoot, ArtifactRoot: artifactRoot, Created: true, lock: lock}
+	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, Created: true, lock: lock}
 	success = true
 	return run, nil
 }
@@ -356,6 +418,12 @@ func BeginMock(sessionDir, connection string, commandArgs []string, timeout time
 			_ = lock.Close()
 		}
 	}()
+	routeBound := false
+	defer func() {
+		if !success && routeBound {
+			_ = restoreRouteSlots(session, "mock")
+		}
+	}()
 	index, err := readIndex(IndexPath(sessionDir))
 	if err != nil {
 		return nil, err
@@ -397,10 +465,6 @@ func BeginMock(sessionDir, connection string, commandArgs []string, timeout time
 	if !found {
 		return nil, fmt.Errorf("undeclared mock connection %s", connection)
 	}
-	routeRoot, err := resetRoute(session, "mock", plan)
-	if err != nil {
-		return nil, err
-	}
 	id, err := randomID()
 	if err != nil {
 		return nil, err
@@ -413,30 +477,14 @@ func BeginMock(sessionDir, connection string, commandArgs []string, timeout time
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
-	connections, receipts := executionConnections(artifactRoot, "mock", ids, material.Path)
-	limits := session.Limits
-	if timeout > 0 {
-		limits.TimeoutMS = timeout.Milliseconds()
+	overlayRoot, err := createExecutionOverlay(session, "mock", dir, plan)
+	if err != nil {
+		return nil, err
 	}
-	execution := Execution{
-		SchemaVersion: SchemaVersion,
-		ExecutionID:   id,
-		SessionID:     session.SessionID,
-		Command:       "mock",
-		Args:          append([]string(nil), commandArgs...),
-		Source:        session.Source,
-		Executor:      route.Executor,
-		Target:        route.Target,
-		Provenance:    route.Provenance,
-		Workspace:     route.Workspace,
-		ProtocolCwd:   route.ProtocolCwd,
-		Env:           route.Env,
-		Connections:   connections,
-		Receipts:      receipts,
-		ArtifactRoot:  artifactRoot,
-		Artifact:      *material,
-		Limits:        limits,
-		StartedAt:     now(),
+	routeBound = true
+	execution, err := newExecution(session, "mock", id, overlayRoot, artifactRoot, commandArgs, timeout, ids, material, plan)
+	if err != nil {
+		return nil, err
 	}
 	if err := execution.Validate(*session); err != nil {
 		return nil, err
@@ -449,8 +497,8 @@ func BeginMock(sessionDir, connection string, commandArgs []string, timeout time
 	if err != nil {
 		return nil, err
 	}
-	indexConnections := make([]IndexConnection, 0, len(connections))
-	for _, c := range connections {
+	indexConnections := make([]IndexConnection, 0, len(execution.Connections))
+	for _, c := range execution.Connections {
 		indexConnections = append(indexConnections, IndexConnection{ID: c.ID, Status: "pending"})
 	}
 	if err := updateIndex(sessionDir, func(value *Index) error {
@@ -476,7 +524,7 @@ func BeginMock(sessionDir, connection string, commandArgs []string, timeout time
 	if err := lock.Downgrade(); err != nil {
 		return nil, err
 	}
-	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, RouteRoot: routeRoot, ArtifactRoot: artifactRoot, Created: true, lock: lock}
+	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, Created: true, lock: lock}
 	success = true
 	return run, nil
 }
@@ -524,7 +572,7 @@ func joinMock(sessionDir string, session *Session, indexed *IndexExecution, conn
 	if err != nil {
 		return nil, err
 	}
-	return &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, RouteRoot: filepath.Join(session.ResourceRoot, "routes", "mock"), ArtifactRoot: execution.ArtifactRoot, lock: lock}, nil
+	return &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: filepath.Dir(execution.Home), ArtifactRoot: execution.ArtifactRoot, lock: lock}, nil
 }
 
 func claimMockConnection(execution Execution, id string) error {
@@ -568,7 +616,7 @@ func FinishAction(run *ActionRun, status, artifactID string) error {
 	if run == nil {
 		return nil
 	}
-	return updateIndex(filepath.Dir(filepath.Dir(run.Dir)), func(index *Index) error {
+	err := updateIndex(filepath.Dir(filepath.Dir(run.Dir)), func(index *Index) error {
 		for i := range index.Executions {
 			if index.Executions[i].ID != run.Execution.ExecutionID {
 				continue
@@ -586,6 +634,13 @@ func FinishAction(run *ActionRun, status, artifactID string) error {
 		}
 		return errors.New("execution is absent from index")
 	})
+	if err != nil {
+		return err
+	}
+	if run.Execution.Command == "record" || run.Execution.Command == "verify" {
+		return restoreRouteSlots(run.Session, run.Execution.Command)
+	}
+	return nil
 }
 
 // CompleteMockConnection records one peer result without closing the execution
@@ -595,7 +650,8 @@ func CompleteMockConnection(run *ActionRun, status string) error {
 		return errors.New("mock completion requires an execution and connection")
 	}
 	sessionDir := filepath.Dir(filepath.Dir(run.Dir))
-	return updateIndex(sessionDir, func(index *Index) error {
+	complete := false
+	err := updateIndex(sessionDir, func(index *Index) error {
 		for i := range index.Executions {
 			execution := &index.Executions[i]
 			if execution.ID != run.Execution.ExecutionID {
@@ -626,13 +682,19 @@ func CompleteMockConnection(run *ActionRun, status string) error {
 				execution.Status = "open"
 			} else if failed {
 				execution.Status = "failed"
+				complete = true
 			} else {
 				execution.Status = "passed"
+				complete = true
 			}
 			return nil
 		}
 		return errors.New("execution is absent from index")
 	})
+	if err != nil || !complete {
+		return err
+	}
+	return restoreRouteSlots(run.Session, "mock")
 }
 
 func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error {

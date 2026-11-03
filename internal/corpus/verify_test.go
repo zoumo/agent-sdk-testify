@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -95,8 +96,19 @@ func verifyDriverSubstitute(args []string) int {
 	if mode == "no-receipt" {
 		os.Remove(filepath.Join(req.Output, "replay-peer.json"))
 	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return 5
+	}
 	sdk := object{"package": "openai-codex", "version": "synthetic-test-only"}
-	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": sdk}
+	observed := object{
+		"cwd":       cwd,
+		"workspace": req.Workspace,
+		"home":      os.Getenv("HOME"),
+		"config":    os.Getenv("CODEX_HOME"),
+		"tmp":       os.Getenv("TMPDIR"),
+	}
+	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": sdk, "observed": observed}
 	if mode == "partial-business" {
 		report["captureStatus"] = "partial"
 	}
@@ -217,6 +229,41 @@ func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
 	require.NotEmpty(t, evidence["contracts"])
 	require.NoError(t, readJSON(filepath.Join(output, "summary.json"), &summary))
 	require.Equal(t, "verify", summary["mode"])
+}
+
+func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
+	cmd, _, session := verifyFixture(t, "passed")
+	resolvedSession, err := filepath.EvalSymlinks(session)
+	require.NoError(t, err)
+	data, err := cmd.CombinedOutput()
+	require.NoError(t, err, "%s", data)
+
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	var execution object
+	var id string
+	for _, value := range array(index["executions"]) {
+		row := obj(value)
+		if row["command"] == "verify" {
+			id = str(row["id"])
+			require.NoError(t, readJSON(filepath.Join(session, "executions", id, "execution.json"), &execution))
+		}
+	}
+	require.NotEmpty(t, id)
+	var report object
+	require.NoError(t, readJSON(filepath.Join(str(execution["artifactRoot"]), "replay-report.json"), &report))
+	observed := obj(report["observed"])
+	workspace := str(execution["workspace"])
+	require.Equal(t, observed["cwd"], workspace)
+	require.Equal(t, observed["workspace"], workspace)
+	require.True(t, strings.HasPrefix(workspace, filepath.Join(resolvedSession, "executions", id)+string(filepath.Separator)))
+	require.Equal(t, observed["cwd"], execution["protocolCwd"])
+	require.Equal(t, observed["home"], execution["home"])
+	require.Equal(t, observed["config"], execution["config"])
+	require.Equal(t, observed["tmp"], execution["tmp"])
+	require.Equal(t, observed["home"], obj(execution["env"])["HOME"])
+	require.Equal(t, observed["config"], obj(execution["env"])["CODEX_HOME"])
+	require.Equal(t, observed["tmp"], obj(execution["env"])["TMPDIR"])
 }
 
 func TestVerifyRejectsWrongFrameCount(t *testing.T) {

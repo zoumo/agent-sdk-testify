@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -44,6 +45,10 @@ func recordDriverSubstitute(args []string) int {
 	if _, err := os.Stat(filepath.Join(req.Workspace, "numbers.txt")); err != nil {
 		return 4
 	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return 5
+	}
 	cmd := exec.CommandContext(context.Background(), req.Peer.Command.Command, req.Peer.Command.Args...)
 	in, err := cmd.StdinPipe()
 	if err != nil {
@@ -68,7 +73,14 @@ func recordDriverSubstitute(args []string) int {
 	if status == "false-pass" {
 		status = "passed"
 	}
-	if writeJSON(filepath.Join(req.Output, "report.json"), object{"status": status, "branchStatus": status, "captureStatus": "synthetic-driver-source", "officialSDK": object{"version": "synthetic-only"}}) != nil {
+	observed := object{
+		"cwd":       cwd,
+		"workspace": req.Workspace,
+		"home":      os.Getenv("HOME"),
+		"config":    os.Getenv(configKey),
+		"tmp":       os.Getenv("TMPDIR"),
+	}
+	if writeJSON(filepath.Join(req.Output, "report.json"), object{"status": status, "branchStatus": status, "captureStatus": "synthetic-driver-source", "officialSDK": object{"version": "synthetic-only"}, "observed": observed}) != nil {
 		return 6
 	}
 	if writeJSON(filepath.Join(req.Output, "result.json"), result{Status: status, Message: "synthetic-only"}) != nil {
@@ -225,6 +237,41 @@ func checkRecordCapture(t *testing.T, provider string) {
 	require.NoError(t, json.Unmarshal(data, &reportJSON))
 	require.Equal(t, "passed", reportJSON["status"])
 	require.Equal(t, true, reportJSON["cleanupComplete"])
+}
+
+func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
+	fixture := recordProcess(t, "codex", "passed", "passed")
+	resolvedSession, err := filepath.EvalSymlinks(fixture.session)
+	require.NoError(t, err)
+	data, err := fixture.command(t, "10s").CombinedOutput()
+	require.NoError(t, err, "%s", data)
+
+	var index object
+	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", "index.json"), &index))
+	rows := array(index["executions"])
+	require.NotEmpty(t, rows)
+	row := obj(rows[len(rows)-1])
+	require.Equal(t, "record", row["command"])
+	id := str(row["id"])
+	var execution, report object
+	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", id, "execution.json"), &execution))
+	require.NoError(t, readJSON(filepath.Join(str(execution["artifactRoot"]), "report.json"), &report))
+
+	observed := obj(report["observed"])
+	workspace := str(execution["workspace"])
+	require.Equal(t, observed["cwd"], workspace)
+	require.Equal(t, observed["workspace"], workspace)
+	require.True(t, strings.HasPrefix(workspace, filepath.Join(resolvedSession, "executions", id)+string(filepath.Separator)))
+	require.Equal(t, observed["cwd"], execution["protocolCwd"])
+	require.Equal(t, observed["home"], execution["home"])
+	require.Equal(t, observed["config"], execution["config"])
+	require.Equal(t, observed["tmp"], execution["tmp"])
+	require.Equal(t, observed["home"], obj(execution["env"])["HOME"])
+	require.Equal(t, observed["config"], obj(execution["env"])["CODEX_HOME"])
+	require.Equal(t, observed["tmp"], obj(execution["env"])["TMPDIR"])
+
+	data, err = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", fixture.session).CombinedOutput()
+	require.NoError(t, err, "%s", data)
 }
 
 func TestRecordPreservesFailedAttempts(t *testing.T) {

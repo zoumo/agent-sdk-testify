@@ -91,9 +91,9 @@ func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout ti
 		defer cancel()
 	}
 	o := official.Options{Mode: "verify", Materials: artifact.Path}
-	summary, verifyErr := verifyRecordingAt(ctx, o, run.RouteRoot)
+	summary, verifyErr := verifyRecordingAt(ctx, o, run.OverlayRoot, run.Execution.Workspace)
 	err = admitVerified(artifact.Path, summary, verifyErr, c)
-	if snapshotErr := snapshotVerification(run.RouteRoot, run.ArtifactRoot); snapshotErr != nil {
+	if snapshotErr := snapshotVerification(run.OverlayRoot, run.ArtifactRoot); snapshotErr != nil {
 		err = errors.Join(err, snapshotErr)
 	}
 	if summary != nil {
@@ -181,7 +181,7 @@ func snapshotVerification(source, target string) error {
 	return nil
 }
 
-func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput string) (summary object, err error) {
+func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput, preparedWorkspace string) (summary object, err error) {
 	o.Mode = "verify"
 	o.Materials, err = corpusResolved(o.Materials)
 	if err != nil {
@@ -200,6 +200,7 @@ func verifyRecordingAt(ctx context.Context, o official.Options, preparedOutput s
 		}
 	}
 	o.Output = preparedOutput
+	o.Workspace = preparedWorkspace
 	o.OutputPrepared = true
 	o.Output, err = filepath.EvalSymlinks(o.Output)
 	if err != nil {

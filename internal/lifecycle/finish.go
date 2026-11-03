@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -320,19 +319,33 @@ func peerResult(err error) (string, string) {
 
 func validateExecutionLocation(sessionDir string, session *Session, dir string, execution Execution) error {
 	expectedArtifact := filepath.Join(dir, execution.Command)
+	overlayRoot := filepath.Join(dir, "overlay")
+	workspace := filepath.Join(overlayRoot, "workspace")
 	route, ok := session.Routes[execution.Command]
 	if !ok || !route.Enabled {
 		return fmt.Errorf("%s route is unavailable", execution.Command)
 	}
+	plan, err := LoadPlan(session)
+	if err != nil {
+		return err
+	}
 	switch {
 	case execution.ArtifactRoot != expectedArtifact:
 		return errors.New("execution artifact root differs from session")
-	case execution.Workspace != route.Workspace:
-		return errors.New("execution workspace differs from session")
-	case execution.ProtocolCwd != route.ProtocolCwd:
-		return errors.New("execution protocol cwd differs from session")
-	case !reflect.DeepEqual(execution.Env, route.Env):
-		return errors.New("execution environment differs from session")
+	case execution.Workspace != workspace:
+		return errors.New("execution workspace differs from its overlay")
+	case execution.ProtocolCwd != executionProtocolCwd(execution.Command, plan, workspace):
+		return errors.New("execution protocol cwd differs from its action")
+	case execution.Home != filepath.Join(overlayRoot, "home"):
+		return errors.New("execution home differs from its overlay")
+	case execution.Config != filepath.Join(overlayRoot, "config"):
+		return errors.New("execution config differs from its overlay")
+	case execution.Tmp != filepath.Join(overlayRoot, "tmp"):
+		return errors.New("execution tmp differs from its overlay")
+	case execution.HistorySeed != filepath.Join(overlayRoot, "history-seed"):
+		return errors.New("execution history seed differs from its overlay")
+	case validateExecutionEnvironment(session, execution) != nil:
+		return validateExecutionEnvironment(session, execution)
 	case execution.Executor != route.Executor:
 		return errors.New("execution executor differs from session")
 	case execution.Target != route.Target:
@@ -353,6 +366,40 @@ func validateExecutionLocation(sessionDir string, session *Session, dir string, 
 			!withinPath(session.ResourceRoot, execution.Source.Path) &&
 			!withinPath(sessionDir, execution.Source.Path) {
 			return errors.New("execution source snapshot escapes owned resources")
+		}
+	}
+	return nil
+}
+
+func validateExecutionEnvironment(session *Session, execution Execution) error {
+	expected := map[string]string{
+		"HOME":            execution.Home,
+		"TMPDIR":          execution.Tmp,
+		"TMP":             execution.Tmp,
+		"TEMP":            execution.Tmp,
+		"XDG_CONFIG_HOME": filepath.Join(execution.Home, ".config"),
+		"XDG_CACHE_HOME":  filepath.Join(execution.Home, ".cache"),
+		"XDG_DATA_HOME":   filepath.Join(execution.Home, ".local", "share"),
+	}
+	for key, value := range expected {
+		current, ok := execution.Env[key]
+		if !ok || current != value {
+			return fmt.Errorf("execution environment %s differs from its overlay", key)
+		}
+	}
+	configKey := "CODEX_HOME"
+	if session.AgentType == "claude" {
+		configKey = "CLAUDE_CONFIG_DIR"
+	}
+	if execution.Env[configKey] != execution.Config {
+		return fmt.Errorf("execution environment %s differs from its config", configKey)
+	}
+	for key, value := range execution.Env {
+		switch key {
+		case "CODEX_HOME", "CLAUDE_CONFIG_DIR":
+			if value != execution.Config {
+				return fmt.Errorf("execution environment %s differs from its config", key)
+			}
 		}
 	}
 	return nil

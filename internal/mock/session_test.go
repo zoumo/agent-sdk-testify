@@ -62,6 +62,64 @@ func sessionExecutable(t *testing.T, env []string, executable string, args ...st
 	return cmd
 }
 
+func latestSessionExecution(t *testing.T, session, command string) (object, string) {
+	t.Helper()
+	var index object
+	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
+	rows := array(index["executions"])
+	for i := len(rows) - 1; i >= 0; i-- {
+		row := obj(rows[i])
+		if str(row["command"]) != command {
+			continue
+		}
+		id := str(row["id"])
+		var execution object
+		require.NoError(t, readJSON(filepath.Join(session, "executions", id, "execution.json"), &execution))
+		return execution, id
+	}
+	t.Fatalf("session has no %s execution", command)
+	return nil, ""
+}
+
+func routeHostEnvironment(route object, extra map[string]string) []string {
+	values := map[string]string{"PATH": os.Getenv("PATH"), "GORACE": "atexit_sleep_ms=0"}
+	for key, value := range obj(route["env"]) {
+		values[key] = str(value)
+	}
+	for key, value := range extra {
+		values[key] = value
+	}
+	env := make([]string, 0, len(values))
+	for key, value := range values {
+		env = append(env, key+"="+value)
+	}
+	return env
+}
+
+func workspaceHashes(t *testing.T, root string) map[string]string {
+	t.Helper()
+	hashes := map[string]string{}
+	require.NoError(t, filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !entry.Type().IsRegular() {
+			return nil
+		}
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		hashes[filepath.ToSlash(rel)] = digestBytes(data)
+		return nil
+	}))
+	return hashes
+}
+
 func consumerSession(t *testing.T) (string, []string) {
 	t.Helper()
 	base := t.TempDir()
@@ -300,6 +358,114 @@ func TestPreparedMockLauncherRemainsAcrossExecutions(t *testing.T) {
 	}
 	data, err := sessionTool(t, env, "finish", "--session-dir", session).CombinedOutput()
 	require.NoError(t, err, "%s", data)
+}
+
+func TestPreparedMockLauncherUsesIsolatedExecutionOverlays(t *testing.T) {
+	session, env := consumerSession(t)
+	recordConsumerCapture(t, session, env)
+	resolvedSession, err := filepath.EvalSymlinks(session)
+	require.NoError(t, err)
+	var descriptor object
+	require.NoError(t, readJSON(filepath.Join(session, "session.json"), &descriptor))
+	route := obj(obj(descriptor["routes"])["mock"])
+	routeWorkspace := str(route["workspace"])
+	launcher := str(obj(array(route["connections"])[0])["launcher"])
+	require.FileExists(t, launcher)
+	routeRoot := filepath.Join(str(descriptor["resourceRoot"]), "routes", "mock")
+	templateRoot := filepath.Join(str(descriptor["resourceRoot"]), "templates", "mock")
+	assertRouteSlotsAtTemplate := func() {
+		for _, name := range []string{"workspace", "home", "config", "tmp", "history-seed"} {
+			require.Equal(t, filepath.Join(templateRoot, name), resolvedSymlink(t, filepath.Join(routeRoot, name)))
+		}
+	}
+
+	observe := filepath.Join(t.TempDir(), "observed.json")
+	wrapper := filepath.Join(t.TempDir(), "sdk-host")
+	script := fmt.Sprintf(`#!/bin/sh
+{
+  printf 'cwd=%%s\n' "$(pwd -P)"
+  printf 'home=%%s\n' "$(cd "$HOME" && pwd -P)"
+  printf 'config=%%s\n' "$(cd "$CODEX_HOME" && pwd -P)"
+  printf 'tmp=%%s\n' "$(cd "$TMPDIR" && pwd -P)"
+} > '%s'
+exec '%s' "$@"
+`, observe, launcher)
+	require.NoError(t, os.WriteFile(wrapper, []byte(script), 0o700))
+
+	run := func(label string) (object, string, map[string]string) {
+		cmd := sessionExecutable(t, routeHostEnvironment(route, map[string]string{
+			"RUN_LABEL": label,
+		}), wrapper, "app-server", "--listen", "stdio://")
+		cmd.Dir = routeWorkspace
+		cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		out, err := cmd.Output()
+		require.NoError(t, err, "%s", stderr.String())
+		assert.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, string(out))
+
+		observed := map[string]string{}
+		data, err := os.ReadFile(observe)
+		require.NoError(t, err)
+		for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
+			key, value, ok := strings.Cut(line, "=")
+			require.True(t, ok, line)
+			observed[key] = value
+		}
+		execution, id := latestSessionExecution(t, session, "mock")
+		return execution, id, observed
+	}
+
+	first, firstID, firstObserved := run("first")
+	firstWorkspace := str(first["workspace"])
+	firstRoot := filepath.Join(resolvedSession, "executions", firstID)
+	require.NotEqual(t, routeWorkspace, firstWorkspace)
+	require.True(t, strings.HasPrefix(firstWorkspace, firstRoot+string(filepath.Separator)))
+	require.Equal(t, str(first["home"]), str(obj(first["env"])["HOME"]))
+	require.Equal(t, str(first["config"]), str(obj(first["env"])["CODEX_HOME"]))
+	require.Equal(t, str(first["tmp"]), str(obj(first["env"])["TMPDIR"]))
+	require.NotEmpty(t, firstObserved)
+	assertRouteSlotsAtTemplate()
+	firstConnection := obj(array(first["connections"])[0])
+	var firstProcess object
+	require.NoError(t, readJSON(str(firstConnection["processReceipt"]), &firstProcess))
+	require.Equal(t, firstWorkspace, firstProcess["cwd"])
+	require.NoError(t, os.WriteFile(filepath.Join(firstWorkspace, "run-first.txt"), []byte("first\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(str(first["home"]), "run-first.txt"), []byte("first\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(str(first["config"]), "run-first.txt"), []byte("first\n"), 0o600))
+	firstHashes := workspaceHashes(t, firstWorkspace)
+	require.NoFileExists(t, filepath.Join(templateRoot, "workspace", "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(templateRoot, "home", "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(templateRoot, "config", "run-first.txt"))
+
+	second, secondID, secondObserved := run("second")
+	secondWorkspace := str(second["workspace"])
+	secondRoot := filepath.Join(resolvedSession, "executions", secondID)
+	require.NotEqual(t, firstID, secondID)
+	require.NotEqual(t, firstWorkspace, secondWorkspace)
+	require.True(t, strings.HasPrefix(secondWorkspace, secondRoot+string(filepath.Separator)))
+	require.NotEmpty(t, secondObserved)
+	assertRouteSlotsAtTemplate()
+	secondConnection := obj(array(second["connections"])[0])
+	var secondProcess object
+	require.NoError(t, readJSON(str(secondConnection["processReceipt"]), &secondProcess))
+	require.Equal(t, secondWorkspace, secondProcess["cwd"])
+	require.FileExists(t, filepath.Join(secondWorkspace, "fixture.txt"))
+	require.NoFileExists(t, filepath.Join(secondWorkspace, "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(str(second["home"]), "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(str(second["config"]), "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(firstWorkspace, "run-second.txt"))
+	require.Equal(t, firstHashes, workspaceHashes(t, firstWorkspace))
+
+	data, err := sessionTool(t, env, "finish", "--session-dir", session).CombinedOutput()
+	require.NoError(t, err, "%s", data)
+}
+
+func resolvedSymlink(t *testing.T, path string) string {
+	t.Helper()
+	resolved, err := filepath.EvalSymlinks(path)
+	require.NoError(t, err)
+	return resolved
 }
 
 func TestPreparedExecutionTamperRejectedByFinish(t *testing.T) {

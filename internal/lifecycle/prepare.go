@@ -98,6 +98,10 @@ func baseEnvironment(provider, root string) map[string]string {
 
 func routeEnvironment(session *Session, action string, withAuthentication bool) map[string]string {
 	root := filepath.Join(session.ResourceRoot, "routes", action)
+	return environmentAt(session, action, root, withAuthentication)
+}
+
+func environmentAt(session *Session, action, root string, withAuthentication bool) map[string]string {
 	env := baseEnvironment(session.AgentType, root)
 	if withAuthentication {
 		for key, value := range session.Env {
@@ -107,6 +111,55 @@ func routeEnvironment(session *Session, action string, withAuthentication bool) 
 		}
 	}
 	return env
+}
+
+func executionEnvironment(session *Session, action, root string) map[string]string {
+	return environmentAt(session, action, root, action == "record")
+}
+
+var routeEnvironmentEntries = []string{"workspace", "home", "config", "tmp", "history-seed"}
+
+func bindRouteSlots(routeRoot, targetRoot string) error {
+	info, err := os.Lstat(targetRoot)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return fmt.Errorf("route target is not an unlinked directory: %s", targetRoot)
+	}
+	if err := os.MkdirAll(routeRoot, 0o700); err != nil {
+		return err
+	}
+	for _, name := range routeEnvironmentEntries {
+		target := filepath.Join(targetRoot, name)
+		info, err := os.Lstat(target)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("route entry is not an unlinked directory: %s", target)
+		}
+		id, err := randomID()
+		if err != nil {
+			return err
+		}
+		temp := filepath.Join(routeRoot, "."+name+"-"+id)
+		if err := os.Symlink(target, temp); err != nil {
+			return err
+		}
+		if err := os.Rename(temp, filepath.Join(routeRoot, name)); err != nil {
+			_ = os.Remove(temp)
+			return err
+		}
+	}
+	return nil
+}
+
+func restoreRouteSlots(session *Session, action string) error {
+	return bindRouteSlots(
+		filepath.Join(session.ResourceRoot, "routes", action),
+		filepath.Join(session.ResourceRoot, "templates", action),
+	)
 }
 
 func cleanMockConfig(root string, plan tool.Object, provider string) error {
@@ -130,29 +183,6 @@ func cleanMockConfig(root string, plan tool.Object, provider string) error {
 		line = "model = " + strconv.Quote(model) + "\n"
 	}
 	return os.WriteFile(filepath.Join(config, "config.toml"), []byte(line), 0o600)
-}
-
-func resetRoute(session *Session, action string, plan tool.Object) (string, error) {
-	route, ok := session.Routes[action]
-	if !ok || !route.Enabled {
-		return "", fmt.Errorf("%s is not available for this session", action)
-	}
-	root := filepath.Join(session.ResourceRoot, "routes", action)
-	if err := os.RemoveAll(root); err != nil {
-		return "", err
-	}
-	if err := os.MkdirAll(root, 0o700); err != nil {
-		return "", err
-	}
-	if err := copyTree(filepath.Join(session.ResourceRoot, "baseline"), root); err != nil {
-		return "", err
-	}
-	if action == "mock" || action == "verify" {
-		if err := cleanMockConfig(root, plan, session.AgentType); err != nil {
-			return "", err
-		}
-	}
-	return root, nil
 }
 
 func writeConnectionLauncher(root, id, self, sessionDir string) (string, error) {
@@ -358,13 +388,17 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if err := os.MkdirAll(routeRoot, 0o700); err != nil {
 			return nil, err
 		}
-		if err := copyTree(baseline, routeRoot); err != nil {
+		templateRoot := filepath.Join(root, "templates", action)
+		if err := copyTree(baseline, templateRoot); err != nil {
 			return nil, err
 		}
 		if action == "mock" || action == "verify" {
-			if err := cleanMockConfig(routeRoot, spec.plan, agentType); err != nil {
+			if err := cleanMockConfig(templateRoot, spec.plan, agentType); err != nil {
 				return nil, err
 			}
+		}
+		if err := bindRouteSlots(routeRoot, templateRoot); err != nil {
+			return nil, err
 		}
 		route := Route{
 			Enabled:     true,

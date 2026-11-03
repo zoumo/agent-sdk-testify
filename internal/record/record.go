@@ -101,7 +101,8 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 		Case:           run.Session.Source.ID,
 		Provider:       run.Session.AgentType,
 		Driver:         driver,
-		Output:         run.RouteRoot,
+		Output:         run.OverlayRoot,
+		Workspace:      run.Execution.Workspace,
 		OutputPrepared: true,
 		Plan:           run.Plan,
 		HistorySeed:    run.Session.HistorySeed,
@@ -113,7 +114,7 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 			err = errors.Join(err, fmt.Errorf("encode record summary: %w", encodeErr))
 		}
 	}
-	if snapshotErr := snapshotOfficial(run.RouteRoot, run.ArtifactRoot); snapshotErr != nil {
+	if snapshotErr := snapshotOfficial(run.OverlayRoot, run.ArtifactRoot); snapshotErr != nil {
 		return errors.Join(err, snapshotErr)
 	}
 	if err != nil {
@@ -156,7 +157,7 @@ func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command strin
 	if digest := tool.DigestBytes(planBytes); digest != run.Session.Source.SHA256 {
 		return errors.Join(captureErr, errors.New("consumer plan changed after prepare"))
 	}
-	if err := snapshotHistory(run.RouteRoot, run.ArtifactRoot); err != nil {
+	if err := snapshotHistory(run.OverlayRoot, run.ArtifactRoot); err != nil {
 		return errors.Join(captureErr, err)
 	}
 	manifest, manifestErr := writeConsumerManifest(run.ArtifactRoot, run.Execution.Env, captureErr)
