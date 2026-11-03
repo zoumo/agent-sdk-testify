@@ -5,27 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zoumo/agent-sdk-testify/internal/official"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-type (
-	request = official.Request
-	command = tool.Command
-	object  = tool.Object
-	result  = tool.Result
-)
-
-var (
-	obj         = tool.Obj
-	str         = tool.Str
-	array       = tool.Array
-	readJSON    = tool.ReadJSON
-	writeJSON   = tool.WriteJSON
-	digestBytes = tool.DigestBytes
-)
-
-func writePeerLauncher(root, phase string, peer command) (string, error) {
+func writePeerLauncher(root, phase string, peer tool.Command) (string, error) {
 	quote := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
 	words := []string{quote(peer.Command)}
 	for _, arg := range peer.Args {

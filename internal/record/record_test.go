@@ -16,6 +16,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/official"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 const recordExecutionTimeout = "30s"
@@ -31,15 +34,15 @@ func recordDriverSubstitute(args []string) int {
 	if status == "crash" {
 		return 9
 	}
-	var req request
-	if len(args) != 3 || args[1] != "--request" || readJSON(args[2], &req) != nil {
+	var req official.Request
+	if len(args) != 3 || args[1] != "--request" || tool.ReadJSON(args[2], &req) != nil {
 		return 2
 	}
-	var plan object
-	if readJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
+	var plan tool.Object
+	if tool.ReadJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
 		return 2
 	}
-	provider := str(plan["provider"])
+	provider := tool.Str(plan["provider"])
 	configKey := "CODEX_HOME"
 	if provider == "claude" {
 		configKey = "CLAUDE_CONFIG_DIR"
@@ -78,17 +81,17 @@ func recordDriverSubstitute(args []string) int {
 	if status == "false-pass" {
 		status = "passed"
 	}
-	observed := object{
+	observed := tool.Object{
 		"cwd":       cwd,
 		"workspace": req.Workspace,
 		"home":      os.Getenv("HOME"),
 		"config":    os.Getenv(configKey),
 		"tmp":       os.Getenv("TMPDIR"),
 	}
-	if writeJSON(filepath.Join(req.Output, "report.json"), object{"status": status, "branchStatus": status, "captureStatus": "synthetic-driver-source", "officialSDK": object{"version": "synthetic-only"}, "observed": observed}) != nil {
+	if tool.WriteJSON(filepath.Join(req.Output, "report.json"), tool.Object{"status": status, "branchStatus": status, "captureStatus": "synthetic-driver-source", "officialSDK": tool.Object{"version": "synthetic-only"}, "observed": observed}) != nil {
 		return 6
 	}
-	if writeJSON(filepath.Join(req.Output, "result.json"), result{Status: status, Message: "synthetic-only"}) != nil {
+	if tool.WriteJSON(filepath.Join(req.Output, "result.json"), tool.Result{Status: status, Message: "synthetic-only"}) != nil {
 		return 6
 	}
 	return 0
@@ -138,7 +141,7 @@ func recordProcess(t *testing.T, provider, status, native string) *preparedRecor
 	bin := t.TempDir()
 	self, err := os.Executable()
 	require.NoError(t, err)
-	_, err = writePeerLauncher(bin, "official", command{Command: self, Args: []string{"record-driver-substitute", status}})
+	_, err = writePeerLauncher(bin, "official", tool.Command{Command: self, Args: []string{"record-driver-substitute", status}})
 	require.NoError(t, err)
 	driverPath := filepath.Join(bin, "agent-sdk-testify-"+provider)
 	require.NoError(t, os.Rename(filepath.Join(bin, "peer-official"), driverPath))
@@ -147,7 +150,7 @@ func recordProcess(t *testing.T, provider, status, native string) *preparedRecor
 		require.NoError(t, err)
 		require.NoError(t, os.WriteFile(path, append(script[:len(script)-1], []byte(" \"$@\"\n")...), 0o700))
 	}
-	cli, err := writePeerLauncher(bin, "native", command{Command: self, Args: []string{"record-agent-substitute", native}})
+	cli, err := writePeerLauncher(bin, "native", tool.Command{Command: self, Args: []string{"record-agent-substitute", native}})
 	require.NoError(t, err)
 	script, err := os.ReadFile(cli)
 	require.NoError(t, err)
@@ -168,23 +171,23 @@ func recordProcess(t *testing.T, provider, status, native string) *preparedRecor
 	require.NoError(t, err, "%s", data)
 	fixture := &preparedRecord{session: session, cli: cli, bin: bin, env: env, provider: provider}
 	t.Cleanup(func() {
-		var descriptor object
-		if readJSON(filepath.Join(session, "session.json"), &descriptor) != nil {
+		var descriptor tool.Object
+		if tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor) != nil {
 			return
 		}
-		_ = os.RemoveAll(str(descriptor["resourceRoot"]))
+		_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
 	})
 	return fixture
 }
 
 func recordVerifyDriverSubstitute(args []string) int {
 	status := args[0]
-	var req request
-	if len(args) != 3 || args[1] != "--request" || readJSON(args[2], &req) != nil {
+	var req official.Request
+	if len(args) != 3 || args[1] != "--request" || tool.ReadJSON(args[2], &req) != nil {
 		return 2
 	}
-	var plan object
-	if readJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
+	var plan tool.Object
+	if tool.ReadJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
 		return 2
 	}
 	cmd := exec.CommandContext(context.Background(), req.Peer.Command.Command, req.Peer.Command.Args...)
@@ -206,17 +209,17 @@ func recordVerifyDriverSubstitute(args []string) int {
 	if cmd.Wait() != nil {
 		status = "failed"
 	}
-	if writeJSON(filepath.Join(req.Output, "replay-report.json"), object{
+	if tool.WriteJSON(filepath.Join(req.Output, "replay-report.json"), tool.Object{
 		"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
 		"status": status, "branchStatus": status, "captureStatus": "complete",
-		"officialSDK": object{
-			"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[str(plan["provider"])],
+		"officialSDK": tool.Object{
+			"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(plan["provider"])],
 			"version": "synthetic-test-only",
 		},
 	}) != nil {
 		return 4
 	}
-	if writeJSON(filepath.Join(req.Output, "result.json"), object{"status": status}) != nil {
+	if tool.WriteJSON(filepath.Join(req.Output, "result.json"), tool.Object{"status": status}) != nil {
 		return 4
 	}
 	return 0
@@ -252,13 +255,13 @@ func (p *preparedRecord) command(t *testing.T, timeout string) *exec.Cmd {
 
 func (p *preparedRecord) recordRoot(t *testing.T) string {
 	t.Helper()
-	var index object
-	require.NoError(t, readJSON(filepath.Join(p.session, "executions", "index.json"), &index))
-	rows := array(index["executions"])
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(p.session, "executions", "index.json"), &index))
+	rows := tool.Array(index["executions"])
 	require.NotEmpty(t, rows)
-	last := obj(rows[len(rows)-1])
+	last := tool.Obj(rows[len(rows)-1])
 	require.Equal(t, "record", last["command"])
-	return filepath.Join(p.session, "executions", str(last["id"]), "record")
+	return filepath.Join(p.session, "executions", tool.Str(last["id"]), "record")
 }
 
 func TestRecordUsesInstalledOfficialDriverOutsideCheckout(t *testing.T) {
@@ -272,21 +275,21 @@ func checkRecordCapture(t *testing.T, provider string) {
 	cmd := fixture.command(t, recordExecutionTimeout)
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	var summary object
+	var summary tool.Object
 	require.NoError(t, json.Unmarshal(data, &summary))
-	require.Equal(t, "passed", obj(summary["result"])["status"])
+	require.Equal(t, "passed", tool.Obj(summary["result"])["status"])
 	output := fixture.recordRoot(t)
-	var plan, manifest, transport, report object
-	require.NoError(t, readJSON(filepath.Join(output, "plan.json"), &plan))
+	var plan, manifest, transport, report tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "plan.json"), &plan))
 	require.Equal(t, "SDK-CASE-001", plan["caseId"])
 	require.Equal(t, "continuation", plan["driverProfile"])
 	require.Equal(t, "personal-skills-v1", plan["recordingIsolation"])
-	require.NoError(t, readJSON(filepath.Join(output, "manifest.json"), &manifest))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "manifest.json"), &manifest))
 	require.Equal(t, "passed", manifest["status"])
 	require.Equal(t, "complete", manifest["captureStatus"])
-	require.NoError(t, readJSON(filepath.Join(output, "raw", "transport.json"), &transport))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "raw", "transport.json"), &transport))
 	require.Equal(t, true, transport["cleanupComplete"])
-	require.NoError(t, readJSON(filepath.Join(output, "report.json"), &report))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "report.json"), &report))
 	require.Equal(t, "synthetic-driver-source", report["captureStatus"])
 	raw, err := os.ReadFile(filepath.Join(output, "raw", "raw.jsonl"))
 	require.NoError(t, err)
@@ -302,7 +305,7 @@ func checkRecordCapture(t *testing.T, provider string) {
 	finish.Env = fixture.env
 	data, err = finish.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	var reportJSON object
+	var reportJSON tool.Object
 	require.NoError(t, json.Unmarshal(data, &reportJSON))
 	require.Equal(t, "passed", reportJSON["status"])
 	require.Equal(t, true, reportJSON["cleanupComplete"])
@@ -315,19 +318,19 @@ func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
 	data, err := fixture.command(t, recordExecutionTimeout).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
-	var index object
-	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", "index.json"), &index))
-	rows := array(index["executions"])
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "executions", "index.json"), &index))
+	rows := tool.Array(index["executions"])
 	require.NotEmpty(t, rows)
-	row := obj(rows[len(rows)-1])
+	row := tool.Obj(rows[len(rows)-1])
 	require.Equal(t, "record", row["command"])
-	id := str(row["id"])
-	var execution, report object
-	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", id, "execution.json"), &execution))
-	require.NoError(t, readJSON(filepath.Join(str(execution["artifactRoot"]), "report.json"), &report))
+	id := tool.Str(row["id"])
+	var execution, report tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "executions", id, "execution.json"), &execution))
+	require.NoError(t, tool.ReadJSON(filepath.Join(tool.Str(execution["artifactRoot"]), "report.json"), &report))
 
-	observed := obj(report["observed"])
-	workspace := str(execution["workspace"])
+	observed := tool.Obj(report["observed"])
+	workspace := tool.Str(execution["workspace"])
 	require.Equal(t, observed["cwd"], workspace)
 	require.Equal(t, observed["workspace"], workspace)
 	require.True(t, strings.HasPrefix(workspace, filepath.Join(resolvedSession, "executions", id)+string(filepath.Separator)))
@@ -335,9 +338,9 @@ func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
 	require.Equal(t, observed["home"], execution["home"])
 	require.Equal(t, observed["config"], execution["config"])
 	require.Equal(t, observed["tmp"], execution["tmp"])
-	require.Equal(t, observed["home"], obj(execution["env"])["HOME"])
-	require.Equal(t, observed["config"], obj(execution["env"])["CODEX_HOME"])
-	require.Equal(t, observed["tmp"], obj(execution["env"])["TMPDIR"])
+	require.Equal(t, observed["home"], tool.Obj(execution["env"])["HOME"])
+	require.Equal(t, observed["config"], tool.Obj(execution["env"])["CODEX_HOME"])
+	require.Equal(t, observed["tmp"], tool.Obj(execution["env"])["TMPDIR"])
 
 	data, err = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", fixture.session).CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -349,9 +352,9 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 
 	const history = "config/sessions/synthetic-history.jsonl"
-	var manifest object
-	require.NoError(t, readJSON(filepath.Join(fixture.recordRoot(t), "manifest.json"), &manifest))
-	require.Equal(t, digestBytes([]byte("{\"type\":\"official-history\"}\n")), obj(manifest["savedFiles"])[history])
+	var manifest tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.recordRoot(t), "manifest.json"), &manifest))
+	require.Equal(t, tool.DigestBytes([]byte("{\"type\":\"official-history\"}\n")), tool.Obj(manifest["savedFiles"])[history])
 
 	fixture.installVerifyDriver(t)
 	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--session-dir", fixture.session)
@@ -368,9 +371,9 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	require.JSONEq(t, `{"id":1,"result":{"unknown":1.2300}}`, string(data))
 	mockExecution := latestExecution(t, fixture.session, "mock")
 
-	for _, execution := range []object{verifyExecution, mockExecution} {
+	for _, execution := range []tool.Object{verifyExecution, mockExecution} {
 		assert.Equal(t, "official", execution["provenance"])
-		path := filepath.Join(str(execution["config"]), "sessions", "synthetic-history.jsonl")
+		path := filepath.Join(tool.Str(execution["config"]), "sessions", "synthetic-history.jsonl")
 		content, err := os.ReadFile(path)
 		require.NoError(t, err)
 		assert.True(t, bytes.Equal([]byte("{\"type\":\"official-history\"}\n"), content), "unexpected history bytes: %q", content)
@@ -380,7 +383,7 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	finish.Env = fixture.env
 	data, err = finish.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	var report object
+	var report tool.Object
 	require.NoError(t, json.Unmarshal(data, &report))
 	assert.Equal(t, "passed", report["status"])
 }
@@ -390,12 +393,12 @@ func TestRecordThenExplicitVerifyUsesPublishedCapture(t *testing.T) {
 	data, err := fixture.command(t, recordExecutionTimeout).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
-	var before object
-	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", "index.json"), &before))
-	var capture object
-	for _, value := range array(before["artifacts"]) {
-		artifact := obj(value)
-		if str(artifact["id"]) == str(before["latestCapture"]) {
+	var before tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "executions", "index.json"), &before))
+	var capture tool.Object
+	for _, value := range tool.Array(before["artifacts"]) {
+		artifact := tool.Obj(value)
+		if tool.Str(artifact["id"]) == tool.Str(before["latestCapture"]) {
 			capture = artifact
 		}
 	}
@@ -403,39 +406,39 @@ func TestRecordThenExplicitVerifyUsesPublishedCapture(t *testing.T) {
 
 	fixture.installVerifyDriver(t)
 	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"),
-		"verify", "--session-dir", fixture.session, "--recording", str(capture["path"]))
+		"verify", "--session-dir", fixture.session, "--recording", tool.Str(capture["path"]))
 	verify.Env = fixture.env
 	data, err = verify.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
 	execution := latestExecution(t, fixture.session, "verify")
-	artifact := obj(execution["artifact"])
-	require.Equal(t, str(capture["path"]), artifact["path"])
+	artifact := tool.Obj(execution["artifact"])
+	require.Equal(t, tool.Str(capture["path"]), artifact["path"])
 	require.Equal(t, "official", execution["provenance"])
-	connection := obj(array(execution["connections"])[0])
-	require.Equal(t, str(artifact["path"]), connection["material"])
-	require.Equal(t, str(artifact["planSHA256"]), connection["planSHA256"])
-	require.Equal(t, str(artifact["manifestSHA256"]), connection["manifestSHA256"])
-	require.Equal(t, str(artifact["recordingSHA256"]), connection["recordingSHA256"])
+	connection := tool.Obj(tool.Array(execution["connections"])[0])
+	require.Equal(t, tool.Str(artifact["path"]), connection["material"])
+	require.Equal(t, tool.Str(artifact["planSHA256"]), connection["planSHA256"])
+	require.Equal(t, tool.Str(artifact["manifestSHA256"]), connection["manifestSHA256"])
+	require.Equal(t, tool.Str(artifact["recordingSHA256"]), connection["recordingSHA256"])
 
-	var after object
-	require.NoError(t, readJSON(filepath.Join(fixture.session, "executions", "index.json"), &after))
-	require.Equal(t, str(capture["id"]), str(after["latestCapture"]))
-	require.Len(t, array(after["artifacts"]), len(array(before["artifacts"])))
+	var after tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "executions", "index.json"), &after))
+	require.Equal(t, tool.Str(capture["id"]), tool.Str(after["latestCapture"]))
+	require.Len(t, tool.Array(after["artifacts"]), len(tool.Array(before["artifacts"])))
 }
 
-func latestExecution(t *testing.T, session, command string) object {
+func latestExecution(t *testing.T, session, command string) tool.Object {
 	t.Helper()
-	var index object
-	require.NoError(t, readJSON(filepath.Join(session, "executions", "index.json"), &index))
-	rows := array(index["executions"])
+	var index tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	rows := tool.Array(index["executions"])
 	for i := range slices.Backward(rows) {
-		row := obj(rows[i])
-		if str(row["command"]) != command {
+		row := tool.Obj(rows[i])
+		if tool.Str(row["command"]) != command {
 			continue
 		}
-		var execution object
-		require.NoError(t, readJSON(filepath.Join(session, "executions", str(row["id"]), "execution.json"), &execution))
+		var execution tool.Object
+		require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", tool.Str(row["id"]), "execution.json"), &execution))
 		return execution
 	}
 	t.Fatalf("session has no %s execution", command)
@@ -456,15 +459,15 @@ func TestRecordPreservesFailedAttempts(t *testing.T) {
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
 			output := fixture.recordRoot(t)
-			var summary object
-			require.NoError(t, readJSON(filepath.Join(output, "summary.json"), &summary))
-			require.Equal(t, test.status, obj(summary["result"])["status"])
+			var summary tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(output, "summary.json"), &summary))
+			require.Equal(t, test.status, tool.Obj(summary["result"])["status"])
 			require.FileExists(t, filepath.Join(output, "plan.json"))
 			require.FileExists(t, filepath.Join(output, "stderr.log"))
 			require.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
 			if test.driver != "crash" {
-				var manifest object
-				require.NoError(t, readJSON(filepath.Join(output, "manifest.json"), &manifest))
+				var manifest tool.Object
+				require.NoError(t, tool.ReadJSON(filepath.Join(output, "manifest.json"), &manifest))
 				require.Equal(t, test.status, manifest["status"])
 				require.FileExists(t, filepath.Join(output, "raw", "raw.jsonl"))
 			}
@@ -481,8 +484,8 @@ func TestRecordPreparationFailureKeepsDiagnostic(t *testing.T) {
 	cmd.Env = []string{"PATH=/missing", "HOME=" + t.TempDir(), "CLAUDE_CONFIG_DIR=" + config}
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
-	var diagnostic object
-	require.NoError(t, readJSON(filepath.Join(session, "prepare.json"), &diagnostic))
+	var diagnostic tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "prepare.json"), &diagnostic))
 	require.NotEmpty(t, diagnostic["error"])
 	require.NoFileExists(t, filepath.Join(session, "session.json"))
 }
@@ -546,9 +549,9 @@ func TestRecordTimeoutPreservesDiagnostic(t *testing.T) {
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
 	output := fixture.recordRoot(t)
-	var summary object
-	require.NoError(t, readJSON(filepath.Join(output, "summary.json"), &summary))
-	require.Contains(t, str(summary["error"]), "context deadline exceeded")
+	var summary tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "summary.json"), &summary))
+	require.Contains(t, tool.Str(summary["error"]), "context deadline exceeded")
 	require.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
 }
 
