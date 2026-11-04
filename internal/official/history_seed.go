@@ -16,7 +16,7 @@ const isolatedRecording = "personal-skills-v1"
 
 // A completed capture supplies native saved records. Preparing a later case
 // does not execute an SDK, start a session, or require the replay stage first.
-func prepareHistorySeed(source, root string, plan tool.Object) error {
+func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	var err error
 	source, err = filepath.Abs(source)
 	if err != nil {

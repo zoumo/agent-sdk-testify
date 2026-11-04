@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from .adapters.common import proxy_command, serial
-from .environment import read_regular, recording_temp_root, verify_recording
+from .environment import capture_root, read_regular, recording_temp_root, verify_recording
 from .scenarios import Untriggered
 
 
@@ -115,7 +115,7 @@ async def observe_claude(plan, report):
 
 
 def require_observation_wire(plan, report):
-    frames = [json.loads(line) for line in read_regular(Path(plan['root']) / 'raw/raw.jsonl', None).splitlines()]
+    frames = [json.loads(line) for line in read_regular(capture_root(plan) / 'raw/raw.jsonl', None).splitlines()]
     requests = [frame['wire'] for frame in frames if frame['direction'] == 'c2s']
     if (len(requests) != 1 or requests[0].get('type') != 'control_request'
             or requests[0].get('request', {}).get('subtype') != 'initialize'):

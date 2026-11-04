@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/coder/websocket"
 
@@ -21,9 +22,10 @@ import (
 )
 
 type ConnectOptions struct {
-	URL           string
-	TokenFile     string
-	MaxFrameBytes int64
+	URL            string
+	TokenFile      string
+	MaxFrameBytes  int64
+	ConnectTimeout time.Duration
 }
 
 func (o ConnectOptions) credentials() (string, error) {
@@ -67,7 +69,25 @@ func connect(ctx context.Context, o ConnectOptions, streams IO, report *recordin
 	transport := &http.Transport{Proxy: nil}
 	defer transport.CloseIdleConnections()
 	client := &http.Client{Transport: transport, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-	conn, response, err := websocket.Dial(ctx, o.URL, &websocket.DialOptions{HTTPClient: client, HTTPHeader: http.Header{"Authorization": {"Bearer " + token}}, CompressionMode: websocket.CompressionDisabled})
+	dialContext := ctx
+	if o.ConnectTimeout > 0 {
+		var cancel context.CancelFunc
+		dialContext, cancel = context.WithTimeout(ctx, o.ConnectTimeout)
+		defer cancel()
+	}
+	var conn *websocket.Conn
+	var response *http.Response
+	for {
+		conn, response, err = websocket.Dial(dialContext, o.URL, &websocket.DialOptions{HTTPClient: client, HTTPHeader: http.Header{"Authorization": {"Bearer " + token}}, CompressionMode: websocket.CompressionDisabled})
+		if err == nil || response != nil || o.ConnectTimeout <= 0 {
+			break
+		}
+		select {
+		case <-dialContext.Done():
+			return errors.New("WebSocket connection failed")
+		case <-time.After(25 * time.Millisecond):
+		}
+	}
 	if response != nil && response.Body != nil {
 		_ = response.Body.Close()
 	}

@@ -26,7 +26,7 @@ def limitations(report):
 def codex_child_environment(plan, strict, background):
     marker = Path(plan['root']) / 'tmp' / 'child-root-completed'
     if strict and not plan.get('_replay'):
-        config = Path(plan['root']) / 'config'
+        config = Path(plan.get('config', Path(plan['root']) / 'config'))
         (config / 'agents').mkdir(parents=True, exist_ok=True)
         (config / 'agents' / 'fixture_reader.toml').write_text(role_file(strict=True, background=background))
         if background:

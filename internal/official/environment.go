@@ -16,7 +16,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func prepareNative(ctx context.Context, o *Options, plan tool.Object, root string) error {
+func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root string) error {
 	if o.CLI == "" {
 		o.CLI = tool.Str(plan["cli"])
 	}
@@ -152,6 +152,7 @@ func prepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 			return err
 		}
 	}
+	plan["recordingIsolation"] = isolatedRecording
 	// No arbitrary source HOME, dependency installation or SDK version probes.
 	return tool.WriteJSON(filepath.Join(root, "native.env.private.json"), env)
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
@@ -18,6 +19,8 @@ const conformanceRequest = `{"id":1,"method":"conformance","unknown":90071992547
 func TestMain(m *testing.M) {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
+		case "conformance-official-driver":
+			os.Exit(controlledOfficialDriver(os.Args[2:]))
 		case "conformance-agent":
 			os.Exit(conformanceAgent())
 		case "conformance-driver":
@@ -38,6 +41,18 @@ func conformanceAgent() int {
 	if len(os.Args) > 2 && (os.Args[2] == "--version" || os.Args[2] == "-v") {
 		fmt.Println("synthetic-conformance-native")
 		return 0
+	}
+	endpoint, tokenFile := "", ""
+	for i, arg := range os.Args[:len(os.Args)-1] {
+		if arg == "--listen" && strings.HasPrefix(os.Args[i+1], "ws://") {
+			endpoint = os.Args[i+1]
+		}
+		if arg == "--ws-token-file" {
+			tokenFile = os.Args[i+1]
+		}
+	}
+	if endpoint != "" {
+		return controlledNativeService(endpoint, tokenFile)
 	}
 	if observed := os.Getenv("OPENAI_API_KEY"); observed != "" {
 		value := "absent\n"

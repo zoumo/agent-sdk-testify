@@ -45,7 +45,7 @@ func TestHistorySeedUsesCaptureWithoutReplay(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), tool.Object{"savedFiles": saved, "planSHA256": planDigest, "provenance": "capture", "status": "passed", "captureStatus": "complete"}))
 			target := tool.Object{"provider": provider}
-			require.NoError(t, prepareHistorySeed(source, root, target))
+			require.NoError(t, PrepareHistorySeed(source, root, target))
 			seed := tool.Obj(target["historySeed"])
 			require.Equal(t, "parent", seed["sessionId"])
 			require.Equal(t, []string{"child"}, seed["agentIds"])

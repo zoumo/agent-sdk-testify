@@ -34,6 +34,7 @@ type FinishReport struct {
 	Status           string            `json:"status"`
 	CleanupComplete  bool              `json:"cleanupComplete"`
 	Executions       []FinishExecution `json:"executions"`
+	OfficialRecords  []tool.Object     `json:"officialRecords,omitempty"`
 	Error            string            `json:"error,omitempty"`
 	ValidationStatus string            `json:"validationStatus"`
 	ValidationError  string            `json:"validationError,omitempty"`
@@ -63,6 +64,9 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 		return report, err
 	}
 	defer func() { runErr = errors.Join(runErr, lock.Close()) }()
+	if err := checkOfficialIdle(sessionDir); err != nil {
+		return report, err
+	}
 
 	// Closure precedes validation and cleanup. A failed cleanup never reopens actions.
 	if err := ensureClosed(sessionDir, session, report); err != nil {
@@ -88,6 +92,25 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 	}
 	orphans, inventoryErr := validateExecutionInventory(sessionDir, index)
 	validationErr := inventoryErr
+	var officialIDs []string
+	if err := tool.ReadJSON(filepath.Join(sessionDir, "official-records", "index.json"), &officialIDs); err != nil && !os.IsNotExist(err) {
+		validationErr = errors.Join(validationErr, err)
+	}
+	for _, id := range officialIDs {
+		if err := validateExecutionID(id); err != nil {
+			validationErr = errors.Join(validationErr, err)
+			continue
+		}
+		var result tool.Object
+		err := tool.ReadJSON(filepath.Join(sessionDir, "official-records", id, "result.json"), &result)
+		if err == nil && (result["status"] != "passed" || result["cleanupComplete"] != true || result["sessionId"] != session.SessionID) {
+			err = fmt.Errorf("official record %s failed or incomplete", id)
+		}
+		if err != nil {
+			validationErr = errors.Join(validationErr, err)
+		}
+		report.OfficialRecords = append(report.OfficialRecords, result)
+	}
 	for _, id := range orphans {
 		result := FinishExecution{
 			ID:      id,
@@ -528,6 +551,9 @@ func withinPath(root, path string) bool {
 func expectedFinishedProvenance(session *Session, action string, material *materialInspection) (string, error) {
 	switch action {
 	case "record":
+		if material != nil && material.Provenance == "official" {
+			return "official", nil
+		}
 		return executionProvenance(session, action, nil)
 	case "mock", "verify":
 		return material.Provenance, nil

@@ -162,6 +162,11 @@ func validateArtifactProvenance(session *Session, artifact Artifact, plan, manif
 	switch claimed {
 	case "official":
 		if artifact.Kind == "capture" {
+			if artifact.OfficialOrigin != nil {
+				if err := ValidateOfficialCapture(artifact); err != nil {
+					return err
+				}
+			}
 			if artifact.Action != "record" || session.Source.Provenance == "consumer" {
 				return errors.New("official capture provenance conflicts with its action or source")
 			}

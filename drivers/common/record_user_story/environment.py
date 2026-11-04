@@ -46,6 +46,27 @@ def read_regular(path, limit=None):
         os.close(fd)
 
 
+def capture_root(plan):
+    """Resolve this SDK launch's ordinary result; never select a recent run."""
+    results = plan.get('_agentResults')
+    if not results:
+        return Path(plan['root'])
+    notices = [json.loads(line) for line in read_regular(Path(results['main']), 1024 * 1024).splitlines()]
+    if len(notices) != 2:
+        raise ValueError('record command did not settle')
+    started, finished = notices
+    if (started.get('status') != 'running' or finished.get('status') != 'passed'
+            or started.get('connectionId') != 'main'
+            or any(started.get(key) != finished.get(key)
+                   for key in ('executionId', 'sessionId', 'connectionId', 'execution', 'processId'))):
+        raise ValueError('record command results disagree')
+    execution = json.loads(read_regular(Path(finished['execution']), 1024 * 1024))
+    if (execution.get('executionId') != finished['executionId']
+            or execution.get('sessionId') != finished['sessionId'] or execution.get('command') != 'record'):
+        raise ValueError('record execution differs from result')
+    return Path(execution['artifactRoot'])
+
+
 def verify_recording(root):
     item = json.loads((root / 'manifest.json').read_text())
     if item.get('remotePhaseFiles'):

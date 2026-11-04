@@ -326,6 +326,10 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 }
 
 func createAction(sessionDir, action string, commandArgs []string, timeout time.Duration, material *Artifact, admission *Admission) (*ActionRun, error) {
+	return createActionLocked(sessionDir, action, commandArgs, timeout, material, admission, nil, nil)
+}
+
+func createActionLocked(sessionDir, action string, commandArgs []string, timeout time.Duration, material *Artifact, admission *Admission, held *Lock, origin *OfficialOrigin) (*ActionRun, error) {
 	sessionDir, err := canonicalSessionDir(sessionDir)
 	if err != nil {
 		return nil, err
@@ -337,6 +341,11 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	if err := checkOpen(sessionDir); err != nil {
 		return nil, err
 	}
+	if action == "verify" || (action == "record" && origin == nil) {
+		if err := checkOfficialIdle(sessionDir); err != nil {
+			return nil, err
+		}
+	}
 	route, ok := session.Routes[action]
 	if !ok || !route.Enabled {
 		if action == "record" {
@@ -347,9 +356,12 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	if action != "record" && material == nil {
 		return nil, fmt.Errorf("%s requires an input material", action)
 	}
-	lock, err := actionLock(sessionDir, true)
-	if err != nil {
-		return nil, err
+	lock := held
+	if lock == nil {
+		lock, err = actionLock(sessionDir, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 	success := false
 	defer func() {
@@ -365,6 +377,11 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	}()
 	if err := checkOpen(sessionDir); err != nil {
 		return nil, err
+	}
+	if action == "verify" || (action == "record" && origin == nil) {
+		if err := checkOfficialIdle(sessionDir); err != nil {
+			return nil, err
+		}
 	}
 	index, err := readIndex(IndexPath(sessionDir))
 	if err != nil {
@@ -444,6 +461,11 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	execution, err := newExecution(session, action, id, overlayRoot, artifactRoot, commandArgs, nil, timeout, ids, material, admission, plan, historyFiles)
 	if err != nil {
 		return nil, err
+	}
+	if origin != nil {
+		execution.Provenance = "official"
+		execution.Artifact.Provenance = "official"
+		execution.Artifact.OfficialOrigin = origin
 	}
 	if err := execution.Validate(*session); err != nil {
 		return nil, err
@@ -733,6 +755,9 @@ func claimMockConnection(execution Execution, id string) error {
 		return fmt.Errorf("undeclared mock connection %s", id)
 	}
 	path := filepath.Join(filepath.Dir(connection.Receipt), "."+id+".started")
+	if execution.Command == "record" {
+		path = filepath.Join(filepath.Dir(execution.ArtifactRoot), "receipts", "."+id+".started")
+	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}

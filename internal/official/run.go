@@ -122,7 +122,7 @@ func Run(ctx context.Context, o Options) (summary tool.Object, runFailure error)
 		}
 	}
 	if o.Mode == "record" && plan["driverProfile"] == "existing-children" && o.HistorySeed != "" {
-		if err := prepareHistorySeed(o.HistorySeed, root, plan); err != nil {
+		if err := PrepareHistorySeed(o.HistorySeed, root, plan); err != nil {
 			return nil, err
 		}
 	}
@@ -139,7 +139,7 @@ func Run(ctx context.Context, o Options) (summary tool.Object, runFailure error)
 		}
 	} else {
 		plan["project"] = workspace
-		if err := prepareNative(ctx, &o, plan, root); err != nil {
+		if err := PrepareNative(ctx, &o, plan, root); err != nil {
 			return nil, err
 		}
 		plan["recordingIsolation"] = isolatedRecording
@@ -270,6 +270,13 @@ func Run(ctx context.Context, o Options) (summary tool.Object, runFailure error)
 }
 
 func driverEnvironment(o Options, plan tool.Object) ([]string, error) {
+	if len(o.RuntimeEnv) > 0 {
+		var values []string
+		for k, v := range o.RuntimeEnv {
+			values = append(values, k+"="+v)
+		}
+		return values, nil
+	}
 	env := map[string]string{"PATH": os.Getenv("PATH"), "HOME": tool.Str(plan["home"]), "TMPDIR": filepath.Join(tool.Str(plan["root"]), "tmp"), "LANG": "C.UTF-8"}
 	if tool.Str(plan["provider"]) == "codex" {
 		env["CODEX_HOME"] = tool.Str(plan["config"])

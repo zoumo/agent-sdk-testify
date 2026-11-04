@@ -69,7 +69,7 @@ func TestCodexFileToolCatalogPreservesSelectedModel(t *testing.T) {
 			if explicit {
 				plan["model"] = "other/selected-model"
 			}
-			require.NoError(t, prepareNative(context.Background(), &Options{CLI: cli, Config: source}, plan, root))
+			require.NoError(t, PrepareNative(context.Background(), &Options{CLI: cli, Config: source}, plan, root))
 			catalogPath := filepath.Join(root, "config", "file-tool-model.json")
 			var catalog struct {
 				Models []struct {

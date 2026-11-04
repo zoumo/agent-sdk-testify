@@ -22,13 +22,15 @@ import (
 )
 
 type Options struct {
-	SessionDir string
-	URL        string
-	TokenFile  string
-	Command    string
-	NativeArgs []string
-	Timeout    time.Duration
-	ResultFD   int
+	SessionDir     string
+	Connection     string
+	URL            string
+	TokenFile      string
+	Command        string
+	NativeArgs     []string
+	Timeout        time.Duration
+	ConnectTimeout time.Duration
+	ResultFD       int
 }
 
 func Run(ctx context.Context, o Options, streams capture.IO) error {
@@ -59,7 +61,7 @@ func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runEr
 		if legacy || o.URL == "" || o.TokenFile == "" || o.Command != "" || len(o.NativeArgs) != 0 {
 			return errors.New("remote record requires --url and --token-file, excluding local command and arguments")
 		}
-		remote = &capture.ConnectOptions{URL: o.URL, TokenFile: o.TokenFile}
+		remote = &capture.ConnectOptions{URL: o.URL, TokenFile: o.TokenFile, ConnectTimeout: o.ConnectTimeout}
 		if err := remote.Validate(); err != nil {
 			return err
 		}
@@ -96,18 +98,52 @@ func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runEr
 		// Connection location and authentication paths are invocation-only data.
 		commandArgs = []string{"--session-dir", o.SessionDir, "--url", "<private>", "--token-file", "<private>"}
 	}
-	run, err := lifecycle.BeginRecord(o.SessionDir, commandArgs, o.Timeout)
+	var run *lifecycle.ActionRun
+	if legacy {
+		run, err = lifecycle.BeginRecord(o.SessionDir, commandArgs, o.Timeout)
+	} else {
+		if o.Connection == "" {
+			o.Connection = "main"
+		}
+		target := "local"
+		if remote != nil {
+			token, err := os.ReadFile(remote.TokenFile)
+			if err != nil {
+				return err
+			}
+			target = tool.DigestBytes(append(append([]byte(remote.URL), 0), token...))
+		}
+		run, err = lifecycle.BeginRecordConnection(o.SessionDir, o.Connection, commandArgs, o.Timeout, target)
+	}
 	if err != nil {
 		return err
 	}
 	status, artifactID := "failed", ""
 	defer func() {
-		if status != "passed" {
-			scrubErr := lifecycle.ScrubExecutionAuthentication(run)
-			finishErr := lifecycle.FinishAction(run, status, artifactID)
-			runErr = errors.Join(runErr, scrubErr, finishErr)
-			evidence := tool.Object{"schemaVersion": 1, "status": "failed", "error": runErr.Error(), "cleanupComplete": scrubErr == nil && finishErr == nil}
-			runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(run.ArtifactRoot, "failure.json"), evidence))
+		if !legacy {
+			finalize, err := lifecycle.RecordFinalizationLock(run)
+			if err != nil {
+				runErr = errors.Join(runErr, err)
+			} else {
+				defer finalize.Close()
+				ready, passed, err := lifecycle.CompleteRecordConnection(run, status)
+				runErr = errors.Join(runErr, err)
+				if ready && err == nil {
+					if passed {
+						runErr = errors.Join(runErr, publishNative(run))
+					} else {
+						runErr = errors.Join(runErr, errors.New("record execution has failed connections"))
+					}
+					if runErr != nil {
+						runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.FinishAction(run, "failed", ""))
+					}
+				}
+			}
+		} else if status != "passed" {
+			runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.FinishAction(run, status, artifactID))
+		}
+		if runErr != nil {
+			runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(run.Dir, "receipts", run.Connection+".failure.json"), tool.Object{"status": "failed", "error": runErr.Error()}))
 		}
 		runErr = errors.Join(runErr, lifecycle.WriteActionResult(ctx, run, result, runErr))
 		runErr = errors.Join(runErr, run.Close())
@@ -191,6 +227,51 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 }
 
 func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, remote *capture.ConnectOptions, timeout time.Duration, streams capture.IO) error {
+	if run.Execution.Artifact.OfficialOrigin != nil {
+		if err := prepareOfficialCapture(ctx, run, command, args, remote); err != nil {
+			return err
+		}
+		if remote == nil {
+			args = tool.Strings(run.Plan["args"])
+		}
+	}
+
+	var commandArgs []string
+	if remote == nil {
+		commandArgs = append([]string{command}, args...)
+	} else {
+		remote.MaxFrameBytes = run.Execution.Limits.MaxFrameBytes
+	}
+	if err := os.MkdirAll(filepath.Dir(filepath.Dir(recordReceipt(run))), 0o700); err != nil {
+		return err
+	}
+	eofAction := tool.Str(run.Plan["stdinEOFAction"])
+	if eofAction == "" {
+		eofAction = "close"
+	}
+	captureErr := capture.Run(ctx, capture.Options{
+		Remote:         remote,
+		Output:         filepath.Dir(recordReceipt(run)),
+		CWD:            run.Execution.Workspace,
+		Env:            environment(run.Execution.RuntimeEnv),
+		ClearEnv:       true,
+		Command:        commandArgs,
+		NativeVersion:  tool.Str(run.Plan["cliVersion"]),
+		ProxyVersion:   version.Version,
+		StdinEOFAction: eofAction,
+		Timeout:        timeout,
+		ProtocolBytes:  run.Execution.Limits.ProtocolBytes,
+		StderrBytes:    run.Execution.Limits.StderrBytes,
+		MaxFrames:      run.Execution.Limits.MaxFrames,
+		MaxFrameBytes:  run.Execution.Limits.MaxFrameBytes,
+		CleanupTimeout: 2 * time.Second,
+	}, streams)
+	return captureErr
+}
+
+// Only the final declared connection closes the complete material. Driver business
+// reports are deliberately absent: they may be produced after this publication.
+func publishNative(run *lifecycle.ActionRun) error {
 	planPath := run.Execution.Source.Path
 	if run.Execution.Source.Kind == "recording" {
 		planPath = filepath.Join(planPath, "plan.json")
@@ -199,82 +280,77 @@ func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string
 	if err != nil {
 		return err
 	}
-	var commandArgs []string
-	if remote == nil {
-		commandArgs = append([]string{command}, args...)
-	} else {
-		remote.MaxFrameBytes = run.Execution.Limits.MaxFrameBytes
-	}
-	captureErr := capture.Run(ctx, capture.Options{
-		Remote:         remote,
-		Output:         filepath.Join(run.ArtifactRoot, "raw"),
-		CWD:            run.Execution.Workspace,
-		Env:            environment(run.Execution.RuntimeEnv),
-		ClearEnv:       true,
-		Command:        commandArgs,
-		NativeVersion:  tool.Str(run.Plan["cliVersion"]),
-		ProxyVersion:   version.Version,
-		StdinEOFAction: "close",
-		Timeout:        timeout,
-		ProtocolBytes:  run.Execution.Limits.ProtocolBytes,
-		StderrBytes:    run.Execution.Limits.StderrBytes,
-		MaxFrames:      run.Execution.Limits.MaxFrames,
-		MaxFrameBytes:  run.Execution.Limits.MaxFrameBytes,
-		CleanupTimeout: 2 * time.Second,
-	}, streams)
-	if err := os.WriteFile(filepath.Join(run.ArtifactRoot, "plan.json"), planBytes, 0o600); err != nil {
-		return errors.Join(captureErr, err)
-	}
 	if _, err := lifecycle.LoadPlan(run.Session); err != nil {
-		return errors.Join(captureErr, err)
+		return err
+	}
+	if run.Execution.Artifact.OfficialOrigin != nil {
+		if err := os.WriteFile(filepath.Join(run.ArtifactRoot, "source-plan.json"), planBytes, 0o600); err != nil {
+			return err
+		}
+		var derived tool.Object
+		if err := tool.ReadJSON(filepath.Join(run.OverlayRoot, "record-plan.json"), &derived); err != nil {
+			return err
+		}
+		derived["sourcePlanSHA256"] = tool.DigestBytes(planBytes)
+		if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot, "official-origin.json"), run.Execution.Artifact.OfficialOrigin); err != nil {
+			return err
+		}
+		for _, connection := range run.Execution.Connections {
+			if err := tool.CopyFile(filepath.Join(run.Dir, "receipts", connection.ID+".origin.json"), filepath.Join(run.ArtifactRoot, "origin", connection.ID+".json")); err != nil {
+				return err
+			}
+		}
+		encoded, err := json.MarshalIndent(derived, "", "  ")
+		if err != nil {
+			return err
+		}
+		planBytes = append([]byte(nil), encoded...)
+		planBytes = append(planBytes, '\n')
+	}
+	if err := os.WriteFile(filepath.Join(run.ArtifactRoot, "plan.json"), planBytes, 0o600); err != nil {
+		return err
 	}
 	if err := snapshotHistory(run.OverlayRoot, run.ArtifactRoot); err != nil {
-		return errors.Join(captureErr, err)
+		return err
 	}
-	manifest, manifestErr := writeCaptureManifest(run.ArtifactRoot, run.Execution.RuntimeEnv, run.Execution.Provenance, captureErr)
-	if manifestErr != nil {
-		return errors.Join(captureErr, manifestErr)
+	provenance := run.Execution.Provenance
+	if provenance == "official" {
+		provenance = "capture"
 	}
-	var transport tool.Object
-	if err := tool.ReadJSON(filepath.Join(run.ArtifactRoot, "raw", "transport.json"), &transport); err != nil {
-		return errors.Join(captureErr, err)
-	}
-	report := map[string]any{
-		"schemaVersion":   1,
-		"status":          "failed",
-		"branchStatus":    "not-applicable",
-		"captureStatus":   manifest["captureStatus"],
-		"nativeLaunched":  transport["nativeLaunched"],
-		"clientEOF":       transport["clientEOF"],
-		"cleanupComplete": transport["cleanupComplete"],
-		"consumer":        run.Execution.Provenance == "consumer",
-		"provenance":      run.Execution.Provenance,
-	}
-	if remote != nil {
-		for _, key := range []string{"target", "remoteConnected", "remoteClosed"} {
-			report[key] = transport[key]
-		}
-	}
-	if captureErr == nil && manifest["captureStatus"] == "complete" {
-		report["status"] = "captured"
-	}
-	if captureErr != nil {
-		report["error"] = captureErr.Error()
-	}
-	if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot, "report.json"), report); err != nil {
-		return errors.Join(captureErr, err)
-	}
-	if captureErr != nil {
-		return captureErr
+	manifest, err := writeCaptureManifest(run.ArtifactRoot, run.Execution.RuntimeEnv, provenance, nil)
+	if err != nil {
+		return err
 	}
 	if manifest["captureStatus"] != "complete" {
 		return errors.New("record capture is incomplete")
+	}
+	var transport tool.Object
+	if err := tool.ReadJSON(filepath.Join(run.ArtifactRoot, "raw", "transport.json"), &transport); err != nil {
+		return err
+	}
+	report := tool.Object{"schemaVersion": 1, "status": "captured", "branchStatus": "not-applicable", "captureStatus": "complete", "consumer": run.Execution.Provenance == "consumer", "provenance": run.Execution.Provenance}
+	for _, key := range []string{"nativeLaunched", "clientEOF", "cleanupComplete", "target", "remoteConnected", "remoteClosed"} {
+		if value, ok := transport[key]; ok {
+			report[key] = value
+		}
+	}
+	if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot, "report.json"), report); err != nil {
+		return err
 	}
 	artifact, err := captureArtifact(run, run.Execution.Provenance)
 	if err != nil {
 		return err
 	}
 	return lifecycle.PublishCapture(filepath.Dir(filepath.Dir(run.Dir)), run, *artifact)
+}
+
+func recordReceipt(run *lifecycle.ActionRun) string {
+	for _, c := range run.Execution.Connections {
+		if c.ID == run.Connection {
+			return c.Receipt
+		}
+	}
+	return filepath.Join(run.ArtifactRoot, "raw", "transport.json")
 }
 
 func environment(values map[string]string) []string {
@@ -401,6 +477,23 @@ func writeCaptureManifest(root string, env map[string]string, provenance string,
 		}
 		files[entry.Name()] = digest
 	}
+	remoteFiles := tool.Object{}
+	probeRoot := filepath.Join(root, "remote-probe", "raw")
+	if entries, err := os.ReadDir(probeRoot); err == nil {
+		for _, entry := range entries {
+			if !entry.Type().IsRegular() {
+				return nil, errors.New("invalid probe capture file")
+			}
+			name := filepath.ToSlash(filepath.Join("remote-probe", "raw", entry.Name()))
+			hash, err := tool.FileDigest(filepath.Join(root, name))
+			if err != nil {
+				return nil, err
+			}
+			remoteFiles[name] = hash
+		}
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
 	saved := map[string]any{}
 	for _, prefix := range []string{"config/projects", "config/sessions", "history-seed"} {
 		base := filepath.Join(root, filepath.FromSlash(prefix))
@@ -459,18 +552,24 @@ func writeCaptureManifest(root string, env map[string]string, provenance string,
 		status = "failed"
 	}
 	manifest := map[string]any{
-		"schemaVersion":   1,
-		"provenance":      provenance,
-		"status":          status,
-		"planSHA256":      planHash,
-		"runSHA256":       runHash,
-		"files":           files,
-		"savedFiles":      saved,
-		"captureStatus":   transport["captureStatus"],
-		"recordingFormat": recording.CurrentFormat(),
-		"proxyVersion":    rawManifest["proxyVersion"],
-		"native":          rawManifest["native"],
-		"credentialScan":  scan,
+		"schemaVersion":    1,
+		"provenance":       provenance,
+		"status":           status,
+		"planSHA256":       planHash,
+		"runSHA256":        runHash,
+		"files":            files,
+		"savedFiles":       saved,
+		"remotePhaseFiles": remoteFiles,
+		"captureStatus":    transport["captureStatus"],
+		"recordingFormat":  recording.CurrentFormat(),
+		"proxyVersion":     rawManifest["proxyVersion"],
+		"native":           rawManifest["native"],
+		"credentialScan":   scan,
+	}
+	if digest, err := tool.FileDigest(filepath.Join(root, "source-plan.json")); err == nil {
+		manifest["sourcePlanSHA256"] = digest
+	} else if !os.IsNotExist(err) {
+		return nil, err
 	}
 	if captureErr != nil {
 		manifest["error"] = captureErr.Error()

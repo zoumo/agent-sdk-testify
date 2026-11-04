@@ -99,6 +99,18 @@ git -C /absolute/codex-source rev-parse HEAD
 保存，不由 driver 或 official 命令代写。录制业务报告在采集结束后单独保存并关联
 material，不回写不可变录制。职责和证据归属见[工具设计](../docs/design.md#official-verify)。
 
+`official record` 提供的 `peer` 是现有进程监督器生成的 launcher。监督器为公开
+`agent record` 接出普通 `--result-fd`，保存开始与最终通知；SDK 不需要继承该 FD。
+运行 plan 的 `_agentResults` 按连接给出这些通知文件，driver 读取本次实际 execution
+的采集证据，不查找最新目录。`main`、`probe` 共享一次 record execution，全部连接
+完成后才发布材料。
+
+官方采集材料保存 `source-plan.json` 原字节、派生 `plan.json` 的来源哈希、
+`official-origin.json` 及逐连接启动证明；派生 plan 保留 SDK 实际发送的协议 cwd。
+这些文件证明采集来源，随 export 携带，不证明父 driver 的业务通过。最终业务报告、
+SDK 身份和进程结果保存在独立的 `official-records/<runId>/`，关联精确材料及哈希。
+后续官方验证仍须产生自己的业务与协议证据，不能把采集来源当成业务成功。
+
 driver 只执行一个请求，不实现 registry、双向命令、步骤 DSL 或 SDK 覆盖门禁。
 case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios) 与
 [case 规范](../docs/cases.md)。

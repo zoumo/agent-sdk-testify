@@ -131,6 +131,7 @@ type Execution struct {
 }
 
 type Artifact struct {
+	OfficialOrigin  *OfficialOrigin   `json:"officialOrigin,omitempty"`
 	Files           map[string]string `json:"files,omitempty"`
 	ID              string            `json:"id"`
 	Kind            string            `json:"kind"`

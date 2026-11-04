@@ -45,6 +45,7 @@ func actionResult(run *ActionRun, status string, actionErr error) (string, tool.
 	value := tool.Object{
 		"schemaVersion": 1,
 		"sessionId":     run.Session.SessionID,
+		"processId":     os.Getpid(),
 		"executionId":   run.Execution.ExecutionID,
 		"connectionId":  id,
 		"command":       run.Execution.Command,
@@ -60,7 +61,7 @@ func actionResult(run *ActionRun, status string, actionErr error) (string, tool.
 			}
 		}
 	}
-	if run.Execution.Command == "mock" || status == "passed" {
+	if run.Execution.Command == "mock" || (status == "passed" && run.Execution.Artifact.ManifestSHA256 != "") {
 		material := run.Execution.Artifact
 		value["material"] = tool.Object{
 			"id": material.ID, "path": material.Path, "provenance": material.Provenance,
@@ -78,6 +79,11 @@ func actionResult(run *ActionRun, status string, actionErr error) (string, tool.
 // Each notification references durable state; stdout remains native protocol only.
 func NotifyActionStarted(ctx context.Context, run *ActionRun, stream *os.File) error {
 	path, value := actionResult(run, "running", nil)
+	hash, err := tool.FileDigest(filepath.Join(run.Dir, "execution.json"))
+	if err != nil {
+		return err
+	}
+	value["executionSHA256"] = hash
 	if err := writeAtomic(path, value); err != nil {
 		return err
 	}

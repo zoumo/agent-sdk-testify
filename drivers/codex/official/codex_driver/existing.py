@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from record_user_story.adapters.common import proxy_command, serial
-from record_user_story.environment import read_regular, recording_temp_root
+from record_user_story.environment import capture_root, read_regular, recording_temp_root
 from record_user_story.existing_children import sha, project_files, verify_seed
 from record_user_story.history import pages
 
@@ -86,5 +86,5 @@ def observe(plan, report):
             raise ValueError('resumed Session did not discover its pre-existing children')
         request('thread/unsubscribe', {'threadId': seed['sessionId']})
     verify_seed(plan, check_source=check_source)
-    frames = [json.loads(line) for line in read_regular(Path(plan['root']) / 'raw/raw.jsonl', None).splitlines()]
+    frames = [json.loads(line) for line in read_regular(capture_root(plan) / 'raw/raw.jsonl', None).splitlines()]
     require_wire(plan, frames)

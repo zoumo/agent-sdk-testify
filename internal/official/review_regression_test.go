@@ -32,7 +32,7 @@ env_key = "SDK_TEST_OTHER_TOKEN"
 	self, err := os.Executable()
 	require.NoError(t, err)
 	plan := tool.Object{"provider": "codex", "project": root, "scenario": tool.Object{}}
-	require.NoError(t, prepareNative(context.Background(), &Options{CLI: self, Config: source}, plan, root))
+	require.NoError(t, PrepareNative(context.Background(), &Options{CLI: self, Config: source}, plan, root))
 	var env map[string]string
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "native.env.private.json"), &env))
 	require.Equal(t, "synthetic-token", env["SDK_TEST_SELECTED_TOKEN"])
@@ -47,7 +47,7 @@ func TestVersionProbeHonorsCancellation(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 	started := time.Now()
-	err := prepareNative(ctx, &Options{CLI: cli}, tool.Object{"provider": "codex"}, root)
+	err := PrepareNative(ctx, &Options{CLI: cli}, tool.Object{"provider": "codex"}, root)
 	require.ErrorIs(t, err, context.DeadlineExceeded)
 	require.Less(t, time.Since(started), 3*time.Second)
 }
@@ -117,7 +117,7 @@ env_key="OTHER_CREDENTIAL"
 `), 0o600))
 	self, err := os.Executable()
 	require.NoError(t, err)
-	require.NoError(t, prepareNative(context.Background(), &Options{CLI: self, Config: source}, tool.Object{"provider": "codex", "project": root, "scenario": tool.Object{}}, root))
+	require.NoError(t, PrepareNative(context.Background(), &Options{CLI: self, Config: source}, tool.Object{"provider": "codex", "project": root, "scenario": tool.Object{}}, root))
 	config, err := os.ReadFile(filepath.Join(root, "config", "config.toml"))
 	require.NoError(t, err)
 	require.Contains(t, string(config), "synthetic-endpoint")
@@ -181,7 +181,7 @@ func TestClaudeConfigCopyRetainsNativeDefaultModelOnly(t *testing.T) {
 	require.NoError(t, err)
 	self, err := os.Executable()
 	require.NoError(t, err)
-	require.NoError(t, prepareNative(context.Background(), &Options{CLI: self, Config: source}, tool.Object{"provider": "claude", "project": root, "scenario": tool.Object{}}, root))
+	require.NoError(t, PrepareNative(context.Background(), &Options{CLI: self, Config: source}, tool.Object{"provider": "claude", "project": root, "scenario": tool.Object{}}, root))
 	var copied, original tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "config", "settings.json"), &copied))
 	require.Equal(t, tool.Object{"model": "synthetic-default"}, copied)
@@ -221,7 +221,7 @@ func TestInitialModelRecordingScope(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			root := t.TempDir()
 			plan := tool.Object{"provider": "claude", "project": root, "scenario": tool.Object{"parameters": tc.parameters}}
-			err := prepareNative(context.Background(), &Options{CLI: cli, Model: tc.target, InitialModel: tc.initial}, plan, root)
+			err := PrepareNative(context.Background(), &Options{CLI: cli, Model: tc.target, InitialModel: tc.initial}, plan, root)
 			if tc.wantError != "" {
 				require.ErrorContains(t, err, tc.wantError)
 				return

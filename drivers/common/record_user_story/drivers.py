@@ -3,7 +3,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from .environment import private_json, sdk_identity, stdin_eof_action
+from .environment import capture_root, private_json, sdk_identity, stdin_eof_action
 from .scenarios import Flow, Untriggered, validate_recipe
 from .stimuli import content
 
@@ -108,7 +108,7 @@ def run_child_profile(plan):
 def observe_wire(plan, report):
     """Keep observed native configuration separate from control acknowledgements."""
     from .adapters.common import observe_configuration
-    path = Path(plan['root']) / 'raw/raw.jsonl'
+    path = capture_root(plan) / 'raw/raw.jsonl'
     if not path.exists():
         parameters = plan['scenario'].get('parameters', {})
         if parameters.get('childConfiguration') or parameters.get('childDetailPolicy'):
@@ -193,7 +193,7 @@ def require_interrupt_close(plan, report, replay):
     """Require real process success; a replay proves consumption, not SIGINT."""
     if report.get('interruptClose', {}).get('ready') is not True:
         raise RuntimeError('interrupt close was not ready')
-    root = Path(plan['root'])
+    root = capture_root(plan)
     if replay:
         receipt = json.loads((root / 'replay-peer.json').read_text())
         complete = (receipt.get('fullConsumption') is True and receipt.get('clientEOF') is True
@@ -213,7 +213,7 @@ def require_interrupt_close(plan, report, replay):
 
 
 def require_closed_process(plan, report, replay):
-    root = Path(plan['root'])
+    root = capture_root(plan)
     if replay:
         receipt = json.loads((root / 'replay-peer.json').read_text())
         complete = receipt.get('fullConsumption') is True and receipt.get('clientEOF') is True and receipt.get('nativeLaunched') is False

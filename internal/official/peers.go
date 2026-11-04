@@ -87,7 +87,7 @@ func preparePeerRuns(o Options, plan tool.Object, service *remoteService) (*peer
 		if o.Mode == "verify" {
 			launcherArgs = append(launcherArgs, "--lifecycle", filepath.Join(root, "peer-"+phase+"-lifecycle.json"))
 		}
-		launcher, err := writePeerLauncher(root, phase, tool.Command{Command: self, Args: launcherArgs})
+		launcher, err := WritePeerLauncher(root, phase, tool.Command{Command: self, Args: launcherArgs})
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +156,7 @@ func (r peerRun) verify(mode, provider string) error {
 
 // Launchers adapt SDKs that accept only an executable path. The runner alone
 // chooses the protocol command, inputs and receipt for each independent run.
-func writePeerLauncher(root, phase string, peer tool.Command) (string, error) {
+func WritePeerLauncher(root, phase string, peer tool.Command) (string, error) {
 	quote := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
 	words := []string{quote(peer.Command)}
 	for _, arg := range peer.Args {

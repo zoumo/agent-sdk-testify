@@ -67,6 +67,9 @@ func New(streams IO) *cobra.Command {
 	agent := &cobra.Command{Use: "agent", Short: "Native Agent protocol peers", Args: cobra.NoArgs}
 	agent.AddCommand(recordCommand(streams), mockCommand())
 	root.AddCommand(agent)
+	official := &cobra.Command{Use: "official", Short: "Official SDK orchestration", Args: cobra.NoArgs}
+	official.AddCommand(newRecordCommand(streams, false, true))
+	root.AddCommand(official)
 	registerGenerate(root, streams)
 	return root
 }
@@ -139,14 +142,14 @@ func prepareCommand() *cobra.Command {
 }
 
 func recordCommand(streams IO) *cobra.Command {
-	return newRecordCommand(streams, false)
+	return newRecordCommand(streams, false, false)
 }
 
 func legacyRecordCommand(streams IO) *cobra.Command {
-	return newRecordCommand(streams, true)
+	return newRecordCommand(streams, true, false)
 }
 
-func newRecordCommand(streams IO, legacy bool) *cobra.Command {
+func newRecordCommand(streams IO, legacy, officialMode bool) *cobra.Command {
 	var o record.Options
 	c := &cobra.Command{
 		Use:   "record [flags] [-- ARG ...]",
@@ -156,11 +159,17 @@ func newRecordCommand(streams IO, legacy bool) *cobra.Command {
 	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
 	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
 	if !legacy {
+		if !officialMode {
+			c.Flags().StringVar(&o.Connection, "connection", "main", "declared record connection")
+		}
+		c.Flags().DurationVar(&o.ConnectTimeout, "connect-timeout", 0, "retry unavailable remote connections for this duration")
 		c.Flags().StringVar(&o.URL, "url", "", "existing authenticated ws/wss endpoint (excludes --cmd and native arguments)")
 		c.Flags().StringVar(&o.TokenFile, "token-file", "", "private bearer-token file for --url (never persisted)")
 	}
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
-	c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
+	if !officialMode {
+		c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
+	}
 	c.RunE = func(c *cobra.Command, args []string) error {
 		if o.URL == "" && (c.ArgsLenAtDash() != 0 || len(args) == 0) {
 			return errors.New("local record requires --cmd and native arguments after --")
@@ -171,13 +180,19 @@ func newRecordCommand(streams IO, legacy bool) *cobra.Command {
 		if !filepath.IsAbs(o.SessionDir) {
 			return errors.New("--session-dir must be absolute")
 		}
-		if o.Timeout < 0 {
-			return errors.New("timeout must be nonnegative")
+		if o.Timeout < 0 || o.ConnectTimeout < 0 {
+			return errors.New("timeouts must be nonnegative")
+		}
+		if o.ConnectTimeout > 0 && o.URL == "" {
+			return errors.New("connect-timeout requires a remote target")
 		}
 		if err := validateResultFD(o.ResultFD); err != nil {
 			return err
 		}
 		o.NativeArgs = append([]string(nil), args...)
+		if officialMode {
+			return record.RunOfficial(c.Context(), o)
+		}
 		if legacy {
 			return record.RunLegacy(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 		}
@@ -258,6 +273,7 @@ func peerCommand(streams IO) *cobra.Command {
 		},
 	}
 	c.Flags().StringVar(&o.Request, "request", "", "peer command file")
+	c.Flags().StringVar(&o.Results, "results", "", "execution notification evidence for a public agent command")
 	c.Flags().StringVar(&o.Lifecycle, "lifecycle", "", "internal protocol child exit evidence")
 	return c
 }
