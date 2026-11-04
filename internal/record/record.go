@@ -23,6 +23,8 @@ import (
 
 type Options struct {
 	SessionDir string
+	URL        string
+	TokenFile  string
 	Command    string
 	NativeArgs []string
 	Timeout    time.Duration
@@ -51,22 +53,50 @@ func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runEr
 	if result != nil {
 		defer result.Close()
 	}
-	executable, err := validateCommand(o.Command)
-	if err != nil {
-		return err
+	var executable string
+	var remote *capture.ConnectOptions
+	if o.URL != "" || o.TokenFile != "" {
+		if legacy || o.URL == "" || o.TokenFile == "" || o.Command != "" || len(o.NativeArgs) != 0 {
+			return errors.New("remote record requires --url and --token-file, excluding local command and arguments")
+		}
+		remote = &capture.ConnectOptions{URL: o.URL, TokenFile: o.TokenFile}
+		if err := remote.Validate(); err != nil {
+			return err
+		}
+	} else {
+		executable, err = validateCommand(o.Command)
+		if err != nil {
+			return err
+		}
 	}
 	o.SessionDir, err = filepath.EvalSymlinks(o.SessionDir)
 	if err != nil {
 		return err
 	}
+	if remote != nil {
+		tokenPath, pathErr := filepath.EvalSymlinks(remote.TokenFile)
+		if pathErr != nil {
+			return errors.New("private token file unavailable")
+		}
+		if rel, relErr := filepath.Rel(o.SessionDir, tokenPath); relErr == nil && filepath.IsLocal(rel) {
+			return errors.New("token file must be outside the persistent session")
+		}
+	}
 	session, err := lifecycle.OpenActionSession(o.SessionDir)
 	if err != nil {
 		return err
 	}
-	if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
-		return err
+	if remote == nil {
+		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
+			return err
+		}
 	}
-	run, err := lifecycle.BeginRecord(o.SessionDir, append([]string{"--session-dir", o.SessionDir, "--cmd", executable, "--"}, o.NativeArgs...), o.Timeout)
+	commandArgs := append([]string{"--session-dir", o.SessionDir, "--cmd", executable, "--"}, o.NativeArgs...)
+	if remote != nil {
+		// Connection location and authentication paths are invocation-only data.
+		commandArgs = []string{"--session-dir", o.SessionDir, "--url", "<private>", "--token-file", "<private>"}
+	}
+	run, err := lifecycle.BeginRecord(o.SessionDir, commandArgs, o.Timeout)
 	if err != nil {
 		return err
 	}
@@ -88,7 +118,7 @@ func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runEr
 	if legacy && session.Source.Provenance != "consumer" {
 		runErr = recordOfficial(ctx, run, executable, o.NativeArgs, o.Timeout, streams.Out)
 	} else {
-		runErr = captureNative(ctx, run, executable, o.NativeArgs, o.Timeout, streams)
+		runErr = captureNative(ctx, run, executable, o.NativeArgs, remote, o.Timeout, streams)
 	}
 	if runErr == nil {
 		status = "passed"
@@ -160,7 +190,7 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 	return errors.New("official record capture is incomplete")
 }
 
-func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, timeout time.Duration, streams capture.IO) error {
+func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, remote *capture.ConnectOptions, timeout time.Duration, streams capture.IO) error {
 	planPath := run.Execution.Source.Path
 	if run.Execution.Source.Kind == "recording" {
 		planPath = filepath.Join(planPath, "plan.json")
@@ -169,12 +199,19 @@ func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string
 	if err != nil {
 		return err
 	}
+	var commandArgs []string
+	if remote == nil {
+		commandArgs = append([]string{command}, args...)
+	} else {
+		remote.MaxFrameBytes = run.Execution.Limits.MaxFrameBytes
+	}
 	captureErr := capture.Run(ctx, capture.Options{
+		Remote:         remote,
 		Output:         filepath.Join(run.ArtifactRoot, "raw"),
 		CWD:            run.Execution.Workspace,
 		Env:            environment(run.Execution.RuntimeEnv),
 		ClearEnv:       true,
-		Command:        append([]string{command}, args...),
+		Command:        commandArgs,
 		NativeVersion:  tool.Str(run.Plan["cliVersion"]),
 		ProxyVersion:   version.Version,
 		StdinEOFAction: "close",
@@ -212,6 +249,11 @@ func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string
 		"cleanupComplete": transport["cleanupComplete"],
 		"consumer":        run.Execution.Provenance == "consumer",
 		"provenance":      run.Execution.Provenance,
+	}
+	if remote != nil {
+		for _, key := range []string{"target", "remoteConnected", "remoteClosed"} {
+			report[key] = transport[key]
+		}
 	}
 	if captureErr == nil && manifest["captureStatus"] == "complete" {
 		report["status"] = "captured"

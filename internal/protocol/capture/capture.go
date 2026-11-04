@@ -22,7 +22,12 @@ func Run(ctx context.Context, o Options, streams IO) error {
 		return &Error{Kind: Configuration, Err: err}
 	}
 	start := time.Now()
-	cmd, identity, err := prepare(ctx, o)
+	var cmd *exec.Cmd
+	identity := recording.NativeIdentity{Transport: "websocket", Version: o.NativeVersion}
+	var err error
+	if o.Remote == nil {
+		cmd, identity, err = prepare(ctx, o)
+	}
 	if err != nil {
 		return &Error{Kind: Configuration, Err: fmt.Errorf("record preflight: %w", err)}
 	}
@@ -39,7 +44,12 @@ func Run(ctx context.Context, o Options, streams IO) error {
 			ctx, cancel = context.WithTimeout(ctx, o.Timeout)
 			defer cancel()
 		}
-		err = journal.run(ctx, cmd, streams, &report)
+		if o.Remote != nil {
+			report.Target = "remote-websocket"
+			err = journal.runRemote(ctx, streams, &report)
+		} else {
+			err = journal.run(ctx, cmd, streams, &report)
+		}
 	}
 	err = journal.finish(&report, identity, err)
 	if err == nil {

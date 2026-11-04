@@ -92,6 +92,20 @@ case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `-
 driver，也不进入官方 case、验证、采用或内置快照；合同和用法见
 [消费者录制](docs/consumer-recording.md)。
 
+SDK 录制已有 WebSocket 服务时，启动同一个公开进程：
+
+```sh
+agent-sdk-testify agent record --session-dir /private/session \
+  --url ws://127.0.0.1:8765/agent --token-file /private/runtime/bearer-token \
+  --timeout 2m --result-fd 3
+```
+
+`--url` 与 `--cmd`、`--` 后的本地参数互斥。token 文件须为 session 外的绝对路径、
+普通私有文件（例如权限 `0600`），内容为 bearer token。endpoint 和 token 文件路径
+不进入持久 execution 或材料。SDK 通过 stdin/stdout 交换 JSONL；可选的 `--result-fd`
+沿用独立执行通知接口，调用方需先提供对应文件描述符。结束时关闭 stdin，工具只关闭
+自己的连接；已有服务由调用方管理。
+
 ## 官方离线验证与采用
 
 在已安装上述官方 driver 和 SDK 的环境中执行：

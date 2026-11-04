@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
-	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/record"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -150,23 +149,27 @@ func legacyRecordCommand(streams IO) *cobra.Command {
 func newRecordCommand(streams IO, legacy bool) *cobra.Command {
 	var o record.Options
 	c := &cobra.Command{
-		Use:   "record --cmd EXECUTABLE [flags] -- ARG [ARG ...]",
+		Use:   "record [flags] [-- ARG ...]",
 		Short: "Record a native Agent interaction in a prepared session",
 		Args:  cobra.ArbitraryArgs,
 	}
 	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
 	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
+	if !legacy {
+		c.Flags().StringVar(&o.URL, "url", "", "existing authenticated ws/wss endpoint (excludes --cmd and native arguments)")
+		c.Flags().StringVar(&o.TokenFile, "token-file", "", "private bearer-token file for --url (never persisted)")
+	}
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
 	c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
 	c.RunE = func(c *cobra.Command, args []string) error {
-		if c.ArgsLenAtDash() != 0 || len(args) == 0 {
-			return errors.New("record requires --cmd and a -- separator")
+		if o.URL == "" && (c.ArgsLenAtDash() != 0 || len(args) == 0) {
+			return errors.New("local record requires --cmd and native arguments after --")
 		}
-		if o.SessionDir == "" || o.Command == "" {
-			return errors.New("record requires --session-dir and --cmd")
+		if o.URL != "" && (c.Flags().Changed("cmd") || c.ArgsLenAtDash() >= 0 || len(args) != 0) {
+			return errors.New("remote target excludes --cmd and native arguments")
 		}
-		if !filepath.IsAbs(o.SessionDir) || !filepath.IsAbs(o.Command) {
-			return errors.New("--session-dir and --cmd must be absolute paths")
+		if !filepath.IsAbs(o.SessionDir) {
+			return errors.New("--session-dir must be absolute")
 		}
 		if o.Timeout < 0 {
 			return errors.New("timeout must be nonnegative")
@@ -175,13 +178,6 @@ func newRecordCommand(streams IO, legacy bool) *cobra.Command {
 			return err
 		}
 		o.NativeArgs = append([]string(nil), args...)
-		session, err := lifecycle.OpenSession(o.SessionDir)
-		if err != nil {
-			return err
-		}
-		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
-			return err
-		}
 		if legacy {
 			return record.RunLegacy(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 		}

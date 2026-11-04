@@ -204,15 +204,23 @@ func validateCaptureTransport(path string, frames int) error {
 		return err
 	}
 	if transport["captureStatus"] != "complete" ||
-		transport["cleanupComplete"] != true ||
-		transport["nativeLaunched"] != true ||
-		transport["clientEOF"] != true ||
-		transport["reaped"] != true ||
-		transport["error"] != nil {
-		return errors.New("transport does not prove complete capture, EOF, normal exit and cleanup")
+		transport["cleanupComplete"] != true || transport["clientEOF"] != true || transport["error"] != nil {
+		return errors.New("transport does not prove complete capture, EOF and cleanup")
 	}
-	if code, ok := transport["nativeExitCode"].(float64); !ok || code != 0 {
-		return errors.New("native process exit is absent or nonzero")
+	if transport["target"] == "remote-websocket" {
+		if transport["remoteConnected"] != true || transport["remoteClosed"] != true ||
+			transport["nativeLaunched"] != false || transport["reaped"] != false ||
+			transport["nativeExitCode"] != nil || transport["nativeSignal"] != nil ||
+			transport["stdinEOFAction"] != nil || transport["stdinEOFSignal"] != nil {
+			return errors.New("remote transport does not prove owned connection cleanup without a native process")
+		}
+	} else {
+		if transport["target"] != nil || transport["nativeLaunched"] != true || transport["reaped"] != true {
+			return errors.New("transport does not prove native process launch and reaping")
+		}
+		if code, ok := transport["nativeExitCode"].(float64); !ok || code != 0 {
+			return errors.New("native process exit is absent or nonzero")
+		}
 	}
 	if frames > 0 && transport["frames"] != float64(frames) {
 		return errors.New("capture transport frame count differs from the recorded stream")

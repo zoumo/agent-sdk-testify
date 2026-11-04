@@ -15,6 +15,7 @@ type Options struct {
 	CWD            string
 	Env            []string
 	ClearEnv       bool
+	Remote         *ConnectOptions
 	Command        []string
 	NativeVersion  string
 	ProxyVersion   string
@@ -50,8 +51,16 @@ func (e *Error) Error() string { return e.Err.Error() }
 func (e *Error) Unwrap() error { return e.Err }
 
 func (o Options) validate() error {
-	if o.Output == "" || len(o.Command) == 0 || o.Command[0] == "" {
+	if o.Output == "" || (o.Remote == nil && (len(o.Command) == 0 || o.Command[0] == "")) {
 		return errors.New("capture requires an output directory and executable")
+	}
+	if o.Remote != nil {
+		if len(o.Command) != 0 {
+			return errors.New("local and remote targets are mutually exclusive")
+		}
+		if err := o.Remote.Validate(); err != nil {
+			return err
+		}
 	}
 	if o.Timeout < 0 || o.CleanupTimeout <= 0 {
 		return errors.New("capture timeout must be nonnegative and cleanup timeout positive")

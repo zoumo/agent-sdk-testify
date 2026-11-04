@@ -11,6 +11,7 @@ import (
 // NativeIdentity deliberately excludes environment values. Version is a caller
 // assertion; capture hashes the resolved executable without invoking --version.
 type NativeIdentity struct {
+	Transport  string   `json:"transport,omitempty"`
 	Executable string   `json:"executable"`
 	SHA256     string   `json:"sha256"`
 	Args       []string `json:"args"`
@@ -19,6 +20,9 @@ type NativeIdentity struct {
 }
 
 type TransportReport struct {
+	Target          string `json:"target,omitempty"`
+	RemoteConnected bool   `json:"remoteConnected,omitempty"`
+	RemoteClosed    bool   `json:"remoteClosed,omitempty"`
 	Version         int    `json:"version"`
 	CaptureStatus   string `json:"captureStatus"`
 	Reason          string `json:"reason"`
