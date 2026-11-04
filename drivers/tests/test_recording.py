@@ -34,11 +34,12 @@ class RecordingTests(unittest.TestCase):
                     rebound = request.replace(b'q41', b'q99')
                     replay_response = response.replace(b'q41', b'q99')
                 native = root / 'fake_native.py'
-                native.write_text('import sys\nsys.stdin.buffer.readline()\nsys.stdout.buffer.write(' + repr(response) + ')\nsys.stdout.buffer.flush()\n')
+                native.write_text('#!' + sys.executable + '\nimport sys\nsys.stdin.buffer.readline()\nsys.stdout.buffer.write(' + repr(response) + ')\nsys.stdout.buffer.flush()\n')
+                native.chmod(0o700)
                 definition = recipe(provider, 'conversation', case_id='two-inputs')
                 plan = dict(version=4, provider=provider, story='conversation', storyId='conversation', caseId='two-inputs',
                             driverProfile='continuation', scenario=definition, scenarioSHA256=digest(definition), prompts=definition['prompts'],
-                            cli=str(Path(sys.executable).resolve()), cliSHA256=hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest(),
+                            cli=str(native), cliSHA256=hashlib.sha256(native.read_bytes()).hexdigest(),
                             root=str(root), tempRoot=str(recording_temp_root()),
                             home=str(root/'home'), config=str(root/'config'), project=str(root/'project'),
                             raw=str(root/'raw'), args=[str(native)], model='')
@@ -48,8 +49,9 @@ class RecordingTests(unittest.TestCase):
                 private_json(root/'plan.json', plan)
                 env = {'PATH': '/missing'}
                 session = prepare_record(root, plan)
+                startup = ['app-server'] if provider == 'codex' else ['--input-format', 'stream-json', '--output-format', 'stream-json', '--permission-prompt-tool', 'stdio']
                 captured = subprocess.run([identity()['path'], 'agent', 'record', '--session-dir', str(session),
-                                           '--cmd', str(Path(sys.executable).resolve()), '--', str(native)], input=request,
+                                           '--cmd', str(native), '--', *startup], input=request,
                                           capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(captured.returncode, 0, (captured.stderr, {p.name: p.read_text() for p in root.glob('*diagnostics*.json')}))
                 self.assertEqual(captured.stdout, response)

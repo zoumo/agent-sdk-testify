@@ -53,10 +53,15 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 				require.NoError(t, os.WriteFile(filepath.Join(drivers, "agent-sdk-testify-codex"), []byte("#!/missing/interpreter\n"), 0o700))
 			}
 			args := []string{"official", "verify", "--session-dir", session}
-			if strings.HasPrefix(mode, "cancel-") {
+			if mode == "cancel-before" {
 				args = append(args, "--timeout", "1s")
 			}
-			command := runTool(t, env, t.TempDir(), "", args...)
+			var command commandResult
+			if mode == "cancel-during" {
+				command = cancelOfficialDuringProtocol(t, env, session, args...)
+			} else {
+				command = runTool(t, env, t.TempDir(), "", args...)
+			}
 			root, evidence := latestOfficialVerification(t, session)
 			if mode == "local" || mode == "busy" {
 				require.Zero(t, command.code, command.stderr)
@@ -222,14 +227,13 @@ func TestOfficialVerifyPrerequisites(t *testing.T) {
 					recordConsumer(t, env, session, agent, conformanceRequest)
 				}
 			}
-			executions := array(sessionIndex(t, session)["executions"])
+			before := readAllFiles(t, session)
 			failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session)
 			require.Equal(t, 1, failed.code)
-			_, evidence := latestOfficialVerification(t, session)
-			require.Equal(t, "failed", evidence["status"])
-			require.NotContains(t, evidence, "driverProcess")
-			require.Equal(t, executions, array(sessionIndex(t, session)["executions"]))
+			require.NotEmpty(t, failed.stderr)
+			require.Equal(t, before, readAllFiles(t, session))
 			require.NoFileExists(t, filepath.Join(session, "official-active.json"))
+			require.NoFileExists(t, filepath.Join(session, "verifications", "index.json"))
 		})
 	}
 }

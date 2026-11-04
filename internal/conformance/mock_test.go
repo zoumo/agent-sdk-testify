@@ -54,7 +54,7 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 		require.Zero(t, process["exitCode"])
 	}
 	finished, finish := finishSession(t, env, session)
-	require.Equal(t, 1, finished.code, finished.stderr)
+	require.Zero(t, finished.code, finished.stderr)
 	require.Equal(t, true, finish["cleanupComplete"])
 	require.NoDirExists(t, str(readJSON(t, filepath.Join(session, "session.json"))["resourceRoot"]))
 	require.Equal(t, before, readAllFiles(t, str(material["path"])))

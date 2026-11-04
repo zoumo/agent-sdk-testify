@@ -91,7 +91,7 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 							args = []string{"prepare", "--agent", provider, "--case", "SDK-CASE-001"}
 						}
 						session, env := preparedSessionWithArgs(t, args...)
-						cmd := sessionTool(t, env, "mock", "--session-dir", session)
+						cmd := sessionTool(t, env, "agent", "mock", "--session-dir", session)
 						if valid {
 							cmd.Stdin = strings.NewReader(input)
 						} else {
@@ -130,7 +130,7 @@ func TestBuiltinMissingAndUnsupported(t *testing.T) {
 	} {
 		t.Run(test.provider+test.id, func(t *testing.T) {
 			session, env := preparedSessionWithArgs(t, "prepare", "--agent", test.provider, "--case", test.id)
-			data, err := sessionTool(t, env, "mock", "--session-dir", session).CombinedOutput()
+			data, err := sessionTool(t, env, "agent", "mock", "--session-dir", session).CombinedOutput()
 			require.Error(t, err)
 			assert.Contains(t, string(data), "no current recording")
 		})

@@ -408,6 +408,12 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	if err != nil {
 		return nil, err
 	}
+	if spec.material != nil {
+		if err := validateExecutionID(spec.material.ID); err != nil {
+			return nil, err
+		}
+		materialID = spec.material.ID
+	}
 	materialRoot := filepath.Join(sessionDir, "materials", materialID)
 	var materialArtifact *Artifact
 	switch session.Source.Kind {

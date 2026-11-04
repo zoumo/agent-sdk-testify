@@ -85,6 +85,7 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 	if err != nil {
 		return err
 	}
+	o.SessionDir, session = activity.SessionDir, activity.Session
 	result := tool.Object{"schemaVersion": 1, "id": activity.ID, "sessionId": session.SessionID, "mode": "record", "status": "failed", "cleanupComplete": true, "case": plan["caseId"], "agentType": session.AgentType, "source": session.Source, "driver": tool.Object{"path": driver, "sha256": driverHash}, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
 		result["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)

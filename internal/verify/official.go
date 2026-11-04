@@ -50,17 +50,17 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
 		defer cancel()
 	}
-	// Register before selecting current: registration excludes record and finish,
-	// but releases the action lock so ordinary SDK-launched mocks can acquire it.
-	activity, err := lifecycle.BeginOfficial(o.SessionDir, "verify")
+	session, err := lifecycle.OpenActionSession(o.SessionDir)
 	if err != nil {
 		return err
 	}
-	o.SessionDir = activity.SessionDir
-	session := activity.Session
+	var activity *lifecycle.OfficialRun
 	verificationSaved := false
-	evidence := tool.Object{"schemaVersion": 1, "id": activity.ID, "sessionId": session.SessionID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "output": activity.Dir, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
+	evidence := tool.Object{"schemaVersion": 1, "sessionId": session.SessionID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
+		if activity == nil {
+			return
+		}
 		if !verificationSaved {
 			evidence["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
 			if runErr == nil {
@@ -133,6 +133,28 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 		return err
 	}
 	evidence["tool"] = tool.Object{"version": version.Version, "sha256": toolHash}
+	// Preconditions do not create orchestration facts. Registration then pins the
+	// exact preflight input against concurrent record before a driver can start.
+	activity, err = lifecycle.BeginOfficial(o.SessionDir, "verify")
+	if err != nil {
+		return err
+	}
+	o.SessionDir, session = activity.SessionDir, activity.Session
+	evidence["id"], evidence["output"] = activity.ID, activity.Dir
+	pinned, err := lifecycle.LatestArtifact(o.SessionDir, session, true)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(material, pinned) {
+		return errors.New("current recording changed before verification")
+	}
+	inventory, err := corpus.Inventory(material.Path, false)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(before, inventory) {
+		return errors.New("material changed before verification")
+	}
 	var index lifecycle.Index
 	if err := tool.ReadJSON(lifecycle.IndexPath(o.SessionDir), &index); err != nil {
 		return err
@@ -159,7 +181,7 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 		results[id] = filepath.Join(root, "peer-"+id+".results.jsonl")
 		args := []string{"agent", "mock", "--session-dir", o.SessionDir, "--connection", id}
 		if o.Timeout > 0 {
-			args = append(args, "--timeout", o.Timeout.String())
+			args = append(args, "--timeout", fmt.Sprint(o.Timeout.Seconds()))
 		}
 		request := filepath.Join(private, "peer-"+id+".json")
 		if err := tool.WriteJSON(request, tool.Command{Command: self, Args: args}); err != nil {
@@ -237,7 +259,7 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 	if !reflect.DeepEqual(before, after) {
 		runErr = errors.Join(runErr, errors.New("material changed during verification"))
 	}
-	runErr = errors.Join(runErr, snapshotMocks(activity.Dir, refs))
+	runErr = errors.Join(runErr, snapshotMocks(activity.Dir, refs), activity.RestoreMockRoute())
 	var recordEvidenceErr error
 	if c.Index != "" && material.OfficialOrigin != nil && runErr == nil {
 		target := filepath.Join(root, "record-origin")

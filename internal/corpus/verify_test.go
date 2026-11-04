@@ -203,6 +203,19 @@ func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T
 	}
 	env := []string{"PATH=" + bin + ":/usr/bin:/bin", "HOME=" + t.TempDir(), "GORACE=atexit_sleep_ms=0"}
 	session := prepareVerifySession(t, s.source, env)
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+		var ids []string
+		if tool.ReadJSON(filepath.Join(session, "verifications", "index.json"), &ids) != nil || len(ids) == 0 {
+			return
+		}
+		root := filepath.Join(session, "verifications", ids[len(ids)-1], "driver")
+		if data, err := os.ReadFile(filepath.Join(root, "stderr.log")); err == nil {
+			t.Logf("driver diagnostics: %s", data)
+		}
+	})
 	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", session)
 	cmd.Dir = t.TempDir()
 	cmd.Env = env
@@ -383,6 +396,15 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			cmd, _, session := verifyFixtureWithMutation(t, mode, func(t *testing.T, source string) {
 				require.NoError(t, tool.CopyTree(filepath.Join(source, "raw"), filepath.Join(source, "remote-probe", "raw")))
+				probeRoot := filepath.Join(source, "remote-probe", "raw")
+				raw, err := os.ReadFile(filepath.Join(probeRoot, "raw.jsonl"))
+				require.NoError(t, err)
+				raw = []byte(strings.Replace(string(raw), `"result":{}`, `"result":{"phase":"probe"}`, 1))
+				require.NoError(t, os.WriteFile(filepath.Join(probeRoot, "raw.jsonl"), raw, 0o600))
+				var probeManifest tool.Object
+				require.NoError(t, tool.ReadJSON(filepath.Join(probeRoot, "manifest.json"), &probeManifest))
+				tool.Obj(probeManifest["files"])["raw.jsonl"] = tool.DigestBytes(raw)
+				require.NoError(t, tool.WriteJSON(filepath.Join(probeRoot, "manifest.json"), probeManifest))
 				var plan, manifest tool.Object
 				require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &plan))
 				canonicalVerifyFixture(t, source, "SDK-CASE-032")
@@ -393,17 +415,24 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 				digest, err := Digest(filepath.Join(source, "plan.json"))
 				require.NoError(t, err)
 				manifest["planSHA256"] = digest
+				probeFiles, err := Inventory(filepath.Join(source, "remote-probe", "raw"), false)
+				require.NoError(t, err)
+				remoteFiles := tool.Object{}
+				for name, hash := range probeFiles {
+					remoteFiles["remote-probe/raw/"+name] = hash
+				}
+				manifest["remotePhaseFiles"] = remoteFiles
 				require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), manifest))
 			})
 			data, err := cmd.CombinedOutput()
 			output := verifyOutput(t, session)
 			if mode == "passed" {
 				require.NoError(t, err, "%s", data)
-				require.FileExists(t, filepath.Join(output, "remote-probe", "replay-peer.json"))
-				require.FileExists(t, filepath.Join(output, "peer-probe-lifecycle.json"))
+				require.FileExists(t, filepath.Join(output, "driver", "connections", "probe", "replay.json"))
+				require.FileExists(t, filepath.Join(output, "driver", "peer-probe.process.json"))
 			} else {
 				require.Error(t, err, "%s", data)
-				require.Contains(t, string(data), "probe peer")
+				require.Contains(t, string(data), "probe: protocol process not started or settled")
 			}
 		})
 	}
@@ -434,22 +463,10 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "admission-summary.json"), &admission))
 	require.Equal(t, "admitted", admission["status"])
 	require.FileExists(t, filepath.Join(tool.Str(admission["materials"]), "official-replay", "verification.json"))
-	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
-	var execution tool.Object
-	executionID := ""
-	for _, value := range tool.Array(index["executions"]) {
-		row := tool.Obj(value)
-		if row["command"] != "verify" {
-			continue
-		}
-		executionID = tool.Str(row["id"])
-		require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", executionID, "execution.json"), &execution))
-	}
-	require.NotEmpty(t, executionID)
-	persisted := tool.Obj(execution["admission"])
-	var evidence tool.Object
+	var result, evidence tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "result.json"), &result))
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "verification.json"), &evidence))
+	persisted := tool.Obj(result["admission"])
 	require.Equal(t, persisted, tool.Obj(evidence["admission"]))
 	normalizedIndex, err := filepath.Abs(s.c.Index)
 	require.NoError(t, err)
@@ -468,25 +485,8 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 
 	tamperedIndex := filepath.Join(t.TempDir(), "tampered-index.json")
 	persisted["index"] = tamperedIndex
-	execution["admission"] = persisted
-	args := tool.Strings(execution["args"])
-	for i := range args {
-		if args[i] == "--index" && i+1 < len(args) {
-			args[i+1] = tamperedIndex
-		}
-	}
-	execution["args"] = args
-	executionPath := filepath.Join(session, "executions", executionID, "execution.json")
-	require.NoError(t, tool.WriteJSON(executionPath, execution))
-	descriptorHash, err := Digest(executionPath)
-	require.NoError(t, err)
-	for _, value := range tool.Array(index["executions"]) {
-		row := tool.Obj(value)
-		if row["id"] == executionID {
-			row["descriptorSHA256"] = descriptorHash
-		}
-	}
-	require.NoError(t, tool.WriteJSON(filepath.Join(session, "executions", "index.json"), index))
+	result["admission"] = persisted
+	require.NoError(t, tool.WriteJSON(filepath.Join(output, "result.json"), result))
 
 	finish := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", session)
 	finish.Dir = t.TempDir()
@@ -517,13 +517,12 @@ func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
 	cmd = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", session)
 	cmd.Dir = t.TempDir()
 	cmd.Env = env
+	before := sessionFiles(t, session)
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
-	output := verifyOutput(t, session)
-	var evidence tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "verification.json"), &evidence))
-	require.Contains(t, evidence["error"], "adopted corpus inventory drift")
-	require.NoFileExists(t, filepath.Join(output, "request.json"))
+	require.Contains(t, string(data), "adopted corpus inventory drift")
+	require.Equal(t, before, sessionFiles(t, session))
+	require.NoFileExists(t, filepath.Join(session, "verifications", "index.json"))
 }
 
 func TestVerifyRejectsAdmissionAndPreservesPrevious(t *testing.T) {
@@ -590,4 +589,11 @@ func canonicalVerifyFixture(t *testing.T, source, caseID string) {
 	require.NoError(t, err)
 	manifest["planSHA256"] = digest
 	require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), manifest))
+}
+
+func sessionFiles(t *testing.T, session string) tool.Object {
+	t.Helper()
+	files, err := Inventory(session, false)
+	require.NoError(t, err)
+	return files
 }

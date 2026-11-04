@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -291,6 +292,18 @@ func prepareSession(t *testing.T, env []string, args ...string) string {
 	result := mustRun(t, env, base, "", append([]string{"prepare"}, args...)...)
 	require.Empty(t, result.stderr)
 	t.Cleanup(func() {
+		if t.Failed() {
+			for _, parent := range []string{"official-records", "verifications"} {
+				var ids []string
+				if readJSONFile(filepath.Join(session, parent, "index.json"), &ids) != nil || len(ids) == 0 {
+					continue
+				}
+				path := filepath.Join(session, parent, ids[len(ids)-1], "driver", "stderr.log")
+				if data, err := os.ReadFile(path); err == nil {
+					t.Logf("official driver diagnostics: %s", data)
+				}
+			}
+		}
 		var descriptor object
 		data, err := os.ReadFile(filepath.Join(session, "session.json"))
 		if err == nil && json.Unmarshal(data, &descriptor) == nil {
@@ -462,25 +475,42 @@ func latestVerificationRoot(t *testing.T, session string) string {
 	return root
 }
 
-func readExistingFiles(t *testing.T, root string, before []byte) []byte {
+// Cancellation is triggered at the observed protocol boundary. The existing
+// process watchdog remains 45s; native startup cost cannot cancel the wrong phase.
+func cancelOfficialDuringProtocol(t *testing.T, env []string, session string, args ...string) commandResult {
 	t.Helper()
-	var contents bytes.Buffer
-	require.NoError(t, filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
-		if err != nil {
-			return err
+	ctx, cancel := context.WithTimeout(t.Context(), 45*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), args...)
+	cmd.Env, cmd.Dir = env, t.TempDir()
+	cmd.WaitDelay = 5 * time.Second
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	require.NoError(t, cmd.Start())
+	t.Cleanup(func() { _ = cmd.Process.Kill() })
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	ready := false
+	for !ready {
+		var active object
+		if readJSONFile(filepath.Join(session, "official-active.json"), &active) == nil {
+			var checkpoint object
+			ready = readJSONFile(filepath.Join(str(active["dir"]), "driver", "checkpoint.json"), &checkpoint) == nil
 		}
-		if !entry.Type().IsRegular() || !bytes.Contains(before, []byte(path+"\n")) {
-			return nil
+		if ready {
+			break
 		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
+		select {
+		case err := <-done:
+			require.NoError(t, err, stderr.String())
+			t.Fatal("driver exited before protocol cancellation boundary")
+		case <-ctx.Done():
+			t.Fatal("protocol cancellation boundary was not reached")
+		case <-time.After(10 * time.Millisecond):
 		}
-		contents.WriteString(path)
-		contents.WriteByte('\n')
-		contents.Write(data)
-		contents.WriteByte('\n')
-		return nil
-	}))
-	return contents.Bytes()
+	}
+	require.NoError(t, cmd.Process.Signal(syscall.SIGTERM))
+	err := <-done
+	require.Error(t, err, stderr.String())
+	return commandResult{stdout: stdout.String(), stderr: stderr.String(), code: cmd.ProcessState.ExitCode()}
 }

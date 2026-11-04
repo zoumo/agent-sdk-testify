@@ -23,7 +23,7 @@ func finishSession(t *testing.T, session string, env []string) (tool.Object, err
 
 func runPreparedMock(t *testing.T, session string, env []string) tool.Object {
 	t.Helper()
-	mock := sessionTool(t, env, "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
+	mock := sessionTool(t, env, "agent", "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
 	mock.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
 	var stderr strings.Builder
 	mock.Stderr = &stderr

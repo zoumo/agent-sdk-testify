@@ -247,14 +247,10 @@ func conformanceRecordFault() int {
 			}
 		case "cleanup":
 			slot := filepath.Join(descriptor.ResourceRoot, "routes", "record", "workspace")
-			var descriptor object
-			if readJSONFile(slot, &descriptor) != nil {
-				return 7
-			}
-			slot = str(obj(obj(descriptor["routes"])["mock"])["workspace"])
 			if os.Remove(slot) != nil || os.Mkdir(slot, 0o700) != nil {
 				return 7
 			}
+
 		default:
 			return 7
 		}

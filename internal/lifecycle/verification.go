@@ -45,6 +45,9 @@ func validateOfficialVerification(sessionDir string, session *Session, id string
 		v.Check(false, "official verify orchestration or admission failed")
 	}
 
+	if !reflect.DeepEqual(result["admission"], evidence["admission"]) {
+		v.Check(false, "persisted admission differs from verification evidence")
+	}
 	for _, item := range tool.Array(evidence["connections"]) {
 		ref := tool.Obj(item)
 		executionID := tool.Str(ref["executionId"])

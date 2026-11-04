@@ -1,7 +1,6 @@
 package official
 
 import (
-	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -130,8 +129,9 @@ func TestCodexIsolationBeforeRecording(t *testing.T) {
 	}
 	assert.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
 	assert.NoFileExists(t, filepath.Join(output, "config", "auth.json"))
-	var summary json.RawMessage
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "summary.json"), &summary))
+	var manifest tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "raw", "manifest.json"), &manifest))
+	require.Equal(t, "complete", manifest["captureStatus"])
 }
 
 func TestCodexIsolationRejectsCredentialEnvironmentOverrides(t *testing.T) {

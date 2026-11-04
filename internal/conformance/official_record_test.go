@@ -102,9 +102,7 @@ func controlledOfficialDriver(args []string) int {
 				return 4
 			}
 			if mode == "cancel-during" || mode == "hold-during" {
-				if mode == "hold-during" {
-					driverCheckpoint(request.Output, mode)
-				}
+				driverCheckpoint(request.Output, mode)
 				waitDriverCancellation()
 				_ = in.Close()
 				_ = cmd.Wait()
@@ -287,11 +285,16 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 			sourceBytes := readFile(t, str(source["path"]))
 			previous := currentMaterialID(t, session)
 			args := []string{"official", "record", "--session-dir", session}
-			if strings.HasPrefix(mode, "cancel-") {
+			if mode == "cancel-before" {
 				args = append(args, "--timeout", "1s")
 			}
 			args = append(args, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
-			command := runTool(t, env, t.TempDir(), "", args...)
+			var command commandResult
+			if mode == "cancel-during" {
+				command = cancelOfficialDuringProtocol(t, env, session, args...)
+			} else {
+				command = runTool(t, env, t.TempDir(), "", args...)
+			}
 			result := officialRunResult(t, session)
 			if mode == "local" || mode == "busy" {
 				require.Zero(t, command.code, command.stderr)

@@ -131,8 +131,8 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	resourceRoot := str(descriptor["resourceRoot"])
 	sourcePath := str(obj(descriptor["source"])["path"])
 	firstFinishResult, firstFinish := finishSession(t, env, session)
-	require.NotZero(t, firstFinishResult.code, firstFinishResult.stderr)
-	require.Equal(t, "failed", firstFinish["status"])
+	require.Zero(t, firstFinishResult.code, firstFinishResult.stderr)
+	require.Equal(t, "passed", firstFinish["status"])
 	require.Equal(t, true, firstFinish["cleanupComplete"])
 	require.Len(t, array(firstFinish["executions"]), 3)
 	for _, value := range array(firstFinish["executions"]) {
@@ -144,7 +144,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.FileExists(t, filepath.Join(str(secondCapture["path"]), "manifest.json"))
 
 	secondFinishResult, secondFinish := finishSession(t, env, session)
-	require.NotZero(t, secondFinishResult.code, secondFinishResult.stderr)
+	require.Zero(t, secondFinishResult.code, secondFinishResult.stderr)
 	require.Equal(t, firstFinish["status"], secondFinish["status"])
 	require.Equal(t, firstFinish["cleanupComplete"], secondFinish["cleanupComplete"])
 	require.Len(t, array(secondFinish["executions"]), 3)
@@ -174,7 +174,7 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	require.Equal(t, "SDK-CASE-001", plan["caseId"])
 	require.Equal(t, "continuation", plan["driverProfile"])
 	require.Equal(t, "personal-skills-v1", plan["recordingIsolation"])
-	require.Equal(t, execution["workspace"], plan["project"])
+	require.Equal(t, obj(obj(readJSON(t, filepath.Join(session, "session.json"))["routes"])["record"])["workspace"], plan["project"])
 	manifest := readJSON(t, filepath.Join(str(capture["path"]), "manifest.json"))
 	require.Equal(t, "capture", manifest["provenance"])
 	require.Equal(t, "captured", manifest["status"])
@@ -564,7 +564,7 @@ func TestFailedRecordKeepsLatestPublishedCapture(t *testing.T) {
 	latest := currentMaterialID(t, session)
 
 	failed := runTool(t, env, t.TempDir(), requestTwo,
-		"official", "record", "--session-dir", session, "--cmd", "/usr/bin/false", "--",
+		"agent", "record", "--session-dir", session, "--cmd", "/usr/bin/false", "--",
 		"app-server", "--listen", "stdio://",
 	)
 	require.NotZero(t, failed.code)

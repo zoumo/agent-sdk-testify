@@ -181,7 +181,7 @@ func recordConsumerRequest(t *testing.T, session string, env []string, request s
 	t.Helper()
 	agent, err := os.Executable()
 	require.NoError(t, err)
-	record := sessionTool(t, env, "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
+	record := sessionTool(t, env, "agent", "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	record.Stdin = strings.NewReader(request)
 	var stderr bytes.Buffer
 	record.Stderr = &stderr
@@ -195,7 +195,7 @@ func recordConsumerRequest(t *testing.T, session string, env []string, request s
 func TestPreparedHalfOpenMockFailsFinishAndRetainsEvidence(t *testing.T) {
 	mainInput, _ := builtinConnectionTranscript(t, "codex", "SDK-CASE-032", "main")
 	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-032")
-	main := sessionTool(t, env, "mock", "--session-dir", session, "--connection", "main", "--", "app-server", "--listen", "stdio://")
+	main := sessionTool(t, env, "agent", "mock", "--session-dir", session, "--connection", "main", "--", "app-server", "--listen", "stdio://")
 	main.Stdin = strings.NewReader(mainInput)
 	data, err := main.CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -242,7 +242,7 @@ func TestPreparedMockUsesCurrentWithoutRecordSource(t *testing.T) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
 	sourcePath := tool.Str(tool.Obj(descriptor["source"])["path"])
 	require.NoError(t, os.Remove(sourcePath))
-	cmd := sessionTool(t, env, "mock", "--session-dir", session)
+	cmd := sessionTool(t, env, "agent", "mock", "--session-dir", session)
 	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -257,7 +257,7 @@ func TestPreparedSessionTamperRejected(t *testing.T) {
 	descriptor["toolVersion"] = "tampered"
 	require.NoError(t, os.Chmod(path, 0o600))
 	require.NoError(t, tool.WriteJSON(path, descriptor))
-	data, err := sessionTool(t, env, "mock", "--session-dir", session).CombinedOutput()
+	data, err := sessionTool(t, env, "agent", "mock", "--session-dir", session).CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "session descriptor changed after prepare")
 }
@@ -420,7 +420,7 @@ func TestPreparedExecutionTamperRejectedByFinish(t *testing.T) {
 
 func TestPreparedConsumerRecordFailure(t *testing.T) {
 	session, env := consumerSession(t)
-	record := sessionTool(t, env, "record", "--session-dir", session, "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
+	record := sessionTool(t, env, "agent", "record", "--session-dir", session, "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
 	data, err := record.CombinedOutput()
 	require.Error(t, err, "%s", data)
 
@@ -606,7 +606,7 @@ func TestPreparedMockUsesSelectedArtifactProvenance(t *testing.T) {
 		"config/sessions/history.jsonl": "consumer\n",
 	})
 	session, env := preparedSessionWithArgs(t, "prepare", "--recording", root)
-	cmd := sessionTool(t, env, "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
+	cmd := sessionTool(t, env, "agent", "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
 	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -621,7 +621,7 @@ func TestPreparedMockUsesSelectedArtifactProvenance(t *testing.T) {
 func TestPreparedVerifyRejectsConsumerMaterial(t *testing.T) {
 	root := syntheticCaseMaterial(t, "SDK-CASE-001", "consumer", nil)
 	session, env := preparedSessionWithArgs(t, "prepare", "--recording", root)
-	data, err := sessionTool(t, env, "verify", "--session-dir", session).CombinedOutput()
+	data, err := sessionTool(t, env, "official", "verify", "--session-dir", session).CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "no applicable official verifier")
 	var index tool.Object

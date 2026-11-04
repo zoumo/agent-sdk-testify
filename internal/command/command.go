@@ -142,7 +142,7 @@ func recordCommand(streams IO) *cobra.Command {
 }
 
 func newRecordCommand(streams IO, officialMode bool) *cobra.Command {
-	var o record.Options
+	o := record.Options{ResultFD: -1}
 	c := &cobra.Command{
 		Use:   "record [flags] [-- ARG ...]",
 		Short: "Record a native Agent interaction in a prepared session",

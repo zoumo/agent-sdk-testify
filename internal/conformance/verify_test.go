@@ -131,7 +131,7 @@ func TestVerifyPrerequisitesBeforeExecution(t *testing.T) {
 			failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session)
 			require.NotZero(t, failed.code)
 			require.Empty(t, array(sessionIndex(t, session)["executions"]))
-			require.Equal(t, before, readExistingFiles(t, session, before))
+			require.Equal(t, before, readAllFiles(t, session))
 			entries, err := os.ReadDir(filepath.Join(session, "executions"))
 			require.NoError(t, err)
 			require.Len(t, entries, 1)

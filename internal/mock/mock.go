@@ -196,7 +196,16 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, *recording.
 			return nil, nil, err
 		}
 		if _, present := metadata["recordingFormat"]; present {
-			if _, err := recording.ValidateManifest(data, "raw.jsonl", document.Original); err != nil {
+			content := document.Original
+			// The top manifest's files.raw.jsonl binds main. Probe bytes are bound by
+			// remotePhaseFiles and their own raw manifest; validate each against its file.
+			if phase == "probe" && name == filepath.Join(sourceRoot, "manifest.json") {
+				content, err = os.ReadFile(filepath.Join(sourceRoot, "raw", "raw.jsonl"))
+				if err != nil {
+					return nil, nil, err
+				}
+			}
+			if _, err := recording.ValidateManifest(data, "raw.jsonl", content); err != nil {
 				return nil, nil, err
 			}
 		}

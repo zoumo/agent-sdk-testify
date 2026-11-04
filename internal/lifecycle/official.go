@@ -181,3 +181,21 @@ func (r *OfficialRun) WaitDriver(ctx context.Context, cmd *exec.Cmd) error {
 func TrackNativeProbe(run *ActionRun, state string, pid int) error {
 	return writeAtomic(filepath.Join(run.Dir, "receipts", run.Connection+".probe.native-process.json"), tool.Object{"state": state, "pid": pid})
 }
+
+// RestoreMockRoute settles the ordinary shared route only after all protocol
+// owners release it. Official verification owns no separate execution overlay.
+func (r *OfficialRun) RestoreMockRoute() error {
+	lock, err := actionLock(r.SessionDir, true)
+	if err != nil {
+		return err
+	}
+	defer lock.Close()
+	index, err := readIndex(IndexPath(r.SessionDir))
+	if err != nil {
+		return err
+	}
+	if pendingExecution(index) != nil {
+		return ErrBusy
+	}
+	return restoreRouteSlots(r.Session, "mock")
+}

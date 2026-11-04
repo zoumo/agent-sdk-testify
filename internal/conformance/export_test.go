@@ -117,7 +117,7 @@ func TestExportOfficialCaptureRoundTrip(t *testing.T) {
 	failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", external)
 	require.NotZero(t, failed.code)
 	require.Contains(t, failed.stderr, "no applicable official verifier")
-	require.Equal(t, before, readExistingFiles(t, external, before))
+	require.Equal(t, before, readAllFiles(t, external))
 	require.NoError(t, os.RemoveAll(output))
 	runPreparedMock(t, env, imported, "", conformanceRequest)
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--session-dir", imported)

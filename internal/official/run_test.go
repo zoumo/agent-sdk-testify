@@ -38,7 +38,11 @@ func TestMain(m *testing.M) {
 					var plan tool.Object
 					err = tool.ReadJSON(filepath.Join(o.Output, "plan.json"), &plan)
 					if err == nil {
-						err = capture.Run(ctx, capture.Options{Output: filepath.Join(o.Output, "raw"), Command: append([]string{tool.Str(plan["cli"])}, tool.Strings(plan["args"])...), CWD: tool.Str(plan["project"]), StdinEOFAction: "close", CleanupTimeout: time.Second}, capture.IO{In: os.Stdin, Out: os.Stdout, Err: os.Stderr})
+						cwd := tool.Str(plan["project"])
+						if plan["driverProfile"] == "existing-children" {
+							cwd = tool.Str(plan["historyProject"])
+						}
+						err = capture.Run(ctx, capture.Options{Output: filepath.Join(o.Output, "raw"), Command: append([]string{tool.Str(plan["cli"])}, tool.Strings(plan["args"])...), CWD: cwd, StdinEOFAction: "close", CleanupTimeout: time.Second}, capture.IO{In: os.Stdin, Out: os.Stdout, Err: os.Stderr})
 					}
 				} else {
 					var source *os.File
@@ -156,7 +160,17 @@ func runPreparationFixture(ctx context.Context, o preparationOptions) error {
 	if err := os.MkdirAll(filepath.Join(o.Output, "project"), 0o700); err != nil {
 		return err
 	}
-	plan["project"] = filepath.Join(o.Output, "project")
+	o.Output, err = filepath.EvalSymlinks(o.Output)
+	if err != nil {
+		return err
+	}
+	workspace := filepath.Join(o.Output, "project")
+	if o.Mode == "record" {
+		plan["project"] = workspace
+		delete(plan, "historySeed")
+		delete(plan, "historyProject")
+		delete(plan, "recordingIsolation")
+	}
 	for _, name := range []string{"home", "config", "tmp", "materials"} {
 		if err := os.MkdirAll(filepath.Join(o.Output, name), 0o700); err != nil {
 			return err
@@ -182,7 +196,7 @@ func runPreparationFixture(ctx context.Context, o preparationOptions) error {
 			return err
 		}
 		if tool.Str(plan["provider"]) == "claude" {
-			if err := history.MaterializeClaude(o.Materials, o.Output, tool.Str(plan["project"]), plan); err != nil {
+			if err := history.MaterializeClaude(o.Materials, o.Output, workspace, plan); err != nil {
 				return err
 			}
 		}
@@ -203,7 +217,7 @@ func runPreparationFixture(ctx context.Context, o preparationOptions) error {
 	if err != nil {
 		return err
 	}
-	request := Request{Case: tool.Str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Workspace: tool.Str(plan["project"]), Output: o.Output, Peer: DriverPeer{Command: tool.Command{Command: self, Args: []string{"preparation-kernel", string(encoded)}}}}
+	request := Request{Case: tool.Str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Workspace: workspace, Output: o.Output, Peer: DriverPeer{Command: tool.Command{Command: self, Args: []string{"preparation-kernel", string(encoded)}}}}
 	path := filepath.Join(o.Output, "request.json")
 	if err := tool.WriteJSON(path, request); err != nil {
 		return err

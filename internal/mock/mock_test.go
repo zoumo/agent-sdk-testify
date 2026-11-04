@@ -99,7 +99,7 @@ func TestMockRejectsUnsupportedSourceFormat(t *testing.T) {
 	prepare := sessionTool(t, os.Environ(), "prepare", "--session-dir", session, "--recording", root)
 	data, err := prepare.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	cmd := sessionTool(t, os.Environ(), "mock", "--session-dir", session)
+	cmd := sessionTool(t, os.Environ(), "agent", "mock", "--session-dir", session)
 	out, err := cmd.CombinedOutput()
 	require.Error(t, err)
 	assert.Equal(t, 1, cmd.ProcessState.ExitCode())
@@ -205,7 +205,7 @@ func TestMockRejectsInvalidSourcesBeforeProtocol(t *testing.T) {
 					assert.Equal(t, before, mockSourceBytes(t, root))
 					return
 				}
-				cmd = sessionTool(t, os.Environ(), "mock", "--session-dir", session)
+				cmd = sessionTool(t, os.Environ(), "agent", "mock", "--session-dir", session)
 			} else {
 				cmd, _ = preparedMockCommand(t, root, tc.args...)
 			}
@@ -346,7 +346,7 @@ func TestMockConsumptionNotificationBeforeEOF(t *testing.T) {
 func preparedMockCommand(t *testing.T, root string, args ...string) (*exec.Cmd, string) {
 	t.Helper()
 	session, env := preparedSessionWithArgs(t, "prepare", "--recording", root)
-	return sessionTool(t, env, append([]string{"mock", "--session-dir", session}, args...)...), session
+	return sessionTool(t, env, append([]string{"agent", "mock", "--session-dir", session}, args...)...), session
 }
 
 func readMockReceipt(session string, receipt *tool.Object) error {
