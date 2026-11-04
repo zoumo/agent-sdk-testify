@@ -135,7 +135,7 @@ func TestNewRecordDoesNotInheritVerification(t *testing.T) {
 	require.Zero(t, finished.code, finished.stderr)
 }
 
-func TestRecordingRecordPrerequisitesFailBeforeExecution(t *testing.T) {
+func TestRecordingRecordUsesProtocolPrerequisites(t *testing.T) {
 	for _, fault := range []string{"missing-driver-binding", "source-history-drift"} {
 		t.Run(fault, func(t *testing.T) {
 			root := t.TempDir()
@@ -156,13 +156,20 @@ func TestRecordingRecordPrerequisitesFailBeforeExecution(t *testing.T) {
 				require.NoError(t, os.Remove(filepath.Join(material, "material.json")))
 			}
 			session := prepareSession(t, env, "--recording", material)
+			if fault == "missing-driver-binding" {
+				result, reference := runAgentResult(t, env, session, requestTwo, "record", "--cmd", agent, "--", "app-server", "--listen", "stdio://")
+				require.Zero(t, result.code, result.stderr)
+				require.Equal(t, "passed", reference["status"])
+				require.Equal(t, "external", obj(reference["material"])["provenance"])
+				return
+			}
 			if fault == "source-history-drift" {
 				source := str(obj(readJSON(t, filepath.Join(session, "session.json"))["source"])["path"])
 				require.NoError(t, os.WriteFile(filepath.Join(source, "config", "sessions", "conformance-history.jsonl"), []byte("changed\n"), 0o600))
 			}
 			index := readFile(t, filepath.Join(session, "executions", "index.json"))
 			current := readFile(t, filepath.Join(session, "current.json"))
-			result := runTool(t, env, t.TempDir(), requestTwo, "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
+			result := runTool(t, env, t.TempDir(), requestTwo, "agent", "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 			require.NotZero(t, result.code)
 			require.Equal(t, index, readFile(t, filepath.Join(session, "executions", "index.json")))
 			require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))

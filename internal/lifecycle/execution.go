@@ -397,7 +397,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 		if route.Executor != "official-driver" && route.Executor != "external-sdk" {
 			return nil, errors.New("record source has no executable route")
 		}
-		if route.Executor == "external-sdk" && !filepath.IsAbs(tool.Str(plan["project"])) {
+		if !filepath.IsAbs(route.ProtocolCwd) {
 			return nil, errors.New("record source requires an absolute protocol cwd")
 		}
 	}

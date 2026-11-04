@@ -322,7 +322,7 @@ func writeConsumerPlan(t *testing.T, base, caseID string) string {
 func recordConsumer(t *testing.T, env []string, session, agent, request string) object {
 	t.Helper()
 	result := mustRun(t, env, t.TempDir(), request,
-		"record", "--session-dir", session, "--cmd", agent, "--",
+		"agent", "record", "--session-dir", session, "--cmd", agent, "--",
 		"app-server", "--listen", "stdio://",
 	)
 	var responses []object
@@ -341,7 +341,7 @@ func recordConsumer(t *testing.T, env []string, session, agent, request string) 
 
 func runPreparedMock(t *testing.T, env []string, session, connection, request string, extra ...string) commandResult {
 	t.Helper()
-	args := []string{"mock", "--session-dir", session}
+	args := []string{"agent", "mock", "--session-dir", session}
 	if connection != "" {
 		args = append(args, "--connection", connection)
 	}

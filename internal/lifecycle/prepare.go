@@ -148,7 +148,7 @@ func cleanMockConfig(root string, plan tool.Object, provider string) error {
 
 func writeConnectionLauncher(root, id, self, sessionDir string) (string, error) {
 	quote := func(value string) string { return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'" }
-	invocation := strings.Join([]string{quote(self), quote("mock"), quote("--session-dir"), quote(sessionDir), quote("--connection"), quote(id)}, " ")
+	invocation := strings.Join([]string{quote(self), quote("agent"), quote("mock"), quote("--session-dir"), quote(sessionDir), quote("--connection"), quote(id)}, " ")
 	path := filepath.Join(root, "peer-"+id)
 	script := "#!/bin/sh\nexec " + invocation + " -- \"$@\"\n"
 	if err := os.MkdirAll(root, 0o700); err != nil {
@@ -374,7 +374,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 		route := Route{
 			Enabled:     true,
-			Executor:    map[string]string{"record": "official-driver", "verify": "official-driver", "mock": "external-sdk"}[action],
+			Executor:    map[string]string{"record": "external-sdk", "verify": "official-driver", "mock": "external-sdk"}[action],
 			Target:      map[string]string{"record": "native-agent", "verify": "replay", "mock": "replay"}[action],
 			Provenance:  session.Source.Provenance,
 			Workspace:   filepath.Join(routeRoot, "workspace"),
@@ -383,15 +383,16 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 		if action == "record" {
 			route.RuntimeEnv = environmentNames(privateEnv)
-		}
-		if action == "record" && session.Source.Provenance == "consumer" {
-			route.Executor = "external-sdk"
+			route.Provenance, err = executionProvenance(session, action, nil)
+			if err != nil {
+				return nil, err
+			}
 		}
 		for _, id := range ids {
-			template := ConnectionTemplate{ID: id, Command: self.Command, Args: []string{"mock", "--session-dir", sessionDir, "--connection", id}}
+			template := ConnectionTemplate{ID: id, Command: self.Command, Args: []string{"agent", "mock", "--session-dir", sessionDir, "--connection", id}}
 			switch action {
 			case "record":
-				template.Args = []string{"record", "--session-dir", sessionDir, "--cmd"}
+				template.Args = []string{"agent", "record", "--session-dir", sessionDir, "--cmd"}
 			case "verify":
 				template.Args = []string{"verify", "--session-dir", sessionDir}
 			}

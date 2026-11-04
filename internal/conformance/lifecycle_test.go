@@ -46,7 +46,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	agent, err := filepath.EvalSymlinks(agent)
 	require.NoError(t, err)
 	require.Equal(t,
-		append(stringsOf(recordConnection["args"])[1:], agent, "--", "app-server", "--listen", "stdio://"),
+		append(stringsOf(recordConnection["args"])[2:], agent, "--", "app-server", "--listen", "stdio://"),
 		stringsOf(firstRecord["args"]),
 	)
 	require.NoError(t, os.WriteFile(filepath.Join(str(firstRecord["workspace"]), "only-first.txt"), []byte("first\n"), 0o600))
@@ -168,9 +168,9 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	)
 	require.NotEmpty(t, record.stdout)
 	recordExecution := latestExecution(t, session, "record")
-	require.Equal(t, "official-driver", recordExecution["executor"])
+	require.Equal(t, "external-sdk", recordExecution["executor"])
 	require.Equal(t, "native-agent", recordExecution["target"])
-	require.Equal(t, "official", recordExecution["provenance"])
+	require.Equal(t, "external", recordExecution["provenance"])
 
 	capture := latestCapture(t, session)
 	require.Equal(t, "capture", capture["kind"])
@@ -267,8 +267,9 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 	_, _, env := isolatedCommands(t, root, "codex")
 	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-032")
 
-	runPreparedMock(t, env, session, "main", inputs["main"])
-	execution := latestExecution(t, session, "mock")
+	mainRun, mainResult := runAgentResult(t, env, session, inputs["main"], "mock", "--connection", "main")
+	require.Zero(t, mainRun.code, mainRun.stderr)
+	execution := readJSON(t, str(mainResult["execution"]))
 	connections := array(execution["connections"])
 	require.Len(t, connections, 2)
 	receipts := map[string]object{}
@@ -291,7 +292,12 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 	require.Len(t, array(openIndex["executions"]), 1)
 	require.Equal(t, "open", obj(array(openIndex["executions"])[0])["status"])
 
-	runPreparedMock(t, env, session, "probe", inputs["probe"])
+	probeRun, probeResult := runAgentResult(t, env, session, inputs["probe"], "mock", "--connection", "probe")
+	require.Zero(t, probeRun.code, probeRun.stderr)
+	require.Equal(t, mainResult["executionId"], probeResult["executionId"])
+	require.Equal(t, "main", mainResult["connectionId"])
+	require.Equal(t, "probe", probeResult["connectionId"])
+	require.NotEqual(t, mainResult["result"], probeResult["result"])
 	require.FileExists(t, str(probeReceipt["receipt"]))
 	require.FileExists(t, str(probeReceipt["processReceipt"]))
 	closedIndex := sessionIndex(t, session)

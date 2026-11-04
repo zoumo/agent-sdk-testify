@@ -89,6 +89,9 @@ func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 		{"--connection", "undeclared"},
 		{"--timeout", "-1"},
 		{"--progress-fd", "1"},
+		{"--result-fd", "0"},
+		{"--result-fd", "1"},
+		{"--result-fd", "3", "--progress-fd", "3"},
 		{"app-server", "--listen", "http://localhost:1"},
 		{"--sdk-test-handshakes", "answer"},
 	} {

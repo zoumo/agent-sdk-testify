@@ -229,6 +229,40 @@ SHA-256 写入 `manifest.savedFiles`。`plan.json` 不被改写，`planSHA256` �
 未被改写。SDK 在回放期间可以创建新的会话或历史文件，但不能修改已绑定的种子文件。
 没有历史种子的录制从空状态开始，只覆盖本次协议交互。
 
+## 协议执行结果
+
+`agent record` 和 `agent mock` 都接受可选的 `--result-fd N`（N ≥ 3）。
+调用方为该次进程传入独立的可写文件或管道描述符；协议 stdout 不包含结果通知。
+例如，在已应用 route 环境的宿主中保存一次调用的结果：
+
+```sh
+agent-sdk-testify agent record --session-dir /absolute/session \
+  --result-fd 3 --cmd /absolute/agent -- app-server --listen stdio:// \
+  3>/absolute/record-result.jsonl
+```
+
+领取 execution 后，命令先写入一条 `status: running` JSONL 通知，结束时再写入
+`passed` 或 `failed` 通知。领取前失败不会通知或创建 execution。每条通知包含
+`sessionId`、`executionId`、`connectionId`、`command`、`execution` descriptor 路径、
+`receipt` 和持久 `result` 路径；mock 还包含 `processReceipt`。最终通知包含
+`executionSHA256`；成功 record 和所有 mock 通知中的 `material` 包含精确材料 ID、
+路径及 plan、manifest、raw 哈希。record 失败不把未发布材料当成成功材料引用。
+
+即使不传 `--result-fd`，同一结果仍保存在
+`executions/<executionId>/receipts/<connectionId>.result.json`。
+结果通知通过本次进程明确关联身份，调用方不得扫描最新目录来猜测归属。
+单个 connection 的 `passed` 不代表同一 execution 的其他 connection 已完成；
+完整状态以 execution index 和各 receipt 为准。多连接调用分别使用独立结果描述符。
+通知写入响应取消，每条通知最多等待 1 秒；
+管道无人读取或已关闭时命令失败，持久结果文件仍可读取。最终通知在取消后仍作
+最多 1 秒的有界写入。描述符只用于通知，不得与协议或其他输出共享。
+launcher 只转发原生参数；需要结果通知时，使用 route 的 `command` 和 `args`
+直接启动，并在原生参数分隔符之前传 `--result-fd`。
+
+record 在采集、材料闭包和清理完成后发布 current，并返回自身结果，不等待父 SDK
+宿主的业务报告。case source 的直接 agent record 也只代理真实 Agent；其材料保持
+external provenance，官方业务事实由 official 编排另行保存和核验。
+
 ## 使用 mock
 
 ```sh

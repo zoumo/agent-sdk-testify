@@ -423,18 +423,13 @@ func planModel(plan tool.Object) string {
 	return tool.Str(plan["model"])
 }
 
-// A recording provides an executor only when its own plan identifies a usable
-// consumer contract or a known official driver binding. Current never selects it.
+// Recording uses its saved protocol plan, independent of an official SDK binding.
 func recordingExecutor(plan tool.Object, agent, provenance string) string {
-	if provenance == "consumer" {
-		if validateConsumerPlan(plan) == nil {
-			return "external-sdk"
-		}
+	if provenance == "consumer" && validateConsumerPlan(plan) != nil {
 		return ""
 	}
-	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: agent, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
-	if err != nil || tool.Str(plan["driverProfile"]) == "" || tool.Str(plan["driverProfile"]) != tool.Str(bound["driverProfile"]) {
+	if agent == "codex" && !filepath.IsAbs(tool.Str(plan["project"])) {
 		return ""
 	}
-	return "official-driver"
+	return "external-sdk"
 }

@@ -21,6 +21,7 @@ type Options struct {
 	SessionDir string
 	Connection string
 	Timeout    time.Duration
+	ResultFD   int
 	ProgressFD int
 	NativeArgs []string
 }

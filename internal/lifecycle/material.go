@@ -162,8 +162,12 @@ func validateArtifactProvenance(session *Session, artifact Artifact, plan, manif
 	switch claimed {
 	case "official":
 		if artifact.Kind == "capture" {
-			if artifact.Action != "record" || session.Routes["record"].Executor != "official-driver" {
+			if artifact.Action != "record" || session.Source.Provenance == "consumer" {
 				return errors.New("official capture provenance conflicts with its action or source")
+			}
+			bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: session.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
+			if err != nil || tool.Str(plan["driverProfile"]) == "" || tool.Str(plan["driverProfile"]) != tool.Str(bound["driverProfile"]) {
+				return errors.New("official capture has no applicable driver binding")
 			}
 			if selected != "external" || tool.Str(manifest["provenance"]) != "capture" {
 				return errors.New("official capture manifest does not claim a capture")
@@ -197,14 +201,14 @@ func executionProvenance(session *Session, action string, material *Artifact) (s
 	case "record":
 		switch session.Source.Kind {
 		case "case":
-			return "official", nil
+			return "external", nil
 		case "plan":
 			return "consumer", nil
 		case "recording":
-			if session.Source.Provenance == "builtin" {
-				return "official", nil
+			if session.Source.Provenance == "consumer" {
+				return "consumer", nil
 			}
-			return session.Source.Provenance, nil
+			return "external", nil
 		default:
 			return "", errors.New("record source is unknown")
 		}

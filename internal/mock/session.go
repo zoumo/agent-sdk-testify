@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol"
@@ -14,6 +15,13 @@ import (
 )
 
 func mockSession(ctx context.Context, o Options) (err error) {
+	result, err := lifecycle.ResultStream(o.ResultFD)
+	if err != nil {
+		return err
+	}
+	if result != nil {
+		defer result.Close()
+	}
 	if o.Timeout < 0 {
 		return errors.New("mock timeout must be nonnegative")
 	}
@@ -49,8 +57,10 @@ func mockSession(ctx context.Context, o Options) (err error) {
 		return err
 	}
 	defer func() { err = errors.Join(err, run.Close()) }()
-	if err := os.Chdir(run.Execution.Workspace); err != nil {
-		return err
+	if run.Execution.Limits.TimeoutNS > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(run.Execution.Limits.TimeoutNS))
+		defer cancel()
 	}
 
 	connectionPath, processPath, err := mockConnectionPaths(run, o.Connection)
@@ -83,10 +93,20 @@ func mockSession(ctx context.Context, o Options) (err error) {
 			process["error"] = err.Error()
 		}
 		processErr := tool.WriteJSON(processPath, process)
+		if processErr != nil {
+			status = "failed"
+		}
 		indexErr := lifecycle.CompleteMockConnection(run, status)
 		err = errors.Join(err, processErr, indexErr)
+		err = errors.Join(err, lifecycle.WriteActionResult(ctx, run, result, err))
 	}()
 
+	if err := lifecycle.NotifyActionStarted(ctx, run, result); err != nil {
+		return err
+	}
+	if err := os.Chdir(run.Execution.Workspace); err != nil {
+		return err
+	}
 	return replayConnection(ctx, o, artifact.Path, session.AgentType, o.Connection, connectionPath)
 }
 

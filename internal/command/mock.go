@@ -29,6 +29,7 @@ func newMockCommand() *cobra.Command {
 	f.StringVar(&o.SessionDir, "session-dir", "", "Prepared session directory")
 	f.StringVar(&o.Connection, "connection", "main", "Declared connection ID")
 	f.Float64Var(&seconds, "timeout", 0, "Seconds; zero uses material/session defaults")
+	f.IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
 	f.IntVar(&o.ProgressFD, "progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
 	f.BoolVarP(&help, "help", "h", false, "Help for mock")
 	c.RunE = func(c *cobra.Command, args []string) error {
@@ -53,6 +54,12 @@ func newMockCommand() *cobra.Command {
 }
 
 func validateMockModes(o mock.Options) error {
+	if err := validateResultFD(o.ResultFD); err != nil {
+		return err
+	}
+	if o.ResultFD >= 3 && o.ResultFD == o.ProgressFD {
+		return errors.New("result-fd and progress-fd must use separate descriptors")
+	}
 	if o.SessionDir == "" {
 		return errors.New("mock requires --session-dir")
 	}
@@ -106,4 +113,11 @@ func secondsDuration(seconds float64) (time.Duration, error) {
 		return 0, errors.New("mock timeout must be at least one nanosecond")
 	}
 	return duration, nil
+}
+
+func validateResultFD(fd int) error {
+	if fd != -1 && fd < 3 {
+		return errors.New("result-fd must be >=3")
+	}
+	return nil
 }

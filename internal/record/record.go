@@ -1,6 +1,4 @@
-// Package record owns the public record action. Official runtime preparation
-// and driver execution stay in internal/official; consumer plans use the same
-// stdio capture transport as the internal protocol command.
+// Package record owns native protocol capture in a prepared execution.
 package record
 
 import (
@@ -28,9 +26,31 @@ type Options struct {
 	Command    string
 	NativeArgs []string
 	Timeout    time.Duration
+	ResultFD   int
 }
 
-func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
+func Run(ctx context.Context, o Options, streams capture.IO) error {
+	return run(ctx, o, streams, false)
+}
+
+// RunLegacy retains the old official orchestration until its replacement lands.
+func RunLegacy(ctx context.Context, o Options, streams capture.IO) error {
+	return run(ctx, o, streams, true)
+}
+
+func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runErr error) {
+	if o.Timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
+		defer cancel()
+	}
+	result, err := lifecycle.ResultStream(o.ResultFD)
+	if err != nil {
+		return err
+	}
+	if result != nil {
+		defer result.Close()
+	}
 	executable, err := validateCommand(o.Command)
 	if err != nil {
 		return err
@@ -59,12 +79,16 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 			evidence := tool.Object{"schemaVersion": 1, "status": "failed", "error": runErr.Error(), "cleanupComplete": scrubErr == nil && finishErr == nil}
 			runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(run.ArtifactRoot, "failure.json"), evidence))
 		}
+		runErr = errors.Join(runErr, lifecycle.WriteActionResult(ctx, run, result, runErr))
 		runErr = errors.Join(runErr, run.Close())
 	}()
-	if session.Routes["record"].Executor == "official-driver" {
+	if err := lifecycle.NotifyActionStarted(ctx, run, result); err != nil {
+		return err
+	}
+	if legacy && session.Source.Provenance != "consumer" {
 		runErr = recordOfficial(ctx, run, executable, o.NativeArgs, o.Timeout, streams.Out)
 	} else {
-		runErr = recordConsumer(ctx, run, executable, o.NativeArgs, o.Timeout, streams)
+		runErr = captureNative(ctx, run, executable, o.NativeArgs, o.Timeout, streams)
 	}
 	if runErr == nil {
 		status = "passed"
@@ -126,7 +150,7 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 	if err != nil {
 		return err
 	}
-	artifact, err := captureArtifact(run, run.Execution.Provenance)
+	artifact, err := captureArtifact(run, "official")
 	if err != nil {
 		return err
 	}
@@ -136,7 +160,7 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 	return errors.New("official record capture is incomplete")
 }
 
-func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, timeout time.Duration, streams capture.IO) error {
+func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, timeout time.Duration, streams capture.IO) error {
 	planPath := run.Execution.Source.Path
 	if run.Execution.Source.Kind == "recording" {
 		planPath = filepath.Join(planPath, "plan.json")
@@ -170,7 +194,7 @@ func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command strin
 	if err := snapshotHistory(run.OverlayRoot, run.ArtifactRoot); err != nil {
 		return errors.Join(captureErr, err)
 	}
-	manifest, manifestErr := writeConsumerManifest(run.ArtifactRoot, run.Execution.RuntimeEnv, captureErr)
+	manifest, manifestErr := writeCaptureManifest(run.ArtifactRoot, run.Execution.RuntimeEnv, run.Execution.Provenance, captureErr)
 	if manifestErr != nil {
 		return errors.Join(captureErr, manifestErr)
 	}
@@ -186,8 +210,8 @@ func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command strin
 		"nativeLaunched":  transport["nativeLaunched"],
 		"clientEOF":       transport["clientEOF"],
 		"cleanupComplete": transport["cleanupComplete"],
-		"consumer":        true,
-		"provenance":      "consumer",
+		"consumer":        run.Execution.Provenance == "consumer",
+		"provenance":      run.Execution.Provenance,
 	}
 	if captureErr == nil && manifest["captureStatus"] == "complete" {
 		report["status"] = "captured"
@@ -202,9 +226,9 @@ func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command strin
 		return captureErr
 	}
 	if manifest["captureStatus"] != "complete" {
-		return errors.New("consumer record capture is incomplete")
+		return errors.New("record capture is incomplete")
 	}
-	artifact, err := captureArtifact(run, "consumer")
+	artifact, err := captureArtifact(run, run.Execution.Provenance)
 	if err != nil {
 		return err
 	}
@@ -319,7 +343,7 @@ func captureArtifact(run *lifecycle.ActionRun, provenance string) (*lifecycle.Ar
 	return &artifact, nil
 }
 
-func writeConsumerManifest(root string, env map[string]string, captureErr error) (map[string]any, error) {
+func writeCaptureManifest(root string, env map[string]string, provenance string, captureErr error) (map[string]any, error) {
 	files := map[string]any{}
 	entries, err := os.ReadDir(filepath.Join(root, "raw"))
 	if err != nil {
@@ -394,7 +418,7 @@ func writeConsumerManifest(root string, env map[string]string, captureErr error)
 	}
 	manifest := map[string]any{
 		"schemaVersion":   1,
-		"provenance":      "consumer",
+		"provenance":      provenance,
 		"status":          status,
 		"planSHA256":      planHash,
 		"runSHA256":       runHash,

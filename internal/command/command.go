@@ -56,7 +56,7 @@ func New(streams IO) *cobra.Command {
 	root.CompletionOptions.DisableDefaultCmd = true
 	root.AddCommand(
 		prepareCommand(),
-		recordCommand(streams),
+		legacyRecordCommand(streams),
 		verifyCommand(),
 		mockCommand(),
 		exportCommand(),
@@ -65,6 +65,9 @@ func New(streams IO) *cobra.Command {
 		protocolCommand(streams),
 		peerCommand(streams),
 	)
+	agent := &cobra.Command{Use: "agent", Short: "Native Agent protocol peers", Args: cobra.NoArgs}
+	agent.AddCommand(recordCommand(streams), mockCommand())
+	root.AddCommand(agent)
 	registerGenerate(root, streams)
 	return root
 }
@@ -137,15 +140,24 @@ func prepareCommand() *cobra.Command {
 }
 
 func recordCommand(streams IO) *cobra.Command {
+	return newRecordCommand(streams, false)
+}
+
+func legacyRecordCommand(streams IO) *cobra.Command {
+	return newRecordCommand(streams, true)
+}
+
+func newRecordCommand(streams IO, legacy bool) *cobra.Command {
 	var o record.Options
 	c := &cobra.Command{
-		Use:   "record [flags] -- EXECUTABLE [ARG ...]",
+		Use:   "record --cmd EXECUTABLE [flags] -- ARG [ARG ...]",
 		Short: "Record a native Agent interaction in a prepared session",
 		Args:  cobra.ArbitraryArgs,
 	}
 	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
 	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
+	c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
 	c.RunE = func(c *cobra.Command, args []string) error {
 		if c.ArgsLenAtDash() != 0 || len(args) == 0 {
 			return errors.New("record requires --cmd and a -- separator")
@@ -159,6 +171,9 @@ func recordCommand(streams IO) *cobra.Command {
 		if o.Timeout < 0 {
 			return errors.New("timeout must be nonnegative")
 		}
+		if err := validateResultFD(o.ResultFD); err != nil {
+			return err
+		}
 		o.NativeArgs = append([]string(nil), args...)
 		session, err := lifecycle.OpenSession(o.SessionDir)
 		if err != nil {
@@ -166,6 +181,9 @@ func recordCommand(streams IO) *cobra.Command {
 		}
 		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
 			return err
+		}
+		if legacy {
+			return record.RunLegacy(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 		}
 		return record.Run(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 	}
