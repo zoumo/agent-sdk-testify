@@ -5,7 +5,7 @@ BIN_DIR ?= bin
 ARTIFACT_DIR ?= .artifacts
 BINARY ?= $(BIN_DIR)/agent-sdk-testify
 
-.PHONY: all fmt lint fmt-check test test-race vet build bundle check release clean
+.PHONY: all fmt lint fmt-check test test-integration test-e2e test-build test-race vet build bundle check release clean
 
 all: check
 
@@ -19,10 +19,19 @@ fmt-check:
 	$(GOLANGCI_LINT) fmt --diff
 
 test:
-	$(GO) test ./...
+	$(GO) test ./internal/...
+
+test-integration:
+	$(GO) test ./tests/intergration/...
+
+test-e2e:
+	GO="$(GO)" bash scripts/with-agent-sdk-testify.sh --race $(GO) test -race ./test/e2e/...
+
+test-build:
+	$(GO) test ./tests/build/...
 
 test-race:
-	$(GO) test -race ./...
+	$(GO) test -race ./internal/... ./tests/intergration/...
 
 vet:
 	$(GO) vet ./...

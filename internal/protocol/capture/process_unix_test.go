@@ -3,10 +3,6 @@
 package capture
 
 import (
-	"os"
-	"os/exec"
-	"sync"
-	"syscall"
 	"testing"
 	"time"
 
@@ -14,37 +10,39 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCaptureWaitHelper(t *testing.T) {
-	if os.Getenv("AGENT_MOCK_CAPTURE_WAIT_TEST") != "1" {
-		return
-	}
-	for {
-		time.Sleep(time.Hour)
-	}
-}
-
 func TestNativeWaitCanJoinAtCleanupDeadline(t *testing.T) {
-	executable, err := os.Executable()
-	require.NoError(t, err)
-	cmd := exec.CommandContext(t.Context(), executable, "-test.run=^TestCaptureWaitHelper$")
-	cmd.Env = append(os.Environ(), "AGENT_MOCK_CAPTURE_WAIT_TEST=1")
-	require.NoError(t, cmd.Start())
-	pid := cmd.Process.Pid
-	t.Cleanup(func() {
-		_ = syscall.Kill(pid, syscall.SIGKILL)
-		var status syscall.WaitStatus
-		_, _ = syscall.Wait4(pid, &status, 0, nil)
-	})
 	abandon := make(chan struct{})
 	result := make(chan nativeExit, 1)
-	var processMu sync.Mutex
-	go func() { result <- waitNative(cmd, &processMu, abandon) }()
+	released := make(chan struct{})
+	// A still-running child produces no exit. Close abandon after polling starts,
+	// so the test covers the same cleanup deadline without launching a process.
+	polled := make(chan struct{}, 1)
+	go func() {
+		result <- waitNativeExit(func() (nativeExit, bool) {
+			select {
+			case polled <- struct{}{}:
+			default:
+			}
+			return nativeExit{}, false
+		}, func() { close(released) }, abandon)
+	}()
+	select {
+	case <-polled:
+	case <-time.After(time.Second):
+		close(abandon)
+		t.Fatal("native waiter did not start polling")
+	}
 	close(abandon)
 	select {
 	case exit := <-result:
 		assert.False(t, exit.reaped)
 		assert.Nil(t, exit.code)
 		require.ErrorContains(t, exit.err, "cleanup deadline")
+		select {
+		case <-released:
+		default:
+			t.Fatal("native handle was not released")
+		}
 	case <-time.After(time.Second):
 		t.Fatal("native waiter did not join after cleanup deadline")
 	}

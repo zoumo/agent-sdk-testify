@@ -224,15 +224,23 @@ func waitNative(cmd *exec.Cmd, processMu *sync.Mutex, abandon <-chan struct{}) n
 		}
 		return nativeExit{}, false
 	}
+	return waitNativeExit(poll, func() {
+		processMu.Lock()
+		_ = cmd.Process.Release()
+		processMu.Unlock()
+	}, abandon)
+}
+
+// Keep the bounded wait policy independent of OS process creation. The caller
+// owns polling and release, including synchronization with direct-child signals.
+func waitNativeExit(poll func() (nativeExit, bool), release func(), abandon <-chan struct{}) nativeExit {
 	for {
 		if result, done := poll(); done {
 			return result
 		}
 		select {
 		case <-abandon:
-			processMu.Lock()
-			_ = cmd.Process.Release()
-			processMu.Unlock()
+			release()
 			return nativeExit{err: errors.New("native process not reaped by cleanup deadline")}
 		case <-time.After(5 * time.Millisecond):
 		}

@@ -73,8 +73,8 @@ func mockReference(sessionDir string, session *lifecycle.Session, root, id strin
 			return ref, errors.New("execution notification reference mismatch")
 		}
 	}
-	if started["status"] != "running" || finished["status"] != "passed" || process["started"] != true || process["error"] != nil || process["exitCode"] != float64(0) || process["reaped"] != true || process["cleanupComplete"] != true {
-		return ref, errors.New("protocol process failed or was not reaped")
+	if err := validatePeerExit(started, finished, process); err != nil {
+		return ref, err
 	}
 	var durable tool.Object
 	if err := tool.ReadJSON(filepath.Join(dir, "receipts", id+".result.json"), &durable); err != nil {
@@ -164,6 +164,13 @@ func snapshotMocks(root string, refs []tool.Object) error {
 			files[filepath.ToSlash(relative)] = hash
 		}
 		ref["evidenceFiles"] = files
+	}
+	return nil
+}
+
+func validatePeerExit(started, finished, process tool.Object) error {
+	if started["status"] != "running" || finished["status"] != "passed" || process["started"] != true || process["error"] != nil || process["exitCode"] != float64(0) || process["reaped"] != true || process["cleanupComplete"] != true {
+		return errors.New("protocol process failed or was not reaped")
 	}
 	return nil
 }

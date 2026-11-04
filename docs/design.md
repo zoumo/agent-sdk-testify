@@ -536,8 +536,8 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 
 ## 测试边界
 
-工具通过 installed CLI 和消费者实际使用的进程接口验证 session 合同，不直接调用
-lifecycle 函数。至少覆盖：
+完整流程验收通过 installed CLI 和消费者实际使用的进程接口验证 session 合同，不直接调用
+lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
 
 - prepare 完整复制材料后，删除原始路径仍可 verify、mock 和 export。
 - record 成功原子替换 current；record 失败保留 execution 且 current 不变。

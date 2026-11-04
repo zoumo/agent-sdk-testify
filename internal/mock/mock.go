@@ -71,17 +71,7 @@ func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, 
 	receipt["provenance"] = manifest["provenance"]
 	receipt["recordingSHA256"] = document.SHA256
 	receipt["frames"] = len(document.Frames)
-	timeout := o.Timeout
-	if timeout == 0 {
-		timeout = document.Timeout
-	}
-	if timeout == 0 {
-		timeout = 30 * time.Second
-		if agent == "claude" {
-			timeout = 10 * time.Second
-		}
-	}
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+	ctx, cancel := context.WithTimeout(ctx, replayTimeout(agent, o.Timeout, document.Timeout))
 	defer cancel()
 	consumed, e := mockProtocolNotifying(ctx, document, notification)
 	receipt["fullConsumption"] = consumed
@@ -235,4 +225,17 @@ func atomicMockJSON(path string, value any) error {
 		return err
 	}
 	return os.Rename(temp, path)
+}
+
+func replayTimeout(agent string, explicit, scenario time.Duration) time.Duration {
+	if explicit != 0 {
+		return explicit
+	}
+	if scenario != 0 {
+		return scenario
+	}
+	if agent == "claude" {
+		return 10 * time.Second
+	}
+	return 30 * time.Second
 }

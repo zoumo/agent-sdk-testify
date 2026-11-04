@@ -247,9 +247,8 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 	reportErr := tool.ReadJSON(filepath.Join(root, "replay-report.json"), &report)
 	evidence["business"], evidence["report"], evidence["officialSDK"] = outcome, report, report["officialSDK"]
 	runErr = errors.Join(runErr, outcomeErr, reportErr)
-	sdk := tool.Obj(report["officialSDK"])
-	if outcome["status"] != "passed" || report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["caseId"] != plan["caseId"] || report["storyId"] != bound["storyId"] || report["provider"] != session.AgentType || sdk["package"] != map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[session.AgentType] || tool.Str(sdk["version"]) == "" {
-		runErr = errors.Join(runErr, errors.New("official SDK business evidence is absent, failed or untriggered"))
+	if err := validateBusinessEvidence(session.AgentType, plan, bound, outcome, report); err != nil {
+		runErr = errors.Join(runErr, err)
 	}
 	refs, refErr := mockReferences(o.SessionDir, session, root, material.Connections, *material, previous)
 	evidence["connections"] = refs
@@ -304,4 +303,12 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 		}
 	}
 	return runErr
+}
+
+func validateBusinessEvidence(agent string, plan, bound, outcome, report tool.Object) error {
+	sdk := tool.Obj(report["officialSDK"])
+	if outcome["status"] != "passed" || report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["caseId"] != plan["caseId"] || report["storyId"] != bound["storyId"] || report["provider"] != agent || sdk["package"] != map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[agent] || tool.Str(sdk["version"]) == "" {
+		return errors.New("official SDK business evidence is absent, failed or untriggered")
+	}
+	return nil
 }

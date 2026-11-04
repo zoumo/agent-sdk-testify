@@ -41,16 +41,25 @@
 ## 独立构建与离线测试
 
 使用 Go 1.26 和 golangci-lint 2.12.2，不需要 Go SDK checkout、Go driver 或官方 SDK。
-默认 Go 测试会构建自有工具进程；也可显式提供绝对路径 `AGENT_SDK_TESTIFY_BIN` 检查已有产物。
+`make test` 只运行随代码的单元测试，不构建 CLI。集成和完整流程分别运行：
 
 ```sh
 make build
-make test
-make test-race
+make test                 # 单元测试
+make test-integration     # 多模块协作，必要的受控进程
+make test-race            # 单元与集成的 race 检查
+make test-e2e             # 构建一次 race CLI，运行完整流程
+make test-build           # 生成器、产物模式和发布冒烟
+make check                # 完整离线门禁
 make vet
 make lint
 make fmt
 ```
+
+`go test ./...` 会选择全部层，并非快速入口。直接运行 E2E 时，用
+`bash scripts/with-agent-sdk-testify.sh --race go test -race ./test/e2e/...`；
+也可传绝对路径 `AGENT_SDK_TESTIFY_BIN` 复用产物，构建模式必须与测试一致。
+测试包不自行构建 CLI。测试分层规则见[开发规范](docs/development.md#测试)。
 
 脚本测试和 wheel 构建需要 Python 3.11+、pip 和已安装的 setuptools>=68；不会安装官方 SDK。
 `make bundle` 仅构建本工具及官方 driver wheel。

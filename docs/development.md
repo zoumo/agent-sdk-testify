@@ -22,9 +22,9 @@ agent-sdk-testify/
   internal/
     lifecycle/              # prepare、finish 与会话/execution 状态
     record/ mock/           # agent 协议执行
-    conformance/            # installed CLI 的离线纵向合同
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
     builtin/ official/      # 内置快照与官方录制/验证编排
+    native/                 # 原生 Agent 配置、环境、历史种子与服务准备
     history/ tool/          # 历史派生与共享基础能力
     protocol/               # 采集、严格回放、录制格式与传输；仅供仓库内部使用
   data/
@@ -32,6 +32,9 @@ agent-sdk-testify/
     claude/ codex/          # 审核采用的 agentType/case/attempt 材料
     index.json              # 固定索引
     builtin/                # 生成的发布快照
+  tests/intergration/       # 多模块集成测试
+  test/e2e/                 # installed CLI 的完整流程测试
+  tests/build/              # 生成器等独立构建检查
   drivers/                  # 官方 driver 与 Python wheel
   docs/ / scripts/ / README.md / LICENSE
 ```
@@ -42,12 +45,32 @@ agent-sdk-testify/
 协议包不依赖 case 编号、driver 或 SDK。capture 拥有自己的 I/O、选项和类型化错误，
 命令成功退出 0，失败统一退出 1，并在 stderr 输出具体原因；业务包直接返回 error，
 不维护退出码分类。agent type 的配置、启动参数和历史解释留在对应 agent 文件。
-测试使用与消费者相同的进程接口，不导入被测 SDK 来间接证明工具正确性。
+端到端测试使用与消费者相同的进程接口，不导入被测 SDK 来间接证明工具正确性。
 
 协议代码统一位于 `internal/protocol/`，保留 capture、recording、replay、rawjson 的
 职责边界，不提供跨仓库 Go API。command 只解析参数并调用内部能力，不增加重复的
 选项转发层。official 编排、driver 和公开 agent 命令的职责以
 [工具设计](design.md#记录验证与回放)为准。
+
+### 内部职责与依赖
+
+- `record`、`mock` 分别拥有公开 agent 命令的执行流程；`official` 集中官方录制与
+  官方验证编排，不保留独立 `verify` 包或普通录制包中的官方编排入口。
+- `native` 集中原生配置过滤、认证环境、启动准备、历史种子准备及工具拥有的原生
+  服务管理。它不依赖 session、execution 或官方编排；session 的环境基线、overlay
+  路由、资源归属、锁和清理时序仍由 `lifecycle` 管理。driver 发现、请求和 launcher
+  归 `official`。
+- `lifecycle` 不依赖 `official`。官方编排通过 `lifecycle` 管理活动登记和精确
+  execution 引用，通过 `native` 准备原生环境，driver 继续调用公开 agent 命令。
+- 生产回放使用 `mock` 到 `replay` 的执行路径；协议根包保留原生启动参数校验，
+  不维护只供测试使用的第二套录制加载、超时或 receipt 流程。
+- 材料自身的格式、哈希闭包及来源规则归 `corpus`，case/binding 与 plan 合同归
+  `catalog`，内置快照校验归 `builtin`。`lifecycle` 保留材料与当前 session、source、
+  execution 的关系校验、current 选择和原子发布；官方 verifier 的选择归 `official`。
+  材料相关包不得反向依赖 `lifecycle`，也不新增通用校验框架。
+- 以上内部调整保留公开 CLI、持久数据合同、严格回放、来源原字节和失败证据。
+  测试迁移必须保留原有行为覆盖；协议专项可以使用受控内核进程，纵向验收仍通过
+  installed CLI，不为测试保留第二套产品实现。
 
 ## 材料与测试输入
 
@@ -80,26 +103,52 @@ go run -tags builtin_generate . --check
 
 ## 测试
 
-工具测试通过消费者实际使用的进程接口检查协议、环境、材料、回执和清理。
+测试分为三层，按测试范围和目录归类。单元测试和集成测试应快速完成，适合开发时频繁运行；
+完整流程只在端到端测试中验证。
 [共同验收](cases.md)定义 8 个用户故事、36 个 case；agent binding 的
 required/optional、planned/unsupported 及原因必须保留。
 
-| 层级 | 工具负责 | 归消费者负责 |
-|---|---|---|
-| 单元测试 | 协议匹配、材料身份与资格、配置和历史派生 | SDK 自身行为 |
-| 受控进程集成 | CLI、stdio、严格握手、完整消费、EOF、退出、回执和清理 | SDK 公共接口、业务断言及 simulate |
-| 官方离线验证 | 官方 driver 执行已有材料并检查业务与协议结果 | 当前 Go SDK 的仿真与覆盖门禁 |
-| 真实 E2E / record | 仅显式授权执行，保留业务、采集和清理结果 | 产品自身 E2E |
+| 层级 | 位置 | 测什么 | 执行边界 |
+|---|---|---|---|
+| 单元测试 | 与被测代码放在一起的 `*_test.go` | 单个模块的规则，如协议匹配、哈希、字段校验、配置和历史派生 | 直接调用函数，不启动 CLI、SDK、Agent 或子进程，不访问网络 |
+| 集成测试 | `tests/intergration/` | 多个真实模块之间的协作，如材料加载与校验、采集与回放、状态与回执 | 可以使用临时文件、本地管道和回环连接，必要时 mock 外部依赖；不走完整 CLI 流程 |
+| 端到端测试 | `test/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock → finish | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
 
-默认测试离线，不启动真实 Agent、不需要认证、不安装官方 SDK、不新增录制。
-进程测试保留分片、大消息、关联 ID、超时、取消、背压、多连接、历史派生、
-prepare/action/finish 失败保留、会话多次使用、execution overlay 隔离和自有资源清理。
-`internal/conformance` 是由 installed CLI 的 argv、stdio、退出码、descriptor、文件和
-哈希驱动的唯一纵向验收入口；它不直接调用 lifecycle 函数。协议专项受控进程可以直接
-调用真实 capture/replay 内核，但不得复制已删除的命令实现、增加测试专用产品入口，
-或用这些内核测试替代公开 CLI 的会话合同验收。
-合同和材料存在不证明当前 SDK 通过，合成材料必须保持 synthetic 身份。
-官方验证、SDK 仿真和真实 E2E 分别报告，不互相背书。
+集成测试只有在验证 EOF、退出、取消或清理等进程行为时才启动必要的受控子进程。
+受控进程调用真实 capture/replay 内核，不复制产品实现，不增加测试专用产品入口。
+mock 只替代测试范围以外的依赖，不替代本次要验证的模块协作或严格协议回放。
+SDK 公共接口、消费者业务断言及 simulate 由消费者仓库负责。
+
+### 速度与覆盖
+
+- 单元测试枚举字段、错误和边界组合；集成测试检查模块确实连接正确；端到端测试
+  保留关键流程和代表性失败，不在三层重复枚举同一组组合。
+- 例如，哈希错误的各种组合在单元测试中覆盖；集成测试检查材料加载会执行哈希校验；
+  端到端测试只检查代表性错误被 CLI 拒绝，且 current 不变。
+- 单元测试和集成测试不得为每个 case 构建 CLI、准备完整会话或启动整套环境。
+  不使用固定 sleep 等待成功，改为等待可观察事件，并为等待和清理设置上限。
+  通过逐测试耗时定位慢项，优先消除重复构建、进程启动和无关准备。
+- 端到端测试是唯一完整 CLI 流程验收入口，不在各业务包中重复维护纵向验收。
+  同一种构建模式的 CLI 构建一次并复用路径；每个测试仍使用独立可写状态，
+  不共享可写 session 或 execution overlay。
+- 关键覆盖保留 record/mock、official record/verify、远程与多连接、export 后重新导入、
+  busy finish、中断恢复及失败证据。分片、大消息、关联 ID、超时、取消、背压、
+  历史派生、会话复用、overlay 隔离和资源清理按所属层覆盖，不全部提升为完整流程。
+- 分层调整保留全部合同断言、严格匹配、来源原字节、哈希与资格政策；不能通过删 case、
+  skip 或放宽 deadline 缩短耗时。构建、打包和安装检查单独报告，不计作单元或集成测试。
+
+### race 与真实执行
+
+race 是检查方式，不是第四层测试。单元和集成测试使用 `go test -race`；端到端测试
+实际启动的 CLI 必须由 `go build -race` 构建，仅给测试进程加 `-race` 不算覆盖 CLI。
+复用二进制时须核验构建模式，受控 launcher 必须传递 race 配置；子进程报告数据竞争时，
+即使该 case 预期业务失败，测试也必须失败。
+完整门禁中的同一套 CLI 流程只需用 race CLI 跑一次；普通发布二进制另做少量启动和打包检查。
+
+默认三层测试均离线，不启动真实 Agent、不需要认证、不安装官方 SDK、不新增录制。
+端到端不等于真实 Agent 测试；需要真实 Agent 的场景仍放在 `test/e2e/`，仅显式授权执行，
+保留 opt-in 门禁和默认 skip。合同和材料存在不证明当前 SDK 通过，合成材料必须保持
+synthetic 身份。官方验证、SDK 仿真和真实 E2E 分别报告，不互相背书。
 
 ### 离线门禁
 
@@ -122,8 +171,7 @@ case/索引身份、全部录制字节、来源哈希和政策检查不得弱化
   放宽 deadline，或用 mock 替换录制协议回放来让变更通过。
 - Go `Example`、`TestMain`/子进程、测试入口、helper、清理和显式 live skip 在需要
   原生 API 时保持原生。修改生成器后重新生成并验证，不只手改输出。
-- 真实 CLI/Agent 检查放在各原生 `tests/e2e` 下，保留 opt-in 门禁和默认 skip。
-  capability、源码检查、离线/合成测试和真实录制证据分别保留，skip 不是 live pass。
+- capability、源码检查、离线/合成测试和真实录制证据分别保留，skip 不是 live pass。
 
 ### 环境与结果
 

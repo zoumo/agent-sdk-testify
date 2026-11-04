@@ -37,3 +37,19 @@ func TestRecordingIdentityUsesManifestAndRejectsConflict(t *testing.T) {
 	)
 	require.ErrorContains(t, err, "conflicting agent identities")
 }
+
+func TestMaterialSelectionRejectsMissingOrConflictingProvenance(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		plan, manifest tool.Object
+		message        string
+	}{
+		{"missing", tool.Object{}, tool.Object{}, "provenance is missing"},
+		{"official consumer", tool.Object{"driverProfile": "consumer"}, tool.Object{"provenance": "official"}, "provenance conflicts"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := selectionProvenance(tc.plan, tc.manifest)
+			require.ErrorContains(t, err, tc.message)
+		})
+	}
+}
