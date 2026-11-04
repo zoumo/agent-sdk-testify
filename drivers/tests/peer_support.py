@@ -38,3 +38,90 @@ def identity(value=None, expected=None):
     if expected is not None and actual['version'] != expected.get('version'):
         raise IdentityError('prepared Go agent-sdk-testify version changed')
     return actual
+
+
+# Synthetic test materials are private inputs to the same installed CLI used by
+# consumers. This adapter never matches frames or supplies protocol responses.
+_mock_runs = {}
+
+
+def mock_command(provider, source, *args, binary=None):
+    import json
+    import tempfile
+    import atexit
+    import shutil
+    binary = binary or identity()['path']
+    root = Path(tempfile.mkdtemp(prefix='testify-public-mock-'))
+    atexit.register(shutil.rmtree, root, ignore_errors=True)
+    material = root / 'material'
+    (material / 'raw').mkdir(parents=True)
+    source = Path(source)
+    raw = source.read_bytes() if source.exists() else b''
+    (material / 'raw/raw.jsonl').write_bytes(raw)
+    plan = {'provider': provider, 'caseId': 'synthetic-protocol', 'driverProfile': 'continuation',
+            'project': str(root / 'project'), 'scenario': {'files': {}}}
+    data = json.dumps(plan).encode()
+    (material / 'plan.json').write_bytes(data)
+    (material / 'manifest.json').write_text(json.dumps({'provenance': 'synthetic',
+        'planSHA256': hashlib.sha256(data).hexdigest(), 'files': {'raw.jsonl': hashlib.sha256(raw).hexdigest()}}))
+    session = root / 'session'
+    prepare = [binary, 'prepare', '--recording', str(material), '--session-dir', str(session)]
+    invocation, preparation, receipt = [], [], None
+    it = iter(args)
+    for arg in it:
+        if arg == '--receipt': receipt = Path(next(it))
+        elif arg in ('--max-frames', '--max-frame-bytes'):
+            preparation += [arg, next(it)]
+        elif arg == '--max-bytes': preparation += ['--protocol-bytes', next(it)]
+        else: invocation.append(arg)
+    prepare += preparation
+    result = subprocess.run(prepare, capture_output=True, timeout=5)
+    if result.returncode:
+        # Return the actual failing public invocation for exit-code assertions.
+        return prepare
+    descriptor = json.loads((session / 'session.json').read_text())
+    atexit.register(shutil.rmtree, descriptor['resourceRoot'], ignore_errors=True)
+    command = [binary, 'agent', 'mock', '--session-dir', str(session), *invocation]
+    _mock_runs[tuple(command)] = (session, receipt)
+    return command
+
+
+def run_mock(command, **kwargs):
+    import json
+    result = subprocess.run(command, **kwargs)
+    session, receipt = _mock_runs.get(tuple(command), (None, None))
+    if result.returncode == 0 and receipt is not None:
+        index = json.loads((session / 'executions/index.json').read_text())
+        execution = json.loads((session / 'executions' / index['executions'][-1]['id'] / 'execution.json').read_text())
+        actual = execution['connections'][0]['receipt']
+        # A test convenience copy of the actual public execution receipt.
+        with receipt.open('xb') as target:
+            target.write(Path(actual).read_bytes())
+    return result
+
+
+
+def prepare_record(root, plan, binary=None):
+    import json
+    import atexit
+    import shutil
+    binary = binary or identity()['path']
+    source = root / 'consumer-plan.json'
+    source.write_text(json.dumps({'version': 1, 'agentType': plan['provider'],
+        'caseId': plan['caseId'], 'driverProfile': 'consumer', 'project': plan['project'],
+        'scenario': {'files': plan.get('scenario', {}).get('files', {})}}))
+    session = root / 'session'
+    result = subprocess.run([binary, 'prepare', '--plan', str(source), '--session-dir', str(session)],
+                            capture_output=True, timeout=5)
+    if result.returncode:
+        raise ValueError(result.stderr.decode())
+    descriptor = json.loads((session / 'session.json').read_text())
+    atexit.register(shutil.rmtree, descriptor['resourceRoot'], ignore_errors=True)
+    return session
+
+
+def current_capture(session):
+    import json
+    current = json.loads((session / 'current.json').read_text())
+    index = json.loads((session / 'materials/index.json').read_text())
+    return Path(next(item['path'] for item in index['materials'] if item['id'] == current['materialId']))

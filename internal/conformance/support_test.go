@@ -448,3 +448,39 @@ func currentMaterialID(t *testing.T, session string) string {
 	t.Helper()
 	return str(readJSON(t, filepath.Join(session, "current.json"))["materialId"])
 }
+
+func publicAction(action string) []string {
+	if action == "verify" {
+		return []string{"official", action}
+	}
+	return []string{"agent", action}
+}
+
+func latestVerificationRoot(t *testing.T, session string) string {
+	t.Helper()
+	root, _ := latestOfficialVerification(t, session)
+	return root
+}
+
+func readExistingFiles(t *testing.T, root string, before []byte) []byte {
+	t.Helper()
+	var contents bytes.Buffer
+	require.NoError(t, filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !entry.Type().IsRegular() || !bytes.Contains(before, []byte(path+"\n")) {
+			return nil
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		contents.WriteString(path)
+		contents.WriteByte('\n')
+		contents.Write(data)
+		contents.WriteByte('\n')
+		return nil
+	}))
+	return contents.Bytes()
+}

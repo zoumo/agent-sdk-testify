@@ -42,6 +42,14 @@ func controlledOfficialDriver(args []string) int {
 	if readJSONFile(filepath.Join(request.Materials, "case.json"), &plan) != nil {
 		return 2
 	}
+	if mode == "crash" {
+		return 9
+	}
+	if mode == "hold-before" {
+		driverCheckpoint(request.Output, mode)
+		waitDriverCancellation()
+		return 0
+	}
 	if mode == "cancel-before" {
 		waitDriverCancellation()
 		return 0
@@ -93,7 +101,10 @@ func controlledOfficialDriver(args []string) int {
 			if _, err := bufio.NewReader(out).ReadBytes('\n'); err != nil {
 				return 4
 			}
-			if mode == "cancel-during" {
+			if mode == "cancel-during" || mode == "hold-during" {
+				if mode == "hold-during" {
+					driverCheckpoint(request.Output, mode)
+				}
 				waitDriverCancellation()
 				_ = in.Close()
 				_ = cmd.Wait()
@@ -122,6 +133,53 @@ func controlledOfficialDriver(args []string) int {
 		}
 	}
 
+	if mode == "hold-after" {
+		driverCheckpoint(request.Output, mode)
+		waitDriverCancellation()
+	}
+	if mode == "bad-result" {
+		_ = os.WriteFile(filepath.Join(request.Output, "result.json"), []byte("{"), 0o600)
+		return 0
+	}
+	if mode == "unsupported" || mode == "untriggered" {
+		report["status"], report["branchStatus"] = mode, mode
+	}
+	field := map[string]string{"wrong-hash": "recordingSHA256", "wrong-provider": "provider", "not-consumed": "fullConsumption", "no-eof": "clientEOF", "native-launched": "nativeLaunched", "wrong-frames": "frames", "receipt-error": "error"}[mode]
+	if field != "" || mode == "false-pass" {
+		data, err := os.ReadFile(filepath.Join(request.Output, "peer-main.results.jsonl"))
+		if err != nil {
+			return 6
+		}
+		rows := strings.Split(strings.TrimSpace(string(data)), "\n")
+		var finished object
+		if len(rows) != 2 || json.Unmarshal([]byte(rows[1]), &finished) != nil {
+			return 6
+		}
+		path := str(finished["receipt"])
+		if mode == "false-pass" {
+			if os.Remove(path) != nil {
+				return 6
+			}
+		} else {
+			var receipt object
+			if readJSONFile(path, &receipt) != nil {
+				return 6
+			}
+			switch field {
+			case "recordingSHA256", "provider", "error":
+				receipt[field] = "wrong"
+			case "frames":
+				receipt[field] = 99
+			case "nativeLaunched":
+				receipt[field] = true
+			default:
+				receipt[field] = false
+			}
+			if writeJSONFile(path, receipt) != nil {
+				return 6
+			}
+		}
+	}
 	if mode == "reuse-ref" {
 		session := filepath.Dir(filepath.Dir(filepath.Dir(request.Output)))
 		var paths map[string]string
@@ -378,4 +436,8 @@ func controlledNativeService(endpoint, tokenFile string) int {
 	_ = server.Close()
 	<-done
 	return 0
+}
+
+func driverCheckpoint(output, stage string) {
+	_ = writeJSONFile(filepath.Join(output, "checkpoint.json"), object{"pid": os.Getpid(), "stage": stage})
 }

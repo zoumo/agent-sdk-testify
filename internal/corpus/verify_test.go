@@ -19,7 +19,7 @@ import (
 
 func TestVerifyOfficialOnlySelection(t *testing.T) {
 	for _, args := range [][]string{{"--help"}, {"--driver", "/never-execute"}, {"--driver-arg", "x"}, {"--peer", "/never-execute"}, {"--sdk-driver", "/never-execute"}} {
-		cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"verify"}, args...)...)
+		cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"official", "verify"}, args...)...)
 		cmd.Dir = t.TempDir()
 		data, err := cmd.CombinedOutput()
 		if args[0] == "--help" {
@@ -71,11 +71,31 @@ func verifyDriverSubstitute(args []string) int {
 	}
 	if mode == "wrong-frames" || mode == "receipt-error" || mode == "not-consumed" || mode == "no-eof" || mode == "wrong-hash" || mode == "bad-lifecycle" {
 		var receipt tool.Object
-		name := "replay-peer.json"
-		if mode == "bad-lifecycle" {
-			name = "peer-main-lifecycle.json"
+		var receiptPath string
+		var events []tool.Object
+		notifications, err := os.ReadFile(tool.Str(tool.Obj(plan["_agentResults"])["main"]))
+		if err != nil {
+			return 5
 		}
-		path := filepath.Join(req.Output, name)
+		for row := range strings.SplitSeq(strings.TrimSpace(string(notifications)), "\n") {
+			var event tool.Object
+			if json.Unmarshal([]byte(row), &event) != nil {
+				return 5
+			}
+			events = append(events, event)
+		}
+		if len(events) != 2 {
+			return 5
+		}
+		receiptPath = tool.Str(events[1]["receipt"])
+		name := ""
+		if mode == "bad-lifecycle" {
+			name = "peer-main.process.json"
+		}
+		path := receiptPath
+		if name != "" {
+			path = filepath.Join(req.Output, name)
+		}
 		if tool.ReadJSON(path, &receipt) != nil {
 			return 5
 		}
@@ -98,7 +118,16 @@ func verifyDriverSubstitute(args []string) int {
 		}
 	}
 	if mode == "no-receipt" {
-		os.Remove(filepath.Join(req.Output, "replay-peer.json"))
+		var events []tool.Object
+		data, _ := os.ReadFile(tool.Str(tool.Obj(plan["_agentResults"])["main"]))
+		for row := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
+			var event tool.Object
+			_ = json.Unmarshal([]byte(row), &event)
+			events = append(events, event)
+		}
+		if len(events) == 2 {
+			_ = os.Remove(tool.Str(events[1]["receipt"]))
+		}
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -174,7 +203,7 @@ func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T
 	}
 	env := []string{"PATH=" + bin + ":/usr/bin:/bin", "HOME=" + t.TempDir(), "GORACE=atexit_sleep_ms=0"}
 	session := prepareVerifySession(t, s.source, env)
-	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--session-dir", session)
+	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", session)
 	cmd.Dir = t.TempDir()
 	cmd.Env = env
 	return cmd, s.source, session
@@ -221,19 +250,10 @@ func prepareVerifySession(t *testing.T, source string, env []string) string {
 
 func verifyOutput(t *testing.T, session string) string {
 	t.Helper()
-	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
-	id := ""
-	for _, value := range tool.Array(index["executions"]) {
-		row := tool.Obj(value)
-		if row["command"] == "verify" {
-			id = tool.Str(row["id"])
-		}
-	}
-	require.NotEmpty(t, id)
-	var execution tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", id, "execution.json"), &execution))
-	return tool.Str(execution["artifactRoot"])
+	var ids []string
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "verifications", "index.json"), &ids))
+	require.NotEmpty(t, ids)
+	return filepath.Join(session, "verifications", ids[len(ids)-1])
 }
 
 func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
@@ -252,45 +272,35 @@ func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
 	require.Equal(t, "synthetic-test-only", tool.Obj(evidence["officialSDK"])["version"])
 	require.NotEmpty(t, tool.Obj(evidence["tool"])["sha256"])
 	require.NotEmpty(t, evidence["contracts"])
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "summary.json"), &summary))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "result.json"), &summary))
 	require.Equal(t, "verify", summary["mode"])
 }
 
 func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
 	cmd, _, session := verifyFixture(t, "passed")
-	resolvedSession, err := filepath.EvalSymlinks(session)
-	require.NoError(t, err)
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-
-	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
-	var execution tool.Object
-	var id string
-	for _, value := range tool.Array(index["executions"]) {
-		row := tool.Obj(value)
-		if row["command"] == "verify" {
-			id = tool.Str(row["id"])
-			require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", id, "execution.json"), &execution))
-		}
-	}
-	require.NotEmpty(t, id)
-	var report tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(tool.Str(execution["artifactRoot"]), "replay-report.json"), &report))
+	root := verifyOutput(t, session)
+	var evidence, report, descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(root, "verification.json"), &evidence))
+	require.NoError(t, tool.ReadJSON(filepath.Join(root, "driver", "replay-report.json"), &report))
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	route := tool.Obj(tool.Obj(descriptor["routes"])["mock"])
 	observed := tool.Obj(report["observed"])
-	workspace := tool.Str(execution["workspace"])
-	require.Equal(t, observed["cwd"], workspace)
-	require.Equal(t, observed["workspace"], workspace)
-	var descriptor tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(resolvedSession, "session.json"), &descriptor))
-	require.True(t, strings.HasPrefix(workspace, filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions", id)+string(filepath.Separator)))
-	require.Equal(t, observed["cwd"], execution["protocolCwd"])
-	require.Equal(t, observed["home"], execution["home"])
-	require.Equal(t, observed["config"], execution["config"])
-	require.Equal(t, observed["tmp"], execution["tmp"])
-	require.Equal(t, observed["home"], tool.Obj(execution["env"])["HOME"])
-	require.Equal(t, observed["config"], tool.Obj(execution["env"])["CODEX_HOME"])
-	require.Equal(t, observed["tmp"], tool.Obj(execution["env"])["TMPDIR"])
+	hostCwd, err := filepath.EvalSymlinks(tool.Str(route["workspace"]))
+	require.NoError(t, err)
+	require.Equal(t, hostCwd, observed["cwd"])
+	require.Equal(t, route["workspace"], observed["workspace"])
+	for _, pair := range [][2]string{{"home", "HOME"}, {"config", "CODEX_HOME"}, {"tmp", "TMPDIR"}} {
+		require.Equal(t, tool.Obj(route["env"])[pair[1]], observed[pair[0]])
+	}
+	refs := tool.Array(evidence["connections"])
+	require.Len(t, refs, 1)
+	var execution tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", tool.Str(tool.Obj(refs[0])["executionId"]), "execution.json"), &execution))
+	require.Equal(t, "mock", execution["command"])
+	require.True(t, strings.HasPrefix(tool.Str(execution["workspace"]), filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions")+string(filepath.Separator)))
+	require.NotEqual(t, execution["workspace"], route["workspace"])
 }
 
 func TestVerifyRejectsWrongFrameCount(t *testing.T) {
@@ -309,7 +319,7 @@ func TestVerifyRequiresPeerExitAndCleanup(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	output := verifyOutput(t, session)
 	var lifecycle tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "peer-main-lifecycle.json"), &lifecycle))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "driver", "peer-main.process.json"), &lifecycle))
 	require.InDelta(t, float64(0), lifecycle["exitCode"], 0)
 	require.Equal(t, true, lifecycle["reaped"])
 	require.Equal(t, true, lifecycle["cleanupComplete"])
@@ -331,7 +341,7 @@ func TestVerifyFailureEvidence(t *testing.T) {
 			after, err := Inventory(source, false)
 			require.NoError(t, err)
 			require.Equal(t, before, after)
-			require.FileExists(t, filepath.Join(output, "stderr.log"))
+			require.FileExists(t, filepath.Join(output, "driver", "stderr.log"))
 		})
 	}
 }
@@ -504,7 +514,7 @@ func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
 	require.NoError(t, tool.WriteJSON(filepath.Join(source, "report.json"), report))
 	env := cmd.Env
 	session := prepareVerifySession(t, source, env)
-	cmd = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--session-dir", session)
+	cmd = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", session)
 	cmd.Dir = t.TempDir()
 	cmd.Env = env
 	data, err := cmd.CombinedOutput()

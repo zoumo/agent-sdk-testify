@@ -19,7 +19,7 @@
 `internal/`，协议位于 `internal/protocol/`。权威场景、采用材料和内置快照统一位于
 `data/`，官方 driver 与 wheel 位于 `drivers/`。
 不提供 simulate/replay/corpus/protocol/peer 业务入口。
-不提供 internal-protocol 入口；远程桥接由 agent record 内部处理。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
+旧顶层 record/mock/verify 与 internal-protocol（含 --internal-protocol）均被拒绝，不保留别名；远程桥接由 agent record 内部处理。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
 规范流程是 prepare、协议执行或官方编排、finish。agent record 成功时原子替换
 唯一 current recording，agent mock 和 official verify 消费 current。官方命令保存

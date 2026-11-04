@@ -65,7 +65,7 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 		return report, err
 	}
 	defer func() { runErr = errors.Join(runErr, lock.Close()) }()
-	if err := checkOfficialIdle(sessionDir); err != nil {
+	if err := recoverInterrupted(sessionDir, session); err != nil {
 		return report, err
 	}
 
@@ -363,7 +363,7 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 				if provenanceErr == nil && execution.Provenance != expected {
 					fail(fmt.Errorf("execution provenance %q differs from %s material %q", execution.Provenance, execution.Command, expected))
 				}
-				if execution.Command == "mock" || execution.Command == "verify" {
+				if execution.Command == "mock" {
 					if !maps.Equal(execution.HistoryFiles, inspection.HistoryFiles) {
 						fail(errors.New("execution history bindings differ from selected material"))
 					} else {
@@ -407,13 +407,6 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 				peerErr := validateCaptureTransport(connection.Receipt, expected.Frames)
 				peer.Status, peer.Error = peerResult(peerErr)
 				fail(peerErr)
-			case "verify":
-				peerErr := errors.Join(
-					validateReplayReceipt(connection.Receipt, expected),
-					validatePeerLifecycle(execution.ArtifactRoot, connection.ID),
-				)
-				peer.Status, peer.Error = peerResult(peerErr)
-				fail(peerErr)
 			case "mock":
 				peerErr := validateMockReceipts(connection.Receipt, connection.ProcessReceipt, execution, connection, expected)
 				peer.Status, peer.Error = peerResult(peerErr)
@@ -429,9 +422,6 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 			if execution.Admission != nil {
 				fail(errors.New("record execution has verify admission parameters"))
 			}
-		case "verify":
-			fail(validateVerifyReport(execution.ArtifactRoot))
-			fail(validateAdmission(execution, execution.ArtifactRoot))
 		case "mock":
 			if execution.Admission != nil {
 				fail(errors.New("mock execution has verify admission parameters"))
@@ -462,7 +452,7 @@ func validateExecutionLocation(sessionDir string, session *Session, dir string, 
 		return fmt.Errorf("%s route is unavailable", execution.Command)
 	}
 	var plan tool.Object
-	if execution.Command == "mock" || execution.Command == "verify" {
+	if execution.Command == "mock" {
 		inspection, err := inspectMaterial(session, execution.Artifact, execution.Command)
 		if err != nil {
 			return err
@@ -598,40 +588,6 @@ func validateRecordReport(root string) error {
 		}
 	} else if !os.IsNotExist(err) {
 		return err
-	}
-	return nil
-}
-
-func validateVerifyReport(root string) error {
-	var verification, replay, summary tool.Object
-	var err error
-	if verification, err = readEvidenceObject(filepath.Join(root, "verification.json"), "verification evidence"); err != nil {
-		return err
-	}
-	if verification["schemaVersion"] != float64(1) || verification["status"] != "passed" || verification["error"] != nil {
-		return fmt.Errorf("verification status is %q", tool.Str(verification["status"]))
-	}
-	if err := validateEvidenceHashes(root, tool.Obj(verification["files"])); err != nil {
-		return err
-	}
-	if replay, err = readEvidenceObject(filepath.Join(root, "replay-report.json"), "replay report"); err != nil {
-		return err
-	}
-	if replay["status"] != "passed" ||
-		replay["branchStatus"] != "passed" ||
-		replay["captureStatus"] != "complete" ||
-		len(tool.Array(replay["gaps"])) != 0 {
-		return errors.New("official replay report is absent or incomplete")
-	}
-	if summary, err = readEvidenceObject(filepath.Join(root, "summary.json"), "verification summary"); err != nil {
-		return err
-	}
-	if summary["error"] != nil {
-		return errors.New("verification summary contains an error")
-	}
-	result := tool.Obj(summary["result"])
-	if result["status"] != "passed" {
-		return errors.New("verification summary result is not passed")
 	}
 	return nil
 }

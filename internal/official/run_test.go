@@ -15,6 +15,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	testdata "github.com/zoumo/agent-sdk-testify/data"
+	"github.com/zoumo/agent-sdk-testify/internal/catalog"
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/replay"
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -22,19 +29,47 @@ import (
 func TestMain(m *testing.M) {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "official-engine-fixture":
-			var o Options
-			if err := tool.ReadJSON(os.Args[2], &o); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
+		case "preparation-kernel":
+			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+			var o preparationOptions
+			err := json.Unmarshal([]byte(os.Args[2]), &o)
+			if err == nil {
+				if o.Mode == "record" {
+					var plan tool.Object
+					err = tool.ReadJSON(filepath.Join(o.Output, "plan.json"), &plan)
+					if err == nil {
+						err = capture.Run(ctx, capture.Options{Output: filepath.Join(o.Output, "raw"), Command: append([]string{tool.Str(plan["cli"])}, tool.Strings(plan["args"])...), CWD: tool.Str(plan["project"]), StdinEOFAction: "close", CleanupTimeout: time.Second}, capture.IO{In: os.Stdin, Out: os.Stdout, Err: os.Stderr})
+					}
+				} else {
+					var source *os.File
+					source, err = os.Open(filepath.Join(o.Materials, "raw", "raw.jsonl"))
+					if err == nil {
+						var document *recording.Document
+						document, err = recording.Read(source, o.Provider, recording.Limits{})
+						err = errors.Join(err, source.Close())
+						if err == nil {
+							err = replay.Run(ctx, document, recording.Limits{}, "", os.Stdin, os.Stdout, -1)
+						}
+					}
+				}
 			}
-			if _, err := Run(context.Background(), o); err != nil {
+			stop()
+			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
 			os.Exit(0)
-		case "driver":
-			os.Exit(testDriver(os.Args[2:]))
+		case "native-preparation-fixture":
+			var o preparationOptions
+			if err := tool.ReadJSON(os.Args[2], &o); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			if err := runPreparationFixture(context.Background(), o); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			os.Exit(0)
 		case "--version":
 			fmt.Println("native-test any-version")
 			os.Exit(0)
@@ -56,12 +91,6 @@ func TestMain(m *testing.M) {
 			fmt.Println("ready")
 			<-interrupted
 			os.Exit(0)
-		case "--internal-peer":
-			if err := runPeerFixture(os.Args[2:]); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			os.Exit(0)
 		}
 	}
 	cleanup, err := testutil.PrepareBinary()
@@ -74,130 +103,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func runPeerFixture(args []string) error {
-	o := tool.PeerOptions{In: os.Stdin, Out: os.Stdout, Err: os.Stderr}
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "--request":
-			i++
-			if i == len(args) {
-				return errors.New("missing peer request path")
-			}
-			o.Request = args[i]
-		case "--lifecycle":
-			i++
-			if i == len(args) {
-				return errors.New("missing peer lifecycle path")
-			}
-			o.Lifecycle = args[i]
-		default:
-			return fmt.Errorf("unexpected peer argument %q", args[i])
-		}
-	}
-	return tool.RunPeer(o)
-}
-
-func testDriver(args []string) int {
-	if len(args) != 2 || args[0] != "--request" {
-		return 2
-	}
-	var r Request
-	if tool.ReadJSON(args[1], &r) != nil {
-		return 2
-	}
-	if r.Case == "crash" {
-		return 9
-	}
-	if r.Case == "bad-result" {
-		_ = os.WriteFile(filepath.Join(r.Output, "result.json"), []byte(`{`), 0o600)
-		return 0
-	}
-	cmd := exec.CommandContext(context.Background(), r.Peer.Command.Command, r.Peer.Command.Args...)
-	in, e := cmd.StdinPipe()
-	if e != nil {
-		return 2
-	}
-	out, e := cmd.StdoutPipe()
-	if e != nil {
-		return 2
-	}
-	cmd.Stderr = os.Stderr
-	if startErr := cmd.Start(); startErr != nil {
-		return 2
-	}
-	if r.Case == "cancel" {
-		time.Sleep(time.Minute)
-		return 2
-	}
-	_, _ = fmt.Fprintln(in, `{"id":1,"method":"ping"}`)
-	_, e = bufio.NewReader(out).ReadBytes('\n')
-	_ = in.Close()
-	waitErr := cmd.Wait()
-	status := "passed"
-	if e != nil || waitErr != nil || r.Case == "failed" {
-		status = "failed"
-	}
-	if r.Case == "false-pass" {
-		status = "passed"
-		_ = os.Remove(filepath.Join(r.Output, "replay-peer.json"))
-	}
-	if r.Case == "unsupported" || r.Case == "untriggered" {
-		status = r.Case
-		_ = os.Remove(filepath.Join(r.Output, "replay-peer.json"))
-	}
-	field := map[string]string{"wrong-hash": "recordingSHA256", "wrong-provider": "provider", "not-consumed": "fullConsumption", "no-eof": "clientEOF", "native-launched": "nativeLaunched"}[r.Case]
-	if field != "" {
-		path := filepath.Join(r.Output, "replay-peer.json")
-		var receipt tool.Object
-		if tool.ReadJSON(path, &receipt) != nil {
-			return 2
-		}
-		switch field {
-		case "recordingSHA256", "provider":
-			receipt[field] = "wrong"
-		case "nativeLaunched":
-			receipt[field] = true
-		default:
-			receipt[field] = false
-		}
-		if tool.WriteJSON(path, receipt) != nil {
-			return 2
-		}
-	}
-	var plan tool.Object
-	if tool.ReadJSON(filepath.Join(r.Materials, "case.json"), &plan) != nil {
-		return 2
-	}
-	if plan["corpusTestBusiness"] == true {
-		name := "report.json"
-		if _, err := os.Stat(filepath.Join(r.Output, "replay-peer.json")); err == nil {
-			name = "replay-report.json"
-			if plan["corpusTestReplayFail"] == true {
-				status = "failed"
-			}
-		}
-		if plan["corpusTestFail"] == true {
-			status = "failed"
-		}
-		business := tool.Object{
-			"status": status, "branchStatus": status, "captureStatus": "complete",
-			"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
-			"officialSDK": tool.Object{"package": "openai-codex", "version": "synthetic-test-only"},
-		}
-		if tool.WriteJSON(filepath.Join(r.Output, name), business) != nil {
-			return 2
-		}
-	}
-	if os.Getenv("HOME") == "" || os.Getenv("CODEX_HOME") == "" {
-		return 2
-	}
-	if tool.WriteJSON(filepath.Join(r.Output, "result.json"), tool.Result{Status: status}) != nil {
-		return 2
-	}
-	return 0
-}
-
-func sample(t *testing.T, id string) Options {
+func sample(t *testing.T, id string) preparationOptions {
 	t.Helper()
 	source := t.TempDir()
 	require.NoError(t, os.Mkdir(filepath.Join(source, "raw"), 0o700))
@@ -221,105 +127,13 @@ func sample(t *testing.T, id string) Options {
 		"planSHA256": planDigest,
 		"savedFiles": tool.Object{},
 	}))
-	peer := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	require.NotEmpty(t, peer, "run with make test")
-	self, err := os.Executable()
-	require.NoError(t, err)
-	return Options{Mode: "verify", Materials: source, Driver: self, DriverArgs: []string{"driver"}, Peer: peer, Output: filepath.Join(t.TempDir(), "run")}
-}
-
-func TestDriverContract(t *testing.T) {
-	for _, id := range []string{"passed", "failed", "crash", "bad-result", "false-pass", "wrong-hash", "wrong-provider", "not-consumed", "no-eof", "native-launched", "unsupported", "untriggered"} {
-		t.Run(id, func(t *testing.T) {
-			o := sample(t, id)
-			before, e := os.ReadFile(filepath.Join(o.Materials, "raw", "raw.jsonl"))
-			require.NoError(t, e)
-			summary, e := Run(context.Background(), o)
-			if id == "passed" {
-				if e != nil {
-					for _, name := range []string{"stderr.log", "raw/transport.json"} {
-						b, _ := os.ReadFile(filepath.Join(o.Output, name))
-						t.Log(name, string(b))
-					}
-				}
-				require.NoError(t, e)
-				require.Equal(t, "passed", summary["result"].(tool.Result).Status)
-			} else {
-				require.Error(t, e)
-				if id == "unsupported" {
-					require.Equal(t, "unsupported", summary["result"].(tool.Result).Status)
-					require.Contains(t, e.Error(), "peer:")
-				} else if id == "untriggered" {
-					require.ErrorContains(t, e, "main peer:")
-				} else if id != "failed" && id != "crash" && id != "bad-result" {
-					require.Equal(t, "passed", summary["result"].(tool.Result).Status)
-					require.ErrorContains(t, e, "main peer:")
-				}
-			}
-			after, e := os.ReadFile(filepath.Join(o.Materials, "raw", "raw.jsonl"))
-			require.NoError(t, e)
-			require.Equal(t, before, after)
-			var plan tool.Object
-			require.NoError(t, tool.ReadJSON(filepath.Join(o.Output, "materials", "case.json"), &plan))
-			require.Equal(t, filepath.Join(o.Materials, "original-cwd"), plan["project"])
-			require.FileExists(t, filepath.Join(o.Output, "project", "numbers.txt"))
-		})
-	}
-}
-
-func TestUnselectedPeerMaterialsDoNotRequireReceipt(t *testing.T) {
-	o := sample(t, "passed")
-	probe := filepath.Join(o.Materials, "remote-probe", "raw")
-	require.NoError(t, os.MkdirAll(probe, 0o700))
-	require.NoError(t, tool.CopyFile(filepath.Join(o.Materials, "raw", "raw.jsonl"), filepath.Join(probe, "raw.jsonl")))
-	_, err := Run(context.Background(), o)
-	require.NoError(t, err)
-	require.NoFileExists(t, filepath.Join(o.Output, "remote-probe", "replay-peer.json"))
-}
-
-func TestCancellation(t *testing.T) {
-	o := sample(t, "cancel")
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
-	defer cancel()
-	_, err := Run(ctx, o)
-	require.ErrorIs(t, err, context.DeadlineExceeded)
-}
-
-func TestCaptureWithSyntheticNative(t *testing.T) {
-	o := sample(t, "passed")
-	o.Mode = "record"
-	self, e := os.Executable()
-	require.NoError(t, e)
-	o.CLI = self
-	summary, e := Run(context.Background(), o)
-	if e != nil {
-		for _, name := range []string{"stderr.log", "raw/transport.json"} {
-			b, _ := os.ReadFile(filepath.Join(o.Output, name))
-			t.Log(name, string(b))
-		}
-	}
-	require.NoError(t, e)
-	require.Equal(t, "passed", summary["result"].(tool.Result).Status)
-	require.FileExists(t, filepath.Join(o.Output, "raw", "transport.json"))
-	require.NoFileExists(t, filepath.Join(o.Output, "native.env.private.json"))
-	// The recording output itself is the next stage's material directory.
-	replay := o
-	replay.Mode = "verify"
-	replay.Materials = o.Output
-	replay.Output = filepath.Join(t.TempDir(), "replay")
-	validated, e := Run(context.Background(), replay)
-	require.NoError(t, e)
-	for _, name := range []string{"plan.json", "manifest.json"} {
-		digest, err := tool.FileDigest(filepath.Join(replay.Materials, name))
-		require.NoError(t, err)
-		require.Equal(t, digest, tool.Obj(validated["source"])[name])
-	}
+	return preparationOptions{Mode: "verify", Materials: source, Output: filepath.Join(t.TempDir(), "run")}
 }
 
 func TestSharedMaterialsContainNoExecutableSteps(t *testing.T) {
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
-	o := Options{Materials: filepath.Join(repository, "data", "scenarios"), Case: "SDK-CASE-008", Provider: "claude"}
+	o := preparationOptions{Materials: filepath.Join(repository, "data", "scenarios"), Case: "SDK-CASE-008", Provider: "claude"}
 	p, e := loadMaterials(o)
 	require.NoError(t, e)
 	require.NotContains(t, tool.Obj(p["scenario"]), "steps")
@@ -329,4 +143,91 @@ func TestSharedMaterialsContainNoExecutableSteps(t *testing.T) {
 	p, e = loadMaterials(o)
 	require.NoError(t, e)
 	require.ErrorContains(t, tool.WriteFiles(t.TempDir(), tool.Obj(tool.Obj(p["scenario"])["files"])), "escapes")
+}
+
+// This fixture is limited to native preparation/history tests. It calls the
+// actual preparation and capture/replay kernels; public orchestration is tested
+// through installed CLI conformance, never this fixture.
+func runPreparationFixture(ctx context.Context, o preparationOptions) error {
+	plan, err := loadMaterials(o)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Join(o.Output, "project"), 0o700); err != nil {
+		return err
+	}
+	plan["project"] = filepath.Join(o.Output, "project")
+	for _, name := range []string{"home", "config", "tmp", "materials"} {
+		if err := os.MkdirAll(filepath.Join(o.Output, name), 0o700); err != nil {
+			return err
+		}
+	}
+	if err := tool.WriteFiles(tool.Str(plan["project"]), tool.Obj(tool.Obj(plan["scenario"])["files"])); err != nil {
+		return err
+	}
+	if o.Mode == "record" {
+		if o.HistorySeed != "" {
+			if err := PrepareHistorySeed(o.HistorySeed, o.Output, plan); err != nil {
+				return err
+			}
+		}
+		if plan["driverProfile"] == "existing-children" && o.HistorySeed == "" {
+			return errors.New("existing-child recording needs supplied saved-history materials")
+		}
+		if err := PrepareNative(ctx, &o.Options, plan, o.Output); err != nil {
+			return err
+		}
+	} else {
+		if _, err := history.Materialize(o.Materials, o.Output); err != nil {
+			return err
+		}
+		if tool.Str(plan["provider"]) == "claude" {
+			if err := history.MaterializeClaude(o.Materials, o.Output, tool.Str(plan["project"]), plan); err != nil {
+				return err
+			}
+		}
+	}
+	plan["root"], plan["home"], plan["config"] = o.Output, filepath.Join(o.Output, "home"), filepath.Join(o.Output, "config")
+	if err := tool.WriteJSON(filepath.Join(o.Output, "plan.json"), plan); err != nil {
+		return err
+	}
+	if err := tool.WriteJSON(filepath.Join(o.Output, "materials", "case.json"), plan); err != nil {
+		return err
+	}
+	self, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	o.Provider = tool.Str(plan["provider"])
+	encoded, err := json.Marshal(o)
+	if err != nil {
+		return err
+	}
+	request := Request{Case: tool.Str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Workspace: tool.Str(plan["project"]), Output: o.Output, Peer: DriverPeer{Command: tool.Command{Command: self, Args: []string{"preparation-kernel", string(encoded)}}}}
+	path := filepath.Join(o.Output, "request.json")
+	if err := tool.WriteJSON(path, request); err != nil {
+		return err
+	}
+	cmd := exec.CommandContext(ctx, o.Driver, append(o.DriverArgs, "--request", path)...)
+	cmd.Dir, cmd.Stdout, cmd.Stderr = request.Workspace, os.Stdout, os.Stderr
+	cmd.Env, err = driverEnvironment(o.Options, plan)
+	if err != nil {
+		return err
+	}
+	err = cmd.Run()
+	if o.Mode == "record" {
+		err = errors.Join(err, corpus.WriteSourceManifest(o.Output, tool.Result{Status: "passed"}), scrubNative(o.Output))
+	}
+	return err
+}
+
+// The test fixture describes preparation inputs, not a second product command.
+type preparationOptions struct {
+	Options
+	Mode, Materials, Case, Provider, Output, Driver, HistorySeed string
+	DriverArgs                                                   []string
+}
+
+func loadMaterials(o preparationOptions) (tool.Object, error) {
+	return catalog.Resolve(testdata.Scenarios(), catalog.ResolveInput{Mode: o.Mode, Materials: o.Materials, Case: o.Case, Provider: o.Provider, Model: o.Model})
 }

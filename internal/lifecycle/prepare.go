@@ -351,7 +351,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		session.Source.Path = path
 	}
 	ids := ConnectionIDs(session.Source, spec.plan)
-	for _, action := range []string{"record", "verify", "mock"} {
+	for _, action := range []string{"record", "mock"} {
 		if !spec.routes[action] {
 			session.Routes[action] = Route{Enabled: false}
 			continue
@@ -364,7 +364,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if err := tool.CopyTree(baseline, templateRoot); err != nil {
 			return nil, err
 		}
-		if action == "mock" || action == "verify" {
+		if action == "mock" {
 			if err := cleanMockConfig(templateRoot, spec.plan, agentType); err != nil {
 				return nil, err
 			}
@@ -374,8 +374,8 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 		route := Route{
 			Enabled:     true,
-			Executor:    map[string]string{"record": "external-sdk", "verify": "official-driver", "mock": "external-sdk"}[action],
-			Target:      map[string]string{"record": "native-agent", "verify": "replay", "mock": "replay"}[action],
+			Executor:    map[string]string{"record": "external-sdk", "mock": "external-sdk"}[action],
+			Target:      map[string]string{"record": "native-agent", "mock": "replay"}[action],
 			Provenance:  session.Source.Provenance,
 			Workspace:   filepath.Join(routeRoot, "workspace"),
 			ProtocolCwd: planProtocolCwd(spec.plan, filepath.Join(routeRoot, "workspace")),
@@ -393,8 +393,6 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			switch action {
 			case "record":
 				template.Args = []string{"agent", "record", "--session-dir", sessionDir, "--cmd"}
-			case "verify":
-				template.Args = []string{"verify", "--session-dir", sessionDir}
 			}
 			if action == "mock" {
 				template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, self.Command, sessionDir)

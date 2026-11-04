@@ -1,7 +1,6 @@
 package official
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,31 +9,6 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
-
-func TestPersistentAttemptsKeepFailureAndNeverOverwrite(t *testing.T) {
-	data, err := filepath.EvalSymlinks(t.TempDir())
-	require.NoError(t, err)
-	t.Setenv("AGENT_SDK_TESTIFY_DATA_DIR", data)
-	o := sample(t, "failed")
-	o.Output = ""
-	first, err := Run(context.Background(), o)
-	require.ErrorContains(t, err, "driver reported failed")
-	path := tool.Str(first["output"])
-	require.Equal(t, filepath.Join(data, "attempts", "verify"), filepath.Dir(path))
-	before, err := os.ReadFile(filepath.Join(path, "summary.json"))
-	require.NoError(t, err)
-	require.FileExists(t, filepath.Join(path, "result.json"))
-	require.FileExists(t, filepath.Join(path, "replay-peer.json"))
-	second, err := Run(context.Background(), o)
-	require.Error(t, err)
-	require.NotEqual(t, path, second["output"])
-	o.Output = path
-	_, err = Run(context.Background(), o)
-	require.ErrorIs(t, err, os.ErrExist)
-	after, err := os.ReadFile(filepath.Join(path, "summary.json"))
-	require.NoError(t, err)
-	require.Equal(t, before, after)
-}
 
 func TestPersistentDataRootDefaults(t *testing.T) {
 	t.Setenv("AGENT_SDK_TESTIFY_DATA_DIR", "")

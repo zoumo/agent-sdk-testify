@@ -1,10 +1,13 @@
 package lifecycle
 
 import (
+	"context"
 	"errors"
 	"maps"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"sync"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -15,11 +18,16 @@ type OfficialRun struct {
 	ID, Dir, SessionDir string
 	Session             *Session
 	lock                *Lock
+	mu                  sync.Mutex
+	processes           map[string]tool.Object
 }
 
 func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
 	sessionDir, err := canonicalSessionDir(sessionDir)
 	if err != nil {
+		return nil, err
+	}
+	if err := checkOpen(sessionDir); err != nil {
 		return nil, err
 	}
 	activity, err := lockFile(filepath.Join(sessionDir, "locks", "official.lock"), true, false)
@@ -75,12 +83,12 @@ func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
 		return nil, err
 	}
 	if err := writeAtomic(filepath.Join(sessionDir, "official-active.json"), tool.Object{
-		"schemaVersion": 1, "sessionId": session.SessionID, "id": id, "mode": mode, "pid": os.Getpid(), "status": "running", "dir": dir,
+		"schemaVersion": 1, "sessionId": session.SessionID, "id": id, "mode": mode, "pid": os.Getpid(), "status": "running", "dir": dir, "tracked": true, "processes": map[string]tool.Object{},
 	}); err != nil {
 		return nil, err
 	}
 	ok = true
-	return &OfficialRun{ID: id, Dir: dir, SessionDir: sessionDir, Session: session, lock: activity}, nil
+	return &OfficialRun{ID: id, Dir: dir, SessionDir: sessionDir, Session: session, lock: activity, processes: map[string]tool.Object{}}, nil
 }
 
 func checkOfficialIdle(sessionDir string) error {
@@ -99,11 +107,22 @@ func checkOfficialIdle(sessionDir string) error {
 
 // Complete is called only after owned processes and final evidence are settled.
 func (r *OfficialRun) Complete(result tool.Object) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	result["processes"] = r.processes
+	var processErr error
+	for _, process := range r.processes {
+		processErr = errors.Join(processErr, stoppedLaunch(process))
+	}
+	if processErr != nil {
+		result["status"], result["cleanupComplete"] = "failed", false
+		result["processError"] = processErr.Error()
+	}
 	if err := writeAtomic(filepath.Join(r.Dir, "result.json"), result); err != nil {
 		return errors.Join(err, r.lock.Close())
 	}
 	if result["cleanupComplete"] != true {
-		return errors.Join(errors.New("official processes are not confirmed stopped; activity retained"), r.lock.Close())
+		return errors.Join(errors.New("official processes are not confirmed stopped; activity retained"), processErr, r.lock.Close())
 	}
 	err := os.Remove(filepath.Join(r.SessionDir, "official-active.json"))
 	return errors.Join(err, r.lock.Close())
@@ -127,4 +146,38 @@ func RecordEnvironment(session *Session) (map[string]string, error) {
 		}
 	}
 	return env, nil
+}
+
+// Launch intent is durable before Start. A crash between Start and registration
+// leaves an unknown process, so recovery must remain busy instead of guessing.
+func (r *OfficialRun) TrackProcess(name, state string, pid int) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.processes[name] = tool.Object{"state": state, "pid": pid}
+	var active tool.Object
+	path := filepath.Join(r.SessionDir, "official-active.json")
+	if err := tool.ReadJSON(path, &active); err != nil {
+		return err
+	}
+	if active["id"] != r.ID {
+		return errors.New("official activity identity changed")
+	}
+	active["processes"] = r.processes
+	return writeAtomic(path, active)
+}
+
+func (r *OfficialRun) WaitDriver(ctx context.Context, cmd *exec.Cmd) error {
+	if err := r.TrackProcess("driver", "launching", 0); err != nil {
+		return err
+	}
+	err := tool.WaitDriver(ctx, cmd, func(pid int) error { return r.TrackProcess("driver", "started", pid) })
+	if cmd.Process == nil {
+		err = errors.Join(err, r.TrackProcess("driver", "not-started", 0))
+	}
+	return err
+}
+
+// TrackNativeProbe records preparation's separate native version-probe group.
+func TrackNativeProbe(run *ActionRun, state string, pid int) error {
+	return writeAtomic(filepath.Join(run.Dir, "receipts", run.Connection+".probe.native-process.json"), tool.Object{"state": state, "pid": pid})
 }

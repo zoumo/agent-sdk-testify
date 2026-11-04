@@ -49,9 +49,32 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 	probe := exec.CommandContext(context.WithoutCancel(ctx), cli, "--version")
 	probe.Stdout = &version
 	probe.Dir = root
-	if err := tool.WaitDriver(ctx, probe); ctx.Err() != nil {
+	var trackingErr error
+	track := func(state string, pid int) error {
+		if o.ProbeProcess != nil {
+			trackingErr = o.ProbeProcess(state, pid)
+		}
+		return trackingErr
+	}
+	if err := track("launching", 0); err != nil {
+		return err
+	}
+	probeErr := tool.WaitDriver(ctx, probe, func(pid int) error { return track("started", pid) })
+	if probe.Process == nil {
+		probeErr = errors.Join(probeErr, track("not-started", 0))
+	}
+	if probe.Process != nil {
+		if err := tool.WaitProcessGroup(probe.Process.Pid); err != nil {
+			return errors.Join(probeErr, err)
+		}
+	}
+	if trackingErr != nil {
+		return errors.Join(probeErr, trackingErr)
+	}
+	if ctx.Err() != nil {
 		return ctx.Err()
-	} else if err == nil {
+	}
+	if probeErr == nil {
 		plan["cliVersion"] = strings.TrimSpace(version.String())
 	}
 	provider := tool.Str(plan["provider"])

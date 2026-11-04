@@ -117,15 +117,6 @@ func conformanceDriver(args []string) int {
 	if readJSONFile(filepath.Join(req.Materials, "case.json"), &plan) != nil {
 		return 2
 	}
-	if mode == "record" {
-		configKey := "CODEX_HOME"
-		if plan["provider"] == "claude" {
-			configKey = "CLAUDE_CONFIG_DIR"
-		}
-		if os.Getenv("HOME") != filepath.Join(req.Output, "home") || os.Getenv(configKey) != filepath.Join(req.Output, "config") {
-			return 3
-		}
-	}
 	cmd := exec.CommandContext(context.Background(), req.Peer.Command, req.Peer.Args...)
 	in, err := cmd.StdinPipe()
 	if err != nil {
@@ -182,7 +173,12 @@ func conformanceDriver(args []string) int {
 		return 6
 	}
 	if mode == "verify-cleanup-failure" {
-		slot := filepath.Join(filepath.Dir(filepath.Dir(req.Output)), "routes", "verify", "workspace")
+		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(req.Output))), "session.json")
+		var descriptor object
+		if readJSONFile(slot, &descriptor) != nil {
+			return 7
+		}
+		slot = str(obj(obj(descriptor["routes"])["mock"])["workspace"])
 		if os.Remove(slot) != nil || os.Mkdir(slot, 0o700) != nil {
 			return 7
 		}
@@ -251,6 +247,11 @@ func conformanceRecordFault() int {
 			}
 		case "cleanup":
 			slot := filepath.Join(descriptor.ResourceRoot, "routes", "record", "workspace")
+			var descriptor object
+			if readJSONFile(slot, &descriptor) != nil {
+				return 7
+			}
+			slot = str(obj(obj(descriptor["routes"])["mock"])["workspace"])
 			if os.Remove(slot) != nil || os.Mkdir(slot, 0o700) != nil {
 				return 7
 			}

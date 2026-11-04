@@ -34,7 +34,7 @@ func AbsoluteExecutable(name string) (string, error) {
 }
 
 // WaitDriver owns the process group so cancellation also reaps descendants.
-func WaitDriver(ctx context.Context, cmd *exec.Cmd) (runErr error) {
+func WaitDriver(ctx context.Context, cmd *exec.Cmd, started ...func(int) error) (runErr error) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err := cmd.Start(); err != nil {
 		return err
@@ -43,6 +43,12 @@ func WaitDriver(ctx context.Context, cmd *exec.Cmd) (runErr error) {
 		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 		runErr = errors.Join(runErr, WaitProcessGroup(cmd.Process.Pid))
 	}()
+	for _, hook := range started {
+		if err := hook(cmd.Process.Pid); err != nil {
+			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+			return errors.Join(err, cmd.Wait())
+		}
+	}
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	select {

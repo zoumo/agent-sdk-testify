@@ -1,6 +1,7 @@
 package lifecycle
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -167,12 +168,6 @@ func executionConnections(dir, action string, ids []string, material *Artifact, 
 				base = filepath.Join(dir, "remote-probe")
 			}
 			connection.Receipt = filepath.Join(base, "raw", "transport.json")
-		case "verify":
-			base := dir
-			if id == "probe" {
-				base = filepath.Join(dir, "remote-probe")
-			}
-			connection.Receipt = filepath.Join(base, "replay-peer.json")
 		case "mock":
 			connection.Receipt = filepath.Join(dir, "receipts", id+".json")
 			connection.ProcessReceipt = filepath.Join(dir, "receipts", id+".process.json")
@@ -221,7 +216,7 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 	if err := prepareExecutionAuthentication(session, action, overlayRoot); err != nil {
 		return "", nil, err
 	}
-	if action == "mock" || action == "verify" {
+	if action == "mock" {
 		if err := cleanMockConfig(overlayRoot, plan, session.AgentType); err != nil {
 			return "", nil, err
 		}
@@ -233,7 +228,7 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 		}
 	}
 	var historyFiles map[string]string
-	if (action == "mock" || action == "verify") && material != nil {
+	if (action == "mock") && material != nil {
 		var err error
 		historyFiles, err = history.Materialize(material.Path, overlayRoot)
 		if err != nil {
@@ -254,7 +249,7 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 }
 
 func executionProtocolCwd(action string, plan tool.Object, workspace string) string {
-	if action == "record" || action == "verify" {
+	if action == "record" {
 		return workspace
 	}
 	return planProtocolCwd(plan, workspace)
@@ -325,10 +320,6 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	return execution, nil
 }
 
-func createAction(sessionDir, action string, commandArgs []string, timeout time.Duration, material *Artifact, admission *Admission) (*ActionRun, error) {
-	return createActionLocked(sessionDir, action, commandArgs, timeout, material, admission, nil, nil)
-}
-
 func createActionLocked(sessionDir, action string, commandArgs []string, timeout time.Duration, material *Artifact, admission *Admission, held *Lock, origin *OfficialOrigin) (*ActionRun, error) {
 	sessionDir, err := canonicalSessionDir(sessionDir)
 	if err != nil {
@@ -341,7 +332,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 	if err := checkOpen(sessionDir); err != nil {
 		return nil, err
 	}
-	if action == "verify" || (action == "record" && origin == nil) {
+	if action == "record" && origin == nil {
 		if err := checkOfficialIdle(sessionDir); err != nil {
 			return nil, err
 		}
@@ -378,7 +369,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 	if err := checkOpen(sessionDir); err != nil {
 		return nil, err
 	}
-	if action == "verify" || (action == "record" && origin == nil) {
+	if action == "record" && origin == nil {
 		if err := checkOfficialIdle(sessionDir); err != nil {
 			return nil, err
 		}
@@ -411,7 +402,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 				return nil, errors.New("record source is absent from material registry")
 			}
 		}
-		if route.Executor != "official-driver" && route.Executor != "external-sdk" {
+		if route.Executor != "external-sdk" {
 			return nil, errors.New("record source has no executable route")
 		}
 		if !filepath.IsAbs(route.ProtocolCwd) {
@@ -419,7 +410,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 		}
 	}
 	if material != nil {
-		current, err := LatestArtifact(sessionDir, session, action == "verify")
+		current, err := LatestArtifact(sessionDir, session, false)
 		if err != nil {
 			return nil, err
 		}
@@ -504,14 +495,6 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, lock: lock}
 	success = true
 	return run, nil
-}
-
-func BeginRecord(sessionDir string, args []string, timeout time.Duration) (*ActionRun, error) {
-	return createAction(sessionDir, "record", args, timeout, nil, nil)
-}
-
-func BeginVerify(sessionDir string, args []string, timeout time.Duration, material *Artifact, admission *Admission) (*ActionRun, error) {
-	return createAction(sessionDir, "verify", args, timeout, material, admission)
 }
 
 // BeginMock either creates the execution that declares all connections or
@@ -765,7 +748,11 @@ func claimMockConnection(execution Execution, id string) error {
 	if err != nil {
 		return fmt.Errorf("mock connection %s already started: %w", id, err)
 	}
-	return f.Close()
+	data, encodeErr := json.Marshal(tool.Object{"pid": os.Getpid()})
+	if encodeErr == nil {
+		_, encodeErr = f.Write(data)
+	}
+	return errors.Join(encodeErr, f.Close())
 }
 
 func markMockConnection(sessionDir, executionID, connection, status, executionStatus string) error {
@@ -813,7 +800,7 @@ func FinishAction(run *ActionRun, status, artifactID string) error {
 
 // CleanupAction restores the tool-owned route before verification can be adopted.
 func CleanupAction(run *ActionRun) error {
-	if run.Execution.Command == "record" || run.Execution.Command == "verify" {
+	if run.Execution.Command == "record" {
 		return restoreRouteSlots(run.Session, run.Execution.Command)
 	}
 	return nil
@@ -888,7 +875,7 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error 
 	if err := restoreRouteSlots(run.Session, "record"); err != nil {
 		return err
 	}
-	for _, action := range []string{"verify", "mock"} {
+	for _, action := range []string{"mock"} {
 		if route, ok := run.Session.Routes[action]; ok && route.Enabled {
 			if err := restoreRouteSlots(run.Session, action); err != nil {
 				return err

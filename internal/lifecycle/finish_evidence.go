@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -247,104 +246,6 @@ func validateMockReceipts(receiptPath, processPath string, execution Execution, 
 		return errors.Join(replayErr, errors.New("mock process exit is absent or nonzero"))
 	}
 	return replayErr
-}
-
-func validatePeerLifecycle(root, connection string) error {
-	lifecycle, err := readEvidenceObject(filepath.Join(root, "peer-"+connection+"-lifecycle.json"), "peer lifecycle receipt")
-	if err != nil {
-		return err
-	}
-	if lifecycle["schemaVersion"] != float64(1) ||
-		lifecycle["exitCode"] != float64(0) ||
-		lifecycle["reaped"] != true ||
-		lifecycle["cleanupComplete"] != true ||
-		lifecycle["error"] != nil {
-		return errors.New("peer process did not exit and clean up successfully")
-	}
-	return nil
-}
-
-func validateAdmission(execution Execution, root string) error {
-	args := map[string]string{
-		"--index":     "",
-		"--scenarios": "",
-		"--archive":   "",
-	}
-	counts := map[string]int{}
-	for i, arg := range execution.Args {
-		if _, ok := args[arg]; !ok {
-			continue
-		}
-		if i+1 >= len(execution.Args) {
-			return fmt.Errorf("%s has no value", arg)
-		}
-		counts[arg]++
-		args[arg] = execution.Args[i+1]
-	}
-	evidence, err := readEvidenceObject(filepath.Join(root, "verification.json"), "verification evidence")
-	if err != nil {
-		return err
-	}
-	evidenceAdmission := tool.Obj(evidence["admission"])
-	if execution.Admission == nil {
-		for flag := range args {
-			if counts[flag] != 0 {
-				return fmt.Errorf("%s is present without persisted admission", flag)
-			}
-		}
-		if len(evidenceAdmission) != 0 {
-			return errors.New("verification evidence has admission without its execution descriptor")
-		}
-		return nil
-	}
-	if execution.Command != "verify" {
-		return errors.New("only verify executions may persist admission parameters")
-	}
-	expected := []string{execution.Admission.Index, execution.Admission.Scenarios, execution.Admission.Archive}
-	for _, value := range expected {
-		if value == "" || !filepath.IsAbs(value) {
-			return errors.New("persisted admission paths must be absolute")
-		}
-	}
-	for flag, value := range map[string]string{
-		"--index":     execution.Admission.Index,
-		"--scenarios": execution.Admission.Scenarios,
-		"--archive":   execution.Admission.Archive,
-	} {
-		if counts[flag] != 1 || args[flag] != value {
-			return fmt.Errorf("persisted admission %s differs from the execution arguments", flag)
-		}
-	}
-	persisted := Admission{
-		Index:     tool.Str(evidenceAdmission["index"]),
-		Scenarios: tool.Str(evidenceAdmission["scenarios"]),
-		Archive:   tool.Str(evidenceAdmission["archive"]),
-	}
-	if persisted != *execution.Admission {
-		return errors.New("persisted admission differs from the verification evidence")
-	}
-	return nil
-}
-
-func validateEvidenceHashes(root string, hashes tool.Object) error {
-	if len(hashes) == 0 {
-		return errors.New("verification evidence omits its file hashes")
-	}
-	var errs []error
-	for name, value := range hashes {
-		digest := tool.Str(value)
-		if digest == "" {
-			errs = append(errs, fmt.Errorf("verification evidence has no hash for %s", name))
-			continue
-		}
-		if err := corpus.VerifyFile(root, filepath.FromSlash(name), digest); err != nil {
-			errs = append(errs, fmt.Errorf("verification evidence %s: %w", name, err))
-		}
-	}
-	if len(errs) != 0 {
-		return errors.Join(errs...)
-	}
-	return nil
 }
 
 // ValidateMockConnection checks the ordinary mock's durable protocol and process

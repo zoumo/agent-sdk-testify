@@ -28,7 +28,7 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 	current := readFile(t, filepath.Join(session, "current.json"))
 	descriptor := readFile(t, filepath.Join(session, "session.json"))
 	// The material has no official verifier; this must not become a mock gate.
-	rejected := runTool(t, env, t.TempDir(), "", "verify", "--session-dir", session)
+	rejected := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session)
 	require.Equal(t, 1, rejected.code, rejected.stderr)
 	require.Contains(t, rejected.stderr, "no applicable official verifier")
 	require.Empty(t, array(sessionIndex(t, session)["executions"]))
@@ -54,7 +54,7 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 		require.Zero(t, process["exitCode"])
 	}
 	finished, finish := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
+	require.Equal(t, 1, finished.code, finished.stderr)
 	require.Equal(t, true, finish["cleanupComplete"])
 	require.NoDirExists(t, str(readJSON(t, filepath.Join(session, "session.json"))["resourceRoot"]))
 	require.Equal(t, before, readAllFiles(t, str(material["path"])))
@@ -96,7 +96,7 @@ func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 		{"--sdk-test-handshakes", "answer"},
 	} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
-			argv := append([]string{"mock", "--session-dir", session}, args...)
+			argv := append([]string{"agent", "mock", "--session-dir", session}, args...)
 			result := runTool(t, env, t.TempDir(), requestOne, argv...)
 			require.Equal(t, 1, result.code, result.stderr)
 			require.Empty(t, result.stdout)
@@ -104,7 +104,7 @@ func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 			require.NoFileExists(t, filepath.Join(root, "report.json"))
 		})
 	}
-	result := runTool(t, env, t.TempDir(), "", "mock")
+	result := runTool(t, env, t.TempDir(), "", "agent", "mock")
 	require.Equal(t, 1, result.code, result.stderr)
 	require.Contains(t, result.stderr, "mock requires --session-dir")
 	finished, _ := finishSession(t, env, session)

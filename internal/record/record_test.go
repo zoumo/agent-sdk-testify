@@ -47,9 +47,6 @@ func recordDriverSubstitute(args []string) int {
 	if provider == "claude" {
 		configKey = "CLAUDE_CONFIG_DIR"
 	}
-	if os.Getenv("HOME") != filepath.Join(req.Output, "home") || os.Getenv(configKey) != filepath.Join(req.Output, "config") {
-		return 3
-	}
 	if _, err := os.Stat(filepath.Join(req.Workspace, "numbers.txt")); err != nil {
 		return 4
 	}
@@ -88,7 +85,7 @@ func recordDriverSubstitute(args []string) int {
 		"config":    os.Getenv(configKey),
 		"tmp":       os.Getenv("TMPDIR"),
 	}
-	if tool.WriteJSON(filepath.Join(req.Output, "report.json"), tool.Object{"status": status, "branchStatus": status, "captureStatus": "synthetic-driver-source", "officialSDK": tool.Object{"version": "synthetic-only"}, "observed": observed}) != nil {
+	if tool.WriteJSON(filepath.Join(req.Output, "report.json"), tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "synthetic-driver-source", "officialSDK": tool.Object{"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider], "version": "synthetic-only"}, "observed": observed}) != nil {
 		return 6
 	}
 	if tool.WriteJSON(filepath.Join(req.Output, "result.json"), tool.Result{Status: status, Message: "synthetic-only"}) != nil {
@@ -236,7 +233,7 @@ func (p *preparedRecord) installVerifyDriver(t *testing.T) {
 
 func (p *preparedRecord) command(t *testing.T, timeout string) *exec.Cmd {
 	t.Helper()
-	args := []string{"record", "--session-dir", p.session, "--cmd", p.cli}
+	args := []string{"official", "record", "--session-dir", p.session, "--cmd", p.cli}
 	if timeout != "" {
 		args = append(args, "--timeout", timeout)
 	}
@@ -276,8 +273,9 @@ func checkRecordCapture(t *testing.T, provider string) {
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	var summary tool.Object
-	require.NoError(t, json.Unmarshal(data, &summary))
-	require.Equal(t, "passed", tool.Obj(summary["result"])["status"])
+	require.Empty(t, data)
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "result.json"), &summary))
+	require.Equal(t, "passed", summary["status"])
 	output := fixture.recordRoot(t)
 	var plan, manifest, transport, report tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "plan.json"), &plan))
@@ -285,11 +283,11 @@ func checkRecordCapture(t *testing.T, provider string) {
 	require.Equal(t, "continuation", plan["driverProfile"])
 	require.Equal(t, "personal-skills-v1", plan["recordingIsolation"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "manifest.json"), &manifest))
-	require.Equal(t, "passed", manifest["status"])
+	require.Equal(t, "captured", manifest["status"])
 	require.Equal(t, "complete", manifest["captureStatus"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "raw", "transport.json"), &transport))
 	require.Equal(t, true, transport["cleanupComplete"])
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "report.json"), &report))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "driver", "report.json"), &report))
 	require.Equal(t, "synthetic-driver-source", report["captureStatus"])
 	raw, err := os.ReadFile(filepath.Join(output, "raw", "raw.jsonl"))
 	require.NoError(t, err)
@@ -327,23 +325,25 @@ func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
 	id := tool.Str(row["id"])
 	var execution, report tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "executions", id, "execution.json"), &execution))
-	require.NoError(t, tool.ReadJSON(filepath.Join(tool.Str(execution["artifactRoot"]), "report.json"), &report))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "driver", "report.json"), &report))
 
 	observed := tool.Obj(report["observed"])
 	workspace := tool.Str(execution["workspace"])
-	require.Equal(t, observed["cwd"], workspace)
-	require.Equal(t, observed["workspace"], workspace)
+	resolvedHost, resolveErr := filepath.EvalSymlinks(tool.Str(observed["workspace"]))
+	require.NoError(t, resolveErr)
+	require.Equal(t, resolvedHost, observed["cwd"])
+	require.Contains(t, tool.Str(observed["workspace"]), filepath.Join("routes", "record"))
 	var sessionDescriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(resolvedSession, "session.json"), &sessionDescriptor))
 	require.True(t, strings.HasPrefix(workspace, filepath.Join(tool.Str(sessionDescriptor["resourceRoot"]), "executions", id)+string(filepath.Separator)))
 	require.False(t, strings.HasPrefix(workspace, resolvedSession+string(filepath.Separator)))
-	require.Equal(t, observed["cwd"], execution["protocolCwd"])
-	require.Equal(t, observed["home"], execution["home"])
-	require.Equal(t, observed["config"], execution["config"])
-	require.Equal(t, observed["tmp"], execution["tmp"])
-	require.Equal(t, observed["home"], tool.Obj(execution["env"])["HOME"])
-	require.Equal(t, observed["config"], tool.Obj(execution["env"])["CODEX_HOME"])
-	require.Equal(t, observed["tmp"], tool.Obj(execution["env"])["TMPDIR"])
+	require.Equal(t, workspace, execution["protocolCwd"])
+	require.NotEqual(t, observed["home"], execution["home"])
+	require.NotEqual(t, observed["config"], execution["config"])
+	require.NotEqual(t, observed["tmp"], execution["tmp"])
+	require.Equal(t, execution["home"], tool.Obj(execution["env"])["HOME"])
+	require.Equal(t, execution["config"], tool.Obj(execution["env"])["CODEX_HOME"])
+	require.Equal(t, execution["tmp"], tool.Obj(execution["env"])["TMPDIR"])
 
 	data, err = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", fixture.session).CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -360,13 +360,13 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	require.Equal(t, tool.DigestBytes([]byte("{\"type\":\"official-history\"}\n")), tool.Obj(manifest["savedFiles"])[history])
 
 	fixture.installVerifyDriver(t)
-	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "verify", "--session-dir", fixture.session)
+	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", fixture.session)
 	verify.Env = fixture.env
 	data, err = verify.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	verifyExecution := latestExecution(t, fixture.session, "verify")
+	verifyExecution := latestExecution(t, fixture.session, "mock")
 
-	mock := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "mock", "--session-dir", fixture.session, "--", "app-server", "--listen", "stdio://")
+	mock := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "agent", "mock", "--session-dir", fixture.session, "--", "app-server", "--listen", "stdio://")
 	mock.Env = fixture.env
 	mock.Stdin = strings.NewReader(`{"id":1,"method":"synthetic","unknown":9007199254740993}` + "\n")
 	data, err = mock.Output()
@@ -411,12 +411,12 @@ func TestRecordThenVerifyUsesCurrentCapture(t *testing.T) {
 
 	fixture.installVerifyDriver(t)
 	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"),
-		"verify", "--session-dir", fixture.session)
+		"official", "verify", "--session-dir", fixture.session)
 	verify.Env = fixture.env
 	data, err = verify.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
-	execution := latestExecution(t, fixture.session, "verify")
+	execution := latestExecution(t, fixture.session, "mock")
 	artifact := tool.Obj(execution["artifact"])
 	require.Equal(t, tool.Str(capture["path"]), artifact["path"])
 	require.Equal(t, "official", execution["provenance"])
@@ -464,18 +464,27 @@ func TestRecordPreservesFailedAttempts(t *testing.T) {
 			cmd := fixture.command(t, recordExecutionTimeout)
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
-			output := fixture.recordRoot(t)
-			var summary tool.Object
-			require.NoError(t, tool.ReadJSON(filepath.Join(output, "summary.json"), &summary))
-			require.Equal(t, test.status, tool.Obj(summary["result"])["status"])
-			require.FileExists(t, filepath.Join(output, "plan.json"))
-			require.FileExists(t, filepath.Join(output, "stderr.log"))
-			require.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
+			officialRoot := fixture.officialRoot(t)
+			var result tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(officialRoot, "result.json"), &result))
+			require.Equal(t, "failed", result["status"])
+			require.Equal(t, test.status, tool.Str(tool.Obj(result["business"])["status"]))
+			require.FileExists(t, filepath.Join(officialRoot, "driver", "stderr.log"))
+			require.FileExists(t, filepath.Join(officialRoot, "driver", "materials", "case.json"))
 			if test.driver != "crash" {
-				var manifest tool.Object
-				require.NoError(t, tool.ReadJSON(filepath.Join(output, "manifest.json"), &manifest))
-				require.Equal(t, test.status, manifest["status"])
+				output := fixture.recordRoot(t)
 				require.FileExists(t, filepath.Join(output, "raw", "raw.jsonl"))
+				require.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
+				if test.native != "crash" {
+					var manifest tool.Object
+					require.NoError(t, tool.ReadJSON(filepath.Join(output, "manifest.json"), &manifest))
+					require.Equal(t, "captured", manifest["status"])
+					require.Equal(t, "complete", manifest["captureStatus"])
+				} else {
+					var receipt tool.Object
+					require.NoError(t, tool.ReadJSON(filepath.Join(output, "raw", "transport.json"), &receipt))
+					require.Equal(t, "failed", receipt["captureStatus"])
+				}
 			}
 		})
 	}
@@ -507,7 +516,7 @@ func TestRecordHelpAndSelectionErrors(t *testing.T) {
 		{"arbitrary-driver", []string{"--driver", "/never-execute"}, "unknown flag", false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"record"}, test.args...)...)
+			cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), append([]string{"official", "record"}, test.args...)...)
 			cmd.Dir = t.TempDir()
 			cmd.Env = []string{"PATH=/missing"}
 			data, err := cmd.CombinedOutput()
@@ -554,9 +563,9 @@ func TestRecordTimeoutPreservesDiagnostic(t *testing.T) {
 	cmd := fixture.command(t, "500ms")
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
-	output := fixture.recordRoot(t)
+	output := filepath.Join(fixture.officialRoot(t), "driver")
 	var summary tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "summary.json"), &summary))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "result.json"), &summary))
 	require.Contains(t, tool.Str(summary["error"]), "context deadline exceeded")
 	require.NoFileExists(t, filepath.Join(output, "native.env.private.json"))
 }
@@ -578,6 +587,14 @@ func TestRecordEvidenceCopyRejectsSymlink(t *testing.T) {
 	private := filepath.Join(t.TempDir(), "private.txt")
 	require.NoError(t, os.WriteFile(private, []byte("private evidence"), 0o600))
 	require.NoError(t, os.Symlink(private, filepath.Join(source, "report.json")))
-	err := copyEvidenceFile(source, target, "report.json")
-	require.ErrorContains(t, err, "capture evidence is not regular")
+	err := tool.CopyFile(filepath.Join(source, "report.json"), filepath.Join(target, "report.json"))
+	require.ErrorContains(t, err, "source is not a regular file")
+}
+
+func (p *preparedRecord) officialRoot(t *testing.T) string {
+	t.Helper()
+	var ids []string
+	require.NoError(t, tool.ReadJSON(filepath.Join(p.session, "official-records", "index.json"), &ids))
+	require.NotEmpty(t, ids)
+	return filepath.Join(p.session, "official-records", ids[len(ids)-1])
 }

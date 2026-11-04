@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -19,11 +20,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
-// The subprocess is an explicitly synthetic native peer. The installed CLI is
-// exercised separately so the test cannot bypass its Cobra command boundary.
+// Synthetic peers exercise the real capture kernel in a controlled process.
+// Installed CLI contracts live in internal/conformance.
 func TestRecordCLIHelper(t *testing.T) {
 	role := os.Getenv("AGENT_MOCK_RECORD_TEST_ROLE")
 	if role == "" {
@@ -161,13 +163,55 @@ func startRecordAt(t *testing.T, dir string, flags []string, mode ...string) *re
 
 func startRecordCommand(t *testing.T, dir string, flags, native []string) *recordProcess {
 	t.Helper()
-	executable := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	require.NotEmpty(t, executable, "run with make test")
-	args := []string{"--internal-protocol", "record", "--output", dir, "--cleanup-timeout", "0.3", "--env", "AGENT_MOCK_RECORD_TEST_ROLE=peer"}
-	args = append(args, flags...)
-	args = append(args, "--")
-	args = append(args, native...)
-	p := &recordProcess{cmd: exec.CommandContext(t.Context(), executable, args...), dir: dir, done: make(chan error, 1)}
+	executable, err := os.Executable()
+	require.NoError(t, err)
+	options := capture.Options{Output: dir, Command: native, CleanupTimeout: 300 * time.Millisecond, StdinEOFAction: "close", Env: []string{"AGENT_MOCK_RECORD_TEST_ROLE=peer"}}
+	for i := 0; i < len(flags); i++ {
+		name := flags[i]
+		if name == "--clear-env" {
+			options.ClearEnv = true
+			continue
+		}
+		i++
+		require.Less(t, i, len(flags))
+		value := flags[i]
+		switch name {
+		case "--cwd":
+			options.CWD = value
+		case "--env":
+			options.Env = append(options.Env, value)
+		case "--native-version":
+			options.NativeVersion = value
+		case "--stdin-eof-action":
+			options.StdinEOFAction = value
+		case "--timeout", "--cleanup-timeout":
+			seconds, e := strconv.ParseFloat(value, 64)
+			require.NoError(t, e)
+			if name == "--timeout" {
+				options.Timeout = time.Duration(seconds * float64(time.Second))
+			} else {
+				options.CleanupTimeout = time.Duration(seconds * float64(time.Second))
+			}
+		default:
+			n, e := strconv.ParseInt(value, 10, 64)
+			require.NoError(t, e)
+			switch name {
+			case "--protocol-bytes":
+				options.ProtocolBytes = n
+			case "--stderr-bytes":
+				options.StderrBytes = n
+			case "--max-frames":
+				options.MaxFrames = n
+			case "--max-frame-bytes":
+				options.MaxFrameBytes = n
+			default:
+				t.Fatalf("unknown test setting %s", name)
+			}
+		}
+	}
+	encoded, err := json.Marshal(options)
+	require.NoError(t, err)
+	p := &recordProcess{cmd: exec.CommandContext(t.Context(), executable, "capture-kernel", string(encoded)), dir: dir, done: make(chan error, 1)}
 	p.cmd.Env = append(os.Environ(), "AGENT_MOCK_RECORD_TEST_ROLE=peer", "RECORD_INHERITED=outer", "GORACE=atexit_sleep_ms=0")
 	in, err := p.cmd.StdinPipe()
 	require.NoError(t, err)

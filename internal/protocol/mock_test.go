@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -21,13 +22,10 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
-// Every command below runs the compiled executable outside the checkout, with
-// no Python, SDK, agent, compiler, credentials or normal PATH in its environment.
+// Controlled processes exercise the actual replay kernel, independently of SDKs.
+// Public installed CLI coverage belongs to internal/conformance.
 func TestMockCLI(t *testing.T) {
-	binary := filepath.Join(t.TempDir(), "agent-sdk-testify")
-	build := exec.CommandContext(t.Context(), "go", "build", "-o", binary, "../..")
-	out, err := build.CombinedOutput()
-	require.NoError(t, err, "%s", out)
+	binary := "" // No product CLI is used by kernel process tests.
 	for _, provider := range []string{"codex", "claude"} {
 		t.Run(provider, func(t *testing.T) {
 			mockCLIBasics(t, binary, provider)
@@ -85,7 +83,52 @@ func mockCommand(t *testing.T, binary, provider, source string, args ...string) 
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	t.Cleanup(cancel)
-	cmd := exec.CommandContext(ctx, binary, append([]string{"--internal-protocol", "mock", "--provider", provider, "--scenario", source}, args...)...)
+	options := MockOptions{Provider: provider, Scenario: source, ProgressFD: -1, Limits: recording.Limits{MaxFrames: 10000, MaxFrameBytes: 2 << 20}}
+	for i := 0; i < len(args); i++ {
+		name := args[i]
+		if name == "--" {
+			options.NativeArgs = append(options.NativeArgs, args[i+1:]...)
+			break
+		}
+		switch name {
+		case "--receipt", "--timeout", "--max-frames", "--max-bytes", "--max-frame-bytes", "--recording-version", "--progress-fd", "--sdk-test-handshakes":
+			i++
+			require.Less(t, i, len(args))
+			value := args[i]
+			switch name {
+			case "--receipt":
+				options.Receipt = value
+			case "--recording-version":
+				options.RecordingVersion = value
+			case "--sdk-test-handshakes":
+				options.Handshakes = value
+			case "--timeout":
+				n, e := strconv.ParseFloat(value, 64)
+				require.NoError(t, e)
+				options.Timeout = time.Duration(n * float64(time.Second))
+			default:
+				n, e := strconv.ParseInt(value, 10, 64)
+				require.NoError(t, e)
+				switch name {
+				case "--max-frames":
+					options.Limits.MaxFrames = int(n)
+				case "--max-bytes":
+					options.Limits.MaxBytes = n
+				case "--max-frame-bytes":
+					options.Limits.MaxFrameBytes = n
+				case "--progress-fd":
+					options.ProgressFD = int(n)
+				}
+			}
+		default:
+			options.NativeArgs = append(options.NativeArgs, name)
+		}
+	}
+	encoded, err := json.Marshal(options)
+	require.NoError(t, err)
+	executable, err := os.Executable()
+	require.NoError(t, err)
+	cmd := exec.CommandContext(ctx, executable, "replay-kernel", string(encoded))
 	cmd.Dir = t.TempDir()
 	cmd.Env = []string{"PATH=/nonexistent", "GORACE=atexit_sleep_ms=0"}
 	return cmd
@@ -345,8 +388,8 @@ func mockCLIConfiguration(t *testing.T, binary, provider string) {
 		{"native version exact", mockScenario(`<{"claude_code_version":"2.1.1"}`), []string{"--recording-version", "2.1.1"}, 0},
 		{"native version absent", mockScenario("<{}"), []string{"--recording-version", "future"}, 0},
 		{"native version invalid type", mockScenario(`<{"claude_code_version":1}`), []string{"--recording-version", "1"}, 1},
-		{"zero timeout", mockScenario("<{}"), []string{"--timeout", "0"}, 1},
-		{"zero max frames", mockScenario("<{}"), []string{"--max-frames", "0"}, 1},
+		{"default timeout", mockScenario("<{}"), []string{"--timeout", "0"}, 0},
+		{"default max frames", mockScenario("<{}"), []string{"--max-frames", "0"}, 0},
 		{"invalid progress fd", mockScenario("<{}"), []string{"--progress-fd", "9999"}, 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

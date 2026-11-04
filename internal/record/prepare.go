@@ -47,7 +47,7 @@ func prepareOfficialCapture(ctx context.Context, run *lifecycle.ActionRun, comma
 	}
 	if remote == nil {
 		plan["cli"], plan["args"] = command, args
-		o := official.Options{CLI: command, RuntimeEnv: run.Execution.RuntimeEnv, InitialModel: tool.Str(plan["initialModel"])}
+		o := official.Options{CLI: command, RuntimeEnv: run.Execution.RuntimeEnv, InitialModel: tool.Str(plan["initialModel"]), ProbeProcess: func(state string, pid int) error { return lifecycle.TrackNativeProbe(run, state, pid) }}
 		if err := official.PrepareNative(ctx, &o, plan, run.OverlayRoot); err != nil {
 			return err
 		}

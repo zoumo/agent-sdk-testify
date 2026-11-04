@@ -95,7 +95,9 @@ required/optional、planned/unsupported 及原因必须保留。
 进程测试保留分片、大消息、关联 ID、超时、取消、背压、多连接、历史派生、
 prepare/action/finish 失败保留、会话多次使用、execution overlay 隔离和自有资源清理。
 `internal/conformance` 是由 installed CLI 的 argv、stdio、退出码、descriptor、文件和
-哈希驱动的唯一纵向验收入口；它不直接调用 lifecycle 函数。
+哈希驱动的唯一纵向验收入口；它不直接调用 lifecycle 函数。协议专项受控进程可以直接
+调用真实 capture/replay 内核，但不得复制已删除的命令实现、增加测试专用产品入口，
+或用这些内核测试替代公开 CLI 的会话合同验收。
 合同和材料存在不证明当前 SDK 通过，合成材料必须保持 synthetic 身份。
 官方验证、SDK 仿真和真实 E2E 分别报告，不互相背书。
 

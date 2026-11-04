@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import unittest
 
-from peer_support import identity
+from peer_support import identity, mock_command, run_mock
 
 BIN = identity()["path"]
 
@@ -34,7 +34,7 @@ def scenario(provider, *actions, provenance='synthetic'):
 
 class MockTests(unittest.TestCase):
     def test_unknown_provider_is_not_interpreted_as_claude(self):
-        result = subprocess.run([BIN, '--internal-protocol', 'mock', '--provider', 'another-agent', '--scenario', '/does-not-exist'],
+        result = run_mock(mock_command('another-agent', '/does-not-exist'),
                                 input=b'', capture_output=True, timeout=3)
         self.assertEqual(result.returncode, 1)
         self.assertEqual(result.stdout, b'')
@@ -48,8 +48,7 @@ class MockTests(unittest.TestCase):
             for provider in ('codex', 'claude'):
                 path, receipt = root/(provider+'.json'), root/(provider+'-receipt.json')
                 path.write_text(json.dumps(scenario(provider, '<{}')))
-                result = subprocess.run([str(launcher), '--internal-protocol', 'mock', '--provider', provider,
-                                         '--scenario', str(path), '--receipt', str(receipt)],
+                result = run_mock(mock_command(provider, path, '--receipt', str(receipt), binary=str(launcher)),
                                         input=b'', capture_output=True, timeout=3, env={'PATH': '/missing'}, cwd=root)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(result.stdout, b'{}\n')
@@ -60,7 +59,7 @@ class MockTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/'scenario.json'
             path.write_text(document if isinstance(document, str) else json.dumps(document))
-            result = subprocess.run([BIN, '--internal-protocol', 'mock', '--provider', provider, '--scenario', str(path), *args],
+            result = run_mock(mock_command(provider, path, *args),
                                     input=client.encode(), capture_output=True, timeout=5)
             if result.returncode != 0:
                 raise ValueError(result.stderr.decode())
@@ -186,7 +185,7 @@ class MockTests(unittest.TestCase):
                 with self.subTest(provider=provider, mode=mode), tempfile.TemporaryDirectory() as tmp:
                     path, receipt = Path(tmp)/'scenario.json', Path(tmp)/'receipt.json'
                     path.write_text(json.dumps(scenario(provider, *frames)))
-                    result = subprocess.run([BIN, '--internal-protocol', 'mock', '--provider', provider, '--scenario', str(path), '--receipt', str(receipt)], input=client.encode(), capture_output=True, timeout=3)
+                    result = run_mock(mock_command(provider, path, '--receipt', str(receipt)), input=client.encode(), capture_output=True, timeout=3)
                     self.assertEqual(result.returncode, expected, result.stderr)
                     self.assertEqual(receipt.exists(), expected == 0)
                     if expected == 0:
@@ -197,12 +196,12 @@ class MockTests(unittest.TestCase):
                     if mode == 'write': doc['frames'][0]['wire' if provider == 'codex' else 'data'] = {'text': 'x' * 1000000}
                     if mode == 'delay': doc['frames'][0]['delayMs' if provider == 'codex' else 'delay_ms'] = 1000
                     path = Path(tmp)/'scenario.json'; path.write_text(json.dumps(doc))
-                    process = subprocess.Popen([BIN, '--internal-protocol', 'mock', '--provider', provider, '--scenario', str(path), '--timeout', '0.1'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    process = subprocess.Popen(mock_command(provider, path, '--timeout', '0.1'), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     self.assertEqual(process.wait(timeout=3), 1)
                     process.stdin.close(); process.stdout.close(); process.stderr.close()
             with tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp)/'scenario.json'; path.write_text(json.dumps(scenario(provider, '<{}', '>{}')))
-                process = subprocess.Popen([BIN, '--internal-protocol', 'mock', '--provider', provider, '--scenario', str(path)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.Popen(mock_command(provider, path), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 # The timeout handler is tested above; SIGTERM also must exit
                 # without leaving a live protocol process.
                 self.assertEqual(process.stdout.readline(), b'{}\n')
@@ -234,8 +233,8 @@ class MockTests(unittest.TestCase):
                     path = Path(tmp)/'scenario.json'
                     path.write_text(json.dumps(scenario(provider, *frames)))
                     args = ['app-server'] if provider == 'codex' else []
-                    result = subprocess.run(
-                        [BIN, '--internal-protocol', 'mock', '--provider', provider, '--scenario', str(path), *args],
+                    result = run_mock(
+                        mock_command(provider, path, *args),
                         input=client.encode(), capture_output=True, timeout=5,
                         env={'PATH': '/missing'},
                     )
@@ -264,8 +263,7 @@ class MockTests(unittest.TestCase):
             read_fd, write_fd = os.pipe()
             os.close(read_fd)
             try:
-                process = subprocess.Popen([BIN, '--internal-protocol', 'mock', '--provider', 'codex', '--scenario', str(path),
-                                            '--receipt', str(receipt)], stdin=subprocess.PIPE,
+                process = subprocess.Popen(mock_command('codex', path, '--receipt', str(receipt)), stdin=subprocess.PIPE,
                                            stdout=write_fd, stderr=subprocess.PIPE)
                 _, stderr = process.communicate(b'', timeout=5)
                 self.assertNotEqual(process.returncode, 0, stderr)

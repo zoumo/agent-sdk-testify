@@ -206,7 +206,7 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 		cmd.Env = append(cmd.Env, name+"="+value)
 	}
 	cmd.Dir, cmd.Stdout, cmd.Stderr = route.Workspace, stdout, stderr
-	runErr = tool.WaitDriver(ctx, cmd)
+	runErr = activity.WaitDriver(ctx, cmd)
 	process := tool.Object{"started": cmd.Process != nil, "reaped": cmd.ProcessState != nil, "cleanupComplete": cmd.ProcessState != nil}
 	if cmd.ProcessState != nil {
 		process["exitCode"] = cmd.ProcessState.ExitCode()

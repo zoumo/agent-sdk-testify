@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 import record_user_story
-from peer_support import identity
+from peer_support import identity, prepare_record, current_capture, mock_command, run_mock
 from record_user_story.environment import capture_root, replay_receipt, private_json, recording_temp_root
 from record_user_story.scenarios import case_recipes, _validate, recipe, digest
 
@@ -47,14 +47,16 @@ class RecordingTests(unittest.TestCase):
                 plan['agentMock'] = identity()
                 private_json(root/'plan.json', plan)
                 env = {'PATH': '/missing'}
-                captured = subprocess.run([identity()['path'], '--internal-protocol', 'record', '--output', str(root/'raw'),
-                                           '--', sys.executable, str(native)], input=request,
+                session = prepare_record(root, plan)
+                captured = subprocess.run([identity()['path'], 'agent', 'record', '--session-dir', str(session),
+                                           '--cmd', str(Path(sys.executable).resolve()), '--', str(native)], input=request,
                                           capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(captured.returncode, 0, (captured.stderr, {p.name: p.read_text() for p in root.glob('*diagnostics*.json')}))
                 self.assertEqual(captured.stdout, response)
-                transport = json.loads((root/'raw/transport.json').read_text())
+                capture = current_capture(session)
+                transport = json.loads((capture/'raw/transport.json').read_text())
                 self.assertTrue(transport['cleanupComplete'])
-                raw = root/'raw/raw.jsonl'
+                raw = capture/'raw/raw.jsonl'
                 self.assertIn(b'900719925474099312345', raw.read_bytes())
                 self.assertIn(b'1.2300', raw.read_bytes())
                 schema = json.loads((Path(record_user_story.__file__).parent/'schemas/wire.schema.json').read_text())
@@ -62,15 +64,14 @@ class RecordingTests(unittest.TestCase):
                     _validate(json.loads(line), schema)
                 native.unlink()  # Replay must be independent of the recorded executable.
                 receipt = root/'receipt.json'
-                command = [identity()['path'], '--internal-protocol', 'mock', '--provider', provider,
-                           '--scenario', str(raw), '--receipt', str(receipt)]
-                replayed = subprocess.run(command, input=rebound, capture_output=True, timeout=10, cwd=root, env=env)
+                command = mock_command(provider, raw, '--receipt', str(receipt))
+                replayed = run_mock(command, input=rebound, capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(replayed.returncode, 0, replayed.stderr)
                 self.assertEqual(replayed.stdout, replay_response)
                 result = json.loads(receipt.read_text())
                 self.assertTrue(result['fullConsumption'])
                 self.assertFalse(result['nativeLaunched'])
-                mismatch = subprocess.run(command[:-2], input=b'{}\n', capture_output=True, timeout=10, cwd=root, env=env)
+                mismatch = subprocess.run(mock_command(provider, raw), input=b'{}\n', capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(mismatch.returncode, 1)
 
 

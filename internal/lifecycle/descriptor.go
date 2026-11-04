@@ -266,7 +266,7 @@ func (s Session) Validate() error {
 	if s.Source.SHA256 == "" {
 		return errors.New("session source identity mismatch")
 	}
-	for _, action := range []string{"record", "verify", "mock"} {
+	for _, action := range []string{"record", "mock"} {
 		route, ok := s.Routes[action]
 		if !ok {
 			return fmt.Errorf("session omits %s route", action)
@@ -282,7 +282,7 @@ func (e Execution) Validate(s Session) error {
 	if e.SchemaVersion != SchemaVersion || e.ExecutionID == "" || e.SessionID != s.SessionID {
 		return errors.New("invalid execution identity or schemaVersion")
 	}
-	if e.Source != s.Source || e.Command == "" {
+	if e.Source != s.Source || (e.Command != "record" && e.Command != "mock") {
 		return errors.New("execution differs from session source or paths")
 	}
 	if !filepath.IsAbs(e.Workspace) || !filepath.IsAbs(e.ProtocolCwd) ||

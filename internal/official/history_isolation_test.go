@@ -63,21 +63,19 @@ sys.exit(child.returncode)
 
 func runHistoryCommand(t *testing.T, mode, materials, native, driver string, extra ...string) (string, string, error) {
 	t.Helper()
-	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	require.NotEmpty(t, binary, "run with make test")
 	output := filepath.Join(t.TempDir(), "attempt")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	self, e := os.Executable()
 	require.NoError(t, e)
-	o := Options{Mode: mode, Materials: materials, CLI: native, Driver: driver, Output: output, Peer: binary}
+	o := preparationOptions{Options: Options{CLI: native}, Mode: mode, Materials: materials, Driver: driver, Output: output}
 	for i := 0; i < len(extra); i += 2 {
 		require.Equal(t, "--history-seed", extra[i])
 		o.HistorySeed = extra[i+1]
 	}
 	optionsPath := filepath.Join(t.TempDir(), "options.json")
 	require.NoError(t, tool.WriteJSON(optionsPath, o))
-	cmd := exec.CommandContext(ctx, self, "official-engine-fixture", optionsPath)
+	cmd := exec.CommandContext(ctx, self, "native-preparation-fixture", optionsPath)
 
 	data, err := cmd.CombinedOutput()
 	return output, string(data), err

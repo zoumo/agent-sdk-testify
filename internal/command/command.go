@@ -55,20 +55,16 @@ func New(streams IO) *cobra.Command {
 	root.CompletionOptions.DisableDefaultCmd = true
 	root.AddCommand(
 		prepareCommand(),
-		legacyRecordCommand(streams),
-		verifyCommand(false),
-		mockCommand(),
 		exportCommand(),
 		finishCommand(),
 		versionCommand(),
-		protocolCommand(streams),
 		peerCommand(streams),
 	)
 	agent := &cobra.Command{Use: "agent", Short: "Native Agent protocol peers", Args: cobra.NoArgs}
 	agent.AddCommand(recordCommand(streams), mockCommand())
 	root.AddCommand(agent)
 	official := &cobra.Command{Use: "official", Short: "Official SDK orchestration", Args: cobra.NoArgs}
-	official.AddCommand(newRecordCommand(streams, false, true), verifyCommand(true))
+	official.AddCommand(newRecordCommand(streams, true), verifyCommand())
 	root.AddCommand(official)
 	registerGenerate(root, streams)
 	return root
@@ -142,14 +138,10 @@ func prepareCommand() *cobra.Command {
 }
 
 func recordCommand(streams IO) *cobra.Command {
-	return newRecordCommand(streams, false, false)
+	return newRecordCommand(streams, false)
 }
 
-func legacyRecordCommand(streams IO) *cobra.Command {
-	return newRecordCommand(streams, true, false)
-}
-
-func newRecordCommand(streams IO, legacy, officialMode bool) *cobra.Command {
+func newRecordCommand(streams IO, officialMode bool) *cobra.Command {
 	var o record.Options
 	c := &cobra.Command{
 		Use:   "record [flags] [-- ARG ...]",
@@ -158,14 +150,12 @@ func newRecordCommand(streams IO, legacy, officialMode bool) *cobra.Command {
 	}
 	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
 	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
-	if !legacy {
-		if !officialMode {
-			c.Flags().StringVar(&o.Connection, "connection", "main", "declared record connection")
-		}
-		c.Flags().DurationVar(&o.ConnectTimeout, "connect-timeout", 0, "retry unavailable remote connections for this duration")
-		c.Flags().StringVar(&o.URL, "url", "", "existing authenticated ws/wss endpoint (excludes --cmd and native arguments)")
-		c.Flags().StringVar(&o.TokenFile, "token-file", "", "private bearer-token file for --url (never persisted)")
+	if !officialMode {
+		c.Flags().StringVar(&o.Connection, "connection", "main", "declared record connection")
 	}
+	c.Flags().DurationVar(&o.ConnectTimeout, "connect-timeout", 0, "retry unavailable remote connections for this duration")
+	c.Flags().StringVar(&o.URL, "url", "", "existing authenticated ws/wss endpoint (excludes --cmd and native arguments)")
+	c.Flags().StringVar(&o.TokenFile, "token-file", "", "private bearer-token file for --url (never persisted)")
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
 	if !officialMode {
 		c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
@@ -193,15 +183,12 @@ func newRecordCommand(streams IO, legacy, officialMode bool) *cobra.Command {
 		if officialMode {
 			return record.RunOfficial(c.Context(), o)
 		}
-		if legacy {
-			return record.RunLegacy(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
-		}
 		return record.Run(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 	}
 	return c
 }
 
-func verifyCommand(officialMode bool) *cobra.Command {
+func verifyCommand() *cobra.Command {
 	var o verify.Options
 	c := &cobra.Command{
 		Use:   "verify [flags]",
@@ -220,10 +207,7 @@ func verifyCommand(officialMode bool) *cobra.Command {
 		if !filepath.IsAbs(o.SessionDir) {
 			return errors.New("--session-dir must be an absolute path")
 		}
-		if officialMode {
-			return verify.RunOfficial(c.Context(), o)
-		}
-		return verify.Run(c.Context(), o)
+		return verify.RunOfficial(c.Context(), o)
 	}
 	return c
 }
@@ -256,10 +240,6 @@ func finishCommand() *cobra.Command {
 	return c
 }
 
-func protocolCommand(streams IO) *cobra.Command {
-	return newInternalProtocolCommand(streams)
-}
-
 func peerCommand(streams IO) *cobra.Command {
 	var o tool.PeerOptions
 	c := &cobra.Command{
@@ -277,7 +257,7 @@ func peerCommand(streams IO) *cobra.Command {
 	}
 	c.Flags().StringVar(&o.Request, "request", "", "peer command file")
 	c.Flags().StringVar(&o.Results, "results", "", "execution notification evidence for a public agent command")
-	c.Flags().StringVar(&o.Lifecycle, "lifecycle", "", "internal protocol child exit evidence")
+	c.Flags().StringVar(&o.Lifecycle, "lifecycle", "", "supervised child exit evidence")
 	return c
 }
 
@@ -288,8 +268,6 @@ func internalArgs(args []string) []string {
 	// Normalize the hidden process-interface spellings. The single Cobra root
 	// still owns command selection, validation and handler execution.
 	switch args[0] {
-	case "--internal-protocol":
-		return append([]string{"internal-protocol"}, args[1:]...)
 	case "--internal-peer":
 		return append([]string{"internal-peer"}, args[1:]...)
 	default:

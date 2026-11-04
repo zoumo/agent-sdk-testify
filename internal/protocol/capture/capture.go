@@ -4,10 +4,12 @@ package capture
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -117,9 +119,15 @@ func (j *journal) run(ctx context.Context, cmd *exec.Cmd, streams IO, report *re
 		return ctx.Err()
 	}
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = childIn, childOut, childErr
+	if err := j.processState("launching", 0); err != nil {
+		return err
+	}
 	if err := cmd.Start(); err != nil {
 		report.Reason = "launch-error"
-		return fmt.Errorf("launch native: %w", err)
+		return errors.Join(fmt.Errorf("launch native: %w", err), j.processState("not-started", 0))
+	}
+	if err := j.processState("started", cmd.Process.Pid); err != nil {
+		return errors.Join(err, cleanupGroup(cmd.Process.Pid, j.options.CleanupTimeout), cmd.Wait())
 	}
 	report.NativeLaunched = true
 	report.CleanupComplete = false
@@ -250,4 +258,26 @@ func contextReason(ctx context.Context) string {
 		return "deadline"
 	}
 	return "canceled"
+}
+
+func (j *journal) processState(state string, pid int) error {
+	if j.options.ProcessFile == "" {
+		return nil
+	}
+	data, err := json.Marshal(map[string]any{"state": state, "pid": pid})
+	if err != nil {
+		return err
+	}
+	f, err := os.CreateTemp(filepath.Dir(j.options.ProcessFile), ".native-process-*")
+	if err != nil {
+		return err
+	}
+	name := f.Name()
+	defer os.Remove(name)
+	_, err = f.Write(data)
+	err = errors.Join(err, f.Close())
+	if err != nil {
+		return err
+	}
+	return os.Rename(name, j.options.ProcessFile)
 }

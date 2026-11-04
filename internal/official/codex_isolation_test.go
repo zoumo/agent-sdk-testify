@@ -68,18 +68,16 @@ func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.
 	for name, body := range map[string]string{"native": codexIsolationNative, "driver": codexIsolationDriver} {
 		require.NoError(t, os.WriteFile(filepath.Join(root, name), []byte("#!"+python+"\n"+body), 0o700))
 	}
-	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	require.NotEmpty(t, binary, "run with make test")
 	output := filepath.Join(root, "attempt")
 	self, err := os.Executable()
 	require.NoError(t, err)
-	o := Options{Mode: "record", Materials: materials, Driver: filepath.Join(root, "driver"), CLI: filepath.Join(root, "native"), Output: output, Peer: binary}
+	o := preparationOptions{Options: Options{CLI: filepath.Join(root, "native")}, Mode: "record", Materials: materials, Driver: filepath.Join(root, "driver"), Output: output}
 	if configured {
 		o.Config = filepath.Join(personal, ".codex")
 	}
 	optionPath := filepath.Join(root, "options.json")
 	require.NoError(t, tool.WriteJSON(optionPath, o))
-	cmd := exec.CommandContext(t.Context(), self, "official-engine-fixture", optionPath)
+	cmd := exec.CommandContext(t.Context(), self, "native-preparation-fixture", optionPath)
 
 	cmd.Dir = t.TempDir()
 	cmd.Env = append(os.Environ(), "HOME="+personal, "CODEX_HOME="+filepath.Join(personal, ".codex"), "ISOLATION_AUTH=synthetic-key", "ISOLATION_HEADER=synthetic-header", "CODEX_SKILLS_DIR=/personal/skills", "CODEX_ADDITIONAL_SKILL_ROOTS=/personal/extra")

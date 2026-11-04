@@ -16,7 +16,7 @@ import (
 )
 
 // These peers observe startup configuration, not Claude's runtime skill loader.
-func claudeIsolationRun(t *testing.T, settings tool.Object, args []string, rejected ...string) (tool.Object, Options, string) {
+func claudeIsolationRun(t *testing.T, settings tool.Object, args []string, rejected ...string) (tool.Object, preparationOptions, string) {
 	t.Helper()
 	python, err := exec.LookPath("python3")
 	require.NoError(t, err)
@@ -71,17 +71,13 @@ sys.exit(child.returncode)
 		plan["args"] = args
 	}
 	require.NoError(t, tool.WriteJSON(filepath.Join(materials, "plan.json"), plan))
-	o := Options{
-		Mode: "record", Materials: materials, Config: source, CLI: native, Driver: driver,
-		Peer: os.Getenv("AGENT_SDK_TESTIFY_BIN"), Output: filepath.Join(t.TempDir(), "capture"), Model: "selected-model",
-	}
+	o := preparationOptions{Options: Options{Config: source, CLI: native, Model: "selected-model"}, Mode: "record", Materials: materials, Driver: driver, Output: filepath.Join(t.TempDir(), "capture")}
 	if settings == nil {
 		o.Config = ""
 	}
-	require.NotEmpty(t, o.Peer, "run with make test")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	_, err = Run(ctx, o)
+	err = runPreparationFixture(ctx, o)
 	if len(rejected) != 0 {
 		require.ErrorContains(t, err, rejected[0])
 		assert.NoFileExists(t, filepath.Join(o.Output, "native-observation.json"))

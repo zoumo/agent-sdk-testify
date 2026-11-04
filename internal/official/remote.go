@@ -33,6 +33,12 @@ func (r *remoteService) Stopped() bool {
 	return r.cmd == nil || r.cmd.Process == nil || errors.Is(syscall.Kill(-r.cmd.Process.Pid, 0), syscall.ESRCH)
 }
 func (r *remoteService) Close() error { return r.close() }
+func (r *remoteService) ProcessID() int {
+	if r.cmd != nil && r.cmd.Process != nil {
+		return r.cmd.Process.Pid
+	}
+	return 0
+}
 
 // ReserveRecordService allocates only a private target. Start runs after the
 // ordinary agent result identifies the execution overlay that owns its env.
@@ -42,21 +48,10 @@ func ReserveRecordService(ctx context.Context, root string) (interface {
 	Start(context.Context, Options, tool.Object) error
 	Close() error
 	Stopped() bool
+	ProcessID() int
 }, error,
 ) {
 	return reserveRemote(ctx, root)
-}
-
-func startRemote(ctx context.Context, o Options, plan tool.Object) (*remoteService, error) {
-	r, err := reserveRemote(ctx, tool.Str(plan["root"]))
-	if err != nil {
-		return nil, err
-	}
-	if err := r.Start(ctx, o, plan); err != nil {
-		_ = r.Close()
-		return nil, err
-	}
-	return r, nil
 }
 
 func reserveRemote(ctx context.Context, root string) (*remoteService, error) {
@@ -116,6 +111,12 @@ func (r *remoteService) Start(ctx context.Context, o Options, plan tool.Object) 
 		return err
 	}
 	go func() { r.done <- r.cmd.Wait() }()
+	if o.ProcessStarted != nil {
+		if err := o.ProcessStarted(r.cmd.Process.Pid); err != nil {
+			return errors.Join(err, r.close())
+		}
+	}
+
 	ticker := time.NewTicker(25 * time.Millisecond)
 	defer ticker.Stop()
 	for {

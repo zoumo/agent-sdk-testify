@@ -1,18 +1,9 @@
 package official
 
-import "github.com/zoumo/agent-sdk-testify/internal/tool"
-
-// Options describes one official-driver execution. The driver and native CLI
-// remain explicit inputs; versions and hashes never select a runtime.
+// Options contains only native preparation and owned-service inputs.
 type Options struct {
-	Mode, Materials, Case, Provider, Output, Workspace, Driver, Peer, CLI, Config, Model string
-	OutputPrepared                                                                       bool
-	HistoryPrepared                                                                      bool
-	HistorySeed                                                                          string
-	InitialModel                                                                         string
-	DriverArgs                                                                           []string
-	NativeCommand                                                                        string
-	NativeArgs                                                                           []string
-	RuntimeEnv                                                                           map[string]string
-	Plan                                                                                 tool.Object
+	CLI, Config, Model, InitialModel string
+	RuntimeEnv                       map[string]string
+	ProbeProcess                     func(string, int) error `json:"-"`
+	ProcessStarted                   func(int) error         `json:"-"`
 }

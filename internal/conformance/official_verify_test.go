@@ -182,7 +182,7 @@ func TestOfficialVerifyLegacyAdmission(t *testing.T) {
 	agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
 	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
 	installDriver(t, drivers, "codex", "record")
-	mustRun(t, env, t.TempDir(), "", "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
+	mustRun(t, env, t.TempDir(), "", "official", "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	installDriver(t, drivers, "codex", "verify")
 	corpus := newSyntheticCorpus(t)
 	before := readFile(t, corpus.index)
@@ -348,4 +348,37 @@ func TestOfficialVerifyRemoteAdmissionRequiresNativeEvidence(t *testing.T) {
 	require.Contains(t, str(admission["error"]), "native preparation")
 	require.Equal(t, before, readFile(t, corpus.index))
 	remote.assertAlive(t)
+}
+
+// Migrated from the retired official engine: protocol receipts, process facts,
+// unsupported/untriggered business and malformed driver output remain failures.
+func TestOfficialDriverFailureMatrixRetainsEvidence(t *testing.T) {
+	for _, mode := range []string{"business-failed", "crash", "bad-result", "false-pass", "wrong-hash", "wrong-provider", "not-consumed", "no-eof", "native-launched", "wrong-frames", "receipt-error", "unsupported", "untriggered"} {
+		t.Run(mode, func(t *testing.T) {
+			agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
+			setControlledOfficialDriver(t, drivers, "local")
+			session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
+			recordControlledOfficial(t, env, session, agent)
+			material := latestCapture(t, session)
+			original := readAllFiles(t, str(material["path"]))
+			setControlledOfficialDriver(t, drivers, mode)
+			failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session)
+			require.Equal(t, 1, failed.code)
+			failedRoot, evidence := latestOfficialVerification(t, session)
+			require.Equal(t, "failed", evidence["status"])
+			require.NotEmpty(t, evidence["error"])
+			before := readAllFiles(t, failedRoot)
+			setControlledOfficialDriver(t, drivers, "local")
+			mustRun(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session)
+			successRoot, success := latestOfficialVerification(t, session)
+			require.NotEqual(t, failedRoot, successRoot)
+			require.Equal(t, "passed", success["status"])
+			require.Equal(t, before, readAllFiles(t, failedRoot))
+			require.Equal(t, original, readAllFiles(t, str(material["path"])))
+			finished, report := finishSession(t, env, session)
+			require.Equal(t, 1, finished.code)
+			require.Equal(t, "failed", report["status"])
+			require.Equal(t, true, report["cleanupComplete"])
+		})
+	}
 }

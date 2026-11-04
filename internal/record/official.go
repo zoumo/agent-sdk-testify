@@ -120,6 +120,7 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 		Start(context.Context, official.Options, tool.Object) error
 		Close() error
 		Stopped() bool
+		ProcessID() int
 	}
 	if plan["driverProfile"] == "remote-close" && o.URL == "" {
 		privateRoot := filepath.Join(session.ResourceRoot, "official", activity.ID)
@@ -242,7 +243,7 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 			}
 			maps.Copy(runtimeEnv, execution.Env)
 			runtimePlan["cli"], runtimePlan["args"] = o.Command, o.NativeArgs
-			nativeOptions := official.Options{CLI: o.Command, RuntimeEnv: runtimeEnv}
+			nativeOptions := official.Options{CLI: o.Command, RuntimeEnv: runtimeEnv, ProbeProcess: func(state string, pid int) error { return activity.TrackProcess("service-probe", state, pid) }}
 			if err := official.PrepareNative(serviceContext, &nativeOptions, runtimePlan, filepath.Dir(execution.Home)); err != nil {
 				serviceDone <- err
 				return
@@ -252,12 +253,21 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 				return
 			}
 			runtimePlan["project"] = execution.Workspace
-			serviceDone <- service.Start(serviceContext, nativeOptions, runtimePlan)
+			if err := activity.TrackProcess("service", "launching", 0); err != nil {
+				serviceDone <- err
+				return
+			}
+			nativeOptions.ProcessStarted = func(pid int) error { return activity.TrackProcess("service", "started", pid) }
+			serviceErr := service.Start(serviceContext, nativeOptions, runtimePlan)
+			if service.ProcessID() == 0 {
+				serviceErr = errors.Join(serviceErr, activity.TrackProcess("service", "not-started", 0))
+			}
+			serviceDone <- serviceErr
 		}()
 	}
 	cmd := exec.CommandContext(context.WithoutCancel(ctx), driver, "--request", requestPath)
 	cmd.Env, cmd.Dir, cmd.Stdout, cmd.Stderr = environment(env), route.Workspace, stdout, stderr
-	runErr = tool.WaitDriver(ctx, cmd)
+	runErr = activity.WaitDriver(ctx, cmd)
 	if serviceDone != nil {
 		cancelService()
 		runErr = errors.Join(runErr, <-serviceDone)

@@ -16,14 +16,14 @@ func TestPublicCommands(t *testing.T) {
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	rootHelp := string(out)
-	for _, name := range []string{"prepare", "record", "verify", "mock", "export", "finish"} {
+	for _, name := range []string{"prepare", "agent", "official", "export", "finish"} {
 		require.Contains(t, rootHelp, name)
 	}
 	for _, name := range []string{"internal-protocol", "internal-peer", "completion"} {
 		require.NotContains(t, rootHelp, name)
 	}
 	require.NotContains(t, strings.ToLower(rootHelp), "replay and finish")
-	for _, name := range []string{"simulate", "replay", "corpus", "protocol", "peer"} {
+	for _, name := range []string{"simulate", "replay", "corpus", "protocol", "peer", "record", "mock", "verify", "internal-protocol"} {
 		out, stderr, code = runCLI(t, binary, nil, name)
 		require.Equal(t, 1, code, string(out))
 		require.Empty(t, out)
@@ -40,22 +40,10 @@ func TestPublicCommands(t *testing.T) {
 		require.Contains(t, string(out), "agent-sdk-testify 0.1.0-dev")
 	}
 
-	out, stderr, code = runCLI(t, binary, nil, "--internal-protocol", "--help")
-	require.Zero(t, code, stderr)
-	require.Empty(t, stderr)
-	require.Contains(t, string(out), "record")
-	require.Contains(t, string(out), "mock")
-	require.Contains(t, string(out), "connect")
-
 	out, stderr, code = runCLI(t, binary, nil, "--internal-peer", "--help")
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	require.Contains(t, string(out), "--request")
-
-	out, stderr, code = runCLI(t, binary, nil, "--internal-protocol", "version")
-	require.Zero(t, code, stderr)
-	require.Empty(t, stderr)
-	require.Contains(t, string(out), "agent-sdk-testify 0.1.0-dev")
 }
 
 func TestPublicCommandExitContract(t *testing.T) {
@@ -92,7 +80,8 @@ func TestPublicCommandExitContract(t *testing.T) {
 				})
 				input = r
 			}
-			args := []string{"--internal-protocol", "mock", "--provider", "codex", "--scenario", tc.source}
+			session := prepareSyntheticMock(t, binary, tc.source)
+			args := []string{"agent", "mock", "--session-dir", session}
 			args = append(args, tc.extra...)
 			out, stderr, code := runCLI(t, binary, input, args...)
 			require.Equal(t, tc.code, code, stderr)
@@ -104,25 +93,25 @@ func TestPublicCommandExitContract(t *testing.T) {
 
 func TestSinglePreparedSessionCLIContract(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	for _, command := range []string{"prepare", "record", "verify", "mock", "finish"} {
-		out, stderr, code := runCLI(t, binary, nil, command, "--help")
+	for _, command := range [][]string{{"prepare"}, {"agent", "record"}, {"official", "record"}, {"official", "verify"}, {"agent", "mock"}, {"finish"}} {
+		out, stderr, code := runCLI(t, binary, nil, append(command, "--help")...)
 		require.Zero(t, code, stderr)
 		help := string(out)
 		for _, retired := range []string{"--prepare", "--run", "--finish", "--output", "--provider", "--consumer", "--materials"} {
 			require.NotContains(t, help, retired)
 		}
 	}
-	out, stderr, code := runCLI(t, binary, nil, "mock", "--help")
+	out, stderr, code := runCLI(t, binary, nil, "agent", "mock", "--help")
 	require.Zero(t, code, stderr)
 	require.Contains(t, string(out), "current recording")
 	require.NotContains(t, string(out), "managed mock alias")
 	require.NotContains(t, strings.ToLower(string(out)), "compatibility alias")
 
 	for _, args := range [][]string{
-		{"mock", "--prepare"},
-		{"mock", "--run", "/absolute/run.json"},
-		{"mock", "--finish", "/absolute/run.json"},
-		{"mock", "--provider", "codex", "--case", "SDK-CASE-001", "--report", "/tmp/report.json"},
+		{"agent", "mock", "--prepare"},
+		{"agent", "mock", "--run", "/absolute/run.json"},
+		{"agent", "mock", "--finish", "/absolute/run.json"},
+		{"agent", "mock", "--provider", "codex", "--case", "SDK-CASE-001", "--report", "/tmp/report.json"},
 	} {
 		out, stderr, code = runCLI(t, binary, nil, args...)
 		require.Equal(t, 1, code, stderr)
@@ -132,12 +121,12 @@ func TestSinglePreparedSessionCLIContract(t *testing.T) {
 
 	root := t.TempDir()
 	out, stderr, code = runCLI(t, binary, nil,
-		"verify", "--recording", filepath.Join(root, "capture"), "--output", filepath.Join(root, "output"))
+		"official", "verify", "--recording", filepath.Join(root, "capture"), "--output", filepath.Join(root, "output"))
 	require.Equal(t, 1, code, stderr)
 	require.Empty(t, out)
 	require.Contains(t, stderr, "unknown flag: --recording")
 
-	out, stderr, code = runCLI(t, binary, nil, "verify", "--recording", filepath.Join(root, "capture"))
+	out, stderr, code = runCLI(t, binary, nil, "official", "verify", "--recording", filepath.Join(root, "capture"))
 	require.Equal(t, 1, code, stderr)
 	require.Empty(t, out)
 	require.Contains(t, stderr, "unknown flag: --recording")
@@ -149,7 +138,7 @@ func TestPublicCommandParseFailuresDoNotStartHandlers(t *testing.T) {
 	launcher := filepath.Join(t.TempDir(), "launcher")
 	require.NoError(t, os.WriteFile(launcher, []byte("#!/bin/sh\ntouch '"+marker+"'\n"), 0o700))
 	for _, extra := range [][]string{{"--bogus"}, {"--timeout", "not-a-duration"}} {
-		args := append([]string{"record", "--session-dir", t.TempDir(), "--cmd", launcher}, extra...)
+		args := append([]string{"official", "record", "--session-dir", t.TempDir(), "--cmd", launcher}, extra...)
 		args = append(args, "--", "app-server")
 		out, stderr, code := runCLI(t, binary, nil, args...)
 		require.Equal(t, 1, code)
@@ -182,11 +171,11 @@ func TestPublicCommandSessionErrors(t *testing.T) {
 		},
 		{
 			name: "record-missing-session",
-			args: []string{"record", "--session-dir", missing, "--cmd", launcher, "--", "app-server"},
+			args: []string{"official", "record", "--session-dir", missing, "--cmd", launcher, "--", "app-server"},
 		},
 		{
 			name: "verify-missing-session",
-			args: []string{"verify", "--session-dir", missing},
+			args: []string{"official", "verify", "--session-dir", missing},
 		},
 		{
 			name: "finish-missing-session",
@@ -207,7 +196,7 @@ func TestPublicCommandSessionErrors(t *testing.T) {
 	}
 }
 
-func TestInternalProtocolArgumentErrors(t *testing.T) {
+func TestRemovedProtocolNamespaceRejected(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	cases := [][]string{
 		{"--internal-protocol", "unknown"},
@@ -255,4 +244,16 @@ func TestInternalProtocolArgumentErrors(t *testing.T) {
 			require.NotContains(t, stderr, "Usage:")
 		})
 	}
+}
+
+func prepareSyntheticMock(t *testing.T, binary, source string) string {
+	t.Helper()
+	root := t.TempDir()
+	material := filepath.Join(root, "material")
+	require.NoError(t, os.MkdirAll(filepath.Join(material, "raw"), 0o700))
+	raw := readFile(t, source)
+	require.NoError(t, os.WriteFile(filepath.Join(material, "raw", "raw.jsonl"), raw, 0o600))
+	writeJSON(t, filepath.Join(material, "plan.json"), object{"provider": "codex", "caseId": "synthetic-protocol", "driverProfile": "continuation", "project": filepath.Join(root, "project"), "scenario": object{"files": object{}}})
+	writeJSON(t, filepath.Join(material, "manifest.json"), object{"provenance": "synthetic", "planSHA256": digestFile(t, filepath.Join(material, "plan.json")), "files": object{"raw.jsonl": digestBytes(raw)}})
+	return prepareSession(t, nil, "--recording", material)
 }

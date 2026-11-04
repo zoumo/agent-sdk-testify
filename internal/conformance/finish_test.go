@@ -3,6 +3,7 @@ package conformance
 import (
 	"bufio"
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +13,61 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestFinishRecoversInterruptedOfficialOnlyAfterProcessesExit(t *testing.T) {
+	for _, stage := range []string{"hold-before", "hold-during", "hold-after"} {
+		t.Run(stage, func(t *testing.T) {
+			agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
+			setControlledOfficialDriver(t, drivers, "local")
+			session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
+			recordControlledOfficial(t, env, session, agent)
+			setControlledOfficialDriver(t, drivers, stage)
+			cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", session)
+			cmd.Env = env
+			require.NoError(t, cmd.Start())
+			t.Cleanup(func() { _ = cmd.Process.Kill() })
+			var active, checkpoint object
+			require.Eventually(t, func() bool {
+				if readJSONFile(filepath.Join(session, "official-active.json"), &active) != nil {
+					return false
+				}
+				if str(obj(obj(active["processes"])["driver"])["state"]) != "started" {
+					return false
+				}
+				return readJSONFile(filepath.Join(str(active["dir"]), "driver", "checkpoint.json"), &checkpoint) == nil
+			}, 5*time.Second, 10*time.Millisecond)
+			driverPID := int(checkpoint["pid"].(float64))
+			t.Cleanup(func() { _ = syscall.Kill(-driverPID, syscall.SIGKILL) })
+			before := readAllFiles(t, session)
+			runtime := str(readJSON(t, filepath.Join(session, "session.json"))["resourceRoot"])
+			runtimeBefore := readAllFiles(t, runtime)
+			busy := runTool(t, env, t.TempDir(), "", "finish", "--session-dir", session)
+			require.Equal(t, 1, busy.code)
+			require.Equal(t, before, readAllFiles(t, session))
+			require.Equal(t, runtimeBefore, readAllFiles(t, runtime))
+			require.NoError(t, cmd.Process.Kill())
+			require.Error(t, cmd.Wait())
+			before = readAllFiles(t, session)
+			busy = runTool(t, env, t.TempDir(), "", "finish", "--session-dir", session)
+			require.Equal(t, 1, busy.code)
+			require.Equal(t, before, readAllFiles(t, session))
+			require.Equal(t, runtimeBefore, readAllFiles(t, runtime))
+			// Only the controlled driver is signaled. Recovery itself never kills.
+			require.NoError(t, syscall.Kill(driverPID, syscall.SIGTERM))
+			require.Eventually(t, func() bool {
+				return errors.Is(syscall.Kill(-driverPID, 0), syscall.ESRCH)
+			}, 5*time.Second, 10*time.Millisecond)
+			finished, report := finishSession(t, env, session)
+			require.Equal(t, 1, finished.code)
+			require.Equal(t, "failed", report["status"])
+			require.Equal(t, true, report["cleanupComplete"])
+			require.NoFileExists(t, filepath.Join(session, "official-active.json"))
+			require.FileExists(t, filepath.Join(str(active["dir"]), "interruption.json"))
+			require.Equal(t, "failed", readJSON(t, filepath.Join(str(active["dir"]), "result.json"))["status"])
+			require.NoDirExists(t, runtime)
+		})
+	}
+}
 
 func TestFinishBusyDoesNotWriteOrClean(t *testing.T) {
 	root := t.TempDir()
@@ -50,7 +106,7 @@ func TestFinishCleanupRetryPreservesFinalEvidence(t *testing.T) {
 			if failedReplay {
 				request = `{"id":1,"method":"wrong"}` + "\n"
 			}
-			mock := runTool(t, env, root, request, "mock", "--session-dir", session)
+			mock := runTool(t, env, root, request, "agent", "mock", "--session-dir", session)
 			require.Equal(t, failedReplay, mock.code != 0)
 			descriptor := readJSON(t, filepath.Join(session, "session.json"))
 			resource := str(descriptor["resourceRoot"])
@@ -65,7 +121,7 @@ func TestFinishCleanupRetryPreservesFinalEvidence(t *testing.T) {
 			evidence := report["executions"]
 			before := readAllFiles(t, session)
 			for _, action := range []string{"record", "verify", "mock"} {
-				args := []string{action, "--session-dir", session}
+				args := append(publicAction(action), "--session-dir", session)
 				if action == "record" {
 					args = append(args, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 				}
@@ -106,7 +162,7 @@ func TestFinishWhileMockAwaitsEOFLeavesStateUntouched(t *testing.T) {
 	recordConsumer(t, env, session, agent, requestOne)
 	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), "mock", "--session-dir", session)
+	cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), "agent", "mock", "--session-dir", session)
 	cmd.Env = env
 	stdin, err := cmd.StdinPipe()
 	require.NoError(t, err)

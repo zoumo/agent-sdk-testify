@@ -58,7 +58,7 @@ func TestPrepareWithoutCurrent(t *testing.T) {
 			descriptor := readFile(t, filepath.Join(session, "session.json"))
 			index := readFile(t, filepath.Join(session, "executions", "index.json"))
 			for _, action := range []string{"mock", "verify"} {
-				result := runTool(t, env, t.TempDir(), "", action, "--session-dir", session)
+				result := runTool(t, env, t.TempDir(), "", append(publicAction(action), "--session-dir", session)...)
 				require.NotZero(t, result.code)
 				require.Contains(t, result.stderr, "no current recording")
 				require.Equal(t, index, readFile(t, filepath.Join(session, "executions", "index.json")))
@@ -82,7 +82,7 @@ func TestPreparedMaterialTamperFailsBeforeExecution(t *testing.T) {
 			require.NoError(t, os.WriteFile(path, []byte("{}\n"), 0o600))
 			index := readFile(t, filepath.Join(session, "executions", "index.json"))
 			for _, action := range []string{"mock", "verify"} {
-				result := runTool(t, env, t.TempDir(), "", action, "--session-dir", session)
+				result := runTool(t, env, t.TempDir(), "", append(publicAction(action), "--session-dir", session)...)
 				require.NotZero(t, result.code)
 				require.Equal(t, index, readFile(t, filepath.Join(session, "executions", "index.json")))
 				entries, err := os.ReadDir(filepath.Join(session, "executions"))
@@ -127,7 +127,7 @@ func TestIncompatibleCurrentFailsBeforeExecution(t *testing.T) {
 	require.NoError(t, os.Remove(filepath.Join(material, "material.json")))
 	session := prepareSession(t, env, "--recording", material)
 	index := readFile(t, filepath.Join(session, "executions", "index.json"))
-	result := runTool(t, env, t.TempDir(), requestOne, "mock", "--session-dir", session)
+	result := runTool(t, env, t.TempDir(), requestOne, "agent", "mock", "--session-dir", session)
 	require.NotZero(t, result.code)
 	require.Contains(t, result.stderr, "unsupported recording format")
 	require.Equal(t, index, readFile(t, filepath.Join(session, "executions", "index.json")))

@@ -22,9 +22,9 @@ func TestBinaryUsesItselfOutsideCheckout(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	output := verifyOutput(t, session)
 	var peer tool.Command
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "peer-main.json"), &peer))
+	require.NoError(t, tool.ReadJSON(filepath.Join(peerRequestRoot(t, session, output), "peer-main.json"), &peer))
 	require.Equal(t, binary, peer.Command)
-	require.Equal(t, "--internal-protocol", peer.Args[0])
+	require.Equal(t, []string{"agent", "mock"}, peer.Args[:2])
 	prepared := filepath.Join(t.TempDir(), "session")
 	out, err := exec.CommandContext(t.Context(), binary, "prepare", "--session-dir", prepared, "--agent", "codex", "--case", "SDK-CASE-001").CombinedOutput()
 	require.NoError(t, err, "%s", out)
@@ -33,4 +33,11 @@ func TestBinaryUsesItselfOutsideCheckout(t *testing.T) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(prepared, "session.json"), &descriptor))
 	require.Equal(t, "SDK-CASE-001", tool.Obj(descriptor["source"])["id"])
 	t.Cleanup(func() { _ = os.RemoveAll(tool.Str(descriptor["resourceRoot"])) })
+}
+
+func peerRequestRoot(t *testing.T, session, verification string) string {
+	t.Helper()
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	return filepath.Join(tool.Str(descriptor["resourceRoot"]), "official", filepath.Base(verification))
 }

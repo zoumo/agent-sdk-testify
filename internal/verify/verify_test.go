@@ -8,7 +8,7 @@ import (
 )
 
 func TestCLIRejectsMissingSelection(t *testing.T) {
-	err := Run(context.Background(), Options{})
+	err := RunOfficial(context.Background(), Options{})
 	require.Error(t, err)
 	require.ErrorContains(t, err, "session-dir")
 }

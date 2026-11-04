@@ -12,6 +12,7 @@ import (
 // the provenance manifest; it does not constrain native executable versions.
 type Options struct {
 	Output         string
+	ProcessFile    string
 	CWD            string
 	Env            []string
 	ClearEnv       bool

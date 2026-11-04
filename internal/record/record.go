@@ -6,14 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
-	"github.com/zoumo/agent-sdk-testify/internal/official"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
@@ -33,16 +31,7 @@ type Options struct {
 	ResultFD       int
 }
 
-func Run(ctx context.Context, o Options, streams capture.IO) error {
-	return run(ctx, o, streams, false)
-}
-
-// RunLegacy retains the old official orchestration until its replacement lands.
-func RunLegacy(ctx context.Context, o Options, streams capture.IO) error {
-	return run(ctx, o, streams, true)
-}
-
-func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runErr error) {
+func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	if o.Timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
@@ -58,7 +47,7 @@ func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runEr
 	var executable string
 	var remote *capture.ConnectOptions
 	if o.URL != "" || o.TokenFile != "" {
-		if legacy || o.URL == "" || o.TokenFile == "" || o.Command != "" || len(o.NativeArgs) != 0 {
+		if o.URL == "" || o.TokenFile == "" || o.Command != "" || len(o.NativeArgs) != 0 {
 			return errors.New("remote record requires --url and --token-file, excluding local command and arguments")
 		}
 		remote = &capture.ConnectOptions{URL: o.URL, TokenFile: o.TokenFile, ConnectTimeout: o.ConnectTimeout}
@@ -98,49 +87,40 @@ func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runEr
 		// Connection location and authentication paths are invocation-only data.
 		commandArgs = []string{"--session-dir", o.SessionDir, "--url", "<private>", "--token-file", "<private>"}
 	}
-	var run *lifecycle.ActionRun
-	if legacy {
-		run, err = lifecycle.BeginRecord(o.SessionDir, commandArgs, o.Timeout)
-	} else {
-		if o.Connection == "" {
-			o.Connection = "main"
-		}
-		target := "local"
-		if remote != nil {
-			token, err := os.ReadFile(remote.TokenFile)
-			if err != nil {
-				return err
-			}
-			target = tool.DigestBytes(append(append([]byte(remote.URL), 0), token...))
-		}
-		run, err = lifecycle.BeginRecordConnection(o.SessionDir, o.Connection, commandArgs, o.Timeout, target)
+	if o.Connection == "" {
+		o.Connection = "main"
 	}
+	target := "local"
+	if remote != nil {
+		token, err := os.ReadFile(remote.TokenFile)
+		if err != nil {
+			return err
+		}
+		target = tool.DigestBytes(append(append([]byte(remote.URL), 0), token...))
+	}
+	run, err := lifecycle.BeginRecordConnection(o.SessionDir, o.Connection, commandArgs, o.Timeout, target)
 	if err != nil {
 		return err
 	}
-	status, artifactID := "failed", ""
+	status := "failed"
 	defer func() {
-		if !legacy {
-			finalize, err := lifecycle.RecordFinalizationLock(run)
-			if err != nil {
-				runErr = errors.Join(runErr, err)
-			} else {
-				defer finalize.Close()
-				ready, passed, err := lifecycle.CompleteRecordConnection(run, status)
-				runErr = errors.Join(runErr, err)
-				if ready && err == nil {
-					if passed {
-						runErr = errors.Join(runErr, publishNative(run))
-					} else {
-						runErr = errors.Join(runErr, errors.New("record execution has failed connections"))
-					}
-					if runErr != nil {
-						runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.FinishAction(run, "failed", ""))
-					}
+		finalize, err := lifecycle.RecordFinalizationLock(run)
+		if err != nil {
+			runErr = errors.Join(runErr, err)
+		} else {
+			defer finalize.Close()
+			ready, passed, err := lifecycle.CompleteRecordConnection(run, status)
+			runErr = errors.Join(runErr, err)
+			if ready && err == nil {
+				if passed {
+					runErr = errors.Join(runErr, publishNative(run))
+				} else {
+					runErr = errors.Join(runErr, errors.New("record execution has failed connections"))
+				}
+				if runErr != nil {
+					runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.FinishAction(run, "failed", ""))
 				}
 			}
-		} else if status != "passed" {
-			runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.FinishAction(run, status, artifactID))
 		}
 		if runErr != nil {
 			runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(run.Dir, "receipts", run.Connection+".failure.json"), tool.Object{"status": "failed", "error": runErr.Error()}))
@@ -151,14 +131,9 @@ func run(ctx context.Context, o Options, streams capture.IO, legacy bool) (runEr
 	if err := lifecycle.NotifyActionStarted(ctx, run, result); err != nil {
 		return err
 	}
-	if legacy && session.Source.Provenance != "consumer" {
-		runErr = recordOfficial(ctx, run, executable, o.NativeArgs, o.Timeout, streams.Out)
-	} else {
-		runErr = captureNative(ctx, run, executable, o.NativeArgs, remote, o.Timeout, streams)
-	}
+	runErr = captureNative(ctx, run, executable, o.NativeArgs, remote, o.Timeout, streams)
 	if runErr == nil {
 		status = "passed"
-		artifactID = run.Execution.Artifact.ID
 	}
 	return runErr
 }
@@ -179,51 +154,6 @@ func validateCommand(value string) (string, error) {
 		return "", errors.New("--cmd must be a regular executable")
 	}
 	return value, nil
-}
-
-func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, timeout time.Duration, stdout io.Writer) error {
-	if timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
-		defer cancel()
-	}
-	driver, err := official.ResolveDriver(run.Session.AgentType)
-	if err != nil {
-		return err
-	}
-	summary, err := official.Run(ctx, official.Options{
-		Mode:           "record",
-		Case:           run.Session.Source.ID,
-		Provider:       run.Session.AgentType,
-		Driver:         driver,
-		Output:         run.OverlayRoot,
-		Workspace:      run.Execution.Workspace,
-		OutputPrepared: true,
-		Plan:           run.Plan,
-		HistorySeed:    run.Session.HistorySeed,
-		NativeCommand:  command,
-		NativeArgs:     args,
-		RuntimeEnv:     run.Execution.RuntimeEnv,
-	})
-	if summary != nil {
-		if encodeErr := json.NewEncoder(stdout).Encode(summary); encodeErr != nil {
-			err = errors.Join(err, fmt.Errorf("encode record summary: %w", encodeErr))
-		}
-	}
-	if snapshotErr := snapshotOfficial(run.OverlayRoot, run.ArtifactRoot); snapshotErr != nil {
-		return errors.Join(err, snapshotErr)
-	}
-	if err != nil {
-		return err
-	}
-	artifact, err := captureArtifact(run, "official")
-	if err != nil {
-		return err
-	}
-	if snapshotComplete(run.ArtifactRoot) {
-		return lifecycle.PublishCapture(filepath.Dir(filepath.Dir(run.Dir)), run, *artifact)
-	}
-	return errors.New("official record capture is incomplete")
 }
 
 func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, remote *capture.ConnectOptions, timeout time.Duration, streams capture.IO) error {
@@ -251,6 +181,7 @@ func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string
 	}
 	captureErr := capture.Run(ctx, capture.Options{
 		Remote:         remote,
+		ProcessFile:    filepath.Join(run.Dir, "receipts", run.Connection+".native-process.json"),
 		Output:         filepath.Dir(recordReceipt(run)),
 		CWD:            run.Execution.Workspace,
 		Env:            environment(run.Execution.RuntimeEnv),
@@ -361,31 +292,6 @@ func environment(values map[string]string) []string {
 	return out
 }
 
-func snapshotOfficial(source, target string) error {
-	for _, name := range []string{
-		"plan.json",
-		"manifest.json",
-		"report.json",
-		"result.json",
-		"summary.json",
-		"remote-service.json",
-		"request.json",
-		"source-report.json",
-		"stderr.log",
-		"stdout.log",
-	} {
-		if err := copyEvidenceFile(source, target, name); err != nil {
-			return err
-		}
-	}
-	for _, name := range []string{"raw", "remote-probe/raw", "config/projects", "config/sessions", "history-seed"} {
-		if err := copyEvidenceTree(source, target, name); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func snapshotHistory(source, target string) error {
 	for _, name := range []string{"config/projects", "config/sessions", "history-seed"} {
 		if err := copyEvidenceTree(source, target, name); err != nil {
@@ -393,21 +299,6 @@ func snapshotHistory(source, target string) error {
 		}
 	}
 	return nil
-}
-
-func copyEvidenceFile(source, target, name string) error {
-	path := filepath.Join(source, filepath.FromSlash(name))
-	info, err := os.Lstat(path)
-	if os.IsNotExist(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	if !info.Mode().IsRegular() {
-		return fmt.Errorf("capture evidence is not regular: %s", name)
-	}
-	return tool.CopyFile(path, filepath.Join(target, filepath.FromSlash(name)))
 }
 
 func copyEvidenceTree(source, target, name string) error {
@@ -423,17 +314,6 @@ func copyEvidenceTree(source, target, name string) error {
 		return fmt.Errorf("capture history is not an unlinked directory: %s", name)
 	}
 	return tool.CopyTree(path, filepath.Join(target, filepath.FromSlash(name)))
-}
-
-func snapshotComplete(root string) bool {
-	var manifest, transport map[string]any
-	if tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest) != nil {
-		return false
-	}
-	if tool.ReadJSON(filepath.Join(root, "raw", "transport.json"), &transport) != nil {
-		return false
-	}
-	return manifest["captureStatus"] == "complete" && transport["captureStatus"] == "complete" && transport["cleanupComplete"] == true
 }
 
 func captureArtifact(run *lifecycle.ActionRun, provenance string) (*lifecycle.Artifact, error) {

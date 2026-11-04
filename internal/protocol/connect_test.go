@@ -13,6 +13,8 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 )
 
 func TestConnectPreservesJSONAndClosesOnlyConnection(t *testing.T) {
@@ -47,7 +49,7 @@ func TestConnectPreservesJSONAndClosesOnlyConnection(t *testing.T) {
 		require.NoError(t, os.WriteFile(token, []byte("synthetic-token\n"), 0o600))
 		done := make(chan error, 1)
 		go func() {
-			done <- Connect(ctx, ConnectOptions{URL: "ws" + strings.TrimPrefix(server.URL, "http"), TokenFile: token, MaxFrameBytes: 1 << 20}, IO{In: input, Out: sink, Err: os.Stderr})
+			done <- capture.Connect(ctx, capture.ConnectOptions{URL: "ws" + strings.TrimPrefix(server.URL, "http"), TokenFile: token, MaxFrameBytes: 1 << 20}, IO{In: input, Out: sink, Err: os.Stderr})
 		}()
 		const line = "{\"unknown\":9007199254740993,\"number\":1.00,\"null\":null}\n"
 		_, err = writer.WriteString(line)
@@ -94,7 +96,7 @@ func TestConnectRejectsPartialJSONAndRemoteEarlyClose(t *testing.T) {
 			require.NoError(t, os.WriteFile(token, []byte("synthetic-token"), 0o600))
 			done := make(chan error, 1)
 			go func() {
-				done <- Connect(ctx, ConnectOptions{URL: "ws" + strings.TrimPrefix(server.URL, "http"), TokenFile: token, MaxFrameBytes: 1 << 20}, IO{In: input, Out: sink, Err: os.Stderr})
+				done <- capture.Connect(ctx, capture.ConnectOptions{URL: "ws" + strings.TrimPrefix(server.URL, "http"), TokenFile: token, MaxFrameBytes: 1 << 20}, IO{In: input, Out: sink, Err: os.Stderr})
 			}()
 			if partial {
 				_, err := writer.WriteString(`{"partial":true}`)
