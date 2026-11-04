@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
 func runtimePipe(t *testing.T) (*os.File, *os.File) {

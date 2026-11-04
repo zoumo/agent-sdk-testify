@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
 func synthetic(t *testing.T, provider string, actions ...string) *recording.Document {

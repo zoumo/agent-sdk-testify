@@ -7,8 +7,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
-	"github.com/zoumo/agent-sdk-testify/protocol/capture"
 )
 
 type RecordOptions struct {

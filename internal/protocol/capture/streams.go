@@ -8,7 +8,7 @@ import (
 	"os"
 	"sync/atomic"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
 func (j *journal) protocol(src, dst *os.File, direction recording.Direction, inputStopped *atomic.Bool) (eof bool, err error) {

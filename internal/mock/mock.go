@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/replay"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
-	"github.com/zoumo/agent-sdk-testify/protocol/replay"
 )
 
 type Options struct {

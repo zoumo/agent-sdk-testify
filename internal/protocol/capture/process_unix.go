@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
 func environment(o Options) []string {

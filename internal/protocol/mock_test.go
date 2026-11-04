@@ -18,14 +18,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
 // Every command below runs the compiled executable outside the checkout, with
 // no Python, SDK, agent, compiler, credentials or normal PATH in its environment.
 func TestMockCLI(t *testing.T) {
 	binary := filepath.Join(t.TempDir(), "agent-sdk-testify")
-	build := exec.CommandContext(t.Context(), "go", "build", "-o", binary, "..")
+	build := exec.CommandContext(t.Context(), "go", "build", "-o", binary, "../..")
 	out, err := build.CombinedOutput()
 	require.NoError(t, err, "%s", out)
 	for _, provider := range []string{"codex", "claude"} {

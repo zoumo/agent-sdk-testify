@@ -16,11 +16,11 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/official"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
-	"github.com/zoumo/agent-sdk-testify/protocol"
-	"github.com/zoumo/agent-sdk-testify/protocol/capture"
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 )
 
 type Options struct {

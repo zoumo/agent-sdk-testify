@@ -16,8 +16,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
 // Corpus policy belongs to the Go tool, not to an SDK driver. Paths are explicit

@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
-	"github.com/zoumo/agent-sdk-testify/protocol/replay"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/replay"
 )
 
 type MockOptions struct {

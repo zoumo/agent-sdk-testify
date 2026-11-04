@@ -9,8 +9,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
 var ErrDisconnected = errors.New("scripted disconnect")

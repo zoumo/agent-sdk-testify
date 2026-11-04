@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
-	"github.com/zoumo/agent-sdk-testify/protocol"
 )
 
 func newInternalProtocolCommand(streams IO) *cobra.Command {

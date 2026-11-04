@@ -11,7 +11,7 @@ import (
 )
 
 // Object is the lossless-enough JSON object shape used between stages.
-// Native protocol bytes stay in protocol/recording and are never rebuilt here.
+// Native protocol bytes stay in internal/protocol/recording and are never rebuilt here.
 type Object = map[string]any
 
 func Obj(v any) Object {

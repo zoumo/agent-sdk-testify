@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
 )
 
 func TestRawAndSurgicalReplacement(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
 )
 
 const (

@@ -8,9 +8,9 @@ import (
 	"slices"
 
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
-	"github.com/zoumo/agent-sdk-testify/protocol"
 )
 
 func mockSession(ctx context.Context, o Options) (err error) {

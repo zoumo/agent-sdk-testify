@@ -13,12 +13,12 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/record"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/verify"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
-	"github.com/zoumo/agent-sdk-testify/protocol"
-	"github.com/zoumo/agent-sdk-testify/protocol/capture"
 )
 
 type IO struct{ In, Out, Err *os.File }

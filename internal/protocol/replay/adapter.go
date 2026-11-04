@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
 )
 
 type adapter interface {

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/zoumo/agent-sdk-testify/protocol/recording"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 )
 
 // Run owns duplicate protocol descriptors and the optional progress descriptor.

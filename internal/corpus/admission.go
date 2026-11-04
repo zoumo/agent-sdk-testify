@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	"github.com/zoumo/agent-sdk-testify/protocol/rawjson"
 )
 
 func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (tool.Object, error) {
