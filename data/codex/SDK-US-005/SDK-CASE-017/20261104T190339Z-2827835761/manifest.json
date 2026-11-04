@@ -1,0 +1,51 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "322f0ac6f32ccb599826693845da5b019765a2cc5f05c58f2655d8a87b6cecbd",
+    "raw.jsonl": "4f5675af5a44195f737a0b833d33e44222e076ecd90627244e1e78ef1d9dbbd1",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "1dbe1c5432389d00ad41fc6ad6cc28b7689e56729bc26ce5ebffdd22c1ab2ca8"
+  },
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "agents.enabled=true",
+      "-c",
+      "features.multi_agent=true",
+      "-c",
+      "agents.max_depth=2",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4247847560/executions/afaef696f3b51ca53deb394c3ba8affb/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "89e3241ab44111998d3fc6232839a0d43e3a4a69ae987a311b2a306f3dc6ecdb",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "1dbe1c5432389d00ad41fc6ad6cc28b7689e56729bc26ce5ebffdd22c1ab2ca8",
+  "savedFiles": {
+    "config/sessions/2026/11/05/rollout-2026-11-05T02-58-02-01a1a7ec-e392-7910-919d-9ca287f0f170.jsonl": "e317d421d87f455d00a760896245b571045fa127a149b42ef5c666c4b73ca836",
+    "config/sessions/2026/11/05/rollout-2026-11-05T02-58-03-01a1a7ec-e9b9-7e42-8d50-e704b9dd9964.jsonl": "afe392c42859503ab599e2ce2b875874db5150b91211f9d8220bf5b3f2bc29eb",
+    "config/sessions/2026/11/05/rollout-2026-11-05T02-58-06-01a1a7ec-f3b8-7d20-a04c-54016936118b.jsonl": "10ac1d80930ab5915972adfe51c7f44373aa6cb40dd24e25e0bfb4834cdca354"
+  },
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "673287b3d034afb5dc1c571ca5ff310dc0c618733d63c79d791c3d50841a4fcc",
+  "status": "captured"
+}

@@ -156,10 +156,12 @@ class ClaudeChildTests(unittest.TestCase):
             task_id: str = 'child-task'
             session_id: str = 'root'
             status: str = 'completed'
-        for mode in ('success', 'early-completion', 'wrong-root', 'root-error', 'cancel',
+        for mode in ('success', 'replay-workspace', 'early-completion', 'wrong-root', 'root-error', 'cancel',
                      'wrong-path', 'root-read', 'other-tool', 'duplicate', 'child-error'):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
                 current, result, test, answers = plan('claude', tmp), report(), self, []
+                if mode == 'replay-workspace':
+                    current['_recordedWorkspace'] = '/recorded/native-workspace'
                 class Client:
                     def __init__(self, options, **_):
                         self.permission = options.can_use_tool
@@ -178,7 +180,8 @@ class ClaudeChildTests(unittest.TestCase):
                                 {'file_path': '../other' if mode == 'wrong-path' else CHILD_FILE},
                                 Value(tool_use_id='invalid-read', agent_id=None if mode == 'root-read' else 'child-agent'))
                             test.assertEqual(invalid['behavior'], 'deny')
-                        self.pending = asyncio.create_task(self.permission('Read', {'file_path': CHILD_FILE},
+                        path = '/recorded/native-workspace/' + CHILD_FILE if mode == 'replay-workspace' else CHILD_FILE
+                        self.pending = asyncio.create_task(self.permission('Read', {'file_path': path},
                                                Value(tool_use_id='child-read', agent_id='child-agent')))
                         await asyncio.sleep(0)
                         test.assertFalse(self.pending.done())
@@ -212,7 +215,7 @@ class ClaudeChildTests(unittest.TestCase):
                         self.assertEqual(answers[0]['behavior'], 'deny')
                     else:
                         asyncio.run(children.claude(current, result))
-                        if mode == 'success':
+                        if mode in ('success', 'replay-workspace'):
                             self.assertEqual(result['gaps'], [])
                             self.assertTrue(result['childEvidence'])
                         else:

@@ -1,0 +1,124 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-003",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 64,
+  "requests": 1,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2654051874/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/DeepSeek-V4.1-Flash-1017",
+        "modelProvider": "recording-gateway",
+        "sandbox": {
+          "networkAccess": false,
+          "type": "readOnly"
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1793818664,
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2654051874/routes/record/workspace",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a1a7ec-9ecd-7943-90ba-c98bb6b2fe07",
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "modelProvider": "recording-gateway",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "recencyAt": 1793818664,
+          "sessionId": "01a1a7ec-9ecd-7943-90ba-c98bb6b2fe07",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793818664
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1a7ec-9ee2-7c21-85b6-d5bda2f7f20e",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1a7ec-9ecd-7943-90ba-c98bb6b2fe07",
+        "turn": {
+          "completedAt": 1793818668,
+          "durationMs": 3568,
+          "id": "01a1a7ec-9ee2-7c21-85b6-d5bda2f7f20e",
+          "items": [
+            {
+              "id": "msg_18e4ec93032c1bb0000000e8",
+              "phase": "final_answer",
+              "text": "The file change was denied.\n\n- **Action:** `apply_patch` (single, exactly-once attempt) adding `denied.txt` with content `denied\\n` in the working directory.\n- **Decision:** Rejected by the user.\n- **Status:** No retry performed, and no shell or other tool was used. `denied.txt` does not exist.",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793818664,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-008",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u62d2\u7edd\u6587\u4ef6\u5199\u5165\u5ba1\u6279\u5e76\u89c2\u5bdf\u540e\u7eed\u7ed3\u679c\u3002",
+    "storyId": "SDK-US-003"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-003",
+  "caseId": "SDK-CASE-008",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "request",
+      "name": "approval_answer"
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "branchStatus": "passed"
+}

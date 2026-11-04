@@ -1,0 +1,51 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "02f4ec682b578580dff823b75d36f3eddc913652f913abf5b017fed19f3ffe74",
+    "raw.jsonl": "31b9649bf24c27870686d83aae737f777b9e652581f4c7000c3dfd3d93f2aa22",
+    "stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+    "transport.json": "605fdd2d9441a2926546742977a5a1f068ff78ca5d32bd73bc4905bcdb8de229"
+  },
+  "native": {
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/c33c575fc79cc875309a8fd98052fb1b/workspace",
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "planSHA256": "3a48a1dbb14d723993acd5be700da8c61b0b441934a145d00a60e3a40ac75f23",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "605fdd2d9441a2926546742977a5a1f068ff78ca5d32bd73bc4905bcdb8de229",
+  "savedFiles": {
+    "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-685652893-executions-c33c575fc79cc875309a8fd98052fb1b-workspace/6e6fe023-6602-4540-9583-530c17185afa.jsonl": "0ed8c5b227247aefb2de0b68e785245dea00310dfa61a116d101a9fa12e11614"
+  },
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "a473f2ee8dd3acc81d87253e2396e12a654272bf167fc9a2b65e573a53d5f45d",
+  "status": "captured"
+}

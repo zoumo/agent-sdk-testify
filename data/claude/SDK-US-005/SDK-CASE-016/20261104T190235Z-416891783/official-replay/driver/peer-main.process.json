@@ -1,0 +1,9 @@
+{
+  "cleanupComplete": true,
+  "exitCode": 0,
+  "pid": 99846,
+  "reaped": true,
+  "schemaVersion": 1,
+  "started": true,
+  "supervisorPid": 99841
+}

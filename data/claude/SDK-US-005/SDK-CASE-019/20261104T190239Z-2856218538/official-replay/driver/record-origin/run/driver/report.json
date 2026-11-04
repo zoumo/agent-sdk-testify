@@ -1,0 +1,1845 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 82,
+  "requests": 2,
+  "receipts": [
+    {
+      "native-child/event": {
+        "kind": "HookEventMessage",
+        "native": {
+          "subtype": "hook_started",
+          "data": {
+            "type": "system",
+            "subtype": "hook_started",
+            "hook_id": "36d2045e-f69f-4fc1-a391-86b142099477",
+            "hook_name": "SessionStart:startup",
+            "hook_event": "SessionStart",
+            "uuid": "3a501189-7d15-42b8-8dfd-769ae9de6f59",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          },
+          "hook_event_name": "SessionStart",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "3a501189-7d15-42b8-8dfd-769ae9de6f59"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "HookEventMessage",
+        "native": {
+          "subtype": "hook_response",
+          "data": {
+            "type": "system",
+            "subtype": "hook_response",
+            "hook_id": "36d2045e-f69f-4fc1-a391-86b142099477",
+            "hook_name": "SessionStart:startup",
+            "hook_event": "SessionStart",
+            "output": "",
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "outcome": "success",
+            "uuid": "a03da9b3-308b-4984-8ae4-ff89382fbb07",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          },
+          "hook_event_name": "SessionStart",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "a03da9b3-308b-4984-8ae4-ff89382fbb07"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "d94bda4c-028f-476b-a48e-7e555de0b708",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "init",
+          "data": {
+            "type": "system",
+            "subtype": "init",
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/executions/4052d66907c5d57d9480714cadf074dc/workspace",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "tools": [
+              "Task",
+              "AskUserQuestion",
+              "Bash",
+              "CronCreate",
+              "CronDelete",
+              "CronList",
+              "DesignSync",
+              "Edit",
+              "EnterPlanMode",
+              "EnterWorktree",
+              "ExitPlanMode",
+              "ExitWorktree",
+              "ListAgents",
+              "NotebookEdit",
+              "Read",
+              "ReportFindings",
+              "ScheduleWakeup",
+              "SendMessage",
+              "TaskCreate",
+              "TaskGet",
+              "TaskList",
+              "TaskOutput",
+              "TaskStop",
+              "TaskUpdate",
+              "WebFetch",
+              "WebSearch",
+              "Workflow",
+              "Write"
+            ],
+            "mcp_servers": [],
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "permissionMode": "default",
+            "slash_commands": [],
+            "apiKeySource": "none",
+            "claude_code_version": "2.1.258",
+            "output_style": "default",
+            "agents": [
+              "claude",
+              "Explore",
+              "fixture_reader",
+              "general-purpose",
+              "Plan",
+              "statusline-setup"
+            ],
+            "skills": [],
+            "plugins": [],
+            "capabilities": [
+              "interrupt_receipt_v1",
+              "interrupt_cancel_queued_v1",
+              "msg_lifecycle_v1"
+            ],
+            "analytics_disabled": false,
+            "product_feedback_disabled": false,
+            "uuid": "be6ad2f8-aa0b-46e8-9af2-34d2ea126ad1",
+            "memory_paths": {
+              "auto": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/executions/4052d66907c5d57d9480714cadf074dc/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/memory/"
+            },
+            "messaging_socket_path": "/tmp/cc-socks/93045.sock",
+            "fast_mode_state": "off",
+            "fast_mode_disabled_reason": "sdk_opt_in_required"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "status",
+          "data": {
+            "type": "system",
+            "subtype": "status",
+            "status": "requesting",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "3ece370b-ae8f-46ff-b47f-6473d8a1a606"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "bf97568d-1ea7-4e8b-bbbe-961d1e33c83a",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "message_start",
+            "message": {
+              "id": "21d562f817938186083764017ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "66f37408-2ead-406f-9854-fa9108a92e68",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {
+              "type": "text",
+              "text": ""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "c1ca8142-6fb6-4462-b4a9-3ae9be1e3ae9",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_stop",
+            "index": 0
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d2cd17f7-5e62-4be0-8ad2-168968251b96",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_start",
+            "index": 1,
+            "content_block": {
+              "input": {},
+              "type": "tool_use",
+              "id": "call_40873a036887424fa7fed170",
+              "name": "Agent"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "ca47ae8d-6417-4060-a57a-f4b777d64924",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "{"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "594dc23f-214c-4d08-9f74-0e9fcbbead35",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "\"description\": \"Read"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "5e02ef0b-ffd2-4798-a339-ba2f7e794836",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " child fixture\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "3099ac7f-5976-48d4-97f6-bc10c033969b",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"prompt\": \"Use Read exactly"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "91e317e6-f371-4c55-8959-839c29319580",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " once to read only"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "b3dfe7ac-7755-4b39-996c-ca314549aa75",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " child-fixture.txt in th"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "a1b59a32-2cd0-4fd6-ad3b-88a0bb36de7e",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "e inherited working directory. Return exactly"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "7bbabf8d-741a-4370-9f3c-a5257909316b",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " the text returned by that read"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "ab3313da-7215-4a3a-b876-2f60f2b55e8d",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ". Do not c"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "50d422ca-e6a6-48f4-8249-48f3623ad9ac",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "reate agents or descendants"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9d0d34bc-3c22-421c-a0d7-064308e7168a",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ". Do not use shell,"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "e30f7d91-3d09-45c6-a332-e6ad14fc1584",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " network, search, writes,"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "ec96a872-983f-4698-8efc-7084c01dea20",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " or any other file or tool"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "3252fbeb-4de8-4393-bf44-c259a50a6190",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ".\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "91ed6684-49a5-42da-92ad-81dc2d0a8231",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"subagent_type\": \"fi"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d0c6918f-8a12-4583-a168-874354494d7b",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "xture_reader\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9ac8dd12-2596-4dd6-8609-909d64fd5abe",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"run_in_background\": true}"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "id": "call_40873a036887424fa7fed170",
+              "name": "Agent",
+              "input": {
+                "description": "Read child fixture",
+                "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+                "subagent_type": "fixture_reader",
+                "run_in_background": true
+              }
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186083764017ebdfd",
+          "stop_reason": null,
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "d3bf3605-8bdd-4738-bffb-b39eb5463d79"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "45f6be6a-17d9-44ce-86f5-30a09c2045c6",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "content_block_stop",
+            "index": 1
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "f95aa8f6-db2d-43be-b1ff-2d70fdeb9c37",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "tool_use",
+              "stop_sequence": null
+            },
+            "usage": {
+              "input_tokens": 211,
+              "output_tokens": 146,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22272
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d4f12123-360f-4e0c-bee0-a68d36ef9df2",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186083764017ebdfd",
+            "type": "message_stop"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "requires_action",
+            "uuid": "449a986e-cca6-46a5-a367-81a9fe02b47d",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "allow-Agent": {
+        "toolUseId": "call_40873a036887424fa7fed170"
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "d13b2173-4247-4624-ba6f-77b19d81cb54",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "background_tasks_changed",
+          "data": {
+            "type": "system",
+            "subtype": "background_tasks_changed",
+            "tasks": [
+              {
+                "task_id": "a5bc0d87b0f7d6508",
+                "task_type": "local_agent",
+                "description": "Read child fixture"
+              }
+            ],
+            "uuid": "20a52f74-7c70-402d-a241-86e1318896bd",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskStartedMessage",
+        "native": {
+          "subtype": "task_started",
+          "data": {
+            "type": "system",
+            "subtype": "task_started",
+            "task_id": "a5bc0d87b0f7d6508",
+            "tool_use_id": "call_40873a036887424fa7fed170",
+            "description": "Read child fixture",
+            "subagent_type": "fixture_reader",
+            "is_backgrounded": true,
+            "spawn_depth": 1,
+            "task_type": "local_agent",
+            "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+            "uuid": "e9f00a6e-979a-4c42-b90d-91e406c830c2",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          },
+          "task_id": "a5bc0d87b0f7d6508",
+          "description": "Read child fixture",
+          "uuid": "e9f00a6e-979a-4c42-b90d-91e406c830c2",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "tool_use_id": "call_40873a036887424fa7fed170",
+          "task_type": "local_agent"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "tool_use_id": "call_40873a036887424fa7fed170",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Async agent launched successfully. (This tool result is internal metadata \u2014 never quote or paste any part of it, including the agentId below, into a user-facing reply.)\nagentId: a5bc0d87b0f7d6508 (internal ID - do not mention to user. Use SendMessage with to: 'a5bc0d87b0f7d6508', summary: '<5-10 word recap>' to continue this agent.)\nThe agent is working in the background. You will be notified automatically when it completes. You know nothing about its results until that notification arrives \u2014 do not report, assume, or predict them; continue other work or respond to the user in the meantime.\nDo not duplicate this agent's work \u2014 avoid working with the same files or topics it is using.\noutput_file: /private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/dc990188-f9d2-44b0-a160-c74f356d0e5b/tasks/a5bc0d87b0f7d6508.output\nDo NOT Read or tail this file via the shell tool \u2014 it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you'll get a completion notification."
+                }
+              ],
+              "is_error": null
+            }
+          ],
+          "uuid": "9e3c509a-af6c-4512-a917-deddae038aa1",
+          "parent_tool_use_id": null,
+          "tool_use_result": {
+            "isAsync": true,
+            "status": "async_launched",
+            "agentId": "a5bc0d87b0f7d6508",
+            "description": "Read child fixture",
+            "resolvedModel": "theta/DeepSeek-V4.1-Flash-1017",
+            "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+            "outputFile": "/private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/dc990188-f9d2-44b0-a160-c74f356d0e5b/tasks/a5bc0d87b0f7d6508.output",
+            "canReadOutputFile": true
+          },
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "status",
+          "data": {
+            "type": "system",
+            "subtype": "status",
+            "status": "requesting",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "0ae18a48-41ed-47f4-aae0-1da5801f2b0e"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "api_retry",
+          "data": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 1,
+            "max_retries": 10,
+            "retry_delay_ms": 533,
+            "error_status": null,
+            "error": "unknown",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "1be69fcd-538c-49e7-8a4d-7a3bde48740d"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "api_retry",
+          "data": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 2,
+            "max_retries": 10,
+            "retry_delay_ms": 1162,
+            "error_status": null,
+            "error": "unknown",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "f1bcb77f-4a38-4154-9a63-dd6861b367da"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "id": "call_4acc7fae73094f50895f8b4d",
+              "name": "Read",
+              "input": {
+                "file_path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/executions/4052d66907c5d57d9480714cadf074dc/workspace/child-fixture.txt"
+              }
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": "call_40873a036887424fa7fed170",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186096794038ebdfd",
+          "stop_reason": null,
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "8eb26b00-faf3-4863-8427-81838b0760cf"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskProgressMessage",
+        "native": {
+          "subtype": "task_progress",
+          "data": {
+            "type": "system",
+            "subtype": "task_progress",
+            "task_id": "a5bc0d87b0f7d6508",
+            "tool_use_id": "call_40873a036887424fa7fed170",
+            "description": "Reading child-fixture.txt",
+            "subagent_type": "fixture_reader",
+            "usage": {
+              "total_tokens": 8,
+              "tool_uses": 1,
+              "duration_ms": 968
+            },
+            "last_tool_name": "Read",
+            "uuid": "4a4995be-2e05-4b69-be63-ba222de0f41b",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          },
+          "task_id": "a5bc0d87b0f7d6508",
+          "description": "Reading child-fixture.txt",
+          "usage": {
+            "total_tokens": 8,
+            "tool_uses": 1,
+            "duration_ms": 968
+          },
+          "uuid": "4a4995be-2e05-4b69-be63-ba222de0f41b",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "tool_use_id": "call_40873a036887424fa7fed170",
+          "last_tool_name": "Read"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "requires_action",
+            "uuid": "13f2722a-f342-4c9f-8b9f-e760afcf3fc9",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "175a3697-6825-41c6-89c3-e18079060155",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "message_start",
+            "message": {
+              "id": "21d562f817938186115554062ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "5f173b5d-67bd-4b82-94c1-7cad96e9d05e",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "content_block": {
+              "signature": "",
+              "thinking": "",
+              "type": "thinking"
+            },
+            "index": 0,
+            "type": "content_block_start"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 1,
+            "estimated_tokens_delta": 1,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "6a614734-b093-44ed-b1cd-473935c0969f"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "79327bce-eba0-444e-b62b-350aa69e8a63",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "The"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 5,
+            "estimated_tokens_delta": 4,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "f208f06d-9472-41b5-93e6-94ba65c07990"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "09e28b41-ea50-4020-aaaf-a9f19ea81db5",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " user requires"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 6,
+            "estimated_tokens_delta": 1,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "092cf111-32b8-42b2-b273-c675667db685"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "b363779e-0326-42d4-9632-b591fe1f23bc",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": ":"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 10,
+            "estimated_tokens_delta": 4,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "2f82a9a8-c1b1-434d-ade3-f216822eb353"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "3906e23f-facb-496e-8e25-3e76957f7572",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " \"Return ROOT_R"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 18,
+            "estimated_tokens_delta": 8,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "b0e28e4f-80d8-4155-ad59-c55dc01f3b27"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "b6bb3f84-7ada-4eb0-bf88-3250e424f74a",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "ETURNED immediately after launch"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 22,
+            "estimated_tokens_delta": 4,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "90b5a851-8003-4aac-84fa-5c3df1d04b0c"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9f28523a-652b-4456-a631-4f8b2d86749c",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "; do not wait"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 28,
+            "estimated_tokens_delta": 6,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "7c5e75e4-b10e-4521-b64a-0c58dec32ab2"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "1a9a4649-0347-4bf7-9646-9e294e2b07f4",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " or use TaskOutput.\" So"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 30,
+            "estimated_tokens_delta": 2,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "4ab943dc-d20a-44a3-9ca3-c2e6c185cafe"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "7a036faf-535c-4435-821e-48ec2a791b93",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " respond"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 35,
+            "estimated_tokens_delta": 5,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "0a29d66a-6b5a-4bfe-9b12-92af8006abdc"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "31a69ea8-68c9-4338-983c-66def54510d4",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " with ROOT_RETURN"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 36,
+            "estimated_tokens_delta": 1,
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+            "uuid": "7c31e65b-fe7c-4cf0-903a-a3b711eee585"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "3018d3bd-933b-4cd4-aaa4-fe3db89513d4",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "ED."
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "15b30cd3-1326-40b2-b3ad-1550cb879e51",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "signature_delta",
+              "signature": "sig-theta"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "thinking": "The user requires: \"Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput.\" So respond with ROOT_RETURNED.",
+              "signature": "sig-theta"
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186115554062ebdfd",
+          "stop_reason": null,
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "36fc6783-9880-4ed1-860e-1068efdeda2d"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d1cfb7d9-0011-48b1-8654-99114407122d",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_stop",
+            "index": 0
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "a8e8c56d-43e8-4267-82bd-e67846fc6021",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_start",
+            "index": 1,
+            "content_block": {
+              "type": "text",
+              "text": ""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "c0019b57-3951-4b9d-90c1-7ec997520c75",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "delta": {
+              "text": "ROOT_R",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "aec107e6-b511-40d4-a94a-2d34e4e85b24",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "delta": {
+              "text": "ETURNED",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "ROOT_RETURNED"
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186115554062ebdfd",
+          "stop_reason": null,
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "f3ef2158-4ec4-461b-ba6a-4c3357986615"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "1cd744ba-571d-4691-ba57-2a9539f72e4e",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "content_block_stop",
+            "index": 1
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "1f695971-c02a-4c42-b006-0f07a150b7ee",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "end_turn",
+              "stop_sequence": null
+            },
+            "usage": {
+              "input_tokens": 455,
+              "output_tokens": 42,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22528
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9981028b-3387-4f93-ac0e-7ffa8c548f2e",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "event": {
+            "id": "21d562f817938186115554062ebdfd",
+            "type": "message_stop"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "ResultMessage",
+        "native": {
+          "subtype": "success",
+          "duration_ms": 4058,
+          "duration_api_ms": 4247,
+          "is_error": false,
+          "num_turns": 2,
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "stop_reason": "end_turn",
+          "total_cost_usd": 0.038287999999999996,
+          "usage": {
+            "input_tokens": 666,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 44800,
+            "output_tokens": 188,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_search_requests": 0,
+              "web_fetch_requests": 0
+            },
+            "service_tier": "standard",
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "inference_geo": "",
+            "iterations": [],
+            "speed": "standard"
+          },
+          "result": "ROOT_RETURNED",
+          "structured_output": null,
+          "model_usage": {
+            "theta/DeepSeek-V4.1-Flash-1017": {
+              "inputTokens": 1672,
+              "outputTokens": 296,
+              "cacheReadInputTokens": 45056,
+              "cacheCreationInputTokens": 0,
+              "webSearchRequests": 0,
+              "costUSD": 0.038287999999999996,
+              "contextWindow": 200000,
+              "maxOutputTokens": 32000,
+              "thinkingTokens": 0,
+              "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+              "provider": "firstParty",
+              "costBasis": "unknown"
+            }
+          },
+          "permission_denials": [],
+          "deferred_tool_use": null,
+          "errors": null,
+          "api_error_status": null,
+          "uuid": "07660369-92d9-49df-bd2e-f64a5638408f",
+          "terminal_reason": "completed",
+          "origin": null
+        }
+      }
+    },
+    {
+      "root/result": {
+        "subtype": "success",
+        "duration_ms": 4058,
+        "duration_api_ms": 4247,
+        "is_error": false,
+        "num_turns": 2,
+        "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.038287999999999996,
+        "usage": {
+          "input_tokens": 666,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 44800,
+          "output_tokens": 188,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "ROOT_RETURNED",
+        "structured_output": null,
+        "model_usage": {
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 1672,
+            "outputTokens": 296,
+            "cacheReadInputTokens": 45056,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.038287999999999996,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "07660369-92d9-49df-bd2e-f64a5638408f",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "allow-child-Read": {
+        "toolUseId": "call_4acc7fae73094f50895f8b4d",
+        "nativeAgentId": "a5bc0d87b0f7d6508"
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "97dd26ed-875f-49b1-be11-78d388462040",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "tool_use_id": "call_4acc7fae73094f50895f8b4d",
+              "content": "1\tSYNTHETIC_CHILD_TOKEN\n2\t",
+              "is_error": null
+            }
+          ],
+          "uuid": "5debfd7e-3f6b-4061-bfd7-bc823f7c9985",
+          "parent_tool_use_id": "call_40873a036887424fa7fed170",
+          "tool_use_result": null,
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "idle",
+            "uuid": "b2a3722a-4061-4f38-a2f6-967ddc7c6353",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "thinking": "Return exactly the text returned by that read. The read output has line numbers format \"1\\tSYNTHETIC_CHILD_TOKEN\\n2\\t\". The text returned is \"SYNTHETIC_CHILD_TOKEN\\n\"? The instruction says return exactly the text returned by that read. I'll return the content. Typically the file content is \"SYNTHETIC_CHILD_TOKEN\\n\". The cat -n format shows line 1 and then line 2 empty? Actually it seems there's a trailing newline. Return \"SYNTHETIC_CHILD_TOKEN\\n\". I'll just output the token line.",
+              "signature": "sig-theta"
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": "call_40873a036887424fa7fed170",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186125254079ebdfd",
+          "stop_reason": null,
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "d977330e-a81a-4703-8aa6-b647d8d2f118"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "SYNTHETIC_CHILD_TOKEN"
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": "call_40873a036887424fa7fed170",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186125254079ebdfd",
+          "stop_reason": null,
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "53374aeb-af54-4894-9929-99119d25dc23"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "background_tasks_changed",
+          "data": {
+            "type": "system",
+            "subtype": "background_tasks_changed",
+            "tasks": [],
+            "uuid": "39ebbaf3-ce2c-4e08-9208-72416fa61031",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskUpdatedMessage",
+        "native": {
+          "subtype": "task_updated",
+          "data": {
+            "type": "system",
+            "subtype": "task_updated",
+            "task_id": "a5bc0d87b0f7d6508",
+            "patch": {
+              "status": "completed",
+              "end_time": 1793818613815
+            },
+            "uuid": "a38c0c04-962c-48e6-9ab5-504c2c4798fa",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          },
+          "task_id": "a5bc0d87b0f7d6508",
+          "patch": {
+            "status": "completed",
+            "end_time": 1793818613815
+          },
+          "status": "completed",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "uuid": "a38c0c04-962c-48e6-9ab5-504c2c4798fa"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskNotificationMessage",
+        "native": {
+          "subtype": "task_notification",
+          "data": {
+            "type": "system",
+            "subtype": "task_notification",
+            "task_id": "a5bc0d87b0f7d6508",
+            "tool_use_id": "call_40873a036887424fa7fed170",
+            "status": "completed",
+            "output_file": "/private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/dc990188-f9d2-44b0-a160-c74f356d0e5b/tasks/a5bc0d87b0f7d6508.output",
+            "summary": "SYNTHETIC_CHILD_TOKEN",
+            "usage": {
+              "total_tokens": 138,
+              "tool_uses": 1,
+              "duration_ms": 4434
+            },
+            "uuid": "7b3617ba-d463-4843-99f3-0b301f7075a6",
+            "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+          },
+          "task_id": "a5bc0d87b0f7d6508",
+          "status": "completed",
+          "output_file": "/private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/dc990188-f9d2-44b0-a160-c74f356d0e5b/tasks/a5bc0d87b0f7d6508.output",
+          "summary": "SYNTHETIC_CHILD_TOKEN",
+          "uuid": "7b3617ba-d463-4843-99f3-0b301f7075a6",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+          "tool_use_id": "call_40873a036887424fa7fed170",
+          "usage": {
+            "total_tokens": 138,
+            "tool_uses": 1,
+            "duration_ms": 4434
+          }
+        }
+      }
+    },
+    {
+      "post-root-native-task": {
+        "subtype": "task_notification",
+        "data": {
+          "type": "system",
+          "subtype": "task_notification",
+          "task_id": "a5bc0d87b0f7d6508",
+          "tool_use_id": "call_40873a036887424fa7fed170",
+          "status": "completed",
+          "output_file": "/private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/dc990188-f9d2-44b0-a160-c74f356d0e5b/tasks/a5bc0d87b0f7d6508.output",
+          "summary": "SYNTHETIC_CHILD_TOKEN",
+          "usage": {
+            "total_tokens": 138,
+            "tool_uses": 1,
+            "duration_ms": 4434
+          },
+          "uuid": "7b3617ba-d463-4843-99f3-0b301f7075a6",
+          "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b"
+        },
+        "task_id": "a5bc0d87b0f7d6508",
+        "status": "completed",
+        "output_file": "/private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/dc990188-f9d2-44b0-a160-c74f356d0e5b/tasks/a5bc0d87b0f7d6508.output",
+        "summary": "SYNTHETIC_CHILD_TOKEN",
+        "uuid": "7b3617ba-d463-4843-99f3-0b301f7075a6",
+        "session_id": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+        "tool_use_id": "call_40873a036887424fa7fed170",
+        "usage": {
+          "total_tokens": 138,
+          "tool_uses": 1,
+          "duration_ms": 4434
+        }
+      }
+    }
+  ],
+  "facts": [
+    "official SDK child flow; native relationship evidence required",
+    "synthetic child task selected; native hook and tool activity retained",
+    "case evidence is assessed independently of capture completion"
+  ],
+  "gaps": [],
+  "limitations": [
+    "parent/child and background facts require actual native source records"
+  ],
+  "case": {
+    "id": "SDK-CASE-019",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u6839\u4efb\u52a1\u7ed3\u675f\u540e\u7ee7\u7eed\u89c2\u5bdf\u540e\u53f0\u5b50 Agent\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-019",
+  "scenarioSHA256": null,
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "childEvidence": {
+    "sessionId": "dc990188-f9d2-44b0-a160-c74f356d0e5b",
+    "parentToolUseId": "call_40873a036887424fa7fed170",
+    "taskId": "a5bc0d87b0f7d6508",
+    "agentIds": [
+      "a5bc0d87b0f7d6508"
+    ],
+    "outputObserved": true,
+    "completed": true
+  },
+  "branchStatus": "passed"
+}

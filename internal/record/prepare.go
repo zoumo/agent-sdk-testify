@@ -34,7 +34,7 @@ func prepareOfficialCapture(ctx context.Context, run *lifecycle.ActionRun, comma
 	// will replay this precise value while placing writable fixtures elsewhere.
 	delete(plan, "recordingIsolation")
 	plan["project"] = run.Session.Routes["record"].Workspace
-	plan["_fixtureProject"] = plan["project"]
+	plan["_fixtureProject"] = run.Execution.Workspace
 	plan["root"], plan["home"], plan["config"], plan["raw"] = run.OverlayRoot, run.Execution.Home, run.Execution.Config, filepath.Join(run.ArtifactRoot, "raw")
 	plan["stdinEOFAction"] = "close"
 	if run.Session.AgentType == "claude" && plan["driverProfile"] == "interrupt" {

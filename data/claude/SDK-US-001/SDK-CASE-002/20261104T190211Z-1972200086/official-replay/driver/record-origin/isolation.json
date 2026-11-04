@@ -1,0 +1,42 @@
+{
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise.",
+    "--no-session-persistence",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "configurationSHA256": {
+    "settings.json": "87681222829e8004fb97c94c3567d1b6bbbebfb5d43eb91765c0c6be5a0a5991"
+  },
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3435125741/executions/3bd0924e43e76eb2017b580e5bc10e58/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3435125741/executions/3bd0924e43e76eb2017b580e5bc10e58/config",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3435125741/executions/3bd0924e43e76eb2017b580e5bc10e58/home",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3435125741/executions/3bd0924e43e76eb2017b580e5bc10e58/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3435125741/executions/3bd0924e43e76eb2017b580e5bc10e58/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3435125741/executions/3bd0924e43e76eb2017b580e5bc10e58/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3435125741/executions/3bd0924e43e76eb2017b580e5bc10e58/home/.local/share"
+  },
+  "executionId": "3bd0924e43e76eb2017b580e5bc10e58",
+  "method": "native-preparation",
+  "nativeSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "edd85e09c42da11adb79737da2132cce8ee2535ebff142d8d02025292a3aac19",
+  "schemaVersion": 1,
+  "sessionId": "d5896095da05811cfab40c581d3fa537",
+  "toolSHA256": "05947b4c5eb9dc13e7c8033c7dd4a09bf09ea9da4dce5e02912f591f75b25ad8"
+}

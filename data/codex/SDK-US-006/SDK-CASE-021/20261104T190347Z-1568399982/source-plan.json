@@ -1,0 +1,50 @@
+{
+  "case": {
+    "id": "SDK-CASE-021",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "创建会话时选择模型并执行任务。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-021",
+  "driverProfile": "structured-input",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "prompts": [
+    "Explain in two sentences how addition works."
+  ],
+  "provider": "codex",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-021",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "创建会话时选择模型并执行任务。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-021",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "creation",
+      "setting": "model"
+    },
+    "prompts": [
+      "Explain in two sentences how addition works."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

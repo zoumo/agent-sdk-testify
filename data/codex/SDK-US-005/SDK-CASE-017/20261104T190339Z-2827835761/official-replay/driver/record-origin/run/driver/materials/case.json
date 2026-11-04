@@ -1,0 +1,62 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-017/official-records/77b81d5643f4eebb0bbc0d794ce54534/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4247847560/routes/record/workspace",
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://"
+  ],
+  "case": {
+    "id": "SDK-CASE-017",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察嵌套子 Agent 的实际父子关系。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-017",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4247847560/routes/record/config",
+  "driverProfile": "topology",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4247847560/routes/record/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4247847560/routes/record/workspace",
+  "prompts": [
+    "Use spawn_agent to create one child. Tell that child to use spawn_agent to create exactly one grandchild which replies SYNTHETIC_GRANDCHILD. Have the child wait for its grandchild then report its output. Wait for your child. Use no tools except spawn_agent and wait, and do not read or write files or use network."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-017/official-records/77b81d5643f4eebb0bbc0d794ce54534/driver/raw",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-017/official-records/77b81d5643f4eebb0bbc0d794ce54534/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-017",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察嵌套子 Agent 的实际父子关系。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-017",
+    "configuration": {},
+    "driverProfile": "topology",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "topology": "nested"
+    },
+    "prompts": [
+      "Use spawn_agent to create one child. Tell that child to use spawn_agent to create exactly one grandchild which replies SYNTHETIC_GRANDCHILD. Have the child wait for its grandchild then report its output. Wait for your child. Use no tools except spawn_agent and wait, and do not read or write files or use network."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

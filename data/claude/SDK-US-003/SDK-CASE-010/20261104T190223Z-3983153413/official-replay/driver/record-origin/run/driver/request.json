@@ -1,0 +1,9 @@
+{
+  "case": "SDK-CASE-010",
+  "materials": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-010/official-records/3ffda7fd971628e6d79d9b33f7db7a32/driver/materials",
+  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4179905270/routes/record/workspace",
+  "peer": {
+    "command": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4179905270/official/3ffda7fd971628e6d79d9b33f7db7a32/peer-main"
+  },
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-010/official-records/3ffda7fd971628e6d79d9b33f7db7a32/driver"
+}

@@ -1,0 +1,84 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-020/verifications/840359726549b7c19fa3aa76ef85886a/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-755819608/routes/mock/workspace",
+  "_recordedWorkspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-755819608/executions/c7a05730a9fdc80fe76670eb27c380af/workspace",
+  "_replay": true,
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise.",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "case": {
+    "id": "SDK-CASE-020",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "创建 Session 时固定子详情交付策略；比较同一材料的 preserve/suppress，须实际过滤允许的详情且完整保留受保护事件。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-020",
+  "cli": "/Users/jim/bin/claude",
+  "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-755819608/routes/mock/config",
+  "driverProfile": "history",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-755819608/routes/mock/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-755819608/routes/record/workspace",
+  "prompts": [
+    "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-020/materials/b39144f2b8d1aee84184f5c2f5abf9b2/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-020/verifications/840359726549b7c19fa3aa76ef85886a/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-020",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "创建 Session 时固定子详情交付策略；比较同一材料的 preserve/suppress，须实际过滤允许的详情且完整保留受保护事件。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-020",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "childDetailPolicy": "suppress",
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "sourcePlanSHA256": "5914fd9fcb94dc64197140a07c34b4af8d35a7c2aa438f8f4202c08d1e4dfb34",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

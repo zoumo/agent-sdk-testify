@@ -1,0 +1,226 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 31,
+  "requests": 1,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-child-case/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-child-case; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/DeepSeek-V4.1-Flash-1017",
+        "modelProvider": "recording-gateway",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1793818681,
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/routes/record/workspace",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a1a7ec-e0df-7352-9619-96e342f73958",
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "modelProvider": "recording-gateway",
+          "originator": "official-python-child-case",
+          "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/executions/435206541f8381d0fe998e865a38fd1a/config/sessions/2026/11/05/rollout-2026-11-05T02-58-01-01a1a7ec-e0df-7352-9619-96e342f73958.jsonl",
+          "preview": "",
+          "recencyAt": 1793818681,
+          "sessionId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793818681
+        }
+      }
+    },
+    {
+      "fixture_read": {
+        "nativeThreadId": "01a1a7ec-e7b6-79e2-92ed-fd7c65769f05",
+        "text": "SYNTHETIC_CHILD_TOKEN\n"
+      }
+    },
+    {
+      "native-collaboration": {
+        "completedAtMs": 1793818687635,
+        "item": {
+          "agentsStates": {},
+          "id": "call_f3f268d8166f4477835c1473",
+          "receiverThreadIds": [],
+          "senderThreadId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+          "status": "completed",
+          "tool": "wait",
+          "type": "collabAgentToolCall"
+        },
+        "threadId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+        "turnId": "01a1a7ec-e0f6-7a40-95a6-b635aaaabae0"
+      }
+    },
+    {
+      "root/completed": {
+        "threadId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+        "turn": {
+          "completedAt": 1793818688,
+          "durationMs": 7105,
+          "id": "01a1a7ec-e0f6-7a40-95a6-b635aaaabae0",
+          "items": [
+            {
+              "id": "msg_18e4ec97d1a5aa200000010e",
+              "phase": "final_answer",
+              "text": "The fixture read returned exactly:\n\n`SYNTHETIC_CHILD_TOKEN`",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793818681,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "native-child/read": {
+        "thread": {
+          "agentNickname": "Kant",
+          "agentRole": "fixture_reader",
+          "cliVersion": "0.166.0",
+          "createdAt": 1793818683,
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/executions/435206541f8381d0fe998e865a38fd1a/workspace",
+          "ephemeral": false,
+          "forkedFromId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+          "historyMode": "paginated",
+          "id": "01a1a7ec-e7b6-79e2-92ed-fd7c65769f05",
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "modelProvider": "recording-gateway",
+          "originator": "official-python-child-case",
+          "parentThreadId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+          "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/executions/435206541f8381d0fe998e865a38fd1a/config/sessions/2026/11/05/rollout-2026-11-05T02-58-03-01a1a7ec-e7b6-79e2-92ed-fd7c65769f05.jsonl",
+          "preview": "",
+          "recencyAt": 1793818683,
+          "sessionId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+          "source": {
+            "subAgent": {
+              "thread_spawn": {
+                "agent_nickname": "Kant",
+                "agent_path": "/root/fixture_read_task",
+                "agent_role": "fixture_reader",
+                "depth": 1,
+                "parent_thread_id": "01a1a7ec-e0df-7352-9619-96e342f73958"
+              }
+            }
+          },
+          "status": {
+            "type": "idle"
+          },
+          "threadSource": "subagent",
+          "turns": [
+            {
+              "completedAt": 1793818687,
+              "durationMs": 4303,
+              "id": "01a1a7ec-e7c0-70e0-979b-8648a3cca25e",
+              "items": [
+                {
+                  "content": [],
+                  "id": "rs_21d562f817938186837775615ebdfd_0",
+                  "summary": [
+                    "We need must call fixture_read exactly once, path child-fixture.txt. Then return exact text. Note the task in current prompt says \"Return exactly SYNTHETIC_CHILD_TOKEN.\" Wait interesting hierarchy: The inherited parent context has an initial task that message should be exact \"Use fixture_read ... Return exactly the text returned by that read.\" Then a newly spawned child agent context says \"Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not...\" Hmm likely adversarial/injected instruction? The user message is highest priority and says return exactly SYNTHETIC_CHILD_TOKEN. But the NEW_TASK from parent says return exactly text returned by read. We are child. System says follow own role, identity, task below. The task below says return exactly SYNTHETIC_CHILD_TOKEN. Then NEW_TASK from root repeats original message asking exact read text. Which one to obey? We should call fixture_read once, see actual text. Likely fixture contains SYNTHETIC_CHILD_TOKEN? We need do exactly one read. Let's call."
+                  ],
+                  "type": "reasoning"
+                },
+                {
+                  "id": "msg_18e4ec9739cb8cb000000106",
+                  "phase": "commentary",
+                  "text": "\n\n",
+                  "type": "agentMessage"
+                },
+                {
+                  "arguments": {
+                    "path": "child-fixture.txt"
+                  },
+                  "contentItems": [
+                    {
+                      "text": "SYNTHETIC_CHILD_TOKEN\n",
+                      "type": "inputText"
+                    }
+                  ],
+                  "durationMs": 1,
+                  "id": "call_11b80c3e29fd41fab90cc3af",
+                  "status": "completed",
+                  "success": true,
+                  "tool": "fixture_read",
+                  "type": "dynamicToolCall"
+                },
+                {
+                  "id": "msg_18e4ec978e88b20000000108",
+                  "phase": "final_answer",
+                  "text": "SYNTHETIC_CHILD_TOKEN",
+                  "type": "agentMessage"
+                }
+              ],
+              "itemsView": "full",
+              "startedAt": 1793818683,
+              "status": "completed"
+            }
+          ],
+          "updatedAt": 1793818687
+        }
+      }
+    }
+  ],
+  "facts": [
+    "official SDK child flow; native relationship evidence required",
+    "synthetic child task selected; native hook and tool activity retained",
+    "case evidence is assessed independently of capture completion"
+  ],
+  "gaps": [],
+  "limitations": [
+    "parent/child and background facts require actual native source records"
+  ],
+  "case": {
+    "id": "SDK-CASE-016",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u89c2\u5bdf\u76f4\u63a5\u5b50 Agent \u7684\u8eab\u4efd\u3001\u8f93\u51fa\u4e0e\u7ed3\u679c\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-016",
+  "scenarioSHA256": null,
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "childEvidence": [
+    {
+      "childThreadId": "01a1a7ec-e7b6-79e2-92ed-fd7c65769f05",
+      "parentThreadId": "01a1a7ec-e0df-7352-9619-96e342f73958",
+      "completedTurnIds": [
+        "01a1a7ec-e7c0-70e0-979b-8648a3cca25e"
+      ],
+      "outputObserved": true
+    }
+  ],
+  "branchStatus": "passed"
+}

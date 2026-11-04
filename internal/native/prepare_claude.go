@@ -11,8 +11,13 @@ import (
 )
 
 func claudeNativeArgs(profile string, params tool.Object) ([]string, error) {
-	var args []string
-	args = []string{"--print", "--system-prompt", "Complete the supplied synthetic task in the working directory. Be concise.", "--output-format", "stream-json", "--verbose", "--input-format", "stream-json", "--permission-prompt-tool", "stdio", "--include-partial-messages"}
+	args := []string{"--output-format", "stream-json", "--verbose", "--input-format", "stream-json", "--permission-prompt-tool", "stdio", "--include-partial-messages"}
+	caseArgs, err := claudeCaseArgs(profile, params)
+	return append(args, caseArgs...), err
+}
+
+func claudeCaseArgs(profile string, params tool.Object) ([]string, error) {
+	args := []string{"--print", "--system-prompt", "Complete the supplied synthetic task in the working directory. Be concise."}
 	if profile != "history" && profile != "existing-children" {
 		args = append(args, "--no-session-persistence")
 	}
@@ -30,6 +35,9 @@ func claudeNativeArgs(profile string, params tool.Object) ([]string, error) {
 	}
 	if params["approvalKind"] == "command" {
 		ask = []string{"Bash"}
+	}
+	if params["approvalKind"] == "file" {
+		ask = []string{"Write"}
 	}
 	if ask != nil {
 		b, err := json.Marshal(tool.Object{"permissions": tool.Object{"ask": ask}})

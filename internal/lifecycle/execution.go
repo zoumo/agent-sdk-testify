@@ -801,7 +801,7 @@ func FinishAction(run *ActionRun, status, artifactID string) error {
 
 // CleanupAction restores the tool-owned route before verification can be adopted.
 func CleanupAction(run *ActionRun) error {
-	if run.Execution.Command == "record" {
+	if run.Execution.Command == "record" && run.Execution.Artifact.OfficialOrigin == nil {
 		return restoreRouteSlots(run.Session, run.Execution.Command)
 	}
 	return nil
@@ -858,6 +858,16 @@ func CompleteMockConnection(run *ActionRun, status string) error {
 	if err != nil || !complete {
 		return err
 	}
+	// The official SDK can query history after protocol EOF. Its orchestrator
+	// restores this same route after the driver has finished those reads.
+	var active tool.Object
+	if err := tool.ReadJSON(filepath.Join(sessionDir, "official-active.json"), &active); err == nil {
+		if active["sessionId"] == run.Session.SessionID && active["mode"] == "verify" {
+			return nil
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
 	return restoreRouteSlots(run.Session, "mock")
 }
 
@@ -873,8 +883,12 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact corpus.Material)
 			return fmt.Errorf("connection %s: %w", connection.ID, err)
 		}
 	}
-	if err := restoreRouteSlots(run.Session, "record"); err != nil {
-		return err
+	// The official SDK may query native history after its protocol child exits.
+	// Its normal route must keep pointing at this execution until the driver ends.
+	if artifact.OfficialOrigin == nil {
+		if err := restoreRouteSlots(run.Session, "record"); err != nil {
+			return err
+		}
 	}
 	for _, action := range []string{"mock"} {
 		if route, ok := run.Session.Routes[action]; ok && route.Enabled {

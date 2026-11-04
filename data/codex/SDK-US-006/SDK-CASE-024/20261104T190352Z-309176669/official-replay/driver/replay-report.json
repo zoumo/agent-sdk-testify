@@ -1,0 +1,200 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 53,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3859769982/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/GLM-5.3",
+        "modelProvider": "recording-gateway",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1793818701,
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3859769982/routes/record/workspace",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a1a7ed-3025-7583-9a01-f783978d4297",
+          "model": "theta/GLM-5.3",
+          "modelProvider": "recording-gateway",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "recencyAt": 1793818701,
+          "sessionId": "01a1a7ed-3025-7583-9a01-f783978d4297",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793818701
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1a7ed-303d-7d91-9d32-9b8f8fc4839b",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "variant-configuration": {
+        "timing": "during-execution",
+        "requested": {
+          "threadId": "01a1a7ed-3025-7583-9a01-f783978d4297",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "response": {},
+        "observed": null
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1a7ed-3025-7583-9a01-f783978d4297",
+        "turn": {
+          "completedAt": 1793818703,
+          "durationMs": 1856,
+          "id": "01a1a7ed-303d-7d91-9d32-9b8f8fc4839b",
+          "items": [
+            {
+              "id": "msg_18e4ec9b37c6329000000134",
+              "phase": "final_answer",
+              "text": "Addition combines two or more quantities into a single total by counting or measuring them together, such as putting 3 apples with 2 apples to get 5 apples. It follows rules like commutativity (order does not matter) and associativity (grouping does not matter), so \\(a+b=b+a\\) and \\((a+b)+c=a+(b+c)\\).",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793818701,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-024",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u6267\u884c\u671f\u95f4\u8bf7\u6c42\u4e0d\u540c\u6a21\u578b\uff0c\u4fdd\u7559\u63a5\u53d7\u6216\u62d2\u7edd\u53ca\u5f53\u524d\u6267\u884c\u7ec8\u6001\uff0c\u8bb0\u5f55\u53ef\u89c2\u5bdf\u7684\u751f\u6548\u8303\u56f4\uff1b\u4e0d\u627f\u8bfa\u5f53\u524d\u6267\u884c\u7acb\u5373\u6362\u6a21\u578b\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.166.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-024",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "configuration-acknowledged",
+      "timing": "during-execution",
+      "completedInputs": 0,
+      "requested": {
+        "threadId": "01a1a7ed-3025-7583-9a01-f783978d4297",
+        "model": "theta/DeepSeek-V4.1-Flash-1017"
+      }
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "threadId": "01a1a7ed-3025-7583-9a01-f783978d4297",
+          "model": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "acknowledged": true,
+        "timing": "during-execution",
+        "completedInputs": 0
+      }
+    ],
+    "observed": [
+      {
+        "source": "thread/settings/updated",
+        "scope": "thread-settings",
+        "native": {
+          "threadId": "01a1a7ed-3025-7583-9a01-f783978d4297",
+          "threadSettings": {
+            "disabledPluginIds": [],
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3859769982/routes/record/workspace",
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "sandboxPolicy": {
+              "type": "workspaceWrite",
+              "writableRoots": [],
+              "networkAccess": false,
+              "excludeTmpdirEnvVar": false,
+              "excludeSlashTmp": false
+            },
+            "activePermissionProfile": null,
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "modelProvider": "recording-gateway",
+            "serviceTier": null,
+            "effort": null,
+            "summary": null,
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "reasoning_effort": null,
+                "developer_instructions": null
+              }
+            },
+            "multiAgentMode": "explicitRequestOnly",
+            "personality": null
+          }
+        }
+      }
+    ],
+    "effectiveScope": "current execution not guaranteed; observed models only",
+    "initialModel": "theta/GLM-5.3",
+    "targetModel": "theta/DeepSeek-V4.1-Flash-1017",
+    "observedModels": [
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ]
+  },
+  "branchStatus": "passed"
+}

@@ -1,0 +1,65 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-016/official-records/0f5403b89e32e48aa6176d2e66592aa4/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/routes/record/workspace",
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://"
+  ],
+  "case": {
+    "id": "SDK-CASE-016",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察直接子 Agent 的身份、输出与结果。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-016",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/routes/record/config",
+  "driverProfile": "children",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/routes/record/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/routes/record/workspace",
+  "prompts": [
+    "Use collaboration.spawn_agent exactly once with agent_type fixture_reader, task_name fixture_read_task, and message exactly \"Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\". Wait for this child with collaboration.wait_agent, then report its result. The root must not read files, call the child gate, use shell/network/other tools, or create another child."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-016/official-records/0f5403b89e32e48aa6176d2e66592aa4/driver/raw",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-016/official-records/0f5403b89e32e48aa6176d2e66592aa4/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-016",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察直接子 Agent 的身份、输出与结果。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-016",
+    "configuration": {},
+    "driverProfile": "children",
+    "files": {
+      "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n",
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "childTools": "inherited-dynamic-v2"
+    },
+    "prompts": [
+      "Use collaboration.spawn_agent exactly once with agent_type fixture_reader, task_name fixture_read_task, and message exactly \"Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\". Wait for this child with collaboration.wait_agent, then report its result. The root must not read files, call the child gate, use shell/network/other tools, or create another child."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

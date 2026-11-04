@@ -1,0 +1,41 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "1c94aac89c0572877de8ec8ad75d5babf40c97ccb58a54ab0a84ec936e132a74",
+    "raw.jsonl": "15487d1e317c3c672c68d9e5c66b63517c6ef4fe5445c670f592aef5cca1c84a",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "bd84eb959454579454e9ee710ae9369d34e7253dbe206feb547fa3c542fb6ca6"
+  },
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3746509996/executions/0a70e7714503d83193e2fcedcfd20979/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "22305cf268f2d38027aee16aca0bf9f8de18974029f0339f4caf05862ac3c154",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "bd84eb959454579454e9ee710ae9369d34e7253dbe206feb547fa3c542fb6ca6",
+  "savedFiles": {},
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "98edc508d12450d3c72a0b85d9f9fd76f4818141014eb88ac52971320c048c94",
+  "status": "captured"
+}

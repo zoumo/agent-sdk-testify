@@ -250,6 +250,26 @@ func Materialize(source, target string) (map[string]string, error) {
 	if err := Check(target, bindings); err != nil {
 		return nil, err
 	}
+	var plan tool.Object
+	if err := tool.ReadJSON(filepath.Join(source, "plan.json"), &plan); err != nil {
+		return nil, err
+	}
+	if plan["provider"] == "claude" || plan["agentType"] == "claude" {
+		if err := MaterializeClaude(source, target, filepath.Join(target, "workspace"), plan); err != nil {
+			return nil, err
+		}
+		var materialization tool.Object
+		if err := tool.ReadJSON(filepath.Join(target, "materialization.json"), &materialization); err != nil {
+			return nil, err
+		}
+		for _, item := range tool.Array(materialization["transformations"]) {
+			transformation := tool.Obj(item)
+			bindings[tool.Str(transformation["derived"])] = tool.Str(transformation["derivedSHA256"])
+		}
+		if err := Check(target, bindings); err != nil {
+			return nil, err
+		}
+	}
 	return bindings, nil
 }
 

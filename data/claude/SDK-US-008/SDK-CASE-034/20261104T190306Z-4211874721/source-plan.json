@@ -1,0 +1,47 @@
+{
+  "case": {
+    "id": "SDK-CASE-034",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "独立发现并读取保存的子 Agent 内容。",
+    "storyId": "SDK-US-008"
+  },
+  "caseId": "SDK-CASE-034",
+  "driverProfile": "history",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "prompts": [
+    "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-034",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "独立发现并读取保存的子 Agent 内容。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-034",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-008"
+  },
+  "story": "SDK-US-008",
+  "storyId": "SDK-US-008"
+}

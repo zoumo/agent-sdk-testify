@@ -118,6 +118,12 @@ func (r *OfficialRun) Complete(result tool.Object) error {
 		result["status"], result["cleanupComplete"] = "failed", false
 		result["processError"] = processErr.Error()
 	}
+	if processErr == nil && result["mode"] == "record" {
+		if err := r.restoreRoute("record"); err != nil {
+			result["status"], result["cleanupComplete"] = "failed", false
+			processErr = err
+		}
+	}
 	if err := writeAtomic(filepath.Join(r.Dir, "result.json"), result); err != nil {
 		return errors.Join(err, r.lock.Close())
 	}
@@ -185,6 +191,10 @@ func TrackNativeProbe(run *ActionRun, state string, pid int) error {
 // RestoreMockRoute settles the ordinary shared route only after all protocol
 // owners release it. Official verification owns no separate execution overlay.
 func (r *OfficialRun) RestoreMockRoute() error {
+	return r.restoreRoute("mock")
+}
+
+func (r *OfficialRun) restoreRoute(action string) error {
 	lock, err := actionLock(r.SessionDir, true)
 	if err != nil {
 		return err
@@ -197,5 +207,5 @@ func (r *OfficialRun) RestoreMockRoute() error {
 	if pendingExecution(index) != nil {
 		return ErrBusy
 	}
-	return restoreRouteSlots(r.Session, "mock")
+	return restoreRouteSlots(r.Session, action)
 }

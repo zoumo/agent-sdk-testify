@@ -1,0 +1,9 @@
+{
+  "case": "SDK-CASE-021",
+  "materials": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-021/verifications/1dc32fe8e976d1be231c6884c617f9cf/driver/materials",
+  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3014516464/routes/mock/workspace",
+  "peer": {
+    "command": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3014516464/official/1dc32fe8e976d1be231c6884c617f9cf/peer-main"
+  },
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-021/verifications/1dc32fe8e976d1be231c6884c617f9cf/driver"
+}

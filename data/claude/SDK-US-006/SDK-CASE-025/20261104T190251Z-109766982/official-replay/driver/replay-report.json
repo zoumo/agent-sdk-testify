@@ -1,0 +1,111 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 54,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 2065,
+        "duration_api_ms": 1864,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "fbde0228-0f26-496b-a598-0a0bdaf43009",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.013861,
+        "usage": {
+          "input_tokens": 85,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 22272,
+          "output_tokens": 92,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "Addition combines two or more quantities into a single total, where each added number contributes its value to the sum. For example, starting with 3 and adding 2 gives 5, meaning you extend the count of 3 by two more units to reach the combined amount.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 85,
+            "outputTokens": 92,
+            "cacheReadInputTokens": 22272,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.013861,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "31e8c7f7-f7ad-4bda-b6e0-97fde75404f2",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-025",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u521b\u5efa\u65f6\u9009\u62e9\u72ec\u7acb\u539f\u751f\u601d\u8003\u6a21\u5f0f\uff0c\u4e0d\u7528 effort \u66ff\u4ee3\uff1b\u539f\u751f enabled \u7684\u9884\u7b97\u7f16\u7801\u4e0d\u8bc1\u660e\u9884\u7b97\u6548\u679c\u3002\u4e0d\u8981\u6c42\u52a8\u6001\u6a21\u5f0f\u5207\u6362\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-025",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

@@ -1,0 +1,1336 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 53,
+  "requests": 2,
+  "receipts": [
+    {
+      "native-child/event": {
+        "kind": "HookEventMessage",
+        "native": {
+          "subtype": "hook_started",
+          "data": {
+            "type": "system",
+            "subtype": "hook_started",
+            "hook_id": "1e6da8c6-8f02-40c7-8b77-f532d38b68f9",
+            "hook_name": "SessionStart:startup",
+            "hook_event": "SessionStart",
+            "uuid": "f7e3a776-04f9-4fb9-ae83-c016bc8e5a3e",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          },
+          "hook_event_name": "SessionStart",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "f7e3a776-04f9-4fb9-ae83-c016bc8e5a3e"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "HookEventMessage",
+        "native": {
+          "subtype": "hook_response",
+          "data": {
+            "type": "system",
+            "subtype": "hook_response",
+            "hook_id": "1e6da8c6-8f02-40c7-8b77-f532d38b68f9",
+            "hook_name": "SessionStart:startup",
+            "hook_event": "SessionStart",
+            "output": "",
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "outcome": "success",
+            "uuid": "cc5c4e6d-7001-4486-b0f6-93fdd3d4942a",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          },
+          "hook_event_name": "SessionStart",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "cc5c4e6d-7001-4486-b0f6-93fdd3d4942a"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "38c1c65e-75a1-4934-a09e-f3f94065e3f2",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "init",
+          "data": {
+            "type": "system",
+            "subtype": "init",
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3831191931/executions/d9a6420960656016509c1e21fd4d0962/workspace",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+            "tools": [
+              "Task",
+              "AskUserQuestion",
+              "Bash",
+              "CronCreate",
+              "CronDelete",
+              "CronList",
+              "DesignSync",
+              "Edit",
+              "EnterPlanMode",
+              "EnterWorktree",
+              "ExitPlanMode",
+              "ExitWorktree",
+              "ListAgents",
+              "NotebookEdit",
+              "Read",
+              "ReportFindings",
+              "ScheduleWakeup",
+              "SendMessage",
+              "TaskCreate",
+              "TaskGet",
+              "TaskList",
+              "TaskOutput",
+              "TaskStop",
+              "TaskUpdate",
+              "WebFetch",
+              "WebSearch",
+              "Workflow",
+              "Write"
+            ],
+            "mcp_servers": [],
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "permissionMode": "default",
+            "slash_commands": [],
+            "apiKeySource": "none",
+            "claude_code_version": "2.1.258",
+            "output_style": "default",
+            "agents": [
+              "claude",
+              "Explore",
+              "fixture_reader",
+              "general-purpose",
+              "Plan",
+              "statusline-setup"
+            ],
+            "skills": [],
+            "plugins": [],
+            "capabilities": [
+              "interrupt_receipt_v1",
+              "interrupt_cancel_queued_v1",
+              "msg_lifecycle_v1"
+            ],
+            "analytics_disabled": false,
+            "product_feedback_disabled": false,
+            "uuid": "e16b2bce-d022-4c58-8ca8-7fd096079d84",
+            "memory_paths": {
+              "auto": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3831191931/executions/d9a6420960656016509c1e21fd4d0962/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-3831191931-executions-d9a6420960656016509c1e21fd4d0962-workspace/memory/"
+            },
+            "messaging_socket_path": "/tmp/cc-socks/92920.sock",
+            "fast_mode_state": "off",
+            "fast_mode_disabled_reason": "sdk_opt_in_required"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "status",
+          "data": {
+            "type": "system",
+            "subtype": "status",
+            "status": "requesting",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+            "uuid": "13d363fd-0759-4564-ac36-e7941c64909d"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "fe36ca07-dc57-402d-bba6-3b7a49142d14",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "message_start",
+            "message": {
+              "id": "21d562f817938186025863898ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "3afb646a-077a-4e43-a5dd-abcd28da7e55",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {
+              "type": "text",
+              "text": ""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "7fe2a88e-b739-47b2-b4c0-d453b83a3593",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_stop",
+            "index": 0
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "b5d7050f-5845-4643-98ba-7f8865723a0b",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_start",
+            "index": 1,
+            "content_block": {
+              "input": {},
+              "type": "tool_use",
+              "id": "call_e170396d6a864145a0291d1d",
+              "name": "Agent"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "fd924f18-0730-49d0-8c73-90ca5cab317b",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "{"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "6f868cd8-ef9f-4445-8429-284ece34e74d",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "\"description\": \"Read"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "c4886f54-686f-4817-b1ea-615689ea129a",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " child"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "f8ed2626-e2fe-4f39-87dd-b24a3213f79b",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " fixture\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9c6fd1e0-793e-4217-a4ed-b980fe59e81b",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"prompt\": \"Us"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "314235e4-578c-497c-8e68-91bcca733687",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "e Read exactly once to read"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "4e8e1465-b5b8-4d2a-9a66-5aad9a54a89a",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " only child-fixture.txt in"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "f96e290b-1210-45e8-a203-a40c5e25377f",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " the inherited working directory. Return"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "6cd343d4-700b-4ce5-a8c3-cee342b0978c",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " exactly SYNTHET"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "5cd7e398-e0a1-4a6c-ad04-b7a1975d225e",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "IC_CHILD_TOKEN. Do"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d991aa7e-585f-4c97-bbb9-a0dc12ad7200",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " not create agents or descendants"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "be1c72ad-7e23-4119-8d06-fd4d79e03ca7",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ". Do not use shell"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "c27c3df0-eebe-47ec-acea-bcd37b7df1d9",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", network, search, writes"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "ad280994-7829-4f02-ae82-3b5ea0733f0c",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", or any other file o"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "e533bc65-e9be-4ec0-9038-b1fbe9434d28",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "r tool.\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9d2cebee-fd92-471e-bde1-09880d1eee90",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"subagent_type\": \"fixture_reader\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "68715828-f3ee-4a62-ada9-efb3ff9fa7ae",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"run_in_background\": false}"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "id": "call_e170396d6a864145a0291d1d",
+              "name": "Agent",
+              "input": {
+                "description": "Read child fixture",
+                "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+                "subagent_type": "fixture_reader",
+                "run_in_background": false
+              }
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186025863898ebdfd",
+          "stop_reason": null,
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "7eedd33c-971c-4438-bfb9-6139af5be87b"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d1799a49-1164-4f00-8215-6b2ccdccaad4",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "content_block_stop",
+            "index": 1
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "b2d2fc76-0cf3-47ee-ba09-6c929a8c65ac",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "tool_use",
+              "stop_sequence": null
+            },
+            "usage": {
+              "input_tokens": 204,
+              "output_tokens": 147,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22272
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "6774a3b9-bf5d-4d84-8123-778b1469e7e4",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186025863898ebdfd",
+            "type": "message_stop"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "requires_action",
+            "uuid": "5371b004-025f-4be0-b5b5-e7aaee6eeaec",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          }
+        }
+      }
+    },
+    {
+      "allow-Agent": {
+        "toolUseId": "call_e170396d6a864145a0291d1d"
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "937061a0-641a-4855-9b4e-5be33ba3e30f",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskStartedMessage",
+        "native": {
+          "subtype": "task_started",
+          "data": {
+            "type": "system",
+            "subtype": "task_started",
+            "task_id": "a9379a730c5e886e2",
+            "tool_use_id": "call_e170396d6a864145a0291d1d",
+            "description": "Read child fixture",
+            "subagent_type": "fixture_reader",
+            "is_backgrounded": false,
+            "spawn_depth": 1,
+            "task_type": "local_agent",
+            "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+            "uuid": "d6bb84db-7743-4a42-b1a0-63a96775ffdf",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          },
+          "task_id": "a9379a730c5e886e2",
+          "description": "Read child fixture",
+          "uuid": "d6bb84db-7743-4a42-b1a0-63a96775ffdf",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "tool_use_id": "call_e170396d6a864145a0291d1d",
+          "task_type": "local_agent"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "text": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool."
+            }
+          ],
+          "uuid": "e0f180d6-20d4-465c-9cb2-edf9a7b931ce",
+          "parent_tool_use_id": "call_e170396d6a864145a0291d1d",
+          "tool_use_result": null,
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "I'll read the fixture file."
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": "call_e170396d6a864145a0291d1d",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186039463923ebdfd",
+          "stop_reason": null,
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "9c25ff86-3c56-42b4-b0b0-7f7546a61444"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskProgressMessage",
+        "native": {
+          "subtype": "task_progress",
+          "data": {
+            "type": "system",
+            "subtype": "task_progress",
+            "task_id": "a9379a730c5e886e2",
+            "tool_use_id": "call_e170396d6a864145a0291d1d",
+            "description": "Reading child-fixture.txt",
+            "subagent_type": "fixture_reader",
+            "usage": {
+              "total_tokens": 6,
+              "tool_uses": 1,
+              "duration_ms": 1351
+            },
+            "last_tool_name": "Read",
+            "uuid": "c5c94298-b3f9-464a-b5bc-e700ee95b94a",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          },
+          "task_id": "a9379a730c5e886e2",
+          "description": "Reading child-fixture.txt",
+          "usage": {
+            "total_tokens": 6,
+            "tool_uses": 1,
+            "duration_ms": 1351
+          },
+          "uuid": "c5c94298-b3f9-464a-b5bc-e700ee95b94a",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "tool_use_id": "call_e170396d6a864145a0291d1d",
+          "last_tool_name": "Read"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "id": "call_8b4b9a49d8ca4b27af0dcae1",
+              "name": "Read",
+              "input": {
+                "file_path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-3831191931/executions/d9a6420960656016509c1e21fd4d0962/workspace/child-fixture.txt"
+              }
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": "call_e170396d6a864145a0291d1d",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186039463923ebdfd",
+          "stop_reason": null,
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "e179ac76-73a0-4e11-8dd3-619edd58317e"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "requires_action",
+            "uuid": "732c84dd-09a8-4a13-924a-88f759fef69b",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          }
+        }
+      }
+    },
+    {
+      "allow-child-Read": {
+        "toolUseId": "call_8b4b9a49d8ca4b27af0dcae1",
+        "nativeAgentId": "a9379a730c5e886e2"
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "75cda653-2d33-4fce-8432-662b98877747",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "tool_use_id": "call_8b4b9a49d8ca4b27af0dcae1",
+              "content": "1\tSYNTHETIC_CHILD_TOKEN\n2\t",
+              "is_error": null
+            }
+          ],
+          "uuid": "d01089e7-7610-4463-8ef1-07d24fc98eea",
+          "parent_tool_use_id": "call_e170396d6a864145a0291d1d",
+          "tool_use_result": null,
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "SYNTHETIC_CHILD_TOKEN"
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": "call_e170396d6a864145a0291d1d",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186055253952ebdfd",
+          "stop_reason": null,
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "99f130be-33f5-498b-8839-288bf0e34709"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskUpdatedMessage",
+        "native": {
+          "subtype": "task_updated",
+          "data": {
+            "type": "system",
+            "subtype": "task_updated",
+            "task_id": "a9379a730c5e886e2",
+            "patch": {
+              "status": "completed",
+              "end_time": 1793818606155
+            },
+            "uuid": "810c4e58-d381-403c-822c-c8b801003de1",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          },
+          "task_id": "a9379a730c5e886e2",
+          "patch": {
+            "status": "completed",
+            "end_time": 1793818606155
+          },
+          "status": "completed",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "810c4e58-d381-403c-822c-c8b801003de1"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskNotificationMessage",
+        "native": {
+          "subtype": "task_notification",
+          "data": {
+            "type": "system",
+            "subtype": "task_notification",
+            "task_id": "a9379a730c5e886e2",
+            "tool_use_id": "call_e170396d6a864145a0291d1d",
+            "status": "completed",
+            "output_file": "/private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-3831191931-executions-d9a6420960656016509c1e21fd4d0962-workspace/d9ed7dd9-db91-4584-883e-2d96438cb6d4/tasks/a9379a730c5e886e2.output",
+            "summary": "SYNTHETIC_CHILD_TOKEN",
+            "usage": {
+              "total_tokens": 5,
+              "tool_uses": 1,
+              "duration_ms": 2511
+            },
+            "uuid": "9f43a07b-2ada-49c4-86bf-0415b43e3cf7",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4"
+          },
+          "task_id": "a9379a730c5e886e2",
+          "status": "completed",
+          "output_file": "/private/tmp/claude-502/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-3831191931-executions-d9a6420960656016509c1e21fd4d0962-workspace/d9ed7dd9-db91-4584-883e-2d96438cb6d4/tasks/a9379a730c5e886e2.output",
+          "summary": "SYNTHETIC_CHILD_TOKEN",
+          "uuid": "9f43a07b-2ada-49c4-86bf-0415b43e3cf7",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "tool_use_id": "call_e170396d6a864145a0291d1d",
+          "usage": {
+            "total_tokens": 5,
+            "tool_uses": 1,
+            "duration_ms": 2511
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "tool_use_id": "call_e170396d6a864145a0291d1d",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_CHILD_TOKEN"
+                },
+                {
+                  "type": "text",
+                  "text": "agentId: a9379a730c5e886e2 (use SendMessage with to: 'a9379a730c5e886e2', summary: '<5-10 word recap>' to continue this agent)\n<usage>subagent_tokens: 13687\ntool_uses: 1\nduration_ms: 2512</usage>"
+                }
+              ],
+              "is_error": null
+            }
+          ],
+          "uuid": "d8834d56-bb90-44fd-9a05-899545969950",
+          "parent_tool_use_id": null,
+          "tool_use_result": {
+            "status": "completed",
+            "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+            "agentId": "a9379a730c5e886e2",
+            "agentType": "fixture_reader",
+            "harnessNoteCount": 0,
+            "harnessTailCount": 0,
+            "harnessSectionHash": "ba74cb8d9a761993",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC_CHILD_TOKEN"
+              }
+            ],
+            "resolvedModel": "theta/DeepSeek-V4.1-Flash-1017",
+            "totalDurationMs": 2512,
+            "totalTokens": 13687,
+            "totalToolUseCount": 1,
+            "usage": {
+              "input_tokens": 621,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 13056,
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "toolStats": {
+              "readCount": 1,
+              "searchCount": 0,
+              "bashCount": 0,
+              "editFileCount": 0,
+              "linesAdded": 0,
+              "linesRemoved": 0,
+              "otherToolCount": 0
+            }
+          },
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "status",
+          "data": {
+            "type": "system",
+            "subtype": "status",
+            "status": "requesting",
+            "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+            "uuid": "85f4326b-f665-4590-9022-5ae1f338ee62"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "308fe445-3b58-47f2-9753-8bd636c0e553",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186064003976ebdfd",
+            "type": "message_start",
+            "message": {
+              "id": "21d562f817938186064003976ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "19cb0a15-415f-4b3b-9c55-1ba95a3899c7",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186064003976ebdfd",
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {
+              "type": "text",
+              "text": ""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "57231290-dcd4-4a1e-bd90-1e601d696ae6",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "delta": {
+              "text": "The child agent returned:\n\n**SYNTHETIC_CHILD_TOKEN**",
+              "type": "text_delta"
+            },
+            "index": 0,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "The child agent returned:\n\n**SYNTHETIC_CHILD_TOKEN**"
+            }
+          ],
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d562f817938186064003976ebdfd",
+          "stop_reason": null,
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "uuid": "acfee0b7-973d-4519-9574-f5753d6c5a86"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "50985b06-cc5e-43a6-b0cc-91fb1e1895a5",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186064003976ebdfd",
+            "type": "content_block_stop",
+            "index": 0
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "547317e0-c950-4624-9ced-45ee47d2a873",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186064003976ebdfd",
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "end_turn",
+              "stop_sequence": null
+            },
+            "usage": {
+              "input_tokens": 462,
+              "output_tokens": 17,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22272
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "2d4b43c7-26f7-473f-954e-52591fb564d0",
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "event": {
+            "id": "21d562f817938186064003976ebdfd",
+            "type": "message_stop"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "ResultMessage",
+        "native": {
+          "subtype": "success",
+          "duration_ms": 4596,
+          "duration_api_ms": 3356,
+          "is_error": false,
+          "num_turns": 2,
+          "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+          "stop_reason": "end_turn",
+          "total_cost_usd": 0.107063,
+          "usage": {
+            "input_tokens": 666,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 44544,
+            "output_tokens": 164,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_search_requests": 0,
+              "web_fetch_requests": 0
+            },
+            "service_tier": "standard",
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "inference_geo": "",
+            "iterations": [],
+            "speed": "standard"
+          },
+          "result": "The child agent returned:\n\n**SYNTHETIC_CHILD_TOKEN**",
+          "structured_output": null,
+          "model_usage": {
+            "theta/DeepSeek-V4.1-Flash-1017": {
+              "inputTokens": 14187,
+              "outputTokens": 288,
+              "cacheReadInputTokens": 57856,
+              "cacheCreationInputTokens": 0,
+              "webSearchRequests": 0,
+              "costUSD": 0.107063,
+              "contextWindow": 200000,
+              "maxOutputTokens": 32000,
+              "thinkingTokens": 0,
+              "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+              "provider": "firstParty",
+              "costBasis": "unknown"
+            }
+          },
+          "permission_denials": [],
+          "deferred_tool_use": null,
+          "errors": null,
+          "api_error_status": null,
+          "uuid": "33332cf4-a6a0-47f9-bd4c-97642e4a3356",
+          "terminal_reason": "completed",
+          "origin": null
+        }
+      }
+    },
+    {
+      "root/result": {
+        "subtype": "success",
+        "duration_ms": 4596,
+        "duration_api_ms": 3356,
+        "is_error": false,
+        "num_turns": 2,
+        "session_id": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.107063,
+        "usage": {
+          "input_tokens": 666,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 44544,
+          "output_tokens": 164,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "The child agent returned:\n\n**SYNTHETIC_CHILD_TOKEN**",
+        "structured_output": null,
+        "model_usage": {
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 14187,
+            "outputTokens": 288,
+            "cacheReadInputTokens": 57856,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.107063,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "33332cf4-a6a0-47f9-bd4c-97642e4a3356",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "official SDK child flow; native relationship evidence required",
+    "synthetic child task selected; native hook and tool activity retained",
+    "case evidence is assessed independently of capture completion"
+  ],
+  "gaps": [],
+  "limitations": [
+    "parent/child and background facts require actual native source records"
+  ],
+  "case": {
+    "id": "SDK-CASE-016",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u89c2\u5bdf\u76f4\u63a5\u5b50 Agent \u7684\u8eab\u4efd\u3001\u8f93\u51fa\u4e0e\u7ed3\u679c\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-016",
+  "scenarioSHA256": null,
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "childEvidence": {
+    "sessionId": "d9ed7dd9-db91-4584-883e-2d96438cb6d4",
+    "parentToolUseId": "call_e170396d6a864145a0291d1d",
+    "taskId": "a9379a730c5e886e2",
+    "agentIds": [
+      "a9379a730c5e886e2"
+    ],
+    "outputObserved": true,
+    "completed": true
+  },
+  "branchStatus": "passed"
+}

@@ -1,0 +1,50 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "0784f4bcbb34662e6fa7e72a52195ae19f80d027c4ee88f670e7865dc4ff106a",
+    "raw.jsonl": "3381ac4b499836622805f48cf963de308f81b59ce8d74435b8c1a86c4ef57542",
+    "stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+    "transport.json": "2196507637d35630dd3cb868fe6b72301782c8f6bcde1d53f1ddc596f179c54c"
+  },
+  "native": {
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1988736167/executions/baaa555e658674db460fac1c40da90fb/workspace",
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "planSHA256": "f1de39dd916182a72cec62731b810d7660047f937e218dfdc30f614acd548afb",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "2196507637d35630dd3cb868fe6b72301782c8f6bcde1d53f1ddc596f179c54c",
+  "savedFiles": {},
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "f9defaf6b2be6bc3f558626a0bb7d27f6abb43d3b4de9c4b6e2831ed7f5e862d",
+  "status": "captured"
+}

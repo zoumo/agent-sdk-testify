@@ -135,6 +135,20 @@ func controlledOfficialDriver(args []string) int {
 		driverCheckpoint(request.Output, mode)
 		waitDriverCancellation()
 	}
+	if mode == "local" {
+		data, err := os.ReadFile(filepath.Join(request.Output, "peer-main.results.jsonl"))
+		var finished, execution object
+		rows := strings.Split(strings.TrimSpace(string(data)), "\n")
+		if err != nil || len(rows) != 2 || json.Unmarshal([]byte(rows[1]), &finished) != nil || readJSONFile(str(finished["execution"]), &execution) != nil {
+			return 6
+		}
+		host, hostErr := os.Stat(os.Getenv("CODEX_HOME"))
+		overlay, overlayErr := os.Stat(str(obj(execution["env"])["CODEX_HOME"]))
+		if hostErr != nil || overlayErr != nil || !os.SameFile(host, overlay) {
+			return 6
+		}
+		report["hostRetainedExecution"] = true
+	}
 	if mode == "bad-result" {
 		_ = os.WriteFile(filepath.Join(request.Output, "result.json"), []byte("{"), 0o600)
 		return 0
@@ -311,6 +325,7 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 				require.EqualValues(t, 1, obj(result["report"])["finishAfter"])
 			}
 			if mode == "local" {
+				require.Equal(t, true, obj(result["report"])["hostRetainedExecution"])
 				plan := readJSON(t, filepath.Join(materialRoot, "plan.json"))
 				payload, marshalErr := json.Marshal(object{"id": 1, "method": "conformance", "params": object{"cwd": plan["project"]}})
 				require.NoError(t, marshalErr)

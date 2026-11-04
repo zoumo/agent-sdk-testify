@@ -1,0 +1,111 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 83,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 2265,
+        "duration_api_ms": 2073,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "334a42a0-d301-4135-882e-5b2b0854cd5e",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.01719,
+        "usage": {
+          "input_tokens": 597,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 21760,
+          "output_tokens": 133,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "Addition combines two or more numbers into a single total, called the sum: starting with one quantity, you count forward by the amount of the other (so 4 + 3 means starting at 4 and counting up three places to 7). Because order doesn't matter and grouping doesn't matter, addition can be applied repeatedly to combine any number of quantities.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 597,
+            "outputTokens": 133,
+            "cacheReadInputTokens": 21760,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.01719,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "a889405b-6801-4b98-8b26-8d5146f7f386",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-021",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u521b\u5efa\u4f1a\u8bdd\u65f6\u9009\u62e9\u6a21\u578b\u5e76\u6267\u884c\u4efb\u52a1\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-021",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

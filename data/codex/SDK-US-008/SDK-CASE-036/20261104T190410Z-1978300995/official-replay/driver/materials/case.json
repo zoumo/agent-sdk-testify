@@ -1,0 +1,79 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-036/verifications/b258e181fbda010ba5ed4ebf20f82ac1/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4262592773/routes/mock/workspace",
+  "_recordedWorkspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4262592773/executions/7d54caf743ad2fd00c1e2a255a32c568/workspace",
+  "_replay": true,
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-036",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "使用原生分页或切片连续读取至少两个窗口，核对顺序和边界；不伪造 cursor、total 或原子快照。",
+    "storyId": "SDK-US-008"
+  },
+  "caseId": "SDK-CASE-036",
+  "cli": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4262592773/routes/mock/config",
+  "driverProfile": "history",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4262592773/routes/mock/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4262592773/routes/record/workspace",
+  "prompts": [
+    "Reply with the word SYNTHETIC_SAVED.",
+    "Reply with the word SYNTHETIC_SECOND_SAVED."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-036/materials/2facffa71a914e3e05f6a23a2a24b5f3/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-036/verifications/b258e181fbda010ba5ed4ebf20f82ac1/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-036",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "使用原生分页或切片连续读取至少两个窗口，核对顺序和边界；不伪造 cursor、total 或原子快照。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-036",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "historyTarget": "pagination"
+    },
+    "prompts": [
+      "Reply with the word SYNTHETIC_SAVED.",
+      "Reply with the word SYNTHETIC_SECOND_SAVED."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-008"
+  },
+  "sourcePlanSHA256": "de116e07563be5e31dbd8231a7fc8804cf2cfe4cff3eafc07a7c7b0fdc7448c3",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-008",
+  "storyId": "SDK-US-008"
+}

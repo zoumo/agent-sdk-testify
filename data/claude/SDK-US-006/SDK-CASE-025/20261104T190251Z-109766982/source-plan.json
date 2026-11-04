@@ -1,0 +1,50 @@
+{
+  "case": {
+    "id": "SDK-CASE-025",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "创建时选择独立原生思考模式，不用 effort 替代；原生 enabled 的预算编码不证明预算效果。不要求动态模式切换。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-025",
+  "driverProfile": "structured-input",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "prompts": [
+    "Explain in two sentences how addition works."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-025",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "创建时选择独立原生思考模式，不用 effort 替代；原生 enabled 的预算编码不证明预算效果。不要求动态模式切换。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-025",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "creation",
+      "setting": "thinking"
+    },
+    "prompts": [
+      "Explain in two sentences how addition works."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

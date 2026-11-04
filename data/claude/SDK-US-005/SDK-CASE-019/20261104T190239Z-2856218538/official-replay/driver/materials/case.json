@@ -1,0 +1,90 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-019/verifications/b359a50177d8e86e7035058c3c3f5875/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/routes/mock/workspace",
+  "_recordedWorkspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/executions/4052d66907c5d57d9480714cadf074dc/workspace",
+  "_replay": true,
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise.",
+    "--no-session-persistence",
+    "--forward-subagent-text",
+    "--settings",
+    "{\"permissions\":{\"ask\":[\"Agent\",\"Read\"]}}",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "case": {
+    "id": "SDK-CASE-019",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "根任务结束后继续观察后台子 Agent。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-019",
+  "cli": "/Users/jim/bin/claude",
+  "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/routes/mock/config",
+  "driverProfile": "background-children",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/routes/mock/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/routes/record/workspace",
+  "prompts": [
+    "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-019/materials/923dba9af66805731633570402b53bec/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-019/verifications/b359a50177d8e86e7035058c3c3f5875/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-019",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "根任务结束后继续观察后台子 Agent。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-019",
+    "configuration": {},
+    "driverProfile": "background-children",
+    "files": {
+      "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n",
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "backgroundReadBarrier": true
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "sourcePlanSHA256": "e247316cf0e89ef94c0586352a08d92bba2041d5178b6b2613768c88945e6676",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

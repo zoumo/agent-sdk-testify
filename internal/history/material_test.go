@@ -3,6 +3,7 @@ package history
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -56,6 +57,26 @@ func TestBindingsRejectConflictingSources(t *testing.T) {
 
 	_, err := Bindings(root)
 	require.ErrorContains(t, err, "history bindings conflict")
+}
+
+func TestMaterializeClaudeExecutionHistory(t *testing.T) {
+	source, target := t.TempDir(), t.TempDir()
+	name := "config/projects/-native-workspace/session.jsonl"
+	original := "{\"cwd\":\"/native/workspace\",\"id\":\"keep\",\"future\":1.2500}\n"
+	digest := writeHistoryFile(t, source, name, original)
+	writeHistoryJSON(t, source, "plan.json", tool.Object{"provider": "claude", "project": "/route/workspace", "_fixtureProject": "/native/workspace"})
+	writeHistoryJSON(t, source, "manifest.json", tool.Object{"savedFiles": tool.Object{name: digest}})
+	bindings, err := Materialize(source, target)
+	require.NoError(t, err)
+	key := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(filepath.Join(target, "workspace"), "-")
+	derived := filepath.Join("config", "projects", key, "session.jsonl")
+	require.Contains(t, bindings, derived)
+	require.NoError(t, Check(target, bindings))
+	data, err := os.ReadFile(filepath.Join(source, name))
+	require.NoError(t, err)
+	require.Equal(t, original, string(data))
+	require.NoError(t, os.WriteFile(filepath.Join(target, derived), []byte("changed"), 0o600))
+	require.Error(t, Check(target, bindings))
 }
 
 func writeHistoryFile(t *testing.T, root, name, content string) string {

@@ -1,0 +1,50 @@
+{
+  "case": {
+    "id": "SDK-CASE-019",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "根任务结束后继续观察后台子 Agent。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-019",
+  "driverProfile": "background-children",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "prompts": [
+    "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-019",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "根任务结束后继续观察后台子 Agent。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-019",
+    "configuration": {},
+    "driverProfile": "background-children",
+    "files": {
+      "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n",
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "backgroundReadBarrier": true
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

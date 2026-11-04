@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 2,
+  "executionId": "d7bb5c84ccd9d51beb6c946081b1b009",
+  "sessionId": "9565797267ac7f0f4244ec1ec998dc71",
+  "command": "mock",
+  "args": [
+    "--session-dir",
+    "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036",
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-036",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036/source/plan.json",
+    "sha256": "a473f2ee8dd3acc81d87253e2396e12a654272bf167fc9a2b65e573a53d5f45d",
+    "provenance": "official",
+    "driverProfile": "history"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/workspace",
+  "protocolCwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/workspace",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/home",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/config",
+  "tmp": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/tmp",
+  "historySeed": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/history-seed",
+  "historyFiles": {
+    "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-685652893-executions-c33c575fc79cc875309a8fd98052fb1b-workspace/6e6fe023-6602-4540-9583-530c17185afa.jsonl": "0ed8c5b227247aefb2de0b68e785245dea00310dfa61a116d101a9fa12e11614",
+    "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-685652893-executions-d7bb5c84ccd9d51beb6c946081b1b009-workspace/6e6fe023-6602-4540-9583-530c17185afa.jsonl": "290b9d2fc096c1367976307560e6aa578a4f76b0699d48d068fb9d5f713ba7b7"
+  },
+  "env": {
+    "CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS": "1",
+    "CLAUDE_CONFIG_DIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/config",
+    "DISABLE_AUTOUPDATER": "1",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/home",
+    "LANG": "C.UTF-8",
+    "PATH": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/official-env-py315/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/jim/.ssctl/bin:/Users/jim/.utoo-proxy:/Applications/golutra.app/Contents/MacOS:/Users/jim/.local/share/mise/installs/go/1.26.9/bin:/Users/jim/.local/share/mise/installs/java/17/bin:/Users/jim/.local/share/mise/installs/node/24.21.0/bin:/Users/jim/.cargo/bin:/Users/jim/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/podman/bin:/opt/zerobrew/opt/gnu-sed/libexec/gnubin:/opt/zerobrew/opt/findutils/libexec/gnubin:/opt/zerobrew/opt/coreutils/libexec/gnubin:/Users/jim/bin:/Users/jim/.dotfiles/bin:/opt/zerobrew/bin:/Users/jim/.codex/tmp/arg0-macos/codex-arg0bwW6It:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/jim/.kusion/kclvm/bin:/Users/jim/.kusion/bin:/opt/zerobrew/opt/mise/bin:/Users/jim/.zerobrew/bin:/Users/jim/.skills-manager/bin:/Users/jim/.bun/bin:/Applications/Obsidian.app/Contents/MacOS:/Users/jim/.pnpm:/Users/jim/.krew/bin:/Users/jim/.orbstack/bin:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS",
+    "TEMP": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/tmp",
+    "TMP": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/tmp",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/d7bb5c84ccd9d51beb6c946081b1b009/home/.local/share"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "command": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/bin/agent-sdk-testify",
+      "args": [
+        "agent",
+        "mock",
+        "--session-dir",
+        "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036",
+        "--connection",
+        "main"
+      ],
+      "launcher": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/launchers/peer-main",
+      "material": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036/materials/57f37d27beda6f2e862a1e975883d529",
+      "planSHA256": "3a48a1dbb14d723993acd5be700da8c61b0b441934a145d00a60e3a40ac75f23",
+      "manifestSHA256": "2e3a84774b11eaffe8f67581ca28a84f9cefb22301b97dea0cb2140dabbc789c",
+      "recordingSHA256": "31b9649bf24c27870686d83aae737f777b9e652581f4c7000c3dfd3d93f2aa22",
+      "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036/executions/d7bb5c84ccd9d51beb6c946081b1b009/mock/receipts/main.json",
+      "processReceipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036/executions/d7bb5c84ccd9d51beb6c946081b1b009/mock/receipts/main.process.json"
+    }
+  ],
+  "artifactRoot": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036/executions/d7bb5c84ccd9d51beb6c946081b1b009/mock",
+  "artifact": {
+    "officialOrigin": {
+      "runId": "3410d28a524e95b94b1281cbd4f484fc",
+      "sessionId": "9565797267ac7f0f4244ec1ec998dc71",
+      "caseId": "SDK-CASE-036",
+      "agentType": "claude",
+      "recordSourceSHA256": "a473f2ee8dd3acc81d87253e2396e12a654272bf167fc9a2b65e573a53d5f45d",
+      "sourceSHA256": "a473f2ee8dd3acc81d87253e2396e12a654272bf167fc9a2b65e573a53d5f45d",
+      "driverSHA256": "171ec36a0d56cff1b053b6ce44a7743771436a93d57f0d01c59e0a0ae04b6f58",
+      "connections": [
+        "main"
+      ]
+    },
+    "files": {
+      "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-685652893-executions-c33c575fc79cc875309a8fd98052fb1b-workspace/6e6fe023-6602-4540-9583-530c17185afa.jsonl": "0ed8c5b227247aefb2de0b68e785245dea00310dfa61a116d101a9fa12e11614",
+      "manifest.json": "2e3a84774b11eaffe8f67581ca28a84f9cefb22301b97dea0cb2140dabbc789c",
+      "official-origin.json": "2d62073075436286365c67d724192012c4e4ede3a4cfe31ff2ba5221b9952eb8",
+      "origin/main.json": "47249e0e64a144afb993cb3865b050c915082dc06b56d5303ff28c50f3982eaa",
+      "plan.json": "3a48a1dbb14d723993acd5be700da8c61b0b441934a145d00a60e3a40ac75f23",
+      "raw/manifest.json": "02f4ec682b578580dff823b75d36f3eddc913652f913abf5b017fed19f3ffe74",
+      "raw/raw.jsonl": "31b9649bf24c27870686d83aae737f777b9e652581f4c7000c3dfd3d93f2aa22",
+      "raw/stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+      "raw/transport.json": "605fdd2d9441a2926546742977a5a1f068ff78ca5d32bd73bc4905bcdb8de229",
+      "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+      "source-plan.json": "a473f2ee8dd3acc81d87253e2396e12a654272bf167fc9a2b65e573a53d5f45d"
+    },
+    "id": "57f37d27beda6f2e862a1e975883d529",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-036/materials/57f37d27beda6f2e862a1e975883d529",
+    "planSHA256": "3a48a1dbb14d723993acd5be700da8c61b0b441934a145d00a60e3a40ac75f23",
+    "manifestSHA256": "2e3a84774b11eaffe8f67581ca28a84f9cefb22301b97dea0cb2140dabbc789c",
+    "recordingSHA256": "31b9649bf24c27870686d83aae737f777b9e652581f4c7000c3dfd3d93f2aa22",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-04T18:57:33.777487Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-04T19:03:08.194484Z"
+}

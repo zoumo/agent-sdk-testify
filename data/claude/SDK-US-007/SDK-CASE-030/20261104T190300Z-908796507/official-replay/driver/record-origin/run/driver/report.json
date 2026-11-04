@@ -1,0 +1,132 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-007",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 12,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "interrupt": "acknowledged"
+    },
+    {
+      "interrupt-session": "83014e30-45a1-4185-b175-fffb042e72ff"
+    },
+    {
+      "result": {
+        "subtype": "error_during_execution",
+        "duration_ms": 699,
+        "duration_api_ms": 0,
+        "is_error": true,
+        "num_turns": 2,
+        "session_id": "83014e30-45a1-4185-b175-fffb042e72ff",
+        "stop_reason": null,
+        "total_cost_usd": 0,
+        "usage": {
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "input_tokens": 0,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 0,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": null,
+        "structured_output": null,
+        "model_usage": {},
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": [
+          "[ede_diagnostic] result_type=user last_content_type=n/a stop_reason=null"
+        ],
+        "api_error_status": null,
+        "uuid": "d13b45da-c6eb-43fe-b864-8715856bee48",
+        "terminal_reason": "aborted_streaming",
+        "origin": null
+      }
+    },
+    {
+      "interrupted-result": {
+        "terminalReason": "aborted_streaming"
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-030",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u5728\u6267\u884c\u8fdb\u5ea6\u540e\u4e2d\u65ad\u5e76\u8bfb\u53d6\u786e\u8ba4\u53ca\u7ec8\u6001\u3002",
+    "storyId": "SDK-US-007"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-007",
+  "caseId": "SDK-CASE-030",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "progress-barrier",
+      "action": "interrupt"
+    },
+    {
+      "step": "interrupt",
+      "outcome": "accepted"
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "interruptClose": {
+    "ready": true,
+    "sessionId": "83014e30-45a1-4185-b175-fffb042e72ff",
+    "idle": {
+      "subtype": "session_state_changed",
+      "data": {
+        "type": "system",
+        "subtype": "session_state_changed",
+        "state": "idle",
+        "uuid": "092dde4c-0930-4e2e-99a6-032983ce5364",
+        "session_id": "83014e30-45a1-4185-b175-fffb042e72ff"
+      }
+    },
+    "processClosed": true
+  },
+  "branchStatus": "passed"
+}

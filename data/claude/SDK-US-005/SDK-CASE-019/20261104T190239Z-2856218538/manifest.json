@@ -1,0 +1,55 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "37d2b5009bd279d0d5fe497e9bb8ad599b94c399e863a6315cc1f6e223a9097e",
+    "raw.jsonl": "85c3e239eada4504376cc7339c569c84ea261746cc3c5a145cfe05b22f542497",
+    "stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+    "transport.json": "90a25060530f2b712747965540e1946c4f1e93c47da3b9237bf92a54ccf599db"
+  },
+  "native": {
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--no-session-persistence",
+      "--forward-subagent-text",
+      "--settings",
+      "{\"permissions\":{\"ask\":[\"Agent\",\"Read\"]}}",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2070467691/executions/4052d66907c5d57d9480714cadf074dc/workspace",
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "planSHA256": "1322d4d91a6962c45358f538838aa9ccc95c076147563814d962d64af32b5c38",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "90a25060530f2b712747965540e1946c4f1e93c47da3b9237bf92a54ccf599db",
+  "savedFiles": {
+    "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2070467691-executions-4052d66907c5d57d9480714cadf074dc-workspace/dc990188-f9d2-44b0-a160-c74f356d0e5b/subagents/agent-a5bc0d87b0f7d6508.meta.json": "a470d8dfc7788fa21a60b6c7c83aef3d0b1620197e004001f76423a0eee782d6"
+  },
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "e247316cf0e89ef94c0586352a08d92bba2041d5178b6b2613768c88945e6676",
+  "status": "captured"
+}

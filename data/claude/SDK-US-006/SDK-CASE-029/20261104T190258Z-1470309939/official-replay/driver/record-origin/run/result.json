@@ -1,0 +1,586 @@
+{
+  "agentType": "claude",
+  "business": {
+    "message": "",
+    "sdk": {
+      "package": "claude-agent-sdk",
+      "version": "0.2.174"
+    },
+    "status": "passed"
+  },
+  "case": "SDK-CASE-029",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-04T18:57:24.254368Z",
+  "connections": [
+    {
+      "connection": {
+        "id": "main",
+        "command": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/bin/agent-sdk-testify",
+        "args": [
+          "agent",
+          "record",
+          "--session-dir",
+          "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029",
+          "--cmd"
+        ],
+        "material": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/materials/7910f3cd063c55ff6f7c4547dfbd0fc9",
+        "planSHA256": "636bb725e41c040d0e6c2da5266079307988fde534448a606efbc1257e76119f",
+        "manifestSHA256": "ec663f4e3808a2a23818af9a9ee8507a787c3d91821d06496bcbbcbb0e9b97cd",
+        "recordingSHA256": "15ab59d90faf5c13b538e26b0b56ebc5d9473f0004866f48335b65382dff6972",
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/executions/3f33ac05931b313324e6acf9212618a1/record/raw/transport.json"
+      },
+      "connectionId": "main",
+      "executionId": "3f33ac05931b313324e6acf9212618a1",
+      "executionSHA256": "3ad701518b823994cc6d3a08c7660cefec556b63b9a5f1ecd6d2e464d5f52f5c",
+      "finished": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/executions/3f33ac05931b313324e6acf9212618a1/execution.json",
+        "executionId": "3f33ac05931b313324e6acf9212618a1",
+        "executionSHA256": "3ad701518b823994cc6d3a08c7660cefec556b63b9a5f1ecd6d2e464d5f52f5c",
+        "material": {
+          "id": "7910f3cd063c55ff6f7c4547dfbd0fc9",
+          "manifestSHA256": "ec663f4e3808a2a23818af9a9ee8507a787c3d91821d06496bcbbcbb0e9b97cd",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/materials/7910f3cd063c55ff6f7c4547dfbd0fc9",
+          "planSHA256": "636bb725e41c040d0e6c2da5266079307988fde534448a606efbc1257e76119f",
+          "provenance": "official",
+          "recordingSHA256": "15ab59d90faf5c13b538e26b0b56ebc5d9473f0004866f48335b65382dff6972"
+        },
+        "processId": 93928,
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/executions/3f33ac05931b313324e6acf9212618a1/record/raw/transport.json",
+        "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/executions/3f33ac05931b313324e6acf9212618a1/receipts/main.result.json",
+        "schemaVersion": 1,
+        "sessionId": "e1890e31d746ad719d2a86b44fad1766",
+        "status": "passed"
+      },
+      "material": {
+        "officialOrigin": {
+          "runId": "83c35c7721f559449a3f7d6d5c3e75c9",
+          "sessionId": "e1890e31d746ad719d2a86b44fad1766",
+          "caseId": "SDK-CASE-029",
+          "agentType": "claude",
+          "recordSourceSHA256": "067424b2125461f84cc45c191979aa46bb9ae1518e416e6075590af085be28cc",
+          "sourceSHA256": "067424b2125461f84cc45c191979aa46bb9ae1518e416e6075590af085be28cc",
+          "driverSHA256": "171ec36a0d56cff1b053b6ce44a7743771436a93d57f0d01c59e0a0ae04b6f58",
+          "connections": [
+            "main"
+          ]
+        },
+        "files": {
+          "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-842797815-executions-3f33ac05931b313324e6acf9212618a1-workspace/9aca1566-ff92-416d-852b-bc7809c6b002.jsonl": "754095c3d1b3b1c88cc3b152384cbc77edfc50eb9fd1f49b4aae86b2fc58c325",
+          "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-842797815-executions-3f33ac05931b313324e6acf9212618a1-workspace/9aca1566-ff92-416d-852b-bc7809c6b002/subagents/agent-af28cb26de7b74ccd.jsonl": "82ce036cc4ca98b61c69213e5050fcaeea9fc509d62bcde5c1a22e4bc15d9430",
+          "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-842797815-executions-3f33ac05931b313324e6acf9212618a1-workspace/9aca1566-ff92-416d-852b-bc7809c6b002/subagents/agent-af28cb26de7b74ccd.meta.json": "054e1fc3622070e13032c34e3dec5d2466934f88e964a59a0b418c006c20fb50",
+          "manifest.json": "ec663f4e3808a2a23818af9a9ee8507a787c3d91821d06496bcbbcbb0e9b97cd",
+          "official-origin.json": "a81bce5f1da30524c45f078700475958279fbba0dc2db65f78d035c5d31d4a1b",
+          "origin/main.json": "2db022e431caf57701d4754e8c1adc4190b58e859d40109db297afa118c752ec",
+          "plan.json": "636bb725e41c040d0e6c2da5266079307988fde534448a606efbc1257e76119f",
+          "raw/manifest.json": "ce3bdcd61bac55888d61109544b20190080a9ea12d1637061b6a4e96157ae1d6",
+          "raw/raw.jsonl": "15ab59d90faf5c13b538e26b0b56ebc5d9473f0004866f48335b65382dff6972",
+          "raw/stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+          "raw/transport.json": "18ffd829bd4c3390a4d626034a833982164c134945f7b49e8b2511846b7dc399",
+          "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+          "source-plan.json": "067424b2125461f84cc45c191979aa46bb9ae1518e416e6075590af085be28cc"
+        },
+        "id": "7910f3cd063c55ff6f7c4547dfbd0fc9",
+        "kind": "capture",
+        "action": "record",
+        "provenance": "official",
+        "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/materials/7910f3cd063c55ff6f7c4547dfbd0fc9",
+        "planSHA256": "636bb725e41c040d0e6c2da5266079307988fde534448a606efbc1257e76119f",
+        "manifestSHA256": "ec663f4e3808a2a23818af9a9ee8507a787c3d91821d06496bcbbcbb0e9b97cd",
+        "recordingSHA256": "15ab59d90faf5c13b538e26b0b56ebc5d9473f0004866f48335b65382dff6972",
+        "connections": [
+          "main"
+        ],
+        "createdAt": "2026-11-04T18:57:24.105831Z"
+      },
+      "process": {
+        "cleanupComplete": true,
+        "exitCode": 0,
+        "pid": 93928,
+        "reaped": true,
+        "schemaVersion": 1,
+        "started": true,
+        "supervisorPid": 93906
+      },
+      "started": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/executions/3f33ac05931b313324e6acf9212618a1/execution.json",
+        "executionId": "3f33ac05931b313324e6acf9212618a1",
+        "executionSHA256": "4d064eefc35c8c62d48c884e0b0511c745982c7f85ba97c741fd899bcb9a81d2",
+        "processId": 93928,
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/executions/3f33ac05931b313324e6acf9212618a1/record/raw/transport.json",
+        "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/executions/3f33ac05931b313324e6acf9212618a1/receipts/main.result.json",
+        "schemaVersion": 1,
+        "sessionId": "e1890e31d746ad719d2a86b44fad1766",
+        "status": "running"
+      }
+    }
+  ],
+  "credentialScan": "pass",
+  "driver": {
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/official-env-py315/bin/agent-sdk-testify-claude",
+    "sha256": "171ec36a0d56cff1b053b6ce44a7743771436a93d57f0d01c59e0a0ae04b6f58"
+  },
+  "driverFiles": {
+    "materials/case.json": "bb9d435222be12ec9cd460bd506273cbd2cb2ad7a3c5b4c1a7f410591f6637bf",
+    "peer-main.process.json": "bf5112eab04d2c0aebb882bbeb6fa28c0e0e7c45b96caa181e293aaf7d3842ed",
+    "peer-main.results.jsonl": "fd1dc1b047b9f48b603f8ab68db03cc2fe05c2f25707af2efcb060688e785e9f",
+    "report.json": "f8ad7db56aa696804679a6c9c53c6f5a4acfdd440331eacb9694393bd57a1606",
+    "request.json": "efc5078eb046202fd76a08f7ec7c4c4f06ccfa33ca7f108ffe9e70c432086948",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "driverProcess": {
+    "cleanupComplete": true,
+    "exitCode": 0,
+    "reaped": true,
+    "started": true
+  },
+  "id": "83c35c7721f559449a3f7d6d5c3e75c9",
+  "mode": "record",
+  "processes": {
+    "driver": {
+      "pid": 93900,
+      "state": "started"
+    }
+  },
+  "recordPreparation": {
+    "executionId": "3f33ac05931b313324e6acf9212618a1",
+    "isolationSHA256": "183ca6a0a15177a3746ad65e2e68eb44d956db14db8367b333b112bdbd2c58fa",
+    "preparedPlanSHA256": "d620b0328bbc1d1c7fc75ee078cbfcfe133d269690e09d0b4d7ba2ea926c8475"
+  },
+  "report": {
+    "branchStatus": "passed",
+    "captureStatus": "complete",
+    "case": {
+      "id": "SDK-CASE-029",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-029",
+    "cliVersion": null,
+    "events": 43,
+    "facts": [
+      "driver uses official Python SDK; raw bytes captured at native process boundary"
+    ],
+    "flowTrace": [
+      {
+        "input": 0,
+        "step": "submit"
+      },
+      {
+        "input": 0,
+        "step": "result"
+      },
+      {
+        "step": "close-drain"
+      }
+    ],
+    "gaps": [],
+    "inputs": 1,
+    "officialSDK": {
+      "package": "claude-agent-sdk",
+      "version": "0.2.174"
+    },
+    "provider": "claude",
+    "receipts": [
+      {
+        "input-submitted": {
+          "completionObserved": false,
+          "written": true
+        }
+      },
+      {
+        "result": {
+          "api_error_status": null,
+          "deferred_tool_use": null,
+          "duration_api_ms": 2919,
+          "duration_ms": 3433,
+          "errors": null,
+          "is_error": false,
+          "model_usage": {
+            "theta/DeepSeek-V4.1-Flash-1017": {
+              "cacheCreationInputTokens": 0,
+              "cacheReadInputTokens": 45056,
+              "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+              "contextWindow": 200000,
+              "costBasis": "unknown",
+              "costUSD": 0.093778,
+              "inputTokens": 13325,
+              "maxOutputTokens": 32000,
+              "outputTokens": 185,
+              "provider": "firstParty",
+              "thinkingTokens": 0,
+              "webSearchRequests": 0
+            }
+          },
+          "num_turns": 2,
+          "origin": null,
+          "permission_denials": [],
+          "result": "The agent replied:\n\n```\nSYNTHETIC_SAVED_CHILD\n```\n\nIt made no tool calls. Task complete.",
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "stop_reason": "end_turn",
+          "structured_output": null,
+          "subtype": "success",
+          "terminal_reason": "completed",
+          "total_cost_usd": 0.093778,
+          "usage": {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 44544,
+            "inference_geo": "",
+            "input_tokens": 480,
+            "iterations": [],
+            "output_tokens": 145,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_fetch_requests": 0,
+              "web_search_requests": 0
+            },
+            "service_tier": "standard",
+            "speed": "standard"
+          },
+          "uuid": "305ddb23-3946-479b-b9ad-ef5ab4ce893e"
+        }
+      },
+      {
+        "list_sessions": [
+          {
+            "created_at": 1793818640081,
+            "custom_title": null,
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-842797815/executions/3f33ac05931b313324e6acf9212618a1/workspace",
+            "file_size": 10037,
+            "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network…",
+            "git_branch": "HEAD",
+            "last_modified": 1793818643521,
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network…",
+            "tag": null
+          }
+        ]
+      },
+      {
+        "get_session_info": {
+          "created_at": 1793818640081,
+          "custom_title": null,
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-842797815/executions/3f33ac05931b313324e6acf9212618a1/workspace",
+          "file_size": 10037,
+          "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network…",
+          "git_branch": "HEAD",
+          "last_modified": 1793818643521,
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network…",
+          "tag": null
+        }
+      },
+      {
+        "get_session_messages": [
+          {
+            "message": {
+              "content": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network.",
+              "role": "user"
+            },
+            "parent_agent_id": null,
+            "parent_tool_use_id": null,
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "type": "user",
+            "uuid": "2a7de1ac-4e47-4ff3-b8a2-69c353ecb9fa"
+          },
+          {
+            "message": {
+              "content": [
+                {
+                  "text": "",
+                  "type": "text"
+                }
+              ],
+              "id": "21d562f817938186402734666ebdfd",
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "role": "assistant",
+              "type": "message",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            },
+            "parent_agent_id": null,
+            "parent_tool_use_id": null,
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "type": "assistant",
+            "uuid": "327d25b7-6cd4-4f7b-aa45-50f407b9e4f4"
+          },
+          {
+            "message": {
+              "content": [
+                {
+                  "id": "call_0bd74db55ad04001abcf6aa2",
+                  "input": {
+                    "description": "Reply with synthetic token",
+                    "prompt": "Reply with exactly SYNTHETIC_SAVED_CHILD and nothing else. Do not make any tool calls.",
+                    "run_in_background": false,
+                    "subagent_type": "general-purpose"
+                  },
+                  "name": "Agent",
+                  "type": "tool_use"
+                }
+              ],
+              "id": "21d562f817938186402734666ebdfd",
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "role": "assistant",
+              "stop_details": null,
+              "stop_reason": "tool_use",
+              "type": "message",
+              "usage": {
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 22272,
+                "inference_geo": "",
+                "input_tokens": 126,
+                "iterations": [],
+                "output_tokens": 117,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_fetch_requests": 0,
+                  "web_search_requests": 0
+                },
+                "service_tier": "standard",
+                "speed": "standard"
+              }
+            },
+            "parent_agent_id": null,
+            "parent_tool_use_id": null,
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "type": "assistant",
+            "uuid": "17e8b94f-f79f-4ab9-8937-03b6544c04eb"
+          },
+          {
+            "message": {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "SYNTHETIC_SAVED_CHILD",
+                      "type": "text"
+                    },
+                    {
+                      "text": "agentId: af28cb26de7b74ccd (use SendMessage with to: 'af28cb26de7b74ccd', summary: '\u003c5-10 word recap\u003e' to continue this agent)\n\u003cusage\u003esubagent_tokens: 13397\ntool_uses: 0\nduration_ms: 1005\u003c/usage\u003e",
+                      "type": "text"
+                    }
+                  ],
+                  "tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+                  "type": "tool_result"
+                }
+              ],
+              "role": "user"
+            },
+            "parent_agent_id": null,
+            "parent_tool_use_id": null,
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "type": "user",
+            "uuid": "91ee09af-aa37-4576-8ebc-cb276232c84c"
+          },
+          {
+            "message": {
+              "content": [
+                {
+                  "text": "The agent replied:\n\n```\nSYNTHETIC_SAVED_CHILD\n```\n\nIt made no tool calls. Task complete.",
+                  "type": "text"
+                }
+              ],
+              "id": "21d562f817938186427604716ebdfd",
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "role": "assistant",
+              "stop_details": null,
+              "stop_reason": "end_turn",
+              "type": "message",
+              "usage": {
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 22272,
+                "inference_geo": "",
+                "input_tokens": 354,
+                "iterations": [],
+                "output_tokens": 28,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_fetch_requests": 0,
+                  "web_search_requests": 0
+                },
+                "service_tier": "standard",
+                "speed": "standard"
+              }
+            },
+            "parent_agent_id": null,
+            "parent_tool_use_id": null,
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "type": "assistant",
+            "uuid": "d5041368-a08d-4c8c-b31d-dc7c35bee195"
+          }
+        ]
+      },
+      {
+        "list_subagents": {
+          "agentIds": [
+            "af28cb26de7b74ccd"
+          ],
+          "sessionId": "9aca1566-ff92-416d-852b-bc7809c6b002"
+        }
+      },
+      {
+        "get_subagent_messages": {
+          "agentId": "af28cb26de7b74ccd",
+          "messages": [
+            {
+              "message": {
+                "content": "Reply with exactly SYNTHETIC_SAVED_CHILD and nothing else. Do not make any tool calls.",
+                "role": "user"
+              },
+              "parent_agent_id": null,
+              "parent_tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+              "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+              "type": "user",
+              "uuid": "b8ca06cb-22b3-43cd-b3ec-369f53d4043b"
+            },
+            {
+              "message": {
+                "content": [
+                  {
+                    "signature": "sig-theta",
+                    "thinking": "The user wants me to reply with exactly \"SYNTHETIC_SAVED_CHILD\" and nothing else, no tool calls.",
+                    "type": "thinking"
+                  }
+                ],
+                "id": "21d562f817938186416684691ebdfd",
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "role": "assistant",
+                "stop_details": null,
+                "stop_reason": "end_turn",
+                "type": "message",
+                "usage": {
+                  "cache_creation": {
+                    "ephemeral_1h_input_tokens": 0,
+                    "ephemeral_5m_input_tokens": 0
+                  },
+                  "cache_creation_input_tokens": 0,
+                  "cache_read_input_tokens": 512,
+                  "inference_geo": "",
+                  "input_tokens": 12845,
+                  "iterations": [],
+                  "output_tokens": 40,
+                  "output_tokens_details": {
+                    "thinking_tokens": 0
+                  },
+                  "server_tool_use": {
+                    "web_fetch_requests": 0,
+                    "web_search_requests": 0
+                  },
+                  "service_tier": "standard",
+                  "speed": "standard"
+                }
+              },
+              "parent_agent_id": null,
+              "parent_tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+              "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+              "type": "assistant",
+              "uuid": "4ff9fd94-2aaa-4b02-8bd3-679733f42c88"
+            },
+            {
+              "message": {
+                "content": [
+                  {
+                    "text": "SYNTHETIC_SAVED_CHILD",
+                    "type": "text"
+                  }
+                ],
+                "id": "21d562f817938186416684691ebdfd",
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "role": "assistant",
+                "stop_details": null,
+                "stop_reason": "end_turn",
+                "type": "message",
+                "usage": {
+                  "cache_creation": {
+                    "ephemeral_1h_input_tokens": 0,
+                    "ephemeral_5m_input_tokens": 0
+                  },
+                  "cache_creation_input_tokens": 0,
+                  "cache_read_input_tokens": 512,
+                  "inference_geo": "",
+                  "input_tokens": 12845,
+                  "iterations": [],
+                  "output_tokens": 40,
+                  "output_tokens_details": {
+                    "thinking_tokens": 0
+                  },
+                  "server_tool_use": {
+                    "web_fetch_requests": 0,
+                    "web_search_requests": 0
+                  },
+                  "service_tier": "standard",
+                  "speed": "standard"
+                }
+              },
+              "parent_agent_id": null,
+              "parent_tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+              "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+              "type": "assistant",
+              "uuid": "2083f337-c9da-4ae8-936c-e126c4855e11"
+            }
+          ],
+          "sessionId": "9aca1566-ff92-416d-852b-bc7809c6b002"
+        }
+      },
+      {
+        "child-model-inheritance": {
+          "childObservedModels": {
+            "call_0bd74db55ad04001abcf6aa2": "theta/DeepSeek-V4.1-Flash-1017"
+          },
+          "requested": "theta/DeepSeek-V4.1-Flash-1017",
+          "rootId": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "rootObservedModel": "theta/DeepSeek-V4.1-Flash-1017",
+          "scope": "model only; no reasoning inheritance claim"
+        }
+      }
+    ],
+    "requests": 0,
+    "results": 1,
+    "scenarioSHA256": null,
+    "status": "passed",
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "schemaVersion": 1,
+  "sessionId": "e1890e31d746ad719d2a86b44fad1766",
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-029",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-029/source/plan.json",
+    "sha256": "067424b2125461f84cc45c191979aa46bb9ae1518e416e6075590af085be28cc",
+    "provenance": "official",
+    "driverProfile": "history"
+  },
+  "startedAt": "2026-11-04T18:57:17.851854Z",
+  "status": "passed"
+}

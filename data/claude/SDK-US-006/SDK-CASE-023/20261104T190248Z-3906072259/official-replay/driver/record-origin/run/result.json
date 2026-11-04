@@ -1,0 +1,452 @@
+{
+  "agentType": "claude",
+  "business": {
+    "message": "",
+    "sdk": {
+      "package": "claude-agent-sdk",
+      "version": "0.2.174"
+    },
+    "status": "passed"
+  },
+  "case": "SDK-CASE-023",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-04T18:57:19.648675Z",
+  "connections": [
+    {
+      "connection": {
+        "id": "main",
+        "command": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/bin/agent-sdk-testify",
+        "args": [
+          "agent",
+          "record",
+          "--session-dir",
+          "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023",
+          "--cmd"
+        ],
+        "material": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/materials/38d34c00f3708245eba25c41134fa7ca",
+        "planSHA256": "b0ebed774de32619aba9a0a09075b47dfc9e54b4f9915f114b87d2119b5ca6bb",
+        "manifestSHA256": "01c98074630b79748884545dcbaeaa411729c779992546feaa7a3720ae322e87",
+        "recordingSHA256": "7e832e3052b8304fd7c35eef2f941715fe3de7b0d21ea35264a00df0601ae8ad",
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/executions/1f2901c678796540ab1ac3a3b08d6b4a/record/raw/transport.json"
+      },
+      "connectionId": "main",
+      "executionId": "1f2901c678796540ab1ac3a3b08d6b4a",
+      "executionSHA256": "d717df021bcfa8141a4d4799569d4c22f3f951a8d80d51e530680a8feb684d11",
+      "finished": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/executions/1f2901c678796540ab1ac3a3b08d6b4a/execution.json",
+        "executionId": "1f2901c678796540ab1ac3a3b08d6b4a",
+        "executionSHA256": "d717df021bcfa8141a4d4799569d4c22f3f951a8d80d51e530680a8feb684d11",
+        "material": {
+          "id": "38d34c00f3708245eba25c41134fa7ca",
+          "manifestSHA256": "01c98074630b79748884545dcbaeaa411729c779992546feaa7a3720ae322e87",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/materials/38d34c00f3708245eba25c41134fa7ca",
+          "planSHA256": "b0ebed774de32619aba9a0a09075b47dfc9e54b4f9915f114b87d2119b5ca6bb",
+          "provenance": "official",
+          "recordingSHA256": "7e832e3052b8304fd7c35eef2f941715fe3de7b0d21ea35264a00df0601ae8ad"
+        },
+        "processId": 93417,
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/executions/1f2901c678796540ab1ac3a3b08d6b4a/record/raw/transport.json",
+        "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/executions/1f2901c678796540ab1ac3a3b08d6b4a/receipts/main.result.json",
+        "schemaVersion": 1,
+        "sessionId": "848244e2efc0d927b8708bc151709037",
+        "status": "passed"
+      },
+      "material": {
+        "officialOrigin": {
+          "runId": "066f03cf4dce14b8514c876c34e1c5f8",
+          "sessionId": "848244e2efc0d927b8708bc151709037",
+          "caseId": "SDK-CASE-023",
+          "agentType": "claude",
+          "recordSourceSHA256": "b90201a7452b251a8f05d7afa1272ed6684d322f7fb0477a26e22e8466799922",
+          "sourceSHA256": "b90201a7452b251a8f05d7afa1272ed6684d322f7fb0477a26e22e8466799922",
+          "driverSHA256": "171ec36a0d56cff1b053b6ce44a7743771436a93d57f0d01c59e0a0ae04b6f58",
+          "connections": [
+            "main"
+          ]
+        },
+        "files": {
+          "manifest.json": "01c98074630b79748884545dcbaeaa411729c779992546feaa7a3720ae322e87",
+          "official-origin.json": "cdd8a79b1d1fd98bc8f282bb82180ec4225f0bbb3d3742210bcba39739c74588",
+          "origin/main.json": "22765971c5e7bdcc30c033060bb4128a20c3f1ffd1552fc635b1082e17629ec2",
+          "plan.json": "b0ebed774de32619aba9a0a09075b47dfc9e54b4f9915f114b87d2119b5ca6bb",
+          "raw/manifest.json": "6e87860726e365d9cb7837c1b76a967d964c73f6613a1eae6577ca52a71fbaa3",
+          "raw/raw.jsonl": "7e832e3052b8304fd7c35eef2f941715fe3de7b0d21ea35264a00df0601ae8ad",
+          "raw/stderr.raw": "a9ca9760ba0033bfcd3f8df188c1b34f2342b77accca537b10e19febd7759812",
+          "raw/transport.json": "8b17e8f70c1706ff3226761e3455930b9b2c51129aa5b357525d5b491a04eb9d",
+          "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+          "source-plan.json": "b90201a7452b251a8f05d7afa1272ed6684d322f7fb0477a26e22e8466799922"
+        },
+        "id": "38d34c00f3708245eba25c41134fa7ca",
+        "kind": "capture",
+        "action": "record",
+        "provenance": "official",
+        "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/materials/38d34c00f3708245eba25c41134fa7ca",
+        "planSHA256": "b0ebed774de32619aba9a0a09075b47dfc9e54b4f9915f114b87d2119b5ca6bb",
+        "manifestSHA256": "01c98074630b79748884545dcbaeaa411729c779992546feaa7a3720ae322e87",
+        "recordingSHA256": "7e832e3052b8304fd7c35eef2f941715fe3de7b0d21ea35264a00df0601ae8ad",
+        "connections": [
+          "main"
+        ],
+        "createdAt": "2026-11-04T18:57:19.496584Z"
+      },
+      "process": {
+        "cleanupComplete": true,
+        "exitCode": 0,
+        "pid": 93417,
+        "reaped": true,
+        "schemaVersion": 1,
+        "started": true,
+        "supervisorPid": 93348
+      },
+      "started": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/executions/1f2901c678796540ab1ac3a3b08d6b4a/execution.json",
+        "executionId": "1f2901c678796540ab1ac3a3b08d6b4a",
+        "executionSHA256": "671d1034cb60f2e63bc7ee89b20184b2995e0d50e10f8164b4966b82a046f90a",
+        "processId": 93417,
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/executions/1f2901c678796540ab1ac3a3b08d6b4a/record/raw/transport.json",
+        "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/executions/1f2901c678796540ab1ac3a3b08d6b4a/receipts/main.result.json",
+        "schemaVersion": 1,
+        "sessionId": "848244e2efc0d927b8708bc151709037",
+        "status": "running"
+      }
+    }
+  ],
+  "credentialScan": "pass",
+  "driver": {
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/official-env-py315/bin/agent-sdk-testify-claude",
+    "sha256": "171ec36a0d56cff1b053b6ce44a7743771436a93d57f0d01c59e0a0ae04b6f58"
+  },
+  "driverFiles": {
+    "materials/case.json": "60c784fa0aa30fd78c4ce01bcee5f7229b7005552c7fff1cf7312174484a101b",
+    "peer-main.process.json": "190fa98cbff2cd920e5dc071ef28074fcba04c37f2b828cfa1e924f4f2078654",
+    "peer-main.results.jsonl": "b3c7257c6125f415a68e4b1e3e0e5e11fceaf097dad6bb3ec3823c615e441d7a",
+    "report.json": "bf41cb5503609ff91ed8af45f782b8fce4d06348a80b810e03a47145282ec353",
+    "request.json": "522b2004b19a69a932d3e2df8d2141b3149a8fc7e91787383953c2c3ca854982",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "driverProcess": {
+    "cleanupComplete": true,
+    "exitCode": 0,
+    "reaped": true,
+    "started": true
+  },
+  "id": "066f03cf4dce14b8514c876c34e1c5f8",
+  "mode": "record",
+  "processes": {
+    "driver": {
+      "pid": 93344,
+      "state": "started"
+    }
+  },
+  "recordPreparation": {
+    "executionId": "1f2901c678796540ab1ac3a3b08d6b4a",
+    "isolationSHA256": "e3b9f691540304a71310c1947b4517f64fd630be58de9444ed8ec9e2d541bdbe",
+    "preparedPlanSHA256": "81011a6af2c85f879fa877a41e80f59868cffae3a29a0240749eaf9e314ae0e4"
+  },
+  "report": {
+    "branchStatus": "passed",
+    "captureStatus": "complete",
+    "case": {
+      "id": "SDK-CASE-023",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-023",
+    "cliVersion": null,
+    "configurationEvidence": {
+      "effectiveScope": "assistant-message model after change; theta prefix mapping only",
+      "initialModel": "theta/GLM-5.3",
+      "observed": [
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/GLM-5.3",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "scope": "assistant-message",
+          "source": "assistant"
+        }
+      ],
+      "observedModels": [
+        "theta/DeepSeek-V4.1-Flash-1017"
+      ],
+      "requests": [
+        {
+          "acknowledged": true,
+          "completedInputs": 1,
+          "requested": {
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "subtype": "set_model"
+          },
+          "timing": "between-inputs"
+        }
+      ],
+      "targetModel": "theta/DeepSeek-V4.1-Flash-1017"
+    },
+    "events": 385,
+    "facts": [
+      "driver uses official Python SDK; raw bytes captured at native process boundary"
+    ],
+    "flowTrace": [
+      {
+        "input": 0,
+        "step": "submit"
+      },
+      {
+        "input": 0,
+        "step": "result"
+      },
+      {
+        "completedInputs": 1,
+        "requested": {
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "subtype": "set_model"
+        },
+        "step": "configuration-acknowledged",
+        "timing": "between-inputs"
+      },
+      {
+        "input": 1,
+        "step": "submit"
+      },
+      {
+        "input": 1,
+        "step": "result"
+      },
+      {
+        "step": "close-drain"
+      }
+    ],
+    "gaps": [],
+    "inputs": 2,
+    "officialSDK": {
+      "package": "claude-agent-sdk",
+      "version": "0.2.174"
+    },
+    "provider": "claude",
+    "receipts": [
+      {
+        "input-submitted": {
+          "completionObserved": false,
+          "written": true
+        }
+      },
+      {
+        "result": {
+          "api_error_status": null,
+          "deferred_tool_use": null,
+          "duration_api_ms": 14246,
+          "duration_ms": 16112,
+          "errors": null,
+          "is_error": false,
+          "model_usage": {
+            "theta/GLM-5.3": {
+              "cacheCreationInputTokens": 0,
+              "cacheReadInputTokens": 133824,
+              "canonicalModel": "theta/glm-5.3",
+              "contextWindow": 200000,
+              "costBasis": "unknown",
+              "costUSD": 0.089282,
+              "inputTokens": 1444,
+              "maxOutputTokens": 32000,
+              "outputTokens": 606,
+              "provider": "firstParty",
+              "thinkingTokens": 0,
+              "webSearchRequests": 0
+            }
+          },
+          "num_turns": 6,
+          "origin": null,
+          "permission_denials": [],
+          "result": "The working directory contains just `numbers.txt`, holding two numbers: **7** and **11**.\n\n**Sum: 7 + 11 = 18**\n\nIf you had a different task in mind for these numbers (product, sorting, something else), let me know.",
+          "session_id": "e7ef998c-4d8c-43f4-a257-cc8b05c3b781",
+          "stop_reason": "end_turn",
+          "structured_output": null,
+          "subtype": "success",
+          "terminal_reason": "completed",
+          "total_cost_usd": 0.089282,
+          "usage": {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 133824,
+            "inference_geo": "",
+            "input_tokens": 1444,
+            "iterations": [],
+            "output_tokens": 606,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_fetch_requests": 0,
+              "web_search_requests": 0
+            },
+            "service_tier": "standard",
+            "speed": "standard"
+          },
+          "uuid": "550aabcd-3b31-4678-9db3-ff3fd7a37427"
+        }
+      },
+      {
+        "variant-configuration": {
+          "acknowledged": true,
+          "observed": null,
+          "requested": {
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "subtype": "set_model"
+          },
+          "timing": "between-inputs"
+        }
+      },
+      {
+        "input-submitted": {
+          "completionObserved": false,
+          "written": true
+        }
+      },
+      {
+        "result": {
+          "api_error_status": null,
+          "deferred_tool_use": null,
+          "duration_api_ms": 14701,
+          "duration_ms": 627,
+          "errors": null,
+          "is_error": false,
+          "model_usage": {
+            "theta/DeepSeek-V4.1-Flash-1017": {
+              "cacheCreationInputTokens": 0,
+              "cacheReadInputTokens": 21760,
+              "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+              "contextWindow": 200000,
+              "costBasis": "unknown",
+              "costUSD": 0.01883,
+              "inputTokens": 1570,
+              "maxOutputTokens": 32000,
+              "outputTokens": 4,
+              "provider": "firstParty",
+              "thinkingTokens": 0,
+              "webSearchRequests": 0
+            },
+            "theta/GLM-5.3": {
+              "cacheCreationInputTokens": 0,
+              "cacheReadInputTokens": 133824,
+              "canonicalModel": "theta/glm-5.3",
+              "contextWindow": 200000,
+              "costBasis": "unknown",
+              "costUSD": 0.089282,
+              "inputTokens": 1444,
+              "maxOutputTokens": 32000,
+              "outputTokens": 606,
+              "provider": "firstParty",
+              "thinkingTokens": 0,
+              "webSearchRequests": 0
+            }
+          },
+          "num_turns": 1,
+          "origin": null,
+          "permission_denials": [],
+          "result": "Done.",
+          "session_id": "e7ef998c-4d8c-43f4-a257-cc8b05c3b781",
+          "stop_reason": "end_turn",
+          "structured_output": null,
+          "subtype": "success",
+          "terminal_reason": "completed",
+          "total_cost_usd": 0.108112,
+          "usage": {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 21760,
+            "inference_geo": "",
+            "input_tokens": 1570,
+            "iterations": [],
+            "output_tokens": 4,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_fetch_requests": 0,
+              "web_search_requests": 0
+            },
+            "service_tier": "standard",
+            "speed": "standard"
+          },
+          "uuid": "b96bdff5-a086-4fde-a42f-b490415c3640"
+        }
+      }
+    ],
+    "requests": 1,
+    "results": 2,
+    "scenarioSHA256": null,
+    "status": "passed",
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "schemaVersion": 1,
+  "sessionId": "848244e2efc0d927b8708bc151709037",
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-023",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/source/plan.json",
+    "sha256": "b90201a7452b251a8f05d7afa1272ed6684d322f7fb0477a26e22e8466799922",
+    "provenance": "official",
+    "driverProfile": "structured-input"
+  },
+  "startedAt": "2026-11-04T18:56:57.564645Z",
+  "status": "passed"
+}

@@ -1,0 +1,14 @@
+{
+  "connectionId": "main",
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-702197346/executions/db0525bef5d83d3c9a449b84a0aa65df/workspace",
+  "executionId": "db0525bef5d83d3c9a449b84a0aa65df",
+  "exitCode": 0,
+  "schemaVersion": 1,
+  "sessionId": "995638258e3342aca11c2094e9abf69e",
+  "status": "passed",
+  "tool": {
+    "command": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/bin/agent-sdk-testify"
+  },
+  "toolSHA256": "05947b4c5eb9dc13e7c8033c7dd4a09bf09ea9da4dce5e02912f591f75b25ad8",
+  "toolVersion": "0.1.0-dev"
+}

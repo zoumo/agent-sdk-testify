@@ -1,0 +1,42 @@
+{
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise.",
+    "--no-session-persistence",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/GLM-5.3"
+  ],
+  "configurationSHA256": {
+    "settings.json": "87681222829e8004fb97c94c3567d1b6bbbebfb5d43eb91765c0c6be5a0a5991"
+  },
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/executions/1f2901c678796540ab1ac3a3b08d6b4a/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/executions/1f2901c678796540ab1ac3a3b08d6b4a/config",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/executions/1f2901c678796540ab1ac3a3b08d6b4a/home",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/executions/1f2901c678796540ab1ac3a3b08d6b4a/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/executions/1f2901c678796540ab1ac3a3b08d6b4a/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/executions/1f2901c678796540ab1ac3a3b08d6b4a/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/executions/1f2901c678796540ab1ac3a3b08d6b4a/home/.local/share"
+  },
+  "executionId": "1f2901c678796540ab1ac3a3b08d6b4a",
+  "method": "native-preparation",
+  "nativeSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "81011a6af2c85f879fa877a41e80f59868cffae3a29a0240749eaf9e314ae0e4",
+  "schemaVersion": 1,
+  "sessionId": "848244e2efc0d927b8708bc151709037",
+  "toolSHA256": "05947b4c5eb9dc13e7c8033c7dd4a09bf09ea9da4dce5e02912f591f75b25ad8"
+}

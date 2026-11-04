@@ -1,0 +1,419 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 43,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 3433,
+        "duration_api_ms": 2919,
+        "is_error": false,
+        "num_turns": 2,
+        "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.093778,
+        "usage": {
+          "input_tokens": 480,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 44544,
+          "output_tokens": 145,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "The agent replied:\n\n```\nSYNTHETIC_SAVED_CHILD\n```\n\nIt made no tool calls. Task complete.",
+        "structured_output": null,
+        "model_usage": {
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 13325,
+            "outputTokens": 185,
+            "cacheReadInputTokens": 45056,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.093778,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "305ddb23-3946-479b-b9ad-ef5ab4ce893e",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "list_sessions": [
+        {
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+          "last_modified": 1793818978074,
+          "file_size": 10037,
+          "custom_title": null,
+          "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+          "git_branch": "HEAD",
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-842797815/executions/4da26bcd725cbcbc4e2ef0426859dde6/workspace",
+          "tag": null,
+          "created_at": 1793818640081
+        }
+      ]
+    },
+    {
+      "get_session_info": {
+        "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+        "summary": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+        "last_modified": 1793818978074,
+        "file_size": 10037,
+        "custom_title": null,
+        "first_prompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network\u2026",
+        "git_branch": "HEAD",
+        "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-842797815/executions/4da26bcd725cbcbc4e2ef0426859dde6/workspace",
+        "tag": null,
+        "created_at": 1793818640081
+      }
+    },
+    {
+      "get_session_messages": [
+        {
+          "type": "user",
+          "uuid": "2a7de1ac-4e47-4ff3-b8a2-69c353ecb9fa",
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "message": {
+            "role": "user",
+            "content": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "327d25b7-6cd4-4f7b-aa45-50f407b9e4f4",
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "message": {
+            "id": "21d562f817938186402734666ebdfd",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": ""
+              }
+            ],
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "17e8b94f-f79f-4ab9-8937-03b6544c04eb",
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "message": {
+            "id": "21d562f817938186402734666ebdfd",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "input": {
+                  "description": "Reply with synthetic token",
+                  "prompt": "Reply with exactly SYNTHETIC_SAVED_CHILD and nothing else. Do not make any tool calls.",
+                  "subagent_type": "general-purpose",
+                  "run_in_background": false
+                },
+                "type": "tool_use",
+                "id": "call_0bd74db55ad04001abcf6aa2",
+                "name": "Agent"
+              }
+            ],
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "usage": {
+              "input_tokens": 126,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22272,
+              "output_tokens": 117,
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "stop_reason": "tool_use",
+            "stop_details": null
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "user",
+          "uuid": "91ee09af-aa37-4576-8ebc-cb276232c84c",
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "message": {
+            "role": "user",
+            "content": [
+              {
+                "tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+                "type": "tool_result",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "SYNTHETIC_SAVED_CHILD"
+                  },
+                  {
+                    "type": "text",
+                    "text": "agentId: af28cb26de7b74ccd (use SendMessage with to: 'af28cb26de7b74ccd', summary: '<5-10 word recap>' to continue this agent)\n<usage>subagent_tokens: 13397\ntool_uses: 0\nduration_ms: 1005</usage>"
+                  }
+                ]
+              }
+            ]
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "d5041368-a08d-4c8c-b31d-dc7c35bee195",
+          "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+          "message": {
+            "id": "21d562f817938186427604716ebdfd",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "The agent replied:\n\n```\nSYNTHETIC_SAVED_CHILD\n```\n\nIt made no tool calls. Task complete."
+              }
+            ],
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "usage": {
+              "input_tokens": 354,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22272,
+              "output_tokens": 28,
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "stop_reason": "end_turn",
+            "stop_details": null
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        }
+      ]
+    },
+    {
+      "list_subagents": {
+        "sessionId": "9aca1566-ff92-416d-852b-bc7809c6b002",
+        "agentIds": [
+          "af28cb26de7b74ccd"
+        ]
+      }
+    },
+    {
+      "get_subagent_messages": {
+        "sessionId": "9aca1566-ff92-416d-852b-bc7809c6b002",
+        "agentId": "af28cb26de7b74ccd",
+        "messages": [
+          {
+            "type": "user",
+            "uuid": "b8ca06cb-22b3-43cd-b3ec-369f53d4043b",
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "message": {
+              "role": "user",
+              "content": "Reply with exactly SYNTHETIC_SAVED_CHILD and nothing else. Do not make any tool calls."
+            },
+            "parent_tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "4ff9fd94-2aaa-4b02-8bd3-679733f42c88",
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "message": {
+              "id": "21d562f817938186416684691ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "signature": "sig-theta",
+                  "thinking": "The user wants me to reply with exactly \"SYNTHETIC_SAVED_CHILD\" and nothing else, no tool calls.",
+                  "type": "thinking"
+                }
+              ],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 12845,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 512,
+                "output_tokens": 40,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "2083f337-c9da-4ae8-936c-e126c4855e11",
+            "session_id": "9aca1566-ff92-416d-852b-bc7809c6b002",
+            "message": {
+              "id": "21d562f817938186416684691ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_SAVED_CHILD"
+                }
+              ],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 12845,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 512,
+                "output_tokens": 40,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": "call_0bd74db55ad04001abcf6aa2",
+            "parent_agent_id": null
+          }
+        ]
+      }
+    },
+    {
+      "child-model-inheritance": {
+        "requested": "theta/DeepSeek-V4.1-Flash-1017",
+        "rootId": "9aca1566-ff92-416d-852b-bc7809c6b002",
+        "rootObservedModel": "theta/DeepSeek-V4.1-Flash-1017",
+        "childObservedModels": {
+          "call_0bd74db55ad04001abcf6aa2": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "scope": "model only; no reasoning inheritance claim"
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-029",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u4ec5\u89c2\u5bdf\u6839\u4f1a\u8bdd\u6a21\u578b\u914d\u7f6e\u4e0e\u5b50 Agent \u539f\u751f\u6a21\u578b\u4e8b\u5b9e\u4e4b\u95f4\u7684\u7ee7\u627f\u3001\u9ed8\u8ba4\u6216\u8986\u76d6\u5173\u7cfb\uff1b\u4e0d\u63a8\u65ad\u601d\u8003\u914d\u7f6e\u7ee7\u627f\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-029",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

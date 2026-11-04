@@ -1,0 +1,529 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-008",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 25,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 941,
+        "duration_api_ms": 766,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.011831,
+        "usage": {
+          "input_tokens": 89,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 22272,
+          "output_tokens": 10,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "SYNTHETIC_SAVED",
+        "structured_output": null,
+        "model_usage": {
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 89,
+            "outputTokens": 10,
+            "cacheReadInputTokens": 22272,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.011831,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "25fa2b63-4c96-4619-b1ca-8a6da474d217",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 1337,
+        "duration_api_ms": 1933,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.023927,
+        "usage": {
+          "input_tokens": 132,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 22272,
+          "output_tokens": 12,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard"
+        },
+        "result": "SYNTHETIC_SECOND_SAVED",
+        "structured_output": null,
+        "model_usage": {
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 221,
+            "outputTokens": 22,
+            "cacheReadInputTokens": 44544,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.023927,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "2f23d763-eca5-44a9-829e-07cdd071d6b6",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "list_sessions": [
+        {
+          "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+          "summary": "Reply with the word SYNTHETIC_SECOND_SAVED.",
+          "last_modified": 1793818653191,
+          "file_size": 8216,
+          "custom_title": null,
+          "first_prompt": "Reply with the word SYNTHETIC_SAVED.",
+          "git_branch": "HEAD",
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/c33c575fc79cc875309a8fd98052fb1b/workspace",
+          "tag": null,
+          "created_at": 1793818650892
+        }
+      ]
+    },
+    {
+      "get_session_info": {
+        "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+        "summary": "Reply with the word SYNTHETIC_SECOND_SAVED.",
+        "last_modified": 1793818653191,
+        "file_size": 8216,
+        "custom_title": null,
+        "first_prompt": "Reply with the word SYNTHETIC_SAVED.",
+        "git_branch": "HEAD",
+        "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-685652893/executions/c33c575fc79cc875309a8fd98052fb1b/workspace",
+        "tag": null,
+        "created_at": 1793818650892
+      }
+    },
+    {
+      "get_session_messages": [
+        {
+          "type": "user",
+          "uuid": "73b25c68-b56d-49b9-8b74-426449b0611b",
+          "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+          "message": {
+            "role": "user",
+            "content": "Reply with the word SYNTHETIC_SAVED."
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "68a0574d-45cb-4172-9e44-3f6ccc9b102b",
+          "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+          "message": {
+            "id": "21d562f817938186510944931ebdfd",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC_SAVED"
+              }
+            ],
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "usage": {
+              "input_tokens": 0,
+              "output_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "user",
+          "uuid": "75059c4a-da0f-4abe-8f2f-16ea29b57a51",
+          "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+          "message": {
+            "role": "user",
+            "content": "Reply with the word SYNTHETIC_SECOND_SAVED."
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        },
+        {
+          "type": "assistant",
+          "uuid": "e0301bb7-47f2-4081-b0c4-70018927d81f",
+          "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+          "message": {
+            "id": "21d562f817938186520184952ebdfd",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC_SECOND_SAVED"
+              }
+            ],
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "usage": {
+              "input_tokens": 132,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 22272,
+              "output_tokens": 12,
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "stop_reason": "end_turn",
+            "stop_details": null
+          },
+          "parent_tool_use_id": null,
+          "parent_agent_id": null
+        }
+      ]
+    },
+    {
+      "history-slice": {
+        "sessionId": "6e6fe023-6602-4540-9583-530c17185afa",
+        "limit": 1,
+        "offset": 0,
+        "messages": [
+          {
+            "type": "user",
+            "uuid": "73b25c68-b56d-49b9-8b74-426449b0611b",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "role": "user",
+              "content": "Reply with the word SYNTHETIC_SAVED."
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          }
+        ]
+      }
+    },
+    {
+      "history-slice": {
+        "sessionId": "6e6fe023-6602-4540-9583-530c17185afa",
+        "limit": 1,
+        "offset": 1,
+        "messages": [
+          {
+            "type": "assistant",
+            "uuid": "68a0574d-45cb-4172-9e44-3f6ccc9b102b",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "id": "21d562f817938186510944931ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_SAVED"
+                }
+              ],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          }
+        ]
+      }
+    },
+    {
+      "history-slice": {
+        "sessionId": "6e6fe023-6602-4540-9583-530c17185afa",
+        "limit": 1,
+        "offset": 2,
+        "messages": [
+          {
+            "type": "user",
+            "uuid": "75059c4a-da0f-4abe-8f2f-16ea29b57a51",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "role": "user",
+              "content": "Reply with the word SYNTHETIC_SECOND_SAVED."
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          }
+        ]
+      }
+    },
+    {
+      "history-slice": {
+        "sessionId": "6e6fe023-6602-4540-9583-530c17185afa",
+        "limit": 1,
+        "offset": 3,
+        "messages": [
+          {
+            "type": "assistant",
+            "uuid": "e0301bb7-47f2-4081-b0c4-70018927d81f",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "id": "21d562f817938186520184952ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_SECOND_SAVED"
+                }
+              ],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 132,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 22272,
+                "output_tokens": 12,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          }
+        ]
+      }
+    },
+    {
+      "history-slice": {
+        "sessionId": "6e6fe023-6602-4540-9583-530c17185afa",
+        "limit": 1,
+        "offset": 4,
+        "messages": []
+      }
+    },
+    {
+      "history-whole": {
+        "sessionId": "6e6fe023-6602-4540-9583-530c17185afa",
+        "messages": [
+          {
+            "type": "user",
+            "uuid": "73b25c68-b56d-49b9-8b74-426449b0611b",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "role": "user",
+              "content": "Reply with the word SYNTHETIC_SAVED."
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "68a0574d-45cb-4172-9e44-3f6ccc9b102b",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "id": "21d562f817938186510944931ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_SAVED"
+                }
+              ],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          },
+          {
+            "type": "user",
+            "uuid": "75059c4a-da0f-4abe-8f2f-16ea29b57a51",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "role": "user",
+              "content": "Reply with the word SYNTHETIC_SECOND_SAVED."
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          },
+          {
+            "type": "assistant",
+            "uuid": "e0301bb7-47f2-4081-b0c4-70018927d81f",
+            "session_id": "6e6fe023-6602-4540-9583-530c17185afa",
+            "message": {
+              "id": "21d562f817938186520184952ebdfd",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "SYNTHETIC_SECOND_SAVED"
+                }
+              ],
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "usage": {
+                "input_tokens": 132,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 22272,
+                "output_tokens": 12,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard"
+              },
+              "stop_reason": "end_turn",
+              "stop_details": null
+            },
+            "parent_tool_use_id": null,
+            "parent_agent_id": null
+          }
+        ]
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-036",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u4f7f\u7528\u539f\u751f\u5206\u9875\u6216\u5207\u7247\u8fde\u7eed\u8bfb\u53d6\u81f3\u5c11\u4e24\u4e2a\u7a97\u53e3\uff0c\u6838\u5bf9\u987a\u5e8f\u548c\u8fb9\u754c\uff1b\u4e0d\u4f2a\u9020 cursor\u3001total \u6216\u539f\u5b50\u5feb\u7167\u3002",
+    "storyId": "SDK-US-008"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-008",
+  "caseId": "SDK-CASE-036",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

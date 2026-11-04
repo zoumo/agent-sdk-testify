@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -101,6 +102,14 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 				return err
 			}
 		}
+	} else if provider == "codex" && protocol.ValidateNativeArgs(provider, args) == nil {
+		args = append(args, codexCaseArgs(profile, params)...)
+	} else if provider == "claude" && protocol.ValidateNativeArgs(provider, args) == nil {
+		caseArgs, err := claudeCaseArgs(profile, params)
+		if err != nil {
+			return err
+		}
+		args = append(args, caseArgs...)
 	}
 	if provider == "claude" {
 		args, err = prepareClaudeArgs(plan, args, profile)

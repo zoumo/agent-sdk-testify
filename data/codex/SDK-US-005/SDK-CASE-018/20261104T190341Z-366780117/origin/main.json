@@ -1,0 +1,20 @@
+{
+  "connectionId": "main",
+  "executionId": "d55c6160fe9628c8f53e605106a38e70",
+  "origin": {
+    "runId": "1668c7706bc8267b601dd57a0053a485",
+    "sessionId": "9c3ea40db0b7065c7186c41f323a735b",
+    "caseId": "SDK-CASE-018",
+    "agentType": "codex",
+    "recordSourceSHA256": "b124e5cf326414820fc1c843d7eee217822f8788dee12633f8f99cad7ca8003d",
+    "sourceSHA256": "b124e5cf326414820fc1c843d7eee217822f8788dee12633f8f99cad7ca8003d",
+    "driverSHA256": "2886930ed874c046d0bd888209bca452b2263098ec4fc201b4092cb989b69d45",
+    "connections": [
+      "main"
+    ]
+  },
+  "protocolPid": 95295,
+  "schemaVersion": 1,
+  "supervisorPid": 95268,
+  "toolSHA256": "05947b4c5eb9dc13e7c8033c7dd4a09bf09ea9da4dce5e02912f591f75b25ad8"
+}

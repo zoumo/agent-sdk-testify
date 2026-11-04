@@ -1,8 +1,0 @@
-{
-  "status": "passed",
-  "message": "",
-  "sdk": {
-    "package": "openai-codex",
-    "version": "0.161.0"
-  }
-}

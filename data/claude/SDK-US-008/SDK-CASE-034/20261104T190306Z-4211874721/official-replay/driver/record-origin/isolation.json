@@ -1,0 +1,41 @@
+{
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise.",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "configurationSHA256": {
+    "settings.json": "87681222829e8004fb97c94c3567d1b6bbbebfb5d43eb91765c0c6be5a0a5991"
+  },
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/config",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/home",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/home/.local/share"
+  },
+  "executionId": "9cc8bda7b3a39e1dc93d92147dee0258",
+  "method": "native-preparation",
+  "nativeSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "73949f457d4b3b9ecd4085af02107bc3eaff0cf8e608b5abe1ff0f59f5daa978",
+  "schemaVersion": 1,
+  "sessionId": "320fb44ee243835061c9f12a11067343",
+  "toolSHA256": "05947b4c5eb9dc13e7c8033c7dd4a09bf09ea9da4dce5e02912f591f75b25ad8"
+}

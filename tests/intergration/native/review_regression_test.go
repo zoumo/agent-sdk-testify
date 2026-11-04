@@ -216,3 +216,25 @@ func TestInitialModelRecordingScope(t *testing.T) {
 		})
 	}
 }
+
+func TestExplicitTransportRetainsCaseSetup(t *testing.T) {
+	cli, err := os.Executable()
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		agent, profile string
+		args           []string
+		parameters     tool.Object
+		want           string
+	}{
+		{"claude", "deferred-approval", []string{"--output-format", "stream-json", "--input-format", "stream-json", "--permission-prompt-tool", "stdio"}, tool.Object{}, `{"permissions":{"ask":["Read"]}}`},
+		{"codex", "children", []string{"app-server", "--listen", "stdio://"}, tool.Object{"childTools": "inherited-dynamic-v2"}, "features.multi_agent_v2.enabled=true"},
+	} {
+		t.Run(tc.agent, func(t *testing.T) {
+			root := t.TempDir()
+			plan := tool.Object{"provider": tc.agent, "project": root, "driverProfile": tc.profile, "args": tc.args, "scenario": tool.Object{"parameters": tc.parameters}}
+			require.NoError(t, nativeprep.PrepareNative(context.Background(), &nativeprep.Options{CLI: cli}, plan, root))
+			require.Subset(t, tool.Strings(plan["args"]), tc.args)
+			require.Contains(t, tool.Strings(plan["args"]), tc.want)
+		})
+	}
+}

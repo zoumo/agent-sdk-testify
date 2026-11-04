@@ -1,0 +1,73 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/official-records/066f03cf4dce14b8514c876c34e1c5f8/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/routes/record/workspace",
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages"
+  ],
+  "case": {
+    "id": "SDK-CASE-023",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-023",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/routes/record/config",
+  "driverProfile": "structured-input",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/routes/record/home",
+  "initialModel": "theta/GLM-5.3",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-433952914/routes/record/workspace",
+  "prompts": [
+    "Reply Ready.",
+    "Reply Done."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/official-records/066f03cf4dce14b8514c876c34e1c5f8/driver/raw",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-023/official-records/066f03cf4dce14b8514c876c34e1c5f8/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-023",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-023",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "between-inputs",
+      "setting": "model"
+    },
+    "prompts": [
+      "Reply Ready.",
+      "Reply Done."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

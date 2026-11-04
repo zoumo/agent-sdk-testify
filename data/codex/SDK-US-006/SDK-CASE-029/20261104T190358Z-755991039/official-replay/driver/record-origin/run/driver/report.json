@@ -1,0 +1,456 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 57,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/DeepSeek-V4.1-Flash-1017",
+        "modelProvider": "recording-gateway",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1793818708,
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "modelProvider": "recording-gateway",
+          "originator": "official-python-story-recorder",
+          "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/config/sessions/2026/11/05/rollout-2026-11-05T02-58-28-01a1a7ed-4972-7973-a608-bc8032b7f4f8.jsonl",
+          "preview": "",
+          "recencyAt": 1793818708,
+          "sessionId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793818708
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1a7ed-4986-7513-8aa7-793fee494011",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+        "turn": {
+          "completedAt": 1793818714,
+          "durationMs": 6253,
+          "id": "01a1a7ed-4986-7513-8aa7-793fee494011",
+          "items": [
+            {
+              "id": "msg_18e4ec9dbfe129080000014f",
+              "phase": "final_answer",
+              "text": "Child output: `SYNTHETIC_SAVED_CHILD`",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793818708,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "history-setup-ended": {
+        "threadId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+        "response": {
+          "status": "unsubscribed"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/list",
+        "params": {
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+          "sourceKinds": [
+            "cli",
+            "vscode",
+            "exec",
+            "appServer"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+              "environments": [
+                {
+                  "environmentId": "local",
+                  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+                  "runtimeWorkspaceRoots": [
+                    "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace"
+                  ]
+                }
+              ],
+              "extra": null,
+              "sessionId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+              "forkedFromId": null,
+              "parentThreadId": null,
+              "preview": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network.",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "recording-gateway",
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "reasoningEffort": null,
+              "createdAt": 1793818708,
+              "updatedAt": 1793818714,
+              "recencyAt": 1793818708,
+              "status": {
+                "type": "idle"
+              },
+              "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/config/sessions/2026/11/05/rollout-2026-11-05T02-58-28-01a1a7ed-4972-7973-a608-bc8032b7f4f8.jsonl",
+              "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+              "cliVersion": "0.166.0",
+              "originator": "official-python-story-recorder",
+              "source": "vscode",
+              "canAcceptDirectInput": null,
+              "threadSource": null,
+              "agentNickname": null,
+              "agentRole": null,
+              "gitInfo": null,
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {
+            "01a1a7ed-4972-7973-a608-bc8032b7f4f8": {
+              "firstUnread": {
+                "type": "turn",
+                "turnId": "01a1a7ed-4986-7513-8aa7-793fee494011"
+              },
+              "revision": "b417a426-46d3-45ef-b930-92c5e64b56ad"
+            }
+          },
+          "backwardsCursor": "2026-11-04T18:58:28.339Z"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/list",
+        "params": {
+          "parentThreadId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+          "sourceKinds": [
+            "subAgentThreadSpawn"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1a7ed-5408-7062-b68b-160cf2707cf9",
+              "environments": [
+                {
+                  "environmentId": "local",
+                  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+                  "runtimeWorkspaceRoots": [
+                    "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace"
+                  ]
+                }
+              ],
+              "extra": null,
+              "sessionId": "01a1a7ed-5408-7062-b68b-160cf2707cf9",
+              "forkedFromId": null,
+              "parentThreadId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+              "preview": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tools.",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "recording-gateway",
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "reasoningEffort": null,
+              "createdAt": 1793818711,
+              "updatedAt": 1793818712,
+              "recencyAt": 1793818711,
+              "status": {
+                "type": "idle"
+              },
+              "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/config/sessions/2026/11/05/rollout-2026-11-05T02-58-31-01a1a7ed-5408-7062-b68b-160cf2707cf9.jsonl",
+              "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/workspace",
+              "cliVersion": "0.166.0",
+              "originator": "official-python-story-recorder",
+              "source": {
+                "subAgent": {
+                  "thread_spawn": {
+                    "parent_thread_id": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+                    "depth": 1,
+                    "agent_path": null,
+                    "agent_nickname": "Ohm",
+                    "agent_role": null
+                  }
+                }
+              },
+              "canAcceptDirectInput": true,
+              "threadSource": null,
+              "agentNickname": "Ohm",
+              "agentRole": null,
+              "gitInfo": null,
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {},
+          "backwardsCursor": "2026-11-04T18:58:30.999Z"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/read",
+        "params": {
+          "threadId": "01a1a7ed-5408-7062-b68b-160cf2707cf9",
+          "includeTurns": false
+        },
+        "response": {
+          "thread": {
+            "id": "01a1a7ed-5408-7062-b68b-160cf2707cf9",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+                "runtimeWorkspaceRoots": [
+                  "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+            "forkedFromId": null,
+            "parentThreadId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+            "preview": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tools.",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "recording-gateway",
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "reasoningEffort": null,
+            "createdAt": 1793818711,
+            "updatedAt": 1793818712,
+            "recencyAt": 1793818711,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/config/sessions/2026/11/05/rollout-2026-11-05T02-58-31-01a1a7ed-5408-7062-b68b-160cf2707cf9.jsonl",
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/workspace",
+            "cliVersion": "0.166.0",
+            "originator": "official-python-story-recorder",
+            "source": {
+              "subAgent": {
+                "thread_spawn": {
+                  "parent_thread_id": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+                  "depth": 1,
+                  "agent_path": null,
+                  "agent_nickname": "Ohm",
+                  "agent_role": null
+                }
+              }
+            },
+            "canAcceptDirectInput": true,
+            "threadSource": "subagent",
+            "agentNickname": "Ohm",
+            "agentRole": null,
+            "gitInfo": null,
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": []
+          }
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/read",
+        "params": {
+          "threadId": "01a1a7ed-5408-7062-b68b-160cf2707cf9",
+          "includeTurns": true
+        },
+        "response": {
+          "thread": {
+            "id": "01a1a7ed-5408-7062-b68b-160cf2707cf9",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace",
+                "runtimeWorkspaceRoots": [
+                  "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/routes/record/workspace"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+            "forkedFromId": null,
+            "parentThreadId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+            "preview": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tools.",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "recording-gateway",
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "reasoningEffort": null,
+            "createdAt": 1793818711,
+            "updatedAt": 1793818712,
+            "recencyAt": 1793818711,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/config/sessions/2026/11/05/rollout-2026-11-05T02-58-31-01a1a7ed-5408-7062-b68b-160cf2707cf9.jsonl",
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4161490898/executions/7b86b5ac9dc153b7da31d5dd1754d4aa/workspace",
+            "cliVersion": "0.166.0",
+            "originator": "official-python-story-recorder",
+            "source": {
+              "subAgent": {
+                "thread_spawn": {
+                  "parent_thread_id": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+                  "depth": 1,
+                  "agent_path": null,
+                  "agent_nickname": "Ohm",
+                  "agent_role": null
+                }
+              }
+            },
+            "canAcceptDirectInput": true,
+            "threadSource": "subagent",
+            "agentNickname": "Ohm",
+            "agentRole": null,
+            "gitInfo": null,
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": [
+              {
+                "id": "01a1a7ed-540c-79f3-9e69-7e75bdf2818c",
+                "rootTurnId": "01a1a7ed-4986-7513-8aa7-793fee494011",
+                "items": [
+                  {
+                    "type": "userMessage",
+                    "id": "01a1a7ed-560b-77c1-acf5-48d18de60a3b",
+                    "clientId": null,
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tools.",
+                        "text_elements": []
+                      }
+                    ],
+                    "startedAtMs": 1793818711564,
+                    "completedAtMs": 1793818711564
+                  },
+                  {
+                    "type": "agentMessage",
+                    "id": "msg_18e4ec9d58d114d00000014a",
+                    "text": "SYNTHETIC_SAVED_CHILD",
+                    "phase": "final_answer",
+                    "memoryCitation": null,
+                    "delivery": null,
+                    "questions": null,
+                    "startedAtMs": 1793818712146,
+                    "completedAtMs": 1793818712148
+                  }
+                ],
+                "itemsView": "full",
+                "status": "completed",
+                "error": null,
+                "startedAt": 1793818711,
+                "completedAt": 1793818712,
+                "durationMs": 1375
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "child-model-inheritance": {
+        "requested": "theta/DeepSeek-V4.1-Flash-1017",
+        "rootId": "01a1a7ed-4972-7973-a608-bc8032b7f4f8",
+        "rootObservedModel": "theta/DeepSeek-V4.1-Flash-1017",
+        "childObservedModels": {
+          "01a1a7ed-5408-7062-b68b-160cf2707cf9": "theta/DeepSeek-V4.1-Flash-1017"
+        },
+        "scope": "model only; no reasoning inheritance claim"
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-029",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u4ec5\u89c2\u5bdf\u6839\u4f1a\u8bdd\u6a21\u578b\u914d\u7f6e\u4e0e\u5b50 Agent \u539f\u751f\u6a21\u578b\u4e8b\u5b9e\u4e4b\u95f4\u7684\u7ee7\u627f\u3001\u9ed8\u8ba4\u6216\u8986\u76d6\u5173\u7cfb\uff1b\u4e0d\u63a8\u65ad\u601d\u8003\u914d\u7f6e\u7ee7\u627f\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-029",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "branchStatus": "passed"
+}

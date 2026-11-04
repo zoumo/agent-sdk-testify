@@ -1,0 +1,21 @@
+{
+  "command": "record",
+  "connectionId": "main",
+  "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-030/executions/11efe3fdd566f0fab43403843cc5b91d/execution.json",
+  "executionId": "11efe3fdd566f0fab43403843cc5b91d",
+  "executionSHA256": "0fc371e74eac392b45201a78420b8a6b92b2a207b666d0510f37565699c19798",
+  "material": {
+    "id": "f32216a4a78ee98b2c60ecd9f2674296",
+    "manifestSHA256": "6f423decad423c548d20e54bcb7e2dc25fbbe70d433531bfacc3ca6bc9d60f96",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-030/materials/f32216a4a78ee98b2c60ecd9f2674296",
+    "planSHA256": "c0032b3b6fee649595d0e3c11fac958f0e121539a708ee961e2de932b8fe4917",
+    "provenance": "official",
+    "recordingSHA256": "edacdc50338d14f100d99462c7895e2664a7fe4c1eb65e1a4c648c992e39c49d"
+  },
+  "processId": 94004,
+  "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-030/executions/11efe3fdd566f0fab43403843cc5b91d/record/raw/transport.json",
+  "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-030/executions/11efe3fdd566f0fab43403843cc5b91d/receipts/main.result.json",
+  "schemaVersion": 1,
+  "sessionId": "5fdcd5dceea760bced5e4950c5c66198",
+  "status": "passed"
+}

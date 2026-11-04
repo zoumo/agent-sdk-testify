@@ -1,0 +1,72 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-008/official-records/b8ccdea2f388df7ea02259f4020d270b/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2268462806/routes/record/workspace",
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages"
+  ],
+  "case": {
+    "id": "SDK-CASE-008",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "拒绝文件写入审批并观察后续结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-008",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2268462806/routes/record/config",
+  "driverProfile": "approval",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2268462806/routes/record/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2268462806/routes/record/workspace",
+  "prompts": [
+    "Use Write exactly once to create denied.txt containing exactly denied followed by a newline. If denied, finish without retrying."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-008/official-records/b8ccdea2f388df7ea02259f4020d270b/driver/raw",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/claude-SDK-CASE-008/official-records/b8ccdea2f388df7ea02259f4020d270b/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-008",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "拒绝文件写入审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-008",
+    "configuration": {},
+    "driverProfile": "approval",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalDecision": "deny",
+      "approvalKind": "file"
+    },
+    "prompts": [
+      "Use Write exactly once to create denied.txt containing exactly denied followed by a newline. If denied, finish without retrying."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "approval_answer"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

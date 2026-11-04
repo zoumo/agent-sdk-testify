@@ -1,0 +1,35 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "sandbox_mode=\"read-only\"",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "configurationSHA256": {
+    "config.toml": "0e8c91d47eccaf5651e7f855a131456a714c97c09c35fb8bcca945a877d12fec"
+  },
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/executions/8e4c705636b4ffdf46cfac5f68c887bc/workspace",
+  "environment": {
+    "CODEX_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/executions/8e4c705636b4ffdf46cfac5f68c887bc/config",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/executions/8e4c705636b4ffdf46cfac5f68c887bc/home",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/executions/8e4c705636b4ffdf46cfac5f68c887bc/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/executions/8e4c705636b4ffdf46cfac5f68c887bc/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/executions/8e4c705636b4ffdf46cfac5f68c887bc/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/executions/8e4c705636b4ffdf46cfac5f68c887bc/home/.local/share"
+  },
+  "executionId": "8e4c705636b4ffdf46cfac5f68c887bc",
+  "method": "native-preparation",
+  "nativeSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "97b1a8ef37342790b6eafe828d052089fc09e355846d6c82a4fc201f9543f1af",
+  "schemaVersion": 1,
+  "sessionId": "0280cb7170ccc7ac8f8bc03429732061",
+  "toolSHA256": "05947b4c5eb9dc13e7c8033c7dd4a09bf09ea9da4dce5e02912f591f75b25ad8"
+}

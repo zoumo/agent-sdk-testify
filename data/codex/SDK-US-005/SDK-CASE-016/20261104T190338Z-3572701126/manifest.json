@@ -1,0 +1,58 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "2c0deab17d523623d4e6c466f5b29a9453f7bb53ecd54f21888f018e8339309a",
+    "raw.jsonl": "dac8d9754f948c3d1186a2c676681042d4281cbf08a75d4406439d656b369026",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "ceace3818d207b0634d69122b528ae77a8b541d1ef9d4ea109cd34bfe01369b9"
+  },
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "agents.enabled=true",
+      "-c",
+      "features.multi_agent=true",
+      "-c",
+      "features.multi_agent_v2.enabled=true",
+      "-c",
+      "features.multi_agent_v2.non_code_mode_only=false",
+      "-c",
+      "features.multi_agent_v2.hide_spawn_agent_metadata=false",
+      "-c",
+      "features.multi_agent_v2_dynamic_tools=true",
+      "-c",
+      "features.shell_tool=false",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-727166195/executions/435206541f8381d0fe998e865a38fd1a/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "59177e4929d4d7f0cb006cdeadc213b87967a6a8172a3e230f71c06e25f3441a",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "ceace3818d207b0634d69122b528ae77a8b541d1ef9d4ea109cd34bfe01369b9",
+  "savedFiles": {
+    "config/sessions/2026/11/05/rollout-2026-11-05T02-58-01-01a1a7ec-e0df-7352-9619-96e342f73958.jsonl": "4a91641e831b1fbe1e8054396caae75b0be0543edaada8affa5b6112c240cce4",
+    "config/sessions/2026/11/05/rollout-2026-11-05T02-58-03-01a1a7ec-e7b6-79e2-92ed-fd7c65769f05.jsonl": "f60fb133e8a5341f3f9d69cc19539dadeb214be403d62773ce1bd9c6eedcf353"
+  },
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "73d86efb2703d4475c385b1850d37671b126823c8257822e53c605dd56643d1e",
+  "status": "captured"
+}

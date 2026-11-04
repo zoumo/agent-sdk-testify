@@ -1,0 +1,195 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 22,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4206707093/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "theta/DeepSeek-V4.1-Flash-1017",
+        "modelProvider": "recording-gateway",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1793818705,
+          "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4206707093/routes/record/workspace",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a1a7ed-3efc-7271-8b98-50e1370a71c5",
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "modelProvider": "recording-gateway",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "recencyAt": 1793818705,
+          "sessionId": "01a1a7ed-3efc-7271-8b98-50e1370a71c5",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1793818705
+        }
+      }
+    },
+    {
+      "variant-configuration": {
+        "timing": "before-first-input",
+        "requested": {
+          "threadId": "01a1a7ed-3efc-7271-8b98-50e1370a71c5",
+          "effort": "low"
+        },
+        "response": {},
+        "observed": null
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1a7ed-3f10-7292-914b-d38b8f08cd6a",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1a7ed-3efc-7271-8b98-50e1370a71c5",
+        "turn": {
+          "completedAt": 1793818706,
+          "durationMs": 1153,
+          "id": "01a1a7ed-3f10-7292-914b-d38b8f08cd6a",
+          "items": [
+            {
+              "id": "msg_18e4ec9c03c665180000013a",
+              "phase": "final_answer",
+              "text": "Addition combines two or more numbers into a single total, called the sum. For example, 2 + 3 means starting with 2 and counting 3 more to reach 5.",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1793818705,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-027",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u9996\u6b21\u8f93\u5165\u524d\u663e\u5f0f\u9009\u62e9\u539f\u751f effort\uff1bClaude \u5728\u521b\u5efa\u65f6\u914d\u7f6e\uff0cCodex \u4f7f\u7528\u539f\u751f\u914d\u7f6e\u5b57\u6bb5\u3002\u9a8c\u8bc1\u4f20\u53c2\u3001\u63a5\u53d7\u53ca\u4efb\u52a1\u6267\u884c\uff0c\u4e0d\u627f\u8bfa\u6240\u6709\u65f6\u673a\u5747\u53ef\u52a8\u6001\u4fee\u6539\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-027",
+  "flowTrace": [
+    {
+      "step": "configuration-acknowledged",
+      "timing": "before-first-input",
+      "completedInputs": 0,
+      "requested": {
+        "threadId": "01a1a7ed-3efc-7271-8b98-50e1370a71c5",
+        "effort": "low"
+      }
+    },
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "threadId": "01a1a7ed-3efc-7271-8b98-50e1370a71c5",
+          "effort": "low"
+        },
+        "acknowledged": true,
+        "timing": "before-first-input",
+        "completedInputs": 0
+      }
+    ],
+    "observed": [
+      {
+        "source": "thread/settings/updated",
+        "scope": "thread-settings",
+        "native": {
+          "threadId": "01a1a7ed-3efc-7271-8b98-50e1370a71c5",
+          "threadSettings": {
+            "disabledPluginIds": [],
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4206707093/routes/record/workspace",
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "sandboxPolicy": {
+              "type": "workspaceWrite",
+              "writableRoots": [],
+              "networkAccess": false,
+              "excludeTmpdirEnvVar": false,
+              "excludeSlashTmp": false
+            },
+            "activePermissionProfile": null,
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "modelProvider": "recording-gateway",
+            "serviceTier": null,
+            "effort": "low",
+            "summary": null,
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "reasoning_effort": "low",
+                "developer_instructions": null
+              }
+            },
+            "multiAgentMode": "explicitRequestOnly",
+            "personality": null
+          }
+        }
+      }
+    ],
+    "effectiveScope": "unknown"
+  },
+  "branchStatus": "passed"
+}

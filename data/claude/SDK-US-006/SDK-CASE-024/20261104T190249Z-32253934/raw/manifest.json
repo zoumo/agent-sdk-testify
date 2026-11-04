@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "0.1.0-dev",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/GLM-5.3"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1046774610/executions/8ace4acd357d52e76cfe9fc1569c0e66/workspace",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "files": {
+    "raw.jsonl": "0fdc2a933a8eb195e3820662ec3390b96cfc124644ac0c922f8789c4efa43463",
+    "stderr.raw": "0229717d07e00c9f5f1b312f1ba87b98351644be32774371f2c5285e766d86d0",
+    "transport.json": "8e80b4fe1030555d7240a1c7fdcd5ec3021cb1f328b31ca7a8fbd2f1f89cc208"
+  }
+}

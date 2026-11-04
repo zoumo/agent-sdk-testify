@@ -257,10 +257,11 @@ async def claude(plan, report):
                              and values.get('subagent_type') == CHILD_ROLE and values.get('run_in_background') is True
                              and values.get('prompt') == child_task('claude', strict=True))
             path = values.get('file_path')
+            protocol_project = Path(plan.get('_recordedWorkspace') or plan['project'])
             allowed_read = (tool == 'Read' and getattr(context, 'agent_id', None)
                             and getattr(context, 'tool_use_id', None) and agent_tool_id
                             and isinstance(path, str)
-                            and (Path(plan['project']) / path).resolve() == (Path(plan['project']) / CHILD_FILE).resolve()
+                            and (protocol_project / path).resolve() == (protocol_project / CHILD_FILE).resolve()
                             and not read_requests and not read_pending)
             if not allowed_agent and not allowed_read:
                 report['gaps'].append('unauthorized or repeated child tool request: ' + tool)

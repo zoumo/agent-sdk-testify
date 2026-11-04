@@ -1,0 +1,68 @@
+{
+  "captureFiles": {
+    "manifest.json": "431fe9ff6e2e747efa75aff221012c1f8148e12e727d8e4573d8dfb1776553da",
+    "material.json": "6f7fff8714664915b2c5d7007c9751e2008dd48763083968b04ef418a9c064a1",
+    "official-origin.json": "623879516a687780a681ac1dc5ab9159bae03bfd46d0945bcaa54204c162e6c9",
+    "origin/main.json": "8fe86273705c4a03264b89310f18495f27e6ffaf1f08d705a11afa28708c5149",
+    "plan.json": "6118a43309fe8b58e733da26ff2cc4d03a140fa092581c701b45df93713b15c4",
+    "raw/manifest.json": "54d8cc864e684c35fec0a07b0bf8801979b70372ef51b7fde7a4e02efd6e9a00",
+    "raw/raw.jsonl": "dca22be90677dd7c82ce8a3357ce957df7e6f5cd88fa3da0336245ba57b3067b",
+    "raw/stderr.raw": "5346b75dfe402a5f563dc6d682b31e445f116720cf650c360a71ab1401382bc3",
+    "raw/transport.json": "e8de0cce1d9601f8f97c5d5aa8f808182ba0f9f15f3349b2b54dd8a1e3fb9056",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "6fcfaec493ec40b833e39f04b333d91355bcc7cea9918f13478fa72d5558f25e"
+  },
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "origin": "real-agent",
+  "publishFiles": [
+    "manifest.json",
+    "official-origin.json",
+    "origin/main.json",
+    "plan.json",
+    "raw/manifest.json",
+    "raw/raw.jsonl",
+    "raw/stderr.raw",
+    "raw/transport.json",
+    "report.json",
+    "source-plan.json"
+  ],
+  "qualification": {
+    "method": "official-sdk",
+    "qualifiedAt": "2026-11-04T19:03:25.188289Z"
+  },
+  "replayFiles": {
+    "driver/connections/main/execution.json": "b5b35de037080808a6d2a0ddc39c22252955086100868b5d53cc3a7378a58ca5",
+    "driver/connections/main/process.json": "21746b7cf34abf586272bffc75efa6c0fb5364d486cd3c6048a14e34693ecfa1",
+    "driver/connections/main/replay.json": "21aeb1c531e3646bd6bc3076f5c6e15b0fbb04b283d80d0790ad632701eebb9f",
+    "driver/connections/main/result.json": "6f61895d4f99edbc26e27593214aea4bf44051fe4d66abb3eaf71ad87b627767",
+    "driver/materials/case.json": "8c9bdc70ba0d2534cd38c656392f69b887a56171b170d826b78f785eed9121f5",
+    "driver/peer-main.process.json": "4be6580af9401faab5ab07587b16750181095510d9169d5c25b256b79192df07",
+    "driver/peer-main.results.jsonl": "3873b42e979096915568e25797cfa714ad8b93a90bb58f1e2f5e30e9134ef86c",
+    "driver/record-origin/execution.json": "e33e4cd50d039eaeeb0c827e6b64936b5253b9abcf2f3353c6f3a95d892de5dc",
+    "driver/record-origin/isolation.json": "98618896413009edefcf0a7f1d9fb300b763a8a79c9e09c7dd9683c72db3c7e9",
+    "driver/record-origin/prepared-plan.json": "a8ac226f4b7872bb48cf486fd44717ce451ba000d0ed389724dfeb632a555b58",
+    "driver/record-origin/results/main.json": "2db229995e944c74096e41fc9f46a8231fef3148a538ce66d24a88d59d287441",
+    "driver/record-origin/run/driver-files.json": "c0147d6464b9c71277b640ccf0dee8a413c753b84caf6a4082386c4ab7e9b7e8",
+    "driver/record-origin/run/driver/materials/case.json": "5d1e09faf9b5aefbacc911007deba31a06fea3fb383f98f47b4ea7688932c854",
+    "driver/record-origin/run/driver/peer-main.process.json": "7cecd307c270905fc07e3675e0f8d08215d98ba1e00350be7a24c227c64c4d0c",
+    "driver/record-origin/run/driver/peer-main.results.jsonl": "e16131c4eb5cc1ca0cabb899dabd3d8ca116d32a68aa14ea0096c7b48cef4a30",
+    "driver/record-origin/run/driver/report.json": "e2cbf3c3bc18ce134c7cee63b2699a76a3e260500b9cc9909399460abc519960",
+    "driver/record-origin/run/driver/request.json": "56274a587065c628f0fd9702635f0b0f9ea58dfe48963476e7fa4b3cc55eb1d2",
+    "driver/record-origin/run/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "driver/record-origin/run/origin.json": "623879516a687780a681ac1dc5ab9159bae03bfd46d0945bcaa54204c162e6c9",
+    "driver/record-origin/run/result.json": "424ca27587c5822a3ff0e27f481a1e324fc83ef79099fdcc323f8f535f9715a8",
+    "driver/record-origin/session.json": "a047a1a511f1a4aa82ab3a43fe68d3665b5660b550311edc0e9159184ffa1b47",
+    "driver/replay-report.json": "59d58a539e7d98e17845290878ed8190ff34e33f85506463a0e107a66eba9533",
+    "driver/request.json": "1b1fead3aeb8404ff898e16865bf239af2a86225050a0b3ebf6fc7dd93334d2f",
+    "driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification.json": "b40153670846e3a61630162c481e5ac63b12741da5baeab23578b266b9777dd6"
+  },
+  "version": 1
+}

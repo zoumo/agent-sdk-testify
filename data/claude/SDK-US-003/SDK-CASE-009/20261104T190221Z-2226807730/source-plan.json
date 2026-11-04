@@ -1,0 +1,52 @@
+{
+  "case": {
+    "id": "SDK-CASE-009",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "批准文件写入审批并观察后续结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-009",
+  "driverProfile": "approval",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "prompts": [
+    "Use the native file change tool to write approved.txt with content SYNTHETIC_APPROVED. Do not retry if permission is denied."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-009",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "批准文件写入审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-009",
+    "configuration": {},
+    "driverProfile": "approval",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalDecision": "allow",
+      "approvalKind": "file"
+    },
+    "prompts": [
+      "Use the native file change tool to write approved.txt with content SYNTHETIC_APPROVED. Do not retry if permission is denied."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "approval_answer"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

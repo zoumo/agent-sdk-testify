@@ -23,7 +23,7 @@ func MaterializeClaude(source, root, workspace string, plan tool.Object) error {
 	targetKey := key.ReplaceAllString(workspace, "-")
 	var transformations []tool.Object
 	seen := map[string]bool{}
-	for _, cwd := range []string{tool.Str(plan["project"]), tool.Str(plan["historyProject"])} {
+	for _, cwd := range []string{tool.Str(plan["project"]), tool.Str(plan["_fixtureProject"]), tool.Str(plan["historyProject"])} {
 		if cwd == "" || seen[cwd] {
 			continue
 		}

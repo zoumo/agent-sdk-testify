@@ -1,0 +1,54 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "fa187f069f01253f53e0a57962a93f19cb2b7b537b51cc0bb467b412446932ba",
+    "raw.jsonl": "9708cc199562af3452f4238481886cb3f6a995a252f8c740cd3b870658c3f3c8",
+    "stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+    "transport.json": "c07818362329e609e7c4d07d12ce9e045dcab2fe6665152efbde6a61e9618ad8"
+  },
+  "native": {
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--no-session-persistence",
+      "--settings",
+      "{\"permissions\":{\"ask\":[\"Read\",\"Write\"]}}",
+      "--mcp-config",
+      "{\"mcpServers\":{\"fixture\":{\"type\":\"sdk\",\"name\":\"fixture\"}}}",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-702197346/executions/f392248bb87d982b5dde7e5d7c4d4cf9/workspace",
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "planSHA256": "8d09187e803a2749b79fc53af74b23702d3fa5e907f32715cb9b727e57dd0723",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "c07818362329e609e7c4d07d12ce9e045dcab2fe6665152efbde6a61e9618ad8",
+  "savedFiles": {},
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "8d6b9206c59f624197d9c9e7f9722102b1a75b50349d688e521feecc5f0afafb",
+  "status": "captured"
+}
