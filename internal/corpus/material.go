@@ -1,0 +1,272 @@
+package corpus
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
+	"slices"
+
+	"github.com/zoumo/agent-sdk-testify/internal/history"
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
+)
+
+type Material struct {
+	OfficialOrigin  *OfficialOrigin   `json:"officialOrigin,omitempty"`
+	Files           map[string]string `json:"files,omitempty"`
+	ID              string            `json:"id"`
+	Kind            string            `json:"kind"`
+	Action          string            `json:"action"`
+	Provenance      string            `json:"provenance"`
+	Path            string            `json:"path"`
+	PlanSHA256      string            `json:"planSHA256"`
+	ManifestSHA256  string            `json:"manifestSHA256"`
+	RecordingSHA256 string            `json:"recordingSHA256"`
+	Connections     []string          `json:"connections"`
+	CreatedAt       string            `json:"createdAt"`
+}
+
+// OfficialOrigin identifies capture ownership, not a business pass. It is sealed
+// into the material before publication; the later run result is separate evidence.
+type OfficialOrigin struct {
+	RunID              string   `json:"runId"`
+	SessionID          string   `json:"sessionId"`
+	CaseID             string   `json:"caseId"`
+	AgentType          string   `json:"agentType"`
+	RecordSourceSHA256 string   `json:"recordSourceSHA256"`
+	SourceSHA256       string   `json:"sourceSHA256"`
+	DriverSHA256       string   `json:"driverSHA256"`
+	Connections        []string `json:"connections"`
+}
+
+// ValidateOfficialCapture checks portable, sealed capture ownership. It does
+// not read the originating session or imply that the parent's business passed.
+func ValidateOfficialCapture(artifact Material) error {
+	origin := artifact.OfficialOrigin
+	if origin == nil || origin.RunID == "" || origin.SessionID == "" || len(origin.DriverSHA256) != 64 {
+		return errors.New("official capture origin is incomplete")
+	}
+	var sealed OfficialOrigin
+	if err := tool.ReadJSON(filepath.Join(artifact.Path, "official-origin.json"), &sealed); err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(sealed, *origin) || !slices.Equal(origin.Connections, artifact.Connections) {
+		return errors.New("sealed official capture origin differs from material")
+	}
+	digest, err := tool.FileDigest(filepath.Join(artifact.Path, "source-plan.json"))
+	if err != nil || digest != origin.SourceSHA256 {
+		return errors.New("official capture lost its original plan")
+	}
+	var manifest, plan tool.Object
+	if err := tool.ReadJSON(filepath.Join(artifact.Path, "manifest.json"), &manifest); err != nil {
+		return err
+	}
+	if err := tool.ReadJSON(filepath.Join(artifact.Path, "plan.json"), &plan); err != nil {
+		return err
+	}
+	if manifest["sourcePlanSHA256"] != digest || plan["sourcePlanSHA256"] != digest || plan["caseId"] != origin.CaseID || plan["provider"] != origin.AgentType {
+		return errors.New("official derived plan lost its source binding")
+	}
+	executionID := ""
+	for _, id := range origin.Connections {
+		if id == "" || filepath.Base(id) != id || !filepath.IsLocal(id) {
+			return errors.New("invalid official connection identity")
+		}
+		var proof struct {
+			ExecutionID   string         `json:"executionId"`
+			Origin        OfficialOrigin `json:"origin"`
+			ConnectionID  string         `json:"connectionId"`
+			ProtocolPID   int            `json:"protocolPid"`
+			SupervisorPID int            `json:"supervisorPid"`
+			ToolSHA256    string         `json:"toolSHA256"`
+		}
+		if err := tool.ReadJSON(filepath.Join(artifact.Path, "origin", id+".json"), &proof); err != nil {
+			return err
+		}
+		if proof.ExecutionID == "" || (executionID != "" && proof.ExecutionID != executionID) {
+			return errors.New("official launch proofs disagree on execution")
+		}
+		executionID = proof.ExecutionID
+		if !reflect.DeepEqual(proof.Origin, *origin) || proof.ConnectionID != id || proof.ProtocolPID <= 0 || proof.SupervisorPID <= 0 || len(proof.ToolSHA256) != 64 {
+			return errors.New("official connection launch proof is incomplete")
+		}
+	}
+	return nil
+}
+
+type MaterialInspection struct {
+	Plan         tool.Object
+	Manifest     tool.Object
+	Provenance   string
+	HistoryFiles map[string]string
+}
+
+func SelectionProvenance(plan, manifest tool.Object) (string, error) {
+	value := tool.Str(manifest["provenance"])
+	consumerProfile := tool.Str(plan["driverProfile"]) == "consumer"
+	switch value {
+	case "consumer":
+		if !consumerProfile {
+			return "", errors.New("consumer material provenance conflicts with the plan")
+		}
+		return "consumer", nil
+	case "official":
+		if consumerProfile {
+			return "", errors.New("official material provenance conflicts with a consumer plan")
+		}
+		return "official", nil
+	case "builtin":
+		if consumerProfile {
+			return "", errors.New("builtin material provenance conflicts with a consumer plan")
+		}
+		return "builtin", nil
+	case "external", "synthetic":
+		if consumerProfile {
+			return "", errors.New("external material provenance conflicts with a consumer plan")
+		}
+		return "external", nil
+	case "capture":
+		if consumerProfile {
+			return "", errors.New("capture provenance conflicts with a consumer plan")
+		}
+		// A capture manifest alone does not establish official ownership;
+		// the sealed material descriptor carries that separate evidence.
+		return "external", nil
+	default:
+		return "", fmt.Errorf("material provenance is missing or unknown: %q", value)
+	}
+}
+
+func InspectMaterial(artifact Material) (*MaterialInspection, error) {
+	if artifact.Path == "" || !filepath.IsAbs(artifact.Path) {
+		return nil, errors.New("material path must be absolute")
+	}
+	info, err := os.Lstat(artifact.Path)
+	if err != nil {
+		return nil, err
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return nil, errors.New("material path is not an unlinked directory")
+	}
+	if len(artifact.Files) > 0 {
+		if err := CheckMaterialInventory(artifact.Path, artifact); err != nil {
+			return nil, err
+		}
+	}
+	if err := VerifyMaterials(artifact.Path, true); err != nil {
+		return nil, err
+	}
+	var plan, manifest tool.Object
+	if err := tool.ReadJSON(filepath.Join(artifact.Path, "plan.json"), &plan); err != nil {
+		return nil, err
+	}
+	if err := tool.ReadJSON(filepath.Join(artifact.Path, "manifest.json"), &manifest); err != nil {
+		return nil, err
+	}
+	selected, err := SelectionProvenance(plan, manifest)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkMaterialProvenance(artifact, plan, manifest, selected); err != nil {
+		return nil, err
+	}
+	selected = artifact.Provenance
+	historyFiles, err := history.Bindings(artifact.Path)
+	if err != nil {
+		return nil, err
+	}
+	for name, expected := range map[string]string{
+		"plan.json":     artifact.PlanSHA256,
+		"manifest.json": artifact.ManifestSHA256,
+		"raw/raw.jsonl": artifact.RecordingSHA256,
+	} {
+		if expected == "" {
+			return nil, fmt.Errorf("artifact omits %s hash", name)
+		}
+		actual, err := tool.FileDigest(filepath.Join(artifact.Path, filepath.FromSlash(name)))
+		if err != nil {
+			return nil, err
+		}
+		if actual != expected {
+			return nil, fmt.Errorf("artifact hash mismatch: %s", name)
+		}
+	}
+	return &MaterialInspection{Plan: plan, Manifest: manifest, Provenance: selected, HistoryFiles: historyFiles}, nil
+}
+
+func CheckMaterialInventory(root string, artifact Material) error {
+	var descriptor Material
+	if err := tool.ReadJSON(filepath.Join(root, "material.json"), &descriptor); err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(descriptor, artifact) {
+		return errors.New("material descriptor differs from its index")
+	}
+	actual, err := history.HashTree(root)
+	if err != nil {
+		return err
+	}
+	delete(actual, "material.json")
+	if !reflect.DeepEqual(actual, artifact.Files) {
+		return errors.New("material closure hash mismatch")
+	}
+	return nil
+}
+
+func checkMaterialProvenance(artifact Material, plan, manifest tool.Object, selected string) error {
+	claimed := artifact.Provenance
+	switch claimed {
+	case "official":
+		if artifact.Kind == "capture" {
+			if artifact.OfficialOrigin != nil {
+				if err := ValidateOfficialCapture(artifact); err != nil {
+					return err
+				}
+			}
+			if artifact.Action != "record" {
+				return errors.New("official capture provenance conflicts with its action or source")
+			}
+			if selected != "external" || tool.Str(manifest["provenance"]) != "capture" {
+				return errors.New("official capture manifest does not claim a capture")
+			}
+		} else if selected != "official" {
+			return errors.New("official material provenance conflicts with its manifest")
+		}
+	case "consumer":
+		if selected != "consumer" || tool.Str(plan["driverProfile"]) != "consumer" {
+			return errors.New("consumer provenance conflicts with its plan or manifest")
+		}
+	case "external":
+		if selected != "external" {
+			return errors.New("external provenance conflicts with its manifest")
+		}
+	case "builtin":
+		if selected == "consumer" {
+			return errors.New("builtin provenance conflicts with consumer material")
+		}
+
+	default:
+		return fmt.Errorf("artifact provenance is missing or unknown: %q", claimed)
+	}
+	return nil
+}
+
+// ReadMaterial describes an imported payload. Its caller assigns session-local
+// identity and checks any builtin snapshot against the builtin contract.
+func ReadMaterial(root, provenance string) (*Material, error) {
+	material := &Material{Kind: "material", Path: root, Provenance: provenance}
+	for name, target := range map[string]*string{
+		"plan.json": &material.PlanSHA256, "manifest.json": &material.ManifestSHA256, "raw/raw.jsonl": &material.RecordingSHA256,
+	} {
+		digest, err := tool.FileDigest(filepath.Join(root, filepath.FromSlash(name)))
+		if err != nil {
+			return nil, err
+		}
+		*target = digest
+	}
+	if _, err := InspectMaterial(*material); err != nil {
+		return nil, err
+	}
+	return material, nil
+}

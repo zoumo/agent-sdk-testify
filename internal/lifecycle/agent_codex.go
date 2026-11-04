@@ -32,7 +32,4 @@ var codexAgentProfile = agentProfile{
 		}
 		return workspace
 	},
-	matchesNative: func(native tool.Object) bool {
-		return nativeMatchesName(native, "codex")
-	},
 }

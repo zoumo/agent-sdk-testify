@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
-	"github.com/zoumo/agent-sdk-testify/internal/official"
+	"github.com/zoumo/agent-sdk-testify/internal/native"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -47,8 +47,8 @@ func prepareOfficialCapture(ctx context.Context, run *lifecycle.ActionRun, comma
 	}
 	if remote == nil {
 		plan["cli"], plan["args"] = command, args
-		o := official.Options{CLI: command, RuntimeEnv: run.Execution.RuntimeEnv, InitialModel: tool.Str(plan["initialModel"]), ProbeProcess: func(state string, pid int) error { return lifecycle.TrackNativeProbe(run, state, pid) }}
-		if err := official.PrepareNative(ctx, &o, plan, run.OverlayRoot); err != nil {
+		o := native.Options{CLI: command, RuntimeEnv: run.Execution.RuntimeEnv, InitialModel: tool.Str(plan["initialModel"]), ProbeProcess: func(state string, pid int) error { return lifecycle.TrackNativeProbe(run, state, pid) }}
+		if err := native.PrepareNative(ctx, &o, plan, run.OverlayRoot); err != nil {
 			return err
 		}
 	}
@@ -56,7 +56,7 @@ func prepareOfficialCapture(ctx context.Context, run *lifecycle.ActionRun, comma
 		if run.Session.HistorySeed == "" {
 			return errors.New("existing-child recording requires saved history")
 		}
-		if err := official.PrepareHistorySeed(run.Session.HistorySeed, run.OverlayRoot, plan); err != nil {
+		if err := native.PrepareHistorySeed(run.Session.HistorySeed, run.OverlayRoot, plan); err != nil {
 			return err
 		}
 	}

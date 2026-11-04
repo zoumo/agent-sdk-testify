@@ -5,15 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"maps"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
-	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -33,7 +30,7 @@ type PrepareOptions struct {
 }
 
 type sourceSpec struct {
-	material  *Artifact
+	material  *corpus.Material
 	source    Source
 	plan      tool.Object
 	planBytes []byte
@@ -148,7 +145,7 @@ func resolvePlan(o PrepareOptions) (*sourceSpec, error) {
 	if err := json.Unmarshal(raw, &plan); err != nil {
 		return nil, err
 	}
-	if err := validateConsumerPlan(plan); err != nil {
+	if err := catalog.CheckConsumerPlan(plan); err != nil {
 		return nil, err
 	}
 	agent := tool.Str(plan["agentType"])
@@ -172,67 +169,6 @@ func resolvePlan(o PrepareOptions) (*sourceSpec, error) {
 	return &sourceSpec{source: source, plan: plan, planBytes: raw, agentType: agent, routes: map[string]bool{"record": true, "mock": true}}, nil
 }
 
-func validateConsumerPlan(plan tool.Object) error {
-	version, ok := plan["version"].(float64)
-	if !ok || version != 1 {
-		return errors.New("consumer plan version must be 1")
-	}
-	agent := tool.Str(plan["agentType"])
-	if err := validateAgent(agent); err != nil {
-		return err
-	}
-	if legacy, ok := plan["provider"]; ok {
-		provider, ok := legacy.(string)
-		if !ok {
-			return errors.New("consumer plan provider must be a string")
-		}
-		if provider != "" && provider != agent {
-			return fmt.Errorf("consumer plan provider %q conflicts with agentType %q", provider, agent)
-		}
-	}
-	if strings.TrimSpace(tool.Str(plan["caseId"])) == "" {
-		return errors.New("consumer plan caseId is required")
-	}
-	if tool.Str(plan["driverProfile"]) != "consumer" {
-		return errors.New("consumer plan driverProfile must be consumer")
-	}
-	project := tool.Str(plan["project"])
-	if !filepath.IsAbs(project) {
-		return errors.New("consumer plan project must be absolute")
-	}
-	if value, exists := plan["model"]; exists {
-		if _, ok := value.(string); !ok {
-			return errors.New("consumer plan model must be a string")
-		}
-	}
-	if value, exists := plan["cliVersion"]; exists {
-		if _, ok := value.(string); !ok {
-			return errors.New("consumer plan cliVersion must be a string")
-		}
-	}
-	if scenario, exists := plan["scenario"]; exists {
-		scenarioObject, ok := scenario.(map[string]any)
-		if !ok {
-			return errors.New("consumer plan scenario must be an object")
-		}
-		if files, exists := scenarioObject["files"]; exists {
-			fileObject, ok := files.(map[string]any)
-			if !ok {
-				return errors.New("consumer plan scenario.files must be an object")
-			}
-			for name, value := range fileObject {
-				if _, ok := value.(string); !ok {
-					return fmt.Errorf("consumer plan fixture %s must be text", name)
-				}
-				if name == "" || !filepath.IsLocal(filepath.FromSlash(name)) || strings.Contains(name, "\\") {
-					return fmt.Errorf("consumer plan fixture path is not local: %q", name)
-				}
-			}
-		}
-	}
-	return nil
-}
-
 func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if !filepath.IsAbs(o.Recording) {
 		return nil, errors.New("--recording must be an absolute path")
@@ -249,19 +185,17 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	}
 	// Session/export packages carry a complete payload inventory in addition
 	// to the legacy protocol manifest. Validate it before making a fresh copy.
-	var material Artifact
+	var material corpus.Material
 	metadata := filepath.Join(path, "material.json")
 	if _, err := os.Lstat(metadata); err == nil {
 		if err := tool.ReadJSON(metadata, &material); err != nil {
 			return nil, err
 		}
-		actual, err := history.HashTree(path)
-		if err != nil {
-			return nil, err
-		}
-		delete(actual, "material.json")
-		if len(material.Files) == 0 || !maps.Equal(actual, material.Files) {
+		if len(material.Files) == 0 {
 			return nil, errors.New("material closure hash mismatch")
+		}
+		if err := corpus.CheckMaterialInventory(path, material); err != nil {
+			return nil, err
 		}
 	} else if !os.IsNotExist(err) {
 		return nil, err
@@ -278,35 +212,18 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err := tool.ReadJSON(filepath.Join(path, "raw", "manifest.json"), &rawManifest); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
-	manifestAgent, err := materialManifestAgentType(manifest, rawManifest)
+	agent, err := corpus.RecordingAgentType(plan, manifest, rawManifest)
 	if err != nil {
-		return nil, err
-	}
-	planAgent, err := materialAgentType(plan)
-	if err != nil {
-		return nil, err
-	}
-	if manifestAgent != "" && planAgent != "" && manifestAgent != planAgent {
-		return nil, fmt.Errorf("recording manifest agent %q conflicts with plan provider %q", manifestAgent, planAgent)
-	}
-	agent := manifestAgent
-	if agent == "" {
-		agent = planAgent
-	}
-	if agent == "" {
-		return nil, errors.New("recording does not identify an agent type")
-	}
-	if err := validateAgent(agent); err != nil {
 		return nil, err
 	}
 	if o.Agent != "" && o.Agent != agent {
 		return nil, errors.New("--agent differs from recording agent type")
 	}
-	provenance, err := selectionProvenance(plan, manifest)
+	provenance, err := corpus.SelectionProvenance(plan, manifest)
 	if err != nil {
 		return nil, err
 	}
-	var imported *Artifact
+	var imported *corpus.Material
 	if len(material.Files) > 0 {
 		if material.ID == "" || (material.Kind != "material" && material.Kind != "capture") {
 			return nil, errors.New("invalid imported material identity")
@@ -336,77 +253,6 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	return &sourceSpec{material: imported, source: source, plan: plan, agentType: agent, routes: map[string]bool{"record": recordingExecutor(plan, agent, provenance) != "", "mock": true}}, nil
 }
 
-func materialAgentType(plan tool.Object) (string, error) {
-	agentType := tool.Str(plan["agentType"])
-	provider := tool.Str(plan["provider"])
-	if agentType != "" && provider != "" && agentType != provider {
-		return "", fmt.Errorf("material provider %q conflicts with agentType %q", provider, agentType)
-	}
-	if agentType != "" {
-		return agentType, nil
-	}
-	return provider, nil
-}
-
-func materialManifestAgentType(manifest, rawManifest tool.Object) (string, error) {
-	var found []string
-	for _, value := range []tool.Object{manifest, rawManifest, tool.Obj(rawManifest["native"])} {
-		agentType := tool.Str(value["agentType"])
-		provider := tool.Str(value["provider"])
-		if agentType != "" && provider != "" && agentType != provider {
-			return "", fmt.Errorf("material manifest provider %q conflicts with agentType %q", provider, agentType)
-		}
-		identity := agentType
-		if identity == "" {
-			identity = provider
-		}
-		if identity != "" {
-			found = append(found, identity)
-		}
-	}
-	if len(found) > 0 {
-		agent := found[0]
-		for _, value := range found[1:] {
-			if value != agent {
-				return "", errors.New("material manifest contains conflicting agent identities")
-			}
-		}
-		if err := validateAgent(agent); err != nil {
-			return "", err
-		}
-		return agent, nil
-	}
-	native := tool.Obj(rawManifest["native"])
-	agent := ""
-	for _, name := range agentTypes() {
-		profile, err := agentProfileFor(name)
-		if err != nil {
-			return "", err
-		}
-		if !profile.matchesNative(native) {
-			continue
-		}
-		if agent != "" {
-			return "", errors.New("material manifest does not uniquely identify its agent")
-		}
-		agent = name
-	}
-	return agent, nil
-}
-
-func planFiles(plan tool.Object) (tool.Object, error) {
-	files := tool.Obj(tool.Obj(plan["scenario"])["files"])
-	for name, value := range files {
-		if _, ok := value.(string); !ok {
-			return nil, fmt.Errorf("fixture %s must be text", name)
-		}
-		if name == "" || !filepath.IsLocal(filepath.FromSlash(name)) || strings.Contains(name, "\\") {
-			return nil, fmt.Errorf("fixture path is not local: %q", name)
-		}
-	}
-	return files, nil
-}
-
 func planProtocolCwd(plan tool.Object, workspace string) string {
 	agentType := tool.Str(plan["provider"])
 	if agentType == "" {
@@ -424,7 +270,7 @@ func planModel(plan tool.Object) string {
 
 // Recording uses its saved protocol plan, independent of an official SDK binding.
 func recordingExecutor(plan tool.Object, agent, provenance string) string {
-	if provenance == "consumer" && validateConsumerPlan(plan) != nil {
+	if provenance == "consumer" && catalog.CheckConsumerPlan(plan) != nil {
 		return ""
 	}
 	if agent == "codex" && !filepath.IsAbs(tool.Str(plan["project"])) {

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -87,7 +88,7 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 	if err != nil {
 		return report, err
 	}
-	artifacts := make(map[string]Artifact, len(index.Artifacts))
+	artifacts := make(map[string]corpus.Material, len(index.Artifacts))
 	for _, artifact := range index.Artifacts {
 		artifacts[artifact.ID] = artifact
 	}
@@ -278,7 +279,7 @@ func finishCleanup(sessionDir string, session *Session) (bool, error) {
 	return true, nil
 }
 
-func validateFinishedExecution(sessionDir string, session *Session, indexed IndexExecution, artifacts map[string]Artifact) FinishExecution {
+func validateFinishedExecution(sessionDir string, session *Session, indexed IndexExecution, artifacts map[string]corpus.Material) FinishExecution {
 	result := FinishExecution{
 		ID:         indexed.ID,
 		Command:    indexed.Command,
@@ -326,7 +327,7 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 		}
 		fail(validateIndexedConnections(indexed, execution))
 		fail(validateExecutionLocation(sessionDir, session, dir, execution))
-		var artifact *Artifact
+		var artifact *corpus.Material
 		if indexed.ArtifactID != "" {
 			value, ok := artifacts[indexed.ArtifactID]
 			if !ok {
@@ -354,7 +355,7 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 			fail(errors.New("record execution has no published capture"))
 		}
 		if artifact != nil {
-			inspection, materialErr := inspectMaterial(session, *artifact, execution.Command)
+			inspection, materialErr := inspectMaterial(session, *artifact)
 			fail(materialErr)
 			if materialErr == nil {
 				fail(validateConnectionInventory(execution, artifact, session.Routes[execution.Command]))
@@ -453,7 +454,7 @@ func validateExecutionLocation(sessionDir string, session *Session, dir string, 
 	}
 	var plan tool.Object
 	if execution.Command == "mock" {
-		inspection, err := inspectMaterial(session, execution.Artifact, execution.Command)
+		inspection, err := inspectMaterial(session, execution.Artifact)
 		if err != nil {
 			return err
 		}
@@ -549,7 +550,7 @@ func withinPath(root, path string) bool {
 	return err == nil && (rel == "." || (rel != ".." && filepath.IsLocal(rel)))
 }
 
-func expectedFinishedProvenance(session *Session, action string, material *materialInspection) (string, error) {
+func expectedFinishedProvenance(session *Session, action string, material *corpus.MaterialInspection) (string, error) {
 	switch action {
 	case "record":
 		if material != nil && material.Provenance == "official" {

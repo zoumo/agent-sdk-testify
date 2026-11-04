@@ -12,6 +12,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
@@ -123,26 +124,11 @@ type Execution struct {
 	RuntimeEnv    map[string]string     `json:"-"`
 	Connections   []ExecutionConnection `json:"connections"`
 	ArtifactRoot  string                `json:"artifactRoot"`
-	Artifact      Artifact              `json:"artifact"`
+	Artifact      corpus.Material       `json:"artifact"`
 	Admission     *Admission            `json:"admission,omitempty"`
 	Limits        Limits                `json:"limits"`
 	ProgressFD    int                   `json:"progressFd,omitempty"`
 	StartedAt     string                `json:"startedAt"`
-}
-
-type Artifact struct {
-	OfficialOrigin  *OfficialOrigin   `json:"officialOrigin,omitempty"`
-	Files           map[string]string `json:"files,omitempty"`
-	ID              string            `json:"id"`
-	Kind            string            `json:"kind"`
-	Action          string            `json:"action"`
-	Provenance      string            `json:"provenance"`
-	Path            string            `json:"path"`
-	PlanSHA256      string            `json:"planSHA256"`
-	ManifestSHA256  string            `json:"manifestSHA256"`
-	RecordingSHA256 string            `json:"recordingSHA256"`
-	Connections     []string          `json:"connections"`
-	CreatedAt       string            `json:"createdAt"`
 }
 
 type IndexConnection struct {
@@ -162,12 +148,12 @@ type IndexExecution struct {
 }
 
 type Index struct {
-	SchemaVersion  int              `json:"schemaVersion"`
-	SessionID      string           `json:"sessionId"`
-	SessionSHA256  string           `json:"sessionSHA256"`
-	Executions     []IndexExecution `json:"executions"`
-	Artifacts      []Artifact       `json:"-"`
-	LastUpdatedUTC string           `json:"lastUpdatedUtc"`
+	SchemaVersion  int               `json:"schemaVersion"`
+	SessionID      string            `json:"sessionId"`
+	SessionSHA256  string            `json:"sessionSHA256"`
+	Executions     []IndexExecution  `json:"executions"`
+	Artifacts      []corpus.Material `json:"-"`
+	LastUpdatedUTC string            `json:"lastUpdatedUtc"`
 }
 
 func now() string {
@@ -412,9 +398,9 @@ func readIndex(path string) (*Index, error) {
 // MaterialIndex is the immutable-material registry; current.json alone selects
 // the input for actions. Execution bookkeeping never selects a material.
 type MaterialIndex struct {
-	SchemaVersion int        `json:"schemaVersion"`
-	SessionID     string     `json:"sessionId"`
-	Materials     []Artifact `json:"materials"`
+	SchemaVersion int               `json:"schemaVersion"`
+	SessionID     string            `json:"sessionId"`
+	Materials     []corpus.Material `json:"materials"`
 }
 
 func MaterialIndexPath(sessionDir string) string {

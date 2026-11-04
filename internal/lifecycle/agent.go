@@ -5,19 +5,17 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 type agentProfile struct {
-	binding       string
-	configKey     string
-	authFiles     []string
-	environment   func(root string) map[string]string
-	writeConfig   func(root string, plan tool.Object) error
-	protocolCWD   func(plan tool.Object, workspace string) string
-	matchesNative func(native tool.Object) bool
+	binding     string
+	configKey   string
+	authFiles   []string
+	environment func(root string) map[string]string
+	writeConfig func(root string, plan tool.Object) error
+	protocolCWD func(plan tool.Object, workspace string) string
 }
 
 var agentProfiles = map[string]agentProfile{
@@ -40,16 +38,6 @@ func agentTypes() []string {
 	}
 	slices.Sort(types)
 	return types
-}
-
-func nativeMatchesName(native tool.Object, names ...string) bool {
-	executable := strings.ToLower(filepath.Base(tool.Str(native["executable"])))
-	for _, name := range names {
-		if strings.Contains(executable, name) {
-			return true
-		}
-	}
-	return false
 }
 
 func resetMockConfig(root string) (string, error) {

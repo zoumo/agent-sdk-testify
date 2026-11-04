@@ -12,8 +12,10 @@ import (
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
+	"github.com/zoumo/agent-sdk-testify/internal/catalog"
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
-	"github.com/zoumo/agent-sdk-testify/internal/official"
+	"github.com/zoumo/agent-sdk-testify/internal/native"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -258,10 +260,10 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	}
 	baselineEnv := baseEnvironment(agentType, baseline)
 	privateEnv := map[string]string{}
-	if err := official.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), filepath.Join(root, "private-config"), privateEnv); err != nil {
+	if err := native.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), filepath.Join(root, "private-config"), privateEnv); err != nil {
 		return nil, err
 	}
-	files, err := planFiles(spec.plan)
+	files, err := catalog.PlanFiles(spec.plan)
 	if err != nil {
 		return nil, err
 	}
@@ -415,7 +417,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		materialID = spec.material.ID
 	}
 	materialRoot := filepath.Join(sessionDir, "materials", materialID)
-	var materialArtifact *Artifact
+	var materialArtifact *corpus.Material
 	switch session.Source.Kind {
 	case "case":
 		material, err := initialBuiltin(session, materialRoot)
@@ -460,7 +462,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
 			return nil, err
 		}
-		if _, err := inspectMaterial(session, *materialArtifact, "mock"); err != nil {
+		if _, err := inspectMaterial(session, *materialArtifact); err != nil {
 			return nil, err
 		}
 	}

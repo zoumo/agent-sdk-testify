@@ -39,7 +39,7 @@ func mockSession(ctx context.Context, o Options) (err error) {
 		return err
 	}
 
-	artifact, err := lifecycle.LatestArtifact(o.SessionDir, session, false)
+	artifact, err := lifecycle.LatestArtifact(o.SessionDir, session)
 	if err != nil {
 		return err
 	}

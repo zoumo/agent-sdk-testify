@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -103,7 +104,7 @@ func validateIndexedConnections(indexed IndexExecution, execution Execution) err
 	return nil
 }
 
-func validateConnectionInventory(execution Execution, artifact *Artifact, route Route) error {
+func validateConnectionInventory(execution Execution, artifact *corpus.Material, route Route) error {
 	var ids []string
 	if execution.Command == "record" {
 		for _, connection := range route.Connections {

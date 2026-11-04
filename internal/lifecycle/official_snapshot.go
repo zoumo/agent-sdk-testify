@@ -5,19 +5,23 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // SnapshotOfficialRecord carries settled original facts into qualification and
 // its archive. It never changes the sealed material or resolves another session.
-func SnapshotOfficialRecord(sessionDir string, session *Session, material Artifact, target string) error {
-	if err := ValidateOfficialCapture(material); err != nil {
+func SnapshotOfficialRecord(sessionDir string, session *Session, material corpus.Material, target string) error {
+	if err := corpus.ValidateOfficialCapture(material); err != nil {
 		return err
 	}
-	if err := ValidateOfficialRecord(sessionDir, session, material); err != nil {
+	if err := validateOfficialOrigin(sessionDir, session, material.OfficialOrigin); err != nil {
 		return err
 	}
 	root := filepath.Join(sessionDir, "official-records", material.OfficialOrigin.RunID)
+	if err := corpus.ValidateOfficialRecord(root, material); err != nil {
+		return err
+	}
 	if err := tool.CopyTree(root, filepath.Join(target, "run")); err != nil {
 		return err
 	}

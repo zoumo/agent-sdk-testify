@@ -10,6 +10,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -108,7 +109,7 @@ func updateIndex(sessionDir string, mutate func(*Index) error) error {
 	if err != nil {
 		return err
 	}
-	oldMaterials := append([]Artifact(nil), index.Artifacts...)
+	oldMaterials := append([]corpus.Material(nil), index.Artifacts...)
 	if err := mutate(index); err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func setConnectionStarted(execution *IndexExecution, id, status string) {
 	}
 }
 
-func executionConnections(dir, action string, ids []string, material *Artifact, route Route) ([]ExecutionConnection, error) {
+func executionConnections(dir, action string, ids []string, material *corpus.Material, route Route) ([]ExecutionConnection, error) {
 	var connections []ExecutionConnection
 	for _, id := range ids {
 		template, ok := connectionTemplate(route, id)
@@ -194,7 +195,7 @@ func executionConnections(dir, action string, ids []string, material *Artifact, 
 	return connections, nil
 }
 
-func createExecutionOverlay(session *Session, action, dir string, plan tool.Object, material *Artifact) (string, map[string]string, error) {
+func createExecutionOverlay(session *Session, action, dir string, plan tool.Object, material *corpus.Material) (string, map[string]string, error) {
 	route, ok := session.Routes[action]
 	if !ok || !route.Enabled {
 		return "", nil, fmt.Errorf("%s is not available for this session", action)
@@ -255,7 +256,7 @@ func executionProtocolCwd(action string, plan tool.Object, workspace string) str
 	return planProtocolCwd(plan, workspace)
 }
 
-func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs, nativeArgs []string, timeout time.Duration, ids []string, material *Artifact, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
+func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs, nativeArgs []string, timeout time.Duration, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
 	workspace := filepath.Join(overlayRoot, "workspace")
 	limits := session.Limits
 	if timeout > 0 {
@@ -305,7 +306,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 		if err != nil {
 			return Execution{}, err
 		}
-		execution.Artifact = Artifact{
+		execution.Artifact = corpus.Material{
 			ID:          artifactID,
 			Kind:        "capture",
 			Action:      "record",
@@ -320,7 +321,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	return execution, nil
 }
 
-func createActionLocked(sessionDir, action string, commandArgs []string, timeout time.Duration, material *Artifact, admission *Admission, held *Lock, origin *OfficialOrigin) (*ActionRun, error) {
+func createActionLocked(sessionDir, action string, commandArgs []string, timeout time.Duration, material *corpus.Material, admission *Admission, held *Lock, origin *corpus.OfficialOrigin) (*ActionRun, error) {
 	sessionDir, err := canonicalSessionDir(sessionDir)
 	if err != nil {
 		return nil, err
@@ -393,7 +394,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 				if source.Path != session.Source.Path {
 					continue
 				}
-				if _, err := inspectMaterial(session, source, "record"); err != nil {
+				if _, err := inspectMaterial(session, source); err != nil {
 					return nil, err
 				}
 				found = true
@@ -410,14 +411,14 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 		}
 	}
 	if material != nil {
-		current, err := LatestArtifact(sessionDir, session, false)
+		current, err := LatestArtifact(sessionDir, session)
 		if err != nil {
 			return nil, err
 		}
 		if !reflect.DeepEqual(current, material) {
 			return nil, errors.New("current recording changed before execution")
 		}
-		inspection, err := inspectMaterial(session, *current, action)
+		inspection, err := inspectMaterial(session, *current)
 		if err != nil {
 			return nil, err
 		}
@@ -499,7 +500,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 
 // BeginMock either creates the execution that declares all connections or
 // joins its unstarted connection slot. The returned lock covers the peer life.
-func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *Artifact) (*ActionRun, error) {
+func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material) (*ActionRun, error) {
 	if material == nil {
 		return nil, errors.New("mock requires an input material")
 	}
@@ -537,7 +538,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if err := checkOpen(sessionDir); err != nil {
 		return nil, err
 	}
-	current, err := LatestArtifact(sessionDir, session, false)
+	current, err := LatestArtifact(sessionDir, session)
 	if err != nil {
 		return nil, err
 	}
@@ -571,7 +572,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if !exclusive {
 		return nil, errors.New("session action busy: wait for the active mock execution")
 	}
-	inspection, err := inspectMaterial(session, *material, "mock")
+	inspection, err := inspectMaterial(session, *material)
 	if err != nil {
 		return nil, err
 	}
@@ -670,7 +671,7 @@ func beginMockLock(sessionDir string) (*Lock, bool, error) {
 	return lock, false, nil
 }
 
-func joinMock(sessionDir string, session *Session, indexed *IndexExecution, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *Artifact, lock *Lock) (*ActionRun, error) {
+func joinMock(sessionDir string, session *Session, indexed *IndexExecution, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, lock *Lock) (*ActionRun, error) {
 	dir := ExecutionDir(sessionDir, indexed.ID)
 	var execution Execution
 	if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
@@ -704,7 +705,7 @@ func joinMock(sessionDir string, session *Session, indexed *IndexExecution, conn
 	return &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: filepath.Dir(execution.Home), ArtifactRoot: execution.ArtifactRoot, lock: lock}, nil
 }
 
-func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Duration, progressFD int, material *Artifact) error {
+func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material) error {
 	if material == nil {
 		return errors.New("mock join requires an input material")
 	}
@@ -860,8 +861,8 @@ func CompleteMockConnection(run *ActionRun, status string) error {
 	return restoreRouteSlots(run.Session, "mock")
 }
 
-func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error {
-	if _, err := inspectMaterial(run.Session, artifact, run.Execution.Command); err != nil {
+func PublishCapture(sessionDir string, run *ActionRun, artifact corpus.Material) error {
+	if _, err := inspectMaterial(run.Session, artifact); err != nil {
 		return err
 	}
 	if err := validateRecordReport(artifact.Path); err != nil {
@@ -911,7 +912,7 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error 
 	if err := os.Rename(stage, materialRoot); err != nil {
 		return err
 	}
-	if _, err := inspectMaterial(run.Session, artifact, "record"); err != nil {
+	if _, err := inspectMaterial(run.Session, artifact); err != nil {
 		return err
 	}
 	descriptorSHA256, err := bindExecutionCapture(run, artifact)
@@ -947,7 +948,7 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error 
 	return writeCurrent(sessionDir, run.Session, artifact.ID)
 }
 
-func bindExecutionCapture(run *ActionRun, artifact Artifact) (string, error) {
+func bindExecutionCapture(run *ActionRun, artifact corpus.Material) (string, error) {
 	var ids []string
 	for _, connection := range run.Execution.Connections {
 		ids = append(ids, connection.ID)

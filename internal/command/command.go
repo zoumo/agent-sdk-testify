@@ -13,10 +13,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
+	"github.com/zoumo/agent-sdk-testify/internal/official"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/record"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	"github.com/zoumo/agent-sdk-testify/internal/verify"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
@@ -63,9 +63,9 @@ func New(streams IO) *cobra.Command {
 	agent := &cobra.Command{Use: "agent", Short: "Native Agent protocol peers", Args: cobra.NoArgs}
 	agent.AddCommand(recordCommand(streams), mockCommand())
 	root.AddCommand(agent)
-	official := &cobra.Command{Use: "official", Short: "Official SDK orchestration", Args: cobra.NoArgs}
-	official.AddCommand(newRecordCommand(streams, true), verifyCommand())
-	root.AddCommand(official)
+	officialCommands := &cobra.Command{Use: "official", Short: "Official SDK orchestration", Args: cobra.NoArgs}
+	officialCommands.AddCommand(officialRecordCommand(), verifyCommand())
+	root.AddCommand(officialCommands)
 	registerGenerate(root, streams)
 	return root
 }
@@ -138,10 +138,6 @@ func prepareCommand() *cobra.Command {
 }
 
 func recordCommand(streams IO) *cobra.Command {
-	return newRecordCommand(streams, false)
-}
-
-func newRecordCommand(streams IO, officialMode bool) *cobra.Command {
 	o := record.Options{ResultFD: -1}
 	c := &cobra.Command{
 		Use:   "record [flags] [-- ARG ...]",
@@ -150,16 +146,12 @@ func newRecordCommand(streams IO, officialMode bool) *cobra.Command {
 	}
 	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
 	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
-	if !officialMode {
-		c.Flags().StringVar(&o.Connection, "connection", "main", "declared record connection")
-	}
+	c.Flags().StringVar(&o.Connection, "connection", "main", "declared record connection")
 	c.Flags().DurationVar(&o.ConnectTimeout, "connect-timeout", 0, "retry unavailable remote connections for this duration")
 	c.Flags().StringVar(&o.URL, "url", "", "existing authenticated ws/wss endpoint (excludes --cmd and native arguments)")
 	c.Flags().StringVar(&o.TokenFile, "token-file", "", "private bearer-token file for --url (never persisted)")
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
-	if !officialMode {
-		c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
-	}
+	c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
 	c.RunE = func(c *cobra.Command, args []string) error {
 		if o.URL == "" && (c.ArgsLenAtDash() != 0 || len(args) == 0) {
 			return errors.New("local record requires --cmd and native arguments after --")
@@ -180,16 +172,48 @@ func newRecordCommand(streams IO, officialMode bool) *cobra.Command {
 			return err
 		}
 		o.NativeArgs = append([]string(nil), args...)
-		if officialMode {
-			return record.RunOfficial(c.Context(), o)
-		}
 		return record.Run(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 	}
 	return c
 }
 
+func officialRecordCommand() *cobra.Command {
+	var o official.RecordOptions
+	c := &cobra.Command{
+		Use:   "record [flags] [-- ARG ...]",
+		Short: "Record a native Agent interaction in a prepared session",
+		Args:  cobra.ArbitraryArgs,
+	}
+	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
+	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
+	c.Flags().DurationVar(&o.ConnectTimeout, "connect-timeout", 0, "retry unavailable remote connections for this duration")
+	c.Flags().StringVar(&o.URL, "url", "", "existing authenticated ws/wss endpoint (excludes --cmd and native arguments)")
+	c.Flags().StringVar(&o.TokenFile, "token-file", "", "private bearer-token file for --url (never persisted)")
+	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
+	c.RunE = func(c *cobra.Command, args []string) error {
+		if o.URL == "" && (c.ArgsLenAtDash() != 0 || len(args) == 0) {
+			return errors.New("local record requires --cmd and native arguments after --")
+		}
+		if o.URL != "" && (c.Flags().Changed("cmd") || c.ArgsLenAtDash() >= 0 || len(args) != 0) {
+			return errors.New("remote target excludes --cmd and native arguments")
+		}
+		if !filepath.IsAbs(o.SessionDir) {
+			return errors.New("--session-dir must be absolute")
+		}
+		if o.Timeout < 0 || o.ConnectTimeout < 0 {
+			return errors.New("timeouts must be nonnegative")
+		}
+		if o.ConnectTimeout > 0 && o.URL == "" {
+			return errors.New("connect-timeout requires a remote target")
+		}
+		o.NativeArgs = append([]string(nil), args...)
+		return official.Record(c.Context(), o)
+	}
+	return c
+}
+
 func verifyCommand() *cobra.Command {
-	var o verify.Options
+	var o official.VerifyOptions
 	c := &cobra.Command{
 		Use:   "verify [flags]",
 		Short: "Verify material in a prepared session",
@@ -207,7 +231,7 @@ func verifyCommand() *cobra.Command {
 		if !filepath.IsAbs(o.SessionDir) {
 			return errors.New("--session-dir must be an absolute path")
 		}
-		return verify.RunOfficial(c.Context(), o)
+		return official.Verify(c.Context(), o)
 	}
 	return c
 }

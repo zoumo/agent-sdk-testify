@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"github.com/zoumo/agent-sdk-testify/data"
+	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -22,7 +24,7 @@ func validateOfficialVerification(sessionDir string, session *Session, id string
 		return evidence, errors.New("official verification identity differs")
 	}
 	var value struct {
-		Material Artifact `json:"material"`
+		Material corpus.Material `json:"material"`
 	}
 	if err := tool.ReadJSON(filepath.Join(root, "verification.json"), &value); err != nil {
 		return evidence, err
@@ -31,8 +33,20 @@ func validateOfficialVerification(sessionDir string, session *Session, id string
 	if material.Path != filepath.Join(sessionDir, "materials", material.ID) {
 		return evidence, errors.New("verified material escapes session")
 	}
-	inspection, err := inspectMaterial(session, material, "verify")
+	inspection, err := inspectMaterial(session, material)
 	if err != nil {
+		return evidence, err
+	}
+	// Finish checks the persisted verification contract. Runtime verifier
+	// selection and driver launch belong to official.
+	if material.Provenance != "official" && material.Provenance != "builtin" {
+		return evidence, errors.New("verified material provenance must be official or builtin")
+	}
+	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: session.AgentType, Case: tool.Str(inspection.Plan["caseId"]), Model: tool.Str(inspection.Plan["model"])})
+	if err != nil {
+		return evidence, err
+	}
+	if err := catalog.CheckVerifierPlan(inspection.Plan, bound); err != nil {
 		return evidence, err
 	}
 	v := &corpus.Validation{}

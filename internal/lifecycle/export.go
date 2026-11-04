@@ -52,7 +52,7 @@ func Export(sessionDir, output string) error {
 	if err != nil {
 		return err
 	}
-	material, err := LatestArtifact(dir, session, false)
+	material, err := LatestArtifact(dir, session)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func Export(sessionDir, output string) error {
 	if err := copyMaterial(material.Path, stage); err != nil {
 		return err
 	}
-	if err := checkMaterialInventory(stage, *material); err != nil {
+	if err := corpus.CheckMaterialInventory(stage, *material); err != nil {
 		return err
 	}
 	if err := corpus.VerifyMaterials(stage, true); err != nil {
@@ -72,7 +72,7 @@ func Export(sessionDir, output string) error {
 	}
 	// Recheck the selected source against its registry after copying. This also
 	// rejects out-of-band tampering that occurred while reading the package.
-	if _, err := inspectMaterial(session, *material, "export"); err != nil {
+	if _, err := inspectMaterial(session, *material); err != nil {
 		return err
 	}
 	return renameExport(stage, target)

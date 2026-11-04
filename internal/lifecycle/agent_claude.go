@@ -33,7 +33,4 @@ var claudeAgentProfile = agentProfile{
 	protocolCWD: func(_ tool.Object, workspace string) string {
 		return workspace
 	},
-	matchesNative: func(native tool.Object) bool {
-		return nativeMatchesName(native, "claude")
-	},
 }

@@ -55,7 +55,7 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 			return err
 		}
 	} else {
-		executable, err = validateCommand(o.Command)
+		executable, err = tool.ValidateCommand(o.Command)
 		if err != nil {
 			return err
 		}
@@ -136,24 +136,6 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 		status = "passed"
 	}
 	return runErr
-}
-
-func validateCommand(value string) (string, error) {
-	if !filepath.IsAbs(value) {
-		return "", errors.New("--cmd must be an absolute executable path")
-	}
-	value, err := filepath.EvalSymlinks(value)
-	if err != nil {
-		return "", err
-	}
-	info, err := os.Stat(value)
-	if err != nil {
-		return "", err
-	}
-	if !info.Mode().IsRegular() || info.Mode().Perm()&0o111 == 0 {
-		return "", errors.New("--cmd must be a regular executable")
-	}
-	return value, nil
 }
 
 func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, remote *capture.ConnectOptions, timeout time.Duration, streams capture.IO) error {
@@ -316,7 +298,7 @@ func copyEvidenceTree(source, target, name string) error {
 	return tool.CopyTree(path, filepath.Join(target, filepath.FromSlash(name)))
 }
 
-func captureArtifact(run *lifecycle.ActionRun, provenance string) (*lifecycle.Artifact, error) {
+func captureArtifact(run *lifecycle.ActionRun, provenance string) (*corpus.Material, error) {
 	planHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot, "plan.json"))
 	if err != nil {
 		return nil, err

@@ -33,6 +33,25 @@ func AbsoluteExecutable(name string) (string, error) {
 	return filepath.Abs(p)
 }
 
+// ValidateCommand resolves a caller-selected absolute executable without PATH lookup.
+func ValidateCommand(value string) (string, error) {
+	if !filepath.IsAbs(value) {
+		return "", errors.New("--cmd must be an absolute executable path")
+	}
+	value, err := filepath.EvalSymlinks(value)
+	if err != nil {
+		return "", err
+	}
+	info, err := os.Stat(value)
+	if err != nil {
+		return "", err
+	}
+	if !info.Mode().IsRegular() || info.Mode().Perm()&0o111 == 0 {
+		return "", errors.New("--cmd must be a regular executable")
+	}
+	return value, nil
+}
+
 // WaitDriver owns the process group so cancellation also reaps descendants.
 func WaitDriver(ctx context.Context, cmd *exec.Cmd, started ...func(int) error) (runErr error) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
