@@ -101,7 +101,7 @@ func environmentNames(values map[string]string) []string {
 }
 
 func executionRuntimeEnvironment(session *Session, action, root string) (map[string]string, error) {
-	env := environmentAt(session, root)
+	env := baseEnvironment(session.AgentType, root)
 	if action != "record" {
 		return env, nil
 	}

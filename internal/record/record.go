@@ -39,11 +39,8 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	if err != nil {
 		return err
 	}
-	session, err := lifecycle.OpenSession(o.SessionDir)
+	session, err := lifecycle.OpenActionSession(o.SessionDir)
 	if err != nil {
-		return err
-	}
-	if err := lifecycle.SessionOpen(o.SessionDir); err != nil {
 		return err
 	}
 	if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {

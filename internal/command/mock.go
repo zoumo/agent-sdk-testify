@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/mock"
 )
 
@@ -35,20 +34,20 @@ func newMockCommand() *cobra.Command {
 	c.RunE = func(c *cobra.Command, args []string) error {
 		native, help, err := parseInterleavedFlags(f, args)
 		if err != nil {
-			return exitcode.Fail(exitcode.Configuration, err)
+			return err
 		}
 		if help {
 			return c.Help()
 		}
 		o.Timeout, err = secondsDuration(seconds)
 		if err != nil {
-			return exitcode.Fail(exitcode.Configuration, err)
+			return err
 		}
 		o.NativeArgs = native
 		if err := validateMockModes(o); err != nil {
-			return exitcode.Fail(exitcode.Configuration, err)
+			return err
 		}
-		return runtimeError(mock.Run(c.Context(), o))
+		return mock.Run(c.Context(), o)
 	}
 	return c
 }

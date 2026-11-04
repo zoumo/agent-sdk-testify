@@ -378,7 +378,7 @@ func TestRecordCLIDeadlineHalfCloseAndBlockedIO(t *testing.T) {
 				}()
 			}
 			// Do not drain stdout: flood must cancel while its client write is blocked.
-			p.wait(t, 3)
+			p.wait(t, 1)
 			if writer != nil {
 				select {
 				case <-writer:
@@ -404,7 +404,7 @@ func TestRecordCLICancelCleansGroup(t *testing.T) {
 	require.Positive(t, ids.Child)
 	require.NoError(t, p.cmd.Process.Signal(syscall.SIGTERM))
 	_ = recordReadAll(t, p.out)
-	p.wait(t, 3)
+	p.wait(t, 1)
 	report, _ := p.reports(t)
 	assert.Equal(t, "canceled", report.Reason)
 	require.ErrorIs(t, syscall.Kill(ids.Parent, 0), syscall.ESRCH)
@@ -441,7 +441,7 @@ func TestRecordCLIExclusiveOutput(t *testing.T) {
 	require.NoError(t, os.WriteFile(sentinel, []byte("untouched"), 0o600))
 	p := startRecordAt(t, dir, nil, "echo")
 	_ = recordReadAll(t, p.out)
-	p.wait(t, 2)
+	p.wait(t, 1)
 	data, err := os.ReadFile(sentinel)
 	require.NoError(t, err)
 	assert.Equal(t, "untouched", string(data))
@@ -478,7 +478,7 @@ func TestRecordCLIArtifactFailure(t *testing.T) {
 	require.NoError(t, os.Mkdir(filepath.Join(p.dir, "transport.json"), 0o700))
 	require.NoError(t, p.cmd.Process.Signal(syscall.SIGTERM))
 	_ = recordReadAll(t, p.out)
-	p.wait(t, 3)
+	p.wait(t, 1)
 	assert.Contains(t, p.stderr.String(), "write transport.json")
 	data, err := os.ReadFile(filepath.Join(p.dir, "manifest.json"))
 	require.NoError(t, err)
@@ -502,7 +502,7 @@ func TestRecordCLIPreflightAndFailedLaunch(t *testing.T) {
 		dir := filepath.Join(t.TempDir(), "capture")
 		p := startRecordCommand(t, dir, nil, []string{filepath.Join(t.TempDir(), "does-not-exist")})
 		assert.Empty(t, recordReadAll(t, p.out))
-		p.wait(t, 2)
+		p.wait(t, 1)
 		assert.NoDirExists(t, dir)
 	})
 	t.Run("launch", func(t *testing.T) {
@@ -562,7 +562,7 @@ func TestRecordCLICancelRetainsPartialInput(t *testing.T) {
 	_, err = io.WriteString(p.in, "{\"pending\":")
 	require.NoError(t, err)
 	_ = recordReadAll(t, p.out)
-	p.wait(t, 3)
+	p.wait(t, 1)
 	report, manifest := p.reports(t)
 	assert.Equal(t, "deadline", report.Reason)
 	assert.Contains(t, manifest.Files, "c2s.partial.raw")
@@ -577,7 +577,7 @@ func TestRecordCLICancelEscalatesToKill(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, p.cmd.Process.Signal(syscall.SIGINT))
 	_ = recordReadAll(t, p.out)
-	p.wait(t, 3)
+	p.wait(t, 1)
 	report, _ := p.reports(t)
 	assert.Equal(t, "canceled", report.Reason)
 	assert.Nil(t, report.NativeExitCode)

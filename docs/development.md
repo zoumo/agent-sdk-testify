@@ -5,13 +5,13 @@
 使用单一 module `github.com/zoumo/agent-sdk-testify` 和单一工具二进制，
 使用 Go 1.26 和 golangci-lint 2.12.2；不添加嵌套 module、replace 或 go.work。
 生产代码及默认测试不得导入 agent-sdk-go、Go driver 或 SDK fixture 容器。
-官方 SDK 仅作为 record/verify 的显式环境依赖，不在运行时自动安装。
+官方 SDK 仅作为 official record/verify 的显式环境依赖，不在运行时自动安装。
 
 消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立回执接入，
 不通过跨仓库 Go 库。
-公开 CLI 入口为 prepare、record、verify、mock、export、finish；业务动作限定为
-record、verify、mock，prepare/finish 只管理会话生命周期，export 只读导出 current。
-材料资格、归档、采用和协议桥接为内部能力。
+公开 CLI 结构和职责以[工具设计](design.md)为准。agent record/mock 不依赖官方
+SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命令。
+材料资格、归档、采用和远程传输为内部能力，不提供独立 internal-protocol 入口。
 
 ## 代码布局
 
@@ -21,12 +21,12 @@ agent-sdk-testify/
   main.go                   # 唯一根目录 Go 文件
   internal/
     lifecycle/              # prepare、finish 与会话/execution 状态
-    record/ verify/ mock/   # 公开业务动作
+    record/ mock/           # agent 协议执行
     conformance/            # installed CLI 的离线纵向合同
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
-    builtin/ official/      # 内置快照与官方 SDK 执行
+    builtin/ official/      # 内置快照与官方录制/验证编排
     history/ tool/          # 历史派生与共享基础能力
-  protocol/                 # 录制、严格回放、传输与命令接口
+    protocol/               # 采集、严格回放、录制格式与传输；仅供仓库内部使用
   data/
     scenarios/              # 权威 case、binding、输入与预期
     claude/ codex/          # 审核采用的 agentType/case/attempt 材料
@@ -40,8 +40,14 @@ agent-sdk-testify/
 框架、转发层、动态插件或通用流程 DSL。
 
 协议包不依赖 case 编号、driver 或 SDK。capture 拥有自己的 I/O、选项和类型化错误，
-只在命令边界映射退出码。agent type 的配置、启动参数和历史解释留在对应 agent 文件。
+命令成功退出 0，失败统一退出 1，并在 stderr 输出具体原因；业务包直接返回 error，
+不维护退出码分类。agent type 的配置、启动参数和历史解释留在对应 agent 文件。
 测试使用与消费者相同的进程接口，不导入被测 SDK 来间接证明工具正确性。
+
+协议代码统一位于 `internal/protocol/`，保留 capture、recording、replay、rawjson 的
+职责边界，不提供跨仓库 Go API。command 只解析参数并调用内部能力，不增加重复的
+选项转发层。official 编排、driver 和公开 agent 命令的职责以
+[工具设计](design.md#记录验证与回放)为准。
 
 ## 材料与测试输入
 

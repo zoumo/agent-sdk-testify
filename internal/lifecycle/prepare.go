@@ -93,16 +93,6 @@ func baseEnvironment(provider, root string) map[string]string {
 	return env
 }
 
-func routeEnvironment(session *Session, action string) map[string]string {
-	root := filepath.Join(session.ResourceRoot, "routes", action)
-	return environmentAt(session, root)
-}
-
-func environmentAt(session *Session, root string) map[string]string {
-	env := baseEnvironment(session.AgentType, root)
-	return env
-}
-
 var routeEnvironmentEntries = []string{"workspace", "home", "config", "tmp", "history-seed"}
 
 func bindRouteSlots(routeRoot, targetRoot string) error {
@@ -254,9 +244,6 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			return nil, err
 		}
 	}
-	if err := os.WriteFile(filepath.Join(root, ".owner"), nil, 0o600); err != nil {
-		return nil, err
-	}
 	sessionID, err := randomID()
 	if err != nil {
 		return nil, err
@@ -332,7 +319,6 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		ToolSHA256:       toolHash,
 		AgentType:        agentType,
 		Source:           spec.source,
-		SourceSHA256:     spec.source.SHA256,
 		HistorySeed:      historySeed,
 		HistorySeedFiles: historySeedFiles,
 		ResourceRoot:     root,
@@ -390,17 +376,16 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			Enabled:     true,
 			Executor:    map[string]string{"record": "official-driver", "verify": "official-driver", "mock": "external-sdk"}[action],
 			Target:      map[string]string{"record": "native-agent", "verify": "replay", "mock": "replay"}[action],
-			Provenance:  spec.provenance,
+			Provenance:  session.Source.Provenance,
 			Workspace:   filepath.Join(routeRoot, "workspace"),
 			ProtocolCwd: planProtocolCwd(spec.plan, filepath.Join(routeRoot, "workspace")),
-			Env:         routeEnvironment(session, action),
+			Env:         baseEnvironment(agentType, routeRoot),
 		}
 		if action == "record" {
 			route.RuntimeEnv = environmentNames(privateEnv)
 		}
-		if action == "record" && spec.provenance == "consumer" {
+		if action == "record" && session.Source.Provenance == "consumer" {
 			route.Executor = "external-sdk"
-			route.Provenance = "consumer"
 		}
 		for _, id := range ids {
 			template := ConnectionTemplate{ID: id, Command: self.Command, Args: []string{"mock", "--session-dir", sessionDir, "--connection", id}}
@@ -475,9 +460,6 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 	}
 	if _, err := LoadPlan(session); err != nil {
-		return nil, err
-	}
-	if err := writeExclusive(filepath.Join(sessionDir, "source", "source.json"), session.Source); err != nil {
 		return nil, err
 	}
 	if err := session.Validate(); err != nil {

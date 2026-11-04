@@ -9,7 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 	"github.com/zoumo/agent-sdk-testify/protocol"
 )
@@ -25,7 +24,7 @@ func newInternalProtocolCommand(streams IO) *cobra.Command {
 		Args:          cobra.NoArgs,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) != 0 {
-				return exitcode.Fail(exitcode.Configuration, fmt.Errorf("unknown command %q", args[0]))
+				return fmt.Errorf("unknown command %q", args[0])
 			}
 			return c.Help()
 		},
@@ -35,9 +34,6 @@ func newInternalProtocolCommand(streams IO) *cobra.Command {
 	root.SetErr(streams.Err)
 	root.SetVersionTemplate("agent-sdk-testify {{.Version}}\n")
 	root.CompletionOptions.DisableDefaultCmd = true
-	root.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
-		return exitcode.Fail(exitcode.Configuration, err)
-	})
 	root.AddCommand(
 		protocolRecordCommand(streams),
 		protocolMockCommand(streams),
@@ -69,35 +65,34 @@ func protocolRecordCommand(streams IO) *cobra.Command {
 	f.Int64Var(&o.MaxFrameBytes, "max-frame-bytes", 0, "Maximum native line bytes; 0 disables")
 	f.Float64Var(&cleanup, "cleanup-timeout", 2, "Graceful termination seconds before forced cleanup")
 	c.RunE = func(c *cobra.Command, args []string) error {
-		bad := func(message string) error { return exitcode.Fail(exitcode.Configuration, errors.New(message)) }
 		if o.Output == "" || len(args) == 0 || c.ArgsLenAtDash() != 0 || args[0] == "" {
-			return bad("record requires --output DIR -- EXECUTABLE [ARG ...]")
+			return errors.New("record requires --output DIR -- EXECUTABLE [ARG ...]")
 		}
 		var err error
 		o.Timeout, err = duration(seconds, true)
 		if err != nil {
-			return bad("invalid record timeout")
+			return errors.New("invalid record timeout")
 		}
 		o.CleanupTimeout, err = duration(cleanup, false)
 		if err != nil {
-			return bad("invalid cleanup timeout")
+			return errors.New("invalid cleanup timeout")
 		}
 		if o.ProtocolBytes < 0 || o.StderrBytes < 0 || o.MaxFrames < 0 || o.MaxFrameBytes < 0 {
-			return bad("capture limits must be nonnegative")
+			return errors.New("capture limits must be nonnegative")
 		}
 		if o.StdinEOFAction != "close" && o.StdinEOFAction != "interrupt" {
-			return bad("stdin EOF action must be close or interrupt")
+			return errors.New("stdin EOF action must be close or interrupt")
 		}
 		seen := map[string]bool{}
 		for _, env := range o.Env {
 			key, value, ok := strings.Cut(env, "=")
 			if !ok || key == "" || strings.ContainsRune(key+value, 0) || seen[key] {
-				return bad("environment overrides require unique nonempty KEY=VALUE")
+				return errors.New("environment overrides require unique nonempty KEY=VALUE")
 			}
 			seen[key] = true
 		}
 		o.Command = append([]string(nil), args...)
-		return runtimeError(protocol.Record(c.Context(), o, protocol.IO{In: streams.In, Out: streams.Out, Err: streams.Err}))
+		return protocol.Record(c.Context(), o, protocol.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 	}
 	return c
 }
@@ -125,41 +120,40 @@ func protocolMockCommand(streams IO) *cobra.Command {
 	f.StringVar(&o.RecordingVersion, "recording-version", "", "Assert present native claude_code_version fields")
 	f.BoolVarP(&help, "help", "h", false, "Help for mock")
 	c.RunE = func(c *cobra.Command, args []string) error {
-		bad := func(err error) error { return exitcode.Fail(exitcode.Configuration, err) }
 		native, requestedHelp, err := parseInterleavedFlags(f, args)
 		if err != nil {
-			return bad(err)
+			return err
 		}
 		if requestedHelp || help {
 			return c.Help()
 		}
 		if o.Scenario == "" {
-			return bad(errors.New("--scenario is required"))
+			return errors.New("--scenario is required")
 		}
 		if o.Limits.MaxFrames < 1 || (f.Changed("max-bytes") && o.Limits.MaxBytes <= 0) || o.Limits.MaxFrameBytes <= 0 {
-			return bad(errors.New("mock limits must be positive"))
+			return errors.New("mock limits must be positive")
 		}
 		o.Limits, err = o.Limits.Resolve(o.Provider)
 		if err != nil {
-			return bad(err)
+			return err
 		}
 		if f.Changed("timeout") {
 			o.Timeout, err = duration(seconds, false)
 			if err != nil {
-				return bad(err)
+				return err
 			}
 		}
 		if o.Handshakes != "" && (o.Provider != "codex" || (o.Handshakes != "answer" && o.Handshakes != "answer-and-assert")) {
-			return bad(errors.New("invalid Codex SDK test handshake mode"))
+			return errors.New("invalid Codex SDK test handshake mode")
 		}
 		if o.ProgressFD < -1 || (o.ProgressFD >= 0 && o.ProgressFD < 3) {
-			return bad(errors.New("progress descriptor must be >=3"))
+			return errors.New("progress descriptor must be >=3")
 		}
 		if err := protocol.ValidateNativeArgs(o.Provider, native); err != nil {
-			return bad(err)
+			return err
 		}
 		o.NativeArgs = native
-		return runtimeError(protocol.Mock(c.Context(), o, protocol.IO{In: streams.In, Out: streams.Out, Err: streams.Err}))
+		return protocol.Mock(c.Context(), o, protocol.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 	}
 	return c
 }
@@ -176,9 +170,9 @@ func protocolConnectCommand(streams IO) *cobra.Command {
 	c.Flags().Int64Var(&o.MaxFrameBytes, "max-frame-bytes", 4<<20, "Maximum JSON message bytes")
 	c.RunE = func(c *cobra.Command, _ []string) error {
 		if o.URL == "" || o.TokenFile == "" || o.MaxFrameBytes < 1 || o.MaxFrameBytes > 1<<30 {
-			return exitcode.Fail(exitcode.Configuration, errors.New("connect requires an endpoint, token file and positive bounded frame size"))
+			return errors.New("connect requires an endpoint, token file and positive bounded frame size")
 		}
-		return runtimeError(protocol.Connect(c.Context(), o, protocol.IO{In: streams.In, Out: streams.Out, Err: streams.Err}))
+		return protocol.Connect(c.Context(), o, protocol.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 	}
 	return c
 }

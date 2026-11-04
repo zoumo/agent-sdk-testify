@@ -36,7 +36,7 @@ class MockTests(unittest.TestCase):
     def test_unknown_provider_is_not_interpreted_as_claude(self):
         result = subprocess.run([BIN, '--internal-protocol', 'mock', '--provider', 'another-agent', '--scenario', '/does-not-exist'],
                                 input=b'', capture_output=True, timeout=3)
-        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.returncode, 1)
         self.assertEqual(result.stdout, b'')
 
     def test_copied_binary_needs_no_python_sdk_or_checkout(self):
@@ -62,7 +62,7 @@ class MockTests(unittest.TestCase):
             path.write_text(document if isinstance(document, str) else json.dumps(document))
             result = subprocess.run([BIN, '--internal-protocol', 'mock', '--provider', provider, '--scenario', str(path), *args],
                                     input=client.encode(), capture_output=True, timeout=5)
-            if result.returncode not in (0, 4):
+            if result.returncode != 0:
                 raise ValueError(result.stderr.decode())
             return result.returncode, result.stdout.decode()
 
@@ -182,7 +182,7 @@ class MockTests(unittest.TestCase):
 
     def test_cli_exit_codes_receipt_timeout_and_cancellation(self):
         for provider in ('codex', 'claude'):
-            for mode, frames, client, expected in [('complete', ['<{}'], '', 0), ('early EOF', ['>{}'], '', 1), ('extra', ['<{}'], '{}\n', 1), ('disconnect', ['!'], '', 4), ('invalid', [], '', 2)]:
+            for mode, frames, client, expected in [('complete', ['<{}'], '', 0), ('early EOF', ['>{}'], '', 1), ('extra', ['<{}'], '{}\n', 1), ('disconnect', ['!'], '', 1), ('invalid', [], '', 1)]:
                 with self.subTest(provider=provider, mode=mode), tempfile.TemporaryDirectory() as tmp:
                     path, receipt = Path(tmp)/'scenario.json', Path(tmp)/'receipt.json'
                     path.write_text(json.dumps(scenario(provider, *frames)))
@@ -198,7 +198,7 @@ class MockTests(unittest.TestCase):
                     if mode == 'delay': doc['frames'][0]['delayMs' if provider == 'codex' else 'delay_ms'] = 1000
                     path = Path(tmp)/'scenario.json'; path.write_text(json.dumps(doc))
                     process = subprocess.Popen([BIN, '--internal-protocol', 'mock', '--provider', provider, '--scenario', str(path), '--timeout', '0.1'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    self.assertEqual(process.wait(timeout=3), 3)
+                    self.assertEqual(process.wait(timeout=3), 1)
                     process.stdin.close(); process.stdout.close(); process.stderr.close()
             with tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp)/'scenario.json'; path.write_text(json.dumps(scenario(provider, '<{}', '>{}')))
@@ -207,7 +207,7 @@ class MockTests(unittest.TestCase):
                 # without leaving a live protocol process.
                 self.assertEqual(process.stdout.readline(), b'{}\n')
                 process.send_signal(signal.SIGTERM)
-                self.assertEqual(process.wait(timeout=3), 3)
+                self.assertEqual(process.wait(timeout=3), 1)
                 process.stdin.close(); process.stdout.close(); process.stderr.close()
 
     def test_launcher_handshake_exit_status(self):
@@ -225,7 +225,7 @@ class MockTests(unittest.TestCase):
             ],
         }
         for provider, handshake in handshakes.items():
-            for mode, expected in (('complete', 0), ('extra', 1), ('disconnect', 4)):
+            for mode, expected in (('complete', 0), ('extra', 1), ('disconnect', 1)):
                 with self.subTest(provider=provider, mode=mode), tempfile.TemporaryDirectory() as tmp:
                     frames = handshake + (['!'] if mode == 'disconnect' else [])
                     client = ''.join(frame[1:] + '\n' for frame in handshake if frame.startswith('>'))

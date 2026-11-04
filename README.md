@@ -3,31 +3,28 @@
 面向多语言 SDK 的 case、录制和 Agent mock 工具。公开 CLI 入口为：
 
 - `prepare`：按 case、consumer plan 或已有录制创建一个可复用隔离会话。
-- `record`：在 prepared 会话中按 prepare 固化的 record source 录制真实 Agent。
-- `verify`：用官方 SDK 对录制做离线验证。
-- `mock`：使用录制充当 Agent，供消费者自己的测试连接。
+- `agent record`：SDK 启动的采集代理，转发真实 Agent 协议并发布录制材料。
+- `agent mock`：SDK 启动的回放对端，用录制替代真实 Agent。
+- `official record`：驱动官方 SDK 调用 agent record，保存录制业务事实。
+- `official verify`：驱动官方 SDK 调用 agent mock，核验并保存验证事实。
 - `export`：把 current recording 完整导出到 session 外，供另一 session 导入。
-- `finish`：汇总会话内全部 execution 的证据、写 closed 状态并清理工具资源。
+- `finish`：汇总会话证据、写 closed 状态并清理工具资源。
 
-`record`、`verify`、`mock` 是业务动作；`prepare`、`finish` 是环境会话的独立生命周期
-阶段；`export` 是只读材料复制。
+命令职责、execution 归属和会话协调见[工具设计](docs/design.md)。
 
 本仓库维护 case、官方 driver、录制及材料库；`simulate`、Go driver 和 SDK 验收编排
 留在 `agent-sdk-go`。SDK 与 MASS 直接消费本仓库的 mock。
 
 工具使用独立 module，仓库根目录只保留 `main.go`；命令实现按功能位于
-`internal/`，协议位于 `protocol/`。权威场景、采用材料和内置快照统一位于
+`internal/`，协议位于 `internal/protocol/`。权威场景、采用材料和内置快照统一位于
 `data/`，官方 driver 与 wheel 位于 `drivers/`。
 不提供 simulate/replay/corpus/protocol/peer 业务入口。
-内部协议子进程仅供官方录制与验证使用。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
+不提供 internal-protocol 入口；远程桥接由 agent record 内部处理。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
-规范流程是 `prepare → record/verify/mock → finish`。一次 prepare 可以承载多个 action
-execution；record 成功时原子替换唯一 current recording，后续 verify 和 mock 只消费 current，
-verify 不改变它。prepare 完整复制外部输入，后续动作不再读取原路径。record source
-由 prepare 固化，不随 current 切换而改变。每个 execution 使用独立可写 overlay，不污染环境
-基线或另一个 execution。source（case/plan/recording）、executor（官方 driver/消费者 SDK）和 target
-（真实 Agent/严格回放）分别在 prepare 和具体 action 时确定，不再使用 `--consumer`
-开关。
+规范流程是 prepare、协议执行或官方编排、finish。agent record 成功时原子替换
+唯一 current recording，agent mock 和 official verify 消费 current。官方命令保存
+业务事实并引用 agent execution，不创建自己的协议 execution。材料来源、环境隔离
+和发布合同见[工具设计](docs/design.md)。
 
 ## 文档
 
@@ -70,10 +67,10 @@ SDK 自己构建 simulate/gate，通过显式 `AGENT_SDK_TESTIFY_BIN` 消费 moc
 ```sh
 agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
   --session-dir /private/session
-agent-sdk-testify record --session-dir /private/session \
+agent-sdk-testify official record --session-dir /private/session \
   --cmd /absolute/codex -- app-server --listen stdio://
-agent-sdk-testify verify --session-dir /private/session
-agent-sdk-testify mock --session-dir /private/session
+agent-sdk-testify official verify --session-dir /private/session
+agent-sdk-testify agent mock --session-dir /private/session
 agent-sdk-testify export --session-dir /private/session --output /private/exported-recording
 agent-sdk-testify finish --session-dir /private/session
 ```
@@ -102,20 +99,22 @@ driver，也不进入官方 case、验证、采用或内置快照；合同和用
 ```sh
 agent-sdk-testify prepare --agent codex \
   --recording /private/new-capture --session-dir /private/session
-agent-sdk-testify verify --session-dir /private/session --timeout 2m
+agent-sdk-testify official verify --session-dir /private/session --timeout 2m
 ```
 
 agent type/case 从录制身份确定，只选择本工具的官方 driver；不接受 `--driver`、
 `--driver-arg`、`--peer` 或 SDK 仿真 driver。不会启动真实 Agent 或自动安装依赖。
-原件与已有 replay 证据保持不变；会话中的 verify execution 保存业务报告、每个选中连接的
-协议及退出回执、失败诊断和 `verification.json`。验证证据绑定原件、合同、工具及 driver 哈希，
+原件与已有 replay 证据保持不变；official verify 驱动官方 driver，由 driver 启动公开 agent mock。
+业务报告、driver 退出与失败诊断保存在 `verifications/<verificationId>/`，协议与
+连接退出回执由 mock execution 保存，`verification.json` 引用实际参与的 execution。
+验证证据绑定原件、合同、工具及 driver 哈希，
 记录实际安装的官方 SDK 包和版本；版本不兼容须报告失败。
 业务通过仍须所有连接严格匹配、完整消费、EOF、退出及清理通过。
 
 新录制经验证后可直接沿用内部资格、私有归档与原子采用流程：
 
 ```sh
-agent-sdk-testify verify --session-dir /private/session \
+agent-sdk-testify official verify --session-dir /private/session \
   --index /absolute/data/index.json \
   --scenarios /absolute/data/scenarios --archive /private/archives
 ```

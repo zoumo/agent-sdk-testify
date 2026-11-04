@@ -1,5 +1,5 @@
-// Package command owns the single Cobra command tree, process I/O and exit
-// classification. Business packages receive typed options and never parse argv.
+// Package command owns the single Cobra command tree, process I/O and error
+// reporting. Business packages receive typed options and never parse argv.
 package command
 
 import (
@@ -12,7 +12,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/record"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -29,29 +28,10 @@ func Execute(ctx context.Context, args []string, streams IO) int {
 	root.SetArgs(internalArgs(args))
 	err := root.ExecuteContext(ctx)
 	if err == nil {
-		return exitcode.OK
-	}
-	if exitcode.Code(err) == exitcode.Failure && !hasClassifiedError(err) {
-		err = exitcode.Fail(exitcode.Configuration, err)
+		return 0
 	}
 	fmt.Fprintln(streams.Err, "agent-sdk-testify:", err)
-	if exitcode.Code(err) == exitcode.Configuration {
-		usageTarget(root, args, streams.Err)
-	}
-	return exitcode.Code(err)
-}
-
-func usageTarget(root *cobra.Command, args []string, out *os.File) {
-	cmd, _, err := root.Find(internalArgs(args))
-	if err != nil || cmd == nil {
-		cmd = root
-	}
-	fmt.Fprint(out, cmd.UsageString())
-}
-
-func hasClassifiedError(err error) bool {
-	var classified *exitcode.Error
-	return errors.As(err, &classified)
+	return 1
 }
 
 func New(streams IO) *cobra.Command {
@@ -64,7 +44,7 @@ func New(streams IO) *cobra.Command {
 		Args:          cobra.NoArgs,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) != 0 {
-				return exitcode.Fail(exitcode.Configuration, fmt.Errorf("unknown command %q", args[0]))
+				return fmt.Errorf("unknown command %q", args[0])
 			}
 			return c.Help()
 		},
@@ -74,9 +54,6 @@ func New(streams IO) *cobra.Command {
 	root.SetErr(streams.Err)
 	root.SetVersionTemplate("agent-sdk-testify {{.Version}}\n")
 	root.CompletionOptions.DisableDefaultCmd = true
-	root.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
-		return exitcode.Fail(exitcode.Configuration, err)
-	})
 	root.AddCommand(
 		prepareCommand(),
 		recordCommand(streams),
@@ -111,9 +88,9 @@ func exportCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			if !filepath.IsAbs(sessionDir) || !filepath.IsAbs(output) {
-				return exitcode.Fail(exitcode.Configuration, errors.New("export requires absolute --session-dir and --output paths"))
+				return errors.New("export requires absolute --session-dir and --output paths")
 			}
-			return runtimeError(lifecycle.Export(sessionDir, output))
+			return lifecycle.Export(sessionDir, output)
 		},
 	}
 	c.Flags().StringVar(&sessionDir, "session-dir", "", "prepared session directory")
@@ -142,19 +119,19 @@ func prepareCommand() *cobra.Command {
 	c.Flags().Int64Var(&o.MaxFrameBytes, "max-frame-bytes", 0, "maximum native frame bytes; zero uses material defaults")
 	c.RunE = func(c *cobra.Command, _ []string) error {
 		if o.SessionDir == "" {
-			return exitcode.Fail(exitcode.Configuration, errors.New("prepare requires --session-dir"))
+			return errors.New("prepare requires --session-dir")
 		}
 		if !filepath.IsAbs(o.SessionDir) {
-			return exitcode.Fail(exitcode.Configuration, errors.New("--session-dir must be an absolute path"))
+			return errors.New("--session-dir must be an absolute path")
 		}
 		if o.ProtocolBytes < 0 || o.StderrBytes < 0 || o.MaxFrames < 0 || o.MaxFrameBytes < 0 {
-			return exitcode.Fail(exitcode.Configuration, errors.New("prepare limits must be nonnegative"))
+			return errors.New("prepare limits must be nonnegative")
 		}
 		if err := requireNewSessionDir(o.SessionDir); err != nil {
 			return err
 		}
 		_, err := lifecycle.Prepare(o)
-		return runtimeError(err)
+		return err
 	}
 	return c
 }
@@ -171,26 +148,26 @@ func recordCommand(streams IO) *cobra.Command {
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
 	c.RunE = func(c *cobra.Command, args []string) error {
 		if c.ArgsLenAtDash() != 0 || len(args) == 0 {
-			return exitcode.Fail(exitcode.Configuration, errors.New("record requires --cmd and a -- separator"))
+			return errors.New("record requires --cmd and a -- separator")
 		}
 		if o.SessionDir == "" || o.Command == "" {
-			return exitcode.Fail(exitcode.Configuration, errors.New("record requires --session-dir and --cmd"))
+			return errors.New("record requires --session-dir and --cmd")
 		}
 		if !filepath.IsAbs(o.SessionDir) || !filepath.IsAbs(o.Command) {
-			return exitcode.Fail(exitcode.Configuration, errors.New("--session-dir and --cmd must be absolute paths"))
+			return errors.New("--session-dir and --cmd must be absolute paths")
 		}
 		if o.Timeout < 0 {
-			return exitcode.Fail(exitcode.Configuration, errors.New("timeout must be nonnegative"))
+			return errors.New("timeout must be nonnegative")
 		}
 		o.NativeArgs = append([]string(nil), args...)
-		session, err := requireOpenSession(o.SessionDir)
+		session, err := lifecycle.OpenSession(o.SessionDir)
 		if err != nil {
 			return err
 		}
 		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
-			return exitcode.Fail(exitcode.Configuration, err)
+			return err
 		}
-		return runtimeError(record.Run(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err}))
+		return record.Run(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 	}
 	return c
 }
@@ -209,15 +186,12 @@ func verifyCommand() *cobra.Command {
 	c.Flags().StringVar(&o.Archive, "archive", "", "private admission archive (default: persistent data directory)")
 	c.RunE = func(c *cobra.Command, _ []string) error {
 		if o.SessionDir == "" {
-			return exitcode.Fail(exitcode.Configuration, errors.New("verify requires --session-dir"))
+			return errors.New("verify requires --session-dir")
 		}
 		if !filepath.IsAbs(o.SessionDir) {
-			return exitcode.Fail(exitcode.Configuration, errors.New("--session-dir must be an absolute path"))
+			return errors.New("--session-dir must be an absolute path")
 		}
-		if _, err := requireOpenSession(o.SessionDir); err != nil {
-			return err
-		}
-		return runtimeError(verify.Run(c.Context(), o))
+		return verify.Run(c.Context(), o)
 	}
 	return c
 }
@@ -236,19 +210,16 @@ func finishCommand() *cobra.Command {
 	c.Flags().StringVar(&sessionDir, "session-dir", "", "prepared session directory")
 	c.RunE = func(c *cobra.Command, _ []string) error {
 		if sessionDir == "" {
-			return exitcode.Fail(exitcode.Configuration, errors.New("finish requires --session-dir"))
+			return errors.New("finish requires --session-dir")
 		}
 		if !filepath.IsAbs(sessionDir) {
-			return exitcode.Fail(exitcode.Configuration, errors.New("--session-dir must be an absolute path"))
-		}
-		if _, err := requireOpenSession(sessionDir); err != nil {
-			return err
+			return errors.New("--session-dir must be an absolute path")
 		}
 		report, err := lifecycle.Finish(sessionDir)
 		if report != nil {
 			err = errors.Join(err, json.NewEncoder(c.OutOrStdout()).Encode(report))
 		}
-		return runtimeError(err)
+		return err
 	}
 	return c
 }
@@ -266,10 +237,10 @@ func peerCommand(streams IO) *cobra.Command {
 		Hidden: true,
 		RunE: func(c *cobra.Command, args []string) error {
 			if o.Request == "" {
-				return exitcode.Fail(exitcode.Configuration, errors.New("peer requires --request"))
+				return errors.New("peer requires --request")
 			}
 			o.In, o.Out, o.Err = streams.In, streams.Out, streams.Err
-			return runtimeError(tool.RunPeer(o))
+			return tool.RunPeer(o)
 		},
 	}
 	c.Flags().StringVar(&o.Request, "request", "", "peer command file")
@@ -293,35 +264,14 @@ func internalArgs(args []string) []string {
 	}
 }
 
-func runtimeError(err error) error {
-	if err == nil {
-		return nil
-	}
-	if hasClassifiedError(err) {
-		return err
-	}
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return exitcode.Fail(exitcode.Canceled, err)
-	}
-	return exitcode.Fail(exitcode.Failure, err)
-}
-
 func requireNewSessionDir(sessionDir string) error {
 	_, err := os.Lstat(sessionDir)
 	switch {
 	case err == nil:
-		return exitcode.Fail(exitcode.Configuration, fmt.Errorf("--session-dir already exists: %s", sessionDir))
+		return fmt.Errorf("--session-dir already exists: %s", sessionDir)
 	case errors.Is(err, os.ErrNotExist):
 		return nil
 	default:
-		return exitcode.Fail(exitcode.Configuration, err)
+		return err
 	}
-}
-
-func requireOpenSession(sessionDir string) (*lifecycle.Session, error) {
-	session, err := lifecycle.OpenSession(sessionDir)
-	if err != nil {
-		return nil, exitcode.Fail(exitcode.Configuration, err)
-	}
-	return session, nil
 }

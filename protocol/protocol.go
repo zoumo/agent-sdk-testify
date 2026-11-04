@@ -5,10 +5,8 @@ package protocol
 
 import (
 	"context"
-	"errors"
 	"time"
 
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 	"github.com/zoumo/agent-sdk-testify/protocol/capture"
 )
@@ -30,25 +28,11 @@ type RecordOptions struct {
 }
 
 func Record(ctx context.Context, o RecordOptions, streams IO) error {
-	err := capture.Run(ctx, capture.Options{
+	return capture.Run(ctx, capture.Options{
 		Output: o.Output, CWD: o.CWD, Env: o.Env, ClearEnv: o.ClearEnv,
 		Command: o.Command, NativeVersion: o.NativeVersion, ProxyVersion: version.Version,
 		StdinEOFAction: o.StdinEOFAction, Timeout: o.Timeout,
 		ProtocolBytes: o.ProtocolBytes, StderrBytes: o.StderrBytes,
 		MaxFrames: o.MaxFrames, MaxFrameBytes: o.MaxFrameBytes, CleanupTimeout: o.CleanupTimeout,
 	}, streams)
-	if err == nil {
-		return nil
-	}
-	code := exitcode.Failure
-	var failure *capture.Error
-	if errors.As(err, &failure) {
-		switch failure.Kind {
-		case capture.Configuration:
-			code = exitcode.Configuration
-		case capture.Canceled:
-			code = exitcode.Canceled
-		}
-	}
-	return exitcode.Fail(code, err)
 }

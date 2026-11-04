@@ -1,11 +1,11 @@
 # 从 SDK 测试使用 mock
 
-`mock` 在 session 中把 current recording 作为原生 Agent 协议对端。SDK 仍调用自己的
+`agent mock` 在 session 中把 current recording 作为原生 Agent 协议对端。SDK 仍调用自己的
 公共接口；消费者负责业务断言、SDK 宿主和远端服务，工具负责严格匹配、完整消费、
 EOF、退出和清理。mock 不要求材料已经 verify，不模拟模型调用或录制中的文件副作用。
 
-生命周期与数据边界以[工具设计](design.md)为准。公开命令为 prepare、record、verify、
-mock、export、finish；只有 prepare 接受材料来源。mock 没有 list、describe、managed
+生命周期与数据边界以[工具设计](design.md)为准。公开命令为 prepare、agent record/mock、official record/verify、
+export、finish；只有 prepare 接受材料来源。mock 没有 list、describe、managed
 alias、材料覆盖或 Agent 版本查询入口。
 
 ## 准备材料与会话
@@ -39,7 +39,7 @@ eval 或修改；CLI 参数始终是目录，不是 descriptor 路径。
 | `schemaVersion` | 当前为 `2`；不兼容版本必须重新 prepare |
 | `sessionId` | 会话身份 |
 | `tool.command`, `toolVersion`, `toolSHA256` | 工具路径与实际身份 |
-| `source`, `sourceSHA256`, `agentType` | 不可变初始来源 |
+| `source`（含 `sha256`）, `agentType` | 不可变初始来源 |
 | `resourceRoot` | 工具拥有的临时运行根 |
 | `routes` | 动作环境槽和连接模板；实际可执行性由动作前提检查决定 |
 | route 的 `workspace`, `env` | SDK 宿主 cwd 和需要合并的环境 |
@@ -50,7 +50,7 @@ eval 或修改；CLI 参数始终是目录，不是 descriptor 路径。
 配置父进程的历史 API。Codex 使用 protocolCwd 配置协议项目，Claude 使用 workspace
 配置 WorkDir 和历史查询。
 
-每次 action 在 `executions/<executionId>/execution.json` 写入独立 descriptor，记录
+每个 record/mock execution 在 `executions/<executionId>/execution.json` 写入独立 descriptor，记录
 本次输入 material、workspace、env、连接、receipt 和 limits；可写 overlay 位于临时
 resourceRoot。环境基线与 session descriptor 不随 action 改写。
 
@@ -61,13 +61,14 @@ resourceRoot。环境基线与 session descriptor 不随 action 改写。
 ## 启动连接
 
 ```sh
-agent-sdk-testify mock --session-dir /reports/recording-session
-agent-sdk-testify mock --session-dir /reports/recording-session --connection probe
+agent-sdk-testify agent mock --session-dir /reports/recording-session
+agent-sdk-testify agent mock --session-dir /reports/recording-session --connection probe
 ```
 
 mock 只消费 current，默认连接为 main。只有材料确实声明多个独立客户端生命周期时
 才能使用 probe 等连接；各连接可以并发，每条连接最多启动一次。普通单连接动作结束
-后，再次 mock 会创建新的 execution。同一 session 的不同 action 串行。
+后，再次 mock 会创建新的 execution。会话执行与验证的协调规则见
+[工具设计](design.md#多个-action-execution)。
 
 | 连接字段 | 用途 |
 | --- | --- |
@@ -108,7 +109,7 @@ record 替换它之前显式导出；action 不接受旧材料选择参数。
 agent-sdk-testify finish --session-dir /reports/recording-session
 ```
 
-finish 与 action 共用锁。忙碌时不写状态、不清理；取得收尾权后立即 closed，禁止新
+finish 检查活动 execution 和 official 编排。忙碌时不写状态、不清理；取得收尾权后立即 closed，禁止新
 execution。它持久保存每个 execution 的核验结论，再清理工具拥有的临时根；不终止
 消费者进程，不删除 session、material、execution 或调用方文件，也不隐式执行业务
 动作、导出或采用。
@@ -125,9 +126,11 @@ session 中保留：
 - `materials/index.json`、`materials/<materialId>/`：不可变材料注册表和完整闭包。
 - `current.json`：唯一 current material 身份，或没有 current。
 - `executions/index.json`：execution 与连接状态索引。
-- `executions/<executionId>/execution.json`：每次 action 的 descriptor。
+- `executions/<executionId>/execution.json`：record/mock execution 的 descriptor。
 - execution 中的 `receipts/`：协议、EOF、进程退出和错误证据。
-- execution 中的 `record/` 或 `verify/`：采集、验证或失败证据。
+- execution 中的 `record/`：采集或失败证据。
+- `official-records/<runId>/`：官方录制业务报告和实际采集结果引用。
+- `verifications/<verificationId>/`：driver 报告、失败诊断及引用 mock execution 的验证证据。
 - execution 中的 `finish.json`：首次收尾的逐 execution 核验结论。
 - `finish.json`、`cleanup.json`、`closed`：最终结论、清理进度和关闭标记。
 - `prepare.json`：prepare 的结果或失败诊断。

@@ -1,10 +1,10 @@
 # Agent SDK drivers
 
-`drivers/` 包含 `record`、`verify` 使用的官方 SDK driver 及其 Python wheel。
+`drivers/` 包含 `official record`、`official verify` 使用的官方 SDK driver 及其 Python wheel。
 driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负责 case 选择、
 隔离环境、协议对端、进程管理和回执。
 
-`mock` 消费者只使用 `agent-sdk-testify` 二进制，不需要安装本目录的 driver、
+`agent mock` 消费者只使用 `agent-sdk-testify` 二进制，不需要安装本目录的 driver、
 官方 SDK 或 Python。
 
 ## 布局
@@ -42,7 +42,7 @@ bash scripts/with-agent-sdk-testify.sh \
 
 ## 官方 SDK 环境
 
-只有 `record`/`verify` 需要 Python 官方 SDK；`mock` 只使用工具二进制。使用
+只有 official record/verify 需要 Python 官方 SDK；agent record/mock 只使用工具二进制。使用
 Python 3.11+、pip 和 `setuptools>=68` 构建本目录，再把 wheel 以 `--no-deps`
 安装到显式环境，并将该环境的 `bin` 放入 `PATH`。
 
@@ -72,9 +72,9 @@ git -C /absolute/codex-source rev-parse HEAD
   --no-deps /absolute/agent_sdk_testify_driver-0.1.0-py3-none-any.whl
 ```
 
-`--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。`record` 通过 `--cmd ABS` 和
-`--` 后的原生 argv 显式指定 executable 及其参数；`verify` 使用 driver 提供的
-strict mock/proxy，
+`--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。agent record、official record 通过 `--cmd ABS` 和
+`--` 后的原生 argv 显式指定 executable 及其参数；`official verify` 向 driver 提供公开
+`agent mock --session-dir ...` 进程入口，由 driver 使用官方 SDK 启动，
 不得回落到已安装的真实 Codex 或 Claude。源码 SDK、录制中的原生 CLI 和工具自身
 是三个独立版本身份。
 
@@ -87,12 +87,17 @@ strict mock/proxy，
 | `case` | 本次执行的 case 身份 |
 | `materials` | 已释放的 case 材料和合同 |
 | `workspace` | 本次运行的可写工作区 |
-| `peer` | 录制代理或 mock 的原生进程入口；远端 case 可带 `probe` |
+| `peer` | 公开 agent record 或 agent mock 进程入口；远端 case 可带 `probe` |
 | `output` | driver 结果、诊断和业务证据目录 |
 
 `result.json` 至少包含 `status` 和可选 `message`。状态为 `passed`、`failed`、
 `untriggered` 或 `unsupported`。driver 自己保存详细业务回执；stdout 不承载
 业务协议，原生 SDK 进程使用独立管道。
+
+官方录制和验证的 driver 都须报告实际启动的 agent execution/连接身份，以及 SDK
+关闭和 agent 进程退出事实。official 命令据此核验结果；协议回执由 agent 命令自行
+保存，不由 driver 或 official 命令代写。录制业务报告在采集结束后单独保存并关联
+material，不回写不可变录制。职责和证据归属见[工具设计](../docs/design.md#official-verify)。
 
 driver 只执行一个请求，不实现 registry、双向命令、步骤 DSL 或 SDK 覆盖门禁。
 case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios) 与
@@ -102,7 +107,7 @@ case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios
 
 ## 录制与测试输入
 
-`record` 的原始尝试保存在私有输出目录；经 `verify`、资格审核和采用后，材料进入：
+`agent record` 的原始尝试保存在私有输出目录；经 `official verify`、资格审核和采用后，材料进入：
 
 ```text
 data/<agentType>/<story>/<case>/<attempt>/

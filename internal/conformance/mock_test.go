@@ -95,14 +95,14 @@ func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			argv := append([]string{"mock", "--session-dir", session}, args...)
 			result := runTool(t, env, t.TempDir(), requestOne, argv...)
-			require.Equal(t, 2, result.code, result.stderr)
+			require.Equal(t, 1, result.code, result.stderr)
 			require.Empty(t, result.stdout)
 			require.True(t, bytes.Equal(before, readAllFiles(t, session)), "rejected input changed session files")
 			require.NoFileExists(t, filepath.Join(root, "report.json"))
 		})
 	}
 	result := runTool(t, env, t.TempDir(), "", "mock")
-	require.Equal(t, 2, result.code, result.stderr)
+	require.Equal(t, 1, result.code, result.stderr)
 	require.Contains(t, result.stderr, "mock requires --session-dir")
 	finished, _ := finishSession(t, env, session)
 	require.Zero(t, finished.code, finished.stderr)
@@ -124,7 +124,7 @@ func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			cmd.Stdout, cmd.Stderr = &stdout, &stderr
 			require.Error(t, cmd.Run())
-			require.Equal(t, 2, cmd.ProcessState.ExitCode(), stderr.String())
+			require.Equal(t, 1, cmd.ProcessState.ExitCode(), stderr.String())
 			require.Empty(t, stdout.String())
 			require.True(t, bytes.Equal(before, readAllFiles(t, session)), "launcher rejected input changed session files")
 		})

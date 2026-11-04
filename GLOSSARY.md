@@ -31,7 +31,7 @@ _Avoid_: 单条断言、专项故障测试
 
 **Session（会话，也称 prepared 会话）**:
 由 `prepare` 创建、由 `finish` 关闭的隔离环境与持久数据根，使用
-`--session-dir` 定位。一次会话可承载多个 record、verify 和 mock execution。
+`--session-dir` 定位。一次会话可承载多个 record/mock execution 和 verification。
 它不是 Agent 的 home 或原生配置目录。
 
 **Initial source（初始来源）**:
@@ -42,17 +42,24 @@ _Avoid_: 单条断言、专项故障测试
 创建 session，校验来源，建立隔离环境，并把 case、plan 或已有录制材料完整复制到
 session。它是唯一提供 source 选择的命令，不启动客户端、SDK、driver 或真实 Agent。
 
-**record**:
+**agent record**:
 在 session 中显式启动真实 Agent，按 case 或 consumer plan 采集新的原生交互尝试。
 成功后生成新 material 并原子替换 current recording；失败保留 execution 证据但不
 替换 current。
 
-**verify**:
-在 session 中评价 current recording，使用官方 driver 离线执行录制，并校验业务
-断言、协议匹配、完整消费、EOF 和清理。verify 绑定精确 material 哈希，不修改
-current recording；默认只产出验证证据。
+**Official driver（官方驱动）**:
+使用本仓库指定的官方 SDK 执行 case 的程序；负责业务操作、断言和 SDK 收尾。
 
-**mock**:
+**official record**:
+编排官方 driver，通过公开 agent record 采集真实 Agent 交互，记录业务事实和
+实际采集结果的关联；不拥有协议 execution。
+
+**official verify**:
+在 session 中驱动官方 driver 并记录验证事实；driver 调用公开 agent mock。official verify 核对
+业务报告及实际 mock execution 的协议、EOF、退出和清理证据，绑定精确 material
+哈希，不修改 current，也不拥有 execution 或连接；默认只产出验证证据。
+
+**agent mock**:
 在 session 中用 current recording 替代真实 Agent，作为消费者测试使用的原生协议
 对端。mock 不要求 current 已经 verify，也不提供 Agent 版本或元命令。
 
@@ -68,16 +75,16 @@ current recording；默认只产出验证证据。
 通过 mock 的进程接口运行自身 SDK 或产品测试的一方。业务断言和测试编排归消费者。
 
 **Consumer capture（消费者录制）**:
-外部消费者通过 `prepare --plan` 创建会话，再由 record 用自身 SDK 或运行时驱动真实
-Agent 并保存的原生交互录制。工具准备隔离环境、配置和材料；它不是官方 case 录制。
+外部消费者通过 `prepare --plan` 创建会话，由自己的 SDK 宿主启动 agent record，
+代理真实 Agent 交互并保存的录制。工具准备隔离环境、配置和材料；它不是官方 case 录制。
 
 **Action execution（action 执行）**:
-会话中的一次 record、verify 或 mock 执行，由
+会话中的一次 record 或 mock 执行，由
 `executions/<executionId>/execution.json` 描述；每个 execution 使用独立可写 overlay。
 它不是额外的 CLI 步骤。
 
 **Record source（录制来源）**:
-prepare 固化的 plan、执行器和来源身份。每次 record 使用同一 record source，不随
+prepare 固化的 plan、协议项目和来源身份。每次 agent record 使用同一 record source，不随
 current recording 的切换改变。
 
 **Current recording（当前录制）**:
@@ -99,7 +106,9 @@ export 保存，但不经过官方验证或入仓资格，也不进入默认 cas
 
 **Verification（验证证据）**:
 对精确 material 执行官方 verify 的结果，绑定 material 哈希、case/binding 身份、
-工具和 driver 身份。它不是 material 的类型，不能转移到其他材料。
+工具、driver 和实际 SDK 身份，以及本次 mock execution/连接的精确引用。
+它拥有验证事实与结论，不拥有协议 execution 或连接；不是 material 的类型，不能
+转移到其他材料。
 
 **Admission eligibility（入仓资格）**:
 精确官方 case material 同时具备官方业务验证、来源、隔离、材料闭包和哈希证据，

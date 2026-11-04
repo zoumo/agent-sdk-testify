@@ -77,11 +77,15 @@ func OpenSession(sessionDir string) (*Session, error) {
 	return readSessionUnlocked(sessionDir)
 }
 
-func SessionOpen(sessionDir string) error {
-	if _, err := readSessionUnlocked(sessionDir); err != nil {
-		return err
+func OpenActionSession(sessionDir string) (*Session, error) {
+	session, err := OpenSession(sessionDir)
+	if err != nil {
+		return nil, err
 	}
-	return checkOpen(sessionDir)
+	if err := checkOpen(sessionDir); err != nil {
+		return nil, err
+	}
+	return session, nil
 }
 
 func checkOpen(sessionDir string) error {
@@ -143,13 +147,12 @@ func setConnectionStarted(execution *IndexExecution, id, status string) {
 	}
 }
 
-func executionConnections(dir, action string, ids []string, material *Artifact, route Route) ([]ExecutionConnection, []string, error) {
+func executionConnections(dir, action string, ids []string, material *Artifact, route Route) ([]ExecutionConnection, error) {
 	var connections []ExecutionConnection
-	var receipts []string
 	for _, id := range ids {
 		template, ok := connectionTemplate(route, id)
 		if !ok {
-			return nil, nil, fmt.Errorf("route does not declare connection %s", id)
+			return nil, fmt.Errorf("route does not declare connection %s", id)
 		}
 		connection := ExecutionConnection{
 			ID:       id,
@@ -184,7 +187,7 @@ func executionConnections(dir, action string, ids []string, material *Artifact, 
 			}
 			recordingHash, err := tool.FileDigest(recording)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			connection.Material = material.Path
 			connection.PlanSHA256 = material.PlanSHA256
@@ -192,12 +195,8 @@ func executionConnections(dir, action string, ids []string, material *Artifact, 
 			connection.RecordingSHA256 = recordingHash
 		}
 		connections = append(connections, connection)
-		receipts = append(receipts, connection.Receipt)
-		if connection.ProcessReceipt != "" {
-			receipts = append(receipts, connection.ProcessReceipt)
-		}
 	}
-	return connections, receipts, nil
+	return connections, nil
 }
 
 func createExecutionOverlay(session *Session, action, dir string, plan tool.Object, material *Artifact) (string, map[string]string, error) {
@@ -265,7 +264,6 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	workspace := filepath.Join(overlayRoot, "workspace")
 	limits := session.Limits
 	if timeout > 0 {
-		limits.TimeoutMS = timeout.Milliseconds()
 		limits.TimeoutNS = int64(timeout)
 	}
 	route := session.Routes[action]
@@ -273,7 +271,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	if err != nil {
 		return Execution{}, err
 	}
-	connections, receipts, err := executionConnections(artifactRoot, action, ids, material, route)
+	connections, err := executionConnections(artifactRoot, action, ids, material, route)
 	if err != nil {
 		return Execution{}, err
 	}
@@ -295,9 +293,8 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 		Tmp:           filepath.Join(overlayRoot, "tmp"),
 		HistorySeed:   filepath.Join(overlayRoot, "history-seed"),
 		HistoryFiles:  historyFiles,
-		Env:           environmentAt(session, overlayRoot),
+		Env:           baseEnvironment(session.AgentType, overlayRoot),
 		Connections:   connections,
-		Receipts:      receipts,
 		ArtifactRoot:  artifactRoot,
 		Admission:     admission,
 		Limits:        limits,
@@ -417,7 +414,7 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 			return nil, err
 		}
 		plan = inspection.Plan
-		if _, _, err := executionConnections(sessionDir, action, current.Connections, current, route); err != nil {
+		if _, err := executionConnections(sessionDir, action, current.Connections, current, route); err != nil {
 			return nil, err
 		}
 	}
@@ -542,7 +539,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if !reflect.DeepEqual(current, material) {
 		return nil, errors.New("current recording changed before execution")
 	}
-	if _, _, err := executionConnections(sessionDir, "mock", current.Connections, current, route); err != nil {
+	if _, err := executionConnections(sessionDir, "mock", current.Connections, current, route); err != nil {
 		return nil, err
 	}
 	index, err := readIndex(IndexPath(sessionDir))
@@ -859,7 +856,7 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error 
 		return err
 	}
 	for _, connection := range run.Execution.Connections {
-		if err := validateTransport(connection.Receipt); err != nil {
+		if err := validateCaptureTransport(connection.Receipt, 0); err != nil {
 			return fmt.Errorf("connection %s: %w", connection.ID, err)
 		}
 	}
@@ -943,12 +940,11 @@ func bindExecutionCapture(run *ActionRun, artifact Artifact) (string, error) {
 	for _, connection := range run.Execution.Connections {
 		ids = append(ids, connection.ID)
 	}
-	connections, receipts, err := executionConnections(run.ArtifactRoot, "record", ids, &artifact, run.Session.Routes["record"])
+	connections, err := executionConnections(run.ArtifactRoot, "record", ids, &artifact, run.Session.Routes["record"])
 	if err != nil {
 		return "", err
 	}
 	run.Execution.Connections = connections
-	run.Execution.Receipts = receipts
 	run.Execution.Artifact = artifact
 	if err := run.Execution.Validate(*run.Session); err != nil {
 		return "", err

@@ -45,7 +45,7 @@ func TestMockCLI(t *testing.T) {
 		require.NoError(t, os.WriteFile(receipt, []byte("existing evidence"), 0o600))
 		cmd := mockCommand(t, binary, "codex", source, "--receipt", receipt)
 		out, stderr, code := mockOutput(cmd, "")
-		assert.Equal(t, 2, code, stderr)
+		assert.Equal(t, 1, code, stderr)
 		assert.Empty(t, out)
 		data, err := os.ReadFile(receipt)
 		require.NoError(t, err)
@@ -54,7 +54,7 @@ func TestMockCLI(t *testing.T) {
 	t.Run("unknown provider", func(t *testing.T) {
 		cmd := mockCommand(t, binary, "unknown", "/missing")
 		_, stderr, code := mockOutput(cmd, "")
-		assert.Equal(t, 2, code, stderr)
+		assert.Equal(t, 1, code, stderr)
 	})
 }
 
@@ -114,9 +114,9 @@ func mockCLIBasics(t *testing.T, binary, provider string) {
 		{"extra frame", mockScenario("<{}"), "{}\n", "{}\n", 1},
 		{"extra whitespace", mockScenario("<{}"), " ", "{}\n", 1},
 		{"mismatch blocks output", mockScenario(`>{"x":1}`, "<{}"), "{\"x\":2}\n", "", 1},
-		{"disconnect", mockScenario("!"), "", "", 4},
-		{"disconnect with pending requests", mockScenario(`<{"id":1,"method":"question","type":"control_request","request_id":"q"}`, "!"), "", "{\"id\":1,\"method\":\"question\",\"type\":\"control_request\",\"request_id\":\"q\"}\n", 4},
-		{"empty scenario", mockScenario(), "", "", 2},
+		{"disconnect", mockScenario("!"), "", "", 1},
+		{"disconnect with pending requests", mockScenario(`<{"id":1,"method":"question","type":"control_request","request_id":"q"}`, "!"), "", "{\"id\":1,\"method\":\"question\",\"type\":\"control_request\",\"request_id\":\"q\"}\n", 1},
+		{"empty scenario", mockScenario(), "", "", 1},
 		{"duplicate client JSON key", mockScenario(">{}", "<{}"), "{\"x\":1,\"x\":2}\n", "", 1},
 		{"invalid JSON", mockScenario(">{}"), "{} {}\n", "", 1},
 		{"nonobject client", mockScenario(">{}"), "[1,2]\n", "", 1},
@@ -239,7 +239,7 @@ func mockCLIProgress(t *testing.T, binary, provider string) {
 				require.NoError(t, err)
 				code = 1
 			case "timeout":
-				code = 3
+				code = 1
 			}
 			p.wait(t, code)
 			_, err = os.Stat(receipt)
@@ -259,7 +259,7 @@ func mockCLIProgress(t *testing.T, binary, provider string) {
 			}
 			if mode == "disconnect" {
 				action = "!"
-				code = 4
+				code = 1
 			}
 			source := mockWriteScenario(t, t.TempDir(), mockScenario(action))
 			p := mockStart(t, binary, provider, source, true)
@@ -297,7 +297,7 @@ func mockCLICancellation(t *testing.T, binary, provider string) {
 			}
 			source := mockWriteScenario(t, t.TempDir(), script)
 			p := mockStart(t, binary, provider, source, false, "--timeout", "0.1")
-			p.wait(t, 3)
+			p.wait(t, 1)
 			assert.Contains(t, p.stderr.String(), "deadline exceeded")
 			assert.Contains(t, p.stderr.String(), "ordinal 1")
 		})
@@ -310,14 +310,14 @@ func mockCLICancellation(t *testing.T, binary, provider string) {
 			require.NoError(t, err)
 			require.Equal(t, "{}\n", line)
 			require.NoError(t, p.cmd.Process.Signal(signal))
-			p.wait(t, 3)
+			p.wait(t, 1)
 			assert.Contains(t, p.stderr.String(), "context canceled")
 		})
 	}
 	t.Run("scenario timeout", func(t *testing.T) {
 		script := strings.Replace(mockScenario(">{}"), `"frames":`, `"timeoutMs":40,"frames":`, 1)
 		p := mockStart(t, binary, provider, mockWriteScenario(t, t.TempDir(), script), false)
-		p.wait(t, 3)
+		p.wait(t, 1)
 	})
 	t.Run("explicit timeout overrides scenario", func(t *testing.T) {
 		script := strings.Replace(mockScenario("<{}"), `"frames":`, `"timeoutMs":1,"frames":`, 1)
@@ -334,19 +334,19 @@ func mockCLIConfiguration(t *testing.T, binary, provider string) {
 		args         []string
 		code         int
 	}{
-		{"wrong format version", strings.Replace(mockScenario("<{}"), `"version":1`, `"version":2`, 1), nil, 2},
-		{"unknown envelope", strings.Replace(mockScenario("<{}"), `"wire":`, `"unknown":true,"wire":`, 1), nil, 2},
-		{"duplicate JSON", `{"version":1,"version":1}`, nil, 2},
-		{"bad fault provenance", strings.Replace(mockScenario("!"), `"synthetic"`, `"recording","source":"manifest"`, 1), nil, 2},
-		{"max frames", mockScenario("<{}", "<{}"), []string{"--max-frames", "1"}, 2},
-		{"source bytes", mockScenario("<{}"), []string{"--max-bytes", "1"}, 2},
-		{"frame bytes", mockScenario("<{}"), []string{"--max-frame-bytes", "2"}, 2},
-		{"native version mismatch", mockScenario(`<{"claude_code_version":"2.1.1"}`), []string{"--recording-version", "2.1.2"}, 2},
+		{"wrong format version", strings.Replace(mockScenario("<{}"), `"version":1`, `"version":2`, 1), nil, 1},
+		{"unknown envelope", strings.Replace(mockScenario("<{}"), `"wire":`, `"unknown":true,"wire":`, 1), nil, 1},
+		{"duplicate JSON", `{"version":1,"version":1}`, nil, 1},
+		{"bad fault provenance", strings.Replace(mockScenario("!"), `"synthetic"`, `"recording","source":"manifest"`, 1), nil, 1},
+		{"max frames", mockScenario("<{}", "<{}"), []string{"--max-frames", "1"}, 1},
+		{"source bytes", mockScenario("<{}"), []string{"--max-bytes", "1"}, 1},
+		{"frame bytes", mockScenario("<{}"), []string{"--max-frame-bytes", "2"}, 1},
+		{"native version mismatch", mockScenario(`<{"claude_code_version":"2.1.1"}`), []string{"--recording-version", "2.1.2"}, 1},
 		{"native version exact", mockScenario(`<{"claude_code_version":"2.1.1"}`), []string{"--recording-version", "2.1.1"}, 0},
 		{"native version absent", mockScenario("<{}"), []string{"--recording-version", "future"}, 0},
-		{"native version invalid type", mockScenario(`<{"claude_code_version":1}`), []string{"--recording-version", "1"}, 2},
-		{"zero timeout", mockScenario("<{}"), []string{"--timeout", "0"}, 2},
-		{"zero max frames", mockScenario("<{}"), []string{"--max-frames", "0"}, 2},
+		{"native version invalid type", mockScenario(`<{"claude_code_version":1}`), []string{"--recording-version", "1"}, 1},
+		{"zero timeout", mockScenario("<{}"), []string{"--timeout", "0"}, 1},
+		{"zero max frames", mockScenario("<{}"), []string{"--max-frames", "0"}, 1},
 		{"invalid progress fd", mockScenario("<{}"), []string{"--progress-fd", "9999"}, 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -368,7 +368,7 @@ func mockCLIConfiguration(t *testing.T, binary, provider string) {
 		name string
 		args []string
 		code int
-	}{{"native startup", args, 0}, {"native args after separator", append([]string{"--"}, args...), 0}, {"wrong transport", bad, 2}, {"duplicate startup", append(append([]string{}, args...), args...), 2}} {
+	}{{"native startup", args, 0}, {"native args after separator", append([]string{"--"}, args...), 0}, {"wrong transport", bad, 1}, {"duplicate startup", append(append([]string{}, args...), args...), 1}} {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := mockCommand(t, binary, provider, mockWriteScenario(t, t.TempDir(), mockScenario("<{}")), tc.args...)
 			_, stderr, code := mockOutput(cmd, "")
@@ -424,6 +424,6 @@ func mockCLIHandshakes(t *testing.T, binary string) {
 	t.Run("Claude rejects handshake no-op", func(t *testing.T) {
 		cmd := mockCommand(t, binary, "claude", mockWriteScenario(t, t.TempDir(), mockScenario("<{}")), "--sdk-test-handshakes", "answer")
 		_, stderr, code := mockOutput(cmd, "")
-		assert.Equal(t, 2, code, stderr)
+		assert.Equal(t, 1, code, stderr)
 	})
 }

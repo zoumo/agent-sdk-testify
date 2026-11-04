@@ -14,8 +14,6 @@ import (
 	"sync/atomic"
 
 	"github.com/coder/websocket"
-
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 )
 
 type ConnectOptions struct {
@@ -25,22 +23,21 @@ type ConnectOptions struct {
 }
 
 func Connect(ctx context.Context, o ConnectOptions, streams IO) error {
-	fail := func(message string) error { return exitcode.Fail(exitcode.Failure, errors.New(message)) }
 	u, err := url.Parse(o.URL)
 	if err != nil || (u.Scheme != "ws" && u.Scheme != "wss") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
-		return fail("invalid WebSocket endpoint")
+		return errors.New("invalid WebSocket endpoint")
 	}
 	info, err := os.Lstat(o.TokenFile)
 	if err != nil || !info.Mode().IsRegular() || info.Size() == 0 || info.Size() > 65536 {
-		return fail("private token file unavailable")
+		return errors.New("private token file unavailable")
 	}
 	tokenBytes, err := os.ReadFile(o.TokenFile)
 	if err != nil {
-		return fail("private token file unreadable")
+		return errors.New("private token file unreadable")
 	}
 	token := strings.TrimSpace(string(tokenBytes))
 	if token == "" || strings.ContainsAny(token, "\r\n\t ") {
-		return fail("invalid bearer token")
+		return errors.New("invalid bearer token")
 	}
 	transport := &http.Transport{Proxy: nil}
 	defer transport.CloseIdleConnections()
@@ -50,7 +47,7 @@ func Connect(ctx context.Context, o ConnectOptions, streams IO) error {
 		_ = response.Body.Close()
 	}
 	if err != nil {
-		return fail("WebSocket connection failed")
+		return errors.New("WebSocket connection failed")
 	}
 	defer func() { _ = conn.CloseNow() }()
 	conn.SetReadLimit(o.MaxFrameBytes)
@@ -67,16 +64,16 @@ func Connect(ctx context.Context, o ConnectOptions, streams IO) error {
 				if clientEOF.Load() {
 					readDone <- nil
 				} else {
-					readDone <- fail("WebSocket closed before clean client EOF")
+					readDone <- errors.New("WebSocket closed before clean client EOF")
 				}
 				return
 			}
 			if kind != websocket.MessageText || !json.Valid(payload) || bytes.ContainsAny(payload, "\r\n") {
-				readDone <- fail("WebSocket message is not one JSON line")
+				readDone <- errors.New("WebSocket message is not one JSON line")
 				return
 			}
 			if _, err := streams.Out.Write(append(payload, '\n')); err != nil {
-				readDone <- fail("WebSocket output forwarding failed")
+				readDone <- errors.New("WebSocket output forwarding failed")
 				return
 			}
 		}
@@ -89,7 +86,7 @@ func Connect(ctx context.Context, o ConnectOptions, streams IO) error {
 			part, err := reader.ReadSlice('\n')
 			line = append(line, part...)
 			if int64(len(line)) > o.MaxFrameBytes+1 {
-				writeDone <- fail("client JSON line exceeds frame limit")
+				writeDone <- errors.New("client JSON line exceeds frame limit")
 				return
 			}
 			if errors.Is(err, bufio.ErrBufferFull) {
@@ -101,23 +98,23 @@ func Connect(ctx context.Context, o ConnectOptions, streams IO) error {
 				// own; it does not require the server to acknowledge shutdown or
 				// send any shutdown RPC to the service.
 				if err := conn.CloseNow(); err != nil {
-					writeDone <- fail("WebSocket connection close failed")
+					writeDone <- errors.New("WebSocket connection close failed")
 				} else {
 					writeDone <- nil
 				}
 				return
 			}
 			if err != nil || len(line) == 0 || line[len(line)-1] != '\n' {
-				writeDone <- fail("client JSON line is incomplete")
+				writeDone <- errors.New("client JSON line is incomplete")
 				return
 			}
 			line = bytes.TrimSuffix(bytes.TrimSuffix(line, []byte{'\n'}), []byte{'\r'})
 			if !json.Valid(line) {
-				writeDone <- fail("client line is not JSON")
+				writeDone <- errors.New("client line is not JSON")
 				return
 			}
 			if err := conn.Write(ctx, websocket.MessageText, line); err != nil {
-				writeDone <- fail("WebSocket input forwarding failed")
+				writeDone <- errors.New("WebSocket input forwarding failed")
 				return
 			}
 			line = nil

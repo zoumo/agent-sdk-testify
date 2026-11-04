@@ -125,7 +125,7 @@ func TestRecordCLIStdinEOFAction(t *testing.T) {
 		{"only direct child interrupted", "interrupt", "direct-only", 0, 0, "EOF", ""},
 		{"interrupt nonzero fails", "interrupt", "nonzero", 1, 17, "native-error", ""},
 		{"unhandled signal fails", "interrupt", "unhandled", 1, -1, "native-error", syscall.SIGINT.String()},
-		{"ignored signal times out", "interrupt", "ignore", 3, -1, "deadline", syscall.SIGTERM.String()},
+		{"ignored signal times out", "interrupt", "ignore", 1, -1, "deadline", syscall.SIGTERM.String()},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			flags := []string{"--timeout", "2"}

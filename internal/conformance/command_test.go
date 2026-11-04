@@ -25,7 +25,7 @@ func TestPublicCommands(t *testing.T) {
 	require.NotContains(t, strings.ToLower(rootHelp), "replay and finish")
 	for _, name := range []string{"simulate", "replay", "corpus", "protocol", "peer"} {
 		out, stderr, code = runCLI(t, binary, nil, name)
-		require.Equal(t, 2, code, string(out))
+		require.Equal(t, 1, code, string(out))
 		require.Empty(t, out)
 		require.Contains(t, stderr, "unknown command")
 	}
@@ -77,9 +77,9 @@ func TestPublicCommandExitContract(t *testing.T) {
 	}{
 		{name: "success", source: complete, stdout: "{}\n"},
 		{name: "failure", source: waiting, stderr: "early client EOF", code: 1},
-		{name: "configuration", source: invalid, stderr: "unsupported scenario version", code: 2},
-		{name: "canceled", source: waiting, stderr: "deadline exceeded", code: 3, extra: []string{"--timeout", "0.05"}, holdInput: true},
-		{name: "disconnect", source: disconnect, stderr: "scripted disconnect", code: 4},
+		{name: "configuration", source: invalid, stderr: "unsupported scenario version", code: 1},
+		{name: "canceled", source: waiting, stderr: "deadline exceeded", code: 1, extra: []string{"--timeout", "0.05"}, holdInput: true},
+		{name: "disconnect", source: disconnect, stderr: "scripted disconnect", code: 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var input io.Reader
@@ -125,7 +125,7 @@ func TestSinglePreparedSessionCLIContract(t *testing.T) {
 		{"mock", "--provider", "codex", "--case", "SDK-CASE-001", "--report", "/tmp/report.json"},
 	} {
 		out, stderr, code = runCLI(t, binary, nil, args...)
-		require.Equal(t, 2, code, stderr)
+		require.Equal(t, 1, code, stderr)
 		require.Empty(t, out)
 		require.NotContains(t, strings.ToLower(stderr), "legacy")
 	}
@@ -133,12 +133,12 @@ func TestSinglePreparedSessionCLIContract(t *testing.T) {
 	root := t.TempDir()
 	out, stderr, code = runCLI(t, binary, nil,
 		"verify", "--recording", filepath.Join(root, "capture"), "--output", filepath.Join(root, "output"))
-	require.Equal(t, 2, code, stderr)
+	require.Equal(t, 1, code, stderr)
 	require.Empty(t, out)
 	require.Contains(t, stderr, "unknown flag: --recording")
 
 	out, stderr, code = runCLI(t, binary, nil, "verify", "--recording", filepath.Join(root, "capture"))
-	require.Equal(t, 2, code, stderr)
+	require.Equal(t, 1, code, stderr)
 	require.Empty(t, out)
 	require.Contains(t, stderr, "unknown flag: --recording")
 }
@@ -152,15 +152,16 @@ func TestPublicCommandParseFailuresDoNotStartHandlers(t *testing.T) {
 		args := append([]string{"record", "--session-dir", t.TempDir(), "--cmd", launcher}, extra...)
 		args = append(args, "--", "app-server")
 		out, stderr, code := runCLI(t, binary, nil, args...)
-		require.Equal(t, 2, code)
+		require.Equal(t, 1, code)
 		require.Empty(t, out)
 		require.NotEmpty(t, stderr)
-		require.Contains(t, stderr, "Usage:")
+		require.Contains(t, stderr, "agent-sdk-testify:")
+		require.NotContains(t, stderr, "Usage:")
 		require.NoFileExists(t, marker)
 	}
 }
 
-func TestPublicCommandConfigurationClassification(t *testing.T) {
+func TestPublicCommandSessionErrors(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	root := t.TempDir()
 	missing := filepath.Join(root, "missing-session")
@@ -198,9 +199,10 @@ func TestPublicCommandConfigurationClassification(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			out, stderr, code := runCLI(t, binary, nil, tc.args...)
-			require.Equal(t, 2, code, stderr)
+			require.Equal(t, 1, code, stderr)
 			require.Empty(t, out)
-			require.Contains(t, stderr, "Usage:")
+			require.Contains(t, stderr, "agent-sdk-testify:")
+			require.NotContains(t, stderr, "Usage:")
 		})
 	}
 }
@@ -247,9 +249,10 @@ func TestInternalProtocolArgumentErrors(t *testing.T) {
 	for _, args := range cases {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			out, stderr, code := runCLI(t, binary, nil, args...)
-			require.Equal(t, 2, code, stderr)
+			require.Equal(t, 1, code, stderr)
 			require.Empty(t, out)
-			require.Contains(t, stderr, "Usage:")
+			require.Contains(t, stderr, "agent-sdk-testify:")
+			require.NotContains(t, stderr, "Usage:")
 		})
 	}
 }

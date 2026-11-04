@@ -15,6 +15,6 @@ func registerGenerate(root *cobra.Command, streams IO) {
 	root.Flags().StringVar(&o.Root, "root", ".", "Authoritative repository root")
 	root.RunE = func(_ *cobra.Command, _ []string) error {
 		o.Diagnostics = streams.Err
-		return runtimeError(builtin.Generate(o))
+		return builtin.Generate(o)
 	}
 }

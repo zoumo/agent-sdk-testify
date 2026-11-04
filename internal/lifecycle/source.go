@@ -33,13 +33,12 @@ type PrepareOptions struct {
 }
 
 type sourceSpec struct {
-	material   *Artifact
-	source     Source
-	plan       tool.Object
-	planBytes  []byte
-	agentType  string
-	provenance string
-	routes     map[string]bool
+	material  *Artifact
+	source    Source
+	plan      tool.Object
+	planBytes []byte
+	agentType string
+	routes    map[string]bool
 }
 
 func resolveSource(o PrepareOptions) (*sourceSpec, error) {
@@ -123,7 +122,7 @@ func resolveCase(o PrepareOptions) (*sourceSpec, error) {
 		Provenance:    "official",
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
-	return &sourceSpec{source: source, plan: plan, planBytes: raw, agentType: agent, provenance: "official", routes: map[string]bool{"record": true, "verify": true, "mock": true}}, nil
+	return &sourceSpec{source: source, plan: plan, planBytes: raw, agentType: agent, routes: map[string]bool{"record": true, "verify": true, "mock": true}}, nil
 }
 
 func resolvePlan(o PrepareOptions) (*sourceSpec, error) {
@@ -170,7 +169,7 @@ func resolvePlan(o PrepareOptions) (*sourceSpec, error) {
 		Provenance:    "consumer",
 		DriverProfile: "consumer",
 	}
-	return &sourceSpec{source: source, plan: plan, planBytes: raw, agentType: agent, provenance: "consumer", routes: map[string]bool{"record": true, "verify": false, "mock": true}}, nil
+	return &sourceSpec{source: source, plan: plan, planBytes: raw, agentType: agent, routes: map[string]bool{"record": true, "verify": false, "mock": true}}, nil
 }
 
 func validateConsumerPlan(plan tool.Object) error {
@@ -335,7 +334,7 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
 	verify := provenance != "consumer"
-	return &sourceSpec{material: imported, source: source, plan: plan, agentType: agent, provenance: provenance, routes: map[string]bool{"record": recordingExecutor(plan, agent, provenance) != "", "verify": verify, "mock": true}}, nil
+	return &sourceSpec{material: imported, source: source, plan: plan, agentType: agent, routes: map[string]bool{"record": recordingExecutor(plan, agent, provenance) != "", "verify": verify, "mock": true}}, nil
 }
 
 func materialAgentType(plan tool.Object) (string, error) {

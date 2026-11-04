@@ -197,7 +197,7 @@ func TestExportNoCurrentAndCLISelection(t *testing.T) {
 	for _, extra := range [][]string{{"--recording", root}, {"--case", "SDK-CASE-001"}, {"--plan", root}, {"--agent", "codex"}, {"unexpected"}} {
 		args := append([]string{"export", "--session-dir", session, "--output", output}, extra...)
 		failed = runTool(t, env, t.TempDir(), "", args...)
-		require.Equal(t, 2, failed.code, failed.stderr)
+		require.Equal(t, 1, failed.code, failed.stderr)
 	}
 	require.Equal(t, before, readAllFiles(t, session))
 	require.NoDirExists(t, output)

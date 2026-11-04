@@ -4,8 +4,8 @@
 真实 Agent 的原生交互保存为 consumer material，并在同一会话中直接用 mock 严格
 回放。该路径不经过官方 driver，不登记官方 case，也不进入验证、采用或内置快照。
 
-consumer 录制采用 `prepare → record → mock → finish` 生命周期。一次
-prepare 可以承载多个 record、verify 或 mock execution；环境准备和材料由工具完整负责，
+consumer 录制采用 `prepare → agent record → agent mock → finish` 生命周期。一次
+prepare 可以承载多个 record/mock execution；环境准备和材料由工具完整负责，
 消费者只提供 plan、真实 Agent 启动命令/参数，并在自己的 SDK 宿主演用当前 route 的
 环境。本文只描述 plan source；生命周期、source/executor/target 和 descriptor 合同见
 [工具设计](design.md#会话生命周期)。
@@ -53,16 +53,16 @@ CLI 和原生参数属于本次 record execution，不改变已准备的 source�
 消费者不能通过 flag 覆盖这些路径，只使用 prepare 返回的 descriptor；认证值不进入
 `session.json`，调用进程只需保留 record route `runtimeEnv` 列出的变量。
 
-### record
+### agent record
 
 ```sh
-agent-sdk-testify record --session-dir /absolute/session \
+agent-sdk-testify agent record --session-dir /absolute/session \
   [--timeout DURATION] \
   --cmd /absolute/codex -- app-server --listen stdio://
 ```
 
 消费者必须先应用 record route 的 `env`，把 SDK 宿主 cwd 设为 `workspace`，然后执行
-下文的 `record` 命令；Agent executable 和原生参数属于这次显式调用。record route 的
+下文的 `agent record` 命令；Agent executable 和原生参数属于这次显式调用。record route 的
 `connection.command`/`args` 是稳定调用前缀，其 `args` 已包含 `--cmd`，调用方在其后
 追加 `/absolute/agent -- ARG...`。route 的 `runtimeEnv` 只列出来自调用进程或私有
 运行环境的变量名，不包含值。record 从环境基线创建独立 execution overlay，在已准备
@@ -70,14 +70,14 @@ agent-sdk-testify record --session-dir /absolute/session \
 一次；失败也保留原始证据。
 
 record 成功后发布不可变 material 并原子替换 current recording；随后可以直接在同一
-会话执行 `mock`，不需要重新 prepare。失败保留 execution，current 不变。record source
+会话执行 `agent mock`，不需要重新 prepare。失败保留 execution，current 不变。record source
 保持 prepare 固化的 plan 和 executor，不从 current 推导。consumer material 没有适用
-官方 verifier，verify 在领取 execution 前失败。
+官方 verifier，verify 在启动 driver 前失败。
 
-### mock
+### agent mock
 
 ```sh
-agent-sdk-testify mock --session-dir /absolute/session \
+agent-sdk-testify agent mock --session-dir /absolute/session \
   --connection main
 ```
 
@@ -102,7 +102,7 @@ finish 忙碌时不写状态或清理；取得锁后立即关闭会话。清理�
 - 多次 record 产生多个不可变 material，旧材料和旧验证证据保留；action 不接受材料覆盖。
 - 需要在另一 session 使用材料时，先 export，再 prepare --recording；导出不提升可信等级。
 - 每次 record 或 mock 使用独立 execution overlay，前一次 SDK 的历史和写入不会污染后一次。
-- 同一会话的 action 串行执行；上一个 action 完成后才可以开始下一个。
+- 同一会话的 record/mock execution 串行执行；上一个 execution 完成后才可以开始下一个。
 - consumer capture 不进入 verify；需要官方验证时必须重新走官方 case 录制。
 
 环境职责和认证边界见[工具设计](design.md#环境与隔离)。本路径的差异只有：消费者提供
@@ -163,11 +163,11 @@ finish 删除工具临时根后，其中 `resourceRoot` 等路径失效。会话
 
 mock route 的 `connection.launcher` 用于只接受 executable 的 SDK；launcher 把受支持
 的追加参数转发给回放连接，并拒绝重复或白名单外的参数。record 使用上文的显式
-`--cmd ... --` 调用，不把 route 前缀当作完整 executable。
+`agent record --cmd ... --` 调用，不把 route 前缀当作完整 executable。
 
 ## 原生启动参数
 
-v1 复用 `mock` 的原生启动参数白名单，避免录出一份无法回放的材料：
+v1 复用 `agent mock` 的原生启动参数白名单，避免录出一份无法回放的材料：
 
 - Codex：`app-server`、`--listen stdio://`。
 - Claude：`--output-format stream-json`、`--input-format stream-json`、
@@ -234,14 +234,14 @@ SHA-256 写入 `manifest.savedFiles`。`plan.json` 不被改写，`planSHA256` �
 ```sh
 agent-sdk-testify prepare \
   --recording /absolute/material --session-dir /absolute/session
-agent-sdk-testify mock --session-dir /absolute/session
+agent-sdk-testify agent mock --session-dir /absolute/session
 agent-sdk-testify finish --session-dir /absolute/session
 ```
 
 材料的 consumer provenance 不因导入或导出而提升。只有 prepare 接受材料路径，mock
 只接受 session 和本次执行参数。
 
-消费者仍负责 SDK 调用、业务断言、策略比较和真实 E2E。`verify` 只接受官方 driver
+消费者仍负责 SDK 调用、业务断言、策略比较和真实 E2E。`official verify` 只接受官方 driver
 和官方材料，不用于 consumer material。
 
 ## 可重复性
@@ -262,7 +262,7 @@ plan source 的 record 只报告本次采集的完整性：真实 Agent 已启�
 通过或覆盖完整。
 
 consumer material 归消费者保存和发布；本仓库不写入 `data/index.json`，不生成内置
-快照。需要官方采用时，必须用 `prepare --case` 和 record 重新采集，再走 `verify`、
+快照。需要官方采用时，必须用 `prepare --case` 和 `official record` 重新采集，再走 `official verify`、
 资格审核和采用，不能把 consumer material 提升为官方材料。
 
 ## 安全与失败
@@ -278,8 +278,8 @@ consumer material 归消费者保存和发布；本仓库不写入 `data/index.j
 
 ## 实现边界
 
-plan source 复用 `protocol/capture` 的 stdio 采集和进程生命周期，不新增第三套
-协议引擎；准备层负责隔离环境、配置、fixture、历史种子和 material 布局。`mock` 的
+plan source 复用 `internal/protocol/capture` 的 stdio 采集和进程生命周期，不新增第三套
+协议引擎；准备层负责隔离环境、配置、fixture、历史种子和 material 布局。`agent mock` 的
 严格回放、prepared 生命周期和回执语义不变。
 
 默认测试应覆盖 prepare 的环境/workspace/config、session/execution descriptor 不可篡改、

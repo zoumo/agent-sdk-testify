@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
@@ -26,12 +25,10 @@ type Options struct {
 	NativeArgs []string
 }
 
-func bad(err error) error { return exitcode.Fail(exitcode.Configuration, err) }
-
 // Run replays the current recording in one prepared-session execution.
 func Run(ctx context.Context, o Options) error {
 	if o.SessionDir == "" {
-		return bad(errors.New("mock requires --session-dir"))
+		return errors.New("mock requires --session-dir")
 	}
 	return mockSession(ctx, o)
 }
@@ -41,7 +38,7 @@ func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, 
 	if o.ProgressFD >= 3 {
 		fd, e := syscall.Dup(o.ProgressFD)
 		if e != nil {
-			return bad(e)
+			return e
 		}
 		syscall.CloseOnExec(fd)
 		notification = os.NewFile(uintptr(fd), "consumption-notification")
@@ -49,15 +46,16 @@ func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, 
 	}
 	receiptFile, e := os.OpenFile(reportPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if e != nil {
-		return bad(e)
+		return e
 	}
 	receipt := tool.Object{
 		"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
 		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": version.Version,
 	}
 	defer func() {
-		receipt["exitCode"] = exitcode.Code(err)
+		receipt["exitCode"] = 0
 		if err != nil {
+			receipt["exitCode"] = 1
 			receipt["error"] = err.Error()
 		}
 		closeErr := receiptFile.Close()
@@ -65,7 +63,7 @@ func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, 
 	}()
 	manifest, document, e := loadMockPhase(sourceRoot, agent, phase)
 	if e != nil {
-		return bad(e)
+		return e
 	}
 	receipt["provider"] = agent
 	receipt["planSHA256"] = manifest["planSHA256"]
@@ -87,13 +85,7 @@ func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, 
 	consumed, e := mockProtocolNotifying(ctx, document, notification)
 	receipt["fullConsumption"] = consumed
 	if e != nil {
-		code := exitcode.Failure
-		if errors.Is(e, context.Canceled) || errors.Is(e, context.DeadlineExceeded) {
-			code = exitcode.Canceled
-		} else if errors.Is(e, replay.ErrDisconnected) {
-			code = exitcode.Disconnect
-		}
-		return exitcode.Fail(code, e)
+		return e
 	}
 	receipt["status"], receipt["fullConsumption"], receipt["clientEOF"] = "passed", true, true
 	return nil

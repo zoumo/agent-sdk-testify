@@ -535,25 +535,6 @@ func expectedFinishedProvenance(session *Session, action string, material *mater
 	return "", fmt.Errorf("unknown execution action %q", action)
 }
 
-func validateTransport(path string) error {
-	transport, err := readEvidenceObject(path, "capture transport receipt")
-	if err != nil {
-		return err
-	}
-	if transport["captureStatus"] != "complete" ||
-		transport["cleanupComplete"] != true ||
-		transport["nativeLaunched"] != true ||
-		transport["clientEOF"] != true ||
-		transport["reaped"] != true ||
-		transport["error"] != nil {
-		return errors.New("transport does not prove complete capture, EOF, normal exit and cleanup")
-	}
-	if code, ok := transport["nativeExitCode"].(float64); !ok || code != 0 {
-		return errors.New("native process exit is absent or nonzero")
-	}
-	return nil
-}
-
 func validateRecordReport(root string) error {
 	var report, manifest tool.Object
 	var err error

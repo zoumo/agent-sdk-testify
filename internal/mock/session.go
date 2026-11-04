@@ -7,7 +7,6 @@ import (
 	"os"
 	"slices"
 
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
@@ -16,50 +15,47 @@ import (
 
 func mockSession(ctx context.Context, o Options) (err error) {
 	if o.Timeout < 0 {
-		return exitcode.Fail(exitcode.Configuration, errors.New("mock timeout must be nonnegative"))
+		return errors.New("mock timeout must be nonnegative")
 	}
 	if o.ProgressFD != -1 && o.ProgressFD < 3 {
-		return exitcode.Fail(exitcode.Configuration, errors.New("progress-fd must be >=3"))
+		return errors.New("progress-fd must be >=3")
 	}
 	if o.Connection == "" {
 		o.Connection = "main"
 	}
-	session, err := lifecycle.OpenSession(o.SessionDir)
+	session, err := lifecycle.OpenActionSession(o.SessionDir)
 	if err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
-	}
-	if err := lifecycle.SessionOpen(o.SessionDir); err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
+		return err
 	}
 	if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
-		return bad(err)
+		return err
 	}
 
 	artifact, err := lifecycle.LatestArtifact(o.SessionDir, session, false)
 	if err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
+		return err
 	}
 	if !slices.Contains(artifact.Connections, o.Connection) {
-		return bad(fmt.Errorf("undeclared mock connection %s", o.Connection))
+		return fmt.Errorf("undeclared mock connection %s", o.Connection)
 	}
 
 	for _, connection := range artifact.Connections {
 		if _, _, err := loadMockPhase(artifact.Path, session.AgentType, connection); err != nil {
-			return exitcode.Fail(exitcode.Configuration, err)
+			return err
 		}
 	}
 	run, err := lifecycle.BeginMock(o.SessionDir, o.Connection, o.NativeArgs, o.Timeout, o.ProgressFD, artifact)
 	if err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
+		return err
 	}
 	defer func() { err = errors.Join(err, run.Close()) }()
 	if err := os.Chdir(run.Execution.Workspace); err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
+		return err
 	}
 
 	connectionPath, processPath, err := mockConnectionPaths(run, o.Connection)
 	if err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
+		return err
 	}
 	process := tool.Object{
 		"schemaVersion": 1,
@@ -78,11 +74,12 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	}
 	status := "failed"
 	defer func() {
-		process["exitCode"] = exitcode.Code(err)
+		process["exitCode"] = 0
 		if err == nil {
 			process["status"] = "passed"
 			status = "passed"
 		} else {
+			process["exitCode"] = 1
 			process["error"] = err.Error()
 		}
 		processErr := tool.WriteJSON(processPath, process)

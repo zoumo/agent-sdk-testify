@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"slices"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -114,15 +113,12 @@ func validateConnectionInventory(execution Execution, artifact *Artifact, route 
 	} else if artifact != nil {
 		ids = append([]string(nil), artifact.Connections...)
 	}
-	connections, receipts, err := executionConnections(execution.ArtifactRoot, execution.Command, ids, artifact, route)
+	connections, err := executionConnections(execution.ArtifactRoot, execution.Command, ids, artifact, route)
 	if err != nil {
 		return err
 	}
 	if !reflect.DeepEqual(connections, execution.Connections) {
 		return errors.New("execution connections differ from their route or material")
-	}
-	if !slices.Equal(receipts, execution.Receipts) {
-		return errors.New("execution receipt inventory differs from its connections")
 	}
 	return nil
 }
@@ -203,12 +199,20 @@ func validateReplayReceipt(path string, expected replayReceiptExpectation) error
 }
 
 func validateCaptureTransport(path string, frames int) error {
-	if err := validateTransport(path); err != nil {
-		return err
-	}
 	transport, err := readEvidenceObject(path, "capture transport receipt")
 	if err != nil {
 		return err
+	}
+	if transport["captureStatus"] != "complete" ||
+		transport["cleanupComplete"] != true ||
+		transport["nativeLaunched"] != true ||
+		transport["clientEOF"] != true ||
+		transport["reaped"] != true ||
+		transport["error"] != nil {
+		return errors.New("transport does not prove complete capture, EOF, normal exit and cleanup")
+	}
+	if code, ok := transport["nativeExitCode"].(float64); !ok || code != 0 {
+		return errors.New("native process exit is absent or nonzero")
 	}
 	if frames > 0 && transport["frames"] != float64(frames) {
 		return errors.New("capture transport frame count differs from the recorded stream")

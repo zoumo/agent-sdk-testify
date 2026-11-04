@@ -34,7 +34,6 @@ type Source struct {
 }
 
 type Limits struct {
-	TimeoutMS     int64 `json:"timeoutMs,omitempty"`
 	TimeoutNS     int64 `json:"timeoutNs,omitempty"`
 	ProtocolBytes int64 `json:"protocolBytes,omitempty"`
 	StderrBytes   int64 `json:"stderrBytes,omitempty"`
@@ -69,7 +68,6 @@ type Session struct {
 	ToolSHA256       string            `json:"toolSHA256"`
 	AgentType        string            `json:"agentType"`
 	Source           Source            `json:"source"`
-	SourceSHA256     string            `json:"sourceSHA256"`
 	HistorySeed      string            `json:"historySeed,omitempty"`
 	HistorySeedFiles map[string]string `json:"historySeedFiles,omitempty"`
 	ResourceRoot     string            `json:"resourceRoot"`
@@ -124,7 +122,6 @@ type Execution struct {
 	Env           map[string]string     `json:"env"`
 	RuntimeEnv    map[string]string     `json:"-"`
 	Connections   []ExecutionConnection `json:"connections"`
-	Receipts      []string              `json:"receipts"`
 	ArtifactRoot  string                `json:"artifactRoot"`
 	Artifact      Artifact              `json:"artifact"`
 	Admission     *Admission            `json:"admission,omitempty"`
@@ -265,7 +262,7 @@ func (s Session) Validate() error {
 	if err := history.ValidateBindings(s.HistorySeedFiles); err != nil {
 		return fmt.Errorf("session history seed: %w", err)
 	}
-	if s.Source.SHA256 == "" || s.SourceSHA256 == "" || s.Source.SHA256 != s.SourceSHA256 {
+	if s.Source.SHA256 == "" {
 		return errors.New("session source identity mismatch")
 	}
 	for _, action := range []string{"record", "verify", "mock"} {

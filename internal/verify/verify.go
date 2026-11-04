@@ -16,7 +16,6 @@ import (
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
-	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/official"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -34,16 +33,16 @@ type Options struct {
 func Run(ctx context.Context, o Options) error {
 	c := corpus.Corpus{Index: o.Index, Scenarios: o.Scenarios, Archive: o.Archive}
 	if o.SessionDir == "" {
-		return exitcode.Fail(exitcode.Configuration, errors.New("verify requires --session-dir"))
+		return errors.New("verify requires --session-dir")
 	}
 	if o.Timeout < 0 {
-		return exitcode.Fail(exitcode.Configuration, errors.New("timeout must be nonnegative"))
+		return errors.New("timeout must be nonnegative")
 	}
 	if c.Index == "" && c.Scenarios != "" {
-		return exitcode.Fail(exitcode.Configuration, errors.New("scenarios requires index"))
+		return errors.New("scenarios requires index")
 	}
 	if c.Index == "" && c.Archive != "" {
-		return exitcode.Fail(exitcode.Configuration, errors.New("archive requires index"))
+		return errors.New("archive requires index")
 	}
 	var admission *lifecycle.Admission
 	if c.Index != "" {
@@ -55,7 +54,7 @@ func Run(ctx context.Context, o Options) error {
 			c.Archive = archive
 		}
 		if err := c.Normalize(); err != nil {
-			return exitcode.Fail(exitcode.Configuration, err)
+			return err
 		}
 		admission = &lifecycle.Admission{Index: c.Index, Scenarios: c.Scenarios, Archive: c.Archive}
 	}
@@ -66,11 +65,8 @@ func verifyPrepared(ctx context.Context, sessionDir string, timeout time.Duratio
 	if !filepath.IsAbs(sessionDir) {
 		return errors.New("--session-dir must be an absolute path")
 	}
-	session, err := lifecycle.OpenSession(sessionDir)
+	session, err := lifecycle.OpenActionSession(sessionDir)
 	if err != nil {
-		return err
-	}
-	if err := lifecycle.SessionOpen(sessionDir); err != nil {
 		return err
 	}
 	artifact, err := lifecycle.LatestArtifact(sessionDir, session, true)

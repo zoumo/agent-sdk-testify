@@ -1,8 +1,9 @@
 GO ?= go
 GOLANGCI_LINT ?= golangci-lint
 PYTHON ?= python3
+BIN_DIR ?= bin
 ARTIFACT_DIR ?= .artifacts
-BINARY ?= $(ARTIFACT_DIR)/agent-sdk-testify
+BINARY ?= $(BIN_DIR)/agent-sdk-testify
 
 .PHONY: all fmt lint fmt-check test test-race vet build bundle check release clean
 
@@ -27,7 +28,7 @@ vet:
 	$(GO) vet ./...
 
 build:
-	@mkdir -p "$(ARTIFACT_DIR)"
+	@mkdir -p "$(dir $(BINARY))"
 	$(GO) run -tags builtin_generate . --check
 	$(GO) build -trimpath -o "$(BINARY)" .
 
@@ -42,4 +43,4 @@ release:
 	$(PYTHON) scripts/release.py --output "$(OUTPUT)"
 
 clean:
-	rm -rf "$(ARTIFACT_DIR)"
+	rm -rf "$(BIN_DIR)" "$(ARTIFACT_DIR)"
