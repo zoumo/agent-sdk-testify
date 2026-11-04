@@ -233,3 +233,119 @@ func TestOfficialVerifyPrerequisites(t *testing.T) {
 		})
 	}
 }
+
+// The SDK substitute is synthetic; this proves adoption plumbing and evidence
+// requirements, never a live Agent or official SDK business pass.
+func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
+	for _, fault := range []string{"complete", "missing-isolation", "changed-isolation", "missing-business", "business-failed", "wrong-record-reference", "changed-native-plan", "missing-parent-scan", "credential-leak", "missing-preparation-binding"} {
+		t.Run(fault, func(t *testing.T) {
+			agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
+			setControlledOfficialDriver(t, drivers, "local")
+			if fault == "business-failed" {
+				setControlledOfficialDriver(t, drivers, "business-failed")
+			}
+			if fault == "credential-leak" {
+				env = append(env, "OPENAI_API_KEY=synthetic-selected-credential")
+				setControlledOfficialDriver(t, drivers, "credential-leak")
+			}
+			session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
+			recorded := runTool(t, env, t.TempDir(), "", "official", "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
+			if fault == "business-failed" || fault == "credential-leak" {
+				require.Equal(t, 1, recorded.code)
+			} else {
+				require.Zero(t, recorded.code, recorded.stderr)
+			}
+			material := latestCapture(t, session)
+			materialRoot := str(material["path"])
+			original := readAllFiles(t, materialRoot)
+			sourceReport := readJSON(t, filepath.Join(materialRoot, "report.json"))
+			require.Equal(t, "captured", sourceReport["status"])
+			require.NoFileExists(t, filepath.Join(materialRoot, "summary.json"))
+			require.NoFileExists(t, filepath.Join(materialRoot, "result.json"))
+			execution := latestExecution(t, session, "record")
+			executionRoot := filepath.Join(session, "executions", str(execution["executionId"]))
+			isolation := filepath.Join(executionRoot, "receipts", "isolation.json")
+			origin := obj(material["officialOrigin"])
+			recordRoot := filepath.Join(session, "official-records", str(origin["runId"]))
+			switch fault {
+			case "missing-isolation":
+				require.NoError(t, os.Remove(isolation))
+			case "changed-isolation":
+				receipt := readJSON(t, isolation)
+				obj(receipt["environment"])["HOME"] = "/external-personal-home"
+				writeJSON(t, isolation, receipt)
+			case "missing-preparation-binding":
+				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
+				delete(result, "recordPreparation")
+				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
+			case "missing-parent-scan":
+				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
+				delete(result, "credentialScan")
+				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
+			case "missing-business":
+				require.NoError(t, os.Remove(filepath.Join(recordRoot, "driver", "report.json")))
+			case "wrong-record-reference":
+				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
+				obj(array(result["connections"])[0])["executionId"] = "unrelated-capture"
+				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
+			case "changed-native-plan":
+				runtimePlan := filepath.Join(filepath.Dir(str(execution["home"])), "record-plan.json")
+				plan := readJSON(t, runtimePlan)
+				plan["args"] = []string{"app-server", "--profile", "personal"}
+				writeJSON(t, runtimePlan, plan)
+			}
+			setControlledOfficialDriver(t, drivers, "local")
+			corpus := newSyntheticCorpus(t)
+			oldIndex := readFile(t, corpus.index)
+			args := []string{"official", "verify", "--session-dir", session, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive}
+			result := runTool(t, env, t.TempDir(), "", args...)
+			root, verification := latestOfficialVerification(t, session)
+			require.Equal(t, "passed", verification["status"])
+			require.NotContains(t, verification, "error")
+			admission := readJSON(t, filepath.Join(root, "admission-summary.json"))
+			if fault == "complete" {
+				require.Zero(t, result.code, result.stderr)
+				require.Equal(t, "admitted", admission["status"])
+				require.NotEmpty(t, verification["officialRecord"])
+				assertFileHashes(t, root, obj(verification["files"]))
+				adopted := str(admission["materials"])
+				require.Equal(t, readFile(t, filepath.Join(materialRoot, "report.json")), readFile(t, filepath.Join(adopted, "report.json")))
+				require.Equal(t, readFile(t, filepath.Join(materialRoot, "source-plan.json")), readFile(t, filepath.Join(adopted, "source-plan.json")))
+				require.FileExists(t, filepath.Join(adopted, "official-replay", "driver", "record-origin", "isolation.json"))
+				require.NotEqual(t, oldIndex, readFile(t, corpus.index))
+				// Replacement revalidates the previous admitted view using only its
+				// portable original record, isolation and replay evidence.
+				mustRun(t, env, t.TempDir(), "", args...)
+				retriedRoot, _ := latestOfficialVerification(t, session)
+				require.Equal(t, "admitted", readJSON(t, filepath.Join(retriedRoot, "admission-summary.json"))["status"])
+			} else {
+				require.Equal(t, 1, result.code, result.stderr)
+				require.Equal(t, "rejected", admission["status"])
+				require.NotEmpty(t, admission["error"])
+				require.Equal(t, oldIndex, readFile(t, corpus.index))
+			}
+			require.Equal(t, original, readAllFiles(t, materialRoot))
+			require.Equal(t, material["id"], obj(verification["material"])["id"])
+		})
+	}
+}
+
+func TestOfficialVerifyRemoteAdmissionRequiresNativeEvidence(t *testing.T) {
+	_, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
+	setControlledOfficialDriver(t, drivers, "local")
+	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
+	remote := newControlledRemote(t)
+	args := append([]string{"official", "record", "--session-dir", session}, remote.args("/success")...)
+	mustRun(t, env, t.TempDir(), "", args...)
+	corpus := newSyntheticCorpus(t)
+	before := readFile(t, corpus.index)
+	result := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
+	require.Equal(t, 1, result.code, result.stderr)
+	root, verification := latestOfficialVerification(t, session)
+	require.Equal(t, "passed", verification["status"])
+	admission := readJSON(t, filepath.Join(root, "admission-summary.json"))
+	require.Equal(t, "rejected", admission["status"])
+	require.Contains(t, str(admission["error"]), "native preparation")
+	require.Equal(t, before, readFile(t, corpus.index))
+	remote.assertAlive(t)
+}

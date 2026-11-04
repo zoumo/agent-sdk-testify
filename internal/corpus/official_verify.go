@@ -19,7 +19,18 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 	}
 	v.Check(evidence["status"] == "passed" && evidence["error"] == nil && evidence["cleanupComplete"] == true, "official verification failed or incomplete")
 	v.Check(evidence["case"] == plan["caseId"] && evidence["provider"] == plan["provider"], "official verification binding differs")
-	v.Check(reflect.DeepEqual(v.Inventory(source, false), evidence["sourceFiles"]), "verification source inventory differs")
+	actualSource := v.Inventory(source, false)
+	expectedSource := tool.Obj(evidence["sourceFiles"])
+	if actualSource["material.json"] == nil && expectedSource["material.json"] != nil {
+		// Adopted regression views omit the session-local material descriptor.
+		// Every published byte must still match the original verified closure.
+		selected := tool.Object{}
+		for name := range v.Required(source, plan) {
+			selected[name] = expectedSource[name]
+		}
+		expectedSource = selected
+	}
+	v.Check(reflect.DeepEqual(actualSource, expectedSource), "verification source inventory differs")
 	v.Hashes(root, tool.Obj(evidence["files"]))
 	for _, name := range []string{"driver/replay-report.json", "driver/result.json", "driver/request.json", "driver/materials/case.json"} {
 		v.Check(tool.Str(tool.Obj(evidence["files"])[name]) != "", "verification omits driver evidence hash")

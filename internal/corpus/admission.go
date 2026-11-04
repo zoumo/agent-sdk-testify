@@ -34,7 +34,12 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 	v.Check(reflect.DeepEqual(v.Inventory(source, false), review["captureFiles"]), "capture inventory drifted or is incomplete")
 	v.Hashes(replay, tool.Obj(review["replayFiles"]))
 	plan := v.Read(source, "plan.json")
-	if automatic {
+	newCapture := publicCapture(source)
+	var captureBusiness, recordExecution tool.Object
+	if newCapture {
+		captureBusiness, recordExecution = v.publicCaptureBusiness(source, replay, plan)
+	}
+	if automatic && !newCapture {
 		v.Check(plan["recordingIsolation"] == "personal-skills-v1", "automatic qualification requires a recording-time isolated capture")
 	}
 	catalog, err := c.Catalog()
@@ -49,17 +54,29 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 	v.Check(definition["story"] == story && (definition["requirement"] == "required" || definition["requirement"] == "optional"), "unknown or wrongly owned case")
 	v.Check(plan["driverProfile"] == definition["driverProfile"], "capture driver profile differs from case")
 	manifest := v.Read(source, "manifest.json")
-	v.Check(manifest["provenance"] == "capture" && manifest["status"] == "passed" && manifest["captureStatus"] == "complete" && manifest["credentialScan"] == "pass", "real source capture, business pass and credential scan required")
+	captureStatus := "passed"
+	if newCapture {
+		captureStatus = "captured"
+	}
+	v.Check(manifest["provenance"] == "capture" && manifest["status"] == captureStatus && manifest["captureStatus"] == "complete" && manifest["credentialScan"] == "pass", "real source capture, business pass and credential scan required")
 	v.Check(manifest["planSHA256"] == v.Digest(source, "plan.json"), "source plan hash differs")
-	summary := v.Summary(source, "record", plan)
-	v.Check(summary["recordingSHA256"] == v.Digest(source, "raw/raw.jsonl"), "capture summary hash differs")
+	if !newCapture {
+		summary := v.Summary(source, "record", plan)
+		v.Check(summary["recordingSHA256"] == v.Digest(source, "raw/raw.jsonl"), "capture summary hash differs")
+	} else {
+		report := v.Read(source, "report.json")
+		v.Check(report["status"] == "captured" && report["captureStatus"] == "complete" && report["provenance"] == "official", "sealed capture report is incomplete")
+	}
 	replayReport := "replay-report.json"
 	var verification tool.Object
 	if tool.ReadJSON(filepath.Join(replay, "verification.json"), &verification) == nil && verification["pipeline"] == "public-agent-mock" {
 		replayReport = "driver/replay-report.json"
 	}
 	for _, item := range [][2]string{{source, "report.json"}, {replay, replayReport}} {
-		business := v.Read(item[0], item[1])
+		business := captureBusiness
+		if item[0] != source || !newCapture {
+			business = v.Read(item[0], item[1])
+		}
 		sdk := tool.Obj(business["officialSDK"])
 		packageName := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(plan["provider"])]
 		v.Check(business["status"] == "passed" && business["branchStatus"] == "passed" && business["captureStatus"] == "complete" && len(tool.Array(business["gaps"])) == 0 && business["provider"] == plan["provider"] && business["caseId"] == plan["caseId"] && business["storyId"] == story && sdk["package"] == packageName && tool.Str(sdk["version"]) != "", "official SDK business evidence is absent, untriggered or incomplete")
@@ -76,6 +93,11 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 		cwd := plan["project"]
 		if plan["driverProfile"] == "existing-children" {
 			cwd = plan["historyProject"]
+		}
+		if newCapture {
+			cwd = recordExecution["workspace"]
+			v.Check(native["sha256"] == plan["cliSHA256"] && reflect.DeepEqual(native["args"], plan["args"]), "observed native launch differs from isolated preparation")
+			v.Check(transport["nativeExitCode"] == float64(0), "native capture exit was not successful")
 		}
 		v.Check(tool.Str(native["executable"]) != "" && regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(tool.Str(native["sha256"])) && tool.Str(cwd) != "" && native["cwd"] == cwd, "observed native execution identity required")
 		v.Hashes(rawroot, tool.Obj(m["files"]))
@@ -138,7 +160,7 @@ func (c *Corpus) Qualification(source, replay string, manual bool) (tool.Object,
 	for name := range v.ReplayEvidence(replay, plan) {
 		replayFiles[name] = v.Digest(replay, name)
 	}
-	review := tool.Object{"version": float64(1), "origin": "real-agent", "qualification": tool.Object{"method": "official-sdk", "qualifiedAt": time.Now().UTC().Format(time.RFC3339Nano)}, "officialSDK": v.Read(source, "report.json")["officialSDK"], "captureFiles": capture, "replayFiles": replayFiles, "publishFiles": Keys(v.Required(source, plan))}
+	review := tool.Object{"version": float64(1), "origin": "real-agent", "qualification": tool.Object{"method": "official-sdk", "qualifiedAt": time.Now().UTC().Format(time.RFC3339Nano)}, "officialSDK": qualificationSDK(v, source, replay), "captureFiles": capture, "replayFiles": replayFiles, "publishFiles": Keys(v.Required(source, plan))}
 	if v.Err != nil {
 		return nil, v.Err
 	}
@@ -488,4 +510,11 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 		}
 	}
 	return target, nil
+}
+
+func qualificationSDK(v *Validation, source, replay string) any {
+	if publicCapture(source) {
+		return v.Read(replay, "driver/record-origin/run/driver/report.json")["officialSDK"]
+	}
+	return v.Read(source, "report.json")["officialSDK"]
 }

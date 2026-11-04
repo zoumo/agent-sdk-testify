@@ -15,6 +15,7 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/official"
@@ -285,6 +286,26 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 	refs, refErr := officialRecordReferences(o.SessionDir, session, root, ids)
 	result["connections"] = refs
 	runErr = errors.Join(runErr, refErr)
+	if refErr == nil && len(refs) > 0 && o.URL == "" {
+		executionID := tool.Str(refs[0]["executionId"])
+		var execution lifecycle.Execution
+		preparationErr := tool.ReadJSON(filepath.Join(o.SessionDir, "executions", executionID, "execution.json"), &execution)
+		if preparationErr == nil {
+			isolationHash, isolationErr := tool.FileDigest(filepath.Join(o.SessionDir, "executions", executionID, "receipts", "isolation.json"))
+			planHash, planErr := tool.FileDigest(filepath.Join(filepath.Dir(execution.Home), "record-plan.json"))
+			preparationErr = errors.Join(isolationErr, planErr)
+			if preparationErr == nil {
+				result["recordPreparation"] = tool.Object{"executionId": executionID, "isolationSHA256": isolationHash, "preparedPlanSHA256": planHash}
+			}
+		}
+		runErr = errors.Join(runErr, preparationErr)
+	}
+
+	// The parent report is produced after material closure. Apply the existing
+	// capture credential check at its new evidence location as well.
+	scan, scanErr := corpus.ScanCaptureCredentialsWithEnvironment(root, env)
+	result["credentialScan"] = scan
+	runErr = errors.Join(runErr, scanErr)
 	files, hashErr := history.HashTree(root)
 	result["driverFiles"] = files
 	runErr = errors.Join(runErr, hashErr)

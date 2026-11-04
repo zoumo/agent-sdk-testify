@@ -238,6 +238,16 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 		runErr = errors.Join(runErr, errors.New("material changed during verification"))
 	}
 	runErr = errors.Join(runErr, snapshotMocks(activity.Dir, refs))
+	var recordEvidenceErr error
+	if c.Index != "" && material.OfficialOrigin != nil && runErr == nil {
+		target := filepath.Join(root, "record-origin")
+		recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.SessionDir, session, *material, target)
+		if recordEvidenceErr == nil {
+			files, hashErr := corpus.Inventory(target, false)
+			recordEvidenceErr = hashErr
+			evidence["officialRecord"] = tool.Object{"root": "driver/record-origin", "files": files}
+		}
+	}
 	hashes, err := history.HashTree(root)
 	evidence["driverFiles"] = hashes
 	evidence["files"] = tool.Object{}
@@ -259,8 +269,8 @@ func RunOfficial(ctx context.Context, o Options) (runErr error) {
 	verificationSaved = true
 	if c.Index != "" {
 		admissionErr := runErr
-		if admissionErr == nil && material.OfficialOrigin != nil {
-			admissionErr = lifecycle.ValidateOfficialRecord(o.SessionDir, session, *material)
+		if admissionErr == nil {
+			admissionErr = recordEvidenceErr
 		}
 		admissionErr = admitVerified(material.Path, tool.Object{"output": activity.Dir}, admissionErr, c)
 		if admissionErr != nil {

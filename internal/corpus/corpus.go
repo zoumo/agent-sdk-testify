@@ -283,8 +283,8 @@ func corpusPublishable(name string) bool {
 	if !Local(name) {
 		return false
 	}
-	allowed := corpusSet(append(append([]string{}, SourceEvidence...), "remote-service.json"))[name] == true
-	for _, prefix := range []string{"raw/", "history-seed/", "driver/", "config/projects/", "config/sessions/", "remote-probe/raw/"} {
+	allowed := corpusSet(append(append([]string{}, SourceEvidence...), "remote-service.json", "source-plan.json", "official-origin.json"))[name] == true
+	for _, prefix := range []string{"raw/", "history-seed/", "driver/", "config/projects/", "config/sessions/", "remote-probe/raw/", "origin/"} {
 		allowed = allowed || strings.HasPrefix(name, prefix)
 	}
 	for _, forbidden := range []string{"credentials", "auth.json", ".private", ".env"} {
@@ -410,6 +410,19 @@ func (v *Validation) ReplayEvidence(replay string, plan tool.Object) tool.Object
 
 func (v *Validation) Required(source string, plan tool.Object) tool.Object {
 	names := corpusSet(SourceEvidence)
+	if publicCapture(source) {
+		delete(names, "result.json")
+		delete(names, "summary.json")
+		names["source-plan.json"], names["official-origin.json"] = true, true
+		origin := v.Read(source, "official-origin.json")
+		for _, id := range tool.Strings(origin["connections"]) {
+			if Local(id) {
+				names["origin/"+id+".json"] = true
+			} else {
+				v.Check(false, "invalid source connection identity")
+			}
+		}
+	}
 	manifest := v.Read(source, "manifest.json")
 	for _, group := range []string{"savedFiles", "caseFiles", "remotePhaseFiles", "driverFiles"} {
 		hashes := tool.Obj(manifest[group])

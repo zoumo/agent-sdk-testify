@@ -161,6 +161,9 @@ func controlledOfficialDriver(args []string) int {
 			return 6
 		}
 	}
+	if mode == "credential-leak" {
+		report["selectedCredential"] = os.Getenv("OPENAI_API_KEY")
+	}
 	reportName := "report.json"
 	if plan["_replay"] == true {
 		reportName = "replay-report.json"

@@ -129,6 +129,14 @@ data/<agentType>/<story>/<case>/<attempt>/
 官方验证证据、`review.json`、`adoption.json` 和必要的历史派生记录。原始字节和
 attempt 身份不可改写；失败与未触发结果不伪装成通过。
 
+公开 `agent record` 的材料报告保持 `captured`，最终官方业务报告保存在
+`official-records`。显式采用时，`official verify` 将已核验的原编排、正常 record
+execution、原生隔离准备回执及业务报告携带到验证证据和归档中；资格检查读取这些
+实际事实，不补写材料中的旧 `summary.json` 或业务通过状态。采用前提见
+[信任与入仓](../docs/design.md#信任与入仓)。归档保留隔离准备和最终业务事实的
+实际文件与哈希，导出包仍只包含封闭材料，不携带原 session 的编排事实。
+旧材料继续读取原有来源和业务证据布局。
+
 以下输入不得混用：
 
 - 真实录制：实际 Agent 交互，可进入验证和采用流程。
