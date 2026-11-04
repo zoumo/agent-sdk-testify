@@ -33,7 +33,7 @@ def main(argv=None, expected_provider=None, case_registry=None):
         prepare_case(plan, case_registry or {})
         # Read-only evidence distinguishes saved inputs from a fresh capture;
         # process commands and configuration come exclusively from request.peer.
-        plan['_replay'] = (output / 'raw/raw.jsonl').exists()
+        plan['_replay'] = bool(plan.get('_replay')) or (output / 'raw/raw.jsonl').exists()
         from record_user_story.drivers import run
         run(plan)
         report_path = output / ('replay-report.json' if plan['_replay'] else 'report.json')

@@ -346,3 +346,56 @@ func validateEvidenceHashes(root string, hashes tool.Object) error {
 	}
 	return nil
 }
+
+// ValidateMockConnection checks the ordinary mock's durable protocol and process
+// facts against its exact material. Official orchestration never writes receipts.
+func ValidateMockConnection(provider string, execution Execution, connection ExecutionConnection) error {
+	raw, err := connectionRecordingPath(execution.Artifact.Path, connection.ID)
+	if err != nil {
+		return err
+	}
+	hash, err := tool.FileDigest(raw)
+	if err != nil {
+		return err
+	}
+	frames, err := recordingFrameCount(raw, provider)
+	if err != nil {
+		return err
+	}
+	return validateMockReceipts(connection.Receipt, connection.ProcessReceipt, execution, connection, replayReceiptExpectation{
+		Provider: provider, RecordingSHA256: hash, PlanSHA256: execution.Artifact.PlanSHA256,
+		Material: execution.Artifact.Path, Frames: frames, RequirePlan: true, RequireExitCode: true,
+	})
+}
+
+// ValidateMockExecution requires the normal completed index and connection
+// layout, in addition to the descriptor's public launch contract.
+func ValidateMockExecution(sessionDir string, session *Session, execution Execution) error {
+	if err := execution.Validate(*session); err != nil {
+		return err
+	}
+	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(sessionDir, "executions", execution.ExecutionID, "mock") {
+		return errors.New("unexpected mock execution layout")
+	}
+	if err := validateConnectionInventory(execution, &execution.Artifact, session.Routes["mock"]); err != nil {
+		return err
+	}
+	index, err := readIndex(IndexPath(sessionDir))
+	if err != nil {
+		return err
+	}
+	digest, err := tool.FileDigest(filepath.Join(sessionDir, "executions", execution.ExecutionID, "execution.json"))
+	if err != nil {
+		return err
+	}
+	for _, indexed := range index.Executions {
+		if indexed.ID != execution.ExecutionID {
+			continue
+		}
+		if indexed.Command != "mock" || indexed.Status != "passed" || indexed.DescriptorSHA256 != digest {
+			return errors.New("mock execution index is incomplete or differs")
+		}
+		return validateIndexedConnections(indexed, execution)
+	}
+	return errors.New("mock execution is absent from index")
+}

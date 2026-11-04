@@ -46,11 +46,18 @@ func controlledOfficialDriver(args []string) int {
 		waitDriverCancellation()
 		return 0
 	}
-	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "officialSDK": object{"package": "openai-codex", "version": "synthetic-official-driver"}}
+	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "captureStatus": "complete", "officialSDK": object{"package": "openai-codex", "version": "synthetic-official-driver"}}
 	if mode == "busy" {
 		report["finishBefore"] = driverFinish(request.Output, args[1])
 	}
-	if mode != "no-trigger" {
+	if mode == "busy" && plan["_replay"] == true {
+		report["verifyBefore"] = driverAction(request.Output, args[1], "official", "verify")
+		report["recordBefore"] = driverAction(request.Output, args[1], "agent", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
+		report["officialRecordBefore"] = driverAction(request.Output, args[1], "official", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
+	}
+	report["host"] = object{"home": os.Getenv("HOME"), "config": os.Getenv("CODEX_HOME"), "workspace": request.Workspace}
+
+	if mode != "no-trigger" && mode != "reuse-ref" {
 		peers := []conformanceCommand{request.Peer.conformanceCommand}
 		if request.Peer.Probe != nil {
 			peers = append(peers, *request.Peer.Probe)
@@ -69,6 +76,11 @@ func controlledOfficialDriver(args []string) int {
 			}
 			if cmd.Start() != nil {
 				return 3
+			}
+			if mode == "early-exit" {
+				_ = in.Close()
+				_ = cmd.Wait()
+				return 5
 			}
 			// cwd is part of the native payload, not just a process directory.
 			payload, marshalErr := json.Marshal(object{"id": 1, "method": "conformance", "params": object{"cwd": plan["project"]}})
@@ -109,6 +121,20 @@ func controlledOfficialDriver(args []string) int {
 			}
 		}
 	}
+
+	if mode == "reuse-ref" {
+		session := filepath.Dir(filepath.Dir(filepath.Dir(request.Output)))
+		var paths map[string]string
+		if readJSONFile(filepath.Join(session, "reuse-reference.json"), &paths) != nil {
+			return 6
+		}
+		for name, source := range paths {
+			data, err := os.ReadFile(source)
+			if err != nil || os.WriteFile(filepath.Join(request.Output, name), data, 0o600) != nil {
+				return 6
+			}
+		}
+	}
 	if mode == "busy" {
 		report["finishAfter"] = driverFinish(request.Output, args[1])
 	}
@@ -135,7 +161,11 @@ func controlledOfficialDriver(args []string) int {
 			return 6
 		}
 	}
-	if writeJSONFile(filepath.Join(request.Output, "report.json"), report) != nil {
+	reportName := "report.json"
+	if plan["_replay"] == true {
+		reportName = "replay-report.json"
+	}
+	if writeJSONFile(filepath.Join(request.Output, reportName), report) != nil {
 		return 7
 	}
 	if writeJSONFile(filepath.Join(request.Output, "result.json"), object{"status": report["status"], "sdk": report["officialSDK"]}) != nil {
@@ -145,8 +175,23 @@ func controlledOfficialDriver(args []string) int {
 }
 
 func driverFinish(output, binary string) int {
+	return driverAction(output, binary, "finish")
+}
+
+func driverAction(output, binary string, args ...string) int {
 	session := filepath.Dir(filepath.Dir(filepath.Dir(output)))
-	cmd := exec.CommandContext(context.Background(), binary, "finish", "--session-dir", session)
+	// Session flags precede native argv, exactly as the installed CLI requires.
+	offset := len(args)
+	for i, arg := range args {
+		if arg == "--" {
+			offset = i
+			break
+		}
+	}
+	argv := append([]string{}, args[:offset]...)
+	argv = append(argv, "--session-dir", session)
+	argv = append(argv, args[offset:]...)
+	cmd := exec.CommandContext(context.Background(), binary, argv...)
 	err := cmd.Run()
 	if err == nil {
 		return 0

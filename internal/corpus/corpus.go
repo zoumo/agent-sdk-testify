@@ -312,6 +312,9 @@ func (v *Validation) Summary(root, mode string, plan tool.Object) tool.Object {
 }
 
 func (v *Validation) Replay(source, replay string, plan tool.Object, mode string) {
+	if v.publicVerification(source, replay, plan) {
+		return
+	}
 	actualMode := mode
 	if mode == "replay" {
 		var summary tool.Object
@@ -372,6 +375,15 @@ func (v *Validation) Replay(source, replay string, plan tool.Object, mode string
 }
 
 func (v *Validation) ReplayEvidence(replay string, plan tool.Object) tool.Object {
+	var evidence tool.Object
+	if tool.ReadJSON(filepath.Join(replay, "verification.json"), &evidence) == nil && evidence["pipeline"] == "public-agent-mock" {
+		names := corpusSet([]string{"verification.json"})
+		for name := range tool.Obj(evidence["files"]) {
+			names[name] = true
+		}
+		return names
+	}
+
 	names := corpusSet([]string{"summary.json", "result.json", "replay-report.json"})
 	var summary tool.Object
 	if tool.ReadJSON(filepath.Join(replay, "summary.json"), &summary) == nil && summary["mode"] == "verify" {

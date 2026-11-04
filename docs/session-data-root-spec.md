@@ -72,7 +72,7 @@ record 成功/失败的 current 切换、验证不继承、consumer mock、导�
 忙碌 finish 无修改，以及 closed 后导出和清理重试。
 新增两条官方链路、远程采集、旧命令拒绝、编排与 execution 关联和取消清理覆盖；
 不以源码字符串检查或内部函数测试代替进程链路验收。
-逐 ticket 只做必要的构建和静态检查，不运行全量测试。全部 ticket 实现后，
+逐 ticket 只做必要的构建和静态检查，不运行测试。全部 ticket 实现后，
 集中执行开发规范要求的完整离线门禁，并修复失败；既定验收覆盖保持不变。
 
 ## Out of Scope
@@ -80,10 +80,11 @@ record 成功/失败的 current 切换、验证不继承、consumer mock、导�
 - 不启动真实 Agent、不新增真实录制、不安装官方 SDK，不执行网络验证。
 - 不修改消费者 SDK、MASS 或产品 E2E 的业务编排。
 - 不放宽严格回放，不改变 case 身份、required 集合或材料入仓政策。
-- 不修改消费者仓库、不提交或推送代码，不改写用户已有修改。
+- 不修改消费者仓库、不推送代码，不改写用户已有修改。
 
 ## Further Notes
 
 Issue tracker 为仓库配置的 GitHub Issues，使用 ready-for-agent 标签。
-任务按依赖顺序实施，每张 ticket 使用独立实现上下文，主上下文只负责编排和验收。
-文档规划不启动代码实现；ticket 发布与实施须遵循当前用户授权范围。
+任务按依赖顺序实施，每张 ticket 使用独立 chat 和分支，完成后合并回 main；
+主 chat 负责编排、核对合并，并在全部 ticket 实现后统一测试与修复。
+ticket 的实现、提交和合并遵循当前用户授权范围。

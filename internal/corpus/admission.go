@@ -53,7 +53,12 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 	v.Check(manifest["planSHA256"] == v.Digest(source, "plan.json"), "source plan hash differs")
 	summary := v.Summary(source, "record", plan)
 	v.Check(summary["recordingSHA256"] == v.Digest(source, "raw/raw.jsonl"), "capture summary hash differs")
-	for _, item := range [][2]string{{source, "report.json"}, {replay, "replay-report.json"}} {
+	replayReport := "replay-report.json"
+	var verification tool.Object
+	if tool.ReadJSON(filepath.Join(replay, "verification.json"), &verification) == nil && verification["pipeline"] == "public-agent-mock" {
+		replayReport = "driver/replay-report.json"
+	}
+	for _, item := range [][2]string{{source, "report.json"}, {replay, replayReport}} {
 		business := v.Read(item[0], item[1])
 		sdk := tool.Obj(business["officialSDK"])
 		packageName := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(plan["provider"])]

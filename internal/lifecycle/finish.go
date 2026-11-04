@@ -34,6 +34,7 @@ type FinishReport struct {
 	Status           string            `json:"status"`
 	CleanupComplete  bool              `json:"cleanupComplete"`
 	Executions       []FinishExecution `json:"executions"`
+	Verifications    []tool.Object     `json:"verifications,omitempty"`
 	OfficialRecords  []tool.Object     `json:"officialRecords,omitempty"`
 	Error            string            `json:"error,omitempty"`
 	ValidationStatus string            `json:"validationStatus"`
@@ -110,6 +111,16 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 			validationErr = errors.Join(validationErr, err)
 		}
 		report.OfficialRecords = append(report.OfficialRecords, result)
+	}
+
+	var verificationIDs []string
+	if err := tool.ReadJSON(filepath.Join(sessionDir, "verifications", "index.json"), &verificationIDs); err != nil && !os.IsNotExist(err) {
+		validationErr = errors.Join(validationErr, err)
+	}
+	for _, id := range verificationIDs {
+		evidence, err := validateOfficialVerification(sessionDir, session, id)
+		report.Verifications = append(report.Verifications, evidence)
+		validationErr = errors.Join(validationErr, err)
 	}
 	for _, id := range orphans {
 		result := FinishExecution{

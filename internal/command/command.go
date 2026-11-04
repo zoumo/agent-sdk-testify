@@ -56,7 +56,7 @@ func New(streams IO) *cobra.Command {
 	root.AddCommand(
 		prepareCommand(),
 		legacyRecordCommand(streams),
-		verifyCommand(),
+		verifyCommand(false),
 		mockCommand(),
 		exportCommand(),
 		finishCommand(),
@@ -68,7 +68,7 @@ func New(streams IO) *cobra.Command {
 	agent.AddCommand(recordCommand(streams), mockCommand())
 	root.AddCommand(agent)
 	official := &cobra.Command{Use: "official", Short: "Official SDK orchestration", Args: cobra.NoArgs}
-	official.AddCommand(newRecordCommand(streams, false, true))
+	official.AddCommand(newRecordCommand(streams, false, true), verifyCommand(true))
 	root.AddCommand(official)
 	registerGenerate(root, streams)
 	return root
@@ -201,7 +201,7 @@ func newRecordCommand(streams IO, legacy, officialMode bool) *cobra.Command {
 	return c
 }
 
-func verifyCommand() *cobra.Command {
+func verifyCommand(officialMode bool) *cobra.Command {
 	var o verify.Options
 	c := &cobra.Command{
 		Use:   "verify [flags]",
@@ -219,6 +219,9 @@ func verifyCommand() *cobra.Command {
 		}
 		if !filepath.IsAbs(o.SessionDir) {
 			return errors.New("--session-dir must be an absolute path")
+		}
+		if officialMode {
+			return verify.RunOfficial(c.Context(), o)
 		}
 		return verify.Run(c.Context(), o)
 	}

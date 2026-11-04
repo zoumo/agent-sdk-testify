@@ -62,8 +62,10 @@ def capture_root(plan):
         raise ValueError('record command results disagree')
     execution = json.loads(read_regular(Path(finished['execution']), 1024 * 1024))
     if (execution.get('executionId') != finished['executionId']
-            or execution.get('sessionId') != finished['sessionId'] or execution.get('command') != 'record'):
+            or execution.get('sessionId') != finished['sessionId'] or execution.get('command') not in ('record', 'mock')):
         raise ValueError('record execution differs from result')
+    if execution['command'] == 'mock':
+        return Path(execution['artifact']['path'])
     return Path(execution['artifactRoot'])
 
 
@@ -97,3 +99,14 @@ def sdk_identity(provider):
     name, _ = SDK_VERSIONS[provider]
     actual = version(name)
     return {'package': name, 'version': actual}
+
+
+def replay_receipt(plan):
+    """Read the launched public mock's receipt, separate from immutable raw input."""
+    results = plan.get('_agentResults')
+    if not results:
+        return json.loads(read_regular(Path(plan['root']) / 'replay-peer.json'))
+    notices = [json.loads(line) for line in read_regular(Path(results['main']), 1024 * 1024).splitlines()]
+    if len(notices) != 2 or notices[-1].get('command') != 'mock' or notices[-1].get('status') != 'passed':
+        raise ValueError('mock command did not settle')
+    return json.loads(read_regular(Path(notices[-1]['receipt'])))

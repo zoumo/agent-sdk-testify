@@ -3,7 +3,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from .environment import capture_root, private_json, sdk_identity, stdin_eof_action
+from .environment import capture_root, replay_receipt, private_json, sdk_identity, stdin_eof_action
 from .scenarios import Flow, Untriggered, validate_recipe
 from .stimuli import content
 
@@ -195,7 +195,7 @@ def require_interrupt_close(plan, report, replay):
         raise RuntimeError('interrupt close was not ready')
     root = capture_root(plan)
     if replay:
-        receipt = json.loads((root / 'replay-peer.json').read_text())
+        receipt = replay_receipt(plan)
         complete = (receipt.get('fullConsumption') is True and receipt.get('clientEOF') is True
                     and receipt.get('nativeLaunched') is False)
     else:
@@ -215,7 +215,7 @@ def require_interrupt_close(plan, report, replay):
 def require_closed_process(plan, report, replay):
     root = capture_root(plan)
     if replay:
-        receipt = json.loads((root / 'replay-peer.json').read_text())
+        receipt = replay_receipt(plan)
         complete = receipt.get('fullConsumption') is True and receipt.get('clientEOF') is True and receipt.get('nativeLaunched') is False
     else:
         receipt = json.loads((root / 'raw/transport.json').read_text())

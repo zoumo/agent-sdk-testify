@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import record_user_story
 from peer_support import identity
-from record_user_story.environment import private_json, recording_temp_root
+from record_user_story.environment import capture_root, replay_receipt, private_json, recording_temp_root
 from record_user_story.scenarios import case_recipes, _validate, recipe, digest
 
 
@@ -72,6 +72,35 @@ class RecordingTests(unittest.TestCase):
                 self.assertFalse(result['nativeLaunched'])
                 mismatch = subprocess.run(command[:-2], input=b'{}\n', capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(mismatch.returncode, 1)
+
+
+    def test_public_agent_result_locates_raw_and_mock_receipt_separately(self):
+        for command in ('record', 'mock'):
+            with self.subTest(command=command), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                execution = root / 'execution.json'
+                results = root / 'results.jsonl'
+                receipt = root / 'actual-receipt.json'
+                material = root / 'immutable-material'
+                capture = root / 'execution-capture'
+                descriptor = {'executionId': 'actual', 'sessionId': 'session', 'command': command,
+                              'artifactRoot': str(capture), 'artifact': {'path': str(material)}}
+                execution.write_text(json.dumps(descriptor))
+                started = {'status': 'running', 'executionId': 'actual', 'sessionId': 'session',
+                           'connectionId': 'main', 'processId': 42, 'command': command,
+                           'execution': str(execution), 'receipt': str(receipt)}
+                finished = dict(started, status='passed')
+                results.write_text(json.dumps(started) + '\n' + json.dumps(finished) + '\n')
+                plan = {'root': str(root / 'driver'), '_agentResults': {'main': str(results)}}
+                self.assertEqual(capture_root(plan), capture if command == 'record' else material)
+                if command == 'mock':
+                    expected = {'fullConsumption': True, 'clientEOF': True, 'nativeLaunched': False}
+                    receipt.write_text(json.dumps(expected))
+                    self.assertEqual(replay_receipt(plan), expected)
+                finished['executionId'] = 'other-run'
+                results.write_text(json.dumps(started) + '\n' + json.dumps(finished) + '\n')
+                with self.assertRaises(ValueError):
+                    capture_root(plan)
 
 
     def test_default_catalog_has_no_go_story_identity(self):
