@@ -62,3 +62,14 @@ func metadataLock(sessionDir string) (*Lock, error) {
 func actionLock(sessionDir string, exclusive bool) (*Lock, error) {
 	return lockFile(filepath.Join(sessionDir, "locks", "action.lock"), exclusive, false)
 }
+
+func lockExport(file *os.File) (*Lock, error) {
+	if err := syscall.Flock(int(file.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		_ = file.Close()
+		if errors.Is(err, syscall.EWOULDBLOCK) || errors.Is(err, syscall.EAGAIN) {
+			return nil, ErrBusy
+		}
+		return nil, err
+	}
+	return &Lock{file: file}, nil
+}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,7 +24,7 @@ func TestVerifyOfficialOnlySelection(t *testing.T) {
 		data, err := cmd.CombinedOutput()
 		if args[0] == "--help" {
 			require.NoError(t, err, "%s", data)
-			require.Contains(t, string(data), "recording")
+			require.Contains(t, string(data), "session-dir")
 		} else {
 			require.Error(t, err)
 			require.Contains(t, string(data), "unknown flag")
@@ -140,6 +141,7 @@ func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T
 	s.SetT(t)
 	s.SetupTest()
 	s.evidence()
+	canonicalVerifyFixture(t, s.source, "SDK-CASE-001")
 	raw := filepath.Join(s.source, "raw", "raw.jsonl")
 	file, e := os.OpenFile(raw, os.O_APPEND|os.O_WRONLY, 0o600)
 	require.NoError(t, e)
@@ -181,12 +183,32 @@ func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T
 func prepareVerifySession(t *testing.T, source string, env []string) string {
 	t.Helper()
 	session := filepath.Join(t.TempDir(), "session")
+	var plan tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &plan))
 	prepare := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"),
-		"prepare", "--agent", "codex", "--recording", source, "--session-dir", session)
+		"prepare", "--agent", "codex", "--case", tool.Str(plan["caseId"]), "--session-dir", session)
 	prepare.Dir = t.TempDir()
 	prepare.Env = env
 	data, err := prepare.CombinedOutput()
 	require.NoError(t, err, "%s", data)
+	// Install a controlled official capture at the process boundary. Production
+	// prepare --recording must not elevate an external capture to official.
+	var registry tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "materials", "index.json"), &registry))
+	material := tool.Obj(tool.Array(registry["materials"])[0])
+	target := tool.Str(material["path"])
+	require.NoError(t, os.RemoveAll(target))
+	require.NoError(t, tool.CopyTree(source, target))
+	if plan["driverProfile"] == "remote-close" {
+		material["connections"] = []string{"main", "probe"}
+	}
+	material["kind"], material["action"], material["provenance"] = "capture", "record", "official"
+	files, err := Inventory(target, false)
+	require.NoError(t, err)
+	material["files"] = files
+	material["planSHA256"], material["manifestSHA256"], material["recordingSHA256"] = files["plan.json"], files["manifest.json"], files["raw/raw.jsonl"]
+	require.NoError(t, tool.WriteJSON(filepath.Join(target, "material.json"), material))
+	require.NoError(t, tool.WriteJSON(filepath.Join(session, "materials", "index.json"), registry))
 	t.Cleanup(func() {
 		var descriptor tool.Object
 		if tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
@@ -259,7 +281,9 @@ func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
 	workspace := tool.Str(execution["workspace"])
 	require.Equal(t, observed["cwd"], workspace)
 	require.Equal(t, observed["workspace"], workspace)
-	require.True(t, strings.HasPrefix(workspace, filepath.Join(resolvedSession, "executions", id)+string(filepath.Separator)))
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(resolvedSession, "session.json"), &descriptor))
+	require.True(t, strings.HasPrefix(workspace, filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions", id)+string(filepath.Separator)))
 	require.Equal(t, observed["cwd"], execution["protocolCwd"])
 	require.Equal(t, observed["home"], execution["home"])
 	require.Equal(t, observed["config"], execution["config"])
@@ -313,14 +337,35 @@ func TestVerifyFailureEvidence(t *testing.T) {
 }
 
 func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
-	cmd, source, session := verifyFixture(t, "passed")
-	require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), []byte("corrupt\n"), 0o600))
-	data, err := cmd.CombinedOutput()
-	require.Error(t, err, "%s", data)
-	require.Contains(t, string(data), "hash mismatch")
-	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
-	require.Empty(t, tool.Array(index["executions"]))
+	for _, target := range []string{"original", "session"} {
+		t.Run(target, func(t *testing.T) {
+			cmd, source, session := verifyFixture(t, "passed")
+			if target == "session" {
+				var descriptor tool.Object
+				require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+				var current, registry tool.Object
+				require.NoError(t, tool.ReadJSON(filepath.Join(session, "current.json"), &current))
+				require.NoError(t, tool.ReadJSON(filepath.Join(session, "materials", "index.json"), &registry))
+				for _, value := range tool.Array(registry["materials"]) {
+					material := tool.Obj(value)
+					if material["id"] == current["materialId"] {
+						source = tool.Str(material["path"])
+					}
+				}
+			}
+			require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), []byte("corrupt\n"), 0o600))
+			data, err := cmd.CombinedOutput()
+			if target == "original" {
+				require.NoError(t, err, "%s", data)
+				return
+			}
+			require.Error(t, err, "%s", data)
+			require.Contains(t, string(data), "hash mismatch")
+			var index tool.Object
+			require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+			require.Empty(t, tool.Array(index["executions"]))
+		})
+	}
 }
 
 func TestVerifyAllSelectedPeers(t *testing.T) {
@@ -330,7 +375,8 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 				require.NoError(t, tool.CopyTree(filepath.Join(source, "raw"), filepath.Join(source, "remote-probe", "raw")))
 				var plan, manifest tool.Object
 				require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &plan))
-				plan["driverProfile"], plan["caseId"], plan["storyId"] = "remote-close", "SDK-CASE-032", "SDK-US-007"
+				canonicalVerifyFixture(t, source, "SDK-CASE-032")
+				require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &plan))
 				require.NoError(t, tool.WriteJSON(filepath.Join(source, "plan.json"), plan))
 				require.NoError(t, tool.WriteJSON(filepath.Join(source, "remote-service.json"), tool.Object{"cleanupComplete": true, "serverExitCode": 0, "forcedCleanup": false}))
 				require.NoError(t, tool.ReadJSON(filepath.Join(source, "manifest.json"), &manifest))
@@ -449,6 +495,8 @@ func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
 	s.SetT(t)
 	s.SetupTest()
 	s.evidence()
+	canonicalVerifyFixture(t, s.source, "SDK-CASE-001")
+	s.bindReplay()
 	source := s.adopt(s.qualify())
 	var report tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(source, "report.json"), &report))
@@ -510,4 +558,26 @@ func TestVerifyIgnoresRecordedDriverCommands(t *testing.T) {
 	require.NoError(t, tool.WriteJSON(filepath.Join(source, "summary.json"), summary))
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
+}
+
+func canonicalVerifyFixture(t *testing.T, source, caseID string) {
+	t.Helper()
+	var previous tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &previous))
+	session := filepath.Join(t.TempDir(), "canonical")
+	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "prepare", "--agent", "codex", "--case", caseID, "--session-dir", session)
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err, "%s", output)
+	var descriptor, plan tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	t.Cleanup(func() { _ = os.RemoveAll(tool.Str(descriptor["resourceRoot"])) })
+	require.NoError(t, tool.ReadJSON(tool.Str(tool.Obj(descriptor["source"])["path"]), &plan))
+	maps.Copy(previous, plan)
+	require.NoError(t, tool.WriteJSON(filepath.Join(source, "plan.json"), previous))
+	var manifest tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(source, "manifest.json"), &manifest))
+	digest, err := Digest(filepath.Join(source, "plan.json"))
+	require.NoError(t, err)
+	manifest["planSHA256"] = digest
+	require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), manifest))
 }

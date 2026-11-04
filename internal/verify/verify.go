@@ -25,7 +25,6 @@ import (
 
 type Options struct {
 	SessionDir string
-	Recording  string
 	Timeout    time.Duration
 	Index      string
 	Scenarios  string
@@ -60,10 +59,10 @@ func Run(ctx context.Context, o Options) error {
 		}
 		admission = &lifecycle.Admission{Index: c.Index, Scenarios: c.Scenarios, Archive: c.Archive}
 	}
-	return verifyPrepared(ctx, o.SessionDir, o.Recording, o.Timeout, c, admission)
+	return verifyPrepared(ctx, o.SessionDir, o.Timeout, c, admission)
 }
 
-func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout time.Duration, c corpus.Corpus, admission *lifecycle.Admission) (err error) {
+func verifyPrepared(ctx context.Context, sessionDir string, timeout time.Duration, c corpus.Corpus, admission *lifecycle.Admission) (err error) {
 	if !filepath.IsAbs(sessionDir) {
 		return errors.New("--session-dir must be an absolute path")
 	}
@@ -74,20 +73,21 @@ func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout ti
 	if err := lifecycle.SessionOpen(sessionDir); err != nil {
 		return err
 	}
-	artifact, err := lifecycle.LatestArtifact(sessionDir, session, explicit, true)
+	artifact, err := lifecycle.LatestArtifact(sessionDir, session, true)
 	if err != nil {
 		return err
 	}
 	args := []string{"--session-dir", sessionDir}
-	if explicit != "" {
-		args = append(args, "--recording", explicit)
-	}
 	if admission != nil {
 		args = append(args,
 			"--index", admission.Index,
 			"--scenarios", admission.Scenarios,
 			"--archive", admission.Archive,
 		)
+	}
+	driver, err := official.ResolveDriver(session.AgentType)
+	if err != nil {
+		return err
 	}
 	run, err := lifecycle.BeginVerify(sessionDir, args, timeout, artifact, admission)
 	if err != nil {
@@ -102,8 +102,10 @@ func verifyPrepared(ctx context.Context, sessionDir, explicit string, timeout ti
 		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
-	o := official.Options{Mode: "verify", Materials: artifact.Path, HistoryPrepared: true}
-	summary, verifyErr := verifyRecordingAt(ctx, o, admission, run.OverlayRoot, run.Execution.Workspace)
+	o := official.Options{Mode: "verify", Materials: artifact.Path, HistoryPrepared: true, Driver: driver}
+	summary, verifyErr := verifyRecordingAt(ctx, o, admission, run.OverlayRoot, run.Execution.Workspace, run)
+	// Persist the exact verification before attempting any repository write.
+	verifyErr = errors.Join(verifyErr, snapshotVerification(run.OverlayRoot, run.ArtifactRoot))
 	err = admitVerified(artifact.Path, summary, verifyErr, c)
 	if snapshotErr := snapshotVerification(run.OverlayRoot, run.ArtifactRoot); snapshotErr != nil {
 		err = errors.Join(err, snapshotErr)
@@ -128,6 +130,17 @@ func admitVerified(materials string, summary tool.Object, err error, c corpus.Co
 	}
 	root := tool.Str(summary["output"])
 	admission := tool.Object{"status": "rejected"}
+	if err == nil {
+		var verification tool.Object
+		err = tool.ReadJSON(filepath.Join(root, "verification.json"), &verification)
+		if err == nil {
+			var files tool.Object
+			files, err = corpus.Inventory(materials, false)
+			if err == nil && (verification["status"] != "passed" || !reflect.DeepEqual(files, verification["sourceFiles"])) {
+				err = errors.New("admission requires the exact verified material")
+			}
+		}
+	}
 	if err == nil {
 		var review tool.Object
 		review, err = c.Qualification(materials, root, false)
@@ -193,7 +206,8 @@ func snapshotVerification(source, target string) error {
 	return nil
 }
 
-func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifecycle.Admission, preparedOutput, preparedWorkspace string) (summary tool.Object, err error) {
+func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifecycle.Admission, preparedOutput, preparedWorkspace string, run *lifecycle.ActionRun) (summary tool.Object, err error) {
+	execution := run.Execution
 	o.Mode = "verify"
 	o.Materials, err = corpus.Resolved(o.Materials)
 	if err != nil {
@@ -224,12 +238,14 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 		evidence["admission"] = admission
 	}
 	defer func() {
+		err = errors.Join(err, lifecycle.CleanupAction(run))
 		if summary == nil {
 			summary = tool.Object{"mode": "verify", "output": o.Output, "result": tool.Result{Status: "failed"}}
 		}
 		if err != nil {
 			summary["error"] = err.Error()
 			evidence["error"] = err.Error()
+			evidence["status"] = "failed"
 		}
 		err = errors.Join(err, tool.WriteJSON(filepath.Join(o.Output, "summary.json"), summary))
 		// Bind the final run evidence, including failures, without a hash cycle.
@@ -256,12 +272,24 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 		return nil, e
 	}
 	evidence["sourceFiles"] = before
+	materialBytes, e := json.Marshal(before)
+	if e != nil {
+		return nil, e
+	}
+	evidence["material"] = tool.Object{"id": execution.Artifact.ID, "sha256": tool.DigestBytes(materialBytes), "files": before, "provenance": execution.Artifact.Provenance}
+	evidence["sessionId"], evidence["executionId"] = execution.SessionID, execution.ExecutionID
+	descriptorHash, e := tool.FileDigest(filepath.Join(filepath.Dir(execution.ArtifactRoot), "execution.json"))
+	if e != nil {
+		return nil, e
+	}
+	evidence["executionSHA256"] = descriptorHash
+	evidence["connections"] = execution.Connections
 	if before["adoption.json"] != nil {
 		v := &corpus.Validation{}
 		adoption := v.Read(o.Materials, "adoption.json")
 		files := tool.Object{}
 		for name, digest := range before {
-			if name != "adoption.json" {
+			if name != "adoption.json" && name != "material.json" {
 				files[name] = digest
 			}
 		}
@@ -306,8 +334,8 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 	if e != nil {
 		return nil, e
 	}
-	if plan["driverProfile"] != catalogPlan["driverProfile"] {
-		return nil, errors.New("recording profile differs from case contract")
+	if contractErr := catalog.CheckVerifierPlan(plan, catalogPlan); contractErr != nil {
+		return nil, contractErr
 	}
 	contracts := tool.Object{}
 	for _, name := range []string{tool.Str(catalogPlan["storyId"]) + ".json", "bindings/" + o.Provider + ".json"} {
@@ -319,10 +347,6 @@ func verifyRecordingAt(ctx context.Context, o official.Options, admission *lifec
 		contracts[name] = hex.EncodeToString(hash[:])
 	}
 	evidence["contracts"] = contracts
-	o.Driver, e = official.ResolveDriver(o.Provider)
-	if e != nil {
-		return nil, e
-	}
 	digest, e = tool.FileDigest(o.Driver)
 	if e != nil {
 		return nil, e

@@ -62,11 +62,6 @@ func validateExecutionInventory(sessionDir string, index *Index) ([]string, erro
 		}
 		artifacts[artifact.ID] = true
 	}
-	if index.LatestCapture != "" {
-		if _, err := latestCaptureArtifact(index); err != nil {
-			errs = append(errs, err)
-		}
-	}
 	var orphans []string
 	for _, entry := range entries {
 		if entry.Name() == "index.json" {

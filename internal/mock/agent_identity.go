@@ -6,11 +6,6 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func planAgentType(plan tool.Object) string {
-	agentType, _ := planAgentIdentity(plan)
-	return agentType
-}
-
 func planAgentIdentity(plan tool.Object) (string, error) {
 	agentType := tool.Str(plan["agentType"])
 	provider := tool.Str(plan["provider"])

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -31,6 +33,7 @@ type PrepareOptions struct {
 }
 
 type sourceSpec struct {
+	material   *Artifact
 	source     Source
 	plan       tool.Object
 	planBytes  []byte
@@ -245,6 +248,25 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err := corpus.VerifyMaterials(path, true); err != nil {
 		return nil, err
 	}
+	// Session/export packages carry a complete payload inventory in addition
+	// to the legacy protocol manifest. Validate it before making a fresh copy.
+	var material Artifact
+	metadata := filepath.Join(path, "material.json")
+	if _, err := os.Lstat(metadata); err == nil {
+		if err := tool.ReadJSON(metadata, &material); err != nil {
+			return nil, err
+		}
+		actual, err := history.HashTree(path)
+		if err != nil {
+			return nil, err
+		}
+		delete(actual, "material.json")
+		if len(material.Files) == 0 || !maps.Equal(actual, material.Files) {
+			return nil, errors.New("material closure hash mismatch")
+		}
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
 	var plan tool.Object
 	if err := tool.ReadJSON(filepath.Join(path, "plan.json"), &plan); err != nil {
 		return nil, err
@@ -285,6 +307,16 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err != nil {
 		return nil, err
 	}
+	var imported *Artifact
+	if len(material.Files) > 0 {
+		if material.ID == "" || (material.Kind != "material" && material.Kind != "capture") {
+			return nil, errors.New("invalid imported material identity")
+		}
+		// Capture manifests retain their original provenance. Only complete
+		// metadata can carry the official identity of a session-produced capture.
+		provenance = material.Provenance
+		imported = &material
+	}
 	planHash, err := tool.FileDigest(filepath.Join(path, "plan.json"))
 	if err != nil {
 		return nil, err
@@ -303,7 +335,7 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
 	verify := provenance != "consumer"
-	return &sourceSpec{source: source, plan: plan, agentType: agent, provenance: provenance, routes: map[string]bool{"record": false, "verify": verify, "mock": true}}, nil
+	return &sourceSpec{material: imported, source: source, plan: plan, agentType: agent, provenance: provenance, routes: map[string]bool{"record": recordingExecutor(plan, agent, provenance) != "", "verify": verify, "mock": true}}, nil
 }
 
 func materialAgentType(plan tool.Object) (string, error) {
@@ -390,4 +422,20 @@ func planProtocolCwd(plan tool.Object, workspace string) string {
 
 func planModel(plan tool.Object) string {
 	return tool.Str(plan["model"])
+}
+
+// A recording provides an executor only when its own plan identifies a usable
+// consumer contract or a known official driver binding. Current never selects it.
+func recordingExecutor(plan tool.Object, agent, provenance string) string {
+	if provenance == "consumer" {
+		if validateConsumerPlan(plan) == nil {
+			return "external-sdk"
+		}
+		return ""
+	}
+	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: agent, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
+	if err != nil || tool.Str(plan["driverProfile"]) == "" || tool.Str(plan["driverProfile"]) != tool.Str(bound["driverProfile"]) {
+		return ""
+	}
+	return "official-driver"
 }

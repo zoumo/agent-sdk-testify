@@ -62,7 +62,7 @@ func conformanceAgent() int {
 	for {
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
-			return 0
+			return conformanceRecordFault()
 		}
 		var request struct {
 			ID json.RawMessage `json:"id"`
@@ -157,7 +157,7 @@ func conformanceDriver(args []string) int {
 		},
 	}
 	name := "report.json"
-	if mode == "verify" {
+	if mode == "verify" || mode == "verify-cleanup-failure" {
 		name = "replay-report.json"
 	}
 	if writeJSONFile(filepath.Join(req.Output, name), report) != nil {
@@ -165,6 +165,12 @@ func conformanceDriver(args []string) int {
 	}
 	if writeJSONFile(filepath.Join(req.Output, "result.json"), map[string]any{"status": "passed"}) != nil {
 		return 6
+	}
+	if mode == "verify-cleanup-failure" {
+		slot := filepath.Join(filepath.Dir(filepath.Dir(req.Output)), "routes", "verify", "workspace")
+		if os.Remove(slot) != nil || os.Mkdir(slot, 0o700) != nil {
+			return 7
+		}
 	}
 	return 0
 }
@@ -186,4 +192,56 @@ func writeJSONFile(path string, value any) error {
 		return err
 	}
 	return os.WriteFile(path, append(data, '\n'), 0o600)
+}
+
+// Faults run inside the synthetic native process after its protocol exchange.
+// They exercise publication and cleanup through the installed CLI boundary.
+func conformanceRecordFault() int {
+	for i, arg := range os.Args {
+		if arg != "--conformance-fault" || i+2 >= len(os.Args) {
+			continue
+		}
+		mode, session := os.Args[i+1], os.Args[i+2]
+		var index struct {
+			Executions []struct {
+				ID string `json:"id"`
+			} `json:"executions"`
+		}
+		if readJSONFile(filepath.Join(session, "executions", "index.json"), &index) != nil || len(index.Executions) == 0 {
+			return 7
+		}
+		id := index.Executions[len(index.Executions)-1].ID
+		var execution struct {
+			Artifact struct {
+				ID string `json:"id"`
+			} `json:"artifact"`
+		}
+		if readJSONFile(filepath.Join(session, "executions", id, "execution.json"), &execution) != nil {
+			return 7
+		}
+		var descriptor struct {
+			ResourceRoot string `json:"resourceRoot"`
+		}
+		if readJSONFile(filepath.Join(session, "session.json"), &descriptor) != nil {
+			return 7
+		}
+		switch mode {
+		case "publication":
+			if os.Mkdir(filepath.Join(session, "materials", execution.Artifact.ID), 0o700) != nil {
+				return 7
+			}
+		case "current":
+			if os.Chmod(session, 0o500) != nil {
+				return 7
+			}
+		case "cleanup":
+			slot := filepath.Join(descriptor.ResourceRoot, "routes", "record", "workspace")
+			if os.Remove(slot) != nil || os.Mkdir(slot, 0o700) != nil {
+				return 7
+			}
+		default:
+			return 7
+		}
+	}
+	return 0
 }

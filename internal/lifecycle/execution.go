@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"time"
 
@@ -102,8 +103,14 @@ func updateIndex(sessionDir string, mutate func(*Index) error) error {
 	if err != nil {
 		return err
 	}
+	oldMaterials := append([]Artifact(nil), index.Artifacts...)
 	if err := mutate(index); err != nil {
 		return err
+	}
+	if !reflect.DeepEqual(oldMaterials, index.Artifacts) {
+		if err := writeMaterialIndex(sessionDir, index); err != nil {
+			return err
+		}
 	}
 	index.LastUpdatedUTC = now()
 	return writeAtomic(IndexPath(sessionDir), index)
@@ -198,7 +205,7 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 	if !ok || !route.Enabled {
 		return "", nil, fmt.Errorf("%s is not available for this session", action)
 	}
-	overlayRoot := filepath.Join(dir, "overlay")
+	overlayRoot := filepath.Join(session.ResourceRoot, "executions", filepath.Base(dir))
 	success := false
 	slotsTouched := false
 	defer func() {
@@ -231,6 +238,11 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 		var err error
 		historyFiles, err = history.Materialize(material.Path, overlayRoot)
 		if err != nil {
+			return "", nil, err
+		}
+	}
+	if action == "record" && session.Source.Kind == "recording" {
+		if _, err := history.Materialize(session.Source.Path, overlayRoot); err != nil {
 			return "", nil, err
 		}
 	}
@@ -330,6 +342,9 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	}
 	route, ok := session.Routes[action]
 	if !ok || !route.Enabled {
+		if action == "record" {
+			return nil, errors.New("record source has no executable route: plan, driver binding or protocol cwd is unavailable")
+		}
 		return nil, fmt.Errorf("%s is not available for this session", action)
 	}
 	if action != "record" && material == nil {
@@ -361,9 +376,50 @@ func createAction(sessionDir, action string, commandArgs []string, timeout time.
 	if pending := pendingExecution(index); pending != nil {
 		return nil, fmt.Errorf("session has unfinished execution %s", pending.ID)
 	}
-	plan, err := LoadPlan(session)
-	if err != nil {
-		return nil, err
+	var plan tool.Object
+	if action == "record" {
+		plan, err = LoadPlan(session)
+		if err != nil {
+			return nil, err
+		}
+		if session.Source.Kind == "recording" {
+			found := false
+			for _, source := range index.Artifacts {
+				if source.Path != session.Source.Path {
+					continue
+				}
+				if _, err := inspectMaterial(session, source, "record"); err != nil {
+					return nil, err
+				}
+				found = true
+			}
+			if !found {
+				return nil, errors.New("record source is absent from material registry")
+			}
+		}
+		if route.Executor != "official-driver" && route.Executor != "external-sdk" {
+			return nil, errors.New("record source has no executable route")
+		}
+		if route.Executor == "external-sdk" && !filepath.IsAbs(tool.Str(plan["project"])) {
+			return nil, errors.New("record source requires an absolute protocol cwd")
+		}
+	}
+	if material != nil {
+		current, err := LatestArtifact(sessionDir, session, action == "verify")
+		if err != nil {
+			return nil, err
+		}
+		if !reflect.DeepEqual(current, material) {
+			return nil, errors.New("current recording changed before execution")
+		}
+		inspection, err := inspectMaterial(session, *current, action)
+		if err != nil {
+			return nil, err
+		}
+		plan = inspection.Plan
+		if _, _, err := executionConnections(sessionDir, action, current.Connections, current, route); err != nil {
+			return nil, err
+		}
 	}
 	id, err := randomID()
 	if err != nil {
@@ -476,6 +532,19 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 			_ = restoreRouteSlots(session, "mock")
 		}
 	}()
+	if err := checkOpen(sessionDir); err != nil {
+		return nil, err
+	}
+	current, err := LatestArtifact(sessionDir, session, false)
+	if err != nil {
+		return nil, err
+	}
+	if !reflect.DeepEqual(current, material) {
+		return nil, errors.New("current recording changed before execution")
+	}
+	if _, _, err := executionConnections(sessionDir, "mock", current.Connections, current, route); err != nil {
+		return nil, err
+	}
 	index, err := readIndex(IndexPath(sessionDir))
 	if err != nil {
 		return nil, err
@@ -500,10 +569,11 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if !exclusive {
 		return nil, errors.New("session action busy: wait for the active mock execution")
 	}
-	plan, err := LoadPlan(session)
+	inspection, err := inspectMaterial(session, *material, "mock")
 	if err != nil {
 		return nil, err
 	}
+	plan := inspection.Plan
 	ids := ConnectionIDs(session.Source, plan)
 	if material != nil && len(material.Connections) > 0 {
 		ids = append([]string(nil), material.Connections...)
@@ -716,6 +786,11 @@ func FinishAction(run *ActionRun, status, artifactID string) error {
 	if err != nil {
 		return err
 	}
+	return CleanupAction(run)
+}
+
+// CleanupAction restores the tool-owned route before verification can be adopted.
+func CleanupAction(run *ActionRun) error {
 	if run.Execution.Command == "record" || run.Execution.Command == "verify" {
 		return restoreRouteSlots(run.Session, run.Execution.Command)
 	}
@@ -798,36 +873,69 @@ func PublishCapture(sessionDir string, run *ActionRun, artifact Artifact) error 
 			}
 		}
 	}
-	descriptorPath := filepath.Join(run.Dir, "execution.json")
-	previousDescriptor, err := os.ReadFile(descriptorPath)
+	// Authentication links and route cleanup must succeed before any publication.
+	if err := ScrubExecutionAuthentication(run); err != nil {
+		return err
+	}
+	materialRoot := filepath.Join(sessionDir, "materials", artifact.ID)
+	stage, err := os.MkdirTemp(filepath.Join(sessionDir, "materials"), ".record-")
 	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(stage)
+	if err := copyMaterial(artifact.Path, stage); err != nil {
+		return err
+	}
+	files, err := history.HashTree(stage)
+	if err != nil {
+		return err
+	}
+	delete(files, "material.json")
+	artifact.Path = materialRoot
+	artifact.Files = files
+	if err := writeExclusive(filepath.Join(stage, "material.json"), artifact); err != nil {
+		return err
+	}
+	if _, err := os.Lstat(materialRoot); !os.IsNotExist(err) {
+		return errors.New("material identity already exists")
+	}
+	if err := os.Rename(stage, materialRoot); err != nil {
+		return err
+	}
+	if _, err := inspectMaterial(run.Session, artifact, "record"); err != nil {
 		return err
 	}
 	descriptorSHA256, err := bindExecutionCapture(run, artifact)
 	if err != nil {
 		return err
 	}
-	err = updateIndex(sessionDir, func(index *Index) error {
+	// All fallible finalization precedes the atomic selection change. A failed
+	// publication can leave an unselected immutable package, never a partial current.
+	if err := updateIndex(sessionDir, func(index *Index) error {
 		for _, existing := range index.Artifacts {
 			if existing.ID == artifact.ID {
 				return errors.New("artifact identity already exists")
 			}
 		}
 		index.Artifacts = append(index.Artifacts, artifact)
-		index.LatestCapture = artifact.ID
 		for i := range index.Executions {
-			if index.Executions[i].ID == run.Execution.ExecutionID {
-				index.Executions[i].ArtifactID = artifact.ID
-				index.Executions[i].DescriptorSHA256 = descriptorSHA256
+			execution := &index.Executions[i]
+			if execution.ID == run.Execution.ExecutionID {
+				execution.ArtifactID = artifact.ID
+				execution.DescriptorSHA256 = descriptorSHA256
+				execution.Status = "passed"
+				execution.UpdatedAt = now()
+				for j := range execution.Connections {
+					execution.Connections[j].Status = "passed"
+				}
+				return nil
 			}
 		}
-		return nil
-	})
-	if err != nil {
-		_ = os.WriteFile(descriptorPath, previousDescriptor, 0o600)
+		return errors.New("execution is absent from index")
+	}); err != nil {
 		return err
 	}
-	return nil
+	return writeCurrent(sessionDir, run.Session, artifact.ID)
 }
 
 func bindExecutionCapture(run *ActionRun, artifact Artifact) (string, error) {
@@ -835,7 +943,7 @@ func bindExecutionCapture(run *ActionRun, artifact Artifact) (string, error) {
 	for _, connection := range run.Execution.Connections {
 		ids = append(ids, connection.ID)
 	}
-	connections, receipts, err := executionConnections(artifact.Path, "record", ids, &artifact, run.Session.Routes["record"])
+	connections, receipts, err := executionConnections(run.ArtifactRoot, "record", ids, &artifact, run.Session.Routes["record"])
 	if err != nil {
 		return "", err
 	}

@@ -333,7 +333,10 @@ func TestRecordExecutionDescriptorMatchesExecutorPaths(t *testing.T) {
 	workspace := tool.Str(execution["workspace"])
 	require.Equal(t, observed["cwd"], workspace)
 	require.Equal(t, observed["workspace"], workspace)
-	require.True(t, strings.HasPrefix(workspace, filepath.Join(resolvedSession, "executions", id)+string(filepath.Separator)))
+	var sessionDescriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(resolvedSession, "session.json"), &sessionDescriptor))
+	require.True(t, strings.HasPrefix(workspace, filepath.Join(tool.Str(sessionDescriptor["resourceRoot"]), "executions", id)+string(filepath.Separator)))
+	require.False(t, strings.HasPrefix(workspace, resolvedSession+string(filepath.Separator)))
 	require.Equal(t, observed["cwd"], execution["protocolCwd"])
 	require.Equal(t, observed["home"], execution["home"])
 	require.Equal(t, observed["config"], execution["config"])
@@ -388,17 +391,19 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	assert.Equal(t, "passed", report["status"])
 }
 
-func TestRecordThenExplicitVerifyUsesPublishedCapture(t *testing.T) {
+func TestRecordThenVerifyUsesCurrentCapture(t *testing.T) {
 	fixture := recordProcess(t, "codex", "passed", "passed")
 	data, err := fixture.command(t, recordExecutionTimeout).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
 	var before tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "executions", "index.json"), &before))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "materials", "index.json"), &before))
+	var current tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "current.json"), &current))
 	var capture tool.Object
-	for _, value := range tool.Array(before["artifacts"]) {
+	for _, value := range tool.Array(before["materials"]) {
 		artifact := tool.Obj(value)
-		if tool.Str(artifact["id"]) == tool.Str(before["latestCapture"]) {
+		if tool.Str(artifact["id"]) == tool.Str(current["materialId"]) {
 			capture = artifact
 		}
 	}
@@ -406,7 +411,7 @@ func TestRecordThenExplicitVerifyUsesPublishedCapture(t *testing.T) {
 
 	fixture.installVerifyDriver(t)
 	verify := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"),
-		"verify", "--session-dir", fixture.session, "--recording", tool.Str(capture["path"]))
+		"verify", "--session-dir", fixture.session)
 	verify.Env = fixture.env
 	data, err = verify.CombinedOutput()
 	require.NoError(t, err, "%s", data)
@@ -422,9 +427,10 @@ func TestRecordThenExplicitVerifyUsesPublishedCapture(t *testing.T) {
 	require.Equal(t, tool.Str(artifact["recordingSHA256"]), connection["recordingSHA256"])
 
 	var after tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "executions", "index.json"), &after))
-	require.Equal(t, tool.Str(capture["id"]), tool.Str(after["latestCapture"]))
-	require.Len(t, tool.Array(after["artifacts"]), len(tool.Array(before["artifacts"])))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "materials", "index.json"), &after))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.session, "current.json"), &current))
+	require.Equal(t, tool.Str(capture["id"]), tool.Str(current["materialId"]))
+	require.Len(t, tool.Array(after["materials"]), len(tool.Array(before["materials"])))
 }
 
 func latestExecution(t *testing.T, session, command string) tool.Object {

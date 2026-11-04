@@ -14,56 +14,29 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
-	"github.com/zoumo/agent-sdk-testify/protocol"
 	"github.com/zoumo/agent-sdk-testify/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/protocol/replay"
 )
 
 type Options struct {
-	List       bool
-	Describe   bool
-	JSON       bool
-	Agent      string
-	Case       string
-	Recording  string
-	Report     string
 	SessionDir string
 	Connection string
 	Timeout    time.Duration
 	ProgressFD int
 	NativeArgs []string
-	phase      string
 }
 
 func bad(err error) error { return exitcode.Fail(exitcode.Configuration, err) }
 
-// Run executes one typed public mock mode. It never starts a native Agent.
+// Run replays the current recording in one prepared-session execution.
 func Run(ctx context.Context, o Options) error {
-	switch {
-	case o.List || o.Describe:
-		if err := mockQuery(o); err != nil {
-			return bad(err)
-		}
-		return nil
-	case o.SessionDir != "":
-		return mockSession(ctx, o)
-	case o.Case != "" || o.Recording != "":
-		return mockManagedAlias(ctx, o)
-	default:
-		return bad(errors.New("mock requires --case, --recording, or --session-dir"))
+	if o.SessionDir == "" {
+		return bad(errors.New("mock requires --session-dir"))
 	}
+	return mockSession(ctx, o)
 }
 
-func mockExternalSelected(ctx context.Context, o Options) (err error) {
-	if !filepath.IsAbs(o.Recording) || o.Report == "" {
-		return bad(errors.New("--recording /absolute/capture and --report FILE are required"))
-	}
-	if o.Timeout < 0 {
-		return bad(errors.New("mock timeout must be nonnegative"))
-	}
-	if o.ProgressFD != -1 && o.ProgressFD < 3 {
-		return bad(errors.New("progress-fd must be >=3"))
-	}
+func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, reportPath string) (err error) {
 	var notification *os.File
 	if o.ProgressFD >= 3 {
 		fd, e := syscall.Dup(o.ProgressFD)
@@ -73,22 +46,6 @@ func mockExternalSelected(ctx context.Context, o Options) (err error) {
 		syscall.CloseOnExec(fd)
 		notification = os.NewFile(uintptr(fd), "consumption-notification")
 		defer notification.Close()
-	}
-	sourceRoot, e := filepath.EvalSymlinks(o.Recording)
-	if e != nil {
-		return bad(e)
-	}
-	reportPath, e := filepath.Abs(o.Report)
-	if e != nil {
-		return bad(e)
-	}
-	reportParent, e := filepath.EvalSymlinks(filepath.Dir(reportPath))
-	if e != nil {
-		return bad(e)
-	}
-	reportPath = filepath.Join(reportParent, filepath.Base(reportPath))
-	if rel, relErr := filepath.Rel(sourceRoot, reportPath); relErr != nil || filepath.IsLocal(rel) {
-		return bad(errors.New("report must be outside the recording directory"))
 	}
 	receiptFile, e := os.OpenFile(reportPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if e != nil {
@@ -106,15 +63,11 @@ func mockExternalSelected(ctx context.Context, o Options) (err error) {
 		closeErr := receiptFile.Close()
 		err = errors.Join(err, closeErr, atomicMockJSON(reportPath, receipt))
 	}()
-	manifest, plan, document, e := loadMockPhase(sourceRoot, o.Agent, o.phase)
+	manifest, document, e := loadMockPhase(sourceRoot, agent, phase)
 	if e != nil {
 		return bad(e)
 	}
-	o.Agent = planAgentType(plan)
-	if checkErr := protocol.ValidateNativeArgs(o.Agent, o.NativeArgs); checkErr != nil {
-		return bad(checkErr)
-	}
-	receipt["provider"] = o.Agent
+	receipt["provider"] = agent
 	receipt["planSHA256"] = manifest["planSHA256"]
 	receipt["provenance"] = manifest["provenance"]
 	receipt["recordingSHA256"] = document.SHA256
@@ -125,7 +78,7 @@ func mockExternalSelected(ctx context.Context, o Options) (err error) {
 	}
 	if timeout == 0 {
 		timeout = 30 * time.Second
-		if o.Agent == "claude" {
+		if agent == "claude" {
 			timeout = 10 * time.Second
 		}
 	}
@@ -185,36 +138,30 @@ func mockProtocolNotifying(ctx context.Context, document *recording.Document, no
 	return progress.consumed, errors.Join(err, progress.err, r.Close())
 }
 
-// loadMockSource is shared by direct and prepared mock. It requires the same
-// immutable plan/raw bindings and format validation at both entry points.
-func loadMockSource(sourceRoot, provider string) (tool.Object, tool.Object, *recording.Document, error) {
-	return loadMockPhase(sourceRoot, provider, "main")
-}
-
-func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, tool.Object, *recording.Document, error) {
+func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, *recording.Document, error) {
 	// Unlike legacy shared-material loaders, this entry requires the source
 	// manifest to bind both the plan and the raw stream, even for synthetic input.
 	var manifest, plan tool.Object
 	if readErr := tool.ReadJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); readErr != nil {
-		return nil, nil, nil, readErr
+		return nil, nil, readErr
 	}
 	if tool.Str(manifest["planSHA256"]) == "" || tool.Str(tool.Obj(manifest["files"])["raw.jsonl"]) == "" {
-		return nil, nil, nil, errors.New("source manifest requires planSHA256 and files.raw.jsonl")
+		return nil, nil, errors.New("source manifest requires planSHA256 and files.raw.jsonl")
 	}
 	if err := corpus.VerifySourcePhase(sourceRoot, true); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	if err := tool.ReadJSON(filepath.Join(sourceRoot, "plan.json"), &plan); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	plannedProvider, err := planAgentIdentity(plan)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	if provider == "" {
 		provider = plannedProvider
 	} else if plannedProvider != "" && provider != plannedProvider {
-		return nil, nil, nil, errors.New("agent type differs from selected recording")
+		return nil, nil, errors.New("agent type differs from selected recording")
 	}
 	rawRoot := filepath.Join(sourceRoot, "raw")
 	expected := tool.Str(tool.Obj(manifest["files"])["raw.jsonl"])
@@ -222,24 +169,24 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, tool.Object
 		rawRoot = filepath.Join(sourceRoot, "remote-probe", "raw")
 		expected = tool.Str(tool.Obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"])
 		if expected == "" {
-			return nil, nil, nil, errors.New("source manifest must bind selected probe stream")
+			return nil, nil, errors.New("source manifest must bind selected probe stream")
 		}
 		if err := corpus.VerifySourcePhase(filepath.Join(sourceRoot, "remote-probe"), true); err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 	} else if phase != "main" {
-		return nil, nil, nil, errors.New("undeclared recording phase")
+		return nil, nil, errors.New("undeclared recording phase")
 	}
 	source, err := os.Open(filepath.Join(rawRoot, "raw.jsonl"))
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	document, readErr := recording.Read(source, provider, recording.Limits{})
 	if err := errors.Join(readErr, source.Close()); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	if document.SHA256 != expected {
-		return nil, nil, nil, errors.New("source hash mismatch: raw.jsonl")
+		return nil, nil, errors.New("source hash mismatch: raw.jsonl")
 	}
 	// Legacy manifests have no format descriptor. If one is supplied, enforce
 	// its version and transport rather than treating it as decorative metadata.
@@ -250,19 +197,40 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, tool.Object
 		}
 		var metadata tool.Object
 		if readErr != nil {
-			return nil, nil, nil, readErr
+			return nil, nil, readErr
 		}
 		if err := json.Unmarshal(data, &metadata); err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		if _, present := metadata["recordingFormat"]; present {
 			if _, err := recording.ValidateManifest(data, "raw.jsonl", document.Original); err != nil {
-				return nil, nil, nil, err
+				return nil, nil, err
 			}
 		}
 	}
 	if provider != "codex" && provider != "claude" {
-		return nil, nil, nil, errors.New("materials must identify codex or claude")
+		return nil, nil, errors.New("materials must identify codex or claude")
 	}
-	return manifest, plan, document, nil
+	return manifest, document, nil
+}
+
+func atomicMockJSON(path string, value any) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	f, err := os.CreateTemp(filepath.Dir(path), ".mock-json-*")
+	if err != nil {
+		return err
+	}
+	temp := f.Name()
+	defer os.Remove(temp)
+	if _, err := f.Write(append(data, '\n')); err != nil {
+		_ = f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temp, path)
 }

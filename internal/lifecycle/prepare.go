@@ -8,6 +8,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
@@ -159,7 +160,7 @@ func writeConnectionLauncher(root, id, self, sessionDir string) (string, error) 
 	quote := func(value string) string { return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'" }
 	invocation := strings.Join([]string{quote(self), quote("mock"), quote("--session-dir"), quote(sessionDir), quote("--connection"), quote(id)}, " ")
 	path := filepath.Join(root, "peer-"+id)
-	script := "#!/bin/sh\nif [ \"$#\" -eq 1 ] && { [ \"$1\" = '--version' ] || [ \"$1\" = '-v' ]; }; then\n  exec " + invocation + " --version\nfi\nexec " + invocation + "\n"
+	script := "#!/bin/sh\nexec " + invocation + " -- \"$@\"\n"
 	if err := os.MkdirAll(root, 0o700); err != nil {
 		return "", err
 	}
@@ -208,7 +209,7 @@ func initialBuiltin(session *Session, materialRoot string) (*builtin.Material, e
 	if err := builtin.CheckMaterial(extracted, material); err != nil {
 		return nil, err
 	}
-	if err := tool.CopyTree(extracted, materialRoot); err != nil {
+	if err := copyMaterial(extracted, materialRoot); err != nil {
 		return nil, err
 	}
 	return material, nil
@@ -231,6 +232,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	var root string
 	defer func() {
 		if err != nil {
+			_ = os.Remove(SessionPath(sessionDir))
 			diagnostic := map[string]any{"schemaVersion": SchemaVersion, "status": "failed", "error": err.Error(), "resourceRoot": root}
 			if root != "" {
 				cleanup := os.RemoveAll(root)
@@ -304,7 +306,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			return nil, errors.New("--session-dir must be outside the history seed")
 		}
 		historySeed = filepath.Join(sessionDir, "source", "history-seed")
-		if err := tool.CopyTree(sourceSeed, historySeed); err != nil {
+		if err := copyMaterial(sourceSeed, historySeed); err != nil {
 			return nil, err
 		}
 		files, err := history.HashTree(historySeed)
@@ -396,7 +398,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if action == "record" {
 			route.RuntimeEnv = environmentNames(privateEnv)
 		}
-		if action == "record" && spec.source.Kind == "plan" {
+		if action == "record" && spec.provenance == "consumer" {
 			route.Executor = "external-sdk"
 			route.Provenance = "consumer"
 		}
@@ -418,7 +420,11 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 		session.Routes[action] = route
 	}
-	materialRoot := filepath.Join(root, "initial")
+	materialID, err := randomID()
+	if err != nil {
+		return nil, err
+	}
+	materialRoot := filepath.Join(sessionDir, "materials", materialID)
 	var materialArtifact *Artifact
 	switch session.Source.Kind {
 	case "case":
@@ -434,11 +440,45 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			materialArtifact = artifact
 		}
 	case "recording":
-		artifact, err := artifactForMaterial(session.Source.Path, session.Source.Provenance, "initial", ids)
+		if err := copyMaterial(session.Source.Path, materialRoot); err != nil {
+			return nil, err
+		}
+		session.Source.Path = materialRoot
+		if spec.material != nil {
+			imported := *spec.material
+			imported.Path = materialRoot
+			materialArtifact = &imported
+		} else {
+			artifact, err := artifactForMaterial(materialRoot, session.Source.Provenance, "initial", ids)
+			if err != nil {
+				return nil, err
+			}
+			materialArtifact = artifact
+		}
+	}
+	if materialArtifact != nil {
+		if spec.material == nil {
+			materialArtifact.ID = materialID
+			materialArtifact.Action = "mock"
+		}
+		files, err := history.HashTree(materialRoot)
 		if err != nil {
 			return nil, err
 		}
-		materialArtifact = artifact
+		delete(files, "material.json")
+		materialArtifact.Files = files
+		if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
+			return nil, err
+		}
+		if _, err := inspectMaterial(session, *materialArtifact, "mock"); err != nil {
+			return nil, err
+		}
+	}
+	if _, err := LoadPlan(session); err != nil {
+		return nil, err
+	}
+	if err := writeExclusive(filepath.Join(sessionDir, "source", "source.json"), session.Source); err != nil {
+		return nil, err
 	}
 	if err := session.Validate(); err != nil {
 		return nil, err
@@ -453,12 +493,53 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	}
 	index := &Index{SchemaVersion: SchemaVersion, SessionID: session.SessionID, SessionSHA256: sessionHash, LastUpdatedUTC: now()}
 	if materialArtifact != nil {
-		materialArtifact.Action = "mock"
-		materialArtifact.CreatedAt = now()
 		index.Artifacts = append(index.Artifacts, *materialArtifact)
+	}
+	if err := os.MkdirAll(filepath.Join(sessionDir, "materials"), 0o700); err != nil {
+		return nil, err
+	}
+	if err := writeMaterialIndex(sessionDir, index); err != nil {
+		return nil, err
 	}
 	if err := writeExclusive(IndexPath(sessionDir), index); err != nil {
 		return nil, err
 	}
+	currentID := ""
+	if materialArtifact != nil {
+		currentID = materialArtifact.ID
+	}
+	if err := writeCurrent(sessionDir, session, currentID); err != nil {
+		return nil, err
+	}
+	if err := os.Chmod(sessionPath, 0o400); err != nil {
+		return nil, err
+	}
+	lock, err := actionLock(sessionDir, true)
+	if err != nil {
+		return nil, err
+	}
+	if err := lock.Close(); err != nil {
+		return nil, err
+	}
 	return session, nil
+}
+
+// copyMaterial checks the entire closure on both sides of the copy. In
+// particular, files not covered by a legacy manifest still get immutable hashes.
+func copyMaterial(source, target string) error {
+	before, err := history.HashTree(source)
+	if err != nil {
+		return err
+	}
+	if err := tool.CopyTree(source, target); err != nil {
+		return err
+	}
+	after, err := history.HashTree(target)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(before, after) {
+		return errors.New("material changed while copying into session")
+	}
+	return nil
 }

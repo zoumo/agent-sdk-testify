@@ -25,7 +25,12 @@ func TestBinaryUsesItselfOutsideCheckout(t *testing.T) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "peer-main.json"), &peer))
 	require.Equal(t, binary, peer.Command)
 	require.Equal(t, "--internal-protocol", peer.Args[0])
-	out, err := exec.CommandContext(t.Context(), binary, "mock", "--list", "--json").CombinedOutput()
-	require.NoError(t, err)
-	require.Contains(t, string(out), "SDK-CASE-001")
+	prepared := filepath.Join(t.TempDir(), "session")
+	out, err := exec.CommandContext(t.Context(), binary, "prepare", "--session-dir", prepared, "--agent", "codex", "--case", "SDK-CASE-001").CombinedOutput()
+	require.NoError(t, err, "%s", out)
+	require.FileExists(t, filepath.Join(prepared, "session.json"))
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(prepared, "session.json"), &descriptor))
+	require.Equal(t, "SDK-CASE-001", tool.Obj(descriptor["source"])["id"])
+	t.Cleanup(func() { _ = os.RemoveAll(tool.Str(descriptor["resourceRoot"])) })
 }

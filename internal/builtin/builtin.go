@@ -214,6 +214,10 @@ func CheckSelection(material *Material) error {
 }
 
 func CheckMaterial(root string, material *Material) error {
+	return checkMaterial(root, material, false)
+}
+
+func checkMaterial(root string, material *Material, sessionMetadata bool) error {
 	if err := CheckSelection(material); err != nil {
 		return err
 	}
@@ -223,6 +227,9 @@ func CheckMaterial(root string, material *Material) error {
 	files, err := corpus.Inventory(root, false)
 	if err != nil {
 		return err
+	}
+	if sessionMetadata {
+		delete(files, "material.json")
 	}
 	if len(files) != len(material.Files) {
 		return errors.New("builtin inventory drift")
@@ -235,10 +242,19 @@ func CheckMaterial(root string, material *Material) error {
 	return nil
 }
 
-func CheckRoot(root string) (*Material, error) {
+func CheckRoot(root string) (*Material, error) { return checkRoot(root, false) }
+
+// CheckPreparedRoot accepts the session-owned material descriptor in addition
+// to the exact builtin payload. All payload bytes still match the snapshot.
+func CheckPreparedRoot(root string) (*Material, error) { return checkRoot(root, true) }
+
+func checkRoot(root string, sessionMetadata bool) (*Material, error) {
 	files, err := corpus.Inventory(root, false)
 	if err != nil {
 		return nil, err
+	}
+	if sessionMetadata {
+		delete(files, "material.json")
 	}
 	m, _, err := Read()
 	if err != nil {
@@ -257,7 +273,7 @@ func CheckRoot(root string) (*Material, error) {
 			}
 		}
 		if matches {
-			if err := CheckMaterial(root, material); err != nil {
+			if err := checkMaterial(root, material, sessionMetadata); err != nil {
 				return nil, err
 			}
 			return material, nil

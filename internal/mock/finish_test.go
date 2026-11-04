@@ -132,10 +132,12 @@ func TestPreparedFinishCleanupFailureCanRetry(t *testing.T) {
 	require.NoError(t, os.WriteFile(callerFile, []byte("preserve\n"), 0o600))
 	capture := ""
 	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
-	for _, value := range tool.Array(index["artifacts"]) {
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "materials", "index.json"), &index))
+	var current tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(session, "current.json"), &current))
+	for _, value := range tool.Array(index["materials"]) {
 		artifact := tool.Obj(value)
-		if artifact["id"] == index["latestCapture"] {
+		if artifact["id"] == current["materialId"] {
 			capture = tool.Str(artifact["path"])
 		}
 	}

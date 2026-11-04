@@ -16,7 +16,7 @@ func TestPublicCommands(t *testing.T) {
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	rootHelp := string(out)
-	for _, name := range []string{"prepare", "record", "verify", "mock", "finish"} {
+	for _, name := range []string{"prepare", "record", "verify", "mock", "export", "finish"} {
 		require.Contains(t, rootHelp, name)
 	}
 	for _, name := range []string{"internal-protocol", "internal-peer", "completion"} {
@@ -114,7 +114,8 @@ func TestSinglePreparedSessionCLIContract(t *testing.T) {
 	}
 	out, stderr, code := runCLI(t, binary, nil, "mock", "--help")
 	require.Zero(t, code, stderr)
-	require.Contains(t, string(out), "managed mock alias")
+	require.Contains(t, string(out), "current recording")
+	require.NotContains(t, string(out), "managed mock alias")
 	require.NotContains(t, strings.ToLower(string(out)), "compatibility alias")
 
 	for _, args := range [][]string{
@@ -134,12 +135,12 @@ func TestSinglePreparedSessionCLIContract(t *testing.T) {
 		"verify", "--recording", filepath.Join(root, "capture"), "--output", filepath.Join(root, "output"))
 	require.Equal(t, 2, code, stderr)
 	require.Empty(t, out)
-	require.Contains(t, stderr, "unknown flag: --output")
+	require.Contains(t, stderr, "unknown flag: --recording")
 
 	out, stderr, code = runCLI(t, binary, nil, "verify", "--recording", filepath.Join(root, "capture"))
 	require.Equal(t, 2, code, stderr)
 	require.Empty(t, out)
-	require.Contains(t, stderr, "--session-dir")
+	require.Contains(t, stderr, "unknown flag: --recording")
 }
 
 func TestPublicCommandParseFailuresDoNotStartHandlers(t *testing.T) {

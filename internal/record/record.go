@@ -46,9 +46,6 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	if err := lifecycle.SessionOpen(o.SessionDir); err != nil {
 		return err
 	}
-	if session.Source.Kind != "case" && session.Source.Kind != "plan" {
-		return errors.New("record requires a case or plan source")
-	}
 	if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
 		return err
 	}
@@ -58,14 +55,16 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	}
 	status, artifactID := "failed", ""
 	defer func() {
-		if scrubErr := lifecycle.ScrubExecutionAuthentication(run); scrubErr != nil {
-			runErr = errors.Join(runErr, scrubErr)
-			status = "failed"
-			artifactID = ""
+		if status != "passed" {
+			scrubErr := lifecycle.ScrubExecutionAuthentication(run)
+			finishErr := lifecycle.FinishAction(run, status, artifactID)
+			runErr = errors.Join(runErr, scrubErr, finishErr)
+			evidence := tool.Object{"schemaVersion": 1, "status": "failed", "error": runErr.Error(), "cleanupComplete": scrubErr == nil && finishErr == nil}
+			runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(run.ArtifactRoot, "failure.json"), evidence))
 		}
-		runErr = errors.Join(runErr, lifecycle.FinishAction(run, status, artifactID), run.Close())
+		runErr = errors.Join(runErr, run.Close())
 	}()
-	if session.Source.Kind == "case" {
+	if session.Routes["record"].Executor == "official-driver" {
 		runErr = recordOfficial(ctx, run, executable, o.NativeArgs, o.Timeout, streams.Out)
 	} else {
 		runErr = recordConsumer(ctx, run, executable, o.NativeArgs, o.Timeout, streams)
@@ -130,7 +129,7 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 	if err != nil {
 		return err
 	}
-	artifact, err := captureArtifact(run, "official")
+	artifact, err := captureArtifact(run, run.Execution.Provenance)
 	if err != nil {
 		return err
 	}
@@ -141,7 +140,11 @@ func recordOfficial(ctx context.Context, run *lifecycle.ActionRun, command strin
 }
 
 func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, timeout time.Duration, streams capture.IO) error {
-	planBytes, err := os.ReadFile(run.Execution.Source.Path)
+	planPath := run.Execution.Source.Path
+	if run.Execution.Source.Kind == "recording" {
+		planPath = filepath.Join(planPath, "plan.json")
+	}
+	planBytes, err := os.ReadFile(planPath)
 	if err != nil {
 		return err
 	}
@@ -164,8 +167,8 @@ func recordConsumer(ctx context.Context, run *lifecycle.ActionRun, command strin
 	if err := os.WriteFile(filepath.Join(run.ArtifactRoot, "plan.json"), planBytes, 0o600); err != nil {
 		return errors.Join(captureErr, err)
 	}
-	if digest := tool.DigestBytes(planBytes); digest != run.Session.Source.SHA256 {
-		return errors.Join(captureErr, errors.New("consumer plan changed after prepare"))
+	if _, err := lifecycle.LoadPlan(run.Session); err != nil {
+		return errors.Join(captureErr, err)
 	}
 	if err := snapshotHistory(run.OverlayRoot, run.ArtifactRoot); err != nil {
 		return errors.Join(captureErr, err)

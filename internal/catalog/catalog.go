@@ -10,6 +10,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
@@ -153,4 +154,18 @@ func Load(catalog fs.FS, selection Selection) (tool.Object, error) {
 		"scenario":      scenario,
 		"model":         selection.Model,
 	}, nil
+}
+
+// CheckVerifierPlan requires the exact official case and agent binding. Runtime
+// paths and native launch options are deliberately outside the case contract.
+func CheckVerifierPlan(plan, bound tool.Object) error {
+	if tool.Str(tool.Obj(bound["scenario"])["mode"]) != "live-selected-path" {
+		return errors.New("official case binding has no applicable verifier")
+	}
+	for _, key := range []string{"provider", "storyId", "caseId", "driverProfile", "case", "prompts", "scenario"} {
+		if !reflect.DeepEqual(plan[key], bound[key]) {
+			return fmt.Errorf("recording %s differs from official case binding", key)
+		}
+	}
+	return nil
 }

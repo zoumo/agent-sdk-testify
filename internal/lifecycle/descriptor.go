@@ -17,7 +17,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-const SchemaVersion = 1
+const SchemaVersion = 2
 
 type Command struct {
 	Command string   `json:"command"`
@@ -134,16 +134,17 @@ type Execution struct {
 }
 
 type Artifact struct {
-	ID              string   `json:"id"`
-	Kind            string   `json:"kind"`
-	Action          string   `json:"action"`
-	Provenance      string   `json:"provenance"`
-	Path            string   `json:"path"`
-	PlanSHA256      string   `json:"planSHA256"`
-	ManifestSHA256  string   `json:"manifestSHA256"`
-	RecordingSHA256 string   `json:"recordingSHA256"`
-	Connections     []string `json:"connections"`
-	CreatedAt       string   `json:"createdAt"`
+	Files           map[string]string `json:"files,omitempty"`
+	ID              string            `json:"id"`
+	Kind            string            `json:"kind"`
+	Action          string            `json:"action"`
+	Provenance      string            `json:"provenance"`
+	Path            string            `json:"path"`
+	PlanSHA256      string            `json:"planSHA256"`
+	ManifestSHA256  string            `json:"manifestSHA256"`
+	RecordingSHA256 string            `json:"recordingSHA256"`
+	Connections     []string          `json:"connections"`
+	CreatedAt       string            `json:"createdAt"`
 }
 
 type IndexConnection struct {
@@ -167,8 +168,7 @@ type Index struct {
 	SessionID      string           `json:"sessionId"`
 	SessionSHA256  string           `json:"sessionSHA256"`
 	Executions     []IndexExecution `json:"executions"`
-	Artifacts      []Artifact       `json:"artifacts"`
-	LatestCapture  string           `json:"latestCapture,omitempty"`
+	Artifacts      []Artifact       `json:"-"`
 	LastUpdatedUTC string           `json:"lastUpdatedUtc"`
 }
 
@@ -385,10 +385,44 @@ func readIndex(path string) (*Index, error) {
 	if index.SchemaVersion != SchemaVersion || index.SessionID == "" || index.SessionSHA256 == "" {
 		return nil, errors.New("invalid execution index")
 	}
-	if index.LatestCapture != "" {
-		if _, err := latestCaptureArtifact(&index); err != nil {
+	var materials MaterialIndex
+	if err := tool.ReadJSON(MaterialIndexPath(filepath.Dir(filepath.Dir(path))), &materials); err != nil {
+		return nil, err
+	}
+	if materials.SchemaVersion != SchemaVersion || materials.SessionID != index.SessionID {
+		return nil, errors.New("invalid material index identity or schemaVersion")
+	}
+	sessionDir := filepath.Dir(filepath.Dir(path))
+	seen := map[string]bool{}
+	for _, material := range materials.Materials {
+		if material.ID == "" || seen[material.ID] {
+			return nil, errors.New("duplicate or empty material identity")
+		}
+		seen[material.ID] = true
+		resolved, err := filepath.EvalSymlinks(material.Path)
+		if err != nil {
 			return nil, err
 		}
+		if resolved != material.Path || !withinPath(sessionDir, resolved) {
+			return nil, errors.New("material path must remain inside session")
+		}
 	}
+	index.Artifacts = materials.Materials
 	return &index, nil
+}
+
+// MaterialIndex is the immutable-material registry; current.json alone selects
+// the input for actions. Execution bookkeeping never selects a material.
+type MaterialIndex struct {
+	SchemaVersion int        `json:"schemaVersion"`
+	SessionID     string     `json:"sessionId"`
+	Materials     []Artifact `json:"materials"`
+}
+
+func MaterialIndexPath(sessionDir string) string {
+	return filepath.Join(sessionDir, "materials", "index.json")
+}
+
+func writeMaterialIndex(sessionDir string, index *Index) error {
+	return writeAtomic(MaterialIndexPath(sessionDir), MaterialIndex{SchemaVersion: SchemaVersion, SessionID: index.SessionID, Materials: index.Artifacts})
 }

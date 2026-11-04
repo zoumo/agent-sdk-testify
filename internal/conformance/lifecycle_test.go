@@ -18,7 +18,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	session := prepareSession(t, env, "--plan", plan)
 
 	descriptor := readJSON(t, filepath.Join(session, "session.json"))
-	require.InEpsilon(t, 1, descriptor["schemaVersion"], 0)
+	require.InEpsilon(t, 2, descriptor["schemaVersion"], 0)
 	require.Equal(t, "codex", descriptor["agentType"])
 	require.Equal(t, "plan", obj(descriptor["source"])["kind"])
 	require.Contains(t, str(obj(descriptor["source"])["path"]), filepath.Join(session, "source"))
@@ -52,9 +52,9 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(str(firstRecord["workspace"]), "only-first.txt"), []byte("first\n"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(str(firstRecord["config"]), "sessions", "only-first.txt"), []byte("first\n"), 0o600))
 
-	firstIndex := sessionIndex(t, session)
-	require.Len(t, array(firstIndex["artifacts"]), 1)
-	firstCapture := artifactByID(t, session, str(firstIndex["latestCapture"]))
+	firstIndex := materialIndex(t, session)
+	require.Len(t, array(firstIndex["materials"]), 1)
+	firstCapture := artifactByID(t, session, currentMaterialID(t, session))
 	require.Equal(t, firstCapture["path"], firstConnection["material"])
 	require.Equal(t, firstCapture["planSHA256"], firstConnection["planSHA256"])
 	require.Equal(t, firstCapture["manifestSHA256"], firstConnection["manifestSHA256"])
@@ -62,7 +62,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.Equal(t, "capture", firstCapture["kind"])
 	require.Equal(t, "record", firstCapture["action"])
 	require.Equal(t, "consumer", firstCapture["provenance"])
-	require.Equal(t, str(firstRecord["artifactRoot"]), firstCapture["path"])
+	require.Equal(t, filepath.Join(filepath.Dir(filepath.Dir(str(firstRecord["artifactRoot"]))), "..", "materials", str(firstCapture["id"])), firstCapture["path"])
 	require.Equal(t, firstCapture["planSHA256"], digestFile(t, filepath.Join(str(firstCapture["path"]), "plan.json")))
 	require.Equal(t, firstCapture["manifestSHA256"], digestFile(t, filepath.Join(str(firstCapture["path"]), "manifest.json")))
 	require.Equal(t, firstCapture["recordingSHA256"], digestFile(t, filepath.Join(str(firstCapture["path"]), "raw", "raw.jsonl")))
@@ -89,11 +89,11 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.FileExists(t, filepath.Join(str(secondRecord["workspace"]), "fixture.txt"))
 	require.NoFileExists(t, filepath.Join(str(descriptor["workspace"]), "only-first.txt"))
 
-	secondIndex := sessionIndex(t, session)
-	require.Len(t, array(secondIndex["artifacts"]), 2)
-	secondCapture := artifactByID(t, session, str(secondIndex["latestCapture"]))
+	secondIndex := materialIndex(t, session)
+	require.Len(t, array(secondIndex["materials"]), 2)
+	secondCapture := artifactByID(t, session, currentMaterialID(t, session))
 	require.NotEqual(t, firstCapture["id"], secondCapture["id"])
-	require.Equal(t, str(secondRecord["artifactRoot"]), secondCapture["path"])
+	require.Equal(t, filepath.Join(filepath.Dir(filepath.Dir(str(secondRecord["artifactRoot"]))), "..", "materials", str(secondCapture["id"])), secondCapture["path"])
 
 	latestMock := runPreparedMock(t, env, session, "", requestTwo)
 	require.JSONEq(t, `{"id":2,"result":{"synthetic":true}}`, latestMock.stdout)
@@ -113,18 +113,17 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	historyBytes := readFile(t, filepath.Join(str(latestMockExecution["config"]), "sessions", "conformance-history.jsonl"))
 	require.True(t, bytes.Equal([]byte("{\"type\":\"conformance-history\"}\n"), historyBytes), "unexpected history bytes: %q", historyBytes)
 
-	explicitMock := runPreparedMock(t, env, session, "", requestOne, "--recording", str(firstCapture["path"]))
-	require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, explicitMock.stdout)
-	explicitMockExecution := latestExecution(t, session, "mock")
-	require.Equal(t, str(firstCapture["path"]), obj(explicitMockExecution["artifact"])["path"])
-	require.Equal(t, firstCapture["id"], obj(explicitMockExecution["artifact"])["id"])
-	afterMocks := sessionIndex(t, session)
-	require.Equal(t, secondCapture["id"], afterMocks["latestCapture"])
-	require.Len(t, array(afterMocks["artifacts"]), 2)
+	rejectedOverride := runTool(t, env, t.TempDir(), requestOne,
+		"mock", "--session-dir", session, "--recording", str(firstCapture["path"]))
+	require.NotZero(t, rejectedOverride.code)
+	require.Contains(t, rejectedOverride.stderr, "unsupported native startup argument")
+	afterMocks := materialIndex(t, session)
+	require.Equal(t, secondCapture["id"], currentMaterialID(t, session))
+	require.Len(t, array(afterMocks["materials"]), 2)
 
 	rejected := runTool(t, env, t.TempDir(), "", "verify", "--session-dir", session)
 	require.NotZero(t, rejected.code)
-	require.Contains(t, strings.ToLower(rejected.stderr), "consumer material cannot be verified")
+	require.Contains(t, strings.ToLower(rejected.stderr), "no applicable official verifier")
 	for _, row := range array(sessionIndex(t, session)["executions"]) {
 		require.NotEqual(t, "verify", obj(row)["command"])
 	}
@@ -135,7 +134,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.Zero(t, firstFinishResult.code, firstFinishResult.stderr)
 	require.Equal(t, "passed", firstFinish["status"])
 	require.Equal(t, true, firstFinish["cleanupComplete"])
-	require.Len(t, array(firstFinish["executions"]), 4)
+	require.Len(t, array(firstFinish["executions"]), 3)
 	for _, value := range array(firstFinish["executions"]) {
 		require.Equal(t, "passed", obj(value)["status"])
 	}
@@ -148,7 +147,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.Zero(t, secondFinishResult.code, secondFinishResult.stderr)
 	require.Equal(t, firstFinish["status"], secondFinish["status"])
 	require.Equal(t, firstFinish["cleanupComplete"], secondFinish["cleanupComplete"])
-	require.Len(t, array(secondFinish["executions"]), 4)
+	require.Len(t, array(secondFinish["executions"]), 3)
 
 	blocked := runTool(t, env, t.TempDir(), requestTwo,
 		"mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://",
@@ -176,7 +175,7 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	capture := latestCapture(t, session)
 	require.Equal(t, "capture", capture["kind"])
 	require.Equal(t, "official", capture["provenance"])
-	require.Equal(t, str(recordExecution["artifactRoot"]), capture["path"])
+	require.Equal(t, filepath.Join(filepath.Dir(filepath.Dir(str(recordExecution["artifactRoot"]))), "..", "materials", str(capture["id"])), capture["path"])
 	plan := readJSON(t, filepath.Join(str(capture["path"]), "plan.json"))
 	manifest := readJSON(t, filepath.Join(str(capture["path"]), "manifest.json"))
 	transport := readJSON(t, filepath.Join(str(capture["path"]), "raw", "transport.json"))
@@ -260,7 +259,7 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 }
 
 func TestMultiConnectionBuiltinConformance(t *testing.T) {
-	_, inputs := describeBuiltin(t, "codex", "SDK-CASE-032")
+	inputs := builtinInputs(t, "codex", "SDK-CASE-032")
 	require.Contains(t, inputs, "main")
 	require.Contains(t, inputs, "probe")
 
@@ -310,14 +309,14 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 }
 
 func TestPlanSeedHistoryConformance(t *testing.T) {
-	_, inputs := describeBuiltin(t, "codex", "SDK-CASE-035")
+	inputs := builtinInputs(t, "codex", "SDK-CASE-035")
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-035")
 
-	index := sessionIndex(t, session)
-	require.Len(t, array(index["artifacts"]), 1)
-	artifact := obj(array(index["artifacts"])[0])
+	index := materialIndex(t, session)
+	require.Len(t, array(index["materials"]), 1)
+	artifact := obj(array(index["materials"])[0])
 	material := str(artifact["path"])
 	manifest := readJSON(t, filepath.Join(material, "manifest.json"))
 	plan := readJSON(t, filepath.Join(material, "plan.json"))
@@ -336,7 +335,7 @@ func TestPlanSeedHistoryConformance(t *testing.T) {
 }
 
 func TestMockJoinInputConformance(t *testing.T) {
-	_, inputs := describeBuiltin(t, "codex", "SDK-CASE-032")
+	inputs := builtinInputs(t, "codex", "SDK-CASE-032")
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 
@@ -444,35 +443,6 @@ func TestStrictReplayAndTamperConformance(t *testing.T) {
 	})
 }
 
-func TestManagedMockAliasConformance(t *testing.T) {
-	_, inputs := describeBuiltin(t, "codex", "SDK-CASE-001")
-	require.Contains(t, inputs, "main")
-	root := t.TempDir()
-	_, _, env := isolatedCommands(t, root, "codex")
-	reportPath := filepath.Join(t.TempDir(), "managed-report.json")
-
-	result := mustRun(t, env, t.TempDir(), inputs["main"],
-		"mock", "--agent", "codex", "--case", "SDK-CASE-001", "--report", reportPath,
-	)
-	require.NotEmpty(t, result.stdout)
-	report := readJSON(t, reportPath)
-	require.InEpsilon(t, 1, report["schemaVersion"], 0)
-	require.Equal(t, true, report["managed"])
-	require.Equal(t, "passed", report["status"])
-	require.Equal(t, "builtin", report["provenance"])
-	require.NotEmpty(t, report["sessionId"])
-	require.NotEmpty(t, report["executionId"])
-	require.Equal(t, "passed", obj(report["finish"])["status"])
-	require.Equal(t, true, obj(report["finish"])["cleanupComplete"])
-	session := obj(report["session"])
-	require.Equal(t, "case", obj(session["source"])["kind"])
-	require.NotNil(t, obj(session["routes"])["record"])
-	execution := obj(report["execution"])
-	require.Equal(t, "mock", execution["command"])
-	require.Equal(t, "builtin", execution["provenance"])
-	require.NoDirExists(t, str(session["resourceRoot"]))
-}
-
 func TestConformanceDescriptorsAreStableJSON(t *testing.T) {
 	root := t.TempDir()
 	agent, _, env := isolatedCommands(t, root, "codex")
@@ -522,7 +492,7 @@ func TestPreparedDescriptorsExcludeRuntimeAuthentication(t *testing.T) {
 	record := recordConsumer(t, env, session, agent, requestOne)
 	observed := readFile(t, filepath.Join(str(record["home"]), "runtime-secret-observed"))
 	require.Equal(t, "matched\n", string(observed))
-	require.NoFileExists(t, filepath.Join(session, "executions", str(record["executionId"]), "overlay", "config", "auth.json"))
+	require.NoFileExists(t, filepath.Join(str(record["config"]), "auth.json"))
 	require.NotContains(t, readFile(t, filepath.Join(session, "executions", str(record["executionId"]), "execution.json")), secret)
 	require.NotContains(t, string(readAllFiles(t, session)), secret)
 	require.NotContains(t, string(readAllFiles(t, session)), fileSecret)
@@ -549,17 +519,17 @@ func TestPreparedMockRejectsIgnoredInputsBeforeClaim(t *testing.T) {
 		{
 			name: "agent",
 			args: []string{"--agent", "claude"},
-			want: "agent type differs",
+			want: "unsupported native startup argument",
 		},
 		{
 			name: "report",
 			args: []string{"--report", filepath.Join(t.TempDir(), "prepared-report.json")},
-			want: "--report is only valid for the managed alias",
+			want: "unsupported native startup argument",
 		},
 		{
 			name: "json",
 			args: []string{"--json"},
-			want: "--json is only valid with --list or --describe",
+			want: "unsupported native startup argument",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -575,7 +545,7 @@ func TestPreparedMockRejectsIgnoredInputsBeforeClaim(t *testing.T) {
 	}
 }
 
-func TestManagedMockVersionProbeIsRejectedBeforeReport(t *testing.T) {
+func TestMockRequiresSessionBeforeLegacyReport(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	reportPath := filepath.Join(t.TempDir(), "managed-version-report.json")
@@ -584,31 +554,24 @@ func TestManagedMockVersionProbeIsRejectedBeforeReport(t *testing.T) {
 		"--", "--version",
 	)
 	require.NotZero(t, result.code)
-	require.Contains(t, result.stderr, "managed mock alias does not support --version")
+	require.Contains(t, result.stderr, "mock requires --session-dir")
 	require.NoFileExists(t, reportPath)
 }
 
-func TestLatestCaptureRejectsMaterialArtifactIdentity(t *testing.T) {
+func TestCurrentRejectsUnknownMaterialIdentity(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
-	index := sessionIndex(t, session)
-	materials := array(index["artifacts"])
-	require.NotEmpty(t, materials)
-	material := obj(materials[0])
-	require.Equal(t, "material", material["kind"])
-	index["latestCapture"] = material["id"]
-	writeJSON(t, filepath.Join(session, "executions", "index.json"), index)
-
-	mock := runTool(t, env, t.TempDir(), conformanceRequest,
-		"mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://",
-	)
-	require.NotZero(t, mock.code)
-	require.Contains(t, mock.stderr, "latest capture is not a record capture")
-
-	finish := runTool(t, env, t.TempDir(), "", "finish", "--session-dir", session)
-	require.NotZero(t, finish.code)
-	require.Contains(t, finish.stderr, "latest capture is not a record capture")
+	current := readJSON(t, filepath.Join(session, "current.json"))
+	current["materialId"] = "missing-material"
+	writeJSON(t, filepath.Join(session, "current.json"), current)
+	index := readFile(t, filepath.Join(session, "executions", "index.json"))
+	for _, action := range []string{"mock", "verify"} {
+		result := runTool(t, env, t.TempDir(), "", action, "--session-dir", session)
+		require.NotZero(t, result.code)
+		require.Contains(t, result.stderr, "current recording is absent from material index")
+		require.Equal(t, index, readFile(t, filepath.Join(session, "executions", "index.json")))
+	}
 }
 
 func TestFailedRecordKeepsLatestPublishedCapture(t *testing.T) {
@@ -618,18 +581,18 @@ func TestFailedRecordKeepsLatestPublishedCapture(t *testing.T) {
 	session := prepareSession(t, env, "--plan", plan)
 	recordConsumer(t, env, session, agent, requestOne)
 
-	before := sessionIndex(t, session)
-	require.Len(t, array(before["artifacts"]), 1)
-	latest := before["latestCapture"]
+	before := materialIndex(t, session)
+	require.Len(t, array(before["materials"]), 1)
+	latest := currentMaterialID(t, session)
 
 	failed := runTool(t, env, t.TempDir(), requestTwo,
 		"record", "--session-dir", session, "--cmd", "/usr/bin/false", "--",
 		"app-server", "--listen", "stdio://",
 	)
 	require.NotZero(t, failed.code)
-	after := sessionIndex(t, session)
-	require.Equal(t, latest, after["latestCapture"])
-	require.Len(t, array(after["artifacts"]), 1)
+	after := materialIndex(t, session)
+	require.Equal(t, latest, currentMaterialID(t, session))
+	require.Len(t, array(after["materials"]), 1)
 
 	finishResult, finish := finishSession(t, env, session)
 	require.NotZero(t, finishResult.code)

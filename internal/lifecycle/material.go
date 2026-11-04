@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 
+	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
+	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -66,6 +69,11 @@ func inspectMaterial(session *Session, artifact Artifact, action string) (*mater
 	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return nil, errors.New("material path is not an unlinked directory")
 	}
+	if len(artifact.Files) > 0 {
+		if err := checkMaterialInventory(artifact.Path, artifact); err != nil {
+			return nil, err
+		}
+	}
 	if err := corpus.VerifyMaterials(artifact.Path, true); err != nil {
 		return nil, err
 	}
@@ -115,10 +123,38 @@ func inspectMaterial(session *Session, artifact Artifact, action string) (*mater
 			return nil, fmt.Errorf("artifact hash mismatch: %s", name)
 		}
 	}
-	if action == "verify" && artifact.Provenance == "consumer" {
-		return nil, errors.New("consumer material cannot be verified")
+	if action == "verify" {
+		if artifact.Provenance != "official" && artifact.Provenance != "builtin" {
+			return nil, errors.New("material has no applicable official verifier: provenance must be official or builtin")
+		}
+		bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: provider, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
+		if err != nil {
+			return nil, err
+		}
+		if err := catalog.CheckVerifierPlan(plan, bound); err != nil {
+			return nil, err
+		}
 	}
 	return &materialInspection{Plan: plan, Manifest: manifest, Provenance: selected, HistoryFiles: historyFiles}, nil
+}
+
+func checkMaterialInventory(root string, artifact Artifact) error {
+	var descriptor Artifact
+	if err := tool.ReadJSON(filepath.Join(root, "material.json"), &descriptor); err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(descriptor, artifact) {
+		return errors.New("material descriptor differs from its index")
+	}
+	actual, err := history.HashTree(root)
+	if err != nil {
+		return err
+	}
+	delete(actual, "material.json")
+	if !reflect.DeepEqual(actual, artifact.Files) {
+		return errors.New("material closure hash mismatch")
+	}
+	return nil
 }
 
 func validateArtifactProvenance(session *Session, artifact Artifact, plan, manifest tool.Object, selected string) error {
@@ -126,7 +162,7 @@ func validateArtifactProvenance(session *Session, artifact Artifact, plan, manif
 	switch claimed {
 	case "official":
 		if artifact.Kind == "capture" {
-			if artifact.Action != "record" || session.Source.Kind != "case" {
+			if artifact.Action != "record" || session.Routes["record"].Executor != "official-driver" {
 				return errors.New("official capture provenance conflicts with its action or source")
 			}
 			if selected != "external" || tool.Str(manifest["provenance"]) != "capture" {
@@ -147,7 +183,7 @@ func validateArtifactProvenance(session *Session, artifact Artifact, plan, manif
 		if selected == "consumer" {
 			return errors.New("builtin provenance conflicts with consumer material")
 		}
-		if _, err := builtin.CheckRoot(artifact.Path); err != nil {
+		if _, err := builtin.CheckPreparedRoot(artifact.Path); err != nil {
 			return err
 		}
 	default:
@@ -164,8 +200,13 @@ func executionProvenance(session *Session, action string, material *Artifact) (s
 			return "official", nil
 		case "plan":
 			return "consumer", nil
+		case "recording":
+			if session.Source.Provenance == "builtin" {
+				return "official", nil
+			}
+			return session.Source.Provenance, nil
 		default:
-			return "", errors.New("record requires a case or plan source")
+			return "", errors.New("record source is unknown")
 		}
 	case "mock", "verify":
 		if material == nil {

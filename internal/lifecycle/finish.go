@@ -29,12 +29,14 @@ type FinishPeer struct {
 }
 
 type FinishReport struct {
-	SchemaVersion   int               `json:"schemaVersion"`
-	SessionID       string            `json:"sessionId"`
-	Status          string            `json:"status"`
-	CleanupComplete bool              `json:"cleanupComplete"`
-	Executions      []FinishExecution `json:"executions"`
-	Error           string            `json:"error,omitempty"`
+	SchemaVersion    int               `json:"schemaVersion"`
+	SessionID        string            `json:"sessionId"`
+	Status           string            `json:"status"`
+	CleanupComplete  bool              `json:"cleanupComplete"`
+	Executions       []FinishExecution `json:"executions"`
+	Error            string            `json:"error,omitempty"`
+	ValidationStatus string            `json:"validationStatus"`
+	ValidationError  string            `json:"validationError,omitempty"`
 }
 
 // Finish validates every immutable execution descriptor against the mutable
@@ -58,23 +60,27 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 	lock, err := actionLock(sessionDir, true)
 	if err != nil {
 		report.Error = err.Error()
-		_ = writeAtomic(filepath.Join(sessionDir, "finish.json"), report)
 		return report, err
 	}
 	defer func() { runErr = errors.Join(runErr, lock.Close()) }()
 
-	index, err := readIndex(IndexPath(sessionDir))
-	if err != nil {
-		report.Error = err.Error()
-		_ = writeAtomic(filepath.Join(sessionDir, "finish.json"), report)
+	// Closure precedes validation and cleanup. A failed cleanup never reopens actions.
+	if err := ensureClosed(sessionDir, session, report); err != nil {
 		return report, err
 	}
-	if previous, previousErr := completedFinish(sessionDir, session); previous != nil {
-		report = previous
-		if cleanupErr := ensureClosed(sessionDir, session, report); cleanupErr != nil {
-			return report, errors.Join(previousErr, cleanupErr)
+	var previous FinishReport
+	if err := tool.ReadJSON(filepath.Join(sessionDir, "finish.json"), &previous); err == nil {
+		if previous.SchemaVersion != SchemaVersion || previous.SessionID != session.SessionID ||
+			(previous.ValidationStatus != "passed" && previous.ValidationStatus != "failed" && previous.ValidationStatus != "abandoned") {
+			return report, errors.New("invalid persisted finish evidence")
 		}
-		return report, previousErr
+		return retryFinishCleanup(sessionDir, session, &previous)
+	} else if !os.IsNotExist(err) {
+		return report, err
+	}
+	index, err := readIndex(IndexPath(sessionDir))
+	if err != nil {
+		return report, err
 	}
 	artifacts := make(map[string]Artifact, len(index.Artifacts))
 	for _, artifact := range index.Artifacts {
@@ -117,84 +123,60 @@ func Finish(sessionDir string) (report *FinishReport, runErr error) {
 		report.Status = "passed"
 	}
 
-	cleanupComplete, cleanupErr := finishCleanup(sessionDir, session)
-	report.CleanupComplete = cleanupComplete
-	runErr = errors.Join(validationErr, cleanupErr)
+	report.ValidationStatus = report.Status
+	if validationErr != nil {
+		report.ValidationError = validationErr.Error()
+	}
+	// Persist the immutable business conclusion before touching temporary resources.
+	if err := writeAtomic(filepath.Join(sessionDir, "finish.json"), report); err != nil {
+		report.Status, report.Error = "failed", err.Error()
+		return report, err
+	}
+	return retryFinishCleanup(sessionDir, session, report)
+}
+
+func retryFinishCleanup(sessionDir string, session *Session, report *FinishReport) (*FinishReport, error) {
+	var cleanupErr error
+	if !report.CleanupComplete {
+		report.CleanupComplete, cleanupErr = finishCleanup(sessionDir, session)
+	}
+	report.Status = report.ValidationStatus
+	var validationErr error
+	if report.ValidationError != "" {
+		validationErr = errors.New(report.ValidationError)
+	}
+	runErr := errors.Join(validationErr, cleanupErr)
+	report.Error = ""
 	if runErr != nil {
-		report.Status = "failed"
-		report.Error = runErr.Error()
+		report.Status, report.Error = "failed", runErr.Error()
 	}
 	cleanup := tool.Object{
 		"schemaVersion":   SchemaVersion,
 		"sessionId":       session.SessionID,
 		"resourceRoot":    session.ResourceRoot,
-		"cleanupComplete": cleanupComplete,
-		"status":          report.Status,
+		"cleanupComplete": report.CleanupComplete,
 	}
 	if cleanupErr != nil {
 		cleanup["error"] = cleanupErr.Error()
 	}
 	if err := writeAtomic(filepath.Join(sessionDir, "cleanup.json"), cleanup); err != nil {
 		runErr = errors.Join(runErr, err)
-		report.Status = "failed"
-		report.CleanupComplete = false
-		report.Error = runErr.Error()
+		report.Status, report.Error = "failed", runErr.Error()
 	}
 	if err := writeAtomic(filepath.Join(sessionDir, "finish.json"), report); err != nil {
-		return report, errors.Join(runErr, err)
-	}
-	if err := ensureClosed(sessionDir, session, report); err != nil {
-		return report, errors.Join(runErr, err)
+		runErr = errors.Join(runErr, err)
+		report.Status, report.Error = "failed", runErr.Error()
+		return report, runErr
 	}
 	return report, runErr
 }
 
-func completedFinish(sessionDir string, session *Session) (*FinishReport, error) {
-	if _, err := os.Lstat(session.ResourceRoot); !os.IsNotExist(err) {
-		return nil, nil
-	}
-	var cleanup tool.Object
-	if err := tool.ReadJSON(filepath.Join(sessionDir, "cleanup.json"), &cleanup); err != nil {
-		err = fmt.Errorf("temporary resource root is absent without cleanup evidence: %w", err)
-		return failedFinishReport(session, false, err), err
-	}
-	if tool.Str(cleanup["sessionId"]) != session.SessionID {
-		err := errors.New("cleanup evidence belongs to a different session")
-		return failedFinishReport(session, false, err), err
-	}
-	if cleanup["cleanupComplete"] != true {
-		err := errors.New("temporary resource cleanup previously failed")
-		return failedFinishReport(session, false, err), err
-	}
-	var report FinishReport
-	if err := tool.ReadJSON(filepath.Join(sessionDir, "finish.json"), &report); err != nil {
-		return failedFinishReport(session, true, err), err
-	}
-	if report.SessionID != session.SessionID || !report.CleanupComplete {
-		err := errors.New("persisted finish report belongs to a different or incomplete session")
-		return failedFinishReport(session, true, err), err
-	}
-	if report.Status == "passed" || report.Status == "abandoned" {
-		return &report, nil
-	}
-	if report.Error == "" {
-		report.Error = "session finish status is " + report.Status
-	}
-	return &report, errors.New(report.Error)
-}
-
-func failedFinishReport(session *Session, cleanupComplete bool, err error) *FinishReport {
-	return &FinishReport{
-		SchemaVersion:   SchemaVersion,
-		SessionID:       session.SessionID,
-		Status:          "failed",
-		CleanupComplete: cleanupComplete,
-		Executions:      []FinishExecution{},
-		Error:           err.Error(),
-	}
-}
-
 func ensureClosed(sessionDir string, session *Session, report *FinishReport) error {
+	if _, err := os.Lstat(filepath.Join(sessionDir, "closed")); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return err
+	}
 	return writeAtomic(filepath.Join(sessionDir, "closed"), tool.Object{
 		"schemaVersion": SchemaVersion,
 		"sessionId":     session.SessionID,
@@ -238,8 +220,26 @@ func finishCleanup(sessionDir string, session *Session) (bool, error) {
 	if string(owner) != session.SessionID {
 		return false, errors.New("temporary resource ownership mismatch")
 	}
-	if err := os.RemoveAll(session.ResourceRoot); err != nil {
+	// Keep the ownership marker until every child has been removed, so a
+	// partially completed cleanup can safely retry the remaining children.
+	entries, err := os.ReadDir(session.ResourceRoot)
+	if err != nil {
 		return false, err
+	}
+	var cleanupErr error
+	for _, entry := range entries {
+		if entry.Name() != ".owner" {
+			cleanupErr = errors.Join(cleanupErr, os.RemoveAll(filepath.Join(session.ResourceRoot, entry.Name())))
+		}
+	}
+	if cleanupErr != nil {
+		return false, cleanupErr
+	}
+	if err := os.Remove(ownerPath); err != nil {
+		return false, err
+	}
+	if err := os.Remove(session.ResourceRoot); err != nil {
+		return false, errors.Join(err, os.WriteFile(ownerPath, owner, 0o600))
 	}
 	return true, nil
 }
@@ -319,9 +319,6 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 		if execution.Command == "record" && artifact == nil {
 			fail(errors.New("record execution has no published capture"))
 		}
-		if execution.Command == "record" && artifact != nil && artifact.Path != execution.ArtifactRoot {
-			fail(errors.New("record capture differs from its execution artifact root"))
-		}
 		if artifact != nil {
 			inspection, materialErr := inspectMaterial(session, *artifact, execution.Command)
 			fail(materialErr)
@@ -336,7 +333,7 @@ func validateFinishedExecution(sessionDir string, session *Session, indexed Inde
 					if !maps.Equal(execution.HistoryFiles, inspection.HistoryFiles) {
 						fail(errors.New("execution history bindings differ from selected material"))
 					} else {
-						fail(history.Check(filepath.Join(ExecutionDir(sessionDir, execution.ExecutionID), "overlay"), execution.HistoryFiles))
+						fail(history.Check(filepath.Join(session.ResourceRoot, "executions", execution.ExecutionID), execution.HistoryFiles))
 					}
 				}
 			}
@@ -424,15 +421,25 @@ func peerResult(err error) (string, string) {
 
 func validateExecutionLocation(sessionDir string, session *Session, dir string, execution Execution) error {
 	expectedArtifact := filepath.Join(dir, execution.Command)
-	overlayRoot := filepath.Join(dir, "overlay")
+	overlayRoot := filepath.Join(session.ResourceRoot, "executions", execution.ExecutionID)
 	workspace := filepath.Join(overlayRoot, "workspace")
 	route, ok := session.Routes[execution.Command]
 	if !ok || !route.Enabled {
 		return fmt.Errorf("%s route is unavailable", execution.Command)
 	}
-	plan, err := LoadPlan(session)
-	if err != nil {
-		return err
+	var plan tool.Object
+	if execution.Command == "mock" || execution.Command == "verify" {
+		inspection, err := inspectMaterial(session, execution.Artifact, execution.Command)
+		if err != nil {
+			return err
+		}
+		plan = inspection.Plan
+	} else {
+		var err error
+		plan, err = LoadPlan(session)
+		if err != nil {
+			return err
+		}
 	}
 	switch {
 	case execution.ArtifactRoot != expectedArtifact:
@@ -521,12 +528,7 @@ func withinPath(root, path string) bool {
 func expectedFinishedProvenance(session *Session, action string, material *materialInspection) (string, error) {
 	switch action {
 	case "record":
-		switch session.Source.Kind {
-		case "case":
-			return "official", nil
-		case "plan":
-			return "consumer", nil
-		}
+		return executionProvenance(session, action, nil)
 	case "mock", "verify":
 		return material.Provenance, nil
 	}

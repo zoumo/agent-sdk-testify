@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/exitcode"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
+	"github.com/zoumo/agent-sdk-testify/protocol"
 )
 
 func mockSession(ctx context.Context, o Options) (err error) {
@@ -31,31 +31,22 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	if err := lifecycle.SessionOpen(o.SessionDir); err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
 	}
-	if o.Agent != "" && o.Agent != session.AgentType {
-		return exitcode.Fail(exitcode.Configuration, errors.New("mock agent type differs from the prepared session"))
-	}
-	if o.Report != "" {
-		return exitcode.Fail(exitcode.Configuration, errors.New("prepared mock writes connection receipts; --report is only valid for the managed alias"))
-	}
-	plan, err := lifecycle.LoadPlan(session)
-	if err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
-	}
-	if versionProbe(o.NativeArgs) {
-		if !declaredMockConnection(session, plan, o.Connection) {
-			return exitcode.Fail(exitcode.Configuration, errors.New("undeclared mock connection"))
-		}
-		cliVersion := strings.TrimSpace(tool.Str(plan["cliVersion"]))
-		if cliVersion == "" {
-			cliVersion = "unknown (mock; recorded native CLI version unavailable)"
-		}
-		_, err := fmt.Fprintln(os.Stdout, cliVersion)
-		return err
+	if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
+		return bad(err)
 	}
 
-	artifact, err := lifecycle.LatestArtifact(o.SessionDir, session, o.Recording, false)
+	artifact, err := lifecycle.LatestArtifact(o.SessionDir, session, false)
 	if err != nil {
 		return exitcode.Fail(exitcode.Configuration, err)
+	}
+	if !slices.Contains(artifact.Connections, o.Connection) {
+		return bad(fmt.Errorf("undeclared mock connection %s", o.Connection))
+	}
+
+	for _, connection := range artifact.Connections {
+		if _, _, err := loadMockPhase(artifact.Path, session.AgentType, connection); err != nil {
+			return exitcode.Fail(exitcode.Configuration, err)
+		}
 	}
 	run, err := lifecycle.BeginMock(o.SessionDir, o.Connection, o.NativeArgs, o.Timeout, o.ProgressFD, artifact)
 	if err != nil {
@@ -99,25 +90,7 @@ func mockSession(ctx context.Context, o Options) (err error) {
 		err = errors.Join(err, processErr, indexErr)
 	}()
 
-	if _, _, _, err := loadMockSource(artifact.Path, session.AgentType); err != nil {
-		return exitcode.Fail(exitcode.Configuration, err)
-	}
-	external := o
-	external.Recording = artifact.Path
-	external.Agent = session.AgentType
-	external.Report = connectionPath
-	external.phase = o.Connection
-	external.SessionDir = ""
-	external.Connection = ""
-	return mockExternalSelected(ctx, external)
-}
-
-func versionProbe(args []string) bool {
-	return len(args) == 1 && (args[0] == "--version" || args[0] == "-v")
-}
-
-func declaredMockConnection(session *lifecycle.Session, plan tool.Object, id string) bool {
-	return slices.Contains(lifecycle.ConnectionIDs(session.Source, plan), id)
+	return replayConnection(ctx, o, artifact.Path, session.AgentType, o.Connection, connectionPath)
 }
 
 func mockConnectionPaths(run *lifecycle.ActionRun, id string) (string, string, error) {

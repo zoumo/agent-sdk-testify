@@ -57,7 +57,7 @@ func hasClassifiedError(err error) bool {
 func New(streams IO) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "agent-sdk-testify",
-		Short:         "Prepare, record, verify, mock and finish SDK protocol sessions",
+		Short:         "Prepare, record, verify, mock, export and finish SDK protocol sessions",
 		Version:       version.Version,
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -82,6 +82,7 @@ func New(streams IO) *cobra.Command {
 		recordCommand(streams),
 		verifyCommand(),
 		mockCommand(),
+		exportCommand(),
 		finishCommand(),
 		versionCommand(),
 		protocolCommand(streams),
@@ -100,6 +101,24 @@ func versionCommand() *cobra.Command {
 			c.Print("agent-sdk-testify " + version.Version + "\n")
 		},
 	}
+}
+
+func exportCommand() *cobra.Command {
+	var sessionDir, output string
+	c := &cobra.Command{
+		Use:   "export [flags]",
+		Short: "Export the complete current recording from an open or finished session",
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			if !filepath.IsAbs(sessionDir) || !filepath.IsAbs(output) {
+				return exitcode.Fail(exitcode.Configuration, errors.New("export requires absolute --session-dir and --output paths"))
+			}
+			return runtimeError(lifecycle.Export(sessionDir, output))
+		},
+	}
+	c.Flags().StringVar(&sessionDir, "session-dir", "", "prepared session directory")
+	c.Flags().StringVar(&output, "output", "", "new recording directory outside session")
+	return c
 }
 
 func prepareCommand() *cobra.Command {
@@ -168,9 +187,6 @@ func recordCommand(streams IO) *cobra.Command {
 		if err != nil {
 			return err
 		}
-		if session.Source.Kind != "case" && session.Source.Kind != "plan" {
-			return exitcode.Fail(exitcode.Configuration, errors.New("record requires a case or plan source"))
-		}
 		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
 			return exitcode.Fail(exitcode.Configuration, err)
 		}
@@ -187,7 +203,6 @@ func verifyCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 	}
 	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
-	c.Flags().StringVar(&o.Recording, "recording", "", "existing recording directory")
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-task timeout; zero disables it")
 	c.Flags().StringVar(&o.Index, "index", "", "optional fixed index: qualify and atomically adopt after verification")
 	c.Flags().StringVar(&o.Scenarios, "scenarios", "", "scenario catalog for admission (default: index sibling ../scenarios)")

@@ -23,26 +23,16 @@ func newMockCommand() *cobra.Command {
 	c := &cobra.Command{
 		Use:                "mock [flags] [native startup arguments]",
 		Short:              "Replay recorded native protocol",
-		Long:               "Replay a capture or expose a prepared session. Builtin queries use mock --list/--describe. The managed mock alias prepares, runs and finishes one transient session.",
+		Long:               "Replay only the current recording in a prepared session. Native startup arguments declare protocol compatibility; Agent meta-commands are unsupported.",
 		DisableFlagParsing: true,
 	}
 	f := c.Flags()
-	f.BoolVar(&o.List, "list", false, "List full builtin coverage")
-	f.BoolVar(&o.Describe, "describe", false, "Describe one builtin or external material")
-	f.BoolVar(&o.JSON, "json", false, "JSON output (schemaVersion 1)")
-	f.StringVar(&o.Agent, "agent", "", "Agent type filter or selector")
-	f.StringVar(&o.Case, "case", "", "Builtin case ID")
-	f.StringVar(&o.Recording, "recording", "", "Absolute capture directory")
-	f.StringVar(&o.Report, "report", "", "New persistent receipt file")
 	f.StringVar(&o.SessionDir, "session-dir", "", "Prepared session directory")
 	f.StringVar(&o.Connection, "connection", "main", "Declared connection ID")
 	f.Float64Var(&seconds, "timeout", 0, "Seconds; zero uses material/session defaults")
 	f.IntVar(&o.ProgressFD, "progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
 	f.BoolVarP(&help, "help", "h", false, "Help for mock")
 	c.RunE = func(c *cobra.Command, args []string) error {
-		if err := rejectRemovedMockModes(args); err != nil {
-			return exitcode.Fail(exitcode.Configuration, err)
-		}
 		native, help, err := parseInterleavedFlags(f, args)
 		if err != nil {
 			return exitcode.Fail(exitcode.Configuration, err)
@@ -63,34 +53,12 @@ func newMockCommand() *cobra.Command {
 	return c
 }
 
-func rejectRemovedMockModes(args []string) error {
-	for _, arg := range args {
-		if arg == "--" {
-			return nil
-		}
-		name, _, _ := strings.Cut(strings.TrimPrefix(arg, "--"), "=")
-		switch name {
-		case "prepare", "run", "finish", "output":
-			return fmt.Errorf("mock --%s is unavailable; use prepare, mock --session-dir, and finish", name)
-		case "provider":
-			return errors.New("--provider is unavailable; use --agent")
-		}
-	}
-	return nil
-}
-
 func validateMockModes(o mock.Options) error {
-	if (o.List || o.Describe) && (o.SessionDir != "" || len(o.NativeArgs) != 0) {
-		return errors.New("builtin query cannot be combined with a session")
+	if o.SessionDir == "" {
+		return errors.New("mock requires --session-dir")
 	}
-	if o.SessionDir != "" && o.Case != "" {
-		return errors.New("mock modes are mutually exclusive")
-	}
-	if o.JSON && !o.List && !o.Describe {
-		return errors.New("--json is only valid with --list or --describe")
-	}
-	if o.SessionDir != "" && o.Recording != "" && !filepath.IsAbs(o.Recording) {
-		return errors.New("--recording must be an absolute path")
+	if !filepath.IsAbs(o.SessionDir) {
+		return errors.New("--session-dir must be an absolute path")
 	}
 	return nil
 }

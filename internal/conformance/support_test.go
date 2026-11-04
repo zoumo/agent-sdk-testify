@@ -265,8 +265,8 @@ func latestExecution(t *testing.T, session, command string) object {
 
 func artifactByID(t *testing.T, session, id string) object {
 	t.Helper()
-	index := sessionIndex(t, session)
-	for _, value := range array(index["artifacts"]) {
+	index := materialIndex(t, session)
+	for _, value := range array(index["materials"]) {
 		artifact := obj(value)
 		if str(artifact["id"]) == id {
 			return artifact
@@ -278,8 +278,7 @@ func artifactByID(t *testing.T, session, id string) object {
 
 func latestCapture(t *testing.T, session string) object {
 	t.Helper()
-	index := sessionIndex(t, session)
-	id := str(index["latestCapture"])
+	id := currentMaterialID(t, session)
 	require.NotEmpty(t, id)
 	return artifactByID(t, session, id)
 }
@@ -361,40 +360,36 @@ func finishSession(t *testing.T, env []string, session string) (commandResult, o
 	return result, report
 }
 
-type describedConnection struct {
-	ID     string `json:"id"`
-	Frames []struct {
-		Direction string          `json:"direction"`
-		Wire      json.RawMessage `json:"wire"`
-	} `json:"frames"`
-}
-
-type materialDescription struct {
-	AssertionInputs struct {
-		Connections []describedConnection `json:"connections"`
-	} `json:"assertionInputs"`
-}
-
-func describeBuiltin(t *testing.T, provider, caseID string) (materialDescription, map[string]string) {
+// builtinInputs reads the raw bytes imported by the installed prepare CLI.
+func builtinInputs(t *testing.T, provider, caseID string) map[string]string {
 	t.Helper()
-	result := mustRun(t, os.Environ(), t.TempDir(), "",
-		"mock", "--describe", "--agent", provider, "--case", caseID, "--json",
-	)
-	var description materialDescription
-	require.NoError(t, json.Unmarshal([]byte(result.stdout), &description))
+	session := prepareSession(t, os.Environ(), "--agent", provider, "--case", caseID)
+	material := str(obj(array(materialIndex(t, session)["materials"])[0])["path"])
 	inputs := map[string]string{}
-	for _, connection := range description.AssertionInputs.Connections {
+	for _, phase := range []struct{ id, path string }{{"main", "raw/raw.jsonl"}, {"probe", "remote-probe/raw/raw.jsonl"}} {
+		data, err := os.ReadFile(filepath.Join(material, phase.path))
+		if os.IsNotExist(err) {
+			continue
+		}
+		require.NoError(t, err)
 		var input strings.Builder
-		for _, frame := range connection.Frames {
+		for line := range bytes.SplitSeq(bytes.TrimSpace(data), []byte("\n")) {
+			var frame struct {
+				Direction string          `json:"direction"`
+				Wire      json.RawMessage `json:"wire"`
+			}
+			require.NoError(t, json.Unmarshal(line, &frame))
 			if frame.Direction == "c2s" {
 				input.Write(frame.Wire)
 				input.WriteByte('\n')
 			}
 		}
-		inputs[connection.ID] = input.String()
+		inputs[phase.id] = input.String()
 	}
+	finished, _ := finishSession(t, os.Environ(), session)
+	require.Zero(t, finished.code, finished.stderr)
 	require.NotEmpty(t, inputs)
-	return description, inputs
+	return inputs
 }
 
 type syntheticCorpus struct {
@@ -442,4 +437,14 @@ func requireDistinct(t *testing.T, values ...string) {
 		require.False(t, seen[value], "duplicate path %s", value)
 		seen[value] = true
 	}
+}
+
+func materialIndex(t *testing.T, session string) object {
+	t.Helper()
+	return readJSON(t, filepath.Join(session, "materials", "index.json"))
+}
+
+func currentMaterialID(t *testing.T, session string) string {
+	t.Helper()
+	return str(readJSON(t, filepath.Join(session, "current.json"))["materialId"])
 }

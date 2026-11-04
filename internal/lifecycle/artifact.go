@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"slices"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
@@ -121,130 +120,42 @@ func LoadPlan(session *Session) (tool.Object, error) {
 	return plan, nil
 }
 
-func checkMaterialAgent(session *Session, root string) (tool.Object, error) {
-	var plan tool.Object
-	if err := tool.ReadJSON(filepath.Join(root, "plan.json"), &plan); err != nil {
+// LatestArtifact resolves the single current recording.
+func LatestArtifact(sessionDir string, session *Session, verify bool) (*Artifact, error) {
+	var current Current
+	if err := tool.ReadJSON(filepath.Join(sessionDir, "current.json"), &current); err != nil {
 		return nil, err
 	}
-	agentType, err := materialAgentType(plan)
-	if err != nil {
-		return nil, err
+	if current.SchemaVersion != SchemaVersion || current.SessionID != session.SessionID {
+		return nil, errors.New("invalid current recording identity or schemaVersion")
 	}
-	if agentType != session.AgentType {
-		return nil, errors.New("material agent type differs from session")
-	}
-	if (session.Source.Kind == "case" || session.Source.Kind == "plan") && tool.Str(plan["caseId"]) != session.Source.ID {
-		return nil, errors.New("material case differs from session source")
-	}
-	return plan, nil
-}
-
-func LatestArtifact(sessionDir string, session *Session, explicit string, verify bool) (*Artifact, error) {
-	if explicit != "" {
-		if !filepath.IsAbs(explicit) {
-			return nil, errors.New("--recording must be an absolute path")
-		}
-		root, err := filepath.EvalSymlinks(explicit)
-		if err != nil {
-			return nil, err
-		}
-		if artifact, ok, err := indexedArtifactAt(sessionDir, root, verify); err != nil {
-			return nil, err
-		} else if ok {
-			if _, err := inspectMaterial(session, *artifact, artifactAction(verify)); err != nil {
-				return nil, err
-			}
-			return artifact, nil
-		}
-		plan, err := checkMaterialAgent(session, root)
-		if err != nil {
-			return nil, err
-		}
-		var manifest tool.Object
-		if err := tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest); err != nil {
-			return nil, err
-		}
-		provenance, err := selectionProvenance(plan, manifest)
-		if err != nil {
-			return nil, err
-		}
-		if verify && provenance == "consumer" {
-			return nil, errors.New("consumer material cannot be verified")
-		}
-		connections := ConnectionIDs(session.Source, plan)
-		artifact, err := artifactForMaterial(root, provenance, "external", connections)
-		if err != nil {
-			return nil, err
-		}
-		action := "mock"
-		if verify {
-			action = "verify"
-		}
-		if _, err := inspectMaterial(session, *artifact, action); err != nil {
-			return nil, err
-		}
-		return artifact, nil
+	if current.MaterialID == "" {
+		return nil, errors.New("session has no current recording")
 	}
 	index, err := readIndex(IndexPath(sessionDir))
 	if err != nil {
 		return nil, err
 	}
-	if verify {
-		if index.LatestCapture == "" {
-			if session.Source.Kind == "recording" {
-				for _, artifact := range slices.Backward(index.Artifacts) {
-					if artifact.Kind == "material" {
-						if _, err := inspectMaterial(session, artifact, "verify"); err != nil {
-							return nil, err
-						}
-						return &artifact, nil
-					}
-				}
-			}
-			return nil, errors.New("session has no record capture to verify")
-		}
-		artifact, err := latestCaptureArtifact(index)
-		if err != nil {
-			return nil, err
-		}
-		if _, err := inspectMaterial(session, *artifact, "verify"); err != nil {
-			return nil, err
-		}
-		return artifact, nil
-	}
-	if index.LatestCapture != "" {
-		artifact, err := latestCaptureArtifact(index)
-		if err != nil {
-			return nil, err
-		}
-		if _, err := inspectMaterial(session, *artifact, "mock"); err != nil {
-			return nil, err
-		}
-		return artifact, nil
-	}
-	for _, artifact := range slices.Backward(index.Artifacts) {
-		if artifact.Kind == "material" {
-			if _, err := inspectMaterial(session, artifact, "mock"); err != nil {
-				return nil, err
-			}
-			return &artifact, nil
-		}
-	}
-	return nil, errors.New("no mock material or record capture is available")
-}
-
-func latestCaptureArtifact(index *Index) (*Artifact, error) {
-	for i := range index.Artifacts {
-		artifact := &index.Artifacts[i]
-		if artifact.ID != index.LatestCapture {
+	for _, artifact := range index.Artifacts {
+		if artifact.ID != current.MaterialID {
 			continue
 		}
-		if artifact.Kind != "capture" || artifact.Action != "record" {
-			return nil, errors.New("latest capture is not a record capture")
+		if _, err := inspectMaterial(session, artifact, artifactAction(verify)); err != nil {
+			return nil, err
 		}
-		return artifact, nil
+		return &artifact, nil
 	}
-	return nil, errors.New("latest capture is absent from artifact index")
+	return nil, errors.New("current recording is absent from material index")
+}
+
+type Current struct {
+	SchemaVersion int    `json:"schemaVersion"`
+	SessionID     string `json:"sessionId"`
+	MaterialID    string `json:"materialId,omitempty"`
+}
+
+func writeCurrent(sessionDir string, session *Session, materialID string) error {
+	return writeAtomic(filepath.Join(sessionDir, "current.json"), Current{SchemaVersion: SchemaVersion, SessionID: session.SessionID, MaterialID: materialID})
 }
 
 func artifactAction(verify bool) string {
@@ -252,25 +163,4 @@ func artifactAction(verify bool) string {
 		return "verify"
 	}
 	return "mock"
-}
-
-func indexedArtifactAt(sessionDir, root string, verify bool) (*Artifact, bool, error) {
-	index, err := readIndex(IndexPath(sessionDir))
-	if err != nil {
-		return nil, false, err
-	}
-	for _, artifact := range index.Artifacts {
-		artifactRoot, err := filepath.EvalSymlinks(artifact.Path)
-		if err != nil {
-			return nil, false, err
-		}
-		if artifactRoot != root {
-			continue
-		}
-		if verify && artifact.Provenance == "consumer" {
-			return nil, false, errors.New("consumer material cannot be verified")
-		}
-		return &artifact, true, nil
-	}
-	return nil, false, nil
 }
