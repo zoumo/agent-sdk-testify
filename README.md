@@ -3,13 +3,14 @@
 面向多语言 SDK 的 case、录制和 Agent mock 工具。公开 CLI 入口为：
 
 - `prepare`：按 case、consumer plan 或已有录制创建一个可复用隔离会话。
-- `record`：在 prepared 会话中按 case 或 consumer plan 录制真实 Agent。
+- `record`：在 prepared 会话中按 prepare 固化的 record source 录制真实 Agent。
 - `verify`：用官方 SDK 对录制做离线验证。
 - `mock`：使用录制充当 Agent，供消费者自己的测试连接。
+- `export`：把 current recording 完整导出到 session 外，供另一 session 导入。
 - `finish`：汇总会话内全部 execution 的证据、写 closed 状态并清理工具资源。
 
 `record`、`verify`、`mock` 是业务动作；`prepare`、`finish` 是环境会话的独立生命周期
-阶段。
+阶段；`export` 是只读材料复制。
 
 本仓库维护 case、官方 driver、录制及材料库；`simulate`、Go driver 和 SDK 验收编排
 留在 `agent-sdk-go`。SDK 与 MASS 直接消费本仓库的 mock。
@@ -21,8 +22,9 @@
 内部协议子进程仅供官方录制与验证使用。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
 规范流程是 `prepare → record/verify/mock → finish`。一次 prepare 可以承载多个 action
-execution；record 生成的 capture 会登记到会话，后续 verify 和 mock 默认消费最新的
-兼容 capture，verify 不会消费掉它。每个 execution 使用独立可写 overlay，不污染环境
+execution；record 成功时原子替换唯一 current recording，后续 verify 和 mock 只消费 current，
+verify 不改变它。prepare 完整复制外部输入，后续动作不再读取原路径。record source
+由 prepare 固化，不随 current 切换而改变。每个 execution 使用独立可写 overlay，不污染环境
 基线或另一个 execution。source（case/plan/recording）、executor（官方 driver/消费者 SDK）和 target
 （真实 Agent/严格回放）分别在 prepare 和具体 action 时确定，不再使用 `--consumer`
 开关。
@@ -34,7 +36,7 @@ execution；record 生成的 capture 会登记到会话，后续 verify 和 mock
 | 工具边界、合同与材料链路 | [工具设计](docs/design.md) |
 | 模块、依赖、布局、编码与测试 | [开发规范](docs/development.md) |
 | 8 个用户故事与 36 个 case | [共同验收](docs/cases.md) |
-| 从 SDK 测试接入、查询材料、运行与收尾 mock | [mock 使用指南](docs/using-mock.md) |
+| 从 SDK 测试接入、运行与收尾 mock | [mock 使用指南](docs/using-mock.md) |
 | 外部消费者自己录制并用 mock 回放 | [消费者录制](docs/consumer-recording.md) |
 | 官方 driver、SDK 环境和已知限制 | [driver 说明](drivers/README.md#官方-sdk-环境) |
 | 术语 | [GLOSSARY](GLOSSARY.md) |
@@ -72,6 +74,7 @@ agent-sdk-testify record --session-dir /private/session \
   --cmd /absolute/codex -- app-server --listen stdio://
 agent-sdk-testify verify --session-dir /private/session
 agent-sdk-testify mock --session-dir /private/session
+agent-sdk-testify export --session-dir /private/session --output /private/exported-recording
 agent-sdk-testify finish --session-dir /private/session
 ```
 
@@ -113,7 +116,6 @@ agent type/case 从录制身份确定，只选择本工具的官方 driver；不
 
 ```sh
 agent-sdk-testify verify --session-dir /private/session \
-  --recording /private/new-capture \
   --index /absolute/data/index.json \
   --scenarios /absolute/data/scenarios --archive /private/archives
 ```
@@ -131,7 +133,7 @@ amd64/arm64 独立归档、官方 driver wheel、manifest.json 和 SHA256SUMS。
 版本、工具源码 revision、内置材料 revision/哈希和逐产物校验和分别记录。
 运行 `make check` 执行离线完整门禁；CI 分开准备依赖后执行同一入口。
 
-消费者先 `mock --describe`，按 [mock 使用指南](docs/using-mock.md) prepare、在会话中
+消费者按 [mock 使用指南](docs/using-mock.md) prepare、在会话中
 选择 mock、执行自身业务、关闭宿主，最后 finish。SDK/MASS 的业务成功与工具协议成功
 分别判断。MASS 的 mass/2 Codex
 握手与录制中的官方客户端不同时应失败，不得修改录制或放宽字段。

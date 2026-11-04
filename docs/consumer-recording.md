@@ -8,7 +8,7 @@ consumer 录制采用 `prepare → record → mock → finish` 生命周期。�
 prepare 可以承载多个 record、verify 或 mock execution；环境准备和材料由工具完整负责，
 消费者只提供 plan、真实 Agent 启动命令/参数，并在自己的 SDK 宿主演用当前 route 的
 环境。本文只描述 plan source；生命周期、source/executor/target 和 descriptor 合同见
-[工具设计](design.md#prepared-session-生命周期)。
+[工具设计](design.md#会话生命周期)。
 
 ## 边界
 
@@ -16,7 +16,7 @@ prepare 可以承载多个 record、verify 或 mock execution；环境准备和�
 - 消费者负责 plan、真实 Agent executable 和启动参数、SDK 宿主、业务断言和收尾调用。
 - 消费者不能提供或覆盖隔离根、workspace、HOME、config、tmp 或原生环境变量。
 - 工具不启动消费者的 SDK 宿主，也不生成客户端请求；客户端始终是消费者自己的 SDK。
-- 材料是 external/consumer 材料，只能按路径消费，不参与官方资格、采用和发布。
+- 材料是 external/consumer 材料，只能通过 session 的 current 消费，不参与官方资格、采用和发布。
 - consumer material 不能证明官方 SDK 兼容、业务断言通过、工具副作用发生或覆盖完整。
 - v1 只支持一条 `main` 连接；`probe` 和其他多连接流程不在本版本范围内。
 
@@ -69,8 +69,10 @@ agent-sdk-testify record --session-dir /absolute/session \
 好的环境中启动真实 Agent，转发 stdio，并写入原始帧和传输报告。每个连接只能启动
 一次；失败也保留原始证据。
 
-record 完成后把 capture 登记到会话，更新最新兼容 artifact；随后可以直接在同一会话
-执行 `mock`，不需要重新 prepare。consumer material 永远不能进入 `verify`。
+record 成功后发布不可变 material 并原子替换 current recording；随后可以直接在同一
+会话执行 `mock`，不需要重新 prepare。失败保留 execution，current 不变。record source
+保持 prepare 固化的 plan 和 executor，不从 current 推导。consumer material 没有适用
+官方 verifier，verify 在领取 execution 前失败。
 
 ### mock
 
@@ -79,7 +81,7 @@ agent-sdk-testify mock --session-dir /absolute/session \
   --connection main
 ```
 
-mock 默认消费会话中最新的 record capture，使用新的 execution overlay 和预先刷新的回放
+mock 只消费会话中的 current recording，使用新的 execution overlay 和预先刷新的回放
 环境。消费者按 mock route 应用 `env`、cwd 和 `connection`，关闭 SDK 后继续 finish。
 
 ### finish
@@ -91,13 +93,14 @@ agent-sdk-testify finish --session-dir /absolute/session
 消费者先关闭自己的 SDK、Session 和 Runtime，等所有 peer 退出，再调用 `finish`。
 `finish` 逐 execution 校验 record 和 mock、重新核验历史状态、manifest/report 和哈希，
 然后删除工具拥有的临时根。工具不会结束消费者的进程，也不会删除会话目录。
-finish 失败可重试；清理成功后再次 finish 使用持久 cleanup 证据，不重新读取临时根。
+finish 忙碌时不写状态或清理；取得锁后立即关闭会话。清理失败不重新打开会话，重试
+只处理未完成清理，不重新解释业务结果。材料保留，closed 后仍可 export。
 
 ## 多次使用
 
-- record 完成后，mock 默认使用最新 capture；可在同一会话直接执行。
-- 多次 record 产生多个 capture，新 capture 成为默认选择，旧 capture 仍可按显式
-  `--recording PATH` 使用。
+- record 成功后，mock 使用新的 current；可在同一会话直接执行。
+- 多次 record 产生多个不可变 material，旧材料和旧验证证据保留；action 不接受材料覆盖。
+- 需要在另一 session 使用材料时，先 export，再 prepare --recording；导出不提升可信等级。
 - 每次 record 或 mock 使用独立 execution overlay，前一次 SDK 的历史和写入不会污染后一次。
 - 同一会话的 action 串行执行；上一个 action 完成后才可以开始下一个。
 - consumer capture 不进入 verify；需要官方验证时必须重新走官方 case 录制。
@@ -118,7 +121,7 @@ plan、真实 Agent executable/args、自己的 SDK 宿主和业务断言。
 | `driverProfile` | 必须为 `consumer` | 禁止官方 remote-close 和 probe 流程 |
 | `project` | 绝对路径 | 原始协议 cwd；不是回放时的新 workspace |
 | `model` | 可选字符串 | 写入隔离环境的模型名 |
-| `cliVersion` | 可选字符串 | launcher 回答 `--version` 时的原生 CLI 版本 |
+| `cliVersion` | 可选字符串 | 来源记录中的原生 CLI 版本；mock 不模拟版本查询 |
 | `scenario.files` | 可选对象 | 相对路径到文本内容的可写 fixture |
 | `scenario.parameters` | 可选对象 | 消费者自定义参数；工具不解释 |
 
@@ -146,17 +149,17 @@ consumer plan；需要历史的消费者使用 `--history-seed`。
 ## Session 与 execution descriptor
 
 `session.json` 和 `execution.json` 的字段合同见
-[工具设计](design.md#prepared-session-生命周期)。plan source 的 `protocolCwd` 保持
+[工具设计](design.md#会话生命周期)。plan source 的 `protocolCwd` 保持
 plan 声明的原始项目身份；消费者仍使用 execution 返回的 overlay `workspace`。
 
 每次 record 或 mock 另在 `executions/<executionId>/execution.json` 写入本次
-execution 的只读合同，字段见[工具设计](design.md#prepared-session-生命周期)。
+execution 的只读合同，字段见[工具设计](design.md#会话生命周期)。
 消费者不得 source、eval 或改写 `session.json` 或 `execution.json`。当前 route 的
 `env` 必须应用到自己的 SDK 宿主，不能只设置录制或 mock 子进程。execution 创建后
 不得重新生成或覆盖。
 
-finish 删除工具临时根后，其中 `resourceRoot` 等路径失效；会话目录里的材料仍可按
-`mock --recording` 消费，但不能再次启动已经结束的 execution。
+finish 删除工具临时根后，其中 `resourceRoot` 等路径失效。会话目录里的材料仍可 export，
+并由新 session 的 prepare --recording 导入；closed session 不能创建新的 action execution。
 
 mock route 的 `connection.launcher` 用于只接受 executable 的 SDK；launcher 把受支持
 的追加参数转发给回放连接，并拒绝重复或白名单外的参数。record 使用上文的显式
@@ -176,26 +179,25 @@ v1 复用 `mock` 的原生启动参数白名单，避免录出一份无法回放
 
 ## 材料布局
 
-record execution 完成后生成可由同一会话 mock 或 `mock --recording` 直接消费的目录：
+record 的尝试与失败证据保存在 execution；成功材料发布到独立 material 目录：
 
 ```text
-<session>/executions/<executionId>/
-  execution.json
-  record/
-    plan.json
-    manifest.json
-    report.json
-    raw/raw.jsonl
-    raw/manifest.json
-    raw/transport.json
-    raw/stderr.raw
-    config/projects/...      # record 完成时存在
-    config/sessions/...      # record 完成时存在
-    history-seed/...         # record 完成时存在
+<session>/materials/<materialId>/
+  material.json
+  plan.json
+  manifest.json
+  report.json
+  raw/raw.jsonl
+  raw/manifest.json
+  raw/transport.json
+  raw/stderr.raw
+  config/projects/...      # record 完成时存在
+  config/sessions/...      # record 完成时存在
+  history-seed/...         # record 完成时存在
 ```
 
-- `record/` 是可交给同一会话 mock 或 `mock --recording` 的材料根；同目录上层的
-  `execution.json` 是本次 record 的只读审计 descriptor。
+- `materials/<materialId>/` 是不可变材料根；`current.json` 选择当前材料。
+- `executions/<executionId>/execution.json` 和其 `record/` 保留本次尝试与失败证据。
 - `raw/raw.jsonl` 使用 v1 stdio 帧格式，保留 ordinal、direction、channel、epoch、
   elapsedMs 和原始 wire JSON。
 - `manifest.json` 至少包含 `planSHA256`、`runSHA256`、`files["raw.jsonl"]`、
@@ -230,16 +232,14 @@ SHA-256 写入 `manifest.savedFiles`。`plan.json` 不被改写，`planSHA256` �
 ## 使用 mock
 
 ```sh
-agent-sdk-testify mock --describe --recording /absolute/material --json
 agent-sdk-testify prepare \
   --recording /absolute/material --session-dir /absolute/session
 agent-sdk-testify mock --session-dir /absolute/session
 agent-sdk-testify finish --session-dir /absolute/session
 ```
 
-`mock --describe` 返回 `materialKind: external`、`qualification: unqualified` 和
-`provenance: consumer`，并提供 `assertionInputs`。consumer material 不进入
-`mock --list`，也不能通过 `--agent/--case` 选择；它只能按 `--recording` 路径消费。
+材料的 consumer provenance 不因导入或导出而提升。只有 prepare 接受材料路径，mock
+只接受 session 和本次执行参数。
 
 消费者仍负责 SDK 调用、业务断言、策略比较和真实 E2E。`verify` 只接受官方 driver
 和官方材料，不用于 consumer material。
@@ -284,7 +284,7 @@ plan source 复用 `protocol/capture` 的 stdio 采集和进程生命周期，�
 
 默认测试应覆盖 prepare 的环境/workspace/config、session/execution descriptor 不可篡改、
 source 互斥、绝对路径、plan/agentType 不一致、原生参数白名单、execution 的帧和失败证据、finish 的
-状态快照和哈希、`mock --describe --recording` 的 external/consumer 结论、
+状态快照和哈希、consumer 材料不具备官方 verifier、
 `prepare/record/mock/finish`、同一会话 record→mock、历史种子 allowlist、符号链接拒绝，以及运行间 UUID 变化的
 负向用例。真实 Agent 检查只作为显式 opt-in，不计入默认离线门禁。
 

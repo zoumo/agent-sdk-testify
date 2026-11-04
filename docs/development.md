@@ -9,9 +9,9 @@
 
 消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立回执接入，
 不通过跨仓库 Go 库。
-公开 CLI 入口为 prepare、record、verify、mock、finish；业务动作限定为
-record、verify、mock，prepare/finish 只管理会话生命周期。材料资格、归档、采用和
-协议桥接为内部能力。
+公开 CLI 入口为 prepare、record、verify、mock、export、finish；业务动作限定为
+record、verify、mock，prepare/finish 只管理会话生命周期，export 只读导出 current。
+材料资格、归档、采用和协议桥接为内部能力。
 
 ## 代码布局
 
@@ -49,7 +49,7 @@ agent-sdk-testify/
 固定索引保留所有要求、失败和缺口。移动不改变原始 plan/raw、attempt 身份或来源哈希。
 派生运行副本须保留原/派生路径及双向哈希关联，不改写原件或放宽协议字段。
 consumer material 保持在消费者私有目录，不登记固定索引、不进入内置快照。
-材料发布须遵守[工具设计](design.md#录制材料与发布)。
+材料发布须遵守[工具设计](design.md#信任与入仓)。
 
 合成输入只用于专项测试，不能登记为真实录制或用户故事成功证据。
 
