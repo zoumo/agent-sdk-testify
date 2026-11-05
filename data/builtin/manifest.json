@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "toolVersion": "0.1.0-dev",
-  "sourceRevision": "5bad4dc42fe5e873f31408420324498adb1593e6",
+  "sourceRevision": "db7e3678906aa7f5962152750d1098beab1e2210",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "04e5a9543608bb58ea7c2ebef5aed8bde6f8cd97e0fb2f7d0fa1217e11f07f1c",
+  "indexSHA256": "8cca384ec02f2e231ec7bc41a2bd176b82607915e3f2e7ededb454e7e651645f",
   "catalog": {
     "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -14,7 +14,7 @@
     "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
     "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
     "bindings.schema.json": "406029d482ad3dce45cb53083a10d515c537e5946d52910f7e41e9ca48d47353",
-    "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af",
+    "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9",
     "bindings/codex.json": "bc9dbd5f3a557f3309102357039b21b0f73e3508936a7b95870d855530dee6ac",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
@@ -371,12 +371,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-032",
-      "missingReason": "当前 Claude SDK 仅支持本地 stdio；原生 remote-control 需要 claude.ai 订阅登录，现有配置未提供可录制的远端 SDK 连接。",
+      "missingReason": "当前 Claude 原生 Remote Control 需要 claude.ai 订阅登录；当前 API key/网关配置不提供可录制的原生远端连接，无法验证断连后同一远端服务仍可用。",
       "provider": "claude",
       "requirement": "optional",
       "storyId": "SDK-US-007",
-      "verification": "blocked",
-      "verificationReason": "当前 Claude SDK 仅支持本地 stdio；原生 remote-control 需要 claude.ai 订阅登录，现有配置未提供可录制的远端 SDK 连接。"
+      "verification": "unsupported",
+      "verificationReason": "当前 Claude 原生 Remote Control 需要 claude.ai 订阅登录；当前 API key/网关配置不提供可录制的原生远端连接，无法验证断连后同一远端服务仍可用。"
     },
     {
       "adoption": "admitted",
@@ -873,7 +873,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -1016,7 +1016,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -1156,7 +1156,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -1296,7 +1296,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -1436,7 +1436,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -1579,7 +1579,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -1725,7 +1725,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -1870,7 +1870,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -2015,7 +2015,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -2160,7 +2160,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -2305,7 +2305,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -2449,7 +2449,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -2599,7 +2599,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -2746,7 +2746,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -2897,7 +2897,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -3041,7 +3041,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -3181,7 +3181,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -3328,7 +3328,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -3466,7 +3466,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -3607,7 +3607,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -3753,7 +3753,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -3897,7 +3897,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -4039,7 +4039,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -4182,7 +4182,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -4325,7 +4325,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -4471,7 +4471,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "3d01f62a4b5c8deff8c8fbbaec56b60c391e95e2098e5fc674ed2cbbde188229",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -4609,7 +4609,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -4747,7 +4747,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -4886,7 +4886,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -5028,7 +5028,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -5169,7 +5169,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
@@ -5332,7 +5332,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
+        "bindings/claude.json": "51b305c8c1d53e67f7495746424cd6b9a5354a8f363cf971de2833ca875e68c9"
       },
       "officialSDK": {},
       "qualification": {
