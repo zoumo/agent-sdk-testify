@@ -1,0 +1,21 @@
+{
+  "command": "record",
+  "connectionId": "main",
+  "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/executions/182e03282db81b39c8c0950f63f183d1/execution.json",
+  "executionId": "182e03282db81b39c8c0950f63f183d1",
+  "executionSHA256": "63a42ecd567bad41ad9da9fcb9a48eff6f9d9287074fc155c7caced423e156f4",
+  "material": {
+    "id": "bdd847cc58242187036bc1833303ba59",
+    "manifestSHA256": "cf0b226d4fb9fa88700cff2e1cff6bae21bb82b9a5025538dd7c3c0d11bd68f7",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/materials/bdd847cc58242187036bc1833303ba59",
+    "planSHA256": "d175fe02be34c2ae345af9dd21a350ed6c75c5f9f5682a5f7e435ca29d31174e",
+    "provenance": "official",
+    "recordingSHA256": "aba4a0dbb2bfa4a4882226eb6106d4524788455b7d8333a6023f14918329dd69"
+  },
+  "processId": 23450,
+  "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/executions/182e03282db81b39c8c0950f63f183d1/record/raw/transport.json",
+  "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/executions/182e03282db81b39c8c0950f63f183d1/receipts/main.result.json",
+  "schemaVersion": 1,
+  "sessionId": "1e22083c8f7c08a769395ffd93f117ea",
+  "status": "passed"
+}

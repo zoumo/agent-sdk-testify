@@ -21,6 +21,21 @@ func TestClaudeInitialModelIsDistinctFromChangeTarget(t *testing.T) {
 	require.Equal(t, []string{"--model", "target"}, args[len(args)-2:])
 }
 
+func TestClaudeCasePromptIdentifiesNativeWorkspace(t *testing.T) {
+	args, err := claudeNativeArgs("fixture-tools", tool.Object{})
+	require.NoError(t, err)
+	args, err = prepareClaudeArgs(tool.Object{"project": "/protocol/identity", "_fixtureProject": "/isolated/workspace"}, args, "fixture-tools")
+	require.NoError(t, err)
+	for i, arg := range args {
+		if arg == "--system-prompt" {
+			require.Contains(t, args[i+1], "/isolated/workspace")
+			require.NotContains(t, args[i+1], "/protocol/identity")
+			return
+		}
+	}
+	t.Fatal("missing case system prompt")
+}
+
 func TestClaudeSelectedEndpointCredentials(t *testing.T) {
 	root := t.TempDir()
 	env := map[string]string{"ANTHROPIC_BASE_URL": "other-endpoint", "ANTHROPIC_AUTH_TOKEN": "other-token"}

@@ -1,17 +1,17 @@
 {
-  "_fixtureProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-006/project",
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/executions/182e03282db81b39c8c0950f63f183d1/workspace",
   "args": [
-    "--print",
-    "--system-prompt",
-    "Complete the supplied synthetic task in the working directory. Be concise.",
     "--output-format",
     "stream-json",
-    "--verbose",
     "--input-format",
     "stream-json",
     "--permission-prompt-tool",
     "stdio",
+    "--verbose",
     "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/executions/182e03282db81b39c8c0950f63f183d1/workspace\". Use paths relative to this directory.",
     "--no-session-persistence",
     "--settings",
     "{\"permissions\":{\"ask\":[\"Read\",\"Write\"]}}",
@@ -20,7 +20,7 @@
     "--disable-slash-commands",
     "--strict-mcp-config",
     "--model",
-    "theta/glm-5.3"
+    "theta/DeepSeek-V4.1-Flash-1017"
   ],
   "case": {
     "id": "SDK-CASE-006",
@@ -35,18 +35,18 @@
   "cli": "/Users/jim/bin/claude",
   "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
   "cliVersion": "2.1.258 (Claude Code)",
-  "config": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-006/config",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/executions/182e03282db81b39c8c0950f63f183d1/config",
   "driverProfile": "fixture-tools",
-  "home": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-006/home",
-  "model": "theta/glm-5.3",
-  "project": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-006/project",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/executions/182e03282db81b39c8c0950f63f183d1/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/routes/record/workspace",
   "prompts": [
     "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
   ],
   "provider": "claude",
-  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-006/raw",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/executions/182e03282db81b39c8c0950f63f183d1/record/raw",
   "recordingIsolation": "personal-skills-v1",
-  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-006",
+  "root": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/executions/182e03282db81b39c8c0950f63f183d1",
   "scenario": {
     "answers": {},
     "case": {
@@ -77,6 +77,7 @@
     ],
     "storyId": "SDK-US-002"
   },
+  "sourcePlanSHA256": "aa8d99441513d07f6eb6648a8a5cb28b3848fda6039c12524ecf2017393af6e5",
   "stdinEOFAction": "close",
   "story": "SDK-US-002",
   "storyId": "SDK-US-002"

@@ -4,7 +4,7 @@
   "status": "passed",
   "inputs": 1,
   "results": 1,
-  "events": 44,
+  "events": 43,
   "requests": 2,
   "receipts": [
     {
@@ -16,18 +16,18 @@
     {
       "result": {
         "subtype": "success",
-        "duration_ms": 3803,
-        "duration_api_ms": 2851,
+        "duration_ms": 4879,
+        "duration_api_ms": 4017,
         "is_error": false,
         "num_turns": 3,
-        "session_id": "ce2881fe-6bd4-4d06-a3bb-23a593cb9937",
+        "session_id": "9bc71dff-ea10-4fc3-b196-f9856af5f8d1",
         "stop_reason": "end_turn",
-        "total_cost_usd": 0.037460999999999994,
+        "total_cost_usd": 0.13970500000000002,
         "usage": {
-          "input_tokens": 576,
+          "input_tokens": 22841,
           "cache_creation_input_tokens": 0,
-          "cache_read_input_tokens": 66112,
-          "output_tokens": 61,
+          "cache_read_input_tokens": 44800,
+          "output_tokens": 124,
           "output_tokens_details": {
             "thinking_tokens": 0
           },
@@ -44,20 +44,20 @@
           "iterations": [],
           "speed": "standard"
         },
-        "result": "Read numbers.txt (7 and 11), then wrote summary.txt with `total=18` and a trailing newline.",
+        "result": "Done \u2014 `summary.txt` contains `total=18` followed by a newline (7 + 11).",
         "structured_output": null,
         "model_usage": {
-          "theta/glm-5.3": {
-            "inputTokens": 576,
-            "outputTokens": 61,
-            "cacheReadInputTokens": 66112,
+          "theta/DeepSeek-V4.1-Flash-1017": {
+            "inputTokens": 22841,
+            "outputTokens": 124,
+            "cacheReadInputTokens": 44800,
             "cacheCreationInputTokens": 0,
             "webSearchRequests": 0,
-            "costUSD": 0.037460999999999994,
+            "costUSD": 0.13970500000000002,
             "contextWindow": 200000,
             "maxOutputTokens": 32000,
             "thinkingTokens": 0,
-            "canonicalModel": "theta/glm-5.3",
+            "canonicalModel": "theta/deepseek-v4.1-flash-1017",
             "provider": "firstParty",
             "costBasis": "unknown"
           }
@@ -66,7 +66,7 @@
         "deferred_tool_use": null,
         "errors": null,
         "api_error_status": null,
-        "uuid": "a0e89b9a-ebe0-420d-86df-2d282d159414",
+        "uuid": "f0a59918-f038-4d79-8688-98397a122d79",
         "terminal_reason": "completed",
         "origin": null
       }

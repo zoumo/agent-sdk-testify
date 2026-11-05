@@ -53,9 +53,9 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "0d687d6c41d30872d59d246ae169ccd64573370080503680b8d47ad0075317a2",
+      "adoptionSHA256": "def263220ad19bd5fb2ece247f76eff513a44491248f186d0c0b0b5d0972b882",
       "caseId": "SDK-CASE-006",
-      "materials": "claude/SDK-US-002/SDK-CASE-006/20261101T065848Z-94861e6c72e44a59b0ecf4e4a2a24e78",
+      "materials": "claude/SDK-US-002/SDK-CASE-006/20261105T033947Z-3040388770",
       "provider": "claude",
       "requirement": "required",
       "storyId": "SDK-US-002",
