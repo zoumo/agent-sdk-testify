@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "toolVersion": "0.1.0-dev",
-  "sourceRevision": "5730cd4d89ff78e9d0f1c48491605e2425d5bdae",
+  "sourceRevision": "703f6744f6e1e31f4f1c4941ac196e541f2de649",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "b8b6d91f057a6c79a4725796d44a6b2fc452119c275113f3eb39e43209f94961",
+  "indexSHA256": "c350696a6c73f72ea48e2314567706e86667fedc6464f6fe2caa3fa3a4775562",
   "catalog": {
     "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -20,7 +20,7 @@
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "11efd2ce5fd6ff68d85a559c83ffefeb3bd633396a47d0da2bb5f01dc4eb91e8"
   },
-  "archiveSHA256": "43632f762153c0b8ebf6dd3b86a286130d0b599f11b5e4fe0a267b267ea7f227",
+  "archiveSHA256": "8a0643d774f908756e5fdd11909943b5fc38c6d9166a16c047e48217fba49ae7",
   "coverage": [
     {
       "adoption": "admitted",
@@ -402,10 +402,10 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "3cd587cd7506efd55e5f71e49c87d0fd335d53e3c315199b2ec0af7897cad549",
+      "adoptionSHA256": "b1011e257afa97b5e7464add3972e12f49ee27e9617db66daad28bea1c3eca8e",
       "available": true,
       "caseId": "SDK-CASE-035",
-      "materials": "claude/SDK-US-008/SDK-CASE-035/20261101T065854Z-058df049752347f1843d2f99be3347e4",
+      "materials": "claude/SDK-US-008/SDK-CASE-035/20261105T025535Z-2814673114",
       "provider": "claude",
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -767,10 +767,10 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "d348fe2c73d6ac592c89f05a04047585e8e78a6bb6f48d9dd220abaa98333e3f",
+      "adoptionSHA256": "2d04bf4de8778c4bbeef8873abfebe5657b0c88b6c18a40dbf9cbe6b9e303ad9",
       "available": true,
       "caseId": "SDK-CASE-032",
-      "materials": "codex/SDK-US-007/SDK-CASE-032/20261101T065825Z-dc38cf4ebf534cdea0d216b790c455a0",
+      "materials": "codex/SDK-US-007/SDK-CASE-032/20261105T030237Z-665901850",
       "provider": "codex",
       "requirement": "required",
       "storyId": "SDK-US-007",
@@ -800,10 +800,10 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "6610a9966565d62be5342bdf941afe5a9c196454f27f41d769075a98ec9aa65c",
+      "adoptionSHA256": "7418d92308691580cd95a144ce0c2a573850a73d6073462446103a46ed5fdf18",
       "available": true,
       "caseId": "SDK-CASE-035",
-      "materials": "codex/SDK-US-008/SDK-CASE-035/20261101T065847Z-c914547ccf004db695522f51c462a676",
+      "materials": "codex/SDK-US-008/SDK-CASE-035/20261105T025539Z-1862650293",
       "provider": "codex",
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -5095,66 +5095,86 @@
       "provider": "claude",
       "caseId": "SDK-CASE-035",
       "storyId": "SDK-US-008",
-      "attempt": "20261101T065854Z-058df049752347f1843d2f99be3347e4",
-      "path": "claude/SDK-US-008/SDK-CASE-035/20261101T065854Z-058df049752347f1843d2f99be3347e4",
+      "attempt": "20261105T025535Z-2814673114",
+      "path": "claude/SDK-US-008/SDK-CASE-035/20261105T025535Z-2814673114",
       "files": {
-        "adoption.json": "3cd587cd7506efd55e5f71e49c87d0fd335d53e3c315199b2ec0af7897cad549",
-        "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl": "a01cd3dc310eb50f3fc798404baed90ea0a6c583768eefd2ea949b5287d6bc4d",
-        "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl": "6dc41669ec357974d4ec0dd08740ff83d7d069e3c1e7932b54584806c37ac54c",
-        "history-seed/config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl": "e212f2da4c88396e7cd815e63dc70c63f58ccb5188c8c638c7da9409d0c70e8f",
-        "history-seed/config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl": "6dc41669ec357974d4ec0dd08740ff83d7d069e3c1e7932b54584806c37ac54c",
-        "manifest.json": "e2c07c230dda734cf8eb17e71a2a5d47814ce8b32a1b1f8c46cc769a52a26e96",
-        "official-replay/config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-replays-batch-claude-SDK-CASE-035-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl": "422b7ffcfc92996ef81f24295448a4d8c6b38922f9e28841f2e7be153a27e1f7",
-        "official-replay/config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-replays-batch-claude-SDK-CASE-035-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl": "ce6e79eb3219499f0fc5399f6b1ad752bb1c95485458a71d3cab81ba3e5595c9",
-        "official-replay/materialization.json": "456fe9711b6ca235723c4c9113a6113ea52e0c07a3276cfc898e39805c91a90c",
-        "official-replay/replay-peer.json": "71f878653c94364422ec888db0d55a32921f09e421b1d737460f1c29c3e1dc90",
-        "official-replay/replay-report.json": "c24a169a6c7398d40fa930ac9867ab2515071a41c0456f8b8f2b6cd5d96bc62f",
-        "official-replay/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
-        "official-replay/summary.json": "be39997f613ebfa6eae424afc445d45073b6f0ee698b1fdca0c1d8d147e494fb",
-        "plan.json": "ec2f1f85fd6904cf3c15aff7ad3e58e832ffdcbc0e2fcda04d62a988ee13eec6",
-        "raw/manifest.json": "13d29350208038356e09cce68f9f126f3891d393dd16e48001ae9cab09354089",
-        "raw/raw.jsonl": "556dc088c1e38d7826465d0e3df9ed028bf9a75fe7972861da7dcdc599cd94fc",
+        "adoption.json": "b1011e257afa97b5e7464add3972e12f49ee27e9617db66daad28bea1c3eca8e",
+        "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640.jsonl": "7967215a28879e40863275738bb55241086ad7094be753128f60f3d23d2a57a4",
+        "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640/subagents/agent-aa583e755f4d519fd.jsonl": "1372be8860500851ce9271dce11d174b13ab3414f360a4f8df8c6376c7e9454b",
+        "history-seed/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640.jsonl": "83478ae2a36adc14d673bfd6fe66374e8c223523f8ac8000675e5b15a5d76742",
+        "history-seed/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640/subagents/agent-aa583e755f4d519fd.jsonl": "1372be8860500851ce9271dce11d174b13ab3414f360a4f8df8c6376c7e9454b",
+        "manifest.json": "46ab02babe17c48087a26fe8bb499a00a1759218e62ec94dc9d119bb3d038736",
+        "official-origin.json": "a3aeb4f5134fe9afd29656d892a19b7dc0162198eae179562a6bc924fa13e85e",
+        "official-replay/driver/connections/main/execution.json": "cea28153c81692be1979df4ce1eebca503b0385c3f85bbb02cb5e066f715a59c",
+        "official-replay/driver/connections/main/process.json": "f0bdef985fe4969c1e547ca4c3292e16e638642ea1c84f736dca474a3a8f76a5",
+        "official-replay/driver/connections/main/replay.json": "7d9dd0bbe9e3aada0e457e9b1d6ad81ddbc4b86bf02e52ab6cfa28b1448dd404",
+        "official-replay/driver/connections/main/result.json": "fbbc50467d19bc8d867135c235651ffe4244aed8f08533a16dcd8dda9192942b",
+        "official-replay/driver/materials/case.json": "1202091ee21422d47a217dc7cbb8aaf8ccc819870c8c9d9de25bac02a7404354",
+        "official-replay/driver/peer-main.process.json": "52dffbf0a32c3f5e51e571d8633fb9ba3525008747d4746c24371ec4f3e48537",
+        "official-replay/driver/peer-main.results.jsonl": "fc10af17eb6ab5f87fe4d469a7461b608e7a616a54268e670370922a4f1fde1f",
+        "official-replay/driver/record-origin/execution.json": "7ad92a7bc259914a3c9d7f032263e2d0e0330ced65dad2fb4559a0c6758cf4ab",
+        "official-replay/driver/record-origin/isolation.json": "85745b2fca0d77a8edb6b6a6d7f91d7b8705b2e9460f331972420b59ad995ef7",
+        "official-replay/driver/record-origin/prepared-plan.json": "72c2d6e2014ed6f122fceec84e848f5d488ea298492061789d4990572aa44c90",
+        "official-replay/driver/record-origin/results/main.json": "1617c4b37b1e470d723665c32a2bac0c8e65f8e670712c7f60e2749c9e12cc2b",
+        "official-replay/driver/record-origin/run/driver-files.json": "a6aca6325839f837c026aa02c5a3af7e9d8535968bbdbf1bbf80fe4e806ebcd5",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "e5adfb8ff26dad0f18e59ca90b0940459c20914cd8c0d9b94567c98435042ce4",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "1469dc2776328c20582314dadcbb5f9b697c3c69f24037816611d4b7b915fbb7",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "c56286996f591695f340bd5e66ba980f36c4007c79d79a88ee611d6b612af806",
+        "official-replay/driver/record-origin/run/driver/report.json": "7ad152852d4a683a3f7fcb2090bbd96508d917db09f876859e011eeab04dd321",
+        "official-replay/driver/record-origin/run/driver/request.json": "01df04f0eb985fc8c27eb3e48df7a36c83f2bd97723b0ea9470988bf2ce3e12f",
+        "official-replay/driver/record-origin/run/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+        "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/origin.json": "a3aeb4f5134fe9afd29656d892a19b7dc0162198eae179562a6bc924fa13e85e",
+        "official-replay/driver/record-origin/run/result.json": "4d047241f67717508a2a216fbf929d21cc9bc76f7916e75b9ce2fa746578662b",
+        "official-replay/driver/record-origin/session.json": "94004364608c23480b836e1e9244ced69e9f133aac9d1a78b1c5c5c0f1020de7",
+        "official-replay/driver/replay-report.json": "74e66890bc4a7a9dcb0c4c95fa61e4f0c7c18fb4480b45a52b1a0032eea6b2d5",
+        "official-replay/driver/request.json": "71984e4fe9bc539264d1202c7886d2c2a5663ba1c6c5daad326da0fe7800b9f1",
+        "official-replay/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+        "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/verification.json": "96eb1f3cb49166e354b12e07178cfa4007e817b68c401d901c539041b2450c41",
+        "origin/main.json": "b6a50e4eb4a9476a48b9b5ce909da9d2fd9a3042a53fc07a2cc3c600e8e37b9c",
+        "plan.json": "a1ee5f62bf501bde249fc66a99aa42630cfad61a8d807476d800302f4faefb00",
+        "raw/manifest.json": "e379854ac02ec2c5a766d8b4f8633beb43c36c64ad7cf3c4deca98f1f018cdf2",
+        "raw/raw.jsonl": "d9902148ee30fd17e90f8d11105db1443105c8ce735cd46588ca732b2c1b8383",
         "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "raw/transport.json": "209e563d31d5f320de43ceda53ff3ce3b628fd86d20369c6cc952f916d82b1de",
-        "report.json": "c24a169a6c7398d40fa930ac9867ab2515071a41c0456f8b8f2b6cd5d96bc62f",
-        "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
-        "review.json": "f9bd76316fcd114e2abd5fc41683bca24ef87d4d4c95bbc878e35229bbb412d9",
-        "summary.json": "e6e69f353a09be587eea4825d6d281190f9449d143850900e6ae35f520899049"
+        "raw/transport.json": "be5383be676fdd318dc75c5052e228f01ebf2d699864d483cf960cfd079c0e50",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "review.json": "fd60074ef61242d02145938b29cde09f0f23359bbc32b150fc8574f7244d061d",
+        "source-plan.json": "f92b02c5cccca973c8dd0ac5a9649ec3034506e63b092f831098169891e09773"
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
         "bindings/claude.json": "6357f014b444f2cf5434117868199c0075888089967931e5aaf1adab070086af"
       },
-      "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
-      },
+      "officialSDK": {},
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-01T06:55:59.831342+00:00"
+        "qualifiedAt": "2026-11-05T02:55:35.018113Z"
       },
       "plan": {
-        "_fixtureProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-035/project",
+        "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/executions/beb94293b84c6db312048a9c63c1ad57/workspace",
         "args": [
-          "--print",
-          "--system-prompt",
-          "Complete the supplied synthetic task in the working directory. Be concise.",
           "--output-format",
           "stream-json",
-          "--verbose",
           "--input-format",
           "stream-json",
           "--permission-prompt-tool",
           "stdio",
+          "--verbose",
           "--include-partial-messages",
+          "--print",
+          "--system-prompt",
+          "Complete the supplied synthetic task in the working directory. Be concise.",
           "--setting-sources",
           "user",
           "--disable-slash-commands",
           "--strict-mcp-config",
           "--model",
-          "theta/glm-5.3",
+          "theta/DeepSeek-V4.1-Flash-1017",
           "--resume",
-          "4e54cb5a-6f13-43a1-9877-2c2f598ba7bc",
+          "c68d333e-012f-42e7-a217-dbad8a27a640",
           "--forward-subagent-text"
         ],
         "case": {
@@ -5163,50 +5183,51 @@
             "其他 case 的使用流程",
             "人工构造的协议错误和精确竞态"
           ],
-          "scope": "发现当前 Session 观察前已有的子 Agent。",
+          "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
           "storyId": "SDK-US-008"
         },
         "caseId": "SDK-CASE-035",
         "cli": "/Users/jim/bin/claude",
         "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
         "cliVersion": "2.1.258 (Claude Code)",
-        "config": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-035/config",
+        "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/executions/beb94293b84c6db312048a9c63c1ad57/config",
         "driverProfile": "existing-children",
-        "historyProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-034/project",
+        "historyProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/workspace",
         "historySeed": {
           "agentIds": [
-            "a64532ce6a75bfa77"
+            "aa583e755f4d519fd"
           ],
           "files": {
-            "history-seed/config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl": {
-              "sha256": "e212f2da4c88396e7cd815e63dc70c63f58ccb5188c8c638c7da9409d0c70e8f",
-              "source": "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc.jsonl"
+            "history-seed/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640.jsonl": {
+              "sha256": "83478ae2a36adc14d673bfd6fe66374e8c223523f8ac8000675e5b15a5d76742",
+              "source": "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640.jsonl"
             },
-            "history-seed/config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl": {
-              "sha256": "6dc41669ec357974d4ec0dd08740ff83d7d069e3c1e7932b54584806c37ac54c",
-              "source": "config/projects/-Users-jim--local-share-agent-sdk-testify-campaigns-2026-11-01T143429-isolated-glm53-captures-claude-batch-claude-SDK-CASE-034-project/4e54cb5a-6f13-43a1-9877-2c2f598ba7bc/subagents/agent-a64532ce6a75bfa77.jsonl"
+            "history-seed/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640/subagents/agent-aa583e755f4d519fd.jsonl": {
+              "sha256": "1372be8860500851ce9271dce11d174b13ab3414f360a4f8df8c6376c7e9454b",
+              "source": "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640/subagents/agent-aa583e755f4d519fd.jsonl"
             }
           },
           "projectFiles": {},
+          "projectSnapshot": "history-seed/project",
           "provider": "claude",
-          "sessionId": "4e54cb5a-6f13-43a1-9877-2c2f598ba7bc",
+          "sessionId": "c68d333e-012f-42e7-a217-dbad8a27a640",
           "sourceFiles": {
-            "manifest.json": "05b6464a68bdff2b93165e45b4e85b89671d43cec6195cdd313d2b479689c7ca",
-            "plan.json": "b586caed75938d3a58d7b3f29b108620dcf6aeca123314a0154e61939d5d5610",
-            "raw/raw.jsonl": "6b3b197d4e2000da17d2ea1eb867a598fee33cd3b12aae669f6c08fdc3c38cb6",
-            "report.json": "420f96c81495628049d77833b8a25ccb682ad30109dc24d57652d75a97a18da5"
+            "manifest.json": "09748286d38732554da13f81859951c76238b49c558d83164ea94b460fd1dbc3",
+            "plan.json": "5e5bdf7e8beddb5a7373929f35302a657955856a00b307da3811724ecbb9c470",
+            "raw/raw.jsonl": "99d866ae4d47c4ef1dec15a0dbaad319996a4eee9eb088a96a8a36d243a6c57d",
+            "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4"
           },
-          "sourceProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-034/project",
-          "sourceRoot": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-batch/claude-SDK-CASE-034"
+          "sourceProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2854881899/executions/9cc8bda7b3a39e1dc93d92147dee0258/workspace",
+          "sourceRoot": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/source/history-seed"
         },
-        "home": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-035/home",
-        "model": "theta/glm-5.3",
-        "project": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-035/project",
+        "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/executions/beb94293b84c6db312048a9c63c1ad57/home",
+        "model": "theta/DeepSeek-V4.1-Flash-1017",
+        "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/routes/record/workspace",
         "prompts": [],
         "provider": "claude",
-        "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-035/raw",
+        "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/executions/beb94293b84c6db312048a9c63c1ad57/record/raw",
         "recordingIsolation": "personal-skills-v1",
-        "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/claude-SDK-CASE-035",
+        "root": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/executions/beb94293b84c6db312048a9c63c1ad57",
         "scenario": {
           "answers": {},
           "case": {
@@ -5215,7 +5236,7 @@
               "其他 case 的使用流程",
               "人工构造的协议错误和精确竞态"
             ],
-            "scope": "发现当前 Session 观察前已有的子 Agent。",
+            "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
             "storyId": "SDK-US-008"
           },
           "caseId": "SDK-CASE-035",
@@ -5230,6 +5251,7 @@
           "requiredRequests": [],
           "storyId": "SDK-US-008"
         },
+        "sourcePlanSHA256": "f92b02c5cccca973c8dd0ac5a9649ec3034506e63b092f831098169891e09773",
         "stdinEOFAction": "close",
         "story": "SDK-US-008",
         "storyId": "SDK-US-008"
@@ -9050,49 +9072,81 @@
       "provider": "codex",
       "caseId": "SDK-CASE-032",
       "storyId": "SDK-US-007",
-      "attempt": "20261101T065825Z-dc38cf4ebf534cdea0d216b790c455a0",
-      "path": "codex/SDK-US-007/SDK-CASE-032/20261101T065825Z-dc38cf4ebf534cdea0d216b790c455a0",
+      "attempt": "20261105T030237Z-665901850",
+      "path": "codex/SDK-US-007/SDK-CASE-032/20261105T030237Z-665901850",
       "files": {
-        "adoption.json": "d348fe2c73d6ac592c89f05a04047585e8e78a6bb6f48d9dd220abaa98333e3f",
-        "config/sessions/2026/11/01/rollout-2026-11-01T14-37-46-01a195d4-15e1-7701-8973-a80ef9a28b0f.jsonl": "b17b58c1e9c7c7e8c5fc59e1a225792ffccb0fc929fa4b52633bc286061df836",
-        "manifest.json": "dbc205fbdfd6ca8c465b988f3dfc560bcfc9abe516ffb32739e0a8d640b2bfbb",
-        "official-replay/remote-probe/replay-peer.json": "dfd548164b2a9eaf93a6101459df2d1a709512c7c69c83716ea2e72b521625f3",
-        "official-replay/replay-peer.json": "b897e269aefbe8de520789fa4a7f99334c8a32aa2db50557b00a4e817f009766",
-        "official-replay/replay-report.json": "8b43f4e8016aab3bde8ba223b44e789e38b14ae39d62435dd43833e1f7e916b0",
-        "official-replay/result.json": "a12bffc24bc0c4a90a041fe128326ed57302a0d26c20d42fd3398ed84981e190",
-        "official-replay/summary.json": "d14a868fd074b4b23d3cb5546e9a75fd2bc40653caba037334f4b6cab9f86726",
-        "plan.json": "31feddafa9f90f7b01f52759ade00084c3803f1a2fa79f27b6d6bdd30deda164",
-        "raw/manifest.json": "547dd8b879687e9db963830c8a3e9781914e341ac3c0f2e456ec1380493af0c2",
-        "raw/raw.jsonl": "0c2b7d363252ad520ea8e147dd695e3eac608bf8ba6db3877fd9d7d32ad79f86",
+        "adoption.json": "2d04bf4de8778c4bbeef8873abfebe5657b0c88b6c18a40dbf9cbe6b9e303ad9",
+        "config/sessions/2026/11/05/rollout-2026-11-05T11-01-52-01a1a9a7-db9b-7f90-babd-19d587aa34ee.jsonl": "3cf71634229e0a09e0447f4c36eb0c77e1c6bb9754960468a43ee3eae725e212",
+        "manifest.json": "6b4b0959b4a0d0fe1a2b9393f61a530ae7d3e038dc133fdeda474322cf401ea1",
+        "official-origin.json": "cf54c37114ac9cd556fd9b732240135b90f182e9d687dd14fbab140a5e638535",
+        "official-replay/driver/connections/main/execution.json": "74640c5b2beaa9265ca613bcb58c8f392c3323eaf3832cd560b015b753067885",
+        "official-replay/driver/connections/main/process.json": "682b3378d3eea7b0c80cc7031379926eed6e6cf59b954c34382bb559cb3ecdc3",
+        "official-replay/driver/connections/main/replay.json": "7a52aed93f841ec1287cb33fe5655a6deb7966886201a384e9851e35e3f4e902",
+        "official-replay/driver/connections/main/result.json": "54a84341b43c741d6dc88a4fe3646a0b0a94abb1c5b783b93939b5a856c0d350",
+        "official-replay/driver/connections/probe/execution.json": "74640c5b2beaa9265ca613bcb58c8f392c3323eaf3832cd560b015b753067885",
+        "official-replay/driver/connections/probe/process.json": "4860ac74e4b355ecdf31e386ca9bb6371d0587e2e99d1a26a8da6247d760045e",
+        "official-replay/driver/connections/probe/replay.json": "f9faf52adc1780e23f188b4e173c00e1a8374e4f1367fcba2baedfb0742d6754",
+        "official-replay/driver/connections/probe/result.json": "a845a62aa06e54791c419acad4aa91f8c1745f6b5c89fcd527d322a5ca693726",
+        "official-replay/driver/materials/case.json": "3ad925ca863305dcd95e56ff0423f29fad114a84759fadcc861556e5cba13da8",
+        "official-replay/driver/peer-main.process.json": "f50a78fa53aead55b640a651c776c171b8210f249f94d4949c37f2f565f8a452",
+        "official-replay/driver/peer-main.results.jsonl": "efeccce816290e159538e69fe561f5e352414388800af8bc76b39a2dd268383c",
+        "official-replay/driver/peer-probe.process.json": "4d8d5f2890ebac7e90cbc6a5def71804c861736e2b60e7597524ec03558e0e18",
+        "official-replay/driver/peer-probe.results.jsonl": "9c21a1c72c0b83ed5ae54031eb35f0849bf0096d1d9bb71e4c2a8ba25c54e9cf",
+        "official-replay/driver/record-origin/execution.json": "eecea90c324436a12d30a945e4ffbd5676b1f0ce97fdd299dd7cabd75d012c54",
+        "official-replay/driver/record-origin/isolation.json": "7969c56c541c7efbfcbb09bfa21a38a96599e50d06a6c2c230b7b8a8ab9f04ef",
+        "official-replay/driver/record-origin/prepared-plan.json": "6eda6423ddf1cc172be236d5142d2fb208f71ea9eb56407119e5d7eac7741ce6",
+        "official-replay/driver/record-origin/results/main.json": "4524804158a79c4090e16e1f261af3ade2ed8d94ee3339f952e2e3513563472f",
+        "official-replay/driver/record-origin/results/probe.json": "81e99c0542fe2fe7d7a9b213a7870784ae5aea4bf12419753f560bfd7c818130",
+        "official-replay/driver/record-origin/run/driver-files.json": "2ecc5847dabf10d9d8af697bba01b376b7a33c22e3f369c291b61e34451ec33f",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "76ab9c6798dd26b4a232e85afd0787fbb710006891221edcf376e7c1c5de10f4",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "76373cc7d63ab31548af30d46c824fcb313ddf652ec0980fb0e536967400d3f8",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "6dbca4942ff437af7851e218ac33ad73b87881917cfc4963971db50ccd5eb44b",
+        "official-replay/driver/record-origin/run/driver/peer-probe.process.json": "840f4a0c944b246113f8e0c6ddb6a89918a54c35148426721b569674166ba33f",
+        "official-replay/driver/record-origin/run/driver/peer-probe.results.jsonl": "7c100d8452917ab752a033dd567ca1b5f8a98252232db339acb3b46766fa2f9f",
+        "official-replay/driver/record-origin/run/driver/report.json": "523300ad22a3f4820cd78c0729260bd30bf48f7bdcf9b80b67ac1da81c72b095",
+        "official-replay/driver/record-origin/run/driver/request.json": "28b4b32aa8600ea58f068cd24c3c3a6870fbb42b0239e7a8b74dfb3fb8773420",
+        "official-replay/driver/record-origin/run/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/origin.json": "cf54c37114ac9cd556fd9b732240135b90f182e9d687dd14fbab140a5e638535",
+        "official-replay/driver/record-origin/run/result.json": "7a642ab052591fd60c819d56a496e469805009ac4d104a21d7af9c675bbb7ca0",
+        "official-replay/driver/record-origin/session.json": "b3d830f82456e55fe67012c04dc6d19a5c37b8b3106541fcd343f847f10a1fe7",
+        "official-replay/driver/replay-report.json": "c04646a3c4dea2a0da08ff8ad04a4b78de4bcb27221a676c8a5465b2c10c59bc",
+        "official-replay/driver/request.json": "5ae5693809ed6b15a3fd2b2a884a77146b6cf8e1ee892daf5ba5552500235733",
+        "official-replay/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/verification.json": "029b3389e14b9942c0313b9c93986862c9ca8aaeb04dbd75183a56fb09cc70cd",
+        "origin/main.json": "b90f2c60ce191b93c63ae0a5e983c23628742fd3eaa3fa8b2c43f77a790ad15f",
+        "origin/probe.json": "85d2864dd64ced26c6df2d8bf79842d89a78d08600bd0e3fcb2121cff1b958d6",
+        "plan.json": "2c6aa164053b230c3ea8019570e367ff24d589e74f41d8bfec07d71070c126c3",
+        "raw/manifest.json": "518c9eb521d440a8ad4aad01070160a088980dd53555ed84432ba1d96ae65bd9",
+        "raw/raw.jsonl": "236d587414bab9dbc269372d4cb4fe81312742dd694bc20d07cce2c720913f12",
         "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "raw/transport.json": "46dcab76cd86f8725ee7e471f8f0bd3c64ec232359b7ac2cb65ec0582c47ec12",
-        "remote-probe/raw/manifest.json": "d4aa5bca87b3fe80178d43d0c7aa7699cfd334c40f8bde9fcf551fdc91033422",
-        "remote-probe/raw/raw.jsonl": "721dddfb8f35008c3dca53ff7b41354f5f4ec8ec690f7da64183a923b619195a",
+        "raw/transport.json": "91e1072724e55a374c6437fa6a96e275368c19f7833991633720926012309de1",
+        "remote-probe/raw/manifest.json": "9e5463749689707af967f4964d1effd37f5f40cac1a93fd9e5025da7bdefb3dc",
+        "remote-probe/raw/raw.jsonl": "5304dfdd04e56c0d7837fb93104f3b842857b49edbcc314a09966ef2a10b68f1",
         "remote-probe/raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "remote-probe/raw/transport.json": "6a3dbc55641db9e9c2094c84d3d62915eb22e5eae41d83f084f3e82c963edf51",
-        "remote-service.json": "180a5db9ffc38acab0effc50d1908844828882e1381efc9e87daedf618acf8f8",
-        "report.json": "8b43f4e8016aab3bde8ba223b44e789e38b14ae39d62435dd43833e1f7e916b0",
-        "result.json": "a12bffc24bc0c4a90a041fe128326ed57302a0d26c20d42fd3398ed84981e190",
-        "review.json": "5cfe25685837f53da989770af418a7a31b02fbafabc8409d75c604d556bb2185",
-        "summary.json": "6cf63ce49c548edb602ba5e2d824d0502ee80bcd35552249965d874dc474fd2a"
+        "remote-probe/raw/transport.json": "f8726b48b06a3fbe8bc464d1df6e286e27cac7b06328516ca3d9573fa3edb3ee",
+        "report.json": "d9aa19fbc55ea3ad24bc816c3bdae96fcc0206f1664f59299da9a8b38f33f61b",
+        "review.json": "791397c42418863dbd7c4ee014d28bf87eacf0fb9820e7c8bf8d839ff86cef35",
+        "source-plan.json": "b05f52aa916bcdfb580581c08d7a6a6a81c0bd4b1907dfd7db7b79768b69b6d4"
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
         "bindings/codex.json": "bc9dbd5f3a557f3309102357039b21b0f73e3508936a7b95870d855530dee6ac"
       },
-      "officialSDK": {
-        "package": "openai-codex",
-        "version": "0.161.0"
-      },
+      "officialSDK": {},
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-01T06:55:48.597380+00:00"
+        "qualifiedAt": "2026-11-05T03:02:36.994984Z"
       },
       "plan": {
-        "_fixtureProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032/project",
+        "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/workspace",
         "args": [
           "app-server",
-          "--stdio",
+          "--listen",
+          "stdio://",
           "-c",
           "features.default_mode_request_user_input=true",
           "-c",
@@ -9110,21 +9164,21 @@
           "storyId": "SDK-US-007"
         },
         "caseId": "SDK-CASE-032",
-        "cli": "/Users/jim/.bun/bin/codex",
-        "cliSHA256": "61b0194f3bb6534439c8d26a3ed57d0805f84b884588b761795323eeb92fcf70",
-        "cliVersion": "codex-cli 0.163.0",
-        "config": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032/config",
+        "cli": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+        "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+        "cliVersion": "codex-cli 0.166.0",
+        "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/config",
         "driverProfile": "remote-close",
-        "home": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032/home",
-        "model": "theta/glm-5.3",
-        "project": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032/project",
+        "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/home",
+        "model": "theta/DeepSeek-V4.1-Flash-1017",
+        "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/routes/record/workspace",
         "prompts": [
           "Reply Ready."
         ],
         "provider": "codex",
-        "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032/raw",
+        "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-032/executions/829d180b0b83fd36808d2567aae270f0/record/raw",
         "recordingIsolation": "personal-skills-v1",
-        "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-032",
+        "root": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0",
         "scenario": {
           "answers": {},
           "case": {
@@ -9152,6 +9206,7 @@
           "requiredRequests": [],
           "storyId": "SDK-US-007"
         },
+        "sourcePlanSHA256": "b05f52aa916bcdfb580581c08d7a6a6a81c0bd4b1907dfd7db7b79768b69b6d4",
         "stdinEOFAction": "close",
         "story": "SDK-US-007",
         "storyId": "SDK-US-007"
@@ -9428,46 +9483,70 @@
       "provider": "codex",
       "caseId": "SDK-CASE-035",
       "storyId": "SDK-US-008",
-      "attempt": "20261101T065847Z-c914547ccf004db695522f51c462a676",
-      "path": "codex/SDK-US-008/SDK-CASE-035/20261101T065847Z-c914547ccf004db695522f51c462a676",
+      "attempt": "20261105T025539Z-1862650293",
+      "path": "codex/SDK-US-008/SDK-CASE-035/20261105T025539Z-1862650293",
       "files": {
-        "adoption.json": "6610a9966565d62be5342bdf941afe5a9c196454f27f41d769075a98ec9aa65c",
-        "config/sessions/2026/11/01/rollout-2026-11-01T14-38-07-01a195d4-6645-7521-9d3a-f9140cf8bc25.jsonl": "b352ca3d9269632b131d2ebc6c896f1768f8ffd24fabcd0277972f4849c88019",
-        "config/sessions/2026/11/01/rollout-2026-11-01T14-38-09-01a195d4-701b-7710-954d-0399d586a3dd.jsonl": "fdbfeacb6219246a3153aa06576a01020000bef39d396708cbf0f6ae651dedc4",
-        "history-seed/config/sessions/2026/11/01/rollout-2026-11-01T14-38-07-01a195d4-6645-7521-9d3a-f9140cf8bc25.jsonl": "460e679376b3696a280f27af4834e56c217c40a5ad7846663a84f97849e961b3",
-        "history-seed/config/sessions/2026/11/01/rollout-2026-11-01T14-38-09-01a195d4-701b-7710-954d-0399d586a3dd.jsonl": "fdbfeacb6219246a3153aa06576a01020000bef39d396708cbf0f6ae651dedc4",
-        "manifest.json": "ff14cbb86d328ad767ab89cb65c72520c0291816667e9517e91d296ff42b4bb2",
-        "official-replay/replay-peer.json": "a26cb730fb1067aabcda8dea7c655a2168478fb65324150c950fa54beb5773dc",
-        "official-replay/replay-report.json": "a8396d122b4680e15be8b0df879f7e5f96edd8edd85fd15c5663325339a4f7bf",
-        "official-replay/result.json": "a12bffc24bc0c4a90a041fe128326ed57302a0d26c20d42fd3398ed84981e190",
-        "official-replay/summary.json": "96c0ade0f9765220c1a11f46ec3bdde742569b144291547fabaacc1458625c19",
-        "plan.json": "4d2ed8989fe8b1413d7b87877a80ef23af199b66b995f6ae17795eceb9d5a480",
-        "raw/manifest.json": "5057a91172c437d02b70627ea4a79758e37ed49768bd081bc1a472d884384074",
-        "raw/raw.jsonl": "71078b22808963660b5423e21c513c8d4f5f94a0c3055d7eecb85ff10ef0a817",
+        "adoption.json": "7418d92308691580cd95a144ce0c2a573850a73d6073462446103a46ed5fdf18",
+        "config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl": "cac98aea229033aceae3f9620bbe8ecbbe490a48879126d11d6484511f626c44",
+        "config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl": "2d6c6d3a36747d3b3a464ed3c30554dba15d445f596268035e8931937984fe45",
+        "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl": "97b16ff4f4ee52c034b72fefcdb290fab16ed69cad305c2833566d0e430032fa",
+        "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl": "2d6c6d3a36747d3b3a464ed3c30554dba15d445f596268035e8931937984fe45",
+        "manifest.json": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+        "official-origin.json": "316c754d92e724b942d52bfa042c2c4a7dd59fffed861902f4c6c3d7be6212b6",
+        "official-replay/driver/connections/main/execution.json": "596dd51b06f0b04b56bb38291a79f3aca3f458dd8adb8cd39fbc710dc1126bba",
+        "official-replay/driver/connections/main/process.json": "7fec83c6cebdebcfe4893437b71d58fad3eaff24139a6a9db62eb8fa4cdae683",
+        "official-replay/driver/connections/main/replay.json": "a8a1b914c80ad65c6539d5a1b93105598dbf46a778f3d7c42df5fabc558adac1",
+        "official-replay/driver/connections/main/result.json": "07816f476810ca963ff26b1887d4e5f4df95b53dfc21b3792d1a463e4274ae69",
+        "official-replay/driver/materials/case.json": "44d4b0203aa673aed5dbea89dd314e4a8910bf0cdc3b6bebf2231dc11dc43651",
+        "official-replay/driver/peer-main.process.json": "866171b62b5977c81ab7c2c0d312b600130f61a27799cbda729e52703fc6bc33",
+        "official-replay/driver/peer-main.results.jsonl": "a8dfa06f391adf509d51cb36e86d70b2dd1e720767b63f4118c7cd13772cdb8b",
+        "official-replay/driver/record-origin/execution.json": "532c505aa45d204682f1ba564252b7ab6015deb2ece2b7a8750485dc18129635",
+        "official-replay/driver/record-origin/isolation.json": "bff573cf839738f9671bce77d2a1c80c11246d9b37336e3da55d8d146cbf43f6",
+        "official-replay/driver/record-origin/prepared-plan.json": "5bb99cf413a499ebba37f6377b6c98cd8590092cfd004b2a84b844f302bedac8",
+        "official-replay/driver/record-origin/results/main.json": "c57b81f5dd953bd96d9d08082a67dff346eeb0e0533bcc3a9e984d87442e5925",
+        "official-replay/driver/record-origin/run/driver-files.json": "e6eb46cdec686cbe504499c01297693dd7153dfbbf3e7ca558a8699200c8350a",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "ea43f7f3c757cd37c997ab742f4cd3fea9cfc8126b94b22e03a6c0255591d825",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "d6ad934e155d43d8a7be234e71ae0986d7c71cb2b837895297f49f768c016a38",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "c9468546afe70f45292dfe2a8eb428946797951c0f993dee7fe87a683e6b6626",
+        "official-replay/driver/record-origin/run/driver/report.json": "4c4d4a5a9ac790235b239426069253f5e21a10cf7fac32ce223c3348de8282a3",
+        "official-replay/driver/record-origin/run/driver/request.json": "f6f8fb1572bd7d10941e8f27a6887ada014fe47fdc35c42b6294dfc148512618",
+        "official-replay/driver/record-origin/run/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/origin.json": "316c754d92e724b942d52bfa042c2c4a7dd59fffed861902f4c6c3d7be6212b6",
+        "official-replay/driver/record-origin/run/result.json": "06a18d79ef804e617478a4c578d4100e3220d5576fdae273d5edb179e7d85b82",
+        "official-replay/driver/record-origin/session.json": "5adb913ac1379d3c41563bf1a9048412b8b4a87740837568f9f54a48ca3c9bea",
+        "official-replay/driver/replay-report.json": "015a333b5f59d4d45df4f7409da708363af0b8ba8c68ab311c498cb445014a0c",
+        "official-replay/driver/request.json": "56fbf35f1c883481b48ccad1dcfc4065f7ba4490af1b71efee8e2622f0e27e0e",
+        "official-replay/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/verification.json": "2e5b57e81bf1ce481ae7a5016892da3f0075f8ba407d64a91928d72998aff902",
+        "origin/main.json": "da254b721f38c2674c465e6105ef35f28ae7317b130d2f963dbb228098ba8e3f",
+        "plan.json": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+        "raw/manifest.json": "976f36fc4a8f31323b7c77b9fde83625f9799b71f79f8c4a82529aeb02643a64",
+        "raw/raw.jsonl": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53",
         "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "raw/transport.json": "b73429dd0cfd76b3e64fbaf75a0bfbda766d01c26cf8a6df707a8d44934d8a22",
-        "report.json": "a8396d122b4680e15be8b0df879f7e5f96edd8edd85fd15c5663325339a4f7bf",
-        "result.json": "a12bffc24bc0c4a90a041fe128326ed57302a0d26c20d42fd3398ed84981e190",
-        "review.json": "089b010a368dac62446f8393b0b8e313056291edee296e9fe2dca1fc96c58bfc",
-        "summary.json": "c3ace1f27ccb10ca97af286841f9dc5acdbc6b6dc8d16ec217cb65150a69d331"
+        "raw/transport.json": "da1c77304d8962e213c0af670d5de4ae14d12ae4327b3a50bd9f872606b97a2a",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "review.json": "80b305d7aa7d31fa54c153a2718e7fbe8dc293fd125aa50fc96c47e344c50cac",
+        "source-plan.json": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039"
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
         "bindings/codex.json": "bc9dbd5f3a557f3309102357039b21b0f73e3508936a7b95870d855530dee6ac"
       },
-      "officialSDK": {
-        "package": "openai-codex",
-        "version": "0.161.0"
-      },
+      "officialSDK": {},
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-01T06:55:58.378596+00:00"
+        "qualifiedAt": "2026-11-05T02:55:39.547029Z"
       },
       "plan": {
-        "_fixtureProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-035/project",
+        "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/workspace",
         "args": [
           "app-server",
-          "--stdio",
+          "--listen",
+          "stdio://",
           "-c",
           "features.default_mode_request_user_input=true",
           "-c",
@@ -9481,50 +9560,51 @@
             "其他 case 的使用流程",
             "人工构造的协议错误和精确竞态"
           ],
-          "scope": "发现当前 Session 观察前已有的子 Agent。",
+          "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
           "storyId": "SDK-US-008"
         },
         "caseId": "SDK-CASE-035",
-        "cli": "/Users/jim/.bun/bin/codex",
-        "cliSHA256": "61b0194f3bb6534439c8d26a3ed57d0805f84b884588b761795323eeb92fcf70",
-        "cliVersion": "codex-cli 0.163.0",
-        "config": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-035/config",
+        "cli": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+        "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+        "cliVersion": "codex-cli 0.166.0",
+        "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/config",
         "driverProfile": "existing-children",
-        "historyProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-034/project",
+        "historyProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace",
         "historySeed": {
           "agentIds": [
-            "01a195d4-701b-7710-954d-0399d586a3dd"
+            "01a1a7ed-dae9-7c72-8775-aa942bdefba5"
           ],
           "files": {
-            "history-seed/config/sessions/2026/11/01/rollout-2026-11-01T14-38-07-01a195d4-6645-7521-9d3a-f9140cf8bc25.jsonl": {
-              "sha256": "460e679376b3696a280f27af4834e56c217c40a5ad7846663a84f97849e961b3",
-              "source": "config/sessions/2026/11/01/rollout-2026-11-01T14-38-07-01a195d4-6645-7521-9d3a-f9140cf8bc25.jsonl"
+            "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl": {
+              "sha256": "97b16ff4f4ee52c034b72fefcdb290fab16ed69cad305c2833566d0e430032fa",
+              "source": "config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl"
             },
-            "history-seed/config/sessions/2026/11/01/rollout-2026-11-01T14-38-09-01a195d4-701b-7710-954d-0399d586a3dd.jsonl": {
-              "sha256": "fdbfeacb6219246a3153aa06576a01020000bef39d396708cbf0f6ae651dedc4",
-              "source": "config/sessions/2026/11/01/rollout-2026-11-01T14-38-09-01a195d4-701b-7710-954d-0399d586a3dd.jsonl"
+            "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl": {
+              "sha256": "2d6c6d3a36747d3b3a464ed3c30554dba15d445f596268035e8931937984fe45",
+              "source": "config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl"
             }
           },
           "projectFiles": {},
+          "projectSnapshot": "history-seed/project",
           "provider": "codex",
-          "sessionId": "01a195d4-6645-7521-9d3a-f9140cf8bc25",
+          "sessionId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f",
           "sourceFiles": {
-            "manifest.json": "42ba9f7b2ae7d8e3001e23f12bca16c4809a64e0984cb3fa4d656b8d4079017e",
-            "plan.json": "87d7c9ff6acf5afdd0da41232200889358987e27b8b3e167fee42582aad1cd13",
-            "raw/raw.jsonl": "010e1875d09b4ee6c7c74c2612b95fcfd1ea3230c3d663dd45f9b8d2bb79ff60",
-            "report.json": "ba9f2317614cd0db0c64f443a54318aaad9bbc40812e3b978909c24136c053db"
+            "manifest.json": "eb48978e2a870d0ceec0686ef3d752d7a232559041be112ffe888354ab41c6ac",
+            "plan.json": "392b51be06b1851fb26cd444cbf5216c613387ba9f2de3b010421388d9f5f517",
+            "raw/raw.jsonl": "c988a91d1259b5c57719f8190544bedffbdb764c1f99dc40f87099bcb709cc4d",
+            "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4"
           },
-          "sourceProject": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-034/project",
-          "sourceRoot": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-batch/codex-SDK-CASE-034"
+          "sourceProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace",
+          "sourceRoot": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/source/history-seed"
         },
-        "home": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-035/home",
-        "model": "theta/glm-5.3",
-        "project": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-035/project",
+        "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/home",
+        "model": "theta/DeepSeek-V4.1-Flash-1017",
+        "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/routes/record/workspace",
         "prompts": [],
         "provider": "codex",
-        "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-035/raw",
+        "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/record/raw",
         "recordingIsolation": "personal-skills-v1",
-        "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-01T143429-isolated-glm53/captures/codex-SDK-CASE-035",
+        "root": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892",
         "scenario": {
           "answers": {},
           "case": {
@@ -9533,7 +9613,7 @@
               "其他 case 的使用流程",
               "人工构造的协议错误和精确竞态"
             ],
-            "scope": "发现当前 Session 观察前已有的子 Agent。",
+            "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
             "storyId": "SDK-US-008"
           },
           "caseId": "SDK-CASE-035",
@@ -9548,6 +9628,7 @@
           "requiredRequests": [],
           "storyId": "SDK-US-008"
         },
+        "sourcePlanSHA256": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039",
         "stdinEOFAction": "close",
         "story": "SDK-US-008",
         "storyId": "SDK-US-008"
