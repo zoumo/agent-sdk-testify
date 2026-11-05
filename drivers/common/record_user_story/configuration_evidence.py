@@ -20,6 +20,11 @@ def assess(plan, frames, report):
     configuration = plan['scenario'].get('configuration', {})
     timing = parameters.get('configurationTiming') or configuration.get('timing')
     setting = parameters.get('setting') or ('model' if configuration.get('modelSource') else None)
+    if setting == 'thinking' and timing == 'before-first-input':
+        # The native control acknowledgement provides no budget readback or
+        # application scope. Model identity, effort and usage cannot supply it.
+        report.setdefault('configurationEvidence', {})['effectiveScope'] = 'unknown'
+        raise Untriggered('native thinking budget effect is not established by protocol observations')
     if setting == 'display':
         assess_display(plan, frames, report)
         return

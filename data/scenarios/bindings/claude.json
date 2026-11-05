@@ -289,8 +289,8 @@
       "configuration": {},
       "progressBarrier": null,
       "execution": {
-        "mode": "planned",
-        "reason": "当前 Claude SDK 仅支持本地 stdio；原生 remote-control 需要 claude.ai 订阅登录，现有配置未提供可录制的远端 SDK 连接。"
+        "mode": "unsupported",
+        "reason": "当前 Claude 原生 Remote Control 需要 claude.ai 订阅登录；当前 API key/网关配置不提供可录制的原生远端连接，无法验证断连后同一远端服务仍可用。"
       },
       "required": false
     },

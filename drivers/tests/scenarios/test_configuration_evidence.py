@@ -9,6 +9,20 @@ from record_user_story.scenarios import Untriggered
 
 
 class ConfigurationEvidenceTests(unittest.TestCase):
+    def test_budget_ack_model_and_effort_do_not_establish_effect(self):
+        plan = {'provider': 'claude', 'scenario': {'parameters': {
+            'setting': 'thinking', 'configurationTiming': 'before-first-input'}}}
+        request = {'type': 'control_request', 'request_id': 'budget', 'request': {
+            'subtype': 'set_max_thinking_tokens', 'max_thinking_tokens': 1024}}
+        reply = {'type': 'control_response', 'response': {'request_id': 'budget', 'subtype': 'success'}}
+        frames = [{'direction': 'c2s', 'wire': request}, {'direction': 's2c', 'wire': reply},
+                  {'direction': 's2c', 'wire': {'type': 'assistant', 'message': {'model': 'selected-model'}}}]
+        report = {'configurationEvidence': {'requests': [{'requested': request['request'], 'acknowledged': True}],
+                  'observed': [{'model': 'selected-model', 'effort': 'high'}], 'effectiveScope': 'unknown'}}
+        with self.assertRaisesRegex(Untriggered, 'budget'):
+            assess(plan, frames, report)
+        self.assertEqual(report['configurationEvidence']['effectiveScope'], 'unknown')
+
     def test_display_requires_native_forwarding_and_correlated_success_not_visual_effect(self):
         for provider in ('claude', 'codex'):
             with self.subTest(provider=provider):
