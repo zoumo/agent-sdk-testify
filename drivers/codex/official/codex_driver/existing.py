@@ -66,7 +66,7 @@ def observe(plan, report):
         model_config = ConfigDict(extra='allow')
     check_source = not bool(plan.get('_replay'))
     seed = verify_seed(plan, check_source=check_source)
-    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=(plan.get('_fixtureProject', plan['historyProject']) if plan.get('_replay') else plan['historyProject']),
+    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=(plan.get('_fixtureProject', plan['historyProject']) if plan.get('_fixtureProject') else plan['historyProject']),
                          client_name='official-python-story-recorder', client_title='Protocol recording')
     def reject(method, params):
         raise ValueError('unexpected live request in zero-input existing-child observation')

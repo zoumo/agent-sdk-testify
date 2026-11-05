@@ -1,0 +1,13 @@
+{
+  "runId": "623165f5f65ebe3ace7e7a23591657f0",
+  "sessionId": "1cc6a141b9d28ed22249dbc7e97e7760",
+  "caseId": "SDK-CASE-032",
+  "agentType": "codex",
+  "recordSourceSHA256": "b05f52aa916bcdfb580581c08d7a6a6a81c0bd4b1907dfd7db7b79768b69b6d4",
+  "sourceSHA256": "b05f52aa916bcdfb580581c08d7a6a6a81c0bd4b1907dfd7db7b79768b69b6d4",
+  "driverSHA256": "2886930ed874c046d0bd888209bca452b2263098ec4fc201b4092cb989b69d45",
+  "connections": [
+    "main",
+    "probe"
+  ]
+}

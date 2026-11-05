@@ -1,0 +1,33 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "configurationSHA256": {
+    "config.toml": "0e8c91d47eccaf5651e7f855a131456a714c97c09c35fb8bcca945a877d12fec"
+  },
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/workspace",
+  "environment": {
+    "CODEX_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/config",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/home",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/home/.local/share"
+  },
+  "executionId": "829d180b0b83fd36808d2567aae270f0",
+  "method": "native-preparation",
+  "nativeSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "6eda6423ddf1cc172be236d5142d2fb208f71ea9eb56407119e5d7eac7741ce6",
+  "schemaVersion": 1,
+  "sessionId": "1cc6a141b9d28ed22249dbc7e97e7760",
+  "toolSHA256": "9eedea20cbfd1d3e52f2260ebf63e317bf09a907ec43f2b026b22c6d5f5914ed"
+}

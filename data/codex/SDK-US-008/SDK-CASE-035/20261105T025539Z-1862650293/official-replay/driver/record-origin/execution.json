@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 2,
+  "executionId": "fc3cc04159938a0d02d44dc90e3fe892",
+  "sessionId": "7bdb53f144b83caec70afd14065c982d",
+  "command": "record",
+  "args": [
+    "--session-dir",
+    "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035",
+    "--cmd",
+    "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "--",
+    "app-server",
+    "--listen",
+    "stdio://"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-035",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/source/plan.json",
+    "sha256": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039",
+    "provenance": "official",
+    "driverProfile": "existing-children"
+  },
+  "executor": "external-sdk",
+  "target": "native-agent",
+  "provenance": "official",
+  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/workspace",
+  "protocolCwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/workspace",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/home",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/config",
+  "tmp": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/tmp",
+  "historySeed": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/history-seed",
+  "env": {
+    "CODEX_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/config",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/home",
+    "LANG": "C.UTF-8",
+    "PATH": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/official-env-py315/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/jim/.ssctl/bin:/Users/jim/.utoo-proxy:/Applications/golutra.app/Contents/MacOS:/Users/jim/.local/share/mise/installs/go/1.26.9/bin:/Users/jim/.local/share/mise/installs/java/17/bin:/Users/jim/.local/share/mise/installs/node/24.21.0/bin:/Users/jim/.cargo/bin:/Users/jim/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/podman/bin:/opt/zerobrew/opt/gnu-sed/libexec/gnubin:/opt/zerobrew/opt/findutils/libexec/gnubin:/opt/zerobrew/opt/coreutils/libexec/gnubin:/Users/jim/bin:/Users/jim/.dotfiles/bin:/opt/zerobrew/bin:/Users/jim/.codex/tmp/arg0-macos/codex-arg0YaJ4n7:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/jim/.kusion/kclvm/bin:/Users/jim/.kusion/bin:/opt/zerobrew/opt/mise/bin:/Users/jim/.zerobrew/bin:/Users/jim/.skills-manager/bin:/Users/jim/.bun/bin:/Applications/Obsidian.app/Contents/MacOS:/Users/jim/.pnpm:/Users/jim/.krew/bin:/Users/jim/.orbstack/bin:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS",
+    "TEMP": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/tmp",
+    "TMP": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/tmp",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/home/.local/share"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "command": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/followup-032-035-v2",
+      "args": [
+        "agent",
+        "record",
+        "--session-dir",
+        "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035",
+        "--cmd"
+      ],
+      "material": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/materials/74c0c5009d6b2cf06769c97f18085a4c",
+      "planSHA256": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+      "manifestSHA256": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+      "recordingSHA256": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53",
+      "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/record/raw/transport.json"
+    }
+  ],
+  "artifactRoot": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/record",
+  "artifact": {
+    "officialOrigin": {
+      "runId": "00e98041a7fcc4444623c7addc0e8254",
+      "sessionId": "7bdb53f144b83caec70afd14065c982d",
+      "caseId": "SDK-CASE-035",
+      "agentType": "codex",
+      "recordSourceSHA256": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039",
+      "sourceSHA256": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039",
+      "driverSHA256": "2886930ed874c046d0bd888209bca452b2263098ec4fc201b4092cb989b69d45",
+      "connections": [
+        "main"
+      ]
+    },
+    "files": {
+      "config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl": "cac98aea229033aceae3f9620bbe8ecbbe490a48879126d11d6484511f626c44",
+      "config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl": "2d6c6d3a36747d3b3a464ed3c30554dba15d445f596268035e8931937984fe45",
+      "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl": "97b16ff4f4ee52c034b72fefcdb290fab16ed69cad305c2833566d0e430032fa",
+      "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl": "2d6c6d3a36747d3b3a464ed3c30554dba15d445f596268035e8931937984fe45",
+      "manifest.json": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+      "official-origin.json": "316c754d92e724b942d52bfa042c2c4a7dd59fffed861902f4c6c3d7be6212b6",
+      "origin/main.json": "da254b721f38c2674c465e6105ef35f28ae7317b130d2f963dbb228098ba8e3f",
+      "plan.json": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+      "raw/manifest.json": "976f36fc4a8f31323b7c77b9fde83625f9799b71f79f8c4a82529aeb02643a64",
+      "raw/raw.jsonl": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53",
+      "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw/transport.json": "da1c77304d8962e213c0af670d5de4ae14d12ae4327b3a50bd9f872606b97a2a",
+      "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+      "source-plan.json": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039"
+    },
+    "id": "74c0c5009d6b2cf06769c97f18085a4c",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/materials/74c0c5009d6b2cf06769c97f18085a4c",
+    "planSHA256": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+    "manifestSHA256": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+    "recordingSHA256": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-05T02:51:33.014263Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "startedAt": "2026-11-05T02:51:32.119031Z"
+}

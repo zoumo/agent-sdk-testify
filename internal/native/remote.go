@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -27,6 +28,20 @@ type remoteService struct {
 	root, endpoint, token string
 }
 
+func (r *remoteService) Evidence() tool.Object {
+	if r.cmd == nil || r.cmd.Process == nil {
+		return nil
+	}
+	hash, err := tool.FileDigest(r.cmd.Path)
+	if err != nil {
+		return nil
+	}
+	argv, err := json.Marshal(r.cmd.Args)
+	if err != nil {
+		return nil
+	}
+	return tool.Object{"executable": r.cmd.Path, "sha256": hash, "args": r.cmd.Args[1 : len(r.cmd.Args)-6], "cwd": r.cmd.Dir, "pid": r.cmd.Process.Pid, "privateArgumentsSHA256": tool.DigestBytes(argv), "transport": "websocket"}
+}
 func (r *remoteService) URL() string       { return r.endpoint }
 func (r *remoteService) TokenFile() string { return r.token }
 func (r *remoteService) Stopped() bool {
@@ -49,6 +64,7 @@ func ReserveRecordService(ctx context.Context, root string) (interface {
 	Close() error
 	Stopped() bool
 	ProcessID() int
+	Evidence() tool.Object
 }, error,
 ) {
 	return reserveRemote(ctx, root)

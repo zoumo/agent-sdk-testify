@@ -24,7 +24,7 @@ func TestHistorySeedUsesCaptureWithoutReplay(t *testing.T) {
 			require.NoError(t, os.MkdirAll(filepath.Join(source, "raw"), 0o700))
 			require.NoError(t, os.WriteFile(filepath.Join(source, "raw", "raw.jsonl"), []byte("{}\n"), 0o600))
 			require.NoError(t, tool.WriteJSON(filepath.Join(source, "raw", "transport.json"), tool.Object{"captureStatus": "complete", "cleanupComplete": true}))
-			plan := tool.Object{"provider": provider, "driverProfile": "history", "project": filepath.Join(source, "project"), "model": "synthetic-model", "recordingIsolation": "personal-skills-v1", "scenario": tool.Object{"parameters": tool.Object{"historyTarget": "child-messages"}}}
+			plan := tool.Object{"provider": provider, "driverProfile": "history", "project": filepath.Join(source, "project"), "model": "synthetic-model", "recordingIsolation": "personal-skills-v1", "scenario": tool.Object{"parameters": tool.Object{"historyTarget": "child-messages"}, "files": tool.Object{"fixture.txt": "synthetic source\n"}}}
 			require.NoError(t, tool.WriteJSON(filepath.Join(source, "plan.json"), plan))
 			receipts := []tool.Object{{"list_subagents": tool.Object{"sessionId": "parent", "agentIds": []string{"child"}}}}
 			if provider == "codex" {
@@ -49,6 +49,10 @@ func TestHistorySeedUsesCaptureWithoutReplay(t *testing.T) {
 			require.NoError(t, nativeprep.PrepareHistorySeed(source, root, target))
 			seed := tool.Obj(target["historySeed"])
 			require.Equal(t, "parent", seed["sessionId"])
+			require.Equal(t, "history-seed/project", seed["projectSnapshot"])
+			frozen, err := os.ReadFile(filepath.Join(root, "history-seed", "project", "fixture.txt"))
+			require.NoError(t, err)
+			require.Equal(t, "synthetic source\n", string(frozen))
 			require.Equal(t, []string{"child"}, seed["agentIds"])
 			require.Equal(t, filepath.Join(source, "project"), target["historyProject"])
 			require.Len(t, tool.Obj(seed["files"]), 2)

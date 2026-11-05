@@ -84,6 +84,12 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 			v.Check(reflect.DeepEqual(sdk, review["officialSDK"]), "review SDK identity differs from capture")
 		}
 	}
+	remote := tool.Object{}
+	if newCapture && plan["driverProfile"] == "remote-close" {
+		remote = tool.Obj(v.Read(replay, "driver/record-origin/run/result.json")["remoteService"])
+		cleanup := tool.Obj(remote["cleanup"])
+		v.Check(remote["owned"] == true && remote["cleanupComplete"] == true && cleanup["serverExitCode"] == float64(0) && cleanup["forcedCleanup"] == false, "owned remote service cleanup incomplete")
+	}
 	for _, phase := range Phases(plan) {
 		rawroot := filepath.Join(source, phase[1], "raw")
 		m := v.Read(rawroot, "manifest.json")
@@ -94,17 +100,34 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 		if plan["driverProfile"] == "existing-children" {
 			cwd = plan["historyProject"]
 		}
-		if newCapture {
+		if newCapture && len(remote) == 0 {
 			cwd = recordExecution["workspace"]
 			v.Check(native["sha256"] == plan["cliSHA256"] && reflect.DeepEqual(native["args"], plan["args"]), "observed native launch differs from isolated preparation")
 			v.Check(transport["nativeExitCode"] == float64(0), "native capture exit was not successful")
+		}
+		if len(remote) > 0 {
+			native = tool.Obj(remote["native"])
+			cwd = recordExecution["workspace"]
+			expectedArgs := []string{}
+			args := tool.Strings(plan["args"])
+			for i := 0; i < len(args); i++ {
+				if args[i] == "--listen" {
+					i++
+					continue
+				}
+				if args[i] != "--stdio" {
+					expectedArgs = append(expectedArgs, args[i])
+				}
+			}
+			v.Check(native["sha256"] == plan["cliSHA256"] && reflect.DeepEqual(tool.Strings(native["args"]), expectedArgs) && native["transport"] == "websocket" && regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(tool.Str(native["privateArgumentsSHA256"])), "owned remote native launch differs")
+			v.Check(transport["nativeLaunched"] == false && transport["remoteConnected"] == true && transport["remoteClosed"] == true, "remote connection did not settle")
 		}
 		v.Check(tool.Str(native["executable"]) != "" && regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(tool.Str(native["sha256"])) && tool.Str(cwd) != "" && native["cwd"] == cwd, "observed native execution identity required")
 		v.Hashes(rawroot, tool.Obj(m["files"]))
 		for _, name := range []string{"raw.jsonl", "stderr.raw", "transport.json"} {
 			v.Check(tool.Obj(m["files"])[name] != nil, "raw manifest omits required artifact")
 		}
-		v.Check(transport["captureStatus"] == "complete" && transport["cleanupComplete"] == true && transport["nativeLaunched"] == true && transport["reaped"] == true && transport["clientEOF"] == true && transport["error"] == nil, "capture or cleanup incomplete")
+		v.Check(transport["captureStatus"] == "complete" && transport["cleanupComplete"] == true && (len(remote) > 0 || (transport["nativeLaunched"] == true && transport["reaped"] == true)) && transport["clientEOF"] == true && transport["error"] == nil, "capture or cleanup incomplete")
 		if v.Err == nil {
 			b, e := os.ReadFile(filepath.Join(rawroot, "raw.jsonl"))
 			v.Err = e
@@ -121,7 +144,7 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 		}
 	}
 	v.Hashes(filepath.Join(source, "raw"), tool.Obj(manifest["files"]))
-	if plan["driverProfile"] == "remote-close" {
+	if plan["driverProfile"] == "remote-close" && !newCapture {
 		s := v.Read(source, "remote-service.json")
 		v.Check(s["cleanupComplete"] == true && s["serverExitCode"] == float64(0) && s["forcedCleanup"] == false, "remote source cleanup incomplete")
 	}

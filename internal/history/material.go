@@ -40,6 +40,18 @@ func Bindings(root string) (map[string]string, error) {
 	}); err != nil {
 		return nil, err
 	}
+	seed := tool.Obj(plan["historySeed"])
+	if seed["projectSnapshot"] == "history-seed/project" {
+		projectBindings := tool.Object{}
+		for name, value := range tool.Obj(seed["projectFiles"]) {
+			if value != "directory" {
+				projectBindings["history-seed/project/"+name] = value
+			}
+		}
+		if err := addBindings(root, bindings, "plan.historySeed.projectFiles", projectBindings, tool.Str); err != nil {
+			return nil, err
+		}
+	}
 	var adoption tool.Object
 	if err := tool.ReadJSON(filepath.Join(root, "adoption.json"), &adoption); err == nil {
 		transformations, transformationsOK := adoption["transformations"].([]any)

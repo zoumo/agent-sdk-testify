@@ -1,0 +1,475 @@
+{
+  "agentType": "codex",
+  "business": {
+    "message": "",
+    "sdk": {
+      "package": "openai-codex",
+      "version": "0.0.0.dev0"
+    },
+    "status": "passed"
+  },
+  "case": "SDK-CASE-035",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-05T02:51:33.153043Z",
+  "connections": [
+    {
+      "connection": {
+        "id": "main",
+        "command": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/followup-032-035-v2",
+        "args": [
+          "agent",
+          "record",
+          "--session-dir",
+          "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035",
+          "--cmd"
+        ],
+        "material": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/materials/74c0c5009d6b2cf06769c97f18085a4c",
+        "planSHA256": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+        "manifestSHA256": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+        "recordingSHA256": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53",
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/record/raw/transport.json"
+      },
+      "connectionId": "main",
+      "executionId": "fc3cc04159938a0d02d44dc90e3fe892",
+      "executionSHA256": "532c505aa45d204682f1ba564252b7ab6015deb2ece2b7a8750485dc18129635",
+      "finished": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/execution.json",
+        "executionId": "fc3cc04159938a0d02d44dc90e3fe892",
+        "executionSHA256": "532c505aa45d204682f1ba564252b7ab6015deb2ece2b7a8750485dc18129635",
+        "material": {
+          "id": "74c0c5009d6b2cf06769c97f18085a4c",
+          "manifestSHA256": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+          "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/materials/74c0c5009d6b2cf06769c97f18085a4c",
+          "planSHA256": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+          "provenance": "official",
+          "recordingSHA256": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53"
+        },
+        "processId": 77982,
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/record/raw/transport.json",
+        "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/receipts/main.result.json",
+        "schemaVersion": 1,
+        "sessionId": "7bdb53f144b83caec70afd14065c982d",
+        "status": "passed"
+      },
+      "material": {
+        "officialOrigin": {
+          "runId": "00e98041a7fcc4444623c7addc0e8254",
+          "sessionId": "7bdb53f144b83caec70afd14065c982d",
+          "caseId": "SDK-CASE-035",
+          "agentType": "codex",
+          "recordSourceSHA256": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039",
+          "sourceSHA256": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039",
+          "driverSHA256": "2886930ed874c046d0bd888209bca452b2263098ec4fc201b4092cb989b69d45",
+          "connections": [
+            "main"
+          ]
+        },
+        "files": {
+          "config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl": "cac98aea229033aceae3f9620bbe8ecbbe490a48879126d11d6484511f626c44",
+          "config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl": "2d6c6d3a36747d3b3a464ed3c30554dba15d445f596268035e8931937984fe45",
+          "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl": "97b16ff4f4ee52c034b72fefcdb290fab16ed69cad305c2833566d0e430032fa",
+          "history-seed/config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl": "2d6c6d3a36747d3b3a464ed3c30554dba15d445f596268035e8931937984fe45",
+          "manifest.json": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+          "official-origin.json": "316c754d92e724b942d52bfa042c2c4a7dd59fffed861902f4c6c3d7be6212b6",
+          "origin/main.json": "da254b721f38c2674c465e6105ef35f28ae7317b130d2f963dbb228098ba8e3f",
+          "plan.json": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+          "raw/manifest.json": "976f36fc4a8f31323b7c77b9fde83625f9799b71f79f8c4a82529aeb02643a64",
+          "raw/raw.jsonl": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53",
+          "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "raw/transport.json": "da1c77304d8962e213c0af670d5de4ae14d12ae4327b3a50bd9f872606b97a2a",
+          "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+          "source-plan.json": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039"
+        },
+        "id": "74c0c5009d6b2cf06769c97f18085a4c",
+        "kind": "capture",
+        "action": "record",
+        "provenance": "official",
+        "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/materials/74c0c5009d6b2cf06769c97f18085a4c",
+        "planSHA256": "2e209fd6fc18e21012543804b80499e3e4c2546b10bf124d9dda8864f0fd824b",
+        "manifestSHA256": "e4d66d8d6743c7735845e40b592c7d9ed495a23e6b4739fcd71cd092b5c33764",
+        "recordingSHA256": "fc68ad6e5844e5c4e4ca62a313e566de233bb3efd74402b5441b60c2be600a53",
+        "connections": [
+          "main"
+        ],
+        "createdAt": "2026-11-05T02:51:33.014263Z"
+      },
+      "process": {
+        "cleanupComplete": true,
+        "exitCode": 0,
+        "pid": 77982,
+        "reaped": true,
+        "schemaVersion": 1,
+        "started": true,
+        "supervisorPid": 77948
+      },
+      "started": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/execution.json",
+        "executionId": "fc3cc04159938a0d02d44dc90e3fe892",
+        "executionSHA256": "12073d690f1a86029c911f925961d33ec0afb4c96517c6f75c274365505ca1e8",
+        "processId": 77982,
+        "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/record/raw/transport.json",
+        "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/executions/fc3cc04159938a0d02d44dc90e3fe892/receipts/main.result.json",
+        "schemaVersion": 1,
+        "sessionId": "7bdb53f144b83caec70afd14065c982d",
+        "status": "running"
+      }
+    }
+  ],
+  "credentialScan": "pass",
+  "driver": {
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/official-env-py315/bin/agent-sdk-testify-codex",
+    "sha256": "2886930ed874c046d0bd888209bca452b2263098ec4fc201b4092cb989b69d45"
+  },
+  "driverFiles": {
+    "materials/case.json": "ea43f7f3c757cd37c997ab742f4cd3fea9cfc8126b94b22e03a6c0255591d825",
+    "peer-main.process.json": "d6ad934e155d43d8a7be234e71ae0986d7c71cb2b837895297f49f768c016a38",
+    "peer-main.results.jsonl": "c9468546afe70f45292dfe2a8eb428946797951c0f993dee7fe87a683e6b6626",
+    "report.json": "4c4d4a5a9ac790235b239426069253f5e21a10cf7fac32ce223c3348de8282a3",
+    "request.json": "f6f8fb1572bd7d10941e8f27a6887ada014fe47fdc35c42b6294dfc148512618",
+    "result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "driverProcess": {
+    "cleanupComplete": true,
+    "exitCode": 0,
+    "reaped": true,
+    "started": true
+  },
+  "id": "00e98041a7fcc4444623c7addc0e8254",
+  "mode": "record",
+  "processes": {
+    "driver": {
+      "pid": 77932,
+      "state": "started"
+    }
+  },
+  "recordPreparation": {
+    "executionId": "fc3cc04159938a0d02d44dc90e3fe892",
+    "isolationSHA256": "bff573cf839738f9671bce77d2a1c80c11246d9b37336e3da55d8d146cbf43f6",
+    "preparedPlanSHA256": "5bb99cf413a499ebba37f6377b6c98cd8590092cfd004b2a84b844f302bedac8"
+  },
+  "report": {
+    "branchStatus": "passed",
+    "captureStatus": "complete",
+    "case": {
+      "id": "SDK-CASE-035",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-035",
+    "cliVersion": null,
+    "events": 0,
+    "facts": [
+      "driver uses official Python SDK; raw bytes captured at native process boundary"
+    ],
+    "flowTrace": [
+      {
+        "step": "close-drain"
+      }
+    ],
+    "gaps": [],
+    "inputs": 0,
+    "officialSDK": {
+      "package": "openai-codex",
+      "version": "0.0.0.dev0"
+    },
+    "provider": "codex",
+    "receipts": [
+      {
+        "initialize": {
+          "platformFamily": "unix",
+          "platformOs": "macos",
+          "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)"
+        }
+      },
+      {
+        "existing-query": {
+          "method": "thread/resume",
+          "params": {
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace",
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "threadId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f"
+          },
+          "response": {
+            "activePermissionProfile": {
+              "extends": null,
+              "id": ":read-only"
+            },
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "developer_instructions": null,
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "reasoning_effort": null
+              }
+            },
+            "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace",
+            "disabledPluginIds": [],
+            "instructionSources": [],
+            "itemsBackwardsCursor": "{\"requestedThreadId\":\"01a1a7ed-81b3-7481-a3f6-370209e2fb1f\",\"rolloutOrdinal\":25,\"includeAnchor\":true,\"scope\":{\"kind\":\"itemsByCreatedAtOrdinal\"}}",
+            "model": "theta/DeepSeek-V4.1-Flash-1017",
+            "modelProvider": "recording-gateway",
+            "multiAgentMode": "explicitRequestOnly",
+            "runtimeWorkspaceRoots": [
+              "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace"
+            ],
+            "sandbox": {
+              "networkAccess": false,
+              "type": "readOnly"
+            },
+            "thread": {
+              "agentNickname": null,
+              "agentRole": null,
+              "canAcceptDirectInput": true,
+              "cliVersion": "0.166.0",
+              "createdAt": 1793818722,
+              "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace",
+              "daybreakEnabled": null,
+              "environments": [
+                {
+                  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace",
+                  "environmentId": "local",
+                  "runtimeWorkspaceRoots": [
+                    "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace"
+                  ]
+                }
+              ],
+              "ephemeral": false,
+              "extra": null,
+              "forkedFromId": null,
+              "gitInfo": null,
+              "historyMode": "paginated",
+              "id": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f",
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "modelProvider": "recording-gateway",
+              "name": null,
+              "originator": "official-python-story-recorder",
+              "parentThreadId": null,
+              "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/config/sessions/2026/11/05/rollout-2026-11-05T02-58-42-01a1a7ed-81b3-7481-a3f6-370209e2fb1f.jsonl",
+              "preview": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network.",
+              "projectId": null,
+              "reasoningEffort": null,
+              "recencyAt": 1793847092,
+              "section": null,
+              "sectionEnteredAt": null,
+              "sessionId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f",
+              "source": "vscode",
+              "status": {
+                "type": "idle"
+              },
+              "threadSource": null,
+              "turns": [
+                {
+                  "completedAt": 1793818748,
+                  "durationMs": 25569,
+                  "error": null,
+                  "id": "01a1a7ed-81c5-7e51-bd50-529c5397ecf7",
+                  "items": [
+                    {
+                      "clientId": null,
+                      "completedAtMs": 1793818723012,
+                      "content": [
+                        {
+                          "text": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network.",
+                          "text_elements": [],
+                          "type": "text"
+                        }
+                      ],
+                      "id": "01a1a7ed-82c3-7e50-9480-25c3e25c8409",
+                      "startedAtMs": 1793818723012,
+                      "type": "userMessage"
+                    },
+                    {
+                      "completedAtMs": 1793818745031,
+                      "content": [],
+                      "id": "rs_21d562f817938187444097039ebdfd_0",
+                      "startedAtMs": 1793818744669,
+                      "summary": [
+                        "The user wants me to spawn exactly one agent, have it reply \"SYNTHETIC_SAVED_CHILD\" without tools, wait for it, report output, finish. I'll spawn then wait."
+                      ],
+                      "type": "reasoning"
+                    },
+                    {
+                      "completedAtMs": 1793818745174,
+                      "delivery": null,
+                      "id": "msg_18e4eca50103143000000162",
+                      "memoryCitation": null,
+                      "phase": "commentary",
+                      "questions": null,
+                      "startedAtMs": 1793818745036,
+                      "text": "\n\n",
+                      "type": "agentMessage"
+                    },
+                    {
+                      "agentsStates": {
+                        "01a1a7ed-dae9-7c72-8775-aa942bdefba5": {
+                          "message": null,
+                          "status": "pendingInit"
+                        }
+                      },
+                      "completedAtMs": 1793818745583,
+                      "id": "call_c2ae6f01bd3b46fe84cf6dae",
+                      "model": "theta/DeepSeek-V4.1-Flash-1017",
+                      "prompt": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tools.",
+                      "reasoningEffort": "medium",
+                      "receiverThreadIds": [
+                        "01a1a7ed-dae9-7c72-8775-aa942bdefba5"
+                      ],
+                      "senderThreadId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f",
+                      "startedAtMs": 1793818745576,
+                      "status": "completed",
+                      "tool": "spawnAgent",
+                      "type": "collabAgentToolCall"
+                    },
+                    {
+                      "agentsStates": {
+                        "01a1a7ed-dae9-7c72-8775-aa942bdefba5": {
+                          "message": "SYNTHETIC_SAVED_CHILD",
+                          "status": "completed"
+                        }
+                      },
+                      "completedAtMs": 1793818747470,
+                      "id": "call_6d2d3ceb717a4b24ad0a67e9",
+                      "model": null,
+                      "prompt": null,
+                      "reasoningEffort": null,
+                      "receiverThreadIds": [
+                        "01a1a7ed-dae9-7c72-8775-aa942bdefba5"
+                      ],
+                      "senderThreadId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f",
+                      "startedAtMs": 1793818747470,
+                      "status": "completed",
+                      "tool": "wait",
+                      "type": "collabAgentToolCall"
+                    },
+                    {
+                      "completedAtMs": 1793818748224,
+                      "delivery": null,
+                      "id": "msg_18e4eca5bf1b5ae00000016d",
+                      "memoryCitation": null,
+                      "phase": "final_answer",
+                      "questions": null,
+                      "startedAtMs": 1793818748221,
+                      "text": "Child agent (Gibbs) completed with output:\n\n```\nSYNTHETIC_SAVED_CHILD\n```",
+                      "type": "agentMessage"
+                    }
+                  ],
+                  "itemsView": "full",
+                  "rootTurnId": "01a1a7ed-81c5-7e51-bd50-529c5397ecf7",
+                  "startedAt": 1793818722,
+                  "status": "completed"
+                }
+              ],
+              "updatedAt": 1793847092
+            },
+            "turnsBackwardsCursor": "{\"requestedThreadId\":\"01a1a7ed-81b3-7481-a3f6-370209e2fb1f\",\"rolloutOrdinal\":1,\"includeAnchor\":true,\"scope\":{\"kind\":\"turns\"}}"
+          }
+        }
+      },
+      {
+        "existing-query": {
+          "method": "thread/list",
+          "params": {
+            "ancestorThreadId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f",
+            "limit": 10,
+            "sourceKinds": [
+              "subAgentThreadSpawn"
+            ]
+          },
+          "response": {
+            "backwardsCursor": "2026-11-04T18:59:04.999Z",
+            "data": [
+              {
+                "agentNickname": "Gibbs",
+                "agentRole": null,
+                "canAcceptDirectInput": null,
+                "cliVersion": "0.166.0",
+                "createdAt": 1793818745,
+                "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1345166976/routes/record/workspace",
+                "daybreakEnabled": null,
+                "environments": null,
+                "ephemeral": false,
+                "extra": null,
+                "forkedFromId": null,
+                "gitInfo": null,
+                "historyMode": "paginated",
+                "id": "01a1a7ed-dae9-7c72-8775-aa942bdefba5",
+                "model": "theta/DeepSeek-V4.1-Flash-1017",
+                "modelProvider": "recording-gateway",
+                "name": null,
+                "originator": "official-python-story-recorder",
+                "parentThreadId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f",
+                "path": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/executions/fc3cc04159938a0d02d44dc90e3fe892/config/sessions/2026/11/05/rollout-2026-11-05T02-59-05-01a1a7ed-dae9-7c72-8775-aa942bdefba5.jsonl",
+                "preview": "Reply with exactly the text SYNTHETIC_SAVED_CHILD and nothing else. Do not use any tools.",
+                "projectId": null,
+                "reasoningEffort": null,
+                "recencyAt": 1793847092,
+                "section": null,
+                "sectionEnteredAt": null,
+                "sessionId": "01a1a7ed-dae9-7c72-8775-aa942bdefba5",
+                "source": {
+                  "subAgent": {
+                    "thread_spawn": {
+                      "agent_nickname": "Gibbs",
+                      "agent_path": null,
+                      "agent_role": null,
+                      "depth": 1,
+                      "parent_thread_id": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f"
+                    }
+                  }
+                },
+                "status": {
+                  "type": "notLoaded"
+                },
+                "threadSource": null,
+                "turns": [],
+                "updatedAt": 1793847092
+              }
+            ],
+            "readStates": {}
+          }
+        }
+      },
+      {
+        "existing-query": {
+          "method": "thread/unsubscribe",
+          "params": {
+            "threadId": "01a1a7ed-81b3-7481-a3f6-370209e2fb1f"
+          },
+          "response": {
+            "status": "unsubscribed"
+          }
+        }
+      }
+    ],
+    "requests": 0,
+    "results": 0,
+    "scenarioSHA256": null,
+    "status": "passed",
+    "story": "SDK-US-008",
+    "storyId": "SDK-US-008"
+  },
+  "schemaVersion": 1,
+  "sessionId": "7bdb53f144b83caec70afd14065c982d",
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-035",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/source/plan.json",
+    "sha256": "bc994fc5ce0e9af69a262235957db8c44cf79dd1efa883097d3eecb8497f5039",
+    "provenance": "official",
+    "driverProfile": "existing-children"
+  },
+  "startedAt": "2026-11-05T02:51:30.581406Z",
+  "status": "passed"
+}

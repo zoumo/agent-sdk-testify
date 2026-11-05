@@ -1,0 +1,57 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "e379854ac02ec2c5a766d8b4f8633beb43c36c64ad7cf3c4deca98f1f018cdf2",
+    "raw.jsonl": "d9902148ee30fd17e90f8d11105db1443105c8ce735cd46588ca732b2c1b8383",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "be5383be676fdd318dc75c5052e228f01ebf2d699864d483cf960cfd079c0e50"
+  },
+  "native": {
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017",
+      "--resume",
+      "c68d333e-012f-42e7-a217-dbad8a27a640",
+      "--forward-subagent-text"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/executions/beb94293b84c6db312048a9c63c1ad57/workspace",
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "planSHA256": "a1ee5f62bf501bde249fc66a99aa42630cfad61a8d807476d800302f4faefb00",
+  "provenance": "capture",
+  "proxyVersion": "0.1.0-dev",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "be5383be676fdd318dc75c5052e228f01ebf2d699864d483cf960cfd079c0e50",
+  "savedFiles": {
+    "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640.jsonl": "7967215a28879e40863275738bb55241086ad7094be753128f60f3d23d2a57a4",
+    "config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640/subagents/agent-aa583e755f4d519fd.jsonl": "1372be8860500851ce9271dce11d174b13ab3414f360a4f8df8c6376c7e9454b",
+    "history-seed/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640.jsonl": "83478ae2a36adc14d673bfd6fe66374e8c223523f8ac8000675e5b15a5d76742",
+    "history-seed/config/projects/-private-var-folders-v7-hcm12-5x49lf7szbrsz4p-p80000gp-T-agent-sdk-testify-session-2854881899-executions-9cc8bda7b3a39e1dc93d92147dee0258-workspace/c68d333e-012f-42e7-a217-dbad8a27a640/subagents/agent-aa583e755f4d519fd.jsonl": "1372be8860500851ce9271dce11d174b13ab3414f360a4f8df8c6376c7e9454b"
+  },
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "f92b02c5cccca973c8dd0ac5a9649ec3034506e63b092f831098169891e09773",
+  "status": "captured"
+}

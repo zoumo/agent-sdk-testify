@@ -178,6 +178,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	route := session.Routes["mock"]
 	env := route.Env
 	plan["root"], plan["home"], plan["config"], plan["raw"] = root, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[session.AgentType]], filepath.Join(material.Path, "raw")
+	plan["_seedRoot"] = filepath.Dir(route.Workspace)
 	plan["_recordedWorkspace"] = plan["_fixtureProject"]
 	plan["_fixtureProject"], plan["_replay"] = route.Workspace, true
 	// project/historyProject retain the original native protocol cwd. Only the

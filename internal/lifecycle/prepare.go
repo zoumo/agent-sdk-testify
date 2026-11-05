@@ -3,6 +3,7 @@ package lifecycle
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -305,6 +306,17 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		historySeedFiles = make(map[string]string, len(files))
 		for name, digest := range files {
 			historySeedFiles["history-seed/"+name] = digest
+		}
+		if spec.source.Kind == "case" && spec.plan["driverProfile"] == "existing-children" {
+			if err := native.PrepareHistorySeed(historySeed, baseline, spec.plan); err != nil {
+				return nil, err
+			}
+			spec.planBytes, err = json.MarshalIndent(spec.plan, "", "  ")
+			if err != nil {
+				return nil, err
+			}
+			spec.planBytes = append(spec.planBytes, '\n')
+			spec.source.SHA256 = tool.DigestBytes(spec.planBytes)
 		}
 		if spec.source.Kind == "plan" {
 			err = tool.CopyTree(historySeed, filepath.Join(baseline, "history-seed"))

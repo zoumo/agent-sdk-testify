@@ -46,6 +46,15 @@ class ExistingChildrenTests(unittest.TestCase):
             self.assertEqual(seed['sessionId'], session)
             self.assertEqual(seed['agentIds'], ['old'])
             verify_seed(target_plan)
+            snapshot = root / 'history-seed/project'
+            snapshot.mkdir(parents=True)
+            seed['projectSnapshot'] = 'history-seed/project'
+            seed['sourceProject'] = str(Path(name).resolve() / 'missing/original/project')
+            target_plan['historyProject'] = seed['sourceProject']
+            verify_seed(target_plan)
+            (snapshot / 'unexpected.txt').write_text('changed')
+            with self.assertRaises(ValueError): verify_seed(target_plan)
+            (snapshot / 'unexpected.txt').unlink()
             self.assertEqual(len(seed['files']), 2)
             (source / 'report.json').write_text('{"status":"failed"}')
             with self.assertRaises(ValueError): verify_seed(target_plan)

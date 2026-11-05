@@ -1,0 +1,21 @@
+{
+  "command": "record",
+  "connectionId": "main",
+  "execution": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/executions/beb94293b84c6db312048a9c63c1ad57/execution.json",
+  "executionId": "beb94293b84c6db312048a9c63c1ad57",
+  "executionSHA256": "7ad92a7bc259914a3c9d7f032263e2d0e0330ced65dad2fb4559a0c6758cf4ab",
+  "material": {
+    "id": "c0e140b3a4e36c96e986bf85fffb4de3",
+    "manifestSHA256": "46ab02babe17c48087a26fe8bb499a00a1759218e62ec94dc9d119bb3d038736",
+    "path": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/materials/c0e140b3a4e36c96e986bf85fffb4de3",
+    "planSHA256": "a1ee5f62bf501bde249fc66a99aa42630cfad61a8d807476d800302f4faefb00",
+    "provenance": "official",
+    "recordingSHA256": "d9902148ee30fd17e90f8d11105db1443105c8ce735cd46588ca732b2c1b8383"
+  },
+  "processId": 81215,
+  "receipt": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/executions/beb94293b84c6db312048a9c63c1ad57/record/raw/transport.json",
+  "result": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/executions/beb94293b84c6db312048a9c63c1ad57/receipts/main.result.json",
+  "schemaVersion": 1,
+  "sessionId": "b500081a971caf142dd018924c83ba37",
+  "status": "passed"
+}

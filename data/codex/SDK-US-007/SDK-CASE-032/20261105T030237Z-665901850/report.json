@@ -1,0 +1,14 @@
+{
+  "branchStatus": "not-applicable",
+  "captureStatus": "complete",
+  "cleanupComplete": true,
+  "clientEOF": true,
+  "consumer": false,
+  "nativeLaunched": false,
+  "provenance": "official",
+  "remoteClosed": true,
+  "remoteConnected": true,
+  "schemaVersion": 1,
+  "status": "captured",
+  "target": "remote-websocket"
+}

@@ -1,0 +1,9 @@
+{
+  "case": "SDK-CASE-035",
+  "materials": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/official-records/00e98041a7fcc4444623c7addc0e8254/driver/materials",
+  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/routes/record/workspace",
+  "peer": {
+    "command": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1258230610/official/00e98041a7fcc4444623c7addc0e8254/peer-main"
+  },
+  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-035/official-records/00e98041a7fcc4444623c7addc0e8254/driver"
+}

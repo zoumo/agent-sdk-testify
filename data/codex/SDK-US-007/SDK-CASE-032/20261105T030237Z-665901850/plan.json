@@ -1,0 +1,70 @@
+{
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/workspace",
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-032",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "关闭远端连接并保持远端服务可用。",
+    "storyId": "SDK-US-007"
+  },
+  "caseId": "SDK-CASE-032",
+  "cli": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/config",
+  "driverProfile": "remote-close",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/routes/record/workspace",
+  "prompts": [
+    "Reply Ready."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/codex-SDK-CASE-032/executions/829d180b0b83fd36808d2567aae270f0/record/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/829d180b0b83fd36808d2567aae270f0",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-032",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "关闭远端连接并保持远端服务可用。",
+      "storyId": "SDK-US-007"
+    },
+    "caseId": "SDK-CASE-032",
+    "configuration": {},
+    "driverProfile": "remote-close",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Reply Ready."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-007"
+  },
+  "sourcePlanSHA256": "b05f52aa916bcdfb580581c08d7a6a6a81c0bd4b1907dfd7db7b79768b69b6d4",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-007",
+  "storyId": "SDK-US-007"
+}

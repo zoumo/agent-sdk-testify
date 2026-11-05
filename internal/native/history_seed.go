@@ -37,8 +37,16 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	}
 	// This startup assertion is emitted only by new recording setup and bound
 	// by the capture's existing plan hash. It is not a content-safety verdict.
-	if previous["recordingIsolation"] != isolatedRecording || manifest["provenance"] != "capture" || tool.Str(manifest["planSHA256"]) == "" || manifest["captureStatus"] != "complete" || manifest["status"] != "passed" {
+	if previous["recordingIsolation"] != isolatedRecording || manifest["provenance"] != "capture" || tool.Str(manifest["planSHA256"]) == "" || manifest["captureStatus"] != "complete" || (manifest["status"] != "passed" && manifest["status"] != "captured") {
 		return errors.New("seed must come from an isolated recording")
+	}
+	if report["status"] == "captured" {
+		if _, err := corpus.VerifyAdoptedFiles(source); err != nil {
+			return err
+		}
+		if err := tool.ReadJSON(filepath.Join(source, "official-replay", "driver", "record-origin", "run", "driver", "report.json"), &report); err != nil {
+			return err
+		}
 	}
 	provider := tool.Str(plan["provider"])
 	if previous["provider"] != provider || previous["driverProfile"] != "history" || tool.Obj(tool.Obj(previous["scenario"])["parameters"])["historyTarget"] != "child-messages" || report["status"] != "passed" {
@@ -106,27 +114,35 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		return errors.New("seed manifest lacks saved parent or child records")
 	}
 	project := tool.Str(previous["project"])
-	if project != filepath.Join(source, "project") {
-		return errors.New("seed project must retain its source identity")
+	if provider == "claude" && tool.Str(previous["_fixtureProject"]) != "" {
+		project = tool.Str(previous["_fixtureProject"])
 	}
-	if provider == "codex" {
-		// Resume keeps the source cwd as a native identity. Check its discovery
-		// roots too; prepareNative separately isolates the new workspace/args.
+	if !filepath.IsAbs(project) {
+		return errors.New("seed project identity must be absolute")
+	}
+	if provider == "codex" && project == filepath.Join(source, "project") {
 		if err := prepareCodexIsolation(root, tool.Object{"project": project}); err != nil {
 			return err
 		}
 	}
+	snapshot := filepath.Join(root, "history-seed", "project")
+	if err := os.MkdirAll(snapshot, 0o700); err != nil {
+		return err
+	}
+	if err := tool.WriteFiles(snapshot, tool.Obj(tool.Obj(previous["scenario"])["files"])); err != nil {
+		return err
+	}
 	projectFiles := tool.Object{}
-	if err := filepath.WalkDir(project, func(p string, d os.DirEntry, e error) error {
+	if err := filepath.WalkDir(snapshot, func(p string, d os.DirEntry, e error) error {
 		if e != nil {
 			return e
 		}
-		if p == project {
+		if p == snapshot {
 			return nil
 		}
-		name, e := filepath.Rel(project, p)
-		if e != nil {
-			return e
+		name, err := filepath.Rel(snapshot, p)
+		if err != nil {
+			return err
 		}
 		if d.IsDir() {
 			projectFiles[name] = "directory"
@@ -135,14 +151,13 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		if !d.Type().IsRegular() {
 			return fmt.Errorf("unsupported seed project entry: %s", name)
 		}
-		digest, e := tool.FileDigest(p)
-		if e == nil {
-			projectFiles[name] = digest
-		}
-		return e
+		digest, err := tool.FileDigest(p)
+		projectFiles[name] = digest
+		return err
 	}); err != nil {
 		return err
 	}
+
 	sourceFiles := tool.Object{}
 	for _, name := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl"} {
 		digest, e := tool.FileDigest(filepath.Join(source, name))
@@ -151,7 +166,7 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		}
 		sourceFiles[name] = digest
 	}
-	plan["historySeed"] = tool.Object{"provider": provider, "sourceRoot": source, "sourceProject": project, "sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles, "projectFiles": projectFiles}
+	plan["historySeed"] = tool.Object{"provider": provider, "sourceRoot": source, "sourceProject": project, "sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles, "projectFiles": projectFiles, "projectSnapshot": "history-seed/project"}
 	plan["historyProject"] = project
 	if tool.Str(plan["model"]) == "" {
 		plan["model"] = previous["model"]

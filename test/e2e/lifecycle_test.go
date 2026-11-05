@@ -308,7 +308,9 @@ func TestPlanSeedHistoryConformance(t *testing.T) {
 		digest := str(obj(value)["sha256"])
 		require.Equal(t, digest, historyFiles[name], name)
 		require.Equal(t, digest, digestFile(t, filepath.Join(filepath.Dir(str(execution["home"])), filepath.FromSlash(name))), name)
-		require.Nil(t, obj(manifest["savedFiles"])[name], "plan seed must provide an independent binding")
+		if declared := obj(manifest["savedFiles"])[name]; declared != nil {
+			require.Equal(t, digest, declared, "manifest and independent plan seed bindings must agree")
+		}
 	}
 }
 

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "0.1.0-dev",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017",
+      "--resume",
+      "c68d333e-012f-42e7-a217-dbad8a27a640",
+      "--forward-subagent-text"
+    ],
+    "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/executions/beb94293b84c6db312048a9c63c1ad57/workspace",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "files": {
+    "raw.jsonl": "d9902148ee30fd17e90f8d11105db1443105c8ce735cd46588ca732b2c1b8383",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "be5383be676fdd318dc75c5052e228f01ebf2d699864d483cf960cfd079c0e50"
+  }
+}

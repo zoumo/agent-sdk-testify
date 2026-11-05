@@ -28,11 +28,13 @@ def verify_seed(plan, *, check_source=True):
     seed = plan.get('historySeed')
     if not isinstance(seed, dict) or seed.get('provider') not in ('claude', 'codex') or not seed.get('files'):
         raise ValueError('frozen existing-child seed required')
-    root = Path(plan['root'])
+    if seed.get('projectSnapshot') not in (None, 'history-seed/project'):
+        raise ValueError('invalid seed project snapshot')
+    root = Path(plan.get('_seedRoot') or plan['root'])
     project = Path(seed.get('sourceProject', ''))
     temp_root = Path(plan['tempRoot']) if 'tempRoot' in plan else recording_temp_root()
     if (plan.get('historyProject') != str(project) or not project.is_absolute()
-            or project != Path(seed.get('sourceRoot', '')) / 'project'
+            or (not seed.get('projectSnapshot') and project != Path(seed.get('sourceRoot', '')) / 'project')
             or (not plan.get('_nativeCase') and not project.is_relative_to(temp_root))):
         raise ValueError('history scope differs from the frozen source project')
     for name, value in seed['files'].items():
@@ -41,7 +43,9 @@ def verify_seed(plan, *, check_source=True):
         if not any(path.is_relative_to(prefix) for prefix in prefixes) or '..' in path.parts or sha(root / path) != value['sha256']:
             raise ValueError('existing-child seed copy changed')
     if check_source:
-        if project.resolve(strict=True) != project or project_files(project) != seed.get('projectFiles'):
+        snapshot = root / seed['projectSnapshot'] if seed.get('projectSnapshot') else project
+        if ((not seed.get('projectSnapshot') and project.resolve(strict=True) != project)
+                or project_files(snapshot) != seed.get('projectFiles')):
             raise ValueError('source project changed during read-only observation')
         source = Path(seed['sourceRoot'])
         verify_recording(source)

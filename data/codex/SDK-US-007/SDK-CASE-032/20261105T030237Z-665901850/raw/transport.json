@@ -1,0 +1,17 @@
+{
+  "target": "remote-websocket",
+  "remoteConnected": true,
+  "remoteClosed": true,
+  "version": 1,
+  "captureStatus": "complete",
+  "reason": "EOF",
+  "frames": 52,
+  "protocolBytes": 19946,
+  "stderrBytes": 0,
+  "milliseconds": 3404,
+  "nativeLaunched": false,
+  "nativeExitCode": null,
+  "clientEOF": true,
+  "reaped": false,
+  "cleanupComplete": true
+}

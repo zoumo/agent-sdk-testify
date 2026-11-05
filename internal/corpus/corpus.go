@@ -451,7 +451,7 @@ func (v *Validation) Required(source string, plan tool.Object) tool.Object {
 		v.Hashes(source, tool.Object{name: tool.Obj(evidence)["sha256"]})
 		names[name] = true
 	}
-	if plan["driverProfile"] == "remote-close" {
+	if plan["driverProfile"] == "remote-close" && !publicCapture(source) {
 		names["remote-service.json"] = true
 	}
 	return names

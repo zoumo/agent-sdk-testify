@@ -126,6 +126,12 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		plan["stdinEOFAction"] = "interrupt"
 	}
 	plan["raw"] = filepath.Join(root, "raw")
+	if plan["driverProfile"] == "existing-children" {
+		plan["_seedRoot"] = filepath.Dir(route.Workspace)
+		if session.AgentType == "claude" {
+			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
+		}
+	}
 	var service interface {
 		URL() string
 		TokenFile() string
@@ -133,6 +139,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		Close() error
 		Stopped() bool
 		ProcessID() int
+		Evidence() tool.Object
 	}
 	if plan["driverProfile"] == "remote-close" && o.URL == "" {
 		privateRoot := filepath.Join(session.ResourceRoot, "official", activity.ID)
@@ -149,7 +156,10 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 			if !service.Stopped() {
 				result["cleanupComplete"] = false
 			}
-			result["remoteService"] = tool.Object{"owned": true, "cleanupComplete": cleanupErr == nil}
+			cleanup := tool.Object{}
+			readErr := tool.ReadJSON(filepath.Join(privateRoot, "remote-service.json"), &cleanup)
+			result["remoteService"] = tool.Object{"owned": true, "cleanupComplete": cleanupErr == nil && readErr == nil, "native": service.Evidence(), "cleanup": cleanup}
+			runErr = errors.Join(runErr, readErr)
 			runErr = errors.Join(runErr, cleanupErr)
 		}()
 	} else if o.URL != "" {
@@ -264,6 +274,11 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 				serviceDone <- err
 				return
 			}
+			execution.RuntimeEnv = runtimeEnv
+			if err := lifecycle.SaveNativePreparation(o.SessionDir, session, *execution, runtimePlan, runtimePlanPath); err != nil {
+				serviceDone <- err
+				return
+			}
 			runtimePlan["project"] = execution.Workspace
 			if err := activity.TrackProcess("service", "launching", 0); err != nil {
 				serviceDone <- err
@@ -308,7 +323,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	refs, refErr := officialRecordReferences(o.SessionDir, session, root, ids)
 	result["connections"] = refs
 	runErr = errors.Join(runErr, refErr)
-	if refErr == nil && len(refs) > 0 && o.URL == "" {
+	if refErr == nil && len(refs) > 0 && (o.URL == "" || service != nil) {
 		executionID := tool.Str(refs[0]["executionId"])
 		var execution lifecycle.Execution
 		preparationErr := tool.ReadJSON(filepath.Join(o.SessionDir, "executions", executionID, "execution.json"), &execution)

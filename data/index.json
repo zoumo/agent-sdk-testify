@@ -168,7 +168,7 @@
       "requirement": "optional",
       "storyId": "SDK-US-005",
       "verification": "unsupported",
-      "verificationReason": "Claude \u539f\u751f\u5b50 Agent \u4e0d\u652f\u6301\u521b\u5efa\u5d4c\u5957\u5b50 Agent\u3002"
+      "verificationReason": "Claude 原生子 Agent 不支持创建嵌套子 Agent。"
     },
     {
       "adoption": "admitted",
@@ -318,7 +318,7 @@
       "requirement": "optional",
       "storyId": "SDK-US-007",
       "verification": "blocked",
-      "verificationReason": "\u5f53\u524d Claude SDK \u4ec5\u652f\u6301\u672c\u5730 stdio\uff1b\u539f\u751f remote-control \u9700\u8981 claude.ai \u8ba2\u9605\u767b\u5f55\uff0c\u73b0\u6709\u914d\u7f6e\u672a\u63d0\u4f9b\u53ef\u5f55\u5236\u7684\u8fdc\u7aef SDK \u8fde\u63a5\u3002"
+      "verificationReason": "当前 Claude SDK 仅支持本地 stdio；原生 remote-control 需要 claude.ai 订阅登录，现有配置未提供可录制的远端 SDK 连接。"
     },
     {
       "adoption": "admitted",
@@ -342,9 +342,9 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "3cd587cd7506efd55e5f71e49c87d0fd335d53e3c315199b2ec0af7897cad549",
+      "adoptionSHA256": "b1011e257afa97b5e7464add3972e12f49ee27e9617db66daad28bea1c3eca8e",
       "caseId": "SDK-CASE-035",
-      "materials": "claude/SDK-US-008/SDK-CASE-035/20261101T065854Z-058df049752347f1843d2f99be3347e4",
+      "materials": "claude/SDK-US-008/SDK-CASE-035/20261105T025535Z-2814673114",
       "provider": "claude",
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -476,7 +476,7 @@
       "requirement": "optional",
       "storyId": "SDK-US-003",
       "verification": "blocked",
-      "verificationReason": "Codex \u4fa7\u6682\u4e3a optional\uff1a\u73b0\u6709\u5b98\u65b9 Python SDK 0.161.0 \u4e0e 0.163.0 \u5728\u552f\u4e00\u8bfb\u53d6\u7ebf\u7a0b\u540c\u6b65\u6267\u884c\u5ba1\u6279\u56de\u8c03\uff0c\u6301\u6709\u5ba1\u6279\u4f1a\u963b\u585e\u63a7\u5236\u56de\u6267\u548c\u4e8b\u4ef6\uff0c\u516c\u5f00 API \u65e0\u5ef6\u540e\u56de\u7b54\u673a\u5236\u3002\u5148\u56de\u7b54\u518d\u89c2\u5bdf\u4e0d\u6ee1\u8db3\u672c case\uff1b\u5f85\u5b98\u65b9\u9a71\u52a8\u652f\u6301\u6301\u6709\u5ba1\u6279\u671f\u95f4\u7684\u5e76\u53d1\u63a7\u5236\u4e0e\u4e8b\u4ef6\u540e\u518d\u6062\u590d required\u3002\u8fd9\u662f\u8bed\u8a00\u9a71\u52a8\u9650\u5236\uff0c\u4e0d\u662f Codex \u539f\u751f\u534f\u8bae\u4e0d\u652f\u6301\uff0c\u4e5f\u4e0d\u662f Go SDK \u5df2\u9a8c\u8bc1\u5931\u8d25\u3002"
+      "verificationReason": "Codex 侧暂为 optional：现有官方 Python SDK 0.161.0 与 0.163.0 在唯一读取线程同步执行审批回调，持有审批会阻塞控制回执和事件，公开 API 无延后回答机制。先回答再观察不满足本 case；待官方驱动支持持有审批期间的并发控制与事件后再恢复 required。这是语言驱动限制，不是 Codex 原生协议不支持，也不是 Go SDK 已验证失败。"
     },
     {
       "adoption": "admitted",
@@ -670,9 +670,9 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "d348fe2c73d6ac592c89f05a04047585e8e78a6bb6f48d9dd220abaa98333e3f",
+      "adoptionSHA256": "2d04bf4de8778c4bbeef8873abfebe5657b0c88b6c18a40dbf9cbe6b9e303ad9",
       "caseId": "SDK-CASE-032",
-      "materials": "codex/SDK-US-007/SDK-CASE-032/20261101T065825Z-dc38cf4ebf534cdea0d216b790c455a0",
+      "materials": "codex/SDK-US-007/SDK-CASE-032/20261105T030237Z-665901850",
       "provider": "codex",
       "requirement": "required",
       "storyId": "SDK-US-007",
@@ -700,9 +700,9 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "6610a9966565d62be5342bdf941afe5a9c196454f27f41d769075a98ec9aa65c",
+      "adoptionSHA256": "7418d92308691580cd95a144ce0c2a573850a73d6073462446103a46ed5fdf18",
       "caseId": "SDK-CASE-035",
-      "materials": "codex/SDK-US-008/SDK-CASE-035/20261101T065847Z-c914547ccf004db695522f51c462a676",
+      "materials": "codex/SDK-US-008/SDK-CASE-035/20261105T025539Z-1862650293",
       "provider": "codex",
       "requirement": "required",
       "storyId": "SDK-US-008",

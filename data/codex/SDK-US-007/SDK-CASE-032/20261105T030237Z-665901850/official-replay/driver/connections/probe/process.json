@@ -1,0 +1,14 @@
+{
+  "connectionId": "probe",
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-4007853861/executions/42152b47a0dc59d5d1a67043eef452ad/workspace",
+  "executionId": "42152b47a0dc59d5d1a67043eef452ad",
+  "exitCode": 0,
+  "schemaVersion": 1,
+  "sessionId": "1cc6a141b9d28ed22249dbc7e97e7760",
+  "status": "passed",
+  "tool": {
+    "command": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/followup-032-035-v5"
+  },
+  "toolSHA256": "9eedea20cbfd1d3e52f2260ebf63e317bf09a907ec43f2b026b22c6d5f5914ed",
+  "toolVersion": "0.1.0-dev"
+}
