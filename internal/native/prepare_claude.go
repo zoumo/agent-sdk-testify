@@ -212,12 +212,7 @@ func claudeAuthEnvironment(path string, env map[string]string) {
 		}
 		// Settings env is untrusted discovery input too: HOME, config roots,
 		// plugin paths and process injection must not escape this attempt.
-		for _, key := range []string{
-			"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR",
-			"ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY", "ANTHROPIC_CUSTOM_HEADERS",
-			"CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL",
-			"ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-		} {
+		for _, key := range nativeEnvironmentNames("claude") {
 			if s, ok := selected[key].(string); ok {
 				env[key] = s
 			}
@@ -233,8 +228,10 @@ func filterClaudeConfig(path string) error {
 		return err
 	}
 	selected := tool.Object{}
-	if model, ok := source["model"]; ok {
-		selected["model"] = model
+	for _, key := range []string{"model", "effortLevel", "modelSettings", "ultracode", "autoCompactWindow"} {
+		if value, ok := source[key]; ok {
+			selected[key] = value
+		}
 	}
 	return tool.WriteJSON(path, selected)
 }

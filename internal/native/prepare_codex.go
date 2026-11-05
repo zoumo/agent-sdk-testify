@@ -243,8 +243,9 @@ func codexReservedCredentialEnvironment(name string) bool {
 	return false
 }
 
-// Only connection selection crosses into the isolated configuration. User
-// projects, hooks, tools and instructions are not case materials.
+// Only connection and model-routing selection crosses into the isolated
+// configuration. User projects, hooks, tools and instructions are not case
+// materials.
 func filterCodexConfig(path string) error {
 	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
@@ -258,16 +259,49 @@ func filterCodexConfig(path string) error {
 		return err
 	}
 	selected := tool.Object{}
-	for _, key := range []string{"model", "model_provider", "model_reasoning_effort"} {
+	for _, key := range []string{
+		"model", "model_provider", "model_reasoning_effort", "openai_base_url", "model_catalog_json",
+	} {
 		if value, ok := source[key]; ok {
 			selected[key] = value
+		}
+	}
+	if agents := tool.Obj(source["agents"]); agents != nil {
+		models := tool.Object{}
+		for _, key := range []string{"default_subagent_model", "default_subagent_reasoning_effort"} {
+			if value, ok := agents[key]; ok {
+				models[key] = value
+			}
+		}
+		if len(models) > 0 {
+			selected["agents"] = models
+		}
+	}
+	if memories := tool.Obj(source["memories"]); memories != nil {
+		models := tool.Object{}
+		for _, key := range []string{"extract_model", "consolidation_model"} {
+			if value, ok := memories[key]; ok {
+				models[key] = value
+			}
+		}
+		if len(models) > 0 {
+			selected["memories"] = models
+		}
+	}
+	if desktop := tool.Obj(source["desktop"]); desktop != nil {
+		if value, ok := desktop["enabled-reasoning-efforts"]; ok {
+			selected["desktop"] = tool.Object{"enabled-reasoning-efforts": value}
 		}
 	}
 	provider := tool.Str(source["model_provider"])
 	if provider != "" {
 		fields := tool.Obj(tool.Obj(source["model_providers"])[provider])
 		connection := tool.Object{}
-		for _, key := range []string{"name", "base_url", "env_key", "wire_api", "requires_openai_auth", "http_headers", "env_http_headers", "supports_websockets"} {
+		for _, key := range []string{
+			"name", "base_url", "env_key", "wire_api", "requires_openai_auth",
+			"experimental_bearer_token", "http_headers", "env_http_headers",
+			"supports_websockets", "capabilities",
+		} {
 			if value, ok := fields[key]; ok {
 				connection[key] = value
 			}

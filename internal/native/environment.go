@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pelletier/go-toml/v2"
+
 	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -147,6 +149,8 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 		if provider == "claude" {
 			files = []string{"settings.json", ".credentials.json"}
 		}
+		configSource := filepath.Join(o.Config, "config.toml")
+		configTarget := filepath.Join(root, "config", "config.toml")
 		for _, name := range files {
 			source := filepath.Join(o.Config, name)
 			if _, e := os.Stat(source); os.IsNotExist(e) {
@@ -172,6 +176,9 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 			if err := codexAuthEnvironment(filepath.Join(root, "config", "config.toml"), env); err != nil {
 				return err
 			}
+			if err := copyCodexModelCatalog(configSource, configTarget); err != nil {
+				return err
+			}
 		}
 	}
 	if provider == "codex" && params["nativeFileTool"] == "apply_patch" {
@@ -189,9 +196,9 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 	return tool.WriteJSON(filepath.Join(root, "native.env.private.json"), env)
 }
 
-// CopyNativeConfig copies only non-secret agent configuration into the visible
-// config directory. Authentication files stay in privateDestination so an
-// execution overlay can link them for one record run without retaining them.
+// CopyNativeConfig copies connection and model-routing configuration into the
+// visible config directory. Authentication files stay in privateDestination so
+// an execution overlay can link them for one record run without retaining them.
 // The source is discovered from the standard environment or HOME location;
 // callers cannot inject an arbitrary configuration path.
 func CopyNativeConfig(provider, destination, privateDestination string, env map[string]string) error {
@@ -236,7 +243,8 @@ func CopyNativeConfig(provider, destination, privateDestination string, env map[
 	if provider == "claude" {
 		configFile, authFile = "settings.json", ".credentials.json"
 	}
-	from := filepath.Join(source, configFile)
+	configSource := filepath.Join(source, configFile)
+	from := configSource
 	info, err = os.Lstat(from)
 	if os.IsNotExist(err) {
 		info = nil
@@ -271,7 +279,10 @@ func CopyNativeConfig(provider, destination, privateDestination string, env map[
 	if err := codexAuthEnvironment(filepath.Join(destination, "config.toml"), env); err != nil {
 		return err
 	}
-	return filterCodexConfig(filepath.Join(destination, "config.toml"))
+	if err := filterCodexConfig(filepath.Join(destination, "config.toml")); err != nil {
+		return err
+	}
+	return copyCodexModelCatalog(configSource, filepath.Join(destination, "config.toml"))
 }
 
 func nativeEnvironmentNames(provider string) []string {
@@ -290,9 +301,68 @@ func nativeEnvironmentNames(provider string) []string {
 			"ANTHROPIC_CUSTOM_HEADERS", "CLAUDE_CODE_OAUTH_TOKEN",
 			"ANTHROPIC_MODEL", "ANTHROPIC_DEFAULT_SONNET_MODEL",
 			"ANTHROPIC_DEFAULT_OPUS_MODEL", "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+			"ANTHROPIC_DEFAULT_FABLE_MODEL", "ANTHROPIC_SMALL_FAST_MODEL",
+			"CLAUDE_CODE_SUBAGENT_MODEL", "CLAUDE_CODE_AUTO_MODE_MODEL",
+			"CLAUDE_CODE_EFFORT_LEVEL", "CLAUDE_CODE_MAX_CONTEXT_TOKENS",
+			"CLAUDE_CODE_AUTO_COMPACT_WINDOW", "CLAUDE_CODE_MAX_OUTPUT_TOKENS",
+			"CLAUDE_CODE_MODEL_CAPABILITIES", "CLAUDE_CODE_AUTO_MODE_SERVER",
+			"CLAUDE_CODE_DISABLE_EXPLORE_INHERIT_CAP", "ENABLE_TOOL_SEARCH",
 		)
+		for _, tier := range []string{"OPUS", "SONNET", "HAIKU", "FABLE"} {
+			for _, suffix := range []string{"_NAME", "_DESCRIPTION", "_SUPPORTED_CAPABILITIES"} {
+				names = append(names, "ANTHROPIC_DEFAULT_"+tier+"_MODEL"+suffix)
+			}
+		}
 	}
 	return names
+}
+
+func copyCodexModelCatalog(sourceConfig, destinationConfig string) error {
+	var source struct {
+		Catalog string `toml:"model_catalog_json"`
+	}
+	data, err := os.ReadFile(sourceConfig)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if err := toml.Unmarshal(data, &source); err != nil {
+		return err
+	}
+	if source.Catalog == "" {
+		return nil
+	}
+	catalog := source.Catalog
+	if !filepath.IsAbs(catalog) {
+		catalog = filepath.Join(filepath.Dir(sourceConfig), catalog)
+	}
+	info, err := os.Lstat(catalog)
+	if err != nil {
+		return fmt.Errorf("codex model catalog: %w", err)
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("codex model catalog is not a regular file: %s", catalog)
+	}
+	target := filepath.Join(filepath.Dir(destinationConfig), "model-catalog.json")
+	if err := tool.CopyFile(catalog, target); err != nil {
+		return err
+	}
+	var destination tool.Object
+	data, err = os.ReadFile(destinationConfig)
+	if err != nil {
+		return err
+	}
+	if err := toml.Unmarshal(data, &destination); err != nil {
+		return err
+	}
+	destination["model_catalog_json"] = target
+	data, err = toml.Marshal(destination)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(destinationConfig, data, 0o600)
 }
 
 func scrubNative(root string) error {
