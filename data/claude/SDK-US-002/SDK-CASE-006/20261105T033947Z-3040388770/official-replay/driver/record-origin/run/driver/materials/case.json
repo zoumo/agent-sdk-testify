@@ -1,0 +1,70 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/official-records/76e7680b27e72e43aa731e6fdcc5fbd6/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/routes/record/workspace",
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages"
+  ],
+  "case": {
+    "id": "SDK-CASE-006",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察文件工具的执行与任务完成。",
+    "storyId": "SDK-US-002"
+  },
+  "caseId": "SDK-CASE-006",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/routes/record/config",
+  "driverProfile": "fixture-tools",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/routes/record/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/routes/record/workspace",
+  "prompts": [
+    "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/official-records/76e7680b27e72e43aa731e6fdcc5fbd6/driver/raw",
+  "root": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/official-records/76e7680b27e72e43aa731e6fdcc5fbd6/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-006",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察文件工具的执行与任务完成。",
+      "storyId": "SDK-US-002"
+    },
+    "caseId": "SDK-CASE-006",
+    "configuration": {},
+    "driverProfile": "fixture-tools",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "Read",
+      "Write"
+    ],
+    "storyId": "SDK-US-002"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-002",
+  "storyId": "SDK-US-002"
+}
