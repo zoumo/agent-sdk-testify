@@ -304,11 +304,6 @@ func prepareSession(t *testing.T, env []string, args ...string) string {
 				}
 			}
 		}
-		var descriptor object
-		data, err := os.ReadFile(filepath.Join(session, "session.json"))
-		if err == nil && json.Unmarshal(data, &descriptor) == nil {
-			_ = os.RemoveAll(str(descriptor["resourceRoot"]))
-		}
 	})
 	return session
 }
@@ -365,14 +360,6 @@ func runPreparedMock(t *testing.T, env []string, session, connection, request st
 	return result
 }
 
-func finishSession(t *testing.T, env []string, session string) (commandResult, object) {
-	t.Helper()
-	result := runTool(t, env, t.TempDir(), "", "finish", "--session-dir", session)
-	var report object
-	require.NoError(t, json.Unmarshal([]byte(result.stdout), &report), result.stdout)
-	return result, report
-}
-
 // builtinInputs reads the raw bytes imported by the installed prepare CLI.
 func builtinInputs(t *testing.T, provider, caseID string) map[string]string {
 	t.Helper()
@@ -399,8 +386,6 @@ func builtinInputs(t *testing.T, provider, caseID string) map[string]string {
 		}
 		inputs[phase.id] = input.String()
 	}
-	finished, _ := finishSession(t, os.Environ(), session)
-	require.Zero(t, finished.code, finished.stderr)
 	require.NotEmpty(t, inputs)
 	return inputs
 }
@@ -513,4 +498,28 @@ func cancelOfficialDuringProtocol(t *testing.T, env []string, session string, ar
 	err := <-done
 	require.Error(t, err, stderr.String())
 	return commandResult{stdout: stdout.String(), stderr: stderr.String(), code: cmd.ProcessState.ExitCode()}
+}
+
+// Runtime may contain private configuration; it is not durable evidence.
+func readSessionEvidence(t *testing.T, session string) []byte {
+	t.Helper()
+	var contents []byte
+	for _, name := range []string{"session.json", "source", "materials", "executions"} {
+		path := filepath.Join(session, name)
+		info, err := os.Stat(path)
+		require.NoError(t, err)
+		if info.IsDir() {
+			contents = append(contents, readAllFiles(t, path)...)
+		} else {
+			contents = append(contents, readFile(t, path)...)
+		}
+	}
+	return contents
+}
+
+func resolvedPath(t *testing.T, path string) string {
+	t.Helper()
+	resolved, err := filepath.EvalSymlinks(path)
+	require.NoError(t, err)
+	return resolved
 }

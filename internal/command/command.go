@@ -4,7 +4,6 @@ package command
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -36,7 +35,7 @@ func Execute(ctx context.Context, args []string, streams IO) int {
 func New(streams IO) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "agent-sdk-testify",
-		Short:         "Prepare, record, verify, mock, export and finish SDK protocol sessions",
+		Short:         "Prepare, record, verify, mock and export SDK protocol sessions",
 		Version:       version.Version,
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -56,7 +55,6 @@ func New(streams IO) *cobra.Command {
 	root.AddCommand(
 		prepareCommand(),
 		exportCommand(),
-		finishCommand(),
 		versionCommand(),
 		peerCommand(streams),
 	)
@@ -85,7 +83,7 @@ func exportCommand() *cobra.Command {
 	var sessionDir, output string
 	c := &cobra.Command{
 		Use:   "export [flags]",
-		Short: "Export the complete current recording from an open or finished session",
+		Short: "Export the complete current recording",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			if !filepath.IsAbs(sessionDir) || !filepath.IsAbs(output) {
@@ -238,30 +236,6 @@ func verifyCommand() *cobra.Command {
 
 func mockCommand() *cobra.Command {
 	return newMockCommand()
-}
-
-func finishCommand() *cobra.Command {
-	var sessionDir string
-	c := &cobra.Command{
-		Use:   "finish [flags]",
-		Short: "Finish a prepared session and retain its evidence",
-		Args:  cobra.NoArgs,
-	}
-	c.Flags().StringVar(&sessionDir, "session-dir", "", "prepared session directory")
-	c.RunE = func(c *cobra.Command, _ []string) error {
-		if sessionDir == "" {
-			return errors.New("finish requires --session-dir")
-		}
-		if !filepath.IsAbs(sessionDir) {
-			return errors.New("--session-dir must be an absolute path")
-		}
-		report, err := lifecycle.Finish(sessionDir)
-		if report != nil {
-			err = errors.Join(err, json.NewEncoder(c.OutOrStdout()).Encode(report))
-		}
-		return err
-	}
-	return c
 }
 
 func peerCommand(streams IO) *cobra.Command {

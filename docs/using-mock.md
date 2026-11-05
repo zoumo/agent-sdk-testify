@@ -5,7 +5,7 @@
 EOF、退出和清理。mock 不要求材料已经 verify，不模拟模型调用或录制中的文件副作用。
 
 生命周期与数据边界以[工具设计](design.md)为准。公开命令为 prepare、agent record/mock、official record/verify、
-export、finish；只有 prepare 接受材料来源。mock 没有 list、describe、managed
+export；只有 prepare 接受材料来源。mock 没有 list、describe、managed
 alias、材料覆盖或 Agent 版本查询入口。
 
 ## 准备材料与会话
@@ -36,15 +36,14 @@ eval 或修改；CLI 参数始终是目录，不是 descriptor 路径。
 
 | 字段 | 用途 |
 | --- | --- |
-| `schemaVersion` | 当前为 `2`；不兼容版本必须重新 prepare |
+| `schemaVersion` | 当前为 `3`；不兼容版本必须重新 prepare |
 | `sessionId` | 会话身份 |
 | `tool.command`, `toolVersion`, `toolSHA256` | 工具路径与实际身份 |
 | `source`（含 `sha256`）, `agentType` | 不可变初始来源 |
-| `resourceRoot` | 工具拥有的临时运行根 |
+| `resourceRoot` | session 内的 runtime 目录 |
 | `routes` | 动作环境槽和连接模板；实际可执行性由动作前提检查决定 |
 | route 的 `workspace`, `env` | SDK 宿主 cwd 和需要合并的环境 |
 | route 的 `connections` | 本次动作的连接调用模板 |
-| `finish.command`, `finish.args` | 收尾命令 |
 
 启动 SDK 宿主前，应用当前 route 的 env 和 workspace；只设置 mock 子进程环境不能
 配置父进程的历史 API。Codex 使用 protocolCwd 配置协议项目，Claude 使用 workspace
@@ -101,22 +100,11 @@ agent-sdk-testify prepare --recording /captures/exported-recording \
 可以导出到多个新目标；导出包可再次 prepare。需要保留某次 current 时，应在下一次
 record 替换它之前显式导出；action 不接受旧材料选择参数。
 
-## 关闭与收尾
+## 释放会话
 
-先关闭消费者自己的 Session/Runtime，等待全部 peer 退出，再执行：
-
-```sh
-agent-sdk-testify finish --session-dir /reports/recording-session
-```
-
-finish 检查活动 execution 和 official 编排。忙碌时不写状态、不清理；取得收尾权后立即 closed，禁止新
-execution。它持久保存每个 execution 的核验结论，再清理工具拥有的临时根；不终止
-消费者进程，不删除 session、material、execution 或调用方文件，也不隐式执行业务
-动作、导出或采用。
-
-清理失败不重新打开会话。再次 finish 只重试未完成清理，使用已保存的业务结论，不因
-修复或改动 receipt 而重算成功。任何失败不能被其他成功 execution 抵消。closed 后
-仍能 export；已清理完成的 finish 可重复调用。
+关闭消费者自己的 SDK、Session/Runtime 并等待所有 peer 退出后，调用方直接删除
+session 目录。需要保留录制时先 export；只删除 `runtime/` 可以保留材料与执行证据。
+目录边界与释放时序见[工具设计](design.md#session-目录所有权)。
 
 ## 持久结果
 
@@ -131,8 +119,6 @@ session 中保留：
 - execution 中的 `record/`：采集或失败证据。
 - `official-records/<runId>/`：官方录制业务报告和实际采集结果引用。
 - `verifications/<verificationId>/`：driver 报告、失败诊断及引用 mock execution 的验证证据。
-- execution 中的 `finish.json`：首次收尾的逐 execution 核验结论。
-- `finish.json`、`cleanup.json`、`closed`：最终结论、清理进度和关闭标记。
 - `prepare.json`：prepare 的结果或失败诊断。
 
 策略比较可在同一会话使用不同 mock execution，也可分别 prepare 会话。业务断言、

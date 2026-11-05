@@ -30,7 +30,7 @@ func BeginRecordConnection(sessionDir, connection string, args []string, timeout
 			_ = lock.Close()
 		}
 	}()
-	session, err := OpenActionSession(sessionDir)
+	session, err := OpenSession(sessionDir)
 	if err != nil {
 		return nil, err
 	}

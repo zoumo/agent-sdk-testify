@@ -27,9 +27,6 @@ func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := checkOpen(sessionDir); err != nil {
-		return nil, err
-	}
 	activity, err := lockFile(filepath.Join(sessionDir, "locks", "official.lock"), true, false)
 	if err != nil {
 		return nil, err
@@ -48,7 +45,7 @@ func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
 	if err := checkOfficialIdle(sessionDir); err != nil {
 		return nil, err
 	}
-	session, err := OpenActionSession(sessionDir)
+	session, err := OpenSession(sessionDir)
 	if err != nil {
 		return nil, err
 	}

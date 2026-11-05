@@ -18,7 +18,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	session := prepareSession(t, env, "--plan", plan)
 
 	descriptor := readJSON(t, filepath.Join(session, "session.json"))
-	require.InEpsilon(t, 2, descriptor["schemaVersion"], 0)
+	require.EqualValues(t, 3, descriptor["schemaVersion"])
 	require.Equal(t, "codex", descriptor["agentType"])
 	require.Equal(t, "plan", obj(descriptor["source"])["kind"])
 	require.Contains(t, str(obj(descriptor["source"])["path"]), filepath.Join(session, "source"))
@@ -128,32 +128,16 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 		require.NotEqual(t, "verify", obj(row)["command"])
 	}
 
-	resourceRoot := str(descriptor["resourceRoot"])
-	sourcePath := str(obj(descriptor["source"])["path"])
-	firstFinishResult, firstFinish := finishSession(t, env, session)
-	require.Zero(t, firstFinishResult.code, firstFinishResult.stderr)
-	require.Equal(t, "passed", firstFinish["status"])
-	require.Equal(t, true, firstFinish["cleanupComplete"])
-	require.Len(t, array(firstFinish["executions"]), 3)
-	for _, value := range array(firstFinish["executions"]) {
+	require.Equal(t, filepath.Join(resolvedPath(t, session), "runtime"), descriptor["resourceRoot"])
+	require.NotContains(t, descriptor, "finish")
+	for _, value := range array(sessionIndex(t, session)["executions"]) {
 		require.Equal(t, "passed", obj(value)["status"])
 	}
-	require.NoDirExists(t, resourceRoot)
-	require.FileExists(t, sourcePath)
-	require.FileExists(t, filepath.Join(str(firstCapture["path"]), "manifest.json"))
-	require.FileExists(t, filepath.Join(str(secondCapture["path"]), "manifest.json"))
-
-	secondFinishResult, secondFinish := finishSession(t, env, session)
-	require.Zero(t, secondFinishResult.code, secondFinishResult.stderr)
-	require.Equal(t, firstFinish["status"], secondFinish["status"])
-	require.Equal(t, firstFinish["cleanupComplete"], secondFinish["cleanupComplete"])
-	require.Len(t, array(secondFinish["executions"]), 3)
-
-	blocked := runTool(t, env, t.TempDir(), requestTwo,
-		"agent", "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://",
-	)
-	require.NotZero(t, blocked.code)
-	require.Contains(t, blocked.stderr, "finished")
+	exported := filepath.Join(root, "exported")
+	mustRun(t, env, root, "", "export", "--session-dir", session, "--output", exported)
+	require.NoError(t, os.RemoveAll(session))
+	require.NoDirExists(t, str(descriptor["resourceRoot"]))
+	require.FileExists(t, filepath.Join(exported, "manifest.json"))
 }
 
 func TestOfficialLifecycleConformance(t *testing.T) {
@@ -211,15 +195,11 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	replay := latestExecution(t, session, "mock")
 	require.Equal(t, capture["id"], obj(replay["artifact"])["id"])
 	require.Equal(t, "official", replay["provenance"])
-	finished, finish := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
-	require.Equal(t, "passed", finish["status"])
-	require.Equal(t, true, finish["cleanupComplete"])
-	require.Len(t, array(finish["executions"]), 3)
-	for _, item := range array(finish["executions"]) {
+	rows := array(sessionIndex(t, session)["executions"])
+	require.Len(t, rows, 3)
+	for _, item := range rows {
 		require.Equal(t, "passed", obj(item)["status"])
 	}
-	require.NoDirExists(t, str(readJSON(t, filepath.Join(session, "session.json"))["resourceRoot"]))
 }
 
 func conformancePayload(t *testing.T, material object) string {
@@ -275,13 +255,7 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 	closedIndex := sessionIndex(t, session)
 	require.Equal(t, "passed", obj(array(closedIndex["executions"])[0])["status"])
 
-	finishResult, finish := finishSession(t, env, session)
-	require.Zero(t, finishResult.code, finishResult.stderr)
-	require.Equal(t, "passed", finish["status"])
-	require.Len(t, array(finish["executions"]), 1)
-	finishedExecution := obj(array(finish["executions"])[0])
-	require.Len(t, array(finishedExecution["connections"]), 2)
-	for _, value := range array(finishedExecution["connections"]) {
+	for _, value := range array(obj(array(closedIndex["executions"])[0])["connections"]) {
 		require.Equal(t, "passed", obj(value)["status"])
 	}
 }
@@ -359,7 +333,7 @@ func TestMockJoinInputConformance(t *testing.T) {
 	})
 }
 
-func TestStrictReplayAndTamperConformance(t *testing.T) {
+func TestStrictReplayFailureRetainsEvidence(t *testing.T) {
 	t.Run("strict replay failure", func(t *testing.T) {
 		root := t.TempDir()
 		agent, _, env := isolatedCommands(t, root, "codex")
@@ -375,52 +349,8 @@ func TestStrictReplayAndTamperConformance(t *testing.T) {
 		connection := obj(array(execution["connections"])[0])
 		require.FileExists(t, str(connection["receipt"]))
 		require.FileExists(t, str(connection["processReceipt"]))
-
-		for range 2 {
-			finishResult, finish := finishSession(t, env, session)
-			require.NotZero(t, finishResult.code)
-			require.Equal(t, "failed", finish["status"])
-			require.Equal(t, true, finish["cleanupComplete"])
-			require.FileExists(t, filepath.Join(session, "finish.json"))
-			require.FileExists(t, filepath.Join(session, "executions", str(execution["executionId"]), "finish.json"))
-			require.FileExists(t, str(connection["receipt"]))
-		}
-	})
-
-	t.Run("receipt tamper", func(t *testing.T) {
-		root := t.TempDir()
-		agent, _, env := isolatedCommands(t, root, "codex")
-		plan := writeConsumerPlan(t, root, "finish-tamper")
-		session := prepareSession(t, env, "--plan", plan)
-		recordConsumer(t, env, session, agent, requestOne)
-		runPreparedMock(t, env, session, "", requestOne)
-
-		execution := latestExecution(t, session, "mock")
-		connection := obj(array(execution["connections"])[0])
-		receiptPath := str(connection["receipt"])
-		receipt := readJSON(t, receiptPath)
-		receipt["recordingSHA256"] = strings.Repeat("0", 64)
-		writeJSON(t, receiptPath, receipt)
-
-		for range 2 {
-			finishResult, finish := finishSession(t, env, session)
-			require.NotZero(t, finishResult.code)
-			require.Equal(t, "failed", finish["status"])
-			require.Equal(t, true, finish["cleanupComplete"])
-			var finishedExecution object
-			for _, value := range array(finish["executions"]) {
-				row := obj(value)
-				if row["id"] == execution["executionId"] {
-					finishedExecution = row
-					break
-				}
-			}
-			require.NotNil(t, finishedExecution)
-			require.Equal(t, "failed", finishedExecution["status"])
-			require.Equal(t, "failed", obj(array(finishedExecution["connections"])[0])["status"])
-			require.FileExists(t, receiptPath)
-			require.FileExists(t, filepath.Join(session, "executions", str(execution["executionId"]), "finish.json"))
-		}
+		require.Equal(t, "failed", connectionStatus(t, session, execution, "main"))
+		require.Equal(t, "failed", readJSON(t, str(connection["receipt"]))["status"])
 	})
 }
 
@@ -440,14 +370,6 @@ func TestConformanceDescriptorsAreStableJSON(t *testing.T) {
 		row := obj(value)
 		require.Equal(t, row["descriptorSHA256"], digestFile(t, filepath.Join(session, "executions", str(row["id"]), "execution.json")))
 	}
-
-	finishResult, finish := finishSession(t, env, session)
-	require.Zero(t, finishResult.code, finishResult.stderr)
-	persisted := readJSON(t, filepath.Join(session, "finish.json"))
-	require.Equal(t, finish, persisted)
-	require.Equal(t, "passed", persisted["status"])
-	var encoded map[string]any
-	require.NoError(t, json.Unmarshal(readFile(t, filepath.Join(session, "finish.json")), &encoded))
 }
 
 func TestPreparedDescriptorsExcludeRuntimeAuthentication(t *testing.T) {
@@ -475,18 +397,17 @@ func TestPreparedDescriptorsExcludeRuntimeAuthentication(t *testing.T) {
 	require.Equal(t, "matched\n", string(observed))
 	require.NoFileExists(t, filepath.Join(str(record["config"]), "auth.json"))
 	require.NotContains(t, readFile(t, filepath.Join(session, "executions", str(record["executionId"]), "execution.json")), secret)
-	require.NotContains(t, string(readAllFiles(t, session)), secret)
-	require.NotContains(t, string(readAllFiles(t, session)), fileSecret)
+	require.NotContains(t, string(readSessionEvidence(t, session)), secret)
+	require.NotContains(t, string(readSessionEvidence(t, session)), fileSecret)
 
 	runPreparedMock(t, env, session, "", requestOne)
-	require.NotContains(t, string(readAllFiles(t, session)), secret)
+	require.NotContains(t, string(readSessionEvidence(t, session)), secret)
 
-	finishResult, finish := finishSession(t, env, session)
-	require.Zero(t, finishResult.code, finishResult.stderr)
-	require.Equal(t, "passed", finish["status"])
-	require.NotContains(t, string(readAllFiles(t, session)), secret)
-	require.NotContains(t, string(readAllFiles(t, session)), fileSecret)
-	require.NoDirExists(t, str(descriptor["resourceRoot"]))
+	exported := filepath.Join(root, "exported")
+	mustRun(t, env, root, "", "export", "--session-dir", session, "--output", exported)
+	require.NotContains(t, string(readAllFiles(t, exported)), secret)
+	require.NotContains(t, string(readAllFiles(t, exported)), fileSecret)
+	require.NoDirExists(t, filepath.Join(exported, "runtime"))
 }
 
 func TestPreparedMockRejectsIgnoredInputsBeforeClaim(t *testing.T) {
@@ -575,40 +496,5 @@ func TestFailedRecordKeepsLatestPublishedCapture(t *testing.T) {
 	require.Equal(t, latest, currentMaterialID(t, session))
 	require.Len(t, array(after["materials"]), 1)
 
-	finishResult, finish := finishSession(t, env, session)
-	require.NotZero(t, finishResult.code)
-	require.Equal(t, "failed", finish["status"])
-	require.Equal(t, true, finish["cleanupComplete"])
-}
-
-func TestHistoryDriftAndAbandonedSessionConformance(t *testing.T) {
-	t.Run("history drift", func(t *testing.T) {
-		root := t.TempDir()
-		agent, _, env := isolatedCommands(t, root, "codex")
-		plan := writeConsumerPlan(t, root, "history-drift")
-		session := prepareSession(t, env, "--plan", plan)
-		recordConsumer(t, env, session, agent, requestOne)
-		runPreparedMock(t, env, session, "", requestOne)
-		execution := latestExecution(t, session, "mock")
-		history := filepath.Join(str(execution["config"]), "sessions", "conformance-history.jsonl")
-		require.NoError(t, os.WriteFile(history, []byte("changed\n"), 0o600))
-
-		finishResult, finish := finishSession(t, env, session)
-		require.NotZero(t, finishResult.code)
-		require.Equal(t, "failed", finish["status"])
-		require.Contains(t, str(finish["error"]), "history hash mismatch")
-	})
-
-	t.Run("abandoned", func(t *testing.T) {
-		root := t.TempDir()
-		_, _, env := isolatedCommands(t, root, "codex")
-		plan := writeConsumerPlan(t, root, "abandoned")
-		session := prepareSession(t, env, "--plan", plan)
-
-		finishResult, finish := finishSession(t, env, session)
-		require.Zero(t, finishResult.code, finishResult.stderr)
-		require.Equal(t, "abandoned", finish["status"])
-		require.Equal(t, true, finish["cleanupComplete"])
-		require.Empty(t, array(finish["executions"]))
-	})
+	require.Equal(t, "failed", obj(array(sessionIndex(t, session)["executions"])[1])["status"])
 }

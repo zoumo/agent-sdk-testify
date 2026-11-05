@@ -59,8 +59,6 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				producer := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
 				material := artifactByID(t, producer, currentMaterialID(t, producer))
 				session = prepareSession(t, env, "--recording", str(material["path"]))
-				finished, _ := finishSession(t, env, producer)
-				require.Zero(t, finished.code, finished.stderr)
 				require.NoError(t, os.RemoveAll(producer))
 			}
 			descriptor := readJSON(t, filepath.Join(session, "session.json"))
@@ -108,8 +106,6 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				require.Equal(t, sealed, readAllFiles(t, str(material["path"])))
 			}
 			require.NoFileExists(t, marker)
-			finished, _ := finishSession(t, env, session)
-			require.Zero(t, finished.code, finished.stderr)
 		})
 	}
 }
@@ -179,10 +175,6 @@ func TestAgentCancellationPersistsOwnedExecution(t *testing.T) {
 			require.NoError(t, err)
 			_, err = bufio.NewReader(stdout).ReadBytes('\n')
 			require.NoError(t, err)
-			before := readAllFiles(t, session)
-			busy := runTool(t, env, root, "", "finish", "--session-dir", session)
-			require.Equal(t, 1, busy.code)
-			require.Equal(t, before, readAllFiles(t, session))
 			require.NoError(t, cmd.Process.Signal(syscall.SIGTERM))
 			require.Error(t, cmd.Wait(), stderr.String())
 			require.Equal(t, 1, cmd.ProcessState.ExitCode(), stderr.String())
@@ -195,9 +187,6 @@ func TestAgentCancellationPersistsOwnedExecution(t *testing.T) {
 			require.Equal(t, completed, readJSON(t, str(completed["result"])))
 			require.FileExists(t, str(completed["receipt"]))
 			require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
-			finished, report := finishSession(t, env, session)
-			require.Equal(t, 1, finished.code)
-			require.Equal(t, true, report["cleanupComplete"])
 		})
 	}
 }
@@ -242,9 +231,6 @@ func TestAgentResultBackpressureIsBounded(t *testing.T) {
 			require.Equal(t, id, reference["executionId"])
 			require.Equal(t, "failed", reference["status"])
 			require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
-			finished, report := finishSession(t, env, session)
-			require.Equal(t, 1, finished.code)
-			require.Equal(t, true, report["cleanupComplete"])
 		})
 	}
 }

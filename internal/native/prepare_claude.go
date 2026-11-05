@@ -5,10 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
+
+const claudeCasePrompt = "Complete the supplied synthetic task in the working directory. Be concise."
 
 func claudeNativeArgs(profile string, params tool.Object) ([]string, error) {
 	args := []string{"--output-format", "stream-json", "--verbose", "--input-format", "stream-json", "--permission-prompt-tool", "stdio", "--include-partial-messages"}
@@ -17,7 +20,7 @@ func claudeNativeArgs(profile string, params tool.Object) ([]string, error) {
 }
 
 func claudeCaseArgs(profile string, params tool.Object) ([]string, error) {
-	args := []string{"--print", "--system-prompt", "Complete the supplied synthetic task in the working directory. Be concise."}
+	args := []string{"--print", "--system-prompt", claudeCasePrompt}
 	if profile != "history" && profile != "existing-children" {
 		args = append(args, "--no-session-persistence")
 	}
@@ -79,6 +82,24 @@ func prepareClaudeArgs(plan tool.Object, args []string, profile string) ([]strin
 		flag, value, inline := strings.Cut(args[i], "=")
 		switch flag {
 		case "--system-prompt", "--append-system-prompt", "--append-subagent-system-prompt":
+			if flag == "--system-prompt" {
+				workspace := tool.Str(plan["_fixtureProject"])
+				if workspace == "" {
+					workspace = tool.Str(plan["project"])
+				}
+				prompt := value
+				if !inline && i+1 < len(args) {
+					prompt = args[i+1]
+				}
+				if prompt == claudeCasePrompt && workspace != "" {
+					prompt += " Working directory: " + strconv.Quote(workspace) + ". Use paths relative to this directory."
+					if inline {
+						args[i] = flag + "=" + prompt
+					} else {
+						args[i+1] = prompt
+					}
+				}
+			}
 			// Required prompt values are text, even when they look like flags.
 			isolated = append(isolated, args[i])
 			if !inline {

@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -31,7 +32,7 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	if o.Connection == "" {
 		o.Connection = "main"
 	}
-	session, err := lifecycle.OpenActionSession(o.SessionDir)
+	session, err := lifecycle.OpenSession(o.SessionDir)
 	if err != nil {
 		return err
 	}
@@ -107,7 +108,8 @@ func mockSession(ctx context.Context, o Options) (err error) {
 	if err := os.Chdir(run.Execution.Workspace); err != nil {
 		return err
 	}
-	return replayConnection(ctx, o, artifact.Path, session.AgentType, o.Connection, connectionPath)
+	err = replayConnection(ctx, o, artifact.Path, session.AgentType, o.Connection, connectionPath)
+	return errors.Join(err, history.Check(run.OverlayRoot, run.Execution.HistoryFiles))
 }
 
 func mockConnectionPaths(run *lifecycle.ActionRun, id string) (string, string, error) {

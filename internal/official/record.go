@@ -43,7 +43,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
 		defer cancel()
 	}
-	session, err := lifecycle.OpenActionSession(o.SessionDir)
+	session, err := lifecycle.OpenSession(o.SessionDir)
 	if err != nil {
 		return err
 	}
@@ -72,8 +72,11 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		if err != nil {
 			return err
 		}
-		if rel, err := filepath.Rel(o.SessionDir, path); err == nil && filepath.IsLocal(rel) {
-			return errors.New("token file must be outside the persistent session")
+		if rel, err := filepath.Rel(filepath.Dir(session.ResourceRoot), path); err == nil && filepath.IsLocal(rel) {
+			runtimeRelative, runtimeErr := filepath.Rel(session.ResourceRoot, path)
+			if runtimeErr != nil || !filepath.IsLocal(runtimeRelative) {
+				return errors.New("token file must be outside session evidence (use runtime or an external file)")
+			}
 		}
 	} else {
 		o.Command, err = tool.ValidateCommand(o.Command)

@@ -82,9 +82,6 @@ func TestVerifyCurrentEvidenceAndAdmissionRetry(t *testing.T) {
 	require.Equal(t, failedBytes, readAllFiles(t, failedRoot))
 	require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
 	require.Equal(t, materialBytes, readAllFiles(t, str(material["path"])))
-	finished, report := finishSession(t, env, session)
-	require.NotZero(t, finished.code)
-	require.Equal(t, true, report["cleanupComplete"])
 }
 
 func TestVerifyPrerequisitesBeforeExecution(t *testing.T) {
@@ -96,8 +93,6 @@ func TestVerifyPrerequisitesBeforeExecution(t *testing.T) {
 			installDriver(t, drivers, "codex", "record")
 			mustRun(t, env, t.TempDir(), "", "official", "record", "--session-dir", producer, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 			material := str(latestCapture(t, producer)["path"])
-			finished, _ := finishSession(t, env, producer)
-			require.Zero(t, finished.code, finished.stderr)
 			require.NoError(t, os.Remove(filepath.Join(material, "material.json")))
 			planPath, manifestPath := filepath.Join(material, "plan.json"), filepath.Join(material, "manifest.json")
 			plan, manifest := readJSON(t, planPath), readJSON(t, manifestPath)
@@ -161,7 +156,4 @@ func TestVerifyCleanupFailureCannotBeAdopted(t *testing.T) {
 	require.NoFileExists(t, filepath.Join(evidenceRoot, "qualification.json"))
 	descriptor := readJSON(t, filepath.Join(session, "session.json"))
 	require.NoError(t, os.Remove(filepath.Join(str(descriptor["resourceRoot"]), "routes", "mock", "workspace")))
-	finished, report := finishSession(t, env, session)
-	require.NotZero(t, finished.code)
-	require.Equal(t, true, report["cleanupComplete"])
 }

@@ -70,10 +70,13 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 			return errors.New("private token file unavailable")
 		}
 		if rel, relErr := filepath.Rel(o.SessionDir, tokenPath); relErr == nil && filepath.IsLocal(rel) {
-			return errors.New("token file must be outside the persistent session")
+			runtimeRelative, runtimeErr := filepath.Rel(filepath.Join(o.SessionDir, "runtime"), tokenPath)
+			if runtimeErr != nil || !filepath.IsLocal(runtimeRelative) {
+				return errors.New("token file must be outside session evidence (use runtime or an external file)")
+			}
 		}
 	}
-	session, err := lifecycle.OpenActionSession(o.SessionDir)
+	session, err := lifecycle.OpenSession(o.SessionDir)
 	if err != nil {
 		return err
 	}
@@ -118,7 +121,7 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 					runErr = errors.Join(runErr, errors.New("record execution has failed connections"))
 				}
 				if runErr != nil {
-					runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.FinishAction(run, "failed", ""))
+					runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.CompleteAction(run, "failed", ""))
 				}
 			}
 		}

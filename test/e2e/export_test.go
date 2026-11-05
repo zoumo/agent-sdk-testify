@@ -43,23 +43,22 @@ func TestExportCurrentRoundTrip(t *testing.T) {
 	require.Contains(t, hashes, "config/sessions/conformance-history.jsonl")
 	require.Contains(t, hashes, "raw/raw.jsonl")
 	before := readAllFiles(t, session)
-	output := filepath.Join(root, "export-open")
+	output := filepath.Join(root, "export-first")
 	mustRun(t, env, t.TempDir(), "", "export", "--session-dir", session, "--output", output)
 	require.Equal(t, hashes, packageHashes(t, output))
 	require.Equal(t, before, readAllFiles(t, session))
 	metadata := readJSON(t, filepath.Join(output, "material.json"))
 	require.Equal(t, current, metadata)
 	assertFileHashes(t, output, obj(metadata["files"]))
-	for _, name := range []string{"session.json", "current.json", "executions", "receipts", "verification.json", "qualification.json", "finish.json", "index.json"} {
+	for _, name := range []string{"session.json", "current.json", "executions", "receipts", "verification.json", "qualification.json", "runtime", "index.json"} {
 		require.NoFileExists(t, filepath.Join(output, name))
 		require.NoDirExists(t, filepath.Join(output, name))
 	}
-	finished, _ := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
+	require.NoError(t, os.RemoveAll(filepath.Join(session, "runtime")))
 	before = readAllFiles(t, session)
-	closedOutput := filepath.Join(root, "export-closed")
-	mustRun(t, env, t.TempDir(), "", "export", "--session-dir", session, "--output", closedOutput)
-	require.Equal(t, hashes, packageHashes(t, closedOutput))
+	secondOutput := filepath.Join(root, "export-second")
+	mustRun(t, env, t.TempDir(), "", "export", "--session-dir", session, "--output", secondOutput)
+	require.Equal(t, hashes, packageHashes(t, secondOutput))
 	require.Equal(t, before, readAllFiles(t, session))
 	require.NoError(t, os.RemoveAll(session))
 	imported := prepareSession(t, env, "--recording", output)
@@ -72,15 +71,13 @@ func TestExportCurrentRoundTrip(t *testing.T) {
 	delete(hashes, "material.json")
 	require.Equal(t, hashes, importedHashes)
 	require.NoError(t, os.RemoveAll(output))
-	require.NoError(t, os.RemoveAll(closedOutput))
+	require.NoError(t, os.RemoveAll(secondOutput))
 	runPreparedMock(t, env, imported, "", requestTwo)
 	before = readAllFiles(t, imported)
 	failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", imported)
 	require.NotZero(t, failed.code)
 	require.Contains(t, failed.stderr, "no applicable official verifier")
 	require.Equal(t, before, readAllFiles(t, imported))
-	finished, _ = finishSession(t, env, imported)
-	require.Zero(t, finished.code, finished.stderr)
 }
 
 func TestExportOfficialCaptureRoundTrip(t *testing.T) {
@@ -97,8 +94,6 @@ func TestExportOfficialCaptureRoundTrip(t *testing.T) {
 	mustRun(t, env, t.TempDir(), "", "export", "--session-dir", session, "--output", output)
 	require.Equal(t, before, readAllFiles(t, session))
 	require.Equal(t, packageHashes(t, str(material["path"])), packageHashes(t, output))
-	finished, _ := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
 	require.NoError(t, os.RemoveAll(session))
 	imported := prepareSession(t, env, "--recording", output)
 	metadata := obj(array(materialIndex(t, imported)["materials"])[0])
@@ -124,8 +119,6 @@ func TestExportOfficialCaptureRoundTrip(t *testing.T) {
 	evidence := readJSON(t, filepath.Join(latestVerificationRoot(t, imported), "verification.json"))
 	require.Equal(t, "passed", evidence["status"])
 	require.Equal(t, material["id"], obj(evidence["material"])["id"])
-	finished, _ = finishSession(t, env, imported)
-	require.Zero(t, finished.code, finished.stderr)
 }
 
 func TestExportRejectsTargetsAndTampering(t *testing.T) {
@@ -219,13 +212,9 @@ func TestExportBuiltinRoundTrip(t *testing.T) {
 			metadata := obj(array(materialIndex(t, imported)["materials"])[0])
 			require.Equal(t, "builtin", metadata["provenance"])
 			require.Equal(t, material["id"], metadata["id"])
-			finished, _ := finishSession(t, env, session)
-			require.Zero(t, finished.code, finished.stderr)
 			require.NoError(t, os.RemoveAll(session))
 			require.NoError(t, os.RemoveAll(output))
 			mustRun(t, env, t.TempDir(), builtinInputs(t, provider, "SDK-CASE-001")["main"], "agent", "mock", "--session-dir", imported)
-			finished, _ = finishSession(t, env, imported)
-			require.Zero(t, finished.code, finished.stderr)
 		})
 	}
 }

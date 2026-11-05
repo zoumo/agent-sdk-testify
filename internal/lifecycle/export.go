@@ -10,7 +10,7 @@ import (
 )
 
 // Export copies the exact current package without creating an execution or
-// changing session state. Closed sessions retain the same persistent material.
+// changing session state.
 func Export(sessionDir, output string) error {
 	dir, err := canonicalSessionDir(sessionDir)
 	if err != nil {

@@ -52,32 +52,6 @@ func validatePreparePaths(sessionDir string, source *sourceSpec) (string, error)
 	return dir, nil
 }
 
-func tempRoot(sessionDir, sourcePath string) (string, error) {
-	base, err := filepath.EvalSymlinks(os.TempDir())
-	if err != nil {
-		return "", err
-	}
-	for _, outside := range []string{sessionDir, sourcePath} {
-		if outside == "" {
-			continue
-		}
-		rel, err := filepath.Rel(outside, base)
-		if err != nil || filepath.IsLocal(rel) {
-			return "", errors.New("temporary directory must be outside session and source")
-		}
-	}
-	root, err := os.MkdirTemp(base, "agent-sdk-testify-session-")
-	if err != nil {
-		return "", err
-	}
-	root, err = filepath.EvalSymlinks(root)
-	if err != nil {
-		_ = os.RemoveAll(root)
-		return "", err
-	}
-	return root, nil
-}
-
 func baseEnvironment(provider, root string) map[string]string {
 	env := map[string]string{
 		"PATH":            os.Getenv("PATH"),
@@ -208,7 +182,7 @@ func initialBuiltin(session *Session, materialRoot string) (*builtin.Material, e
 	return material, nil
 }
 
-// Prepare creates a persistent session directory and its disposable owned
+// Prepare creates a caller-owned session directory containing its runtime
 // baseline. It never starts a client, SDK, driver or native Agent.
 func Prepare(o PrepareOptions) (result *Session, err error) {
 	spec, err := resolveSource(o)
@@ -237,8 +211,8 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			_ = writeAtomic(filepath.Join(sessionDir, "prepare.json"), diagnostic)
 		}
 	}()
-	root, err = tempRoot(sessionDir, spec.source.Path)
-	if err != nil {
+	root = filepath.Join(sessionDir, "runtime")
+	if err := os.Mkdir(root, 0o700); err != nil {
 		return nil, err
 	}
 	baseline := filepath.Join(root, "baseline")
@@ -343,16 +317,12 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		ProtocolCwd:      planProtocolCwd(spec.plan, filepath.Join(baseline, "workspace")),
 		Env:              baselineEnv,
 		Routes:           map[string]Route{},
-		Finish:           Command{Command: self.Command, Args: []string{"finish", "--session-dir", sessionDir}},
 		Limits: Limits{
 			ProtocolBytes: o.ProtocolBytes,
 			StderrBytes:   o.StderrBytes,
 			MaxFrames:     o.MaxFrames,
 			MaxFrameBytes: o.MaxFrameBytes,
 		},
-	}
-	if err := os.WriteFile(filepath.Join(root, ".owner"), []byte(sessionID), 0o600); err != nil {
-		return nil, err
 	}
 	if err := writePrivateEnvironment(root, privateEnv); err != nil {
 		return nil, err

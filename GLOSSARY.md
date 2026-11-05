@@ -30,7 +30,7 @@ _Avoid_: 单条断言、专项故障测试
 ## 会话与命令
 
 **Session（会话，也称 prepared 会话）**:
-由 `prepare` 创建、由 `finish` 关闭的隔离环境与持久数据根，使用
+由 `prepare` 创建、由调用方管理和删除的隔离环境与持久数据根，使用
 `--session-dir` 定位。一次会话可承载多个 record/mock execution 和 verification。
 它不是 Agent 的 home 或原生配置目录。
 
@@ -66,10 +66,6 @@ session。它是唯一提供 source 选择的命令，不启动客户端、SDK�
 **export**:
 把 current recording 的完整材料包复制到 session 外。export 不改变 session，不导出
 全部 execution 或 receipt，也不产生 verified 或入仓结论。
-
-**finish**:
-关闭 session，汇总全部 execution 的证据、历史哈希和清理状态，删除工具拥有的临时
-运行环境；不删除 session 中的材料，也不隐式执行 verify、mock、export 或采用。
 
 **Consumer（消费者）**:
 通过 mock 的进程接口运行自身 SDK 或产品测试的一方。业务断言和测试编排归消费者。

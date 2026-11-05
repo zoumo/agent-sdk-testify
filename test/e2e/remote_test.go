@@ -235,11 +235,6 @@ func TestAgentRemoteRecordLifecycle(t *testing.T) {
 	}
 	require.Equal(t, sealed, readAllFiles(t, str(material["path"])))
 	require.NoFileExists(t, marker)
-	for _, directory := range []string{session, imported} {
-		finished, report := finishSession(t, env, directory)
-		require.Zero(t, finished.code, finished.stderr)
-		require.Equal(t, true, report["cleanupComplete"])
-	}
 	require.Equal(t, remote.token+"\n", string(readFile(t, remote.tokenFile)))
 	remote.assertAlive(t)
 }
@@ -278,10 +273,6 @@ func TestAgentRemoteFailureKeepsCurrentAndService(t *testing.T) {
 			// The same service and session accept a fresh connection after failure.
 			success, _ := recordRemote(t, env, session, remote, "success")
 			require.Zero(t, success.code, success.stderr)
-			finished, report := finishSession(t, env, session)
-			require.Equal(t, 1, finished.code)
-			require.Equal(t, true, report["cleanupComplete"])
-			require.NotContains(t, string(readAllFiles(t, session)), remote.token)
 			remote.assertAlive(t)
 		})
 	}
@@ -335,6 +326,30 @@ func TestAgentRemotePreflightAndAuthentication(t *testing.T) {
 	require.NotContains(t, failed.stderr, "wrong-private-bearer")
 	require.NotContains(t, string(readAllFiles(t, session)), "wrong-private-bearer")
 	remote.assertAlive(t)
+}
+
+func TestRemoteTokenStaysOutsideSessionEvidence(t *testing.T) {
+	root := t.TempDir()
+	_, _, env := isolatedCommands(t, root, "codex")
+	remote := newControlledRemote(t)
+	session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "runtime-token"))
+	token := []byte(remote.token + "\n")
+	path := filepath.Join(session, "source", "remote-token.private")
+	require.NoError(t, os.WriteFile(path, token, 0o600))
+	before := readAllFiles(t, session)
+	rejected := runTool(t, env, root, "", "agent", "record", "--session-dir", session, "--url", remote.args("/")[1], "--token-file", path)
+	require.Equal(t, 1, rejected.code)
+	require.Contains(t, rejected.stderr, "token file must be outside session evidence")
+	require.Equal(t, before, readAllFiles(t, session))
+	require.NoError(t, os.Remove(path))
+	remote.tokenFile = filepath.Join(session, "runtime", "remote-token.private")
+	require.NoError(t, os.WriteFile(remote.tokenFile, token, 0o600))
+	result, reference := recordRemote(t, env, session, remote, "success")
+	require.Zero(t, result.code, result.stderr)
+	require.Equal(t, "passed", reference["status"])
+	exported := filepath.Join(root, "exported")
+	mustRun(t, env, root, "", "export", "--session-dir", session, "--output", exported)
+	require.NotContains(t, string(readAllFiles(t, exported)), remote.token)
 }
 
 func TestAgentRemoteEarlyCloseBoundsBackpressuredDrain(t *testing.T) {
@@ -402,7 +417,4 @@ func TestAgentRemoteEarlyCloseBoundsBackpressuredDrain(t *testing.T) {
 	require.Empty(t, remote.requests)
 	success, _ := recordRemote(t, env, session, remote, "success")
 	require.Zero(t, success.code, success.stderr)
-	finished, report := finishSession(t, env, session)
-	require.Equal(t, 1, finished.code)
-	require.Equal(t, true, report["cleanupComplete"])
 }

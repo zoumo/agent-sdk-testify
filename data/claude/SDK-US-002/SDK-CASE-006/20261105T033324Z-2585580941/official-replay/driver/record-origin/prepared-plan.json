@@ -1,0 +1,83 @@
+{
+  "_fixtureProject": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/workspace",
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--settings",
+    "{\"permissions\":{\"ask\":[\"Read\",\"Write\"]}}",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "case": {
+    "id": "SDK-CASE-006",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察文件工具的执行与任务完成。",
+    "storyId": "SDK-US-002"
+  },
+  "caseId": "SDK-CASE-006",
+  "cli": "/Users/jim/bin/claude",
+  "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "cliVersion": "2.1.258 (Claude Code)",
+  "config": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/config",
+  "driverProfile": "fixture-tools",
+  "home": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/home",
+  "model": "theta/DeepSeek-V4.1-Flash-1017",
+  "project": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/routes/record/workspace",
+  "prompts": [
+    "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/fixed/claude-SDK-CASE-006/executions/8ee2e91289000d785f94c136ea3f1df2/record/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-006",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察文件工具的执行与任务完成。",
+      "storyId": "SDK-US-002"
+    },
+    "caseId": "SDK-CASE-006",
+    "configuration": {},
+    "driverProfile": "fixture-tools",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "Read",
+      "Write"
+    ],
+    "storyId": "SDK-US-002"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-002",
+  "storyId": "SDK-US-002"
+}

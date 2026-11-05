@@ -8,7 +8,6 @@
 - `official record`：驱动官方 SDK 调用 agent record，保存录制业务事实。
 - `official verify`：驱动官方 SDK 调用 agent mock，核验并保存验证事实。
 - `export`：把 current recording 完整导出到 session 外，供另一 session 导入。
-- `finish`：汇总会话证据、写 closed 状态并清理工具资源。
 
 命令职责、execution 归属和会话协调见[工具设计](docs/design.md)。
 
@@ -21,7 +20,7 @@
 不提供 simulate/replay/corpus/protocol/peer 业务入口。
 旧顶层 record/mock/verify 与 internal-protocol（含 --internal-protocol）均被拒绝，不保留别名；远程桥接由 agent record 内部处理。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
-规范流程是 prepare、协议执行或官方编排、finish。agent record 成功时原子替换
+规范流程是 prepare、协议执行或官方编排。调用方在所有相关进程退出后删除 session。agent record 成功时原子替换
 唯一 current recording，agent mock 和 official verify 消费 current。官方命令保存
 业务事实并引用 agent execution，不创建自己的协议 execution。材料来源、环境隔离
 和发布合同见[工具设计](docs/design.md)。
@@ -81,7 +80,6 @@ agent-sdk-testify official record --session-dir /private/session \
 agent-sdk-testify official verify --session-dir /private/session
 agent-sdk-testify agent mock --session-dir /private/session
 agent-sdk-testify export --session-dir /private/session --output /private/exported-recording
-agent-sdk-testify finish --session-dir /private/session
 ```
 
 case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `--materials` 或 `--driver`。
@@ -109,7 +107,7 @@ agent-sdk-testify agent record --session-dir /private/session \
   --timeout 2m --result-fd 3
 ```
 
-`--url` 与 `--cmd`、`--` 后的本地参数互斥。token 文件须为 session 外的绝对路径、
+`--url` 与 `--cmd`、`--` 后的本地参数互斥。token 文件须为 runtime 内或 session 外的绝对路径、
 普通私有文件（例如权限 `0600`），内容为 bearer token。endpoint 和 token 文件路径
 不进入持久 execution 或材料。SDK 通过 stdin/stdout 交换 JSONL；可选的 `--result-fd`
 沿用独立执行通知接口，调用方需先提供对应文件描述符。结束时关闭 stdin，工具只关闭
@@ -156,7 +154,7 @@ amd64/arm64 独立归档、官方 driver wheel、manifest.json 和 SHA256SUMS。
 运行 `make check` 执行离线完整门禁；CI 分开准备依赖后执行同一入口。
 
 消费者按 [mock 使用指南](docs/using-mock.md) prepare、在会话中
-选择 mock、执行自身业务、关闭宿主，最后 finish。SDK/MASS 的业务成功与工具协议成功
+选择 mock、执行自身业务、关闭宿主并等待相关进程退出，最后自行删除 session。SDK/MASS 的业务成功与工具协议成功
 分别判断。MASS 的 mass/2 Codex
 握手与录制中的官方客户端不同时应失败，不得修改录制或放宽字段。
 [driver 环境与已知限制](drivers/README.md#官方-sdk-环境)记录实际依赖和来源。

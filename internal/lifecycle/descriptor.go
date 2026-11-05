@@ -18,7 +18,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-const SchemaVersion = 2
+const SchemaVersion = 3
 
 type Command struct {
 	Command string   `json:"command"`
@@ -79,7 +79,6 @@ type Session struct {
 	ProtocolCwd      string            `json:"protocolCwd,omitempty"`
 	Env              map[string]string `json:"env"`
 	Routes           map[string]Route  `json:"routes"`
-	Finish           Command           `json:"finish"`
 	Limits           Limits            `json:"limits"`
 }
 
@@ -409,4 +408,17 @@ func MaterialIndexPath(sessionDir string) string {
 
 func writeMaterialIndex(sessionDir string, index *Index) error {
 	return writeAtomic(MaterialIndexPath(sessionDir), MaterialIndex{SchemaVersion: SchemaVersion, SessionID: index.SessionID, Materials: index.Artifacts})
+}
+
+func withinPath(root, path string) bool {
+	root, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return false
+	}
+	path, err = filepath.EvalSymlinks(path)
+	if err != nil {
+		return false
+	}
+	rel, err := filepath.Rel(root, path)
+	return err == nil && (rel == "." || (rel != ".." && filepath.IsLocal(rel)))
 }

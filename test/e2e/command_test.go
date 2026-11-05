@@ -16,14 +16,14 @@ func TestPublicCommands(t *testing.T) {
 	require.Zero(t, code, stderr)
 	require.Empty(t, stderr)
 	rootHelp := string(out)
-	for _, name := range []string{"prepare", "agent", "official", "export", "finish"} {
+	for _, name := range []string{"prepare", "agent", "official", "export"} {
 		require.Contains(t, rootHelp, name)
 	}
-	for _, name := range []string{"internal-protocol", "internal-peer", "completion"} {
+	for _, name := range []string{"internal-protocol", "internal-peer", "completion", "finish"} {
 		require.NotContains(t, rootHelp, name)
 	}
 	require.NotContains(t, strings.ToLower(rootHelp), "replay and finish")
-	for _, name := range []string{"simulate", "replay", "corpus", "protocol", "peer", "record", "mock", "verify", "internal-protocol"} {
+	for _, name := range []string{"simulate", "replay", "corpus", "protocol", "peer", "record", "mock", "verify", "internal-protocol", "finish"} {
 		out, stderr, code = runCLI(t, binary, nil, name)
 		require.Equal(t, 1, code, string(out))
 		require.Empty(t, out)
@@ -93,7 +93,7 @@ func TestPublicCommandExitContract(t *testing.T) {
 
 func TestSinglePreparedSessionCLIContract(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
-	for _, command := range [][]string{{"prepare"}, {"agent", "record"}, {"official", "record"}, {"official", "verify"}, {"agent", "mock"}, {"finish"}} {
+	for _, command := range [][]string{{"prepare"}, {"agent", "record"}, {"official", "record"}, {"official", "verify"}, {"agent", "mock"}} {
 		out, stderr, code := runCLI(t, binary, nil, append(command, "--help")...)
 		require.Zero(t, code, stderr)
 		help := string(out)
@@ -155,9 +155,7 @@ func TestPublicCommandSessionErrors(t *testing.T) {
 	root := t.TempDir()
 	missing := filepath.Join(root, "missing-session")
 	occupied := filepath.Join(root, "occupied-session")
-	empty := filepath.Join(root, "empty-session")
 	require.NoError(t, os.Mkdir(occupied, 0o700))
-	require.NoError(t, os.Mkdir(empty, 0o700))
 	launcher := filepath.Join(root, "launcher")
 	require.NoError(t, os.WriteFile(launcher, []byte("#!/bin/sh\nexit 0\n"), 0o700))
 
@@ -176,14 +174,6 @@ func TestPublicCommandSessionErrors(t *testing.T) {
 		{
 			name: "verify-missing-session",
 			args: []string{"official", "verify", "--session-dir", missing},
-		},
-		{
-			name: "finish-missing-session",
-			args: []string{"finish", "--session-dir", missing},
-		},
-		{
-			name: "finish-incomplete-session",
-			args: []string{"finish", "--session-dir", empty},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

@@ -85,8 +85,6 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 
 				require.Equal(t, "synthetic-official-driver", obj(evidence["officialSDK"])["version"])
 				if mode == "busy" {
-					require.EqualValues(t, 1, obj(evidence["report"])["finishBefore"])
-					require.EqualValues(t, 1, obj(evidence["report"])["finishAfter"])
 					for _, field := range []string{"verifyBefore", "recordBefore", "officialRecordBefore"} {
 						require.EqualValues(t, 1, obj(evidence["report"])[field])
 					}
@@ -103,11 +101,6 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 			require.NoFileExists(t, filepath.Join(session, "official-active.json"))
 			for _, item := range array(sessionIndex(t, session)["executions"]) {
 				require.NotEqual(t, "verify", obj(item)["command"])
-			}
-			if mode == "local" || mode == "busy" {
-				finished, report := finishSession(t, env, session)
-				require.Zero(t, finished.code, finished.stderr)
-				require.Len(t, array(report["verifications"]), 1)
 			}
 		})
 	}
@@ -130,9 +123,7 @@ func TestOfficialVerifyExportAndConnections(t *testing.T) {
 			exported := filepath.Join(t.TempDir(), "exported")
 			mustRun(t, env, t.TempDir(), "", "export", "--session-dir", session, "--output", exported)
 			imported := prepareSession(t, env, "--recording", exported)
-			// Finishing also removes the old protocol environment, not just its descriptors.
-			finished, _ := finishSession(t, env, session)
-			require.Zero(t, finished.code, finished.stderr)
+			// Removing the session also removes its protocol environment.
 			// Neither default verification nor drivers can rely on the old session.
 			require.NoError(t, os.RemoveAll(session))
 			mustRun(t, env, t.TempDir(), "", "official", "verify", "--session-dir", imported)
@@ -379,10 +370,6 @@ func TestOfficialDriverFailureMatrixRetainsEvidence(t *testing.T) {
 			require.Equal(t, "passed", success["status"])
 			require.Equal(t, before, readAllFiles(t, failedRoot))
 			require.Equal(t, original, readAllFiles(t, str(material["path"])))
-			finished, report := finishSession(t, env, session)
-			require.Equal(t, 1, finished.code)
-			require.Equal(t, "failed", report["status"])
-			require.Equal(t, true, report["cleanupComplete"])
 		})
 	}
 }

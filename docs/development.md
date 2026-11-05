@@ -20,7 +20,7 @@ agent-sdk-testify/
   go.mod / go.sum / Makefile / .golangci.yaml
   main.go                   # 唯一根目录 Go 文件
   internal/
-    lifecycle/              # prepare、finish 与会话/execution 状态
+    lifecycle/              # prepare 与会话/execution 状态
     record/ mock/           # agent 协议执行
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
     builtin/ official/      # 内置快照与官方录制/验证编排
@@ -112,7 +112,7 @@ required/optional、planned/unsupported 及原因必须保留。
 |---|---|---|---|
 | 单元测试 | 与被测代码放在一起的 `*_test.go` | 单个模块的规则，如协议匹配、哈希、字段校验、配置和历史派生 | 直接调用函数，不启动 CLI、SDK、Agent 或子进程，不访问网络 |
 | 集成测试 | `tests/intergration/` | 多个真实模块之间的协作，如材料加载与校验、采集与回放、状态与回执 | 可以使用临时文件、本地管道和回环连接，必要时 mock 外部依赖；不走完整 CLI 流程 |
-| 端到端测试 | `test/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock → finish | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
+| 端到端测试 | `test/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
 
 集成测试只有在验证 EOF、退出、取消或清理等进程行为时才启动必要的受控子进程。
 受控进程调用真实 capture/replay 内核，不复制产品实现，不增加测试专用产品入口。
@@ -132,7 +132,7 @@ SDK 公共接口、消费者业务断言及 simulate 由消费者仓库负责。
   同一种构建模式的 CLI 构建一次并复用路径；每个测试仍使用独立可写状态，
   不共享可写 session 或 execution overlay。
 - 关键覆盖保留 record/mock、official record/verify、远程与多连接、export 后重新导入、
-  busy finish、中断恢复及失败证据。分片、大消息、关联 ID、超时、取消、背压、
+  调用方删除 session、取消及失败证据。分片、大消息、关联 ID、超时、取消、背压、
   历史派生、会话复用、overlay 隔离和资源清理按所属层覆盖，不全部提升为完整流程。
 - 分层调整保留全部合同断言、严格匹配、来源原字节、哈希与资格政策；不能通过删 case、
   skip 或放宽 deadline 缩短耗时。构建、打包和安装检查单独报告，不计作单元或集成测试。

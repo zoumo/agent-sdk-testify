@@ -434,21 +434,6 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	after, err := corpus.Inventory(source, false)
 	require.NoError(t, err)
 	require.Equal(t, before, after)
-
-	tamperedIndex := filepath.Join(t.TempDir(), "tampered-index.json")
-	persisted["index"] = tamperedIndex
-	result["admission"] = persisted
-	require.NoError(t, tool.WriteJSON(filepath.Join(output, "result.json"), result))
-
-	finish := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "finish", "--session-dir", session)
-	finish.Dir = t.TempDir()
-	finish.Env = cmd.Env
-	data, err = finish.Output()
-	require.Error(t, err, "%s", data)
-	var finishReport tool.Object
-	require.NoError(t, json.Unmarshal(data, &finishReport))
-	require.Equal(t, "failed", finishReport["status"])
-	require.Contains(t, tool.Str(finishReport["error"]), "admission")
 }
 
 func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
@@ -545,7 +530,32 @@ func canonicalVerifyFixture(t *testing.T, source, caseID string) {
 
 func sessionFiles(t *testing.T, session string) tool.Object {
 	t.Helper()
-	files, err := corpus.Inventory(session, false)
-	require.NoError(t, err)
+	files := tool.Object{}
+	require.NoError(t, filepath.WalkDir(session, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		rel, err := filepath.Rel(session, path)
+		if err != nil {
+			return err
+		}
+		if entry.Type()&os.ModeSymlink != 0 {
+			target, err := os.Readlink(path)
+			if err != nil {
+				return err
+			}
+			files[rel] = "symlink:" + target
+			return nil
+		}
+		digest, err := corpus.Digest(path)
+		if err != nil {
+			return err
+		}
+		files[rel] = digest
+		return nil
+	}))
 	return files
 }

@@ -8,7 +8,7 @@
 
 ## 仓库边界
 
-- 公开 CLI 为 prepare、agent record/mock、official record/verify、export、finish。
+- 公开 CLI 为 prepare、agent record/mock、official record/verify、export。
   会话、协议执行和官方编排职责以[工具设计](docs/design.md)为准。
   simulate、Go driver 及消费者 SDK 业务编排留在 agent-sdk-go。
 - 一次 prepare 可以承载多个 action execution。环境基线不可变，每个 execution 使用独立 overlay；

@@ -25,8 +25,6 @@ func TestSelfContainedRecordingPrepare(t *testing.T) {
 	require.Equal(t, history, readFile(t, filepath.Join(source, "config", "sessions", "conformance-history.jsonl")))
 	current := readFile(t, filepath.Join(session, "current.json"))
 	materialDescriptor := readFile(t, filepath.Join(source, "material.json"))
-	finished, _ := finishSession(t, env, producer)
-	require.Zero(t, finished.code, finished.stderr)
 	require.NoError(t, os.RemoveAll(producer))
 
 	result := runPreparedMock(t, env, session, "", requestOne)
@@ -38,8 +36,6 @@ func TestSelfContainedRecordingPrepare(t *testing.T) {
 	info, err := os.Stat(descriptorPath)
 	require.NoError(t, err)
 	require.Zero(t, info.Mode().Perm()&0o222)
-	finished, _ = finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
 	require.FileExists(t, filepath.Join(source, "raw", "raw.jsonl"))
 	require.Equal(t, descriptor, readFile(t, descriptorPath))
 }

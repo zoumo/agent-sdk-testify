@@ -23,8 +23,6 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 	recordConsumer(t, env, producer, agent, requestOne)
 	original := str(latestCapture(t, producer)["path"])
 	session := prepareSession(t, env, "--recording", original)
-	finished, _ := finishSession(t, env, producer)
-	require.Zero(t, finished.code, finished.stderr)
 	require.NoError(t, os.RemoveAll(producer))
 	material := obj(array(materialIndex(t, session)["materials"])[0])
 	require.Equal(t, "consumer", material["provenance"])
@@ -73,10 +71,6 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 		require.Equal(t, "passed", process["status"])
 		require.Zero(t, process["exitCode"])
 	}
-	finished, finish := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
-	require.Equal(t, true, finish["cleanupComplete"])
-	require.NoDirExists(t, str(readJSON(t, filepath.Join(session, "session.json"))["resourceRoot"]))
 	require.Equal(t, before, readAllFiles(t, str(material["path"])))
 	require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
 	require.Equal(t, descriptor, readFile(t, filepath.Join(session, "session.json")))
@@ -127,8 +121,6 @@ func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 	result := runTool(t, env, t.TempDir(), "", "agent", "mock")
 	require.Equal(t, 1, result.code, result.stderr)
 	require.Contains(t, result.stderr, "mock requires --session-dir")
-	finished, _ := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
 }
 
 func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
@@ -161,8 +153,6 @@ func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	execution := latestExecution(t, session, "mock")
 	require.Equal(t, []string{"app-server", "--listen", "stdio://"}, stringsOf(execution["nativeArgs"]))
-	finished, _ := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
 }
 
 // syntheticReplayMaterial builds private synthetic input for the public CLI.
@@ -222,9 +212,6 @@ func TestMockTimeoutPolicyAndSourceBytes(t *testing.T) {
 					require.Equal(t, "failed", receipt["status"])
 					require.Equal(t, false, receipt["clientEOF"])
 				}
-				finished, report := finishSession(t, env, session)
-				require.Equal(t, tc.code, finished.code, finished.stderr)
-				require.Equal(t, true, report["cleanupComplete"])
 			})
 		}
 	}
@@ -297,9 +284,6 @@ func TestMockProgressReceiptWaitsForEOF(t *testing.T) {
 				require.NotEmpty(t, stderr.String())
 			}
 			require.Equal(t, code, cmd.ProcessState.ExitCode())
-			finished, report := finishSession(t, env, session)
-			require.Equal(t, code, finished.code, finished.stderr)
-			require.Equal(t, true, report["cleanupComplete"])
 		})
 	}
 }

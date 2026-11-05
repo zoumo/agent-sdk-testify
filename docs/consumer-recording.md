@@ -4,7 +4,7 @@
 真实 Agent 的原生交互保存为 consumer material，并在同一会话中直接用 mock 严格
 回放。该路径不经过官方 driver，不登记官方 case，也不进入验证、采用或内置快照。
 
-consumer 录制采用 `prepare → agent record → agent mock → finish` 生命周期。一次
+consumer 录制采用 `prepare → agent record → agent mock` 生命周期。一次
 prepare 可以承载多个 record/mock execution；环境准备和材料由工具完整负责，
 消费者只提供 plan、真实 Agent 启动命令/参数，并在自己的 SDK 宿主演用当前 route 的
 环境。本文只描述 plan source；生命周期、source/executor/target 和 descriptor 合同见
@@ -12,8 +12,8 @@ prepare 可以承载多个 record/mock execution；环境准备和材料由工�
 
 ## 边界
 
-- 工具负责隔离根、workspace、HOME、配置发现与筛选、tmp、历史种子、材料写入和清理。
-- 消费者负责 plan、真实 Agent executable 和启动参数、SDK 宿主、业务断言和收尾调用。
+- 工具负责隔离根、workspace、HOME、配置发现与筛选、tmp、历史种子、材料写入和执行内资源释放。
+- 消费者负责 plan、真实 Agent executable 和启动参数、SDK 宿主、业务断言和 session 目录删除。
 - 消费者不能提供或覆盖隔离根、workspace、HOME、config、tmp 或原生环境变量。
 - 工具不启动消费者的 SDK 宿主，也不生成客户端请求；客户端始终是消费者自己的 SDK。
 - 材料是 external/consumer 材料，只能通过 session 的 current 消费，不参与官方资格、采用和发布。
@@ -33,14 +33,14 @@ agent-sdk-testify prepare --agent codex \
   [--max-frames N] [--max-frame-bytes N]
 ```
 
-`prepare` 不启动真实 Agent。它创建持久输出目录和工具拥有的临时根，准备：
+`prepare` 不启动真实 Agent。它创建 session 目录及其中的 runtime 运行目录，准备：
 
 - `resourceRoot`、`workspace`、`home`、`config`、`tmp`；
 - Codex 的 `CODEX_HOME` 或 Claude 的 `CLAUDE_CONFIG_DIR`；
 - 从 agent type 标准原生配置位置发现并筛选的原生配置和认证副本；
 - plan 的 `model` 配置和 `scenario.files`；
 - 可选 `--history-seed` 历史种子；
-- 会话目录内的 `session.json`、record/mock route 的环境槽、连接模板和 `finish` 命令。
+- 会话目录内的 `session.json`、record/mock route 的环境槽和连接模板。
 
 `--plan` 来源不接受配置目录参数。record 的 `--cmd` 必须是绝对路径；`--` 后逐项
 提供 Agent 启动参数，不经过 shell，仍须通过回放白名单校验。
@@ -82,19 +82,13 @@ agent-sdk-testify agent mock --session-dir /absolute/session \
 ```
 
 mock 只消费会话中的 current recording，使用新的 execution overlay 和预先刷新的回放
-环境。消费者按 mock route 应用 `env`、cwd 和 `connection`，关闭 SDK 后继续 finish。
+环境。消费者按 mock route 应用 `env`、cwd 和 `connection`，执行结果由 mock 自身保存。
 
-### finish
+### 释放 session
 
-```sh
-agent-sdk-testify finish --session-dir /absolute/session
-```
-
-消费者先关闭自己的 SDK、Session 和 Runtime，等所有 peer 退出，再调用 `finish`。
-`finish` 逐 execution 校验 record 和 mock、重新核验历史状态、manifest/report 和哈希，
-然后删除工具拥有的临时根。工具不会结束消费者的进程，也不会删除会话目录。
-finish 忙碌时不写状态或清理；取得锁后立即关闭会话。清理失败不重新打开会话，重试
-只处理未完成清理，不重新解释业务结果。材料保留，closed 后仍可 export。
+调用方关闭 SDK、等待相关进程全部退出后，直接删除 session 目录。需要保留 current
+material 时先 export。运行环境和私有配置都位于 session/runtime；所有权与释放时序见
+[工具设计](design.md#session-目录所有权)。
 
 ## 多次使用
 
@@ -158,8 +152,7 @@ execution 的只读合同，字段见[工具设计](design.md#会话生命周期
 `env` 必须应用到自己的 SDK 宿主，不能只设置录制或 mock 子进程。execution 创建后
 不得重新生成或覆盖。
 
-finish 删除工具临时根后，其中 `resourceRoot` 等路径失效。会话目录里的材料仍可 export，
-并由新 session 的 prepare --recording 导入；closed session 不能创建新的 action execution。
+删除 runtime 后运行路径失效，材料仍可 export；删除整个 session 会同时删除材料和执行证据。
 
 mock route 的 `connection.launcher` 用于只接受 executable 的 SDK；launcher 把受支持
 的追加参数转发给回放连接，并拒绝重复或白名单外的参数。record 使用上文的显式
@@ -206,7 +199,7 @@ record 的尝试与失败证据保存在 execution；成功材料发布到独立
 - `raw/manifest.json` 是采集层 manifest；`raw/transport.json` 保留传输报告；
   `raw/stderr.raw` 是原生 stderr。
 - `report.json` 记录采集状态、客户端 EOF、原生启动、清理和失败原因。
-- `manifest.savedFiles` 绑定 record 完成时的历史文件及 SHA-256；finish 只重新核验。
+- `manifest.savedFiles` 绑定 record 完成时的历史文件及 SHA-256，在材料加载和复制时核验。
 - 不生成 `adoption.json`、`review.json`、`qualification.json` 或
   `official-replay/`。
 
@@ -225,7 +218,7 @@ history-seed/...
 SHA-256 写入 `manifest.savedFiles`。`plan.json` 不被改写，`planSHA256` 仍绑定
 消费者原始 plan。
 
-回放时，mock route 从材料复制这些文件到本次 execution overlay；finish 校验种子文件
+回放时，mock route 从材料复制这些文件到本次 execution overlay；mock 返回前校验已绑定历史文件
 未被改写。SDK 在回放期间可以创建新的会话或历史文件，但不能修改已绑定的种子文件。
 没有历史种子的录制从空状态开始，只覆盖本次协议交互。
 
@@ -269,7 +262,6 @@ external provenance，官方业务事实由 official 编排另行保存和核验
 agent-sdk-testify prepare \
   --recording /absolute/material --session-dir /absolute/session
 agent-sdk-testify agent mock --session-dir /absolute/session
-agent-sdk-testify finish --session-dir /absolute/session
 ```
 
 材料的 consumer provenance 不因导入或导出而提升。只有 prepare 接受材料路径，mock
@@ -301,11 +293,11 @@ consumer material 归消费者保存和发布；本仓库不写入 `data/index.j
 
 ## 安全与失败
 
-- 输出目录和工具临时根使用私有权限；`stderr.raw` 可能包含提示词、认证错误或环境
+- session 目录和 runtime 使用私有权限；`stderr.raw` 可能包含提示词、认证错误或环境
   信息，材料默认保持私有，不进入公开归档。
 - 只从 agent type 标准配置位置复制允许的原生配置和认证；不读取任意配置路径，不复制
   个人配置、项目指令或无关会话。
-- prepare、record、mock 或 finish 失败都保留失败证据和 `prepare.json`/`finish.json` 诊断；
+- prepare、record 或 mock 失败都保留各自的失败证据和诊断；
   不得把部分材料标记为成功。
 - 真实 Agent 的启动和网络访问只发生在显式 record action 执行期间；
   默认测试使用受控子进程，不连接真实 Agent。
@@ -317,9 +309,8 @@ plan source 复用 `internal/protocol/capture` 的 stdio 采集和进程生命�
 严格回放、prepared 生命周期和回执语义不变。
 
 默认测试应覆盖 prepare 的环境/workspace/config、session/execution descriptor 不可篡改、
-source 互斥、绝对路径、plan/agentType 不一致、原生参数白名单、execution 的帧和失败证据、finish 的
-状态快照和哈希、consumer 材料不具备官方 verifier、
-`prepare/record/mock/finish`、同一会话 record→mock、历史种子 allowlist、符号链接拒绝，以及运行间 UUID 变化的
+source 互斥、绝对路径、plan/agentType 不一致、原生参数白名单、execution 的帧、失败证据和历史哈希、consumer 材料不具备官方 verifier、
+`prepare/record/mock`、同一会话 record→mock、历史种子 allowlist、符号链接拒绝，以及运行间 UUID 变化的
 负向用例。真实 Agent 检查只作为显式 opt-in，不计入默认离线门禁。
 
 ## 非目标

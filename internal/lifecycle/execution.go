@@ -72,31 +72,14 @@ func readSessionUnlocked(sessionDir string) (*Session, error) {
 	if hash != index.SessionSHA256 || index.SessionID != session.SessionID {
 		return nil, errors.New("session descriptor changed after prepare")
 	}
+	if session.ResourceRoot != filepath.Join(dir, "runtime") {
+		return nil, errors.New("session runtime must be inside session/runtime")
+	}
 	return session, nil
 }
 
 func OpenSession(sessionDir string) (*Session, error) {
 	return readSessionUnlocked(sessionDir)
-}
-
-func OpenActionSession(sessionDir string) (*Session, error) {
-	session, err := OpenSession(sessionDir)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkOpen(sessionDir); err != nil {
-		return nil, err
-	}
-	return session, nil
-}
-
-func checkOpen(sessionDir string) error {
-	if _, err := os.Stat(filepath.Join(sessionDir, "closed")); err == nil {
-		return errors.New("session is finished")
-	} else if !os.IsNotExist(err) {
-		return err
-	}
-	return nil
 }
 
 func updateIndex(sessionDir string, mutate func(*Index) error) error {
@@ -330,9 +313,6 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 	if err != nil {
 		return nil, err
 	}
-	if err := checkOpen(sessionDir); err != nil {
-		return nil, err
-	}
 	if action == "record" && origin == nil {
 		if err := checkOfficialIdle(sessionDir); err != nil {
 			return nil, err
@@ -367,9 +347,6 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 			_ = restoreRouteSlots(session, action)
 		}
 	}()
-	if err := checkOpen(sessionDir); err != nil {
-		return nil, err
-	}
 	if action == "record" && origin == nil {
 		if err := checkOfficialIdle(sessionDir); err != nil {
 			return nil, err
@@ -512,9 +489,6 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if err != nil {
 		return nil, err
 	}
-	if err := checkOpen(sessionDir); err != nil {
-		return nil, err
-	}
 	route, ok := session.Routes["mock"]
 	if !ok || !route.Enabled {
 		return nil, errors.New("mock is not available for this session")
@@ -535,9 +509,6 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 			_ = restoreRouteSlots(session, "mock")
 		}
 	}()
-	if err := checkOpen(sessionDir); err != nil {
-		return nil, err
-	}
 	current, err := LatestArtifact(sessionDir, session)
 	if err != nil {
 		return nil, err
@@ -771,7 +742,7 @@ func markMockConnection(sessionDir, executionID, connection, status, executionSt
 	})
 }
 
-func FinishAction(run *ActionRun, status, artifactID string) error {
+func CompleteAction(run *ActionRun, status, artifactID string) error {
 	if run == nil {
 		return nil
 	}

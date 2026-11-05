@@ -57,7 +57,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
 		defer cancel()
 	}
-	session, err := lifecycle.OpenActionSession(o.SessionDir)
+	session, err := lifecycle.OpenSession(o.SessionDir)
 	if err != nil {
 		return err
 	}

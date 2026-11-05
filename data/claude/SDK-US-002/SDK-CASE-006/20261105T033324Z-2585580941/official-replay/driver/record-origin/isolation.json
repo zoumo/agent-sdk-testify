@@ -1,0 +1,44 @@
+{
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--settings",
+    "{\"permissions\":{\"ask\":[\"Read\",\"Write\"]}}",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "configurationSHA256": {
+    "settings.json": "87681222829e8004fb97c94c3567d1b6bbbebfb5d43eb91765c0c6be5a0a5991"
+  },
+  "cwd": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/config",
+    "HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/home",
+    "TMPDIR": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/tmp",
+    "XDG_CACHE_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/home/.cache",
+    "XDG_CONFIG_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/home/.config",
+    "XDG_DATA_HOME": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2561833445/executions/8ee2e91289000d785f94c136ea3f1df2/home/.local/share"
+  },
+  "executionId": "8ee2e91289000d785f94c136ea3f1df2",
+  "method": "native-preparation",
+  "nativeSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "ed8d40a08ae566430cbdd76458f072073ac323e42a051bb12bfe968ffc564ac3",
+  "schemaVersion": 1,
+  "sessionId": "5e2724910661c610553fa2ac4ce214ef",
+  "toolSHA256": "8d282abe6ba6e290ba4928780cab84ed66dc09e25fef642a1f69f97fde3a128b"
+}

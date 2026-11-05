@@ -55,9 +55,6 @@ func controlledOfficialDriver(args []string) int {
 		return 0
 	}
 	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "captureStatus": "complete", "officialSDK": object{"package": "openai-codex", "version": "synthetic-official-driver"}}
-	if mode == "busy" {
-		report["finishBefore"] = driverFinish(request.Output, args[1])
-	}
 	if mode == "busy" && plan["_replay"] == true {
 		report["verifyBefore"] = driverAction(request.Output, args[1], "official", "verify")
 		report["recordBefore"] = driverAction(request.Output, args[1], "agent", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
@@ -187,9 +184,6 @@ func controlledOfficialDriver(args []string) int {
 			}
 		}
 	}
-	if mode == "busy" {
-		report["finishAfter"] = driverFinish(request.Output, args[1])
-	}
 	if mode == "business-failed" {
 		report["status"], report["branchStatus"] = "failed", "failed"
 	}
@@ -227,10 +221,6 @@ func controlledOfficialDriver(args []string) int {
 		return 7
 	}
 	return 0
-}
-
-func driverFinish(output, binary string) int {
-	return driverAction(output, binary, "finish")
 }
 
 func driverAction(output, binary string, args ...string) int {
@@ -320,10 +310,6 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 			assertFileHashes(t, materialRoot, obj(material["files"]))
 			require.Equal(t, "captured", readJSON(t, filepath.Join(materialRoot, "report.json"))["status"])
 			require.NoFileExists(t, filepath.Join(materialRoot, "result.json"))
-			if mode == "busy" {
-				require.EqualValues(t, 1, obj(result["report"])["finishBefore"])
-				require.EqualValues(t, 1, obj(result["report"])["finishAfter"])
-			}
 			if mode == "local" {
 				require.Equal(t, true, obj(result["report"])["hostRetainedExecution"])
 				plan := readJSON(t, filepath.Join(materialRoot, "plan.json"))

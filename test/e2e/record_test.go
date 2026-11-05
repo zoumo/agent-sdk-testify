@@ -26,8 +26,6 @@ func TestRecordingSourceRemainsFixedAcrossRecords(t *testing.T) {
 			descriptor := readJSON(t, descriptorPath)
 			fixedSource := obj(descriptor["source"])
 			sourceBytes := readAllFiles(t, str(fixedSource["path"]))
-			producerFinish, _ := finishSession(t, env, producer)
-			require.Zero(t, producerFinish.code, producerFinish.stderr)
 			require.NoError(t, os.RemoveAll(producer))
 			installDriver(t, drivers, "codex", "record")
 			previous := currentMaterialID(t, session)
@@ -42,14 +40,12 @@ func TestRecordingSourceRemainsFixedAcrossRecords(t *testing.T) {
 				require.Equal(t, material, readJSON(t, filepath.Join(str(material["path"]), "material.json")))
 				assertFileHashes(t, str(material["path"]), obj(material["files"]))
 				require.True(t, strings.HasPrefix(str(execution["workspace"]), str(descriptor["resourceRoot"])+string(filepath.Separator)))
-				require.False(t, strings.HasPrefix(str(execution["workspace"]), session+string(filepath.Separator)))
+				require.True(t, strings.HasPrefix(str(execution["workspace"]), resolvedPath(t, session)+string(filepath.Separator)))
 				require.Equal(t, sourceBytes, readAllFiles(t, str(fixedSource["path"])))
 				require.Equal(t, descriptorBytes, readFile(t, descriptorPath))
 			}
 			require.Len(t, array(materialIndex(t, session)["materials"]), 3)
-			finished, _ := finishSession(t, env, session)
-			require.Zero(t, finished.code, finished.stderr)
-			require.NoDirExists(t, str(descriptor["resourceRoot"]))
+			require.DirExists(t, str(descriptor["resourceRoot"]))
 			require.FileExists(t, filepath.Join(str(fixedSource["path"]), "plan.json"))
 		})
 	}
@@ -102,9 +98,6 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 				require.NoError(t, os.Remove(filepath.Join(str(descriptor["resourceRoot"]), "routes", "record", "workspace")))
 			}
 			runPreparedMock(t, env, session, "", requestOne)
-			finished, report := finishSession(t, env, session)
-			require.NotZero(t, finished.code)
-			require.Equal(t, true, report["cleanupComplete"])
 		})
 	}
 }
@@ -130,8 +123,6 @@ func TestNewRecordDoesNotInheritVerification(t *testing.T) {
 	require.NoFileExists(t, filepath.Join(str(material["path"]), "verification.json"))
 	require.Equal(t, oldBytes, readAllFiles(t, str(old["path"])))
 	require.Equal(t, evidence, readAllFiles(t, evidenceRoot))
-	finished, _ := finishSession(t, env, session)
-	require.Zero(t, finished.code, finished.stderr)
 }
 
 func TestRecordingRecordUsesProtocolPrerequisites(t *testing.T) {
