@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"time"
@@ -14,7 +13,6 @@ import (
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
-	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
@@ -183,109 +181,64 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	plan["_fixtureProject"], plan["_replay"] = route.Workspace, true
 	// project/historyProject retain the original native protocol cwd. Only the
 	// fixture and SDK host use the ordinary mock route slots.
-	peer := DriverPeer{}
-	results := tool.Object{}
 	private := filepath.Join(session.ResourceRoot, "official", activity.ID)
-	if err := os.MkdirAll(private, 0o700); err != nil {
-		return err
-	}
+	peers := make(map[string]tool.Command, len(material.Connections))
 	for _, id := range material.Connections {
-		results[id] = filepath.Join(root, "peer-"+id+".results.jsonl")
 		args := []string{"agent", "mock", "--session-dir", o.SessionDir, "--connection", id}
 		if o.Timeout > 0 {
 			args = append(args, "--timeout", fmt.Sprint(o.Timeout.Seconds()))
 		}
-		request := filepath.Join(private, "peer-"+id+".json")
-		if err := tool.WriteJSON(request, tool.Command{Command: self, Args: args}); err != nil {
-			return err
-		}
-		launcher, err := WritePeerLauncher(private, id, tool.Command{Command: self, Args: []string{"--internal-peer", "--request", request, "--lifecycle", filepath.Join(root, "peer-"+id+".process.json"), "--results", tool.Str(results[id])}})
-		if err != nil {
-			return err
-		}
-		entry := tool.Command{Command: launcher}
-		switch id {
-		case "main":
-			peer.Command = entry
-		case "probe":
-			peer.Probe = &entry
-		default:
-			return fmt.Errorf("unsupported official connection %s", id)
-		}
+		peers[id] = tool.Command{Command: self, Args: args}
 	}
-	plan["_agentResults"] = results
-	materials := filepath.Join(root, "materials")
-	if err := os.MkdirAll(materials, 0o700); err != nil {
-		return err
-	}
-	if err := tool.WriteJSON(filepath.Join(materials, "case.json"), plan); err != nil {
-		return err
-	}
-	request := filepath.Join(root, "request.json")
-	if err := tool.WriteJSON(request, Request{Case: tool.Str(plan["caseId"]), Materials: materials, Workspace: route.Workspace, Peer: peer, Output: root}); err != nil {
-		return err
-	}
-	stdout, err := os.OpenFile(filepath.Join(root, "stdout.log"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if err != nil {
-		return err
-	}
-	defer stdout.Close()
-	stderr, err := os.OpenFile(filepath.Join(root, "stderr.log"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if err != nil {
-		return err
-	}
-	defer stderr.Close()
-	cmd := exec.CommandContext(context.WithoutCancel(ctx), driver, "--request", request)
-	cmd.Env = environment(env)
-	cmd.Dir, cmd.Stdout, cmd.Stderr = route.Workspace, stdout, stderr
-	runErr = activity.WaitDriver(ctx, cmd)
-	process := tool.Object{"started": cmd.Process != nil, "reaped": cmd.ProcessState != nil, "cleanupComplete": cmd.ProcessState != nil}
-	if cmd.ProcessState != nil {
-		process["exitCode"] = cmd.ProcessState.ExitCode()
-	}
-	if cmd.Process != nil {
-		process["pid"] = cmd.Process.Pid
-		if err := tool.WaitProcessGroup(cmd.Process.Pid); err != nil {
-			process["cleanupComplete"] = false
-			evidence["cleanupComplete"] = false
-			runErr = errors.Join(runErr, err)
-		}
-	}
-	evidence["driverProcess"] = process
-	var outcome, report tool.Object
-	outcomeErr := tool.ReadJSON(filepath.Join(root, "result.json"), &outcome)
-	reportErr := tool.ReadJSON(filepath.Join(root, "replay-report.json"), &report)
-	evidence["business"], evidence["report"], evidence["officialSDK"] = outcome, report, report["officialSDK"]
-	runErr = errors.Join(runErr, outcomeErr, reportErr)
-	if err := validateBusinessEvidence(session.AgentType, plan, bound, outcome, report); err != nil {
-		runErr = errors.Join(runErr, err)
-	}
-	refs, refErr := mockReferences(o.SessionDir, session, root, material.Connections, *material, previous)
-	evidence["connections"] = refs
-	runErr = errors.Join(runErr, refErr)
-	after, err := corpus.Inventory(material.Path, false)
-	runErr = errors.Join(runErr, err)
-	if !reflect.DeepEqual(before, after) {
-		runErr = errors.Join(runErr, errors.New("material changed during verification"))
-	}
-	runErr = errors.Join(runErr, snapshotMocks(activity.Dir, refs), activity.RestoreMockRoute())
 	var recordEvidenceErr error
-	if c.Index != "" && material.OfficialOrigin != nil && runErr == nil {
-		target := filepath.Join(root, "record-origin")
-		recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.SessionDir, session, *material, target)
-		if recordEvidenceErr == nil {
-			files, hashErr := corpus.Inventory(target, false)
-			recordEvidenceErr = hashErr
-			evidence["officialRecord"] = tool.Object{"root": "driver/record-origin", "files": files}
-		}
+	run, driverErr := runDriver(ctx, driverRunOptions{
+		Activity:   activity,
+		Driver:     driver,
+		Env:        env,
+		Workspace:  route.Workspace,
+		Root:       root,
+		PrivateDir: private,
+		Plan:       plan,
+		Peers:      peers,
+		ReportFile: "replay-report.json",
+		Inspect: func(outcome, report tool.Object, priorErr error) error {
+			var inspectErr error
+			inspectErr = errors.Join(inspectErr, validateBusinessEvidence(session.AgentType, plan, bound, outcome, report))
+			refs, refErr := mockReferences(o.SessionDir, session, root, material.Connections, *material, previous)
+			evidence["connections"] = refs
+			inspectErr = errors.Join(inspectErr, refErr)
+			after, err := corpus.Inventory(material.Path, false)
+			inspectErr = errors.Join(inspectErr, err)
+			if !reflect.DeepEqual(before, after) {
+				inspectErr = errors.Join(inspectErr, errors.New("material changed during verification"))
+			}
+			inspectErr = errors.Join(inspectErr, snapshotMocks(activity.Dir, refs), activity.RestoreMockRoute())
+			if c.Index != "" && material.OfficialOrigin != nil && errors.Join(priorErr, inspectErr) == nil {
+				target := filepath.Join(root, "record-origin")
+				recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.SessionDir, session, *material, target)
+				if recordEvidenceErr == nil {
+					files, hashErr := corpus.Inventory(target, false)
+					recordEvidenceErr = hashErr
+					evidence["officialRecord"] = tool.Object{"root": "driver/record-origin", "files": files}
+				}
+			}
+			return inspectErr
+		},
+	})
+	runErr = driverErr
+	if run == nil {
+		return runErr
 	}
-	hashes, err := history.HashTree(root)
-	evidence["driverFiles"] = hashes
+	evidence["driverProcess"] = run.Process
+	if run.ProcessGroupFailed {
+		evidence["cleanupComplete"] = false
+	}
+	evidence["business"], evidence["report"], evidence["officialSDK"] = run.Outcome, run.Report, run.Report["officialSDK"]
+	evidence["driverFiles"] = run.Files
 	evidence["files"] = tool.Object{}
-	for name, hash := range hashes {
+	for name, hash := range run.Files {
 		tool.Obj(evidence["files"])["driver/"+name] = hash
 	}
-	runErr = errors.Join(runErr, err)
 	// Preserve successful verification independently of an optional admission.
 	if runErr == nil {
 		evidence["status"] = "passed"
