@@ -170,6 +170,17 @@ func controlledOfficialDriver(args []string) int {
 			return 6
 		}
 	}
+	if mode == "process-not-started" {
+		path := filepath.Join(request.Output, "peer-main.process.json")
+		var process object
+		if readJSONFile(path, &process) != nil {
+			return 6
+		}
+		process["started"] = false
+		if writeJSONFile(path, process) != nil {
+			return 6
+		}
+	}
 
 	if mode == "reuse-ref" {
 		session := filepath.Dir(filepath.Dir(filepath.Dir(request.Output)))
@@ -257,7 +268,7 @@ func officialRunResult(t *testing.T, session string) object {
 }
 
 func TestOfficialRecordInstalledChain(t *testing.T) {
-	for _, mode := range []string{"local", "busy", "business-failed", "no-trigger", "wrong-ref", "cancel-before", "cancel-during", "startup-failed"} {
+	for _, mode := range []string{"local", "busy", "business-failed", "no-trigger", "wrong-ref", "process-not-started", "cancel-before", "cancel-during", "startup-failed"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
 			agent, drivers, env := isolatedCommands(t, root, "codex")
@@ -288,6 +299,9 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 			} else {
 				require.Equal(t, 1, command.code, command.stderr)
 				require.Equal(t, "failed", result["status"])
+			}
+			if mode == "process-not-started" {
+				require.Contains(t, command.stderr, "protocol process failed or was not reaped")
 			}
 			require.Equal(t, sourceBytes, readFile(t, str(source["path"])))
 			require.NoFileExists(t, filepath.Join(session, "official-active.json"))

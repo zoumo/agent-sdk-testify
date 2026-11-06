@@ -3,10 +3,8 @@ package official
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"maps"
 	"os"
 	"os/exec"
@@ -358,78 +356,29 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 // References come exclusively from each launcher's actual notification pipe.
 // No directory inventory, latest execution or caller-supplied success is used.
 func officialRecordReferences(sessionDir string, session *lifecycle.Session, root string, ids []string) ([]tool.Object, error) {
-	var refs []tool.Object
-	var failures []error
-	executionID := ""
-	for _, id := range ids {
-		ref, err := recordReference(sessionDir, session, root, id)
-		if ref != nil {
-			refs = append(refs, ref)
-		}
-		if err == nil {
-			if executionID == "" {
-				executionID = tool.Str(ref["executionId"])
-			} else if executionID != tool.Str(ref["executionId"]) {
-				err = errors.New("official connections used different executions")
-			}
-		}
-		if err != nil {
-			failures = append(failures, fmt.Errorf("%s: %w", id, err))
+	refs, err := collectPeerReferences(ids, func(id string) (tool.Object, error) {
+		return recordReference(sessionDir, session, root, id)
+	})
+	if err != nil {
+		return refs, err
+	}
+	final := 0
+	for _, ref := range refs {
+		if len(tool.Obj(tool.Obj(ref["finished"])["material"])) > 0 {
+			final++
 		}
 	}
-	return refs, errors.Join(failures...)
+	if final != 1 {
+		return refs, errors.New("official record requires exactly one final material notification")
+	}
+	return refs, nil
 }
 
 func recordReference(sessionDir string, session *lifecycle.Session, root, id string) (tool.Object, error) {
-	var process tool.Object
-	if err := tool.ReadJSON(filepath.Join(root, "peer-"+id+".process.json"), &process); err != nil {
-		return nil, fmt.Errorf("protocol process not started or settled: %w", err)
-	}
-	f, err := os.Open(filepath.Join(root, "peer-"+id+".results.jsonl"))
+	ref, execution, connection, err := readPeerReference(sessionDir, session, root, id, "record", func(execution lifecycle.Execution) error {
+		return execution.Validate(*session)
+	})
 	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	decoder := json.NewDecoder(io.LimitReader(f, 1<<20))
-	var started, finished tool.Object
-	if err := decoder.Decode(&started); err != nil {
-		return nil, err
-	}
-	ref := tool.Object{"started": started, "process": process}
-	if err := decoder.Decode(&finished); err != nil {
-		return ref, err
-	}
-	ref["finished"] = finished
-	var extra any
-	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
-		return ref, errors.New("unexpected execution notifications")
-	}
-	executionID := tool.Str(started["executionId"])
-	if executionID == "" || filepath.Base(executionID) != executionID || !filepath.IsLocal(executionID) {
-		return ref, errors.New("invalid execution reference")
-	}
-	ref["executionId"], ref["connectionId"] = executionID, id
-	dir := filepath.Join(sessionDir, "executions", executionID)
-	for _, value := range []tool.Object{started, finished} {
-		if value["processId"] != process["pid"] || value["sessionId"] != session.SessionID || value["connectionId"] != id || value["executionId"] != executionID || value["command"] != "record" || value["execution"] != filepath.Join(dir, "execution.json") || value["result"] != filepath.Join(dir, "receipts", id+".result.json") {
-			return ref, errors.New("execution notification reference mismatch")
-		}
-	}
-	if started["status"] != "running" || finished["status"] != "passed" || process["exitCode"] != float64(0) || process["reaped"] != true || process["cleanupComplete"] != true {
-		return ref, errors.New("protocol process failed or was not reaped")
-	}
-	var durable tool.Object
-	if err := tool.ReadJSON(filepath.Join(dir, "receipts", id+".result.json"), &durable); err != nil {
-		return ref, err
-	}
-	if !reflect.DeepEqual(finished, durable) {
-		return ref, errors.New("notification differs from durable result")
-	}
-	var execution lifecycle.Execution
-	if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
-		return ref, err
-	}
-	if err := execution.Validate(*session); err != nil {
 		return ref, err
 	}
 	material := execution.Artifact
@@ -464,35 +413,22 @@ func recordReference(sessionDir string, session *lifecycle.Session, root, id str
 		}
 	}
 	ref["material"] = material
-	ref["executionSHA256"], err = tool.FileDigest(filepath.Join(dir, "execution.json"))
-	if err != nil {
-		return ref, err
-	}
+	finished := tool.Obj(ref["finished"])
 	if notifiedMaterial := tool.Obj(finished["material"]); len(notifiedMaterial) > 0 {
-		if notifiedMaterial["id"] != material.ID || notifiedMaterial["planSHA256"] != material.PlanSHA256 || notifiedMaterial["manifestSHA256"] != material.ManifestSHA256 || notifiedMaterial["recordingSHA256"] != material.RecordingSHA256 || finished["executionSHA256"] != ref["executionSHA256"] {
+		if notifiedMaterial["id"] != material.ID || notifiedMaterial["planSHA256"] != material.PlanSHA256 || notifiedMaterial["manifestSHA256"] != material.ManifestSHA256 || notifiedMaterial["recordingSHA256"] != material.RecordingSHA256 {
 			return ref, errors.New("final material notification differs from published capture")
 		}
-	} else if finished["executionSHA256"] != started["executionSHA256"] {
-		return ref, errors.New("partial connection result changed its execution binding")
+	} else if len(execution.Connections) == 1 {
+		return ref, errors.New("final material notification is absent")
 	}
-	for _, connection := range execution.Connections {
-		if connection.ID != id {
-			continue
-		}
-		if started["receipt"] != connection.Receipt || finished["receipt"] != connection.Receipt {
-			return ref, errors.New("connection receipt reference mismatch")
-		}
-		var receipt tool.Object
-		if err := tool.ReadJSON(connection.Receipt, &receipt); err != nil {
-			return ref, err
-		}
-		if receipt["captureStatus"] != "complete" || receipt["cleanupComplete"] != true {
-			return ref, errors.New("capture is incomplete")
-		}
-		ref["connection"] = connection
-		return ref, nil
+	var receipt tool.Object
+	if err := tool.ReadJSON(connection.Receipt, &receipt); err != nil {
+		return ref, err
 	}
-	return ref, errors.New("connection absent from execution")
+	if receipt["captureStatus"] != "complete" || receipt["cleanupComplete"] != true {
+		return ref, errors.New("capture is incomplete")
+	}
+	return ref, nil
 }
 
 func environment(values map[string]string) []string {
