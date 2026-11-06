@@ -37,15 +37,9 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
 		defer cancel()
 	}
-	result, err := lifecycle.ResultStream(o.ResultFD)
-	if err != nil {
-		return err
-	}
-	if result != nil {
-		defer result.Close()
-	}
 	var executable string
 	var remote *capture.ConnectOptions
+	var err error
 	if o.URL != "" || o.TokenFile != "" {
 		if o.URL == "" || o.TokenFile == "" || o.Command != "" || len(o.NativeArgs) != 0 {
 			return errors.New("remote record requires --url and --token-file, excluding local command and arguments")
@@ -101,85 +95,82 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 		}
 		target = tool.DigestBytes(append(append([]byte(remote.URL), 0), token...))
 	}
-	run, err := lifecycle.BeginRecordConnection(o.SessionDir, o.Connection, commandArgs, o.Timeout, target)
-	if err != nil {
-		return err
-	}
-	status := "failed"
-	defer func() {
-		finalize, err := lifecycle.RecordFinalizationLock(run)
-		if err != nil {
-			runErr = errors.Join(runErr, err)
-		} else {
-			defer finalize.Close()
-			ready, passed, err := lifecycle.CompleteRecordConnection(run, status)
-			runErr = errors.Join(runErr, err)
-			if ready && err == nil {
-				if passed {
-					runErr = errors.Join(runErr, publishNative(run))
-				} else {
-					runErr = errors.Join(runErr, errors.New("record execution has failed connections"))
-				}
-				if runErr != nil {
-					runErr = errors.Join(runErr, lifecycle.ScrubExecutionAuthentication(run), lifecycle.CompleteAction(run, "failed", ""))
-				}
-			}
-		}
-		if runErr != nil {
-			runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(run.Dir, "receipts", run.Connection+".failure.json"), tool.Object{"status": "failed", "error": runErr.Error()}))
-		}
-		runErr = errors.Join(runErr, lifecycle.WriteActionResult(ctx, run, result, runErr))
-		runErr = errors.Join(runErr, run.Close())
-	}()
-	if err := lifecycle.NotifyActionStarted(ctx, run, result); err != nil {
-		return err
-	}
-	runErr = captureNative(ctx, run, executable, o.NativeArgs, remote, o.Timeout, streams)
-	if runErr == nil {
-		status = "passed"
-	}
-	return runErr
+	return lifecycle.RunRecord(ctx, lifecycle.RecordRequest{
+		SessionDir: o.SessionDir,
+		Connection: o.Connection,
+		Args:       commandArgs,
+		Timeout:    o.Timeout,
+		Target:     target,
+		ResultFD:   o.ResultFD,
+	}, recordPolicy{
+		command: executable,
+		args:    o.NativeArgs,
+		remote:  remote,
+		timeout: o.Timeout,
+		streams: streams,
+	})
 }
 
-func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string, args []string, remote *capture.ConnectOptions, timeout time.Duration, streams capture.IO) error {
-	if run.Execution.Artifact.OfficialOrigin != nil {
-		if err := prepareOfficialCapture(ctx, run, command, args, remote); err != nil {
-			return err
-		}
-		if remote == nil {
-			args = tool.Strings(run.Plan["args"])
-		}
+type recordPolicy struct {
+	command string
+	args    []string
+	remote  *capture.ConnectOptions
+	timeout time.Duration
+	streams capture.IO
+}
+
+func (p recordPolicy) Prepare(ctx context.Context, run lifecycle.RecordContext, trackProbe lifecycle.RecordProbeTracker) (tool.Object, error) {
+	plan := run.Plan()
+	if !run.IsOfficialCapture() {
+		return plan, nil
+	}
+	return prepareOfficialCapture(ctx, run, p.command, p.args, p.remote, trackProbe)
+}
+
+func (p recordPolicy) Capture(ctx context.Context, run lifecycle.RecordContext) error {
+	return captureNative(ctx, run, p.command, p.args, p.remote, p.timeout, p.streams)
+}
+
+func (p recordPolicy) Package(_ context.Context, run lifecycle.RecordContext) (*corpus.Material, error) {
+	return packageNative(run)
+}
+
+func captureNative(ctx context.Context, run lifecycle.RecordContext, command string, args []string, remote *capture.ConnectOptions, timeout time.Duration, streams capture.IO) error {
+	execution := run.Execution()
+	plan := run.Plan()
+	if run.IsOfficialCapture() && remote == nil {
+		args = tool.Strings(plan["args"])
 	}
 
 	var commandArgs []string
 	if remote == nil {
 		commandArgs = append([]string{command}, args...)
 	} else {
-		remote.MaxFrameBytes = run.Execution.Limits.MaxFrameBytes
+		remote.MaxFrameBytes = execution.Limits.MaxFrameBytes
 	}
 	if err := os.MkdirAll(filepath.Dir(filepath.Dir(recordReceipt(run))), 0o700); err != nil {
 		return err
 	}
-	eofAction := tool.Str(run.Plan["stdinEOFAction"])
+	eofAction := tool.Str(plan["stdinEOFAction"])
 	if eofAction == "" {
 		eofAction = "close"
 	}
 	captureErr := capture.Run(ctx, capture.Options{
 		Remote:         remote,
-		ProcessFile:    filepath.Join(run.Dir, "receipts", run.Connection+".native-process.json"),
+		ProcessFile:    run.ProcessReceipt(),
 		Output:         filepath.Dir(recordReceipt(run)),
-		CWD:            run.Execution.Workspace,
-		Env:            environment(run.Execution.RuntimeEnv),
+		CWD:            execution.Workspace,
+		Env:            environment(execution.RuntimeEnv),
 		ClearEnv:       true,
 		Command:        commandArgs,
-		NativeVersion:  tool.Str(run.Plan["cliVersion"]),
+		NativeVersion:  tool.Str(plan["cliVersion"]),
 		ProxyVersion:   version.Version,
 		StdinEOFAction: eofAction,
 		Timeout:        timeout,
-		ProtocolBytes:  run.Execution.Limits.ProtocolBytes,
-		StderrBytes:    run.Execution.Limits.StderrBytes,
-		MaxFrames:      run.Execution.Limits.MaxFrames,
-		MaxFrameBytes:  run.Execution.Limits.MaxFrameBytes,
+		ProtocolBytes:  execution.Limits.ProtocolBytes,
+		StderrBytes:    execution.Limits.StderrBytes,
+		MaxFrames:      execution.Limits.MaxFrames,
+		MaxFrameBytes:  execution.Limits.MaxFrameBytes,
 		CleanupTimeout: 2 * time.Second,
 	}, streams)
 	return captureErr
@@ -187,86 +178,86 @@ func captureNative(ctx context.Context, run *lifecycle.ActionRun, command string
 
 // Only the final declared connection closes the complete material. Driver business
 // reports are deliberately absent: they may be produced after this publication.
-func publishNative(run *lifecycle.ActionRun) error {
-	planPath := run.Execution.Source.Path
-	if run.Execution.Source.Kind == "recording" {
+func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
+	execution := run.Execution()
+	session := run.Session()
+	planPath := execution.Source.Path
+	if execution.Source.Kind == "recording" {
 		planPath = filepath.Join(planPath, "plan.json")
 	}
 	planBytes, err := os.ReadFile(planPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if _, err := lifecycle.LoadPlan(run.Session); err != nil {
-		return err
+	if _, err := lifecycle.LoadPlan(&session); err != nil {
+		return nil, err
 	}
-	if run.Execution.Artifact.OfficialOrigin != nil {
-		if err := os.WriteFile(filepath.Join(run.ArtifactRoot, "source-plan.json"), planBytes, 0o600); err != nil {
-			return err
+	if run.IsOfficialCapture() {
+		if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), planBytes, 0o600); err != nil {
+			return nil, err
 		}
 		var derived tool.Object
-		if err := tool.ReadJSON(filepath.Join(run.OverlayRoot, "record-plan.json"), &derived); err != nil {
-			return err
+		if err := tool.ReadJSON(filepath.Join(run.OverlayRoot(), "record-plan.json"), &derived); err != nil {
+			return nil, err
 		}
 		derived["sourcePlanSHA256"] = tool.DigestBytes(planBytes)
-		if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot, "official-origin.json"), run.Execution.Artifact.OfficialOrigin); err != nil {
-			return err
+		if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "official-origin.json"), execution.Artifact.OfficialOrigin); err != nil {
+			return nil, err
 		}
-		for _, connection := range run.Execution.Connections {
-			if err := tool.CopyFile(filepath.Join(run.Dir, "receipts", connection.ID+".origin.json"), filepath.Join(run.ArtifactRoot, "origin", connection.ID+".json")); err != nil {
-				return err
+		for _, connection := range execution.Connections {
+			if err := tool.CopyFile(filepath.Join(run.ExecutionDir(), "receipts", connection.ID+".origin.json"), filepath.Join(run.ArtifactRoot(), "origin", connection.ID+".json")); err != nil {
+				return nil, err
 			}
 		}
 		encoded, err := json.MarshalIndent(derived, "", "  ")
 		if err != nil {
-			return err
+			return nil, err
 		}
 		planBytes = append([]byte(nil), encoded...)
 		planBytes = append(planBytes, '\n')
 	}
-	if err := os.WriteFile(filepath.Join(run.ArtifactRoot, "plan.json"), planBytes, 0o600); err != nil {
-		return err
+	if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "plan.json"), planBytes, 0o600); err != nil {
+		return nil, err
 	}
-	if err := snapshotHistory(run.OverlayRoot, run.ArtifactRoot); err != nil {
-		return err
+	if err := snapshotHistory(run.OverlayRoot(), run.ArtifactRoot()); err != nil {
+		return nil, err
 	}
-	provenance := run.Execution.Provenance
+	provenance := execution.Provenance
 	if provenance == "official" {
 		provenance = "capture"
 	}
-	manifest, err := writeCaptureManifest(run.ArtifactRoot, run.Execution.RuntimeEnv, provenance, nil)
+	manifest, err := writeCaptureManifest(run.ArtifactRoot(), execution.RuntimeEnv, provenance, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if manifest["captureStatus"] != "complete" {
-		return errors.New("record capture is incomplete")
+		return nil, errors.New("record capture is incomplete")
 	}
 	var transport tool.Object
-	if err := tool.ReadJSON(filepath.Join(run.ArtifactRoot, "raw", "transport.json"), &transport); err != nil {
-		return err
+	if err := tool.ReadJSON(filepath.Join(run.ArtifactRoot(), "raw", "transport.json"), &transport); err != nil {
+		return nil, err
 	}
-	report := tool.Object{"schemaVersion": 1, "status": "captured", "branchStatus": "not-applicable", "captureStatus": "complete", "consumer": run.Execution.Provenance == "consumer", "provenance": run.Execution.Provenance}
+	report := tool.Object{"schemaVersion": 1, "status": "captured", "branchStatus": "not-applicable", "captureStatus": "complete", "consumer": execution.Provenance == "consumer", "provenance": execution.Provenance}
 	for _, key := range []string{"nativeLaunched", "clientEOF", "cleanupComplete", "target", "remoteConnected", "remoteClosed"} {
 		if value, ok := transport[key]; ok {
 			report[key] = value
 		}
 	}
-	if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot, "report.json"), report); err != nil {
-		return err
+	if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "report.json"), report); err != nil {
+		return nil, err
 	}
-	artifact, err := captureArtifact(run, run.Execution.Provenance)
+	artifact, err := captureArtifact(run, execution)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return lifecycle.PublishCapture(filepath.Dir(filepath.Dir(run.Dir)), run, *artifact)
+	return artifact, nil
 }
 
-func recordReceipt(run *lifecycle.ActionRun) string {
-	for _, c := range run.Execution.Connections {
-		if c.ID == run.Connection {
-			return c.Receipt
-		}
+func recordReceipt(run lifecycle.RecordContext) string {
+	if receipt := run.ConnectionReceipt(); receipt != "" {
+		return receipt
 	}
-	return filepath.Join(run.ArtifactRoot, "raw", "transport.json")
+	return filepath.Join(run.ArtifactRoot(), "raw", "transport.json")
 }
 
 func environment(values map[string]string) []string {
@@ -301,24 +292,24 @@ func copyEvidenceTree(source, target, name string) error {
 	return tool.CopyTree(path, filepath.Join(target, filepath.FromSlash(name)))
 }
 
-func captureArtifact(run *lifecycle.ActionRun, provenance string) (*corpus.Material, error) {
-	planHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot, "plan.json"))
+func captureArtifact(run lifecycle.RecordContext, execution lifecycle.Execution) (*corpus.Material, error) {
+	planHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "plan.json"))
 	if err != nil {
 		return nil, err
 	}
-	manifestHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot, "manifest.json"))
+	manifestHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "manifest.json"))
 	if err != nil {
 		return nil, err
 	}
-	rawHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot, "raw", "raw.jsonl"))
+	rawHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "raw", "raw.jsonl"))
 	if err != nil {
 		return nil, err
 	}
-	artifact := run.Execution.Artifact
+	artifact := execution.Artifact
 	artifact.Kind = "capture"
 	artifact.Action = "record"
-	artifact.Provenance = provenance
-	artifact.Path = run.ArtifactRoot
+	artifact.Provenance = execution.Provenance
+	artifact.Path = run.ArtifactRoot()
 	artifact.PlanSHA256 = planHash
 	artifact.ManifestSHA256 = manifestHash
 	artifact.RecordingSHA256 = rawHash
