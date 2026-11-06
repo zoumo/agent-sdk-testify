@@ -85,7 +85,7 @@ func recordDriverSubstitute(args []string) int {
 		"config":    os.Getenv(configKey),
 		"tmp":       os.Getenv("TMPDIR"),
 	}
-	if tool.WriteJSON(filepath.Join(req.Output, "report.json"), tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "synthetic-driver-source", "officialSDK": tool.Object{"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider], "version": "synthetic-only"}, "observed": observed}) != nil {
+	if tool.WriteJSON(filepath.Join(req.Output, "report.json"), tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": tool.Object{"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider], "version": "synthetic-only"}, "observed": observed}) != nil {
 		return 6
 	}
 	if tool.WriteJSON(filepath.Join(req.Output, "result.json"), tool.Result{Status: status, Message: "synthetic-only"}) != nil {
@@ -288,7 +288,7 @@ func checkRecordCapture(t *testing.T, provider string) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "raw", "transport.json"), &transport))
 	require.Equal(t, true, transport["cleanupComplete"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "driver", "report.json"), &report))
-	require.Equal(t, "synthetic-driver-source", report["captureStatus"])
+	require.Equal(t, "synthetic-only", tool.Obj(report["officialSDK"])["version"])
 	raw, err := os.ReadFile(filepath.Join(output, "raw", "raw.jsonl"))
 	require.NoError(t, err)
 	require.Contains(t, string(raw), "9007199254740993")

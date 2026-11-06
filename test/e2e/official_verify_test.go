@@ -77,6 +77,13 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 				require.NotEmpty(t, ref["receiptHashes"])
 				require.NotEmpty(t, ref["evidenceFiles"])
 				require.NotEmpty(t, evidence["contracts"])
+				files := obj(evidence["files"])
+				for _, name := range []string{"driver/materials/case.json", "driver/replay-report.json", "driver/request.json", "driver/result.json", "driver/stderr.log", "driver/stdout.log"} {
+					require.Contains(t, files, name)
+				}
+				for name, digest := range obj(ref["evidenceFiles"]) {
+					require.Equal(t, digest, files[name])
+				}
 				mockRoute := obj(obj(readJSON(t, filepath.Join(session, "session.json"))["routes"])["mock"])
 				host := obj(obj(evidence["report"])["host"])
 				require.Equal(t, obj(mockRoute["env"])["HOME"], host["home"])
