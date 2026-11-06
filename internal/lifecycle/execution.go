@@ -239,7 +239,7 @@ func executionProtocolCwd(action string, plan tool.Object, workspace string) str
 	return planProtocolCwd(plan, workspace)
 }
 
-func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs, nativeArgs []string, timeout time.Duration, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
+func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
 	workspace := filepath.Join(overlayRoot, "workspace")
 	limits := session.Limits
 	if timeout > 0 {
@@ -301,10 +301,13 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	} else if material != nil {
 		execution.Artifact = *material
 	}
+	if action == "mock" {
+		execution.ProgressFD = progressFD
+	}
 	return execution, nil
 }
 
-func createActionLocked(sessionDir, action string, commandArgs []string, timeout time.Duration, material *corpus.Material, admission *Admission, held *Lock, origin *corpus.OfficialOrigin) (*ActionRun, error) {
+func createActionLocked(sessionDir, action string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, admission *Admission, held *Lock, origin *corpus.OfficialOrigin) (*ActionRun, error) {
 	sessionDir, err := canonicalSessionDir(sessionDir)
 	if err != nil {
 		return nil, err
@@ -427,7 +430,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 			ids = append([]string(nil), material.Connections...)
 		}
 	}
-	execution, err := newExecution(session, action, id, overlayRoot, artifactRoot, commandArgs, nil, timeout, ids, material, admission, plan, historyFiles)
+	execution, err := newExecution(session, action, id, overlayRoot, artifactRoot, commandArgs, nativeArgs, timeout, progressFD, ids, material, admission, plan, historyFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -451,6 +454,10 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 	for _, connection := range execution.Connections {
 		indexConnections = append(indexConnections, IndexConnection{ID: connection.ID, Status: "pending"})
 	}
+	executionStatus := "running"
+	if action == "mock" {
+		executionStatus = "open"
+	}
 	if err := updateIndex(sessionDir, func(value *Index) error {
 		for _, existing := range value.Executions {
 			if existing.ID == id {
@@ -461,7 +468,7 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 			ID:               id,
 			Command:          action,
 			DescriptorSHA256: descriptorHash,
-			Status:           "running",
+			Status:           executionStatus,
 			StartedAt:        execution.StartedAt,
 			UpdatedAt:        now(),
 			Connections:      indexConnections,
@@ -471,158 +478,6 @@ func createActionLocked(sessionDir, action string, commandArgs []string, timeout
 		return nil, err
 	}
 	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, lock: lock}
-	success = true
-	return run, nil
-}
-
-// BeginMock either creates the execution that declares all connections or
-// joins its unstarted connection slot. The returned lock covers the peer life.
-func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material) (*ActionRun, error) {
-	if material == nil {
-		return nil, errors.New("mock requires an input material")
-	}
-	sessionDir, err := canonicalSessionDir(sessionDir)
-	if err != nil {
-		return nil, err
-	}
-	session, err := readSessionUnlocked(sessionDir)
-	if err != nil {
-		return nil, err
-	}
-	route, ok := session.Routes["mock"]
-	if !ok || !route.Enabled {
-		return nil, errors.New("mock is not available for this session")
-	}
-	lock, exclusive, err := beginActionLock(sessionDir)
-	if err != nil {
-		return nil, err
-	}
-	success := false
-	defer func() {
-		if !success {
-			_ = lock.Close()
-		}
-	}()
-	routeBound := false
-	defer func() {
-		if !success && routeBound {
-			_ = restoreRouteSlots(session, "mock")
-		}
-	}()
-	current, err := LatestArtifact(sessionDir, session)
-	if err != nil {
-		return nil, err
-	}
-	if !reflect.DeepEqual(current, material) {
-		return nil, errors.New("current recording changed before execution")
-	}
-	if _, err := executionConnections(sessionDir, "mock", current.Connections, current, route); err != nil {
-		return nil, err
-	}
-	index, err := readIndex(IndexPath(sessionDir))
-	if err != nil {
-		return nil, err
-	}
-	if pending := pendingExecution(index); pending != nil {
-		for _, existing := range index.Executions {
-			if existing.ID != pending.ID {
-				continue
-			}
-			if connectionStarted(&existing, connection) {
-				return nil, fmt.Errorf("mock connection %s already started for execution %s", connection, existing.ID)
-			}
-			run, joinErr := joinMock(sessionDir, session, &existing, connection, nativeArgs, timeout, progressFD, material, lock)
-			if joinErr != nil {
-				return nil, joinErr
-			}
-			success = true
-			return run, nil
-		}
-		return nil, fmt.Errorf("session has unfinished execution %s", pending.ID)
-	}
-	if !exclusive {
-		return nil, errors.New("session action busy: wait for the active mock execution")
-	}
-	inspection, err := inspectMaterial(session, *material)
-	if err != nil {
-		return nil, err
-	}
-	plan := inspection.Plan
-	ids := ConnectionIDs(session.Source, plan)
-	if material != nil && len(material.Connections) > 0 {
-		ids = append([]string(nil), material.Connections...)
-	}
-	found := false
-	for _, id := range ids {
-		if id == connection {
-			found = true
-		}
-	}
-	if !found {
-		return nil, fmt.Errorf("undeclared mock connection %s", connection)
-	}
-	id, err := randomID()
-	if err != nil {
-		return nil, err
-	}
-	dir := ExecutionDir(sessionDir, id)
-	if err := os.MkdirAll(filepath.Join(dir, "receipts"), 0o700); err != nil {
-		return nil, err
-	}
-	artifactRoot := filepath.Join(dir, "mock")
-	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
-		return nil, err
-	}
-	overlayRoot, historyFiles, err := createExecutionOverlay(session, "mock", dir, plan, material)
-	if err != nil {
-		return nil, err
-	}
-	routeBound = true
-	commandArgs := append([]string{"--session-dir", sessionDir, "--connection", connection}, nativeArgs...)
-	execution, err := newExecution(session, "mock", id, overlayRoot, artifactRoot, commandArgs, nativeArgs, timeout, ids, material, nil, plan, historyFiles)
-	if err != nil {
-		return nil, err
-	}
-	execution.ProgressFD = progressFD
-	if err := execution.Validate(*session); err != nil {
-		return nil, err
-	}
-	descriptorPath := filepath.Join(dir, "execution.json")
-	if err := writeExclusive(descriptorPath, execution); err != nil {
-		return nil, err
-	}
-	descriptorHash, err := tool.FileDigest(descriptorPath)
-	if err != nil {
-		return nil, err
-	}
-	indexConnections := make([]IndexConnection, 0, len(execution.Connections))
-	for _, c := range execution.Connections {
-		indexConnections = append(indexConnections, IndexConnection{ID: c.ID, Status: "pending"})
-	}
-	if err := updateIndex(sessionDir, func(value *Index) error {
-		value.Executions = append(value.Executions, IndexExecution{
-			ID:               id,
-			Command:          "mock",
-			DescriptorSHA256: descriptorHash,
-			Status:           "open",
-			StartedAt:        execution.StartedAt,
-			UpdatedAt:        now(),
-			Connections:      indexConnections,
-		})
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-	if err := claimConnection(execution, connection); err != nil {
-		return nil, err
-	}
-	if err := markConnection(sessionDir, id, connection, "running", "open"); err != nil {
-		return nil, err
-	}
-	if err := lock.Downgrade(); err != nil {
-		return nil, err
-	}
-	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, lock: lock}
 	success = true
 	return run, nil
 }
@@ -640,40 +495,6 @@ func beginActionLock(sessionDir string) (*Lock, bool, error) {
 		return nil, false, err
 	}
 	return lock, false, nil
-}
-
-func joinMock(sessionDir string, session *Session, indexed *IndexExecution, connection string, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, lock *Lock) (*ActionRun, error) {
-	dir := ExecutionDir(sessionDir, indexed.ID)
-	var execution Execution
-	if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
-		return nil, err
-	}
-	if err := execution.Validate(*session); err != nil {
-		return nil, err
-	}
-	found := false
-	for _, c := range execution.Connections {
-		if c.ID == connection {
-			found = true
-		}
-	}
-	if !found {
-		return nil, fmt.Errorf("undeclared mock connection %s", connection)
-	}
-	if err := validateMockJoin(execution, nativeArgs, timeout, progressFD, material); err != nil {
-		return nil, err
-	}
-	if err := claimConnection(execution, connection); err != nil {
-		return nil, err
-	}
-	if err := markConnection(sessionDir, execution.ExecutionID, connection, "running", "open"); err != nil {
-		return nil, err
-	}
-	plan, err := LoadPlan(session)
-	if err != nil {
-		return nil, err
-	}
-	return &ActionRun{Session: session, Plan: plan, Execution: execution, Connection: connection, Dir: dir, OverlayRoot: filepath.Dir(execution.Home), ArtifactRoot: execution.ArtifactRoot, lock: lock}, nil
 }
 
 func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material) error {
@@ -694,17 +515,6 @@ func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Dur
 	}
 	if !slices.Equal(nativeArgs, execution.NativeArgs) {
 		return errors.New("mock join native arguments differ from the open execution")
-	}
-	return nil
-}
-
-func claimConnection(execution Execution, id string) error {
-	path, err := connectionClaimPath(execution, id)
-	if err != nil {
-		return err
-	}
-	if err := createConnectionClaim(path); err != nil {
-		return fmt.Errorf("%s connection %s already started: %w", execution.Command, id, err)
 	}
 	return nil
 }
@@ -765,68 +575,4 @@ func markConnection(sessionDir, executionID, connection, status, executionStatus
 		}
 		return errors.New("execution is absent from index")
 	})
-}
-
-// CompleteMockConnection records one peer result without closing the execution
-// while another declared peer is still pending or running.
-func CompleteMockConnection(run *ActionRun, status string) error {
-	if run == nil || run.Connection == "" {
-		return errors.New("mock completion requires an execution and connection")
-	}
-	sessionDir := filepath.Dir(filepath.Dir(run.Dir))
-	complete := false
-	err := updateIndex(sessionDir, func(index *Index) error {
-		for i := range index.Executions {
-			execution := &index.Executions[i]
-			if execution.ID != run.Execution.ExecutionID {
-				continue
-			}
-			found := false
-			allBound := true
-			failed := false
-			for j := range execution.Connections {
-				connection := &execution.Connections[j]
-				if connection.ID == run.Connection {
-					connection.Status = status
-					found = true
-				}
-				switch connection.Status {
-				case "pending", "running", "open":
-					allBound = false
-				case "passed":
-				default:
-					failed = true
-				}
-			}
-			if !found {
-				return fmt.Errorf("mock connection %s is absent from execution index", run.Connection)
-			}
-			execution.UpdatedAt = now()
-			if !allBound {
-				execution.Status = "open"
-			} else if failed {
-				execution.Status = "failed"
-				complete = true
-			} else {
-				execution.Status = "passed"
-				complete = true
-			}
-			return nil
-		}
-		return errors.New("execution is absent from index")
-	})
-	if err != nil || !complete {
-		return err
-	}
-	// The official SDK can query history after protocol EOF. Its orchestrator
-	// restores this same route after the driver has finished those reads.
-	var active tool.Object
-	if err := tool.ReadJSON(filepath.Join(sessionDir, "official-active.json"), &active); err == nil {
-		if active["sessionId"] == run.Session.SessionID && active["mode"] == "verify" {
-			return nil
-		}
-	} else if !os.IsNotExist(err) {
-		return err
-	}
-	return restoreRouteSlots(run.Session, "mock")
 }

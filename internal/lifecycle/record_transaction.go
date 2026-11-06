@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"maps"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -41,75 +40,11 @@ type RecordPolicy interface {
 
 // RecordContext is a read-only snapshot of transaction-owned state.
 type RecordContext struct {
-	session      *Session
-	plan         tool.Object
-	execution    Execution
-	connection   string
-	sessionDir   string
-	dir          string
-	overlayRoot  string
-	artifactRoot string
-}
-
-func (c RecordContext) Session() Session {
-	session := *c.session
-	session.Tool.Args = slices.Clone(c.session.Tool.Args)
-	session.HistorySeedFiles = maps.Clone(c.session.HistorySeedFiles)
-	session.Env = maps.Clone(c.session.Env)
-	session.Routes = make(map[string]Route, len(c.session.Routes))
-	for name, route := range c.session.Routes {
-		route.Env = maps.Clone(route.Env)
-		route.RuntimeEnv = slices.Clone(route.RuntimeEnv)
-		connections := route.Connections
-		route.Connections = make([]ConnectionTemplate, len(connections))
-		for i, connection := range connections {
-			connection.Args = slices.Clone(connection.Args)
-			route.Connections[i] = connection
-		}
-		session.Routes[name] = route
-	}
-	return session
-}
-
-func (c RecordContext) Plan() tool.Object {
-	return cloneRecordObject(c.plan)
-}
-
-func (c RecordContext) Execution() Execution {
-	return cloneRecordExecution(c.execution)
+	transactionContext
 }
 
 func (c RecordContext) IsOfficialCapture() bool {
 	return c.execution.Artifact.OfficialOrigin != nil
-}
-
-func (c RecordContext) Connection() string {
-	return c.connection
-}
-
-func (c RecordContext) SessionDir() string {
-	return c.sessionDir
-}
-
-func (c RecordContext) ExecutionDir() string {
-	return c.dir
-}
-
-func (c RecordContext) OverlayRoot() string {
-	return c.overlayRoot
-}
-
-func (c RecordContext) ArtifactRoot() string {
-	return c.artifactRoot
-}
-
-func (c RecordContext) ConnectionReceipt() string {
-	for _, connection := range c.execution.Connections {
-		if connection.ID == c.connection {
-			return connection.Receipt
-		}
-	}
-	return ""
 }
 
 func (c RecordContext) ProcessReceipt() string {
@@ -117,27 +52,22 @@ func (c RecordContext) ProcessReceipt() string {
 }
 
 type recordTransaction struct {
-	session      *Session
-	plan         tool.Object
-	execution    Execution
-	connection   string
-	sessionDir   string
-	dir          string
-	overlayRoot  string
-	artifactRoot string
-	lock         *Lock
+	transactionContext
+	lock *Lock
 }
 
 func (r *recordTransaction) context() RecordContext {
 	return RecordContext{
-		session:      r.session,
-		plan:         r.plan,
-		execution:    r.execution,
-		connection:   r.connection,
-		sessionDir:   r.sessionDir,
-		dir:          r.dir,
-		overlayRoot:  r.overlayRoot,
-		artifactRoot: r.artifactRoot,
+		transactionContext: transactionContext{
+			session:      r.session,
+			plan:         r.plan,
+			execution:    r.execution,
+			connection:   r.connection,
+			sessionDir:   r.sessionDir,
+			dir:          r.dir,
+			overlayRoot:  r.overlayRoot,
+			artifactRoot: r.artifactRoot,
+		},
 	}
 }
 
@@ -210,53 +140,11 @@ func (r *recordTransaction) finalize(ctx context.Context, policy RecordPolicy, s
 }
 
 func (r *recordTransaction) settleConnection(status string) (ready, passed bool, err error) {
-	passed = true
-	err = updateIndex(r.sessionDir, func(index *Index) error {
-		for i := range index.Executions {
-			execution := &index.Executions[i]
-			if execution.ID != r.execution.ExecutionID {
-				continue
-			}
-			setConnectionStarted(execution, r.connection, status)
-			ready = true
-			for _, connection := range execution.Connections {
-				if connection.Status == "pending" || connection.Status == "running" {
-					ready = false
-				}
-				if connection.Status != "passed" {
-					passed = false
-				}
-			}
-			execution.Status = "open"
-			execution.UpdatedAt = now()
-			return nil
-		}
-		return errors.New("record execution absent from index")
-	})
-	return ready, passed, err
+	return settleTransactionConnection(r.sessionDir, "record", r.execution.ExecutionID, r.connection, status)
 }
 
 func (r *recordTransaction) fail() error {
-	errs := []error{r.restoreRoutes(), scrubExecutionAuthentication(r.session, r.overlayRoot)}
-	errs = append(errs, updateIndex(r.sessionDir, func(index *Index) error {
-		for i := range index.Executions {
-			execution := &index.Executions[i]
-			if execution.ID != r.execution.ExecutionID {
-				continue
-			}
-			execution.Status = "failed"
-			execution.ArtifactID = ""
-			execution.UpdatedAt = now()
-			for j := range execution.Connections {
-				if execution.Connections[j].Status == "pending" || execution.Connections[j].Status == "running" {
-					execution.Connections[j].Status = "failed"
-				}
-			}
-			return nil
-		}
-		return errors.New("record execution absent from index")
-	}))
-	return errors.Join(errs...)
+	return failTransaction(r.session, r.sessionDir, "record", r.execution.ExecutionID, r.overlayRoot, r.restoreRoutes)
 }
 
 func (r *recordTransaction) restoreRoutes() error {
@@ -505,14 +393,16 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 			return
 		}
 		aborted := &recordTransaction{
-			session:      action.Session,
-			plan:         action.Plan,
-			execution:    action.Execution,
-			connection:   request.Connection,
-			sessionDir:   sessionDir,
-			dir:          action.Dir,
-			overlayRoot:  action.OverlayRoot,
-			artifactRoot: action.ArtifactRoot,
+			transactionContext: transactionContext{
+				session:      action.Session,
+				plan:         action.Plan,
+				execution:    action.Execution,
+				connection:   request.Connection,
+				sessionDir:   sessionDir,
+				dir:          action.Dir,
+				overlayRoot:  action.OverlayRoot,
+				artifactRoot: action.ArtifactRoot,
+			},
 		}
 		err = errors.Join(err, aborted.fail())
 	}()
@@ -543,7 +433,7 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		if !exclusive {
 			return nil, ErrBusy
 		}
-		action, err = createActionLocked(sessionDir, "record", request.Args, request.Timeout, nil, nil, lock, origin)
+		action, err = createActionLocked(sessionDir, "record", request.Args, nil, request.Timeout, 0, nil, nil, lock, origin)
 		if err != nil {
 			return nil, err
 		}
@@ -602,15 +492,17 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	}
 	ok = true
 	return &recordTransaction{
-		session:      session,
-		plan:         plan,
-		execution:    action.Execution,
-		connection:   request.Connection,
-		sessionDir:   sessionDir,
-		dir:          action.Dir,
-		overlayRoot:  action.OverlayRoot,
-		artifactRoot: action.ArtifactRoot,
-		lock:         lock,
+		transactionContext: transactionContext{
+			session:      session,
+			plan:         plan,
+			execution:    action.Execution,
+			connection:   request.Connection,
+			sessionDir:   sessionDir,
+			dir:          action.Dir,
+			overlayRoot:  action.OverlayRoot,
+			artifactRoot: action.ArtifactRoot,
+		},
+		lock: lock,
 	}, nil
 }
 
@@ -620,66 +512,4 @@ func removeFileIfExists(path string) error {
 		return nil
 	}
 	return err
-}
-
-func cloneRecordObject(value tool.Object) tool.Object {
-	if value == nil {
-		return nil
-	}
-	clone := make(tool.Object, len(value))
-	for key, item := range value {
-		clone[key] = cloneRecordValue(item)
-	}
-	return clone
-}
-
-func cloneRecordValue(value any) any {
-	switch value := value.(type) {
-	case map[string]any:
-		return cloneRecordObject(value)
-	case []any:
-		clone := make([]any, len(value))
-		for i, item := range value {
-			clone[i] = cloneRecordValue(item)
-		}
-		return clone
-	case map[string]string:
-		return maps.Clone(value)
-	case []string:
-		return slices.Clone(value)
-	default:
-		return value
-	}
-}
-
-func cloneRecordExecution(source Execution) Execution {
-	execution := source
-	execution.Args = slices.Clone(source.Args)
-	execution.NativeArgs = slices.Clone(source.NativeArgs)
-	execution.HistoryFiles = maps.Clone(source.HistoryFiles)
-	execution.Env = maps.Clone(source.Env)
-	execution.RuntimeEnv = maps.Clone(source.RuntimeEnv)
-	execution.Connections = make([]ExecutionConnection, len(source.Connections))
-	for i, connection := range source.Connections {
-		connection.Args = slices.Clone(connection.Args)
-		execution.Connections[i] = connection
-	}
-	if source.Admission != nil {
-		admission := *source.Admission
-		execution.Admission = &admission
-	}
-	execution.Artifact = cloneRecordMaterial(source.Artifact)
-	return execution
-}
-
-func cloneRecordMaterial(source corpus.Material) corpus.Material {
-	material := source
-	material.Files = maps.Clone(source.Files)
-	material.Connections = slices.Clone(source.Connections)
-	if source.OfficialOrigin != nil {
-		origin := *source.OfficialOrigin
-		origin.Connections = slices.Clone(source.OfficialOrigin.Connections)
-		material.OfficialOrigin = &origin
-	}
-	return material
 }
