@@ -33,6 +33,7 @@ type driverRunResult struct {
 	Outcome            tool.Object
 	Report             tool.Object
 	Files              map[string]string
+	FileHashesComplete bool
 	ProcessGroupFailed bool
 }
 
@@ -121,5 +122,6 @@ func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error
 	}
 	var hashErr error
 	result.Files, hashErr = history.HashTree(o.Root)
+	result.FileHashesComplete = hashErr == nil
 	return result, errors.Join(runErr, hashErr)
 }

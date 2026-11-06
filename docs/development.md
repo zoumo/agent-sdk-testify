@@ -58,8 +58,8 @@ agent-sdk-testify/
   官方验证编排，不保留独立 `verify` 包或普通录制包中的官方编排入口。
 - `native` 集中原生配置过滤、认证环境、启动准备、历史种子准备及工具拥有的原生
   服务管理。它不依赖 session、execution 或官方编排；session 的环境基线、overlay
-  路由、资源归属、锁和清理时序仍由 `lifecycle` 管理。driver 发现、请求和 launcher
-  归 `official`。
+  路由、资源归属、锁和清理时序仍由 `lifecycle` 管理。driver 发现、请求、launcher、
+  subprocess 与证据 plumbing 归 `official`，由同一 driver-run 统一拥有。
 - `lifecycle` 不依赖 `official`。官方编排通过 `lifecycle` 管理活动登记和精确
   execution 引用，通过 `native` 准备原生环境，driver 继续调用公开 agent 命令。
 - 生产回放使用 `mock` 到 `replay` 的执行路径；协议根包保留原生启动参数校验，

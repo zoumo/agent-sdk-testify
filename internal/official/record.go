@@ -4,10 +4,8 @@ package official
 import (
 	"context"
 	"errors"
-	"fmt"
 	"maps"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"time"
@@ -133,6 +131,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
 		}
 	}
+	private := filepath.Join(session.ResourceRoot, "official", activity.ID)
 	var service interface {
 		URL() string
 		TokenFile() string
@@ -143,11 +142,10 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		Evidence() tool.Object
 	}
 	if plan["driverProfile"] == "remote-close" && o.URL == "" {
-		privateRoot := filepath.Join(session.ResourceRoot, "official", activity.ID)
-		if err := os.MkdirAll(privateRoot, 0o700); err != nil {
+		if err := os.MkdirAll(private, 0o700); err != nil {
 			return err
 		}
-		service, err = native.ReserveRecordService(ctx, privateRoot)
+		service, err = native.ReserveRecordService(ctx, private)
 		if err != nil {
 			return err
 		}
@@ -158,7 +156,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 				result["cleanupComplete"] = false
 			}
 			cleanup := tool.Object{}
-			readErr := tool.ReadJSON(filepath.Join(privateRoot, "remote-service.json"), &cleanup)
+			readErr := tool.ReadJSON(filepath.Join(private, "remote-service.json"), &cleanup)
 			result["remoteService"] = tool.Object{"owned": true, "cleanupComplete": cleanupErr == nil && readErr == nil, "native": service.Evidence(), "cleanup": cleanup}
 			runErr = errors.Join(runErr, readErr)
 			runErr = errors.Join(runErr, cleanupErr)
@@ -175,10 +173,8 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	if err != nil {
 		return err
 	}
-	peer := DriverPeer{}
-	results := tool.Object{}
+	peers := make(map[string]tool.Command, len(ids))
 	for _, id := range ids {
-		results[id] = filepath.Join(root, "peer-"+id+".results.jsonl")
 		args := []string{"agent", "record", "--session-dir", o.SessionDir, "--connection", id}
 		if o.Timeout > 0 {
 			args = append(args, "--timeout", o.Timeout.String())
@@ -194,58 +190,13 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 			args = append(args, "--cmd", o.Command, "--")
 			args = append(args, o.NativeArgs...)
 		}
-		// Target/authentication locations are private invocation inputs, never
-		// part of request.json or the persisted driver plan.
-		private := filepath.Join(session.ResourceRoot, "official", activity.ID)
-		if err := os.MkdirAll(private, 0o700); err != nil {
-			return err
-		}
-		request := filepath.Join(private, "peer-"+id+".json")
-		if err := tool.WriteJSON(request, tool.Command{Command: self, Args: args, Env: launchEnv}); err != nil {
-			return err
-		}
-		launcher, err := WritePeerLauncher(private, id, tool.Command{Command: self, Args: []string{"--internal-peer", "--request", request, "--lifecycle", filepath.Join(root, "peer-"+id+".process.json"), "--results", filepath.Join(root, "peer-"+id+".results.jsonl")}})
-		if err != nil {
-			return err
-		}
-		entry := tool.Command{Command: launcher}
-		switch id {
-		case "main":
-			peer.Command = entry
-		case "probe":
-			peer.Probe = &entry
-		default:
-			return fmt.Errorf("unsupported driver connection %s", id)
-		}
+		peers[id] = tool.Command{Command: self, Args: args, Env: launchEnv}
 	}
-	plan["_agentResults"] = results
-	materials := filepath.Join(root, "materials")
-	if err := os.MkdirAll(materials, 0o700); err != nil {
-		return err
-	}
-	if err := tool.WriteJSON(filepath.Join(materials, "case.json"), plan); err != nil {
-		return err
-	}
-	requestPath := filepath.Join(root, "request.json")
-	if err := tool.WriteJSON(requestPath, Request{Case: tool.Str(plan["caseId"]), Materials: materials, Workspace: route.Workspace, Peer: peer, Output: root}); err != nil {
-		return err
-	}
-	stdout, err := os.OpenFile(filepath.Join(root, "stdout.log"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if err != nil {
-		return err
-	}
-	defer stdout.Close()
-	stderr, err := os.OpenFile(filepath.Join(root, "stderr.log"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if err != nil {
-		return err
-	}
-	defer stderr.Close()
 	var serviceDone chan error
 	var cancelService context.CancelFunc
 	if service != nil {
 		var serviceContext context.Context
 		serviceContext, cancelService = context.WithCancel(ctx)
-		defer cancelService()
 		serviceDone = make(chan error, 1)
 		go func() {
 			execution, err := waitRecordStart(serviceContext, o.SessionDir, session, filepath.Join(root, "peer-main.results.jsonl"))
@@ -293,62 +244,67 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 			serviceDone <- serviceErr
 		}()
 	}
-	cmd := exec.CommandContext(context.WithoutCancel(ctx), driver, "--request", requestPath)
-	cmd.Env, cmd.Dir, cmd.Stdout, cmd.Stderr = environment(env), route.Workspace, stdout, stderr
-	runErr = activity.WaitDriver(ctx, cmd)
-	if serviceDone != nil {
-		cancelService()
-		runErr = errors.Join(runErr, <-serviceDone)
-	}
-	process := tool.Object{"started": cmd.Process != nil, "reaped": cmd.ProcessState != nil, "cleanupComplete": cmd.ProcessState != nil}
-	if cmd.ProcessState != nil {
-		process["exitCode"] = cmd.ProcessState.ExitCode()
-	}
-	if cmd.Process != nil {
-		if err := tool.WaitProcessGroup(cmd.Process.Pid); err != nil {
-			process["cleanupComplete"] = false
-			result["cleanupComplete"] = false
-			runErr = errors.Join(runErr, err)
+	stopService := func() error {
+		if serviceDone != nil {
+			cancelService()
+			err := <-serviceDone
+			serviceDone = nil
+			return err
 		}
+		return nil
 	}
-	result["driverProcess"] = process
-	var outcome, report tool.Object
-	outcomeErr := tool.ReadJSON(filepath.Join(root, "result.json"), &outcome)
-	reportErr := tool.ReadJSON(filepath.Join(root, "report.json"), &report)
-	result["business"], result["report"] = outcome, report
-	runErr = errors.Join(runErr, outcomeErr, reportErr)
-	sdkPackage := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[session.AgentType]
-	if tool.Obj(report["officialSDK"])["package"] != sdkPackage || report["storyId"] != plan["storyId"] || outcome["status"] != "passed" || report["status"] != "passed" || report["branchStatus"] != "passed" || len(tool.Array(report["gaps"])) != 0 || report["caseId"] != plan["caseId"] || report["provider"] != session.AgentType || tool.Str(tool.Obj(report["officialSDK"])["version"]) == "" {
-		runErr = errors.Join(runErr, errors.New("official SDK business evidence is absent, failed or untriggered"))
-	}
-	refs, refErr := officialRecordReferences(o.SessionDir, session, root, ids)
-	result["connections"] = refs
-	runErr = errors.Join(runErr, refErr)
-	if refErr == nil && len(refs) > 0 && (o.URL == "" || service != nil) {
-		executionID := tool.Str(refs[0]["executionId"])
-		var execution lifecycle.Execution
-		preparationErr := tool.ReadJSON(filepath.Join(o.SessionDir, "executions", executionID, "execution.json"), &execution)
-		if preparationErr == nil {
-			isolationHash, isolationErr := tool.FileDigest(filepath.Join(o.SessionDir, "executions", executionID, "receipts", "isolation.json"))
-			planHash, planErr := tool.FileDigest(filepath.Join(filepath.Dir(execution.Home), "record-plan.json"))
-			preparationErr = errors.Join(isolationErr, planErr)
-			if preparationErr == nil {
-				result["recordPreparation"] = tool.Object{"executionId": executionID, "isolationSHA256": isolationHash, "preparedPlanSHA256": planHash}
+	run, driverErr := runDriver(ctx, driverRunOptions{
+		Activity:   activity,
+		Driver:     driver,
+		Env:        env,
+		Workspace:  route.Workspace,
+		Root:       root,
+		PrivateDir: private,
+		Plan:       plan,
+		Peers:      peers,
+		ReportFile: "report.json",
+		Inspect: func(outcome, report tool.Object, _ error) error {
+			inspectErr := validateBusinessEvidence(session.AgentType, plan, bound, outcome, report)
+			refs, refErr := officialRecordReferences(o.SessionDir, session, root, ids)
+			result["connections"] = refs
+			inspectErr = errors.Join(inspectErr, refErr)
+			if refErr == nil && len(refs) > 0 && (o.URL == "" || service != nil) {
+				executionID := tool.Str(refs[0]["executionId"])
+				var execution lifecycle.Execution
+				preparationErr := tool.ReadJSON(filepath.Join(o.SessionDir, "executions", executionID, "execution.json"), &execution)
+				if preparationErr == nil {
+					isolationHash, isolationErr := tool.FileDigest(filepath.Join(o.SessionDir, "executions", executionID, "receipts", "isolation.json"))
+					planHash, planErr := tool.FileDigest(filepath.Join(filepath.Dir(execution.Home), "record-plan.json"))
+					preparationErr = errors.Join(isolationErr, planErr)
+					if preparationErr == nil {
+						result["recordPreparation"] = tool.Object{"executionId": executionID, "isolationSHA256": isolationHash, "preparedPlanSHA256": planHash}
+					}
+				}
+				inspectErr = errors.Join(inspectErr, preparationErr)
 			}
-		}
-		runErr = errors.Join(runErr, preparationErr)
-	}
 
-	// The parent report is produced after material closure. Apply the existing
-	// capture credential check at its new evidence location as well.
-	scan, scanErr := corpus.ScanCaptureCredentialsWithEnvironment(root, env)
-	result["credentialScan"] = scan
-	runErr = errors.Join(runErr, scanErr)
-	files, hashErr := history.HashTree(root)
-	result["driverFiles"] = files
-	runErr = errors.Join(runErr, hashErr)
-	if hashErr == nil {
-		runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(activity.Dir, "driver-files.json"), files))
+			// The parent report is produced after material closure. Apply the
+			// capture credential check at its driver-run evidence location.
+			scan, scanErr := corpus.ScanCaptureCredentialsWithEnvironment(root, env)
+			result["credentialScan"] = scan
+			return errors.Join(inspectErr, scanErr)
+		},
+	})
+	runErr = driverErr
+	runErr = errors.Join(runErr, stopService())
+	if run == nil {
+		return runErr
+	}
+	process := maps.Clone(run.Process)
+	delete(process, "pid")
+	result["driverProcess"] = process
+	if run.ProcessGroupFailed {
+		result["cleanupComplete"] = false
+	}
+	result["business"], result["report"] = run.Outcome, run.Report
+	result["driverFiles"] = run.Files
+	if run.FileHashesComplete {
+		runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(activity.Dir, "driver-files.json"), run.Files))
 	}
 	return runErr
 }

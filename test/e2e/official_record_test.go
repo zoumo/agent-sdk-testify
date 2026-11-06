@@ -198,6 +198,9 @@ func controlledOfficialDriver(args []string) int {
 	if mode == "business-failed" {
 		report["status"], report["branchStatus"] = "failed", "failed"
 	}
+	if mode == "incomplete-capture" {
+		report["captureStatus"] = "partial"
+	}
 	if mode == "wrong-ref" {
 		path := filepath.Join(request.Output, "peer-main.results.jsonl")
 		data, err := os.ReadFile(path)
@@ -268,7 +271,11 @@ func officialRunResult(t *testing.T, session string) object {
 }
 
 func TestOfficialRecordInstalledChain(t *testing.T) {
-	for _, mode := range []string{"local", "busy", "business-failed", "no-trigger", "wrong-ref", "process-not-started", "cancel-before", "cancel-during", "startup-failed"} {
+	for _, mode := range []string{
+		"local", "busy", "business-failed", "incomplete-capture",
+		"no-trigger", "wrong-ref", "process-not-started",
+		"cancel-before", "cancel-during", "startup-failed",
+	} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
 			agent, drivers, env := isolatedCommands(t, root, "codex")
