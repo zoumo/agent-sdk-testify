@@ -291,22 +291,29 @@ func TestMockTransactionPreservesRouteDuringActiveOfficialVerify(t *testing.T) {
 	assertRecordLockAvailable(t, sessionDir)
 }
 
-func TestMockTransactionAbortRestoresRouteDuringActiveOfficialVerify(t *testing.T) {
+func TestMockTransactionFailurePreservesRouteDuringActiveOfficialVerify(t *testing.T) {
 	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
-	beginActiveMockVerify(t, sessionDir)
+	activity := beginActiveMockVerify(t, sessionDir)
 
-	run, err := beginMockTransaction(mockRequest(t, sessionDir, "main", 0))
-	require.NoError(t, err)
 	session, err := OpenSession(sessionDir)
 	require.NoError(t, err)
-	bound, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	replayErr := errors.New("synthetic replay failure")
+	workspaceAtReplay := ""
+	err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error {
+		bound, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+		require.NoError(t, err)
+		require.NotEqual(t, filepath.Join(session.ResourceRoot, "templates", "mock", "workspace"), bound)
+		workspaceAtReplay = bound
+		return replayErr
+	}))
+	require.ErrorIs(t, err, replayErr)
+	workspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
-	require.NotEqual(t, filepath.Join(session.ResourceRoot, "templates", "mock", "workspace"), bound)
-
-	require.NoError(t, errors.Join(run.abort(), run.close()))
+	require.Equal(t, workspaceAtReplay, workspace)
 	index, err := readIndex(IndexPath(sessionDir))
 	require.NoError(t, err)
 	require.Equal(t, "failed", index.Executions[0].Status)
+	require.NoError(t, activity.RestoreMockRoute())
 	assertMockRouteAtTemplate(t, sessionDir)
 	assertRecordLockAvailable(t, sessionDir)
 }

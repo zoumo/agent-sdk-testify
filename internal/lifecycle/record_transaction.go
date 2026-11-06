@@ -52,30 +52,13 @@ func (c RecordContext) ProcessReceipt() string {
 }
 
 type recordTransaction struct {
-	transactionContext
-	lock *Lock
+	lockedTransaction
 }
 
 func (r *recordTransaction) context() RecordContext {
 	return RecordContext{
-		transactionContext: transactionContext{
-			session:      r.session,
-			plan:         r.plan,
-			execution:    r.execution,
-			connection:   r.connection,
-			sessionDir:   r.sessionDir,
-			dir:          r.dir,
-			overlayRoot:  r.overlayRoot,
-			artifactRoot: r.artifactRoot,
-		},
+		transactionContext: r.transactionContext,
 	}
-}
-
-func (r *recordTransaction) close() error {
-	if r == nil {
-		return nil
-	}
-	return r.lock.Close()
 }
 
 func (r *recordTransaction) prepare(ctx context.Context, policy RecordPolicy) (plan tool.Object, err error) {
@@ -101,42 +84,50 @@ func (r *recordTransaction) trackNativeProbe(state string, pid int) error {
 // finalize serializes completion across declared connections and owns every
 // state transition from connection outcome through result delivery.
 func (r *recordTransaction) finalize(ctx context.Context, policy RecordPolicy, stream *os.File, runErr error) (err error) {
-	lock, err := lockFile(filepath.Join(r.dir, "record-finalize.lock"), true, true)
-	if err != nil {
-		err = errors.Join(runErr, err)
-		return errors.Join(err, writeRecordResult(ctx, r, stream, err))
+	lock, lockErr := lockFile(filepath.Join(r.dir, "record-finalize.lock"), true, true)
+	if lockErr != nil {
+		// Without the finalization gate, close the execution with one terminal
+		// index transition and do not attempt success or publication.
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, lockErr)
 	}
 	defer func() { err = errors.Join(err, lock.Close()) }()
+	return r.finalizeOutcome(ctx, policy, stream, runErr)
+}
 
+func (r *recordTransaction) finalizeOutcome(ctx context.Context, policy RecordPolicy, stream *os.File, runErr error) error {
 	status := recordStatus(runErr)
 	ready, allPassed, settleErr := r.settleConnection(status)
 	if settleErr != nil {
-		err = errors.Join(runErr, settleErr)
-		return errors.Join(err, writeRecordResult(ctx, r, stream, err))
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, settleErr)
 	}
 	if !ready {
-		return writeRecordResult(ctx, r, stream, runErr)
+		return writeTransactionResult(ctx, &r.transactionContext, stream, runErr)
 	}
 	if !allPassed {
-		err = errors.Join(runErr, errors.New("record execution has failed connections"), r.fail())
-		return errors.Join(err, writeRecordResult(ctx, r, stream, err))
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, errors.New("record execution has failed connections"))
 	}
 
 	artifact, err := policy.Package(ctx, r.context())
 	if err != nil {
-		err = errors.Join(err, r.fail())
-		return errors.Join(err, writeRecordResult(ctx, r, stream, err))
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, err)
 	}
 	if artifact == nil {
-		err = errors.New("record policy produced no material")
-		err = errors.Join(err, r.fail())
-		return errors.Join(err, writeRecordResult(ctx, r, stream, err))
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, errors.New("record policy produced no material"))
+	}
+	var current Current
+	if err := tool.ReadJSON(filepath.Join(r.sessionDir, "current.json"), &current); err != nil {
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, err)
 	}
 	if err := r.publish(*artifact); err != nil {
-		err = errors.Join(err, r.fail())
-		return errors.Join(err, writeRecordResult(ctx, r, stream, err))
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, err)
 	}
-	return writeRecordResult(ctx, r, stream, nil)
+	if err := writeTransactionResult(ctx, &r.transactionContext, stream, nil); err != nil {
+		// The selection switch precedes final notification. Restore the previous
+		// selection when the caller cannot observe the committed result.
+		restoreErr := writeCurrent(r.sessionDir, r.session, current.MaterialID)
+		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, err, restoreErr)
+	}
+	return nil
 }
 
 func (r *recordTransaction) settleConnection(status string) (ready, passed bool, err error) {
@@ -268,25 +259,6 @@ func bindRecordCapture(session *Session, execution Execution, artifactRoot strin
 	return execution, digest, nil
 }
 
-func writeRecordResult(ctx context.Context, run *recordTransaction, stream *os.File, runErr error) error {
-	dir := run.dir
-	if runErr != nil {
-		if err := tool.WriteJSON(filepath.Join(dir, "receipts", run.connection+".failure.json"), tool.Object{"status": "failed", "error": runErr.Error()}); err != nil {
-			runErr = errors.Join(runErr, err)
-		}
-	}
-	return writeActionResult(ctx, resultStateFromRecord(run), stream, runErr)
-}
-
-func resultStateFromRecord(run *recordTransaction) actionResultState {
-	return actionResultState{
-		session:    run.session,
-		execution:  run.execution,
-		connection: run.connection,
-		dir:        run.dir,
-	}
-}
-
 // RunRecord owns one record connection from allocation or join through result
 // delivery and lock release.
 func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) (runErr error) {
@@ -307,7 +279,7 @@ func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) 
 	if err != nil {
 		return err
 	}
-	defer func() { runErr = errors.Join(runErr, run.close()) }()
+	defer func() { runErr = errors.Join(runErr, run.releaseLock()) }()
 	completed := false
 	defer func() {
 		finalErr := runErr
@@ -317,7 +289,7 @@ func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) 
 		runErr = errors.Join(runErr, run.finalize(ctx, policy, result, finalErr))
 	}()
 
-	if err := notifyActionStarted(ctx, resultStateFromRecord(run), result); err != nil {
+	if err := notifyActionStarted(ctx, &run.transactionContext, result); err != nil {
 		return err
 	}
 	plan, err := run.prepare(ctx, policy)
@@ -386,22 +358,15 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		return nil, err
 	}
 
-	var action *ActionRun
+	var run *transactionContext
 	allocated := false
 	defer func() {
-		if ok || !allocated || action == nil {
+		if ok || !allocated || run == nil {
 			return
 		}
 		aborted := &recordTransaction{
-			transactionContext: transactionContext{
-				session:      action.Session,
-				plan:         action.Plan,
-				execution:    action.Execution,
-				connection:   request.Connection,
-				sessionDir:   sessionDir,
-				dir:          action.Dir,
-				overlayRoot:  action.OverlayRoot,
-				artifactRoot: action.ArtifactRoot,
+			lockedTransaction: lockedTransaction{
+				transactionContext: *run,
 			},
 		}
 		err = errors.Join(err, aborted.fail())
@@ -428,19 +393,19 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		if err != nil {
 			return nil, err
 		}
-		action = &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: filepath.Dir(execution.Home), ArtifactRoot: execution.ArtifactRoot, lock: lock}
+		run = newTransactionContext(session, plan, execution, sessionDir)
 	} else {
 		if !exclusive {
 			return nil, ErrBusy
 		}
-		action, err = createActionLocked(sessionDir, "record", request.Args, nil, request.Timeout, 0, nil, nil, lock, origin)
+		run, err = createTransactionLocked(sessionDir, "record", request.Args, nil, request.Timeout, 0, nil, nil, origin)
 		if err != nil {
 			return nil, err
 		}
 		allocated = true
 	}
 
-	targetPath := filepath.Join(action.OverlayRoot, "record-target.private")
+	targetPath := filepath.Join(run.overlayRoot, "record-target.private")
 	if existing, err := os.ReadFile(targetPath); err == nil {
 		if string(existing) != request.Target {
 			return nil, errors.New("record connection targets differ")
@@ -452,7 +417,7 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	} else {
 		return nil, err
 	}
-	action.Connection = request.Connection
+	run.connection = request.Connection
 	var claimPath, originReceiptPath string
 	claimed := false
 	defer func() {
@@ -467,24 +432,18 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		}
 	}()
 	if origin != nil {
-		path := filepath.Join(action.Dir, "receipts", request.Connection+".origin.json")
-		proof := tool.Object{"schemaVersion": 1, "origin": origin, "connectionId": request.Connection, "executionId": action.Execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid(), "toolSHA256": session.ToolSHA256}
+		path := filepath.Join(run.dir, "receipts", request.Connection+".origin.json")
+		proof := tool.Object{"schemaVersion": 1, "origin": origin, "connectionId": request.Connection, "executionId": run.execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid(), "toolSHA256": session.ToolSHA256}
 		if err := writeExclusive(path, proof); err != nil {
 			return nil, err
 		}
 		originReceiptPath = path
 	}
-	claimPath, err = connectionClaimPath(action.Execution, request.Connection)
+	claimPath, err = claimTransactionConnection(sessionDir, run.execution, request.Connection)
 	if err != nil {
 		return nil, err
 	}
-	if err := createConnectionClaim(claimPath); err != nil {
-		return nil, fmt.Errorf("%s connection %s already started: %w", action.Execution.Command, request.Connection, err)
-	}
 	claimed = true
-	if err := markConnection(sessionDir, action.Execution.ExecutionID, request.Connection, "running", "open"); err != nil {
-		return nil, err
-	}
 	if exclusive {
 		if err := lock.Downgrade(); err != nil {
 			return nil, err
@@ -492,17 +451,10 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	}
 	ok = true
 	return &recordTransaction{
-		transactionContext: transactionContext{
-			session:      session,
-			plan:         plan,
-			execution:    action.Execution,
-			connection:   request.Connection,
-			sessionDir:   sessionDir,
-			dir:          action.Dir,
-			overlayRoot:  action.OverlayRoot,
-			artifactRoot: action.ArtifactRoot,
+		lockedTransaction: lockedTransaction{
+			transactionContext: *run,
+			lock:               lock,
 		},
-		lock: lock,
 	}, nil
 }
 

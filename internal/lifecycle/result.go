@@ -36,14 +36,7 @@ func ResultStream(fd int) (*os.File, error) {
 	return os.NewFile(uintptr(duplicate), "execution-result"), nil
 }
 
-type actionResultState struct {
-	session    *Session
-	execution  Execution
-	connection string
-	dir        string
-}
-
-func actionResult(run actionResultState, status string, actionErr error) (string, tool.Object) {
+func actionResult(run *transactionContext, status string, actionErr error) (string, tool.Object) {
 	id := run.connection
 	if id == "" {
 		id = "main"
@@ -82,22 +75,9 @@ func actionResult(run actionResultState, status string, actionErr error) (string
 	return path, value
 }
 
-func actionRunResultState(run *ActionRun) actionResultState {
-	return actionResultState{
-		session:    run.Session,
-		execution:  run.Execution,
-		connection: run.Connection,
-		dir:        run.Dir,
-	}
-}
-
-// NotifyActionStarted gives the caller the exact identity before protocol I/O.
+// notifyActionStarted gives the caller the exact identity before protocol I/O.
 // Each notification references durable state; stdout remains native protocol only.
-func NotifyActionStarted(ctx context.Context, run *ActionRun, stream *os.File) error {
-	return notifyActionStarted(ctx, actionRunResultState(run), stream)
-}
-
-func notifyActionStarted(ctx context.Context, run actionResultState, stream *os.File) error {
+func notifyActionStarted(ctx context.Context, run *transactionContext, stream *os.File) error {
 	path, value := actionResult(run, "running", nil)
 	hash, err := tool.FileDigest(filepath.Join(run.dir, "execution.json"))
 	if err != nil {
@@ -113,13 +93,9 @@ func notifyActionStarted(ctx context.Context, run actionResultState, stream *os.
 	return nil
 }
 
-// WriteActionResult runs after receipts, cleanup and the index are finalized.
+// writeActionResult runs after receipts, cleanup and the index are finalized.
 // A connection result does not imply that other connections have completed.
-func WriteActionResult(ctx context.Context, run *ActionRun, stream *os.File, actionErr error) error {
-	return writeActionResult(ctx, actionRunResultState(run), stream, actionErr)
-}
-
-func writeActionResult(ctx context.Context, run actionResultState, stream *os.File, actionErr error) error {
+func writeActionResult(ctx context.Context, run *transactionContext, stream *os.File, actionErr error) error {
 	status := "passed"
 	if actionErr != nil {
 		status = "failed"

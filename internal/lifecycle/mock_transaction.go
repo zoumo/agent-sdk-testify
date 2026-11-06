@@ -39,38 +39,12 @@ type MockContext struct {
 }
 
 type mockTransaction struct {
-	transactionContext
-	lock *Lock
+	lockedTransaction
 }
 
 func (m *mockTransaction) context() MockContext {
 	return MockContext{
-		transactionContext: transactionContext{
-			session:      m.session,
-			plan:         m.plan,
-			execution:    m.execution,
-			connection:   m.connection,
-			sessionDir:   m.sessionDir,
-			dir:          m.dir,
-			overlayRoot:  m.overlayRoot,
-			artifactRoot: m.artifactRoot,
-		},
-	}
-}
-
-func (m *mockTransaction) close() error {
-	if m == nil {
-		return nil
-	}
-	return m.lock.Close()
-}
-
-func (m *mockTransaction) resultState() actionResultState {
-	return actionResultState{
-		session:    m.session,
-		execution:  m.execution,
-		connection: m.connection,
-		dir:        m.dir,
+		transactionContext: m.transactionContext,
 	}
 }
 
@@ -79,36 +53,34 @@ func (m *mockTransaction) resultState() actionResultState {
 func (m *mockTransaction) finalize(ctx context.Context, stream *os.File, replayErr error) (err error) {
 	lock, lockErr := lockFile(filepath.Join(m.dir, "mock-finalize.lock"), true, true)
 	if lockErr != nil {
-		return m.finalizeOutcome(ctx, stream, replayErr, lockErr)
+		processErr := m.writeProcessReceipt(replayErr)
+		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, replayErr, processErr, lockErr)
 	}
 	defer func() { err = errors.Join(err, lock.Close()) }()
-	return m.finalizeOutcome(ctx, stream, replayErr, nil)
+	return m.finalizeOutcome(ctx, stream, replayErr)
 }
 
-func (m *mockTransaction) finalizeOutcome(ctx context.Context, stream *os.File, replayErr, finalizationErr error) error {
+func (m *mockTransaction) finalizeOutcome(ctx context.Context, stream *os.File, replayErr error) error {
 	processErr := m.writeProcessReceipt(replayErr)
-	err := errors.Join(replayErr, processErr, finalizationErr)
+	err := errors.Join(replayErr, processErr)
 	status := "passed"
 	if err != nil {
 		status = "failed"
 	}
 	ready, allPassed, settleErr := m.settleConnection(status)
 	if settleErr != nil {
-		err = errors.Join(err, settleErr, m.fail())
-		return errors.Join(err, m.writeResult(ctx, stream, err))
+		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, err, settleErr)
 	}
 	if !ready {
-		return m.writeResult(ctx, stream, err)
+		return writeTransactionResult(ctx, &m.transactionContext, stream, err)
 	}
 	if !allPassed {
-		err = errors.Join(err, errors.New("mock execution has failed connections"), m.fail())
-		return errors.Join(err, m.writeResult(ctx, stream, err))
+		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, err, errors.New("mock execution has failed connections"))
 	}
 	if err := m.pass(); err != nil {
-		err = errors.Join(err, m.fail())
-		return errors.Join(err, m.writeResult(ctx, stream, err))
+		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, err)
 	}
-	return m.writeResult(ctx, stream, nil)
+	return writeTransactionResult(ctx, &m.transactionContext, stream, nil)
 }
 
 func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
@@ -168,12 +140,6 @@ func (m *mockTransaction) fail() error {
 	return failTransaction(m.session, m.sessionDir, "mock", m.execution.ExecutionID, m.overlayRoot, m.restoreRoutes)
 }
 
-func (m *mockTransaction) abort() error {
-	return failTransaction(m.session, m.sessionDir, "mock", m.execution.ExecutionID, m.overlayRoot, func() error {
-		return restoreRouteSlots(m.session, "mock")
-	})
-}
-
 func (m *mockTransaction) restoreRoutes() error {
 	var active tool.Object
 	err := tool.ReadJSON(filepath.Join(m.sessionDir, "official-active.json"), &active)
@@ -185,15 +151,6 @@ func (m *mockTransaction) restoreRoutes() error {
 		return err
 	}
 	return restoreRouteSlots(m.session, "mock")
-}
-
-func (m *mockTransaction) writeResult(ctx context.Context, stream *os.File, runErr error) error {
-	if runErr != nil {
-		if err := tool.WriteJSON(filepath.Join(m.dir, "receipts", m.connection+".failure.json"), tool.Object{"status": "failed", "error": runErr.Error()}); err != nil {
-			runErr = errors.Join(runErr, err)
-		}
-	}
-	return writeActionResult(ctx, m.resultState(), stream, runErr)
 }
 
 // RunMock owns one mock connection from allocation or join through result
@@ -222,7 +179,7 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (runEr
 	if err != nil {
 		return err
 	}
-	defer func() { runErr = errors.Join(runErr, run.close()) }()
+	defer func() { runErr = errors.Join(runErr, run.releaseLock()) }()
 	if run.execution.Limits.TimeoutNS > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, time.Duration(run.execution.Limits.TimeoutNS))
@@ -237,7 +194,7 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (runEr
 		runErr = errors.Join(runErr, run.finalize(ctx, result, finalErr))
 	}()
 
-	if err := notifyActionStarted(ctx, run.resultState(), result); err != nil {
+	if err := notifyActionStarted(ctx, &run.transactionContext, result); err != nil {
 		return err
 	}
 	if err := policy.Replay(ctx, run.context()); err != nil {
@@ -292,25 +249,15 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		return nil, err
 	}
 
-	var action *ActionRun
+	var run *transactionContext
 	allocated := false
 	defer func() {
-		if ok || !allocated || action == nil {
+		if ok || !allocated || run == nil {
 			return
 		}
-		aborted := &mockTransaction{
-			transactionContext: transactionContext{
-				session:      action.Session,
-				plan:         action.Plan,
-				execution:    action.Execution,
-				connection:   request.Connection,
-				sessionDir:   sessionDir,
-				dir:          action.Dir,
-				overlayRoot:  action.OverlayRoot,
-				artifactRoot: action.ArtifactRoot,
-			},
-		}
-		err = errors.Join(err, aborted.abort())
+		err = errors.Join(err, failTransaction(run.session, sessionDir, "mock", run.execution.ExecutionID, run.overlayRoot, func() error {
+			return restoreRouteSlots(run.session, "mock")
+		}))
 	}()
 	if pending := pendingExecution(index); pending != nil {
 		if pending.Command != "mock" || connectionStarted(pending, request.Connection) {
@@ -337,7 +284,7 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if err != nil {
 			return nil, err
 		}
-		action = &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: filepath.Dir(execution.Home), ArtifactRoot: execution.ArtifactRoot, lock: lock}
+		run = newTransactionContext(session, plan, execution, sessionDir)
 	} else {
 		if !exclusive {
 			return nil, ErrBusy
@@ -346,32 +293,27 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 			return nil, fmt.Errorf("undeclared mock connection %s", request.Connection)
 		}
 		commandArgs := append([]string{"--session-dir", sessionDir, "--connection", request.Connection}, request.NativeArgs...)
-		action, err = createActionLocked(sessionDir, "mock", commandArgs, request.NativeArgs, request.Timeout, request.ProgressFD, current, nil, lock, nil)
+		run, err = createTransactionLocked(sessionDir, "mock", commandArgs, request.NativeArgs, request.Timeout, request.ProgressFD, current, nil, nil)
 		if err != nil {
 			return nil, err
 		}
 		allocated = true
 	}
 
-	action.Connection = request.Connection
-	claimPath, err := connectionClaimPath(action.Execution, request.Connection)
-	if err != nil {
-		return nil, err
-	}
+	run.connection = request.Connection
 	claimed := false
+	claimPath := ""
 	defer func() {
 		if ok || allocated || !claimed {
 			return
 		}
 		err = errors.Join(err, removeFileIfExists(claimPath))
 	}()
-	if err := createConnectionClaim(claimPath); err != nil {
-		return nil, fmt.Errorf("mock connection %s already started: %w", request.Connection, err)
-	}
-	claimed = true
-	if err := markConnection(sessionDir, action.Execution.ExecutionID, request.Connection, "running", "open"); err != nil {
+	claimPath, err = claimTransactionConnection(sessionDir, run.execution, request.Connection)
+	if err != nil {
 		return nil, err
 	}
+	claimed = true
 	if exclusive {
 		if err := lock.Downgrade(); err != nil {
 			return nil, err
@@ -379,16 +321,9 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 	}
 	ok = true
 	return &mockTransaction{
-		transactionContext: transactionContext{
-			session:      action.Session,
-			plan:         action.Plan,
-			execution:    action.Execution,
-			connection:   request.Connection,
-			sessionDir:   sessionDir,
-			dir:          action.Dir,
-			overlayRoot:  action.OverlayRoot,
-			artifactRoot: action.ArtifactRoot,
+		lockedTransaction: lockedTransaction{
+			transactionContext: *run,
+			lock:               lock,
 		},
-		lock: lock,
 	}, nil
 }

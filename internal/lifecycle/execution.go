@@ -15,24 +15,6 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-type ActionRun struct {
-	Session      *Session
-	Plan         tool.Object
-	Execution    Execution
-	Connection   string
-	Dir          string
-	OverlayRoot  string
-	ArtifactRoot string
-	lock         *Lock
-}
-
-func (a *ActionRun) Close() error {
-	if a == nil {
-		return nil
-	}
-	return a.lock.Close()
-}
-
 func canonicalSessionDir(sessionDir string) (string, error) {
 	if !filepath.IsAbs(sessionDir) {
 		return "", errors.New("--session-dir must be absolute")
@@ -307,7 +289,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	return execution, nil
 }
 
-func createActionLocked(sessionDir, action string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, admission *Admission, held *Lock, origin *corpus.OfficialOrigin) (*ActionRun, error) {
+func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, admission *Admission, origin *corpus.OfficialOrigin) (*transactionContext, error) {
 	sessionDir, err := canonicalSessionDir(sessionDir)
 	if err != nil {
 		return nil, err
@@ -331,19 +313,7 @@ func createActionLocked(sessionDir, action string, commandArgs, nativeArgs []str
 	if action != "record" && material == nil {
 		return nil, fmt.Errorf("%s requires an input material", action)
 	}
-	lock := held
-	if lock == nil {
-		lock, err = actionLock(sessionDir, true)
-		if err != nil {
-			return nil, err
-		}
-	}
 	success := false
-	defer func() {
-		if !success {
-			_ = lock.Close()
-		}
-	}()
 	routeBound := false
 	defer func() {
 		if !success && routeBound {
@@ -477,9 +447,8 @@ func createActionLocked(sessionDir, action string, commandArgs, nativeArgs []str
 	}); err != nil {
 		return nil, err
 	}
-	run := &ActionRun{Session: session, Plan: plan, Execution: execution, Dir: dir, OverlayRoot: overlayRoot, ArtifactRoot: artifactRoot, lock: lock}
 	success = true
-	return run, nil
+	return newTransactionContext(session, plan, execution, sessionDir), nil
 }
 
 func beginActionLock(sessionDir string) (*Lock, bool, error) {

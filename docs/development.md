@@ -54,14 +54,18 @@ agent-sdk-testify/
 
 ### 内部职责与依赖
 
-- `record`、`mock` 分别拥有公开 agent 命令的执行流程；`official` 集中官方录制与
-  官方验证编排，不保留独立 `verify` 包或普通录制包中的官方编排入口。
+- `record`、`mock` 是公开 agent 命令的策略适配器：`record` 只提供录制准备、采集和
+  材料打包，`mock` 只提供回放。`lifecycle` 拥有一次 action execution 从开始或加入
+  到结果交付和释放锁的完整事务，包括连接 claim、overlay、index 转换、收尾串行化、
+  route 恢复、材料发布和 current 切换。`official` 集中官方录制与官方验证编排，
+  不保留独立 `verify` 包或普通录制包中的官方编排入口。
 - `native` 集中原生配置过滤、认证环境、启动准备、历史种子准备及工具拥有的原生
   服务管理。它不依赖 session、execution 或官方编排；session 的环境基线、overlay
   路由、资源归属、锁和清理时序仍由 `lifecycle` 管理。driver 发现、请求、launcher、
   subprocess 与证据 plumbing 归 `official`，由同一 driver-run 统一拥有。
 - `lifecycle` 不依赖 `official`。官方编排通过 `lifecycle` 管理活动登记和精确
-  execution 引用，通过 `native` 准备原生环境，driver 继续调用公开 agent 命令。
+  execution 引用，通过 `native` 准备原生环境，driver 继续调用公开的 `agent record`
+  和 `agent mock` 命令。
 - 生产回放使用 `mock` 到 `replay` 的执行路径；协议根包保留原生启动参数校验，
   不维护只供测试使用的第二套录制加载、超时或 receipt 流程。
 - 材料自身的格式、哈希闭包及来源规则归 `corpus`，case/binding 与 plan 合同归

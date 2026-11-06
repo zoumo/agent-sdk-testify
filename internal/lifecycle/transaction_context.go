@@ -2,6 +2,7 @@ package lifecycle
 
 import (
 	"maps"
+	"path/filepath"
 	"slices"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
@@ -17,6 +18,18 @@ type transactionContext struct {
 	dir          string
 	overlayRoot  string
 	artifactRoot string
+}
+
+func newTransactionContext(session *Session, plan tool.Object, execution Execution, sessionDir string) *transactionContext {
+	return &transactionContext{
+		session:      session,
+		plan:         plan,
+		execution:    execution,
+		sessionDir:   sessionDir,
+		dir:          ExecutionDir(sessionDir, execution.ExecutionID),
+		overlayRoot:  filepath.Dir(execution.Home),
+		artifactRoot: execution.ArtifactRoot,
+	}
 }
 
 func (c transactionContext) Session() Session {
