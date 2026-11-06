@@ -36,24 +36,31 @@ func ResultStream(fd int) (*os.File, error) {
 	return os.NewFile(uintptr(duplicate), "execution-result"), nil
 }
 
-func actionResult(run *ActionRun, status string, actionErr error) (string, tool.Object) {
-	id := run.Connection
+type actionResultState struct {
+	session    *Session
+	execution  Execution
+	connection string
+	dir        string
+}
+
+func actionResult(run actionResultState, status string, actionErr error) (string, tool.Object) {
+	id := run.connection
 	if id == "" {
 		id = "main"
 	}
-	path := filepath.Join(run.Dir, "receipts", id+".result.json")
+	path := filepath.Join(run.dir, "receipts", id+".result.json")
 	value := tool.Object{
 		"schemaVersion": 1,
-		"sessionId":     run.Session.SessionID,
+		"sessionId":     run.session.SessionID,
 		"processId":     os.Getpid(),
-		"executionId":   run.Execution.ExecutionID,
+		"executionId":   run.execution.ExecutionID,
 		"connectionId":  id,
-		"command":       run.Execution.Command,
+		"command":       run.execution.Command,
 		"status":        status,
-		"execution":     filepath.Join(run.Dir, "execution.json"),
+		"execution":     filepath.Join(run.dir, "execution.json"),
 		"result":        path,
 	}
-	for _, connection := range run.Execution.Connections {
+	for _, connection := range run.execution.Connections {
 		if connection.ID == id {
 			value["receipt"] = connection.Receipt
 			if connection.ProcessReceipt != "" {
@@ -61,8 +68,8 @@ func actionResult(run *ActionRun, status string, actionErr error) (string, tool.
 			}
 		}
 	}
-	if run.Execution.Command == "mock" || (status == "passed" && run.Execution.Artifact.ManifestSHA256 != "") {
-		material := run.Execution.Artifact
+	if run.execution.Command == "mock" || (status == "passed" && run.execution.Artifact.ManifestSHA256 != "") {
+		material := run.execution.Artifact
 		value["material"] = tool.Object{
 			"id": material.ID, "path": material.Path, "provenance": material.Provenance,
 			"planSHA256": material.PlanSHA256, "manifestSHA256": material.ManifestSHA256,
@@ -75,11 +82,24 @@ func actionResult(run *ActionRun, status string, actionErr error) (string, tool.
 	return path, value
 }
 
+func actionRunResultState(run *ActionRun) actionResultState {
+	return actionResultState{
+		session:    run.Session,
+		execution:  run.Execution,
+		connection: run.Connection,
+		dir:        run.Dir,
+	}
+}
+
 // NotifyActionStarted gives the caller the exact identity before protocol I/O.
 // Each notification references durable state; stdout remains native protocol only.
 func NotifyActionStarted(ctx context.Context, run *ActionRun, stream *os.File) error {
+	return notifyActionStarted(ctx, actionRunResultState(run), stream)
+}
+
+func notifyActionStarted(ctx context.Context, run actionResultState, stream *os.File) error {
 	path, value := actionResult(run, "running", nil)
-	hash, err := tool.FileDigest(filepath.Join(run.Dir, "execution.json"))
+	hash, err := tool.FileDigest(filepath.Join(run.dir, "execution.json"))
 	if err != nil {
 		return err
 	}
@@ -96,12 +116,16 @@ func NotifyActionStarted(ctx context.Context, run *ActionRun, stream *os.File) e
 // WriteActionResult runs after receipts, cleanup and the index are finalized.
 // A connection result does not imply that other connections have completed.
 func WriteActionResult(ctx context.Context, run *ActionRun, stream *os.File, actionErr error) error {
+	return writeActionResult(ctx, actionRunResultState(run), stream, actionErr)
+}
+
+func writeActionResult(ctx context.Context, run actionResultState, stream *os.File, actionErr error) error {
 	status := "passed"
 	if actionErr != nil {
 		status = "failed"
 	}
 	path, value := actionResult(run, status, actionErr)
-	hash, err := tool.FileDigest(filepath.Join(run.Dir, "execution.json"))
+	hash, err := tool.FileDigest(filepath.Join(run.dir, "execution.json"))
 	if err != nil {
 		return err
 	}

@@ -180,11 +180,6 @@ func (r *OfficialRun) WaitDriver(ctx context.Context, cmd *exec.Cmd) error {
 	return err
 }
 
-// TrackNativeProbe records preparation's separate native version-probe group.
-func TrackNativeProbe(run *ActionRun, state string, pid int) error {
-	return writeAtomic(filepath.Join(run.Dir, "receipts", run.Connection+".probe.native-process.json"), tool.Object{"state": state, "pid": pid})
-}
-
 // RestoreMockRoute settles the ordinary shared route only after all protocol
 // owners release it. Official verification owns no separate execution overlay.
 func (r *OfficialRun) RestoreMockRoute() error {

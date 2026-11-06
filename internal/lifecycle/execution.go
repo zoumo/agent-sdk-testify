@@ -493,7 +493,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	if !ok || !route.Enabled {
 		return nil, errors.New("mock is not available for this session")
 	}
-	lock, exclusive, err := beginMockLock(sessionDir)
+	lock, exclusive, err := beginActionLock(sessionDir)
 	if err != nil {
 		return nil, err
 	}
@@ -613,10 +613,10 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	}); err != nil {
 		return nil, err
 	}
-	if err := claimMockConnection(execution, connection); err != nil {
+	if err := claimConnection(execution, connection); err != nil {
 		return nil, err
 	}
-	if err := markMockConnection(sessionDir, id, connection, "running", "open"); err != nil {
+	if err := markConnection(sessionDir, id, connection, "running", "open"); err != nil {
 		return nil, err
 	}
 	if err := lock.Downgrade(); err != nil {
@@ -627,7 +627,7 @@ func BeginMock(sessionDir, connection string, nativeArgs []string, timeout time.
 	return run, nil
 }
 
-func beginMockLock(sessionDir string) (*Lock, bool, error) {
+func beginActionLock(sessionDir string) (*Lock, bool, error) {
 	lock, err := actionLock(sessionDir, true)
 	if err == nil {
 		return lock, true, nil
@@ -663,10 +663,10 @@ func joinMock(sessionDir string, session *Session, indexed *IndexExecution, conn
 	if err := validateMockJoin(execution, nativeArgs, timeout, progressFD, material); err != nil {
 		return nil, err
 	}
-	if err := claimMockConnection(execution, connection); err != nil {
+	if err := claimConnection(execution, connection); err != nil {
 		return nil, err
 	}
-	if err := markMockConnection(sessionDir, execution.ExecutionID, connection, "running", "open"); err != nil {
+	if err := markConnection(sessionDir, execution.ExecutionID, connection, "running", "open"); err != nil {
 		return nil, err
 	}
 	plan, err := LoadPlan(session)
@@ -698,7 +698,18 @@ func validateMockJoin(execution Execution, nativeArgs []string, timeout time.Dur
 	return nil
 }
 
-func claimMockConnection(execution Execution, id string) error {
+func claimConnection(execution Execution, id string) error {
+	path, err := connectionClaimPath(execution, id)
+	if err != nil {
+		return err
+	}
+	if err := createConnectionClaim(path); err != nil {
+		return fmt.Errorf("%s connection %s already started: %w", execution.Command, id, err)
+	}
+	return nil
+}
+
+func connectionClaimPath(execution Execution, id string) (string, error) {
 	var connection *ExecutionConnection
 	for i := range execution.Connections {
 		if execution.Connections[i].ID == id {
@@ -707,27 +718,41 @@ func claimMockConnection(execution Execution, id string) error {
 		}
 	}
 	if connection == nil {
-		return fmt.Errorf("undeclared mock connection %s", id)
+		return "", fmt.Errorf("undeclared %s connection %s", execution.Command, id)
 	}
 	path := filepath.Join(filepath.Dir(connection.Receipt), "."+id+".started")
 	if execution.Command == "record" {
 		path = filepath.Join(filepath.Dir(execution.ArtifactRoot), "receipts", "."+id+".started")
 	}
+	return path, nil
+}
+
+func createConnectionClaim(path string) (err error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
-		return fmt.Errorf("mock connection %s already started: %w", id, err)
+		return err
 	}
+	success := false
+	defer func() {
+		if !success {
+			err = errors.Join(err, os.Remove(path))
+		}
+	}()
 	data, encodeErr := json.Marshal(tool.Object{"pid": os.Getpid()})
 	if encodeErr == nil {
 		_, encodeErr = f.Write(data)
 	}
-	return errors.Join(encodeErr, f.Close())
+	if err := errors.Join(encodeErr, f.Close()); err != nil {
+		return err
+	}
+	success = true
+	return nil
 }
 
-func markMockConnection(sessionDir, executionID, connection, status, executionStatus string) error {
+func markConnection(sessionDir, executionID, connection, status, executionStatus string) error {
 	return updateIndex(sessionDir, func(index *Index) error {
 		for i := range index.Executions {
 			if index.Executions[i].ID != executionID {
@@ -740,42 +765,6 @@ func markMockConnection(sessionDir, executionID, connection, status, executionSt
 		}
 		return errors.New("execution is absent from index")
 	})
-}
-
-func CompleteAction(run *ActionRun, status, artifactID string) error {
-	if run == nil {
-		return nil
-	}
-	err := updateIndex(filepath.Dir(filepath.Dir(run.Dir)), func(index *Index) error {
-		for i := range index.Executions {
-			if index.Executions[i].ID != run.Execution.ExecutionID {
-				continue
-			}
-			index.Executions[i].Status = status
-			index.Executions[i].UpdatedAt = now()
-			index.Executions[i].ArtifactID = artifactID
-			for j := range index.Executions[i].Connections {
-				if index.Executions[i].Connections[j].Status == "pending" ||
-					index.Executions[i].Connections[j].Status == "running" {
-					index.Executions[i].Connections[j].Status = status
-				}
-			}
-			return nil
-		}
-		return errors.New("execution is absent from index")
-	})
-	if err != nil {
-		return err
-	}
-	return CleanupAction(run)
-}
-
-// CleanupAction restores the tool-owned route before verification can be adopted.
-func CleanupAction(run *ActionRun) error {
-	if run.Execution.Command == "record" && run.Execution.Artifact.OfficialOrigin == nil {
-		return restoreRouteSlots(run.Session, run.Execution.Command)
-	}
-	return nil
 }
 
 // CompleteMockConnection records one peer result without closing the execution
@@ -840,116 +829,4 @@ func CompleteMockConnection(run *ActionRun, status string) error {
 		return err
 	}
 	return restoreRouteSlots(run.Session, "mock")
-}
-
-func PublishCapture(sessionDir string, run *ActionRun, artifact corpus.Material) error {
-	if _, err := inspectMaterial(run.Session, artifact); err != nil {
-		return err
-	}
-	if err := validateRecordReport(artifact.Path); err != nil {
-		return err
-	}
-	for _, connection := range run.Execution.Connections {
-		if err := validateCaptureTransport(connection.Receipt, 0); err != nil {
-			return fmt.Errorf("connection %s: %w", connection.ID, err)
-		}
-	}
-	// The official SDK may query native history after its protocol child exits.
-	// Its normal route must keep pointing at this execution until the driver ends.
-	if artifact.OfficialOrigin == nil {
-		if err := restoreRouteSlots(run.Session, "record"); err != nil {
-			return err
-		}
-	}
-	for _, action := range []string{"mock"} {
-		if route, ok := run.Session.Routes[action]; ok && route.Enabled {
-			if err := restoreRouteSlots(run.Session, action); err != nil {
-				return err
-			}
-		}
-	}
-	// Authentication links and route cleanup must succeed before any publication.
-	if err := ScrubExecutionAuthentication(run); err != nil {
-		return err
-	}
-	materialRoot := filepath.Join(sessionDir, "materials", artifact.ID)
-	stage, err := os.MkdirTemp(filepath.Join(sessionDir, "materials"), ".record-")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(stage)
-	if err := copyMaterial(artifact.Path, stage); err != nil {
-		return err
-	}
-	files, err := history.HashTree(stage)
-	if err != nil {
-		return err
-	}
-	delete(files, "material.json")
-	artifact.Path = materialRoot
-	artifact.Files = files
-	if err := writeExclusive(filepath.Join(stage, "material.json"), artifact); err != nil {
-		return err
-	}
-	if _, err := os.Lstat(materialRoot); !os.IsNotExist(err) {
-		return errors.New("material identity already exists")
-	}
-	if err := os.Rename(stage, materialRoot); err != nil {
-		return err
-	}
-	if _, err := inspectMaterial(run.Session, artifact); err != nil {
-		return err
-	}
-	descriptorSHA256, err := bindExecutionCapture(run, artifact)
-	if err != nil {
-		return err
-	}
-	// All fallible finalization precedes the atomic selection change. A failed
-	// publication can leave an unselected immutable package, never a partial current.
-	if err := updateIndex(sessionDir, func(index *Index) error {
-		for _, existing := range index.Artifacts {
-			if existing.ID == artifact.ID {
-				return errors.New("artifact identity already exists")
-			}
-		}
-		index.Artifacts = append(index.Artifacts, artifact)
-		for i := range index.Executions {
-			execution := &index.Executions[i]
-			if execution.ID == run.Execution.ExecutionID {
-				execution.ArtifactID = artifact.ID
-				execution.DescriptorSHA256 = descriptorSHA256
-				execution.Status = "passed"
-				execution.UpdatedAt = now()
-				for j := range execution.Connections {
-					execution.Connections[j].Status = "passed"
-				}
-				return nil
-			}
-		}
-		return errors.New("execution is absent from index")
-	}); err != nil {
-		return err
-	}
-	return writeCurrent(sessionDir, run.Session, artifact.ID)
-}
-
-func bindExecutionCapture(run *ActionRun, artifact corpus.Material) (string, error) {
-	var ids []string
-	for _, connection := range run.Execution.Connections {
-		ids = append(ids, connection.ID)
-	}
-	connections, err := executionConnections(run.ArtifactRoot, "record", ids, &artifact, run.Session.Routes["record"])
-	if err != nil {
-		return "", err
-	}
-	run.Execution.Connections = connections
-	run.Execution.Artifact = artifact
-	if err := run.Execution.Validate(*run.Session); err != nil {
-		return "", err
-	}
-	path := filepath.Join(run.Dir, "execution.json")
-	if err := writeAtomic(path, run.Execution); err != nil {
-		return "", err
-	}
-	return tool.FileDigest(path)
 }

@@ -73,18 +73,14 @@ func prepareExecutionAuthentication(session *Session, action, root string) error
 	return nil
 }
 
-// ScrubExecutionAuthentication removes transient links to private credentials.
-func ScrubExecutionAuthentication(run *ActionRun) error {
-	if run == nil {
-		return nil
-	}
-	profile, err := agentProfileFor(run.Session.AgentType)
+func scrubExecutionAuthentication(session *Session, overlayRoot string) error {
+	profile, err := agentProfileFor(session.AgentType)
 	if err != nil {
 		return err
 	}
 	var errs []error
 	for _, name := range profile.authFiles {
-		if err := os.RemoveAll(filepath.Join(run.OverlayRoot, "config", name)); err != nil {
+		if err := os.RemoveAll(filepath.Join(overlayRoot, "config", name)); err != nil {
 			errs = append(errs, err)
 		}
 	}
