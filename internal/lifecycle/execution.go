@@ -126,6 +126,7 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 			Command:  template.Command,
 			Args:     append([]string(nil), template.Args...),
 			Launcher: template.Launcher,
+			Embedded: template.Embedded,
 		}
 		switch action {
 		case "record":

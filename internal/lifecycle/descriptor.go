@@ -20,6 +20,11 @@ import (
 
 const SchemaVersion = 3
 
+const (
+	ToolSourceExecutable = "executable"
+	ToolSourceEmbedded   = "embedded"
+)
+
 type Command struct {
 	Command string   `json:"command"`
 	Args    []string `json:"args,omitempty"`
@@ -47,6 +52,7 @@ type ConnectionTemplate struct {
 	Command  string   `json:"command"`
 	Args     []string `json:"args,omitempty"`
 	Launcher string   `json:"launcher,omitempty"`
+	Embedded bool     `json:"embedded,omitempty"`
 }
 
 type Route struct {
@@ -67,6 +73,7 @@ type Session struct {
 	Tool             Command           `json:"tool"`
 	ToolVersion      string            `json:"toolVersion"`
 	ToolSHA256       string            `json:"toolSHA256"`
+	ToolSource       string            `json:"toolSource,omitempty"`
 	AgentType        string            `json:"agentType"`
 	Source           Source            `json:"source"`
 	HistorySeed      string            `json:"historySeed,omitempty"`
@@ -93,6 +100,7 @@ type ExecutionConnection struct {
 	RecordingSHA256 string   `json:"recordingSHA256,omitempty"`
 	Receipt         string   `json:"receipt"`
 	ProcessReceipt  string   `json:"processReceipt,omitempty"`
+	Embedded        bool     `json:"embedded,omitempty"`
 }
 
 type Admission struct {
@@ -233,6 +241,16 @@ func (s Session) Validate() error {
 	if s.SessionID == "" || s.AgentType == "" || s.ToolVersion == "" || s.Tool.Command == "" {
 		return errors.New("incomplete session descriptor")
 	}
+	switch s.ToolSource {
+	case "", ToolSourceExecutable, ToolSourceEmbedded:
+	default:
+		return fmt.Errorf("unsupported session toolSource %q", s.ToolSource)
+	}
+	if s.ToolSource == ToolSourceEmbedded {
+		if s.Tool.Command != version.Module || s.ToolSHA256 != "" {
+			return errors.New("embedded session has an invalid tool identity")
+		}
+	}
 	if !filepath.IsAbs(s.ResourceRoot) || !filepath.IsAbs(s.Workspace) || !filepath.IsAbs(s.Home) || !filepath.IsAbs(s.Config) || !filepath.IsAbs(s.Tmp) {
 		return errors.New("session paths must be absolute")
 	}
@@ -259,6 +277,43 @@ func (s Session) Validate() error {
 		if route.Enabled && (!filepath.IsAbs(route.Workspace) || route.Executor == "" || route.Target == "" || route.Provenance == "") {
 			return fmt.Errorf("incomplete %s route", action)
 		}
+		for _, connection := range route.Connections {
+			if err := s.validateConnectionTemplate(connection); err != nil {
+				return fmt.Errorf("%s route connection %s: %w", action, connection.ID, err)
+			}
+		}
+	}
+	return nil
+}
+
+func (s Session) validateConnectionTemplate(connection ConnectionTemplate) error {
+	if connection.ID == "" {
+		return errors.New("connection id is empty")
+	}
+	return s.validateConnectionIdentity(connection.Embedded, connection.Command, connection.Launcher)
+}
+
+func (s Session) validateConnectionIdentity(embedded bool, command, launcher string) error {
+	if embedded {
+		if s.ToolSource != ToolSourceEmbedded {
+			return errors.New("executable session declares an embedded connection")
+		}
+		if command != version.Module || command != s.Tool.Command {
+			return errors.New("embedded connection command differs from the library identity")
+		}
+		if launcher != "" {
+			return errors.New("embedded connection declares an executable launcher")
+		}
+		return nil
+	}
+	if s.ToolSource == ToolSourceEmbedded {
+		return errors.New("embedded session declares an executable connection")
+	}
+	if !filepath.IsAbs(command) {
+		return errors.New("connection command must be an absolute executable")
+	}
+	if launcher != "" && !filepath.IsAbs(launcher) {
+		return errors.New("connection launcher must be absolute")
 	}
 	return nil
 }
@@ -304,12 +359,12 @@ func (e Execution) Validate(s Session) error {
 		if !ok {
 			return fmt.Errorf("connection %s is not declared by its route", c.ID)
 		}
-		if !filepath.IsAbs(c.Command) || c.Command != template.Command ||
+		if c.Embedded != template.Embedded || c.Command != template.Command ||
 			!slices.Equal(c.Args, template.Args) || c.Launcher != template.Launcher {
 			return fmt.Errorf("connection %s launch contract differs from its route", c.ID)
 		}
-		if c.Launcher != "" && !filepath.IsAbs(c.Launcher) {
-			return fmt.Errorf("connection %s launcher must be absolute", c.ID)
+		if err := s.validateConnectionIdentity(c.Embedded, c.Command, c.Launcher); err != nil {
+			return fmt.Errorf("connection %s: %w", c.ID, err)
 		}
 		if c.Material != "" && !filepath.IsAbs(c.Material) {
 			return errors.New("connection material must be absolute")

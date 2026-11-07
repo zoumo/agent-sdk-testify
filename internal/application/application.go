@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/mock"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
@@ -16,15 +17,36 @@ import (
 )
 
 type (
-	PrepareOptions = lifecycle.PrepareOptions
-	RecordOptions  = record.Options
-	MockOptions    = mock.Options
-	Session        = lifecycle.Session
+	RecordOptions = record.Options
+	MockOptions   = mock.Options
+	Session       = lifecycle.Session
 )
+
+type PrepareOptions struct {
+	SessionDir    string
+	Agent         string
+	Case          string
+	Plan          string
+	Recording     string
+	Model         string
+	InitialModel  string
+	HistorySeed   string
+	ProtocolBytes int64
+	StderrBytes   int64
+	MaxFrames     int64
+	MaxFrameBytes int64
+	EmbeddedTool  bool
+}
 
 type ExportOptions struct {
 	SessionDir string
 	Output     string
+}
+
+type OpenResult struct {
+	Session *Session
+	Current *corpus.Material
+	Dir     string
 }
 
 // Streams are caller-owned process streams used by protocol actions.
@@ -48,7 +70,41 @@ func Prepare(o PrepareOptions) (*Session, error) {
 	if err := requireNewSessionDir(o.SessionDir); err != nil {
 		return nil, err
 	}
-	return lifecycle.Prepare(o)
+	return lifecycle.Prepare(lifecycle.PrepareOptions{
+		SessionDir:    o.SessionDir,
+		Agent:         o.Agent,
+		Case:          o.Case,
+		Plan:          o.Plan,
+		Recording:     o.Recording,
+		Model:         o.Model,
+		InitialModel:  o.InitialModel,
+		HistorySeed:   o.HistorySeed,
+		ProtocolBytes: o.ProtocolBytes,
+		StderrBytes:   o.StderrBytes,
+		MaxFrames:     o.MaxFrames,
+		MaxFrameBytes: o.MaxFrameBytes,
+		EmbeddedTool:  o.EmbeddedTool,
+	})
+}
+
+// Open reads the prepared session and its optional current recording.
+func Open(sessionDir string) (*OpenResult, error) {
+	if sessionDir == "" || !filepath.IsAbs(sessionDir) {
+		return nil, errors.New("open requires an absolute session directory")
+	}
+	session, err := lifecycle.OpenSession(sessionDir)
+	if err != nil {
+		return nil, err
+	}
+	dir := filepath.Dir(session.ResourceRoot)
+	current, present, err := lifecycle.CurrentArtifact(dir, session)
+	if err != nil {
+		return nil, err
+	}
+	if !present {
+		current = nil
+	}
+	return &OpenResult{Session: session, Current: current, Dir: dir}, nil
 }
 
 // Export validates caller input and copies the current recording.

@@ -18,6 +18,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/native"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 func randomID() (string, error) {
@@ -225,9 +226,17 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 	if err != nil {
 		return nil, err
 	}
-	self, version, toolHash, err := SelfCommand()
-	if err != nil {
-		return nil, err
+	var self Command
+	var toolVersion, toolHash, toolSource string
+	if o.EmbeddedTool {
+		self = Command{Command: version.Module}
+		toolVersion = version.Version
+		toolSource = ToolSourceEmbedded
+	} else {
+		self, toolVersion, toolHash, err = SelfCommand()
+		if err != nil {
+			return nil, err
+		}
 	}
 	agentType := spec.agentType
 	if err := validateAgent(agentType); err != nil {
@@ -303,8 +312,9 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		SchemaVersion:    SchemaVersion,
 		SessionID:        sessionID,
 		Tool:             self,
-		ToolVersion:      version,
+		ToolVersion:      toolVersion,
 		ToolSHA256:       toolHash,
+		ToolSource:       toolSource,
 		AgentType:        agentType,
 		Source:           spec.source,
 		HistorySeed:      historySeed,
@@ -373,12 +383,17 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			}
 		}
 		for _, id := range ids {
-			template := ConnectionTemplate{ID: id, Command: self.Command, Args: []string{"agent", "mock", "--session-dir", sessionDir, "--connection", id}}
+			template := ConnectionTemplate{
+				ID:       id,
+				Command:  self.Command,
+				Args:     []string{"agent", "mock", "--session-dir", sessionDir, "--connection", id},
+				Embedded: o.EmbeddedTool,
+			}
 			switch action {
 			case "record":
 				template.Args = []string{"agent", "record", "--session-dir", sessionDir, "--cmd"}
 			}
-			if action == "mock" {
+			if action == "mock" && !o.EmbeddedTool {
 				template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, self.Command, sessionDir)
 				if err != nil {
 					return nil, err
