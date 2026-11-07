@@ -11,11 +11,30 @@
 
 命令职责、execution 归属和会话协调见[工具设计](docs/design.md)。
 
+## Go 库入口
+
+Go 使用方可以导入模块根包：
+
+```go
+import agenttestify "github.com/zoumo/agent-sdk-testify"
+
+session, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+    SessionDir: "/private/session",
+    Plan:       "/private/plan.json",
+})
+```
+
+根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export`，以及 `Session.Record`
+和 `Session.Mock`，不要求安装 CLI。`official record`、`official verify` 和官方 driver
+编排仍只由 CLI 提供；协议帧、严格匹配器和材料内部格式不属于库 API。v1 不保证库会话
+与 CLI 会话可交叉执行 action，材料通过 export 和 prepare 交换。完整合同见
+[可导入 Go 库入口规格](docs/library-entry-spec.md)。
+
 本仓库维护 case、官方 driver、录制及材料库；`simulate`、Go driver 和 SDK 验收编排
 留在 `agent-sdk-go`。SDK 与 MASS 直接消费本仓库的 mock。
 
-工具使用独立 module，模块根目录是包 `agenttestify` 的库入口；CLI 入口位于
-`cmd/agent-sdk-testify`，命令实现按功能位于 `internal/`，协议位于
+工具使用独立 module，CLI 入口位于 `cmd/agent-sdk-testify`，命令实现按功能位于
+`internal/`，协议位于
 `internal/protocol/`。权威场景、采用材料和内置快照统一位于 `data/`，官方 driver
 与 wheel 位于 `drivers/`。
 不提供 simulate/replay/corpus/protocol/peer 业务入口。
@@ -31,6 +50,7 @@
 | 主题 | 文档 |
 | --- | --- |
 | 工具边界、合同与材料链路 | [工具设计](docs/design.md) |
+| 可导入库 API 与 v1 边界 | [可导入 Go 库入口规格](docs/library-entry-spec.md) |
 | 模块、依赖、布局、编码与测试 | [开发规范](docs/development.md) |
 | 8 个用户故事与 36 个 case | [共同验收](docs/cases.md) |
 | 从 SDK 测试接入、运行与收尾 mock | [mock 使用指南](docs/using-mock.md) |
@@ -42,13 +62,13 @@
 
 使用 Go 1.26 和 golangci-lint 2.12.2，不需要 Go SDK checkout、Go driver 或官方 SDK。
 CLI 也可以用 `go build ./cmd/agent-sdk-testify` 独立构建。
-`make test` 只运行随代码的单元测试，不构建 CLI。集成和完整流程分别运行：
+`make test` 运行根目录公开库测试和内部单元测试，不构建 CLI。集成和完整流程分别运行：
 
 ```sh
 make build
-make test                 # 单元测试
+make test                 # 公开库与内部单元测试
 make test-integration     # 多模块协作，必要的受控进程
-make test-race            # 单元与集成的 race 检查
+make test-race            # 公开库、单元与集成的 race 检查
 make test-e2e             # 构建一次 race CLI，运行完整流程
 make test-build           # 生成器、产物模式和发布冒烟
 make check                # 完整离线门禁
