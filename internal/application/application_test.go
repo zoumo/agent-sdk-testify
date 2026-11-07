@@ -178,12 +178,14 @@ func TestMockRejectsInvalidInput(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			require.EqualError(t, Mock(t.Context(), test.options, Streams{}), test.want)
+			_, err := Mock(t.Context(), test.options, Streams{})
+			require.EqualError(t, err, test.want)
 		})
 	}
 }
 
 func TestMockRequiresStreamsBeforeExecution(t *testing.T) {
 	options := MockOptions{SessionDir: filepath.Join(t.TempDir(), "session"), ResultFD: -1, ProgressFD: -1}
-	require.EqualError(t, Mock(t.Context(), options, Streams{}), "mock requires input, output and error streams")
+	_, err := Mock(t.Context(), options, Streams{})
+	require.EqualError(t, err, "mock requires input, output and error streams")
 }

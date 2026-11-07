@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/replay"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -26,8 +27,10 @@ type Options struct {
 	NativeArgs []string
 }
 
+type Result = lifecycle.MockResult
+
 // Run replays the current recording in one prepared-session execution.
-func Run(ctx context.Context, o Options, input, output *os.File) error {
+func Run(ctx context.Context, o Options, input, output *os.File) (*Result, error) {
 	return mockSession(ctx, o, input, output)
 }
 
