@@ -23,6 +23,18 @@ prepare 创建会话，export 只读导出 current。agent record/mock
 涉及官方录制编排时使用完整名称 official record。仓库路径、编码和测试规则见
 [开发规范](development.md)。
 
+## 入口与职责
+
+同一 module 提供 CLI 和 Go 库两种入口，二者是同一应用核心的薄适配器：
+
+- CLI 入口 `cmd/agent-sdk-testify` 拥有 argv、stdio、descriptor、stderr 和退出码。
+- 根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export` 以及会话上的
+  `Record`、`Mock`；它使用调用方提供的流并直接返回错误。
+
+两种入口共用参数校验、会话生命周期、execution 事务和材料规则，不维护第二套机制。
+`official record`、`official verify`、官方 driver 编排及协议和材料内部类型仅为 CLI
+或仓库内部能力，不属于库 v1 接口。
+
 ## 问题与目标
 
 录制、验证、回放和消费者测试通常需要不同的隔离环境，但不应因此产生多套生命周期。
@@ -516,8 +528,8 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 
 ## 测试边界
 
-完整流程验收通过 installed CLI 和消费者实际使用的进程接口验证 session 合同，不直接调用
-lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
+完整流程验收通过公开 Go 库入口和 installed CLI 的消费者接口验证 session 合同，不直接
+调用 lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
 
 - prepare 完整复制材料后，删除原始路径仍可 verify、mock 和 export。
 - record 成功原子替换 current；record 失败保留 execution 且 current 不变。

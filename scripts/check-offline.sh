@@ -15,9 +15,9 @@ phase() {
 }
 go mod verify
 go run -tags builtin_generate ./cmd/agent-sdk-testify --check
-phase unit go test -json -count=1 -timeout=5m ./internal/... > .artifacts/acceptance/ut.jsonl
+phase unit go test -json -count=1 -timeout=5m . ./internal/... > .artifacts/acceptance/ut.jsonl
 phase integration go test -json -count=1 -timeout=5m ./tests/intergration/... > .artifacts/acceptance/integration.jsonl
-phase unit-race go test -json -race -count=1 -timeout=10m ./internal/... > .artifacts/acceptance/race.jsonl
+phase unit-race go test -json -race -count=1 -timeout=10m . ./internal/... > .artifacts/acceptance/race.jsonl
 phase integration-race go test -json -race -count=1 -timeout=10m ./tests/intergration/... > .artifacts/acceptance/integration-race.jsonl
 phase build-normal go build -o .artifacts/acceptance/agent-sdk-testify ./cmd/agent-sdk-testify
 phase build-race go build -race -o .artifacts/acceptance/agent-sdk-testify-race ./cmd/agent-sdk-testify
