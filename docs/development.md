@@ -23,6 +23,7 @@ agent-sdk-testify/
   cmd/agent-sdk-testify/
     main.go                 # CLI 入口
   internal/
+    application/            # prepare/record/mock/export 的唯一应用用例层
     lifecycle/              # prepare 与会话/execution 状态
     record/ mock/           # agent 协议执行
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
@@ -57,6 +58,10 @@ agent-sdk-testify/
 
 ### 内部职责与依赖
 
+- `application` 是 prepare、record、mock、export 的唯一应用用例层，统一拥有参数校验、
+  会话操作编排和结果交付。`command` 只解析 argv、注入 stdio/descriptor，并把返回
+  错误映射为退出码和 stderr；CLI 与后续库入口都经由 `application`，不直接编排
+  `lifecycle`、`record`、`mock` 或 `corpus`。
 - `record`、`mock` 是公开 agent 命令的策略适配器：`record` 只提供录制准备、采集和
   材料打包，`mock` 只提供回放。`lifecycle` 拥有一次 action execution 从开始或加入
   到结果交付和释放锁的完整事务，包括连接 claim、overlay、index 转换、收尾串行化、
