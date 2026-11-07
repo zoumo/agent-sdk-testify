@@ -42,6 +42,17 @@ type ExportOptions struct {
 	Output     string
 }
 
+// RecordOptions selects one capture connection and its native or remote target.
+type RecordOptions struct {
+	Connection     string
+	Command        string
+	NativeArgs     []string
+	URL            string
+	TokenFile      string
+	Timeout        time.Duration
+	ConnectTimeout time.Duration
+}
+
 // Streams are caller-owned process streams used by protocol actions.
 type Streams struct {
 	In  *os.File
@@ -58,6 +69,20 @@ type MockOptions struct {
 
 // MockResult identifies the execution and connection completed by a mock call.
 type MockResult struct {
+	SessionID          string
+	ExecutionID        string
+	ConnectionID       string
+	Status             string
+	Material           *Material
+	ExecutionPath      string
+	ReceiptPath        string
+	ProcessReceiptPath string
+	ResultPath         string
+}
+
+// RecordResult identifies the execution and connection completed by a record
+// call and, on success, the newly selected material.
+type RecordResult struct {
 	SessionID          string
 	ExecutionID        string
 	ConnectionID       string
@@ -195,6 +220,51 @@ func Export(options ExportOptions) error {
 		SessionDir: options.SessionDir,
 		Output:     options.Output,
 	})
+}
+
+// Record captures one native Agent or remote endpoint through caller-owned streams.
+func (s *Session) Record(ctx context.Context, options RecordOptions, streams Streams) (*RecordResult, error) {
+	sessionDir := ""
+	if s != nil {
+		sessionDir = s.SessionDir
+	}
+	result, err := application.Record(ctx, application.RecordOptions{
+		SessionDir:     sessionDir,
+		Connection:     options.Connection,
+		URL:            options.URL,
+		TokenFile:      options.TokenFile,
+		Command:        options.Command,
+		NativeArgs:     slices.Clone(options.NativeArgs),
+		Timeout:        options.Timeout,
+		ConnectTimeout: options.ConnectTimeout,
+		ResultFD:       -1,
+	}, application.Streams{
+		In:  streams.In,
+		Out: streams.Out,
+		Err: streams.Err,
+	})
+	if result == nil {
+		return nil, err
+	}
+	status := "failed"
+	if err == nil {
+		status = "passed"
+	}
+	var material *Material
+	if err == nil && result.Material != nil {
+		material = materialView(*result.Material)
+	}
+	return &RecordResult{
+		SessionID:          result.SessionID,
+		ExecutionID:        result.ExecutionID,
+		ConnectionID:       result.ConnectionID,
+		Status:             status,
+		Material:           material,
+		ExecutionPath:      result.ExecutionPath,
+		ReceiptPath:        result.ReceiptPath,
+		ProcessReceiptPath: result.ProcessReceiptPath,
+		ResultPath:         result.ResultPath,
+	}, err
 }
 
 // Mock replays the current recording through caller-owned streams.

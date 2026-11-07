@@ -18,6 +18,7 @@ import (
 
 type (
 	RecordOptions = record.Options
+	RecordResult  = lifecycle.RecordResult
 	MockOptions   = mock.Options
 	MockResult    = mock.Result
 	Session       = lifecycle.Session
@@ -117,27 +118,27 @@ func Export(o ExportOptions) error {
 }
 
 // Record validates caller input and owns one record action.
-func Record(ctx context.Context, o RecordOptions, streams Streams) error {
+func Record(ctx context.Context, o RecordOptions, streams Streams) (*RecordResult, error) {
 	if o.URL == "" && len(o.NativeArgs) == 0 {
-		return errors.New("local record requires --cmd and native arguments after --")
+		return nil, errors.New("local record requires --cmd and native arguments after --")
 	}
 	if o.URL != "" && (o.Command != "" || len(o.NativeArgs) != 0) {
-		return errors.New("remote target excludes --cmd and native arguments")
+		return nil, errors.New("remote target excludes --cmd and native arguments")
 	}
 	if !filepath.IsAbs(o.SessionDir) {
-		return errors.New("--session-dir must be absolute")
+		return nil, errors.New("--session-dir must be absolute")
 	}
 	if o.Timeout < 0 || o.ConnectTimeout < 0 {
-		return errors.New("timeouts must be nonnegative")
+		return nil, errors.New("timeouts must be nonnegative")
 	}
 	if o.ConnectTimeout > 0 && o.URL == "" {
-		return errors.New("connect-timeout requires a remote target")
+		return nil, errors.New("connect-timeout requires a remote target")
 	}
 	if err := validateResultFD(o.ResultFD); err != nil {
-		return err
+		return nil, err
 	}
 	if streams.In == nil || streams.Out == nil || streams.Err == nil {
-		return errors.New("record requires input, output and error streams")
+		return nil, errors.New("record requires input, output and error streams")
 	}
 	if o.Connection == "" {
 		o.Connection = "main"

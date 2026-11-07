@@ -141,7 +141,8 @@ func recordCommand(streams IO) *cobra.Command {
 			return errors.New("remote target excludes --cmd and native arguments")
 		}
 		o.NativeArgs = append([]string(nil), args...)
-		return application.Record(c.Context(), o, application.Streams{In: streams.In, Out: streams.Out, Err: streams.Err})
+		_, err := application.Record(c.Context(), o, application.Streams{In: streams.In, Out: streams.Out, Err: streams.Err})
+		return err
 	}
 	return c
 }

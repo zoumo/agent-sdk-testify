@@ -31,7 +31,7 @@ type Options struct {
 	ResultFD       int
 }
 
-func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
+func Run(ctx context.Context, o Options, streams capture.IO) (*lifecycle.RecordResult, error) {
 	if o.Timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
@@ -42,41 +42,41 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	var err error
 	if o.URL != "" || o.TokenFile != "" {
 		if o.URL == "" || o.TokenFile == "" || o.Command != "" || len(o.NativeArgs) != 0 {
-			return errors.New("remote record requires --url and --token-file, excluding local command and arguments")
+			return nil, errors.New("remote record requires --url and --token-file, excluding local command and arguments")
 		}
 		remote = &capture.ConnectOptions{URL: o.URL, TokenFile: o.TokenFile, ConnectTimeout: o.ConnectTimeout}
 		if err := remote.Validate(); err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		executable, err = tool.ValidateCommand(o.Command)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	o.SessionDir, err = filepath.EvalSymlinks(o.SessionDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if remote != nil {
 		tokenPath, pathErr := filepath.EvalSymlinks(remote.TokenFile)
 		if pathErr != nil {
-			return errors.New("private token file unavailable")
+			return nil, errors.New("private token file unavailable")
 		}
 		if rel, relErr := filepath.Rel(o.SessionDir, tokenPath); relErr == nil && filepath.IsLocal(rel) {
 			runtimeRelative, runtimeErr := filepath.Rel(filepath.Join(o.SessionDir, "runtime"), tokenPath)
 			if runtimeErr != nil || !filepath.IsLocal(runtimeRelative) {
-				return errors.New("token file must be outside session evidence (use runtime or an external file)")
+				return nil, errors.New("token file must be outside session evidence (use runtime or an external file)")
 			}
 		}
 	}
 	session, err := lifecycle.OpenSession(o.SessionDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if remote == nil {
 		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	commandArgs := append([]string{"--session-dir", o.SessionDir, "--cmd", executable, "--"}, o.NativeArgs...)
@@ -88,7 +88,7 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 	if remote != nil {
 		token, err := os.ReadFile(remote.TokenFile)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		target = tool.DigestBytes(append(append([]byte(remote.URL), 0), token...))
 	}
