@@ -1,4 +1,4 @@
-// agent-sdk-testify owns environments and process orchestration, never SDK assertions.
+// Command agent-sdk-testify owns environments and process orchestration, never SDK assertions.
 package main
 
 import (

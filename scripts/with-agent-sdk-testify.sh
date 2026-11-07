@@ -20,12 +20,12 @@ else
   export AGENT_SDK_TESTIFY_BIN="$testify_build_dir/agent-sdk-testify"
   build_flags=(build)
   if "$race"; then build_flags+=(-race); fi
-  GOPROXY=off GOSUMDB=off "$testify_go" -C "$testify_source" "${build_flags[@]}" -o "$AGENT_SDK_TESTIFY_BIN" .
+  GOPROXY=off GOSUMDB=off "$testify_go" -C "$testify_source" "${build_flags[@]}" -o "$AGENT_SDK_TESTIFY_BIN" ./cmd/agent-sdk-testify
 fi
 identity=$("$testify_go" version -m "$AGENT_SDK_TESTIFY_BIN")
-module=$(awk '$1 == "path" { print $2 }' <<< "$identity")
+package=$(awk '$1 == "path" { print $2 }' <<< "$identity")
 actual_race=$(awk '$1 == "build" && $2 == "-race=true" { print "true" }' <<< "$identity")
-[[ "$module" == github.com/zoumo/agent-sdk-testify ]] || { echo "unexpected CLI module: $module" >&2; exit 2; }
+[[ "$package" == github.com/zoumo/agent-sdk-testify/cmd/agent-sdk-testify ]] || { echo "unexpected CLI package: $package" >&2; exit 2; }
 [[ "${actual_race:-false}" == "$race" ]] || { echo "CLI race mode mismatch: artifact race=${actual_race:-false}, requested race=$race" >&2; exit 2; }
 export AGENT_SDK_TESTIFY_BIN
 export GORACE="${GORACE:-} atexit_sleep_ms=0"

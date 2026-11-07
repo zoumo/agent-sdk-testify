@@ -8,6 +8,6 @@ if [[ $# != 0 ]]; then
 fi
 output=${AGENT_SDK_TESTIFY_BUILD_DIR:-"$source/.artifacts/build"}
 mkdir -p "$output"
-go -C "$source" run -tags builtin_generate . --check
-go -C "$source" build -o "$output/agent-sdk-testify" .
+go -C "$source" run -tags builtin_generate ./cmd/agent-sdk-testify --check
+go -C "$source" build -o "$output/agent-sdk-testify" ./cmd/agent-sdk-testify
 "${PYTHON:-python3}" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$output" "$source/drivers"

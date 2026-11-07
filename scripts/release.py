@@ -11,7 +11,7 @@ def main():
     parser.add_argument('--targets',nargs='+',default=['linux/amd64','linux/arm64','darwin/amd64','darwin/arm64'])
     args=parser.parse_args()
     output=args.output.resolve(); output.mkdir(parents=True,exist_ok=False)
-    run('go','run','-tags','builtin_generate','.','--check')
+    run('go','run','-tags','builtin_generate','./cmd/agent-sdk-testify','--check')
     bundle=json.loads((ROOT/'data/builtin/manifest.json').read_text())
     version=bundle['toolVersion']
     revision=run('git','rev-parse','HEAD')
@@ -23,7 +23,7 @@ def main():
         if system not in ('linux','darwin') or arch not in ('amd64','arm64'): raise SystemExit('unsupported target')
         directory=output/(system+'-'+arch); directory.mkdir()
         binary=directory/'agent-sdk-testify'
-        run('go','build','-trimpath','-buildvcs=false','-o',str(binary),'.',env=dict(environment,GOOS=system,GOARCH=arch))
+        run('go','build','-trimpath','-buildvcs=false','-o',str(binary),'./cmd/agent-sdk-testify',env=dict(environment,GOOS=system,GOARCH=arch))
         name=f'agent-sdk-testify_{version}_{system}_{arch}.tar.gz'
         with (output/name).open('wb') as stream, gzip.GzipFile(filename='',fileobj=stream,mode='wb',mtime=0) as gz, tarfile.open(fileobj=gz,mode='w') as tar:
             for source,member in [(binary,'agent-sdk-testify'),(ROOT/'data/builtin/manifest.json','builtin-manifest.json'),(ROOT/'LICENSE','LICENSE'),(ROOT/'README.md','README.md'),(ROOT/'docs/using-mock.md','docs/using-mock.md'),(ROOT/'drivers/README.md','drivers/README.md')]:

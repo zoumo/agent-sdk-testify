@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const cliPackage = "github.com/zoumo/agent-sdk-testify/cmd/agent-sdk-testify"
+
 func RepositoryRoot() (string, error) {
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
@@ -82,8 +84,8 @@ func ValidateBinary(binary string, wantRace bool) error {
 	if err != nil {
 		return fmt.Errorf("read CLI build identity: %w", err)
 	}
-	if build.Path != "github.com/zoumo/agent-sdk-testify" {
-		return fmt.Errorf("unexpected CLI module: %s", build.Path)
+	if build.Path != cliPackage {
+		return fmt.Errorf("unexpected CLI package: %s", build.Path)
 	}
 	race := false
 	for _, setting := range build.Settings {
