@@ -7,8 +7,9 @@
 生产代码及默认测试不得导入 agent-sdk-go、Go driver 或 SDK fixture 容器。
 官方 SDK 仅作为 official record/verify 的显式环境依赖，不在运行时自动安装。
 
-消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立回执接入，
-不通过跨仓库 Go 库。
+CLI 消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立
+回执接入。模块根包是可导入库包，公开 API 以
+[可导入 Go 库入口规格](library-entry-spec.md)为准。
 公开 CLI 结构和职责以[工具设计](design.md)为准。agent record/mock 不依赖官方
 SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命令。
 材料资格、归档、采用和远程传输为内部能力，不提供独立 internal-protocol 入口。
@@ -18,7 +19,9 @@ SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命
 ```text
 agent-sdk-testify/
   go.mod / go.sum / Makefile / .golangci.yaml
-  main.go                   # 唯一根目录 Go 文件
+  doc.go                    # 可导入库包 agenttestify 的入口
+  cmd/agent-sdk-testify/
+    main.go                 # CLI 入口
   internal/
     lifecycle/              # prepare 与会话/execution 状态
     record/ mock/           # agent 协议执行
@@ -39,7 +42,7 @@ agent-sdk-testify/
   docs/ / scripts/ / README.md / LICENSE
 ```
 
-布局变更时同步 imports、embeds、脚本、测试及文档。不要添加无需求的 cmd/pkg、
+布局变更时同步 imports、embeds、脚本、测试及文档。不要添加无需求的 pkg、
 框架、转发层、动态插件或通用流程 DSL。
 
 协议包不依赖 case 编号、driver 或 SDK。capture 拥有自己的 I/O、选项和类型化错误，
@@ -90,8 +93,8 @@ consumer material 保持在消费者私有目录，不登记固定索引、不�
 快照；普通版本变更也需要重新生成：
 
 ```sh
-go run -tags builtin_generate . --revision FULL_40_CHARACTER_SOURCE_COMMIT
-go run -tags builtin_generate . --check
+go run -tags builtin_generate ./cmd/agent-sdk-testify --revision FULL_40_CHARACTER_SOURCE_COMMIT
+go run -tags builtin_generate ./cmd/agent-sdk-testify --check
 ```
 
 生成器从固定索引选择 `admitted` 且 `verification=passed` 的材料，校验完整闭包并
@@ -144,7 +147,8 @@ SDK 公共接口、消费者业务断言及 simulate 由消费者仓库负责。
 ### race 与真实执行
 
 race 是检查方式，不是第四层测试。单元和集成测试使用 `go test -race`；端到端测试
-实际启动的 CLI 必须由 `go build -race` 构建，仅给测试进程加 `-race` 不算覆盖 CLI。
+实际启动的 CLI 必须由 `go build -race ./cmd/agent-sdk-testify` 构建，仅给测试进程加
+`-race` 不算覆盖 CLI。
 复用二进制时须核验构建模式，受控 launcher 必须传递 race 配置；子进程报告数据竞争时，
 即使该 case 预期业务失败，测试也必须失败。
 完整门禁中的同一套 CLI 流程只需用 race CLI 跑一次；普通发布二进制另做少量启动和打包检查。

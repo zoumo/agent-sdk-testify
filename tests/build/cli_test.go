@@ -28,7 +28,7 @@ func buildCLI(t *testing.T, race bool) string {
 	if race {
 		args = append(args, "-race")
 	}
-	cmd := exec.CommandContext(t.Context(), "go", append(args, ".")...)
+	cmd := exec.CommandContext(t.Context(), "go", append(args, "./cmd/agent-sdk-testify")...)
 	cmd.Dir = root
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", out)

@@ -38,8 +38,8 @@ vet:
 
 build:
 	@mkdir -p "$(dir $(BINARY))"
-	$(GO) run -tags builtin_generate . --check
-	$(GO) build -trimpath -o "$(BINARY)" .
+	$(GO) run -tags builtin_generate ./cmd/agent-sdk-testify --check
+	$(GO) build -trimpath -o "$(BINARY)" ./cmd/agent-sdk-testify
 
 bundle:
 	PYTHON="$(PYTHON)" bash scripts/build.sh

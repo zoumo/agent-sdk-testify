@@ -14,9 +14,10 @@
 本仓库维护 case、官方 driver、录制及材料库；`simulate`、Go driver 和 SDK 验收编排
 留在 `agent-sdk-go`。SDK 与 MASS 直接消费本仓库的 mock。
 
-工具使用独立 module，仓库根目录只保留 `main.go`；命令实现按功能位于
-`internal/`，协议位于 `internal/protocol/`。权威场景、采用材料和内置快照统一位于
-`data/`，官方 driver 与 wheel 位于 `drivers/`。
+工具使用独立 module，模块根目录是包 `agenttestify` 的库入口；CLI 入口位于
+`cmd/agent-sdk-testify`，命令实现按功能位于 `internal/`，协议位于
+`internal/protocol/`。权威场景、采用材料和内置快照统一位于 `data/`，官方 driver
+与 wheel 位于 `drivers/`。
 不提供 simulate/replay/corpus/protocol/peer 业务入口。
 旧顶层 record/mock/verify 与 internal-protocol（含 --internal-protocol）均被拒绝，不保留别名；远程桥接由 agent record 内部处理。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
@@ -40,6 +41,7 @@
 ## 独立构建与离线测试
 
 使用 Go 1.26 和 golangci-lint 2.12.2，不需要 Go SDK checkout、Go driver 或官方 SDK。
+CLI 也可以用 `go build ./cmd/agent-sdk-testify` 独立构建。
 `make test` 只运行随代码的单元测试，不构建 CLI。集成和完整流程分别运行：
 
 ```sh
