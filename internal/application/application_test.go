@@ -121,7 +121,8 @@ func TestRecordRejectsInvalidInput(t *testing.T) {
 			options := valid
 			options.NativeArgs = append([]string(nil), valid.NativeArgs...)
 			test.mutate(&options)
-			require.EqualError(t, Record(t.Context(), options, Streams{}), test.want)
+			_, err := Record(t.Context(), options, Streams{})
+			require.EqualError(t, err, test.want)
 		})
 	}
 }
@@ -136,7 +137,8 @@ func TestRecordRequiresStreamsBeforeExecution(t *testing.T) {
 		NativeArgs: []string{"app-server"},
 		ResultFD:   -1,
 	}
-	require.EqualError(t, Record(t.Context(), options, Streams{}), "record requires input, output and error streams")
+	_, err := Record(t.Context(), options, Streams{})
+	require.EqualError(t, err, "record requires input, output and error streams")
 }
 
 func TestMockRejectsInvalidInput(t *testing.T) {

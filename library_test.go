@@ -430,21 +430,44 @@ func runLibraryMock(
 	input string,
 ) (*agenttestify.MockResult, string, string, error) {
 	t.Helper()
-	root := t.TempDir()
-	in := writeLibraryStream(t, root, "stdin", input)
+	streams := newLibraryStreams(t, t.TempDir(), input)
+	result, runErr := session.Mock(t.Context(), options, streams.io)
+	return result, streams.output(t), streams.errors(t), runErr
+}
+
+type libraryStreams struct {
+	io     agenttestify.Streams
+	out    *os.File
+	errOut *os.File
+}
+
+func newLibraryStreams(t *testing.T, root, input string) libraryStreams {
+	t.Helper()
 	out, err := os.CreateTemp(root, "stdout-*")
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = out.Close() })
 	errOut, err := os.CreateTemp(root, "stderr-*")
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = errOut.Close() })
+	return libraryStreams{
+		io: agenttestify.Streams{
+			In:  writeLibraryStream(t, root, "stdin", input),
+			Out: out,
+			Err: errOut,
+		},
+		out:    out,
+		errOut: errOut,
+	}
+}
 
-	result, runErr := session.Mock(t.Context(), options, agenttestify.Streams{
-		In:  in,
-		Out: out,
-		Err: errOut,
-	})
-	return result, readOpenFile(t, out), readOpenFile(t, errOut), runErr
+func (s libraryStreams) output(t *testing.T) string {
+	t.Helper()
+	return readOpenFile(t, s.out)
+}
+
+func (s libraryStreams) errors(t *testing.T) string {
+	t.Helper()
+	return readOpenFile(t, s.errOut)
 }
 
 func writeLibraryStream(t *testing.T, root, name, value string) *os.File {
