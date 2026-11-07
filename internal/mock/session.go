@@ -12,16 +12,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 )
 
-func mockSession(ctx context.Context, o Options) (err error) {
-	if o.Timeout < 0 {
-		return errors.New("mock timeout must be nonnegative")
-	}
-	if o.ProgressFD != -1 && o.ProgressFD < 3 {
-		return errors.New("progress-fd must be >=3")
-	}
-	if o.Connection == "" {
-		o.Connection = "main"
-	}
+func mockSession(ctx context.Context, o Options, input, output *os.File) (err error) {
 	session, err := lifecycle.OpenSession(o.SessionDir)
 	if err != nil {
 		return err
@@ -51,12 +42,14 @@ func mockSession(ctx context.Context, o Options) (err error) {
 		ProgressFD: o.ProgressFD,
 		ResultFD:   o.ResultFD,
 		Artifact:   *artifact,
-	}, mockReplayPolicy{options: o, agent: session.AgentType})
+	}, mockReplayPolicy{options: o, agent: session.AgentType, input: input, output: output})
 }
 
 type mockReplayPolicy struct {
 	options Options
 	agent   string
+	input   *os.File
+	output  *os.File
 }
 
 func (p mockReplayPolicy) Replay(ctx context.Context, run lifecycle.MockContext) error {
@@ -64,6 +57,6 @@ func (p mockReplayPolicy) Replay(ctx context.Context, run lifecycle.MockContext)
 		return err
 	}
 	execution := run.Execution()
-	err := replayConnection(ctx, p.options, run.Artifact().Path, p.agent, run.Connection(), run.ConnectionReceipt())
+	err := replayConnection(ctx, p.options, p.input, p.output, run.Artifact().Path, p.agent, run.Connection(), run.ConnectionReceipt())
 	return errors.Join(err, history.Check(run.OverlayRoot(), execution.HistoryFiles))
 }

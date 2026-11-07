@@ -84,9 +84,6 @@ func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
 		// Connection location and authentication paths are invocation-only data.
 		commandArgs = []string{"--session-dir", o.SessionDir, "--url", "<private>", "--token-file", "<private>"}
 	}
-	if o.Connection == "" {
-		o.Connection = "main"
-	}
 	target := "local"
 	if remote != nil {
 		token, err := os.ReadFile(remote.TokenFile)

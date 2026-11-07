@@ -27,14 +27,11 @@ type Options struct {
 }
 
 // Run replays the current recording in one prepared-session execution.
-func Run(ctx context.Context, o Options) error {
-	if o.SessionDir == "" {
-		return errors.New("mock requires --session-dir")
-	}
-	return mockSession(ctx, o)
+func Run(ctx context.Context, o Options, input, output *os.File) error {
+	return mockSession(ctx, o, input, output)
 }
 
-func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, reportPath string) (err error) {
+func replayConnection(ctx context.Context, o Options, input, output *os.File, sourceRoot, agent, phase, reportPath string) (err error) {
 	var notification *os.File
 	if o.ProgressFD >= 3 {
 		fd, e := syscall.Dup(o.ProgressFD)
@@ -73,7 +70,7 @@ func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, 
 	receipt["frames"] = len(document.Frames)
 	ctx, cancel := context.WithTimeout(ctx, replayTimeout(agent, o.Timeout, document.Timeout))
 	defer cancel()
-	consumed, e := mockProtocolNotifying(ctx, document, notification)
+	consumed, e := mockProtocolNotifying(ctx, document, notification, input, output)
 	receipt["fullConsumption"] = consumed
 	if e != nil {
 		return e
@@ -82,7 +79,7 @@ func replayConnection(ctx context.Context, o Options, sourceRoot, agent, phase, 
 	return nil
 }
 
-func mockProtocolNotifying(ctx context.Context, document *recording.Document, notification *os.File) (bool, error) {
+func mockProtocolNotifying(ctx context.Context, document *recording.Document, notification, input, output *os.File) (bool, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
 		return false, err
@@ -116,7 +113,7 @@ func mockProtocolNotifying(ctx context.Context, document *recording.Document, no
 		}
 		done <- progressResult{consumed, e}
 	}()
-	err = replay.Run(ctx, document, recording.Limits{}, "", os.Stdin, os.Stdout, fd)
+	err = replay.Run(ctx, document, recording.Limits{}, "", input, output, fd)
 	progress := <-done
 	return progress.consumed, errors.Join(err, progress.err, r.Close())
 }
