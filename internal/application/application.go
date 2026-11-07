@@ -19,6 +19,7 @@ import (
 type (
 	RecordOptions = record.Options
 	MockOptions   = mock.Options
+	MockResult    = mock.Result
 	Session       = lifecycle.Session
 )
 
@@ -145,27 +146,27 @@ func Record(ctx context.Context, o RecordOptions, streams Streams) error {
 }
 
 // Mock validates caller input and owns one mock action.
-func Mock(ctx context.Context, o MockOptions, streams Streams) error {
+func Mock(ctx context.Context, o MockOptions, streams Streams) (*MockResult, error) {
 	if err := validateResultFD(o.ResultFD); err != nil {
-		return err
+		return nil, err
 	}
 	if o.ResultFD >= 3 && o.ResultFD == o.ProgressFD {
-		return errors.New("result-fd and progress-fd must use separate descriptors")
+		return nil, errors.New("result-fd and progress-fd must use separate descriptors")
 	}
 	if o.SessionDir == "" {
-		return errors.New("mock requires --session-dir")
+		return nil, errors.New("mock requires --session-dir")
 	}
 	if !filepath.IsAbs(o.SessionDir) {
-		return errors.New("--session-dir must be an absolute path")
+		return nil, errors.New("--session-dir must be an absolute path")
 	}
 	if o.Timeout < 0 {
-		return errors.New("mock timeout must be nonnegative")
+		return nil, errors.New("mock timeout must be nonnegative")
 	}
 	if o.ProgressFD != -1 && o.ProgressFD < 3 {
-		return errors.New("progress-fd must be >=3")
+		return nil, errors.New("progress-fd must be >=3")
 	}
 	if streams.In == nil || streams.Out == nil || streams.Err == nil {
-		return errors.New("mock requires input, output and error streams")
+		return nil, errors.New("mock requires input, output and error streams")
 	}
 	if o.Connection == "" {
 		o.Connection = "main"

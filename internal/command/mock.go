@@ -44,7 +44,8 @@ func newMockCommand(streams IO) *cobra.Command {
 			return err
 		}
 		o.NativeArgs = native
-		return application.Mock(c.Context(), o, application.Streams{In: streams.In, Out: streams.Out, Err: streams.Err})
+		_, err = application.Mock(c.Context(), o, application.Streams{In: streams.In, Out: streams.Out, Err: streams.Err})
+		return err
 	}
 	return c
 }

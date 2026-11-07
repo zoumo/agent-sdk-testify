@@ -38,6 +38,18 @@ type MockContext struct {
 	transactionContext
 }
 
+// MockResult identifies the execution and connection owned by one mock call.
+type MockResult struct {
+	SessionID          string
+	ExecutionID        string
+	ConnectionID       string
+	Material           corpus.Material
+	ExecutionPath      string
+	ReceiptPath        string
+	ProcessReceiptPath string
+	ResultPath         string
+}
+
 type mockTransaction struct {
 	lockedTransaction
 }
@@ -46,6 +58,29 @@ func (m *mockTransaction) context() MockContext {
 	return MockContext{
 		transactionContext: m.transactionContext,
 	}
+}
+
+func (m *mockTransaction) result() *MockResult {
+	id := m.connection
+	if id == "" {
+		id = "main"
+	}
+	result := &MockResult{
+		SessionID:     m.session.SessionID,
+		ExecutionID:   m.execution.ExecutionID,
+		ConnectionID:  id,
+		Material:      cloneTransactionMaterial(m.execution.Artifact),
+		ExecutionPath: filepath.Join(m.dir, "execution.json"),
+		ResultPath:    filepath.Join(m.dir, "receipts", id+".result.json"),
+	}
+	for _, connection := range m.execution.Connections {
+		if connection.ID == id {
+			result.ReceiptPath = connection.Receipt
+			result.ProcessReceiptPath = connection.ProcessReceipt
+			break
+		}
+	}
+	return result
 }
 
 // finalize serializes completion across declared connections and owns every
@@ -155,30 +190,31 @@ func (m *mockTransaction) restoreRoutes() error {
 
 // RunMock owns one mock connection from allocation or join through result
 // delivery and lock release.
-func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (runErr error) {
+func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (result *MockResult, runErr error) {
 	if policy == nil {
-		return errors.New("mock policy is required")
+		return nil, errors.New("mock policy is required")
 	}
 	if request.Connection == "" {
 		request.Connection = "main"
 	}
 	if request.Timeout < 0 {
-		return errors.New("mock timeout must be nonnegative")
+		return nil, errors.New("mock timeout must be nonnegative")
 	}
 	if request.ProgressFD != -1 && request.ProgressFD < 3 {
-		return errors.New("progress-fd must be >=3")
+		return nil, errors.New("progress-fd must be >=3")
 	}
-	result, err := ResultStream(request.ResultFD)
+	resultStream, err := ResultStream(request.ResultFD)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if result != nil {
-		defer result.Close()
+	if resultStream != nil {
+		defer resultStream.Close()
 	}
 	run, err := beginMockTransaction(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	result = run.result()
 	defer func() { runErr = errors.Join(runErr, run.releaseLock()) }()
 	if run.execution.Limits.TimeoutNS > 0 {
 		var cancel context.CancelFunc
@@ -191,17 +227,17 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (runEr
 		if !completed && finalErr == nil {
 			finalErr = errors.New("mock transaction aborted")
 		}
-		runErr = errors.Join(runErr, run.finalize(ctx, result, finalErr))
+		runErr = errors.Join(runErr, run.finalize(ctx, resultStream, finalErr))
 	}()
 
-	if err := notifyActionStarted(ctx, &run.transactionContext, result); err != nil {
-		return err
+	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
+		return result, err
 	}
 	if err := policy.Replay(ctx, run.context()); err != nil {
-		return err
+		return result, err
 	}
 	completed = true
-	return nil
+	return result, nil
 }
 
 func beginMockTransaction(request MockRequest) (transaction *mockTransaction, err error) {

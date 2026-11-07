@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +17,13 @@ import (
 )
 
 const libraryModule = "github.com/zoumo/agent-sdk-testify"
+
+const libraryMockInput = `{"id":"4ef523ca-fb64-44f9-827e-7111bb9dda9e","method":"initialize","params":{"clientInfo":{"name":"official-python-story-recorder","title":"Protocol recording","version":"0.0.0.dev0"},"capabilities":{"experimentalApi":true}}}
+{"method":"initialized"}
+{"id":"edd297bd-7d60-47c4-b087-3674310f01c3","method":"thread/start","params":{"cwd":"/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1136140093/routes/record/workspace","sandbox":"workspace-write","approvalPolicy":"on-request","ephemeral":true,"baseInstructions":"Complete the supplied synthetic task in the working directory. Be concise.","developerInstructions":"Complete the supplied task in the synthetic project.","model":"theta/DeepSeek-V4.1-Flash-1017"}}
+{"id":"7b2dd7f7-fa40-48be-a5b2-536ec05fc74a","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Ready."}],"threadId":"01a1a7ec-721f-70f3-bf6e-8b6e80a76dcd"}}
+{"id":"66875618-03af-4a8f-be4c-5320ea64a5dd","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Done."}],"threadId":"01a1a7ec-721f-70f3-bf6e-8b6e80a76dcd"}}
+`
 
 func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	root := t.TempDir()
@@ -92,6 +101,151 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.NoFileExists(t, filepath.Join(output, "current.json"))
 	require.NoDirExists(t, filepath.Join(output, "executions"))
 	require.NoDirExists(t, filepath.Join(output, "runtime"))
+}
+
+func TestLibraryMockWithoutCLI(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	cwd := workingDirectory(t)
+	sessionDir := filepath.Join(root, "session")
+
+	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		SessionDir: sessionDir,
+		Agent:      "codex",
+		Case:       "SDK-CASE-001",
+	})
+	require.NoError(t, err)
+
+	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+	}, libraryMockInput)
+	require.NoError(t, mockErr, stderr)
+	require.Empty(t, stderr)
+	requireJSONLines(t, stdout)
+	require.Contains(t, stdout, `"method":"turn/completed"`)
+	require.Equal(t, cwd, workingDirectory(t))
+
+	require.NotNil(t, mockResult)
+	require.Equal(t, "passed", mockResult.Status)
+	require.Equal(t, prepared.SessionID, mockResult.SessionID)
+	require.Equal(t, "main", mockResult.ConnectionID)
+	require.NotEmpty(t, mockResult.ExecutionID)
+	require.Equal(t, prepared.Current, mockResult.Material)
+	require.FileExists(t, mockResult.ExecutionPath)
+	require.FileExists(t, mockResult.ResultPath)
+	require.FileExists(t, mockResult.ProcessReceiptPath)
+	receipt := readLibraryJSON(t, mockResult.ReceiptPath)
+	require.Equal(t, "passed", receipt["status"])
+	require.Equal(t, true, receipt["fullConsumption"])
+	require.Equal(t, true, receipt["clientEOF"])
+	require.Equal(t, prepared.Current.RecordingSHA256, receipt["recordingSHA256"])
+}
+
+func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	cwd := workingDirectory(t)
+	sessionDir := filepath.Join(root, "session")
+
+	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		SessionDir: sessionDir,
+		Agent:      "codex",
+		Case:       "SDK-CASE-001",
+	})
+	require.NoError(t, err)
+	currentBefore := readFile(t, filepath.Join(sessionDir, "current.json"))
+
+	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{}, "")
+	require.ErrorContains(t, mockErr, "early client EOF")
+	require.Empty(t, stdout)
+	require.Empty(t, stderr)
+	require.Equal(t, cwd, workingDirectory(t))
+	require.Equal(t, currentBefore, readFile(t, filepath.Join(sessionDir, "current.json")))
+
+	require.NotNil(t, mockResult)
+	require.Equal(t, "failed", mockResult.Status)
+	require.Equal(t, prepared.SessionID, mockResult.SessionID)
+	require.Equal(t, "main", mockResult.ConnectionID)
+	require.NotEmpty(t, mockResult.ExecutionID)
+	require.Equal(t, prepared.Current, mockResult.Material)
+	receipt := readLibraryJSON(t, mockResult.ReceiptPath)
+	require.Equal(t, "failed", receipt["status"])
+	require.Equal(t, false, receipt["fullConsumption"])
+	require.Equal(t, false, receipt["clientEOF"])
+	require.Equal(t, prepared.Current.RecordingSHA256, receipt["recordingSHA256"])
+	require.Contains(t, receipt["error"], "early client EOF")
+
+	process := readLibraryJSON(t, mockResult.ProcessReceiptPath)
+	require.Equal(t, "failed", process["status"])
+	require.EqualValues(t, 1, process["exitCode"])
+	require.Contains(t, process["error"], "early client EOF")
+
+	failurePath := filepath.Join(filepath.Dir(mockResult.ExecutionPath), "receipts", "main.failure.json")
+	require.FileExists(t, failurePath)
+	failure := readLibraryJSON(t, failurePath)
+	require.Equal(t, "failed", failure["status"])
+	require.Contains(t, failure["error"], "early client EOF")
+}
+
+func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	cwd := workingDirectory(t)
+	options := agenttestify.MockOptions{NativeArgs: []string{"app-server", "--listen", "stdio://"}}
+
+	type call struct {
+		in, out, err *os.File
+		session      *agenttestify.Session
+	}
+	var calls []call
+	for index := range 2 {
+		sessionDir := filepath.Join(root, "session-"+strconv.Itoa(index))
+		prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+			SessionDir: sessionDir,
+			Agent:      "codex",
+			Case:       "SDK-CASE-001",
+		})
+		require.NoError(t, err)
+		streamRoot := t.TempDir()
+		out, err := os.CreateTemp(streamRoot, "stdout-*")
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = out.Close() })
+		errOut, err := os.CreateTemp(streamRoot, "stderr-*")
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = errOut.Close() })
+		calls = append(calls, call{
+			in:      writeLibraryStream(t, streamRoot, "stdin", libraryMockInput),
+			out:     out,
+			err:     errOut,
+			session: prepared,
+		})
+	}
+
+	type outcome struct {
+		result *agenttestify.MockResult
+		err    error
+	}
+	start := make(chan struct{})
+	done := make(chan outcome, len(calls))
+	for _, configured := range calls {
+		go func() {
+			<-start
+			result, err := configured.session.Mock(t.Context(), options, agenttestify.Streams{
+				In:  configured.in,
+				Out: configured.out,
+				Err: configured.err,
+			})
+			done <- outcome{result: result, err: err}
+		}()
+	}
+	close(start)
+	for range calls {
+		result := <-done
+		require.NoError(t, result.err)
+		require.NotNil(t, result.result)
+		require.Equal(t, "passed", result.result.Status)
+	}
+	require.Equal(t, cwd, workingDirectory(t))
 }
 
 func TestLibraryOpenWithoutCurrent(t *testing.T) {
@@ -267,4 +421,63 @@ func writeLibraryPlan(t *testing.T, root string) string {
 	path := filepath.Join(root, "plan.json")
 	require.NoError(t, os.WriteFile(path, append(data, '\n'), 0o600))
 	return path
+}
+
+func runLibraryMock(
+	t *testing.T,
+	session *agenttestify.Session,
+	options agenttestify.MockOptions,
+	input string,
+) (*agenttestify.MockResult, string, string, error) {
+	t.Helper()
+	root := t.TempDir()
+	in := writeLibraryStream(t, root, "stdin", input)
+	out, err := os.CreateTemp(root, "stdout-*")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = out.Close() })
+	errOut, err := os.CreateTemp(root, "stderr-*")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = errOut.Close() })
+
+	result, runErr := session.Mock(t.Context(), options, agenttestify.Streams{
+		In:  in,
+		Out: out,
+		Err: errOut,
+	})
+	return result, readOpenFile(t, out), readOpenFile(t, errOut), runErr
+}
+
+func writeLibraryStream(t *testing.T, root, name, value string) *os.File {
+	t.Helper()
+	file, err := os.CreateTemp(root, name+"-*")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = file.Close() })
+	_, err = file.WriteString(value)
+	require.NoError(t, err)
+	_, err = file.Seek(0, 0)
+	require.NoError(t, err)
+	return file
+}
+
+func readOpenFile(t *testing.T, file *os.File) string {
+	t.Helper()
+	_, err := file.Seek(0, 0)
+	require.NoError(t, err)
+	data, err := os.ReadFile(file.Name())
+	require.NoError(t, err)
+	return string(data)
+}
+
+func requireJSONLines(t *testing.T, value string) {
+	t.Helper()
+	for line := range strings.SplitSeq(strings.TrimSpace(value), "\n") {
+		require.True(t, json.Valid([]byte(line)), line)
+	}
+}
+
+func readLibraryJSON(t *testing.T, path string) map[string]any {
+	t.Helper()
+	var value map[string]any
+	require.NoError(t, json.Unmarshal(readFile(t, path), &value))
+	return value
 }

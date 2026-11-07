@@ -1,7 +1,9 @@
 package agenttestify
 
 import (
+	"context"
 	"maps"
+	"os"
 	"slices"
 	"time"
 
@@ -38,6 +40,33 @@ type PrepareOptions struct {
 type ExportOptions struct {
 	SessionDir string
 	Output     string
+}
+
+// Streams are caller-owned process streams used by protocol actions.
+type Streams struct {
+	In  *os.File
+	Out *os.File
+	Err *os.File
+}
+
+// MockOptions selects one replay connection in a prepared session.
+type MockOptions struct {
+	Connection string
+	Timeout    time.Duration
+	NativeArgs []string
+}
+
+// MockResult identifies the execution and connection completed by a mock call.
+type MockResult struct {
+	SessionID          string
+	ExecutionID        string
+	ConnectionID       string
+	Status             string
+	Material           *Material
+	ExecutionPath      string
+	ReceiptPath        string
+	ProcessReceiptPath string
+	ResultPath         string
 }
 
 // ToolIdentity describes the code that prepared a session.
@@ -166,6 +195,45 @@ func Export(options ExportOptions) error {
 		SessionDir: options.SessionDir,
 		Output:     options.Output,
 	})
+}
+
+// Mock replays the current recording through caller-owned streams.
+func (s *Session) Mock(ctx context.Context, options MockOptions, streams Streams) (*MockResult, error) {
+	sessionDir := ""
+	if s != nil {
+		sessionDir = s.SessionDir
+	}
+	result, err := application.Mock(ctx, application.MockOptions{
+		SessionDir: sessionDir,
+		Connection: options.Connection,
+		Timeout:    options.Timeout,
+		ResultFD:   -1,
+		ProgressFD: -1,
+		NativeArgs: slices.Clone(options.NativeArgs),
+	}, application.Streams{
+		In:  streams.In,
+		Out: streams.Out,
+		Err: streams.Err,
+	})
+	if result == nil {
+		return nil, err
+	}
+	status := "failed"
+	if err == nil {
+		status = "passed"
+	}
+	material := materialView(result.Material)
+	return &MockResult{
+		SessionID:          result.SessionID,
+		ExecutionID:        result.ExecutionID,
+		ConnectionID:       result.ConnectionID,
+		Status:             status,
+		Material:           material,
+		ExecutionPath:      result.ExecutionPath,
+		ReceiptPath:        result.ReceiptPath,
+		ProcessReceiptPath: result.ProcessReceiptPath,
+		ResultPath:         result.ResultPath,
+	}, err
 }
 
 func sessionView(result *application.OpenResult) *Session {
