@@ -10,35 +10,35 @@ import (
 )
 
 type transactionContext struct {
-	session      *Session
+	fixture      *Fixture
 	plan         tool.Object
 	execution    Execution
 	connection   string
-	sessionDir   string
+	fixtureDir   string
 	dir          string
 	overlayRoot  string
 	artifactRoot string
 }
 
-func newTransactionContext(session *Session, plan tool.Object, execution Execution, sessionDir string) *transactionContext {
+func newTransactionContext(fixture *Fixture, plan tool.Object, execution Execution, fixtureDir string) *transactionContext {
 	return &transactionContext{
-		session:      session,
+		fixture:      fixture,
 		plan:         plan,
 		execution:    execution,
-		sessionDir:   sessionDir,
-		dir:          ExecutionDir(sessionDir, execution.ExecutionID),
+		fixtureDir:   fixtureDir,
+		dir:          ExecutionDir(fixtureDir, execution.ExecutionID),
 		overlayRoot:  filepath.Dir(execution.Home),
 		artifactRoot: execution.ArtifactRoot,
 	}
 }
 
-func (c transactionContext) Session() Session {
-	session := *c.session
-	session.Tool.Args = slices.Clone(c.session.Tool.Args)
-	session.HistorySeedFiles = maps.Clone(c.session.HistorySeedFiles)
-	session.Env = maps.Clone(c.session.Env)
-	session.Routes = make(map[string]Route, len(c.session.Routes))
-	for name, route := range c.session.Routes {
+func (c transactionContext) Fixture() Fixture {
+	fixture := *c.fixture
+	fixture.Tool.Args = slices.Clone(c.fixture.Tool.Args)
+	fixture.HistorySeedFiles = maps.Clone(c.fixture.HistorySeedFiles)
+	fixture.Env = maps.Clone(c.fixture.Env)
+	fixture.Routes = make(map[string]Route, len(c.fixture.Routes))
+	for name, route := range c.fixture.Routes {
 		route.Env = maps.Clone(route.Env)
 		route.RuntimeEnv = slices.Clone(route.RuntimeEnv)
 		connections := route.Connections
@@ -47,9 +47,9 @@ func (c transactionContext) Session() Session {
 			connection.Args = slices.Clone(connection.Args)
 			route.Connections[i] = connection
 		}
-		session.Routes[name] = route
+		fixture.Routes[name] = route
 	}
-	return session
+	return fixture
 }
 
 func (c transactionContext) Plan() tool.Object {
@@ -68,8 +68,8 @@ func (c transactionContext) Connection() string {
 	return c.connection
 }
 
-func (c transactionContext) SessionDir() string {
-	return c.sessionDir
+func (c transactionContext) FixtureDir() string {
+	return c.fixtureDir
 }
 
 func (c transactionContext) ExecutionDir() string {

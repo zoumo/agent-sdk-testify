@@ -20,8 +20,8 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
-	session := run.Session()
-	plan, err := lifecycle.LoadPlan(&session)
+	fixture := run.Fixture()
+	plan, err := lifecycle.LoadPlan(&fixture)
 	if err != nil {
 		return nil, err
 	}
@@ -29,11 +29,11 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 	// Keep native request cwd stable across SDK and protocol subprocesses. Mock
 	// will replay this precise value while placing writable fixtures elsewhere.
 	delete(plan, "recordingIsolation")
-	plan["project"] = session.Routes["record"].Workspace
+	plan["project"] = fixture.Routes["record"].Workspace
 	plan["_fixtureProject"] = execution.Workspace
 	plan["root"], plan["home"], plan["config"], plan["raw"] = run.OverlayRoot(), execution.Home, execution.Config, filepath.Join(run.ArtifactRoot(), "raw")
 	plan["stdinEOFAction"] = "close"
-	if session.AgentType == "claude" && plan["driverProfile"] == "interrupt" {
+	if fixture.AgentType == "claude" && plan["driverProfile"] == "interrupt" {
 		plan["stdinEOFAction"] = "interrupt"
 	}
 	if remote != nil {
@@ -49,10 +49,10 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 		}
 	}
 	if plan["driverProfile"] == "existing-children" && plan["historySeed"] == nil {
-		if session.HistorySeed == "" {
+		if fixture.HistorySeed == "" {
 			return nil, errors.New("existing-child recording requires saved history")
 		}
-		if err := native.PrepareHistorySeed(session.HistorySeed, run.OverlayRoot(), plan); err != nil {
+		if err := native.PrepareHistorySeed(fixture.HistorySeed, run.OverlayRoot(), plan); err != nil {
 			return nil, err
 		}
 	}
@@ -60,7 +60,7 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 		return nil, err
 	}
 	if remote == nil {
-		if err := lifecycle.SaveNativePreparation(run.SessionDir(), &session, execution, plan, path); err != nil {
+		if err := lifecycle.SaveNativePreparation(run.FixtureDir(), &fixture, execution, plan, path); err != nil {
 			return nil, err
 		}
 	}

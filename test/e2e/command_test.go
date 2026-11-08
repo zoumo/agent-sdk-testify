@@ -80,8 +80,8 @@ func TestPublicCommandExitContract(t *testing.T) {
 				})
 				input = r
 			}
-			session := prepareSyntheticMock(t, binary, tc.source)
-			args := []string{"agent", "mock", "--session-dir", session}
+			fixtureDir := prepareSyntheticMock(t, binary, tc.source)
+			args := []string{"agent", "mock", "--fixture-dir", fixtureDir}
 			args = append(args, tc.extra...)
 			out, stderr, code := runCLI(t, binary, input, args...)
 			require.Equal(t, tc.code, code, stderr)
@@ -91,7 +91,7 @@ func TestPublicCommandExitContract(t *testing.T) {
 	}
 }
 
-func TestSinglePreparedSessionCLIContract(t *testing.T) {
+func TestSinglePreparedFixtureCLIContract(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	for _, command := range [][]string{{"prepare"}, {"agent", "record"}, {"official", "record"}, {"official", "verify"}, {"agent", "mock"}} {
 		out, stderr, code := runCLI(t, binary, nil, append(command, "--help")...)
@@ -138,7 +138,7 @@ func TestPublicCommandParseFailuresDoNotStartHandlers(t *testing.T) {
 	launcher := filepath.Join(t.TempDir(), "launcher")
 	require.NoError(t, os.WriteFile(launcher, []byte("#!/bin/sh\ntouch '"+marker+"'\n"), 0o700))
 	for _, extra := range [][]string{{"--bogus"}, {"--timeout", "not-a-duration"}} {
-		args := append([]string{"official", "record", "--session-dir", t.TempDir(), "--cmd", launcher}, extra...)
+		args := append([]string{"official", "record", "--fixture-dir", t.TempDir(), "--cmd", launcher}, extra...)
 		args = append(args, "--", "app-server")
 		out, stderr, code := runCLI(t, binary, nil, args...)
 		require.Equal(t, 1, code)
@@ -150,11 +150,11 @@ func TestPublicCommandParseFailuresDoNotStartHandlers(t *testing.T) {
 	}
 }
 
-func TestPublicCommandSessionErrors(t *testing.T) {
+func TestPublicCommandFixtureErrors(t *testing.T) {
 	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
 	root := t.TempDir()
-	missing := filepath.Join(root, "missing-session")
-	occupied := filepath.Join(root, "occupied-session")
+	missing := filepath.Join(root, "missing-fixture")
+	occupied := filepath.Join(root, "occupied-fixture")
 	require.NoError(t, os.Mkdir(occupied, 0o700))
 	launcher := filepath.Join(root, "launcher")
 	require.NoError(t, os.WriteFile(launcher, []byte("#!/bin/sh\nexit 0\n"), 0o700))
@@ -164,16 +164,16 @@ func TestPublicCommandSessionErrors(t *testing.T) {
 		args []string
 	}{
 		{
-			name: "prepare-existing-session",
-			args: []string{"prepare", "--session-dir", occupied, "--agent", "codex", "--case", "SDK-CASE-008"},
+			name: "prepare-existing-fixture",
+			args: []string{"prepare", "--fixture-dir", occupied, "--agent", "codex", "--case", "SDK-CASE-008"},
 		},
 		{
-			name: "record-missing-session",
-			args: []string{"official", "record", "--session-dir", missing, "--cmd", launcher, "--", "app-server"},
+			name: "record-missing-fixture",
+			args: []string{"official", "record", "--fixture-dir", missing, "--cmd", launcher, "--", "app-server"},
 		},
 		{
-			name: "verify-missing-session",
-			args: []string{"official", "verify", "--session-dir", missing},
+			name: "verify-missing-fixture",
+			args: []string{"official", "verify", "--fixture-dir", missing},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -182,6 +182,34 @@ func TestPublicCommandSessionErrors(t *testing.T) {
 			require.Empty(t, out)
 			require.Contains(t, stderr, "agent-sdk-testify:")
 			require.NotContains(t, stderr, "Usage:")
+		})
+	}
+}
+
+func TestRetiredSessionDirFlagRejected(t *testing.T) {
+	binary := os.Getenv("AGENT_SDK_TESTIFY_BIN")
+	for _, test := range []struct {
+		name string
+		args []string
+	}{
+		{name: "prepare", args: []string{"prepare", "--agent", "codex", "--case", "SDK-CASE-001"}},
+		{name: "agent-record", args: []string{"agent", "record"}},
+		{name: "agent-mock", args: []string{"agent", "mock"}},
+		{name: "official-record", args: []string{"official", "record"}},
+		{name: "official-verify", args: []string{"official", "verify"}},
+		{name: "export", args: []string{"export", "--output", filepath.Join(t.TempDir(), "output")}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fixture := filepath.Join(t.TempDir(), "fixture")
+			args := append(append([]string{}, test.args...), "--session-dir", fixture)
+			out, stderr, code := runCLI(t, binary, nil, args...)
+			require.Equal(t, 1, code, stderr)
+			require.Empty(t, out)
+			require.NotContains(t, stderr, "Usage:")
+			require.NoDirExists(t, fixture)
+			if test.name != "agent-mock" {
+				require.Contains(t, stderr, "unknown flag: --session-dir")
+			}
 		})
 	}
 }
@@ -245,5 +273,5 @@ func prepareSyntheticMock(t *testing.T, binary, source string) string {
 	require.NoError(t, os.WriteFile(filepath.Join(material, "raw", "raw.jsonl"), raw, 0o600))
 	writeJSON(t, filepath.Join(material, "plan.json"), object{"provider": "codex", "caseId": "synthetic-protocol", "driverProfile": "continuation", "project": filepath.Join(root, "project"), "scenario": object{"files": object{}}})
 	writeJSON(t, filepath.Join(material, "manifest.json"), object{"provenance": "synthetic", "planSHA256": digestFile(t, filepath.Join(material, "plan.json")), "files": object{"raw.jsonl": digestBytes(raw)}})
-	return prepareSession(t, nil, "--recording", material)
+	return prepareFixture(t, nil, "--recording", material)
 }

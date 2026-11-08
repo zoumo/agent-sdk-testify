@@ -184,7 +184,7 @@ func validateMockReceipts(receiptPath, processPath string, execution Execution, 
 	}
 	if process["schemaVersion"] != float64(1) ||
 		process["status"] != "passed" ||
-		process["sessionId"] != execution.SessionID ||
+		process["fixtureId"] != execution.FixtureID ||
 		process["executionId"] != execution.ExecutionID ||
 		process["connectionId"] != connection.ID ||
 		process["error"] != nil {
@@ -219,21 +219,21 @@ func ValidateMockConnection(provider string, execution Execution, connection Exe
 
 // ValidateMockExecution requires the normal completed index and connection
 // layout, in addition to the descriptor's public launch contract.
-func ValidateMockExecution(sessionDir string, session *Session, execution Execution) error {
-	if err := execution.Validate(*session); err != nil {
+func ValidateMockExecution(fixtureDir string, fixture *Fixture, execution Execution) error {
+	if err := execution.Validate(*fixture); err != nil {
 		return err
 	}
-	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(sessionDir, "executions", execution.ExecutionID, "mock") {
+	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(fixtureDir, "executions", execution.ExecutionID, "mock") {
 		return errors.New("unexpected mock execution layout")
 	}
-	if err := validateConnectionInventory(execution, &execution.Artifact, session.Routes["mock"]); err != nil {
+	if err := validateConnectionInventory(execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
 		return err
 	}
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return err
 	}
-	digest, err := tool.FileDigest(filepath.Join(sessionDir, "executions", execution.ExecutionID, "execution.json"))
+	digest, err := tool.FileDigest(filepath.Join(fixtureDir, "executions", execution.ExecutionID, "execution.json"))
 	if err != nil {
 		return err
 	}

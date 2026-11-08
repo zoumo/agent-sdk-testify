@@ -39,7 +39,7 @@ func mockCapture(t *testing.T) string {
 
 func TestMockExternalRecording(t *testing.T) {
 	root := mockCapture(t)
-	cmd, session := preparedMockCommand(t, root, "app-server", "--listen", "stdio://")
+	cmd, fixtureDir := preparedMockCommand(t, root, "app-server", "--listen", "stdio://")
 	cmd.Stdin = bytes.NewBufferString("{\"id\":\"consumer-id\",\"method\":\"ping\",\"params\":{\"unknown\":9007199254740993}}\n")
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -48,7 +48,7 @@ func TestMockExternalRecording(t *testing.T) {
 	assert.JSONEq(t, `{"id":"consumer-id","result":{"unknown":9007199254740993}}`, string(out))
 	assert.Contains(t, string(out), "9007199254740993")
 	assert.Empty(t, stderr.String())
-	receipt := mockReceipt(t, session)
+	receipt := mockReceipt(t, fixtureDir)
 	assert.Equal(t, "passed", receipt["status"])
 	assert.Equal(t, true, receipt["fullConsumption"])
 	assert.Equal(t, true, receipt["clientEOF"])
@@ -62,7 +62,7 @@ func TestMockExternalRecording(t *testing.T) {
 
 func TestMockRequiresClientEOFAfterConsumption(t *testing.T) {
 	root := mockCapture(t)
-	cmd, session := preparedMockCommand(t, root, "--timeout", "0.3")
+	cmd, fixtureDir := preparedMockCommand(t, root, "--timeout", "0.3")
 	in, err := cmd.StdinPipe()
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = in.Close() })
@@ -78,7 +78,7 @@ func TestMockRequiresClientEOFAfterConsumption(t *testing.T) {
 	assert.JSONEq(t, `{"id":7,"result":{"unknown":9007199254740993}}`, line)
 	require.Error(t, cmd.Wait())
 	assert.Equal(t, 1, cmd.ProcessState.ExitCode())
-	receipt := mockReceipt(t, session)
+	receipt := mockReceipt(t, fixtureDir)
 	assert.Equal(t, "failed", receipt["status"])
 	assert.Equal(t, true, receipt["fullConsumption"])
 	assert.Equal(t, false, receipt["clientEOF"])
@@ -95,17 +95,17 @@ func TestMockRejectsUnsupportedSourceFormat(t *testing.T) {
 		"recordingFormat": tool.Object{"name": "agent-mock-jsonl", "version": 999, "transport": "stdio-jsonl"},
 		"files":           tool.Object{"raw.jsonl": hex.EncodeToString(sum[:])},
 	}))
-	session := filepath.Join(t.TempDir(), "session")
-	prepare := sessionTool(t, os.Environ(), "prepare", "--session-dir", session, "--recording", root)
+	fixtureDir := filepath.Join(t.TempDir(), "fixture")
+	prepare := fixtureTool(t, os.Environ(), "prepare", "--fixture-dir", fixtureDir, "--recording", root)
 	data, err := prepare.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	cmd := sessionTool(t, os.Environ(), "agent", "mock", "--session-dir", session)
+	cmd := fixtureTool(t, os.Environ(), "agent", "mock", "--fixture-dir", fixtureDir)
 	out, err := cmd.CombinedOutput()
 	require.Error(t, err)
 	assert.Equal(t, 1, cmd.ProcessState.ExitCode())
 	assert.Contains(t, string(out), "unsupported recording format")
 	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "executions", "index.json"), &index))
 	assert.Empty(t, tool.Array(index["executions"]))
 }
 
@@ -120,7 +120,7 @@ func TestMockStrictFailuresRetainReceiptsAndSourceBytes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			root := mockCapture(t)
 			before := mockSourceBytes(t, root)
-			cmd, session := preparedMockCommand(t, root)
+			cmd, fixtureDir := preparedMockCommand(t, root)
 			cmd.Stdin = strings.NewReader(tc.input)
 			var stderr bytes.Buffer
 			cmd.Stderr = &stderr
@@ -128,7 +128,7 @@ func TestMockStrictFailuresRetainReceiptsAndSourceBytes(t *testing.T) {
 			require.Error(t, err)
 			assert.Equal(t, 1, cmd.ProcessState.ExitCode())
 			assert.Contains(t, stderr.String(), tc.diagnostic)
-			receipt := mockReceipt(t, session)
+			receipt := mockReceipt(t, fixtureDir)
 			assert.Equal(t, "failed", receipt["status"])
 			assert.Equal(t, tc.consumed, receipt["fullConsumption"])
 			assert.Equal(t, false, receipt["clientEOF"])
@@ -156,7 +156,7 @@ func mockSourceBytes(t *testing.T, root string) map[string]string {
 
 func TestMockCancellationRetainsReceipt(t *testing.T) {
 	root := mockCapture(t)
-	cmd, session := preparedMockCommand(t, root)
+	cmd, fixtureDir := preparedMockCommand(t, root)
 	in, err := cmd.StdinPipe()
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = in.Close() })
@@ -172,7 +172,7 @@ func TestMockCancellationRetainsReceipt(t *testing.T) {
 	require.NoError(t, cmd.Process.Signal(syscall.SIGTERM))
 	require.Error(t, cmd.Wait())
 	assert.Equal(t, 1, cmd.ProcessState.ExitCode())
-	receipt := mockReceipt(t, session)
+	receipt := mockReceipt(t, fixtureDir)
 	assert.Equal(t, "failed", receipt["status"])
 	assert.Equal(t, false, receipt["clientEOF"])
 	assert.Equal(t, true, receipt["cleanupComplete"])
@@ -192,7 +192,7 @@ func TestMockClaudeNativeStdio(t *testing.T) {
 		"files": tool.Object{"raw.jsonl": hex.EncodeToString(rawSum[:])},
 	}))
 	before := mockSourceBytes(t, root)
-	cmd, session := preparedMockCommand(t, root,
+	cmd, fixtureDir := preparedMockCommand(t, root,
 		"--output-format", "stream-json", "--input-format", "stream-json", "--verbose", "--permission-prompt-tool", "stdio")
 	cmd.Stdin = strings.NewReader(`{"type":"control_request","request_id":"consumer","request":{"subtype":"initialize","unknown":true}}` + "\n")
 	var stderr bytes.Buffer
@@ -200,7 +200,7 @@ func TestMockClaudeNativeStdio(t *testing.T) {
 	out, err := cmd.Output()
 	require.NoError(t, err, "%s", stderr.String())
 	assert.JSONEq(t, `{"type":"control_response","response":{"subtype":"success","request_id":"consumer","response":{"unknown":true}}}`, string(out))
-	receipt := mockReceipt(t, session)
+	receipt := mockReceipt(t, fixtureDir)
 	assert.Equal(t, "passed", receipt["status"])
 	assert.Equal(t, "synthetic", receipt["provenance"])
 	assert.Equal(t, "claude", receipt["provider"])
@@ -213,11 +213,11 @@ func TestMockIndependentConnections(t *testing.T) {
 	var commands []*exec.Cmd
 	var reports []string
 	for _, id := range []string{"connection-one", "connection-two"} {
-		cmd, session := preparedMockCommand(t, root)
+		cmd, fixtureDir := preparedMockCommand(t, root)
 		cmd.Stdin = strings.NewReader(`{"id":"` + id + `","method":"ping","params":{"unknown":9007199254740993}}` + "\n")
 		require.NoError(t, cmd.Start())
 		commands = append(commands, cmd)
-		reports = append(reports, session)
+		reports = append(reports, fixtureDir)
 	}
 	for i, cmd := range commands {
 		require.NoError(t, cmd.Wait())
@@ -278,17 +278,17 @@ func TestMockConsumptionNotificationBeforeEOF(t *testing.T) {
 
 func preparedMockCommand(t *testing.T, root string, args ...string) (*exec.Cmd, string) {
 	t.Helper()
-	session, env := preparedSessionWithArgs(t, "prepare", "--recording", root)
-	return sessionTool(t, env, append([]string{"agent", "mock", "--session-dir", session}, args...)...), session
+	fixtureDir, env := preparedFixtureWithArgs(t, "prepare", "--recording", root)
+	return fixtureTool(t, env, append([]string{"agent", "mock", "--fixture-dir", fixtureDir}, args...)...), fixtureDir
 }
 
-func readMockReceipt(session string, receipt *tool.Object) error {
+func readMockReceipt(fixtureDir string, receipt *tool.Object) error {
 	var index struct {
 		Executions []struct {
 			ID string `json:"id"`
 		} `json:"executions"`
 	}
-	if err := tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index); err != nil {
+	if err := tool.ReadJSON(filepath.Join(fixtureDir, "executions", "index.json"), &index); err != nil {
 		return err
 	}
 	if len(index.Executions) == 0 {
@@ -300,15 +300,15 @@ func readMockReceipt(session string, receipt *tool.Object) error {
 			Receipt string `json:"receipt"`
 		} `json:"connections"`
 	}
-	if err := tool.ReadJSON(filepath.Join(session, "executions", id, "execution.json"), &execution); err != nil {
+	if err := tool.ReadJSON(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution); err != nil {
 		return err
 	}
 	return tool.ReadJSON(execution.Connections[0].Receipt, receipt)
 }
 
-func mockReceipt(t *testing.T, session string) tool.Object {
+func mockReceipt(t *testing.T, fixtureDir string) tool.Object {
 	t.Helper()
 	var receipt tool.Object
-	require.NoError(t, readMockReceipt(session, &receipt))
+	require.NoError(t, readMockReceipt(fixtureDir, &receipt))
 	return receipt
 }

@@ -19,7 +19,7 @@ import (
 )
 
 type VerifyOptions struct {
-	SessionDir string
+	FixtureDir string
 	Timeout    time.Duration
 	Index      string
 	Scenarios  string
@@ -28,8 +28,8 @@ type VerifyOptions struct {
 
 // Verify owns the SDK driver, not an execution or a protocol environment.
 func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
-	if !filepath.IsAbs(o.SessionDir) {
-		return errors.New("official verify requires absolute --session-dir")
+	if !filepath.IsAbs(o.FixtureDir) {
+		return errors.New("official verify requires absolute --fixture-dir")
 	}
 	if o.Timeout < 0 {
 		return errors.New("timeout must be nonnegative")
@@ -55,13 +55,13 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
 		defer cancel()
 	}
-	session, err := lifecycle.OpenSession(o.SessionDir)
+	fixture, err := lifecycle.OpenFixture(o.FixtureDir)
 	if err != nil {
 		return err
 	}
 	var activity *lifecycle.OfficialRun
 	verificationSaved := false
-	evidence := tool.Object{"schemaVersion": 1, "sessionId": session.SessionID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
+	evidence := tool.Object{"schemaVersion": 1, "fixtureId": fixture.FixtureID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
 		if activity == nil {
 			return
@@ -82,7 +82,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		runErr = errors.Join(runErr, activity.Complete(evidence))
 	}()
 
-	material, err := lifecycle.LatestArtifact(o.SessionDir, session)
+	material, err := lifecycle.LatestArtifact(o.FixtureDir, fixture)
 	if err != nil {
 		return err
 	}
@@ -106,16 +106,16 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if err := tool.ReadJSON(filepath.Join(material.Path, "plan.json"), &plan); err != nil {
 		return err
 	}
-	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: session.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
+	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: fixture.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
 	if err != nil {
 		return err
 	}
 	if err := catalog.CheckVerifierPlan(plan, bound); err != nil {
 		return err
 	}
-	evidence["case"], evidence["provider"], evidence["binding"] = plan["caseId"], session.AgentType, bound
+	evidence["case"], evidence["provider"], evidence["binding"] = plan["caseId"], fixture.AgentType, bound
 	contracts := tool.Object{}
-	for _, name := range []string{tool.Str(bound["storyId"]) + ".json", "bindings/" + session.AgentType + ".json"} {
+	for _, name := range []string{tool.Str(bound["storyId"]) + ".json", "bindings/" + fixture.AgentType + ".json"} {
 		content, err := fs.ReadFile(data.Scenarios(), name)
 		if err != nil {
 			return err
@@ -123,7 +123,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		contracts[name] = tool.DigestBytes(content)
 	}
 	evidence["contracts"] = contracts
-	driver, err := ResolveDriver(session.AgentType)
+	driver, err := ResolveDriver(fixture.AgentType)
 	if err != nil {
 		return err
 	}
@@ -143,13 +143,13 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	evidence["tool"] = tool.Object{"version": version.Version, "sha256": toolHash}
 	// Preconditions do not create orchestration facts. Registration then pins the
 	// exact preflight input against concurrent record before a driver can start.
-	activity, err = lifecycle.BeginOfficial(o.SessionDir, "verify")
+	activity, err = lifecycle.BeginOfficial(o.FixtureDir, "verify")
 	if err != nil {
 		return err
 	}
-	o.SessionDir, session = activity.SessionDir, activity.Session
+	o.FixtureDir, fixture = activity.FixtureDir, activity.Fixture
 	evidence["id"], evidence["output"] = activity.ID, activity.Dir
-	pinned, err := lifecycle.LatestArtifact(o.SessionDir, session)
+	pinned, err := lifecycle.LatestArtifact(o.FixtureDir, fixture)
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		return errors.New("material changed before verification")
 	}
 	var index lifecycle.Index
-	if err := tool.ReadJSON(lifecycle.IndexPath(o.SessionDir), &index); err != nil {
+	if err := tool.ReadJSON(lifecycle.IndexPath(o.FixtureDir), &index); err != nil {
 		return err
 	}
 	previous := map[string]bool{}
@@ -173,18 +173,18 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	}
 	evidence["priorExecutions"] = previous
 	root := filepath.Join(activity.Dir, "driver")
-	route := session.Routes["mock"]
+	route := fixture.Routes["mock"]
 	env := route.Env
-	plan["root"], plan["home"], plan["config"], plan["raw"] = root, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[session.AgentType]], filepath.Join(material.Path, "raw")
+	plan["root"], plan["home"], plan["config"], plan["raw"] = root, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(material.Path, "raw")
 	plan["_seedRoot"] = filepath.Dir(route.Workspace)
 	plan["_recordedWorkspace"] = plan["_fixtureProject"]
 	plan["_fixtureProject"], plan["_replay"] = route.Workspace, true
 	// project/historyProject retain the original native protocol cwd. Only the
 	// fixture and SDK host use the ordinary mock route slots.
-	private := filepath.Join(session.ResourceRoot, "official", activity.ID)
+	private := filepath.Join(fixture.ResourceRoot, "official", activity.ID)
 	peers := make(map[string]tool.Command, len(material.Connections))
 	for _, id := range material.Connections {
-		args := []string{"agent", "mock", "--session-dir", o.SessionDir, "--connection", id}
+		args := []string{"agent", "mock", "--fixture-dir", o.FixtureDir, "--connection", id}
 		if o.Timeout > 0 {
 			args = append(args, "--timeout", fmt.Sprint(o.Timeout.Seconds()))
 		}
@@ -203,8 +203,8 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		ReportFile: "replay-report.json",
 		Inspect: func(outcome, report tool.Object, priorErr error) error {
 			var inspectErr error
-			inspectErr = errors.Join(inspectErr, validateBusinessEvidence(session.AgentType, plan, bound, outcome, report))
-			refs, refErr := mockReferences(o.SessionDir, session, root, material.Connections, *material, previous)
+			inspectErr = errors.Join(inspectErr, validateBusinessEvidence(fixture.AgentType, plan, bound, outcome, report))
+			refs, refErr := mockReferences(o.FixtureDir, fixture, root, material.Connections, *material, previous)
 			evidence["connections"] = refs
 			inspectErr = errors.Join(inspectErr, refErr)
 			after, err := corpus.Inventory(material.Path, false)
@@ -215,7 +215,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 			inspectErr = errors.Join(inspectErr, snapshotMocks(activity.Dir, refs), activity.RestoreMockRoute())
 			if c.Index != "" && material.OfficialOrigin != nil && errors.Join(priorErr, inspectErr) == nil {
 				target := filepath.Join(root, "record-origin")
-				recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.SessionDir, session, *material, target)
+				recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.FixtureDir, fixture, *material, target)
 				if recordEvidenceErr == nil {
 					files, hashErr := corpus.Inventory(target, false)
 					recordEvidenceErr = hashErr

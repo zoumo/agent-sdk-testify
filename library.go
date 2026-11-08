@@ -12,7 +12,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 )
 
-// ToolSource identifies how the library or CLI entered the prepared session.
+// ToolSource identifies how the library or CLI entered the prepared fixture.
 type ToolSource string
 
 const (
@@ -48,7 +48,7 @@ const (
 // by record and mock calls. ConnectionStatus describes this call only;
 // ExecutionStatus and ExecutionComplete describe every declared connection.
 type ActionResult struct {
-	SessionID          string
+	FixtureID          string
 	ExecutionID        string
 	ConnectionID       string
 	ConnectionStatus   ConnectionStatus
@@ -61,9 +61,9 @@ type ActionResult struct {
 	ResultPath         string
 }
 
-// PrepareOptions selects the immutable initial state for a new session.
+// PrepareOptions selects the immutable initial state for a new fixture.
 type PrepareOptions struct {
-	SessionDir    string
+	FixtureDir    string
 	Agent         string
 	Case          string
 	Plan          string
@@ -77,14 +77,14 @@ type PrepareOptions struct {
 	MaxFrameBytes int64
 }
 
-// ExportOptions names the session and a new directory outside it.
+// ExportOptions names the fixture and a new directory outside it.
 type ExportOptions struct {
-	SessionDir string
+	FixtureDir string
 	Output     string
 }
 
-// RecordOptions selects one capture connection and its native or remote target.
-type RecordOptions struct {
+// RecordAgentOptions selects one capture connection and its native or remote target.
+type RecordAgentOptions struct {
 	Connection     string
 	Command        string
 	NativeArgs     []string
@@ -101,25 +101,25 @@ type Streams struct {
 	Err *os.File
 }
 
-// MockOptions selects one replay connection in a prepared session.
-type MockOptions struct {
+// MockAgentOptions selects one replay connection in a prepared fixture.
+type MockAgentOptions struct {
 	Connection string
 	Timeout    time.Duration
 	NativeArgs []string
 }
 
-// MockResult identifies the execution and connection completed by a mock call.
-type MockResult struct {
+// MockAgentResult identifies the execution and connection completed by a mock call.
+type MockAgentResult struct {
 	ActionResult
 }
 
-// RecordResult identifies the execution and connection completed by a record
+// RecordAgentResult identifies the execution and connection completed by a record
 // call and, on success, the newly selected material.
-type RecordResult struct {
+type RecordAgentResult struct {
 	ActionResult
 }
 
-// ToolIdentity describes the code that prepared a session.
+// ToolIdentity describes the code that prepared a fixture.
 type ToolIdentity struct {
 	Command string
 	Args    []string
@@ -183,10 +183,10 @@ type Material struct {
 	CreatedAt       string
 }
 
-// Session is a detached, typed view of a prepared session.
-type Session struct {
-	SessionDir   string
-	SessionID    string
+// Fixture is a detached, typed view of a prepared test fixture.
+type Fixture struct {
+	FixtureDir   string
+	FixtureID    string
 	Tool         ToolIdentity
 	AgentType    string
 	Source       Source
@@ -203,10 +203,10 @@ type Session struct {
 	Current      *Material
 }
 
-// Prepare creates one session using the embedded library tool identity.
-func Prepare(options PrepareOptions) (*Session, error) {
+// Prepare creates one fixture using the embedded library tool identity.
+func Prepare(options PrepareOptions) (*Fixture, error) {
 	_, err := application.Prepare(application.PrepareOptions{
-		SessionDir:    options.SessionDir,
+		FixtureDir:    options.FixtureDir,
 		Agent:         options.Agent,
 		Case:          options.Case,
 		Plan:          options.Plan,
@@ -223,38 +223,38 @@ func Prepare(options PrepareOptions) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := application.Open(options.SessionDir)
+	result, err := application.Open(options.FixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	return sessionView(result), nil
+	return fixtureView(result), nil
 }
 
-// Open reads a prepared session without changing it.
-func Open(sessionDir string) (*Session, error) {
-	result, err := application.Open(sessionDir)
+// Open reads a prepared fixture without changing it.
+func Open(fixtureDir string) (*Fixture, error) {
+	result, err := application.Open(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	return sessionView(result), nil
+	return fixtureView(result), nil
 }
 
-// Export copies the current material package without changing the session.
+// Export copies the current material package without changing the fixture.
 func Export(options ExportOptions) error {
 	return application.Export(application.ExportOptions{
-		SessionDir: options.SessionDir,
+		FixtureDir: options.FixtureDir,
 		Output:     options.Output,
 	})
 }
 
-// Record captures one native Agent or remote endpoint through caller-owned streams.
-func (s *Session) Record(ctx context.Context, options RecordOptions, streams Streams) (*RecordResult, error) {
-	sessionDir := ""
-	if s != nil {
-		sessionDir = s.SessionDir
+// RecordAgent captures one native Agent or remote endpoint through caller-owned streams.
+func (f *Fixture) RecordAgent(ctx context.Context, options RecordAgentOptions, streams Streams) (*RecordAgentResult, error) {
+	fixtureDir := ""
+	if f != nil {
+		fixtureDir = f.FixtureDir
 	}
 	result, err := application.Record(ctx, application.RecordOptions{
-		SessionDir:     sessionDir,
+		FixtureDir:     fixtureDir,
 		Connection:     options.Connection,
 		URL:            options.URL,
 		TokenFile:      options.TokenFile,
@@ -271,19 +271,19 @@ func (s *Session) Record(ctx context.Context, options RecordOptions, streams Str
 	if result == nil {
 		return nil, err
 	}
-	return &RecordResult{
+	return &RecordAgentResult{
 		ActionResult: actionResultView(result.ActionResult),
 	}, err
 }
 
-// Mock replays the current recording through caller-owned streams.
-func (s *Session) Mock(ctx context.Context, options MockOptions, streams Streams) (*MockResult, error) {
-	sessionDir := ""
-	if s != nil {
-		sessionDir = s.SessionDir
+// MockAgent replays the current recording through caller-owned streams.
+func (f *Fixture) MockAgent(ctx context.Context, options MockAgentOptions, streams Streams) (*MockAgentResult, error) {
+	fixtureDir := ""
+	if f != nil {
+		fixtureDir = f.FixtureDir
 	}
 	result, err := application.Mock(ctx, application.MockOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Connection: options.Connection,
 		Timeout:    options.Timeout,
 		ResultFD:   -1,
@@ -297,14 +297,14 @@ func (s *Session) Mock(ctx context.Context, options MockOptions, streams Streams
 	if result == nil {
 		return nil, err
 	}
-	return &MockResult{
+	return &MockAgentResult{
 		ActionResult: actionResultView(result.ActionResult),
 	}, err
 }
 
 func actionResultView(result lifecycle.ActionResult) ActionResult {
 	view := ActionResult{
-		SessionID:          result.SessionID,
+		FixtureID:          result.FixtureID,
 		ExecutionID:        result.ExecutionID,
 		ConnectionID:       result.ConnectionID,
 		ConnectionStatus:   ConnectionStatus(result.ConnectionStatus),
@@ -321,42 +321,42 @@ func actionResultView(result lifecycle.ActionResult) ActionResult {
 	return view
 }
 
-func sessionView(result *application.OpenResult) *Session {
-	session := result.Session
-	view := &Session{
-		SessionDir:   result.SessionDir,
-		SessionID:    session.SessionID,
-		AgentType:    session.AgentType,
-		HistorySeed:  session.HistorySeed,
-		ResourceRoot: session.ResourceRoot,
-		Workspace:    session.Workspace,
-		Home:         session.Home,
-		Config:       session.Config,
-		Tmp:          session.Tmp,
-		ProtocolCwd:  session.ProtocolCwd,
-		Env:          maps.Clone(session.Env),
-		Limits:       limitsView(session.Limits),
+func fixtureView(result *application.OpenResult) *Fixture {
+	fixture := result.Fixture
+	view := &Fixture{
+		FixtureDir:   result.FixtureDir,
+		FixtureID:    fixture.FixtureID,
+		AgentType:    fixture.AgentType,
+		HistorySeed:  fixture.HistorySeed,
+		ResourceRoot: fixture.ResourceRoot,
+		Workspace:    fixture.Workspace,
+		Home:         fixture.Home,
+		Config:       fixture.Config,
+		Tmp:          fixture.Tmp,
+		ProtocolCwd:  fixture.ProtocolCwd,
+		Env:          maps.Clone(fixture.Env),
+		Limits:       limitsView(fixture.Limits),
 		Tool: ToolIdentity{
-			Command: session.Tool.Command,
-			Args:    slices.Clone(session.Tool.Args),
-			Version: session.ToolVersion,
-			SHA256:  session.ToolSHA256,
+			Command: fixture.Tool.Command,
+			Args:    slices.Clone(fixture.Tool.Args),
+			Version: fixture.ToolVersion,
+			SHA256:  fixture.ToolSHA256,
 			Source:  ToolSourceExecutable,
 		},
 		Source: Source{
-			Kind:          session.Source.Kind,
-			ID:            session.Source.ID,
-			Path:          session.Source.Path,
-			SHA256:        session.Source.SHA256,
-			Provenance:    session.Source.Provenance,
-			DriverProfile: session.Source.DriverProfile,
+			Kind:          fixture.Source.Kind,
+			ID:            fixture.Source.ID,
+			Path:          fixture.Source.Path,
+			SHA256:        fixture.Source.SHA256,
+			Provenance:    fixture.Source.Provenance,
+			DriverProfile: fixture.Source.DriverProfile,
 		},
 	}
-	if session.ToolSource == lifecycle.ToolSourceEmbedded {
+	if fixture.ToolSource == lifecycle.ToolSourceEmbedded {
 		view.Tool.Source = ToolSourceEmbedded
 	}
-	view.Routes = make(map[string]Route, len(session.Routes))
-	for name, route := range session.Routes {
+	view.Routes = make(map[string]Route, len(fixture.Routes))
+	for name, route := range fixture.Routes {
 		view.Routes[name] = routeView(route)
 	}
 	if result.Current != nil {

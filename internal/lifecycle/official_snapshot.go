@@ -10,22 +10,22 @@ import (
 )
 
 // SnapshotOfficialRecord carries settled original facts into qualification and
-// its archive. It never changes the sealed material or resolves another session.
-func SnapshotOfficialRecord(sessionDir string, session *Session, material corpus.Material, target string) error {
+// its archive. It never changes the sealed material or resolves another fixture.
+func SnapshotOfficialRecord(fixtureDir string, fixture *Fixture, material corpus.Material, target string) error {
 	if err := corpus.ValidateOfficialCapture(material); err != nil {
 		return err
 	}
-	if err := validateOfficialOrigin(sessionDir, session, material.OfficialOrigin); err != nil {
+	if err := validateOfficialOrigin(fixtureDir, fixture, material.OfficialOrigin); err != nil {
 		return err
 	}
-	root := filepath.Join(sessionDir, "official-records", material.OfficialOrigin.RunID)
+	root := filepath.Join(fixtureDir, "official-records", material.OfficialOrigin.RunID)
 	if err := corpus.ValidateOfficialRecord(root, material); err != nil {
 		return err
 	}
 	if err := tool.CopyTree(root, filepath.Join(target, "run")); err != nil {
 		return err
 	}
-	if err := tool.CopyFile(filepath.Join(sessionDir, "session.json"), filepath.Join(target, "session.json")); err != nil {
+	if err := tool.CopyFile(FixturePath(fixtureDir), filepath.Join(target, "fixture.json")); err != nil {
 		return err
 	}
 	var result tool.Object
@@ -33,7 +33,7 @@ func SnapshotOfficialRecord(sessionDir string, session *Session, material corpus
 		return err
 	}
 	executionID := ""
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return err
 	}
@@ -47,18 +47,18 @@ func SnapshotOfficialRecord(sessionDir string, session *Session, material corpus
 			return errors.New("official capture connections disagree on execution")
 		}
 		executionID = id
-		dir := ExecutionDir(sessionDir, id)
+		dir := ExecutionDir(fixtureDir, id)
 		var execution Execution
 		if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
 			return err
 		}
-		if err := execution.Validate(*session); err != nil {
+		if err := execution.Validate(*fixture); err != nil {
 			return err
 		}
 		if execution.Command != "record" || !reflect.DeepEqual(execution.Artifact, material) {
 			return errors.New("official capture execution differs from material")
 		}
-		if err := validateConnectionInventory(execution, &material, session.Routes["record"]); err != nil {
+		if err := validateConnectionInventory(execution, &material, fixture.Routes["record"]); err != nil {
 			return err
 		}
 		found := false
@@ -92,14 +92,14 @@ func SnapshotOfficialRecord(sessionDir string, session *Session, material corpus
 	if executionID == "" {
 		return errors.New("official capture omits actual execution")
 	}
-	dir := ExecutionDir(sessionDir, executionID)
+	dir := ExecutionDir(fixtureDir, executionID)
 	preparation := tool.Obj(result["recordPreparation"])
 	if preparation["executionId"] != executionID {
 		return errors.New("original native preparation binding is missing")
 	}
 	for name, path := range map[string]string{
 		"isolationSHA256":    filepath.Join(dir, "receipts", "isolation.json"),
-		"preparedPlanSHA256": filepath.Join(session.ResourceRoot, "executions", executionID, "record-plan.json"),
+		"preparedPlanSHA256": filepath.Join(fixture.ResourceRoot, "executions", executionID, "record-plan.json"),
 	} {
 		digest, err := tool.FileDigest(path)
 		if err != nil {
@@ -112,7 +112,7 @@ func SnapshotOfficialRecord(sessionDir string, session *Session, material corpus
 	for name, source := range map[string]string{
 		"execution.json":     filepath.Join(dir, "execution.json"),
 		"isolation.json":     filepath.Join(dir, "receipts", "isolation.json"),
-		"prepared-plan.json": filepath.Join(session.ResourceRoot, "executions", executionID, "record-plan.json"),
+		"prepared-plan.json": filepath.Join(fixture.ResourceRoot, "executions", executionID, "record-plan.json"),
 	} {
 		if err := tool.CopyFile(source, filepath.Join(target, name)); err != nil {
 			return err

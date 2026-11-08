@@ -16,16 +16,16 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func openPreparedSession(sessionDir string) (*lifecycle.Session, string, error) {
-	dir, err := lifecycle.CanonicalSessionDir(sessionDir)
+func openPreparedFixture(fixtureDir string) (*lifecycle.Fixture, string, error) {
+	dir, err := lifecycle.CanonicalFixtureDir(fixtureDir)
 	if err != nil {
 		return nil, "", err
 	}
-	session, err := lifecycle.OpenSession(dir)
+	fixture, err := lifecycle.OpenFixture(dir)
 	if err != nil {
 		return nil, "", err
 	}
-	return session, dir, nil
+	return fixture, dir, nil
 }
 
 func prepareRecord(o RecordOptions) (record.Prepared, error) {
@@ -53,29 +53,29 @@ func prepareRecord(o RecordOptions) (record.Prepared, error) {
 			return record.Prepared{}, err
 		}
 	}
-	session, sessionDir, err := openPreparedSession(o.SessionDir)
+	fixture, fixtureDir, err := openPreparedFixture(o.FixtureDir)
 	if err != nil {
 		return record.Prepared{}, err
 	}
 	if remote != nil {
-		if err := validateTokenLocation(sessionDir, remote.TokenFile); err != nil {
+		if err := validateTokenLocation(fixtureDir, remote.TokenFile); err != nil {
 			return record.Prepared{}, err
 		}
-	} else if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
+	} else if err := protocol.ValidateNativeArgs(fixture.AgentType, o.NativeArgs); err != nil {
 		return record.Prepared{}, err
 	}
-	plan, err := lifecycle.LoadPlan(session)
+	plan, err := lifecycle.LoadPlan(fixture)
 	if err != nil {
 		return record.Prepared{}, err
 	}
-	if !slices.Contains(lifecycle.ConnectionIDs(session.Source, plan), o.Connection) {
+	if !slices.Contains(lifecycle.ConnectionIDs(fixture.Source, plan), o.Connection) {
 		return record.Prepared{}, fmt.Errorf("undeclared record connection %s", o.Connection)
 	}
-	args := append([]string{"--session-dir", sessionDir, "--cmd", executable, "--"}, o.NativeArgs...)
+	args := append([]string{"--fixture-dir", fixtureDir, "--cmd", executable, "--"}, o.NativeArgs...)
 	target := "local"
 	if remote != nil {
 		// Connection location and authentication paths are invocation-only data.
-		args = []string{"--session-dir", sessionDir, "--url", "<private>", "--token-file", "<private>"}
+		args = []string{"--fixture-dir", fixtureDir, "--url", "<private>", "--token-file", "<private>"}
 		token, err := os.ReadFile(remote.TokenFile)
 		if err != nil {
 			return record.Prepared{}, err
@@ -83,7 +83,7 @@ func prepareRecord(o RecordOptions) (record.Prepared, error) {
 		target = tool.DigestBytes(append(append([]byte(remote.URL), 0), token...))
 	}
 	return record.Prepared{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Connection: o.Connection,
 		Args:       args,
 		NativeArgs: slices.Clone(o.NativeArgs),
@@ -99,27 +99,27 @@ func prepareMock(o MockOptions) (mock.Prepared, error) {
 	if o.Connection == "" {
 		o.Connection = "main"
 	}
-	session, sessionDir, err := openPreparedSession(o.SessionDir)
+	fixture, fixtureDir, err := openPreparedFixture(o.FixtureDir)
 	if err != nil {
 		return mock.Prepared{}, err
 	}
-	if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
+	if err := protocol.ValidateNativeArgs(fixture.AgentType, o.NativeArgs); err != nil {
 		return mock.Prepared{}, err
 	}
-	material, err := currentMaterial(sessionDir, session)
+	material, err := currentMaterial(fixtureDir, fixture)
 	if err != nil {
 		return mock.Prepared{}, err
 	}
 	if !slices.Contains(material.Connections, o.Connection) {
 		return mock.Prepared{}, fmt.Errorf("undeclared mock connection %s", o.Connection)
 	}
-	if err := mock.ValidateMaterial(*material, session.AgentType); err != nil {
+	if err := mock.ValidateMaterial(*material, fixture.AgentType); err != nil {
 		return mock.Prepared{}, err
 	}
 	return mock.Prepared{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Connection: o.Connection,
-		Agent:      session.AgentType,
+		Agent:      fixture.AgentType,
 		Artifact:   *material,
 		Timeout:    o.Timeout,
 		ResultFD:   o.ResultFD,
@@ -128,26 +128,26 @@ func prepareMock(o MockOptions) (mock.Prepared, error) {
 	}, nil
 }
 
-func currentMaterial(sessionDir string, session *lifecycle.Session) (*corpus.Material, error) {
-	material, present, err := lifecycle.CurrentArtifact(sessionDir, session)
+func currentMaterial(fixtureDir string, fixture *lifecycle.Fixture) (*corpus.Material, error) {
+	material, present, err := lifecycle.CurrentArtifact(fixtureDir, fixture)
 	if err != nil {
 		return nil, err
 	}
 	if !present {
-		return nil, errors.New("session has no current recording")
+		return nil, errors.New("fixture has no current recording")
 	}
 	return material, nil
 }
 
-func validateTokenLocation(sessionDir, tokenFile string) error {
+func validateTokenLocation(fixtureDir, tokenFile string) error {
 	tokenPath, err := filepath.EvalSymlinks(tokenFile)
 	if err != nil {
 		return errors.New("private token file unavailable")
 	}
-	if relative, err := filepath.Rel(sessionDir, tokenPath); err == nil && filepath.IsLocal(relative) {
-		runtimeRelative, err := filepath.Rel(filepath.Join(sessionDir, "runtime"), tokenPath)
+	if relative, err := filepath.Rel(fixtureDir, tokenPath); err == nil && filepath.IsLocal(relative) {
+		runtimeRelative, err := filepath.Rel(filepath.Join(fixtureDir, "runtime"), tokenPath)
 		if err != nil || !filepath.IsLocal(runtimeRelative) {
-			return errors.New("token file must be outside session evidence (use runtime or an external file)")
+			return errors.New("token file must be outside fixture evidence (use runtime or an external file)")
 		}
 	}
 	return nil

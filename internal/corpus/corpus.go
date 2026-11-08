@@ -164,6 +164,19 @@ func (v *Validation) Read(root, name string) tool.Object {
 	return m
 }
 
+func (v *Validation) readFixtureEvidence(root, prefix string) tool.Object {
+	fixturePath := filepath.Join(root, filepath.FromSlash(prefix+"fixture.json"))
+	if _, err := os.Stat(fixturePath); err == nil {
+		return v.Read(root, prefix+"fixture.json")
+	} else if !os.IsNotExist(err) {
+		if v.Err == nil {
+			v.Err = err
+		}
+		return tool.Object{}
+	}
+	return v.Read(root, prefix+"session.json")
+}
+
 func (v *Validation) Digest(root, name string) string {
 	if v.Err != nil {
 		return ""
@@ -201,6 +214,16 @@ func Keys(m tool.Object) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// evidenceFixtureID reads the tool-owned identity from current evidence and
+// from immutable pre-rename repository evidence. New outputs always use
+// fixtureId; sessionId is accepted only by the read-only corpus verifier.
+func evidenceFixtureID(value tool.Object) string {
+	if id := tool.Str(value["fixtureId"]); id != "" {
+		return id
+	}
+	return tool.Str(value["sessionId"])
 }
 
 func corpusSet(names []string) tool.Object {

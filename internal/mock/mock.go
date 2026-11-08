@@ -20,7 +20,7 @@ import (
 
 // Prepared is the validated current-material contract for one replay policy.
 type Prepared struct {
-	SessionDir string
+	FixtureDir string
 	Connection string
 	Agent      string
 	Artifact   corpus.Material
@@ -32,10 +32,10 @@ type Prepared struct {
 
 type Result = lifecycle.MockResult
 
-// Run replays the current recording in one prepared-session execution.
+// Run replays the current recording in one prepared-fixture execution.
 func Run(ctx context.Context, prepared Prepared, input, output *os.File) (*Result, error) {
 	return lifecycle.RunMock(ctx, lifecycle.MockRequest{
-		SessionDir: prepared.SessionDir,
+		FixtureDir: prepared.FixtureDir,
 		Connection: prepared.Connection,
 		NativeArgs: prepared.NativeArgs,
 		Timeout:    prepared.Timeout,

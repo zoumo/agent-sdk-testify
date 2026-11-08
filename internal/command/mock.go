@@ -21,13 +21,13 @@ func newMockCommand(streams IO) *cobra.Command {
 	c := &cobra.Command{
 		Use:                "mock [flags] [native startup arguments]",
 		Short:              "Replay recorded native protocol",
-		Long:               "Replay only the current recording in a prepared session. Native startup arguments declare protocol compatibility; Agent meta-commands are unsupported.",
+		Long:               "Replay only the current recording in a prepared fixture. Native startup arguments declare protocol compatibility; Agent meta-commands are unsupported.",
 		DisableFlagParsing: true,
 	}
 	f := c.Flags()
-	f.StringVar(&o.SessionDir, "session-dir", "", "Prepared session directory")
+	f.StringVar(&o.FixtureDir, "fixture-dir", "", "Prepared fixture directory")
 	f.StringVar(&o.Connection, "connection", "main", "Declared connection ID")
-	f.Float64Var(&seconds, "timeout", 0, "Seconds; zero uses material/session defaults")
+	f.Float64Var(&seconds, "timeout", 0, "Seconds; zero uses material/fixture defaults")
 	f.IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
 	f.IntVar(&o.ProgressFD, "progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
 	f.BoolVarP(&help, "help", "h", false, "Help for mock")

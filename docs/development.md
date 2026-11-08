@@ -7,7 +7,7 @@
 生产代码及默认测试不得导入 agent-sdk-go、Go driver 或 SDK fixture 容器。
 官方 SDK 仅作为 official record/verify 的显式环境依赖，不在运行时自动安装。
 
-CLI 消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立
+CLI 消费者通过 `prepare --plan` 和 record 采集、mock 进程、fixture/运行描述与独立
 回执接入。模块根包是可导入库包，入口职责以[工具设计](design.md#入口与职责)为准，
 公开 API 以[可导入 Go 库入口规格](library-entry-spec.md)为准。
 公开 CLI 结构和职责以[工具设计](design.md)为准。agent record/mock 不依赖官方
@@ -25,7 +25,7 @@ agent-sdk-testify/
     main.go                 # CLI 入口
   internal/
     application/            # prepare/record/mock/export 的唯一应用用例层
-    lifecycle/              # prepare 与会话/execution 状态
+    lifecycle/              # prepare 与 fixture/execution 状态
     record/ mock/           # agent 协议执行
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
     builtin/ official/      # 内置快照与官方录制/验证编排
@@ -62,7 +62,7 @@ official 编排、driver 和公开 agent 命令的职责以
 ### 内部职责与依赖
 
 - `application` 是 prepare、record、mock、export 的唯一应用用例层，统一拥有参数校验、
-  会话操作编排和结果交付。`internal/command` 只解析 argv、注入 stdio/descriptor，
+  fixture 操作编排和结果交付。`internal/command` 只解析 argv、注入 stdio/descriptor，
   并把返回错误映射为退出码和 stderr；根库入口只转换公开类型和调用方流。两个适配层
   都不得绕过 `application` 直接编排 `lifecycle`、`record`、`mock` 或 `corpus`。
 - `record`、`mock` 是公开 agent 命令的策略适配器：`record` 只提供录制准备、采集和
@@ -71,7 +71,7 @@ official 编排、driver 和公开 agent 命令的职责以
   route 恢复、材料发布和 current 切换。`official` 集中官方录制与官方验证编排，
   不保留独立 `verify` 包或普通录制包中的官方编排入口。
 - `native` 集中原生配置过滤、认证环境、启动准备、历史种子准备及工具拥有的原生
-  服务管理。它不依赖 session、execution 或官方编排；session 的环境基线、overlay
+  服务管理。它不依赖 fixture、execution 或官方编排；fixture 的环境基线、overlay
   路由、资源归属、锁和清理时序仍由 `lifecycle` 管理。driver 发现、请求、launcher、
   subprocess 与证据 plumbing 归 `official`，由同一 driver-run 统一拥有。
 - `lifecycle` 不依赖 `official`。官方编排通过 `lifecycle` 管理活动登记和精确
@@ -80,7 +80,7 @@ official 编排、driver 和公开 agent 命令的职责以
 - 生产回放使用 `mock` 到 `replay` 的执行路径；协议根包保留原生启动参数校验，
   不维护只供测试使用的第二套录制加载、超时或 receipt 流程。
 - 材料自身的格式、哈希闭包及来源规则归 `corpus`，case/binding 与 plan 合同归
-  `catalog`，内置快照校验归 `builtin`。`lifecycle` 保留材料与当前 session、source、
+  `catalog`，内置快照校验归 `builtin`。`lifecycle` 保留材料与当前 fixture、source、
   execution 的关系校验、current 选择和原子发布；官方 verifier 的选择归 `official`。
   材料相关包不得反向依赖 `lifecycle`，也不新增通用校验框架。
 - 以上内部调整保留公开 CLI、持久数据合同、严格回放、来源原字节和失败证据。
@@ -132,7 +132,7 @@ required/optional、planned/unsupported 及原因必须保留。
 根目录 `library*_test.go` 是公开库能力的最高验收接缝：测试包固定为
 `agenttestify_test`，只导入模块公开路径，不调用 CLI；可以使用临时文件、受控子进程
 和本地回环连接。这些测试由 `make test` 和 `make test-race` 纳入默认门禁。
-`tests/build/` 比较公开库会话与 installed CLI 会话的 layout、descriptor 形状、
+`tests/build/` 比较公开库 fixture 与 installed CLI fixture 的 layout、descriptor 形状、
 material 字节和哈希，不复制 CLI 用例集。
 
 集成测试只有在验证 EOF、退出、取消或清理等进程行为时才启动必要的受控子进程。
@@ -146,15 +146,15 @@ SDK 公共接口、消费者业务断言及 simulate 由消费者仓库负责。
   保留关键流程和代表性失败，不在三层重复枚举同一组组合。
 - 例如，哈希错误的各种组合在单元测试中覆盖；集成测试检查材料加载会执行哈希校验；
   端到端测试只检查代表性错误被 CLI 拒绝，且 current 不变。
-- 单元测试和集成测试不得为每个 case 构建 CLI、准备完整会话或启动整套环境。
+- 单元测试和集成测试不得为每个 case 构建 CLI、准备完整 fixture 或启动整套环境。
   不使用固定 sleep 等待成功，改为等待可观察事件，并为等待和清理设置上限。
   通过逐测试耗时定位慢项，优先消除重复构建、进程启动和无关准备。
 - 端到端测试是唯一完整 CLI 流程验收入口，不在各业务包中重复维护纵向验收。
   同一种构建模式的 CLI 构建一次并复用路径；每个测试仍使用独立可写状态，
-  不共享可写 session 或 execution overlay。
+  不共享可写 fixture 或 execution overlay。
 - 关键覆盖保留 record/mock、official record/verify、远程与多连接、export 后重新导入、
-  调用方删除 session、取消及失败证据。分片、大消息、关联 ID、超时、取消、背压、
-  历史派生、会话复用、overlay 隔离和资源清理按所属层覆盖，不全部提升为完整流程。
+  调用方删除 fixture、取消及失败证据。分片、大消息、关联 ID、超时、取消、背压、
+  历史派生、fixture 复用、overlay 隔离和资源清理按所属层覆盖，不全部提升为完整流程。
 - 分层调整保留全部合同断言、严格匹配、来源原字节、哈希与资格政策；不能通过删 case、
   skip 或放宽 deadline 缩短耗时。构建、打包和安装检查单独报告，不计作单元或集成测试。
 

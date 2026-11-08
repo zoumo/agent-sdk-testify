@@ -20,23 +20,23 @@ func TestPrepareRejectsInvalidInput(t *testing.T) {
 		want    string
 	}{
 		{
-			name: "missing session",
-			want: "prepare requires --session-dir",
+			name: "missing fixture",
+			want: "prepare requires --fixture-dir",
 		},
 		{
-			name:    "relative session",
-			options: PrepareOptions{SessionDir: "relative"},
-			want:    "--session-dir must be an absolute path",
+			name:    "relative fixture",
+			options: PrepareOptions{FixtureDir: "relative"},
+			want:    "--fixture-dir must be an absolute path",
 		},
 		{
 			name:    "negative limit",
-			options: PrepareOptions{SessionDir: filepath.Join(root, "new"), ProtocolBytes: -1},
+			options: PrepareOptions{FixtureDir: filepath.Join(root, "new"), ProtocolBytes: -1},
 			want:    "prepare limits must be nonnegative",
 		},
 		{
-			name:    "existing session",
-			options: PrepareOptions{SessionDir: existing},
-			want:    "--session-dir already exists: " + existing,
+			name:    "existing fixture",
+			options: PrepareOptions{FixtureDir: existing},
+			want:    "--fixture-dir already exists: " + existing,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -53,22 +53,22 @@ func TestExportRequiresAbsolutePaths(t *testing.T) {
 		options ExportOptions
 	}{
 		{name: "missing paths"},
-		{name: "relative output", options: ExportOptions{SessionDir: root, Output: "relative"}},
-		{name: "relative session", options: ExportOptions{SessionDir: "relative", Output: filepath.Join(root, "output")}},
+		{name: "relative output", options: ExportOptions{FixtureDir: root, Output: "relative"}},
+		{name: "relative fixture", options: ExportOptions{FixtureDir: "relative", Output: filepath.Join(root, "output")}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			require.EqualError(t, Export(test.options), "export requires absolute --session-dir and --output paths")
+			require.EqualError(t, Export(test.options), "export requires absolute --fixture-dir and --output paths")
 		})
 	}
 }
 
 func TestRecordRejectsInvalidInput(t *testing.T) {
 	root := t.TempDir()
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 	command := filepath.Join(root, "agent")
 	require.NoError(t, os.WriteFile(command, []byte("#!/bin/sh\nexit 0\n"), 0o700))
 	valid := RecordOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Command:    command,
 		NativeArgs: []string{"app-server"},
 		ResultFD:   -1,
@@ -98,9 +98,9 @@ func TestRecordRejectsInvalidInput(t *testing.T) {
 			want: "remote target excludes --cmd and native arguments",
 		},
 		{
-			name:   "relative session",
-			mutate: func(o *RecordOptions) { o.SessionDir = "relative" },
-			want:   "--session-dir must be absolute",
+			name:   "relative fixture",
+			mutate: func(o *RecordOptions) { o.FixtureDir = "relative" },
+			want:   "--fixture-dir must be absolute",
 		},
 		{
 			name:   "negative timeout",
@@ -133,7 +133,7 @@ func TestRecordRequiresStreamsBeforeExecution(t *testing.T) {
 	command := filepath.Join(root, "agent")
 	require.NoError(t, os.WriteFile(command, []byte("#!/bin/sh\nexit 0\n"), 0o700))
 	options := RecordOptions{
-		SessionDir: filepath.Join(root, "session"),
+		FixtureDir: filepath.Join(root, "fixture"),
 		Command:    command,
 		NativeArgs: []string{"app-server"},
 		ResultFD:   -1,
@@ -160,23 +160,23 @@ func TestMockRejectsInvalidInput(t *testing.T) {
 			want:    "result-fd and progress-fd must use separate descriptors",
 		},
 		{
-			name:    "missing session",
+			name:    "missing fixture",
 			options: MockOptions{ResultFD: -1, ProgressFD: -1},
-			want:    "mock requires --session-dir",
+			want:    "mock requires --fixture-dir",
 		},
 		{
-			name:    "relative session",
-			options: MockOptions{SessionDir: "relative", ResultFD: -1, ProgressFD: -1},
-			want:    "--session-dir must be an absolute path",
+			name:    "relative fixture",
+			options: MockOptions{FixtureDir: "relative", ResultFD: -1, ProgressFD: -1},
+			want:    "--fixture-dir must be an absolute path",
 		},
 		{
 			name:    "negative timeout",
-			options: MockOptions{SessionDir: filepath.Join(root, "session"), Timeout: -time.Second, ResultFD: -1, ProgressFD: -1},
+			options: MockOptions{FixtureDir: filepath.Join(root, "fixture"), Timeout: -time.Second, ResultFD: -1, ProgressFD: -1},
 			want:    "mock timeout must be nonnegative",
 		},
 		{
 			name:    "progress descriptor",
-			options: MockOptions{SessionDir: filepath.Join(root, "session"), ResultFD: -1, ProgressFD: 2},
+			options: MockOptions{FixtureDir: filepath.Join(root, "fixture"), ResultFD: -1, ProgressFD: 2},
 			want:    "progress-fd must be >=3",
 		},
 	} {
@@ -188,16 +188,16 @@ func TestMockRejectsInvalidInput(t *testing.T) {
 }
 
 func TestMockRequiresStreamsBeforeExecution(t *testing.T) {
-	options := MockOptions{SessionDir: filepath.Join(t.TempDir(), "session"), ResultFD: -1, ProgressFD: -1}
+	options := MockOptions{FixtureDir: filepath.Join(t.TempDir(), "fixture"), ResultFD: -1, ProgressFD: -1}
 	_, err := Mock(t.Context(), options, Streams{})
 	require.EqualError(t, err, "mock requires input, output and error streams")
 }
 
-func TestApplicationRecordPreflightOwnsTargetAndSessionInputs(t *testing.T) {
+func TestApplicationRecordPreflightOwnsTargetAndFixtureInputs(t *testing.T) {
 	root := t.TempDir()
 	isolateApplicationEnvironment(t, root)
-	sessionDir := prepareApplicationPlanSession(t, root)
-	sessionDir, err := filepath.EvalSymlinks(sessionDir)
+	fixtureDir := prepareApplicationPlanFixture(t, root)
+	fixtureDir, err := filepath.EvalSymlinks(fixtureDir)
 	require.NoError(t, err)
 	executable := filepath.Join(root, "agent")
 	require.NoError(t, os.WriteFile(executable, []byte("#!/bin/sh\nexit 0\n"), 0o700))
@@ -205,21 +205,21 @@ func TestApplicationRecordPreflightOwnsTargetAndSessionInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	prepared, err := prepareRecord(RecordOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Command:    executable,
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		Timeout:    time.Second,
 		ResultFD:   -1,
 	})
 	require.NoError(t, err)
-	require.Equal(t, sessionDir, prepared.SessionDir)
+	require.Equal(t, fixtureDir, prepared.FixtureDir)
 	require.Equal(t, "main", prepared.Connection)
 	require.Equal(t, resolvedExecutable, prepared.Command)
 	require.Equal(t, "local", prepared.Target)
-	require.Equal(t, []string{"--session-dir", sessionDir, "--cmd", resolvedExecutable, "--", "app-server", "--listen", "stdio://"}, prepared.Args)
+	require.Equal(t, []string{"--fixture-dir", fixtureDir, "--cmd", resolvedExecutable, "--", "app-server", "--listen", "stdio://"}, prepared.Args)
 
 	_, err = prepareRecord(RecordOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Command:    executable,
 		NativeArgs: []string{"unsupported"},
 		ResultFD:   -1,
@@ -227,7 +227,7 @@ func TestApplicationRecordPreflightOwnsTargetAndSessionInputs(t *testing.T) {
 	require.ErrorContains(t, err, `unsupported native startup argument "unsupported"`)
 
 	_, err = prepareRecord(RecordOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Connection: "probe",
 		Command:    executable,
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
@@ -238,7 +238,7 @@ func TestApplicationRecordPreflightOwnsTargetAndSessionInputs(t *testing.T) {
 	tokenFile := filepath.Join(root, "token")
 	require.NoError(t, os.WriteFile(tokenFile, []byte("synthetic-token\n"), 0o600))
 	remote, err := prepareRecord(RecordOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		URL:        "ws://example.invalid",
 		TokenFile:  tokenFile,
 		ResultFD:   -1,
@@ -248,32 +248,32 @@ func TestApplicationRecordPreflightOwnsTargetAndSessionInputs(t *testing.T) {
 	require.Equal(t, "ws://example.invalid", remote.Remote.URL)
 	require.Empty(t, remote.Command)
 	require.Len(t, remote.Target, 64)
-	require.Equal(t, []string{"--session-dir", sessionDir, "--url", "<private>", "--token-file", "<private>"}, remote.Args)
+	require.Equal(t, []string{"--fixture-dir", fixtureDir, "--url", "<private>", "--token-file", "<private>"}, remote.Args)
 }
 
 func TestApplicationMockPreflightSelectsCurrentAndValidatesConnection(t *testing.T) {
 	root := t.TempDir()
 	isolateApplicationEnvironment(t, root)
-	sessionDir := filepath.Join(root, "session")
-	_, err := Prepare(PrepareOptions{SessionDir: sessionDir, Agent: "codex", Case: "SDK-CASE-001"})
+	fixtureDir := filepath.Join(root, "fixture")
+	_, err := Prepare(PrepareOptions{FixtureDir: fixtureDir, Agent: "codex", Case: "SDK-CASE-001"})
 	require.NoError(t, err)
-	sessionDir, err = filepath.EvalSymlinks(sessionDir)
+	fixtureDir, err = filepath.EvalSymlinks(fixtureDir)
 	require.NoError(t, err)
 
 	prepared, err := prepareMock(MockOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		ResultFD:   -1,
 		ProgressFD: -1,
 	})
 	require.NoError(t, err)
-	require.Equal(t, sessionDir, prepared.SessionDir)
+	require.Equal(t, fixtureDir, prepared.FixtureDir)
 	require.Equal(t, "main", prepared.Connection)
 	require.Equal(t, "codex", prepared.Agent)
 	require.NotEmpty(t, prepared.Artifact.RecordingSHA256)
 
 	_, err = prepareMock(MockOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Connection: "probe",
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		ResultFD:   -1,
@@ -282,14 +282,14 @@ func TestApplicationMockPreflightSelectsCurrentAndValidatesConnection(t *testing
 	require.EqualError(t, err, "undeclared mock connection probe")
 
 	_, err = prepareMock(MockOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		NativeArgs: []string{"unsupported"},
 		ResultFD:   -1,
 		ProgressFD: -1,
 	})
 	require.ErrorContains(t, err, `unsupported native startup argument "unsupported"`)
 
-	emptySession := filepath.Join(root, "empty-session")
+	emptyFixture := filepath.Join(root, "empty-fixture")
 	plan := filepath.Join(root, "plan.json")
 	data, err := json.Marshal(map[string]any{
 		"version":       1,
@@ -300,10 +300,10 @@ func TestApplicationMockPreflightSelectsCurrentAndValidatesConnection(t *testing
 	})
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(plan, append(data, '\n'), 0o600))
-	_, err = Prepare(PrepareOptions{SessionDir: emptySession, Plan: plan})
+	_, err = Prepare(PrepareOptions{FixtureDir: emptyFixture, Plan: plan})
 	require.NoError(t, err)
-	_, err = prepareMock(MockOptions{SessionDir: emptySession, ResultFD: -1, ProgressFD: -1})
-	require.EqualError(t, err, "session has no current recording")
+	_, err = prepareMock(MockOptions{FixtureDir: emptyFixture, ResultFD: -1, ProgressFD: -1})
+	require.EqualError(t, err, "fixture has no current recording")
 }
 
 func isolateApplicationEnvironment(t *testing.T, root string) {
@@ -314,7 +314,7 @@ func isolateApplicationEnvironment(t *testing.T, root string) {
 	t.Setenv("CODEX_HOME", filepath.Join(root, "config"))
 }
 
-func prepareApplicationPlanSession(t *testing.T, root string) string {
+func prepareApplicationPlanFixture(t *testing.T, root string) string {
 	t.Helper()
 	plan := filepath.Join(root, "record-plan.json")
 	data, err := json.Marshal(map[string]any{
@@ -329,8 +329,8 @@ func prepareApplicationPlanSession(t *testing.T, root string) string {
 	})
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(plan, append(data, '\n'), 0o600))
-	sessionDir := filepath.Join(root, "session")
-	_, err = Prepare(PrepareOptions{SessionDir: sessionDir, Plan: plan})
+	fixtureDir := filepath.Join(root, "fixture")
+	_, err = Prepare(PrepareOptions{FixtureDir: fixtureDir, Plan: plan})
 	require.NoError(t, err)
-	return sessionDir
+	return fixtureDir
 }

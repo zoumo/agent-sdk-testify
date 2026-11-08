@@ -22,7 +22,7 @@ import (
 )
 
 type RecordOptions struct {
-	SessionDir     string
+	FixtureDir     string
 	URL            string
 	TokenFile      string
 	Command        string
@@ -39,18 +39,18 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
 		defer cancel()
 	}
-	session, err := lifecycle.OpenSession(o.SessionDir)
+	fixture, err := lifecycle.OpenFixture(o.FixtureDir)
 	if err != nil {
 		return err
 	}
-	plan, err := lifecycle.LoadPlan(session)
+	plan, err := lifecycle.LoadPlan(fixture)
 	if err != nil {
 		return err
 	}
-	if session.Source.Kind == "plan" || session.Source.Provenance == "consumer" {
+	if fixture.Source.Kind == "plan" || fixture.Source.Provenance == "consumer" {
 		return errors.New("record source has no official driver")
 	}
-	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: session.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
+	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: fixture.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
 	if err != nil {
 		return err
 	}
@@ -68,10 +68,10 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		if err != nil {
 			return err
 		}
-		if rel, err := filepath.Rel(filepath.Dir(session.ResourceRoot), path); err == nil && filepath.IsLocal(rel) {
-			runtimeRelative, runtimeErr := filepath.Rel(session.ResourceRoot, path)
+		if rel, err := filepath.Rel(filepath.Dir(fixture.ResourceRoot), path); err == nil && filepath.IsLocal(rel) {
+			runtimeRelative, runtimeErr := filepath.Rel(fixture.ResourceRoot, path)
 			if runtimeErr != nil || !filepath.IsLocal(runtimeRelative) {
-				return errors.New("token file must be outside session evidence (use runtime or an external file)")
+				return errors.New("token file must be outside fixture evidence (use runtime or an external file)")
 			}
 		}
 	} else {
@@ -79,11 +79,11 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		if err != nil {
 			return err
 		}
-		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
+		if err := protocol.ValidateNativeArgs(fixture.AgentType, o.NativeArgs); err != nil {
 			return err
 		}
 	}
-	driver, err := ResolveDriver(session.AgentType)
+	driver, err := ResolveDriver(fixture.AgentType)
 	if err != nil {
 		return err
 	}
@@ -91,12 +91,12 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	if err != nil {
 		return err
 	}
-	activity, err := lifecycle.BeginOfficial(o.SessionDir, "record")
+	activity, err := lifecycle.BeginOfficial(o.FixtureDir, "record")
 	if err != nil {
 		return err
 	}
-	o.SessionDir, session = activity.SessionDir, activity.Session
-	result := tool.Object{"schemaVersion": 1, "id": activity.ID, "sessionId": session.SessionID, "mode": "record", "status": "failed", "cleanupComplete": true, "case": plan["caseId"], "agentType": session.AgentType, "source": session.Source, "driver": tool.Object{"path": driver, "sha256": driverHash}, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
+	o.FixtureDir, fixture = activity.FixtureDir, activity.Fixture
+	result := tool.Object{"schemaVersion": 1, "id": activity.ID, "fixtureId": fixture.FixtureID, "mode": "record", "status": "failed", "cleanupComplete": true, "case": plan["caseId"], "agentType": fixture.AgentType, "source": fixture.Source, "driver": tool.Object{"path": driver, "sha256": driverHash}, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
 		result["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
 		if runErr != nil {
@@ -110,28 +110,28 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	if err := os.MkdirAll(filepath.Join(root, "tmp"), 0o700); err != nil {
 		return err
 	}
-	env, err := lifecycle.RecordEnvironment(session)
+	env, err := lifecycle.RecordEnvironment(fixture)
 	if err != nil {
 		return err
 	}
-	route := session.Routes["record"]
+	route := fixture.Routes["record"]
 	// These are the normal stable route slots, rebound by agent record. There
 	// is no second protocol workspace or SDK-specific transport implementation.
-	plan["root"], plan["project"], plan["home"], plan["config"] = root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[session.AgentType]]
+	plan["root"], plan["project"], plan["home"], plan["config"] = root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]]
 	plan["_fixtureProject"] = route.Workspace
 	plan["args"] = o.NativeArgs
 	plan["stdinEOFAction"] = "close"
-	if session.AgentType == "claude" && plan["driverProfile"] == "interrupt" {
+	if fixture.AgentType == "claude" && plan["driverProfile"] == "interrupt" {
 		plan["stdinEOFAction"] = "interrupt"
 	}
 	plan["raw"] = filepath.Join(root, "raw")
 	if plan["driverProfile"] == "existing-children" {
 		plan["_seedRoot"] = filepath.Dir(route.Workspace)
-		if session.AgentType == "claude" {
+		if fixture.AgentType == "claude" {
 			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
 		}
 	}
-	private := filepath.Join(session.ResourceRoot, "official", activity.ID)
+	private := filepath.Join(fixture.ResourceRoot, "official", activity.ID)
 	var service interface {
 		URL() string
 		TokenFile() string
@@ -168,14 +168,14 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	if err != nil {
 		return err
 	}
-	ids := lifecycle.ConnectionIDs(session.Source, plan)
+	ids := lifecycle.ConnectionIDs(fixture.Source, plan)
 	launchEnv, err := activity.AuthorizeRecord(driverHash, ids)
 	if err != nil {
 		return err
 	}
 	peers := make(map[string]tool.Command, len(ids))
 	for _, id := range ids {
-		args := []string{"agent", "record", "--session-dir", o.SessionDir, "--connection", id}
+		args := []string{"agent", "record", "--fixture-dir", o.FixtureDir, "--connection", id}
 		if o.Timeout > 0 {
 			args = append(args, "--timeout", o.Timeout.String())
 		}
@@ -199,7 +199,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		serviceContext, cancelService = context.WithCancel(ctx)
 		serviceDone = make(chan error, 1)
 		go func() {
-			execution, err := waitRecordStart(serviceContext, o.SessionDir, session, filepath.Join(root, "peer-main.results.jsonl"))
+			execution, err := waitRecordStart(serviceContext, o.FixtureDir, fixture, filepath.Join(root, "peer-main.results.jsonl"))
 			if err != nil {
 				serviceDone <- err
 				return
@@ -210,7 +210,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 				serviceDone <- err
 				return
 			}
-			runtimeEnv, err := lifecycle.RecordEnvironment(session)
+			runtimeEnv, err := lifecycle.RecordEnvironment(fixture)
 			if err != nil {
 				serviceDone <- err
 				return
@@ -227,7 +227,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 				return
 			}
 			execution.RuntimeEnv = runtimeEnv
-			if err := lifecycle.SaveNativePreparation(o.SessionDir, session, *execution, runtimePlan, runtimePlanPath); err != nil {
+			if err := lifecycle.SaveNativePreparation(o.FixtureDir, fixture, *execution, runtimePlan, runtimePlanPath); err != nil {
 				serviceDone <- err
 				return
 			}
@@ -264,16 +264,16 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		Peers:      peers,
 		ReportFile: "report.json",
 		Inspect: func(outcome, report tool.Object, _ error) error {
-			inspectErr := validateBusinessEvidence(session.AgentType, plan, bound, outcome, report)
-			refs, refErr := officialRecordReferences(o.SessionDir, session, root, ids)
+			inspectErr := validateBusinessEvidence(fixture.AgentType, plan, bound, outcome, report)
+			refs, refErr := officialRecordReferences(o.FixtureDir, fixture, root, ids)
 			result["connections"] = refs
 			inspectErr = errors.Join(inspectErr, refErr)
 			if refErr == nil && len(refs) > 0 && (o.URL == "" || service != nil) {
 				executionID := tool.Str(refs[0]["executionId"])
 				var execution lifecycle.Execution
-				preparationErr := tool.ReadJSON(filepath.Join(o.SessionDir, "executions", executionID, "execution.json"), &execution)
+				preparationErr := tool.ReadJSON(filepath.Join(o.FixtureDir, "executions", executionID, "execution.json"), &execution)
 				if preparationErr == nil {
-					isolationHash, isolationErr := tool.FileDigest(filepath.Join(o.SessionDir, "executions", executionID, "receipts", "isolation.json"))
+					isolationHash, isolationErr := tool.FileDigest(filepath.Join(o.FixtureDir, "executions", executionID, "receipts", "isolation.json"))
 					planHash, planErr := tool.FileDigest(filepath.Join(filepath.Dir(execution.Home), "record-plan.json"))
 					preparationErr = errors.Join(isolationErr, planErr)
 					if preparationErr == nil {
@@ -311,9 +311,9 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 
 // References come exclusively from each launcher's actual notification pipe.
 // No directory inventory, latest execution or caller-supplied success is used.
-func officialRecordReferences(sessionDir string, session *lifecycle.Session, root string, ids []string) ([]tool.Object, error) {
+func officialRecordReferences(fixtureDir string, fixture *lifecycle.Fixture, root string, ids []string) ([]tool.Object, error) {
 	refs, err := collectPeerReferences(ids, func(id string) (tool.Object, error) {
-		return recordReference(sessionDir, session, root, id)
+		return recordReference(fixtureDir, fixture, root, id)
 	})
 	if err != nil {
 		return refs, err
@@ -330,15 +330,15 @@ func officialRecordReferences(sessionDir string, session *lifecycle.Session, roo
 	return refs, nil
 }
 
-func recordReference(sessionDir string, session *lifecycle.Session, root, id string) (tool.Object, error) {
-	ref, execution, connection, err := readPeerReference(sessionDir, session, root, id, "record", func(execution lifecycle.Execution) error {
-		return execution.Validate(*session)
+func recordReference(fixtureDir string, fixture *lifecycle.Fixture, root, id string) (tool.Object, error) {
+	ref, execution, connection, err := readPeerReference(fixtureDir, fixture, root, id, "record", func(execution lifecycle.Execution) error {
+		return execution.Validate(*fixture)
 	})
 	if err != nil {
 		return ref, err
 	}
 	material := execution.Artifact
-	if material.ID == "" || material.Path != filepath.Join(sessionDir, "materials", material.ID) {
+	if material.ID == "" || material.Path != filepath.Join(fixtureDir, "materials", material.ID) {
 		return ref, errors.New("record did not publish a material")
 	}
 	var descriptor corpus.Material

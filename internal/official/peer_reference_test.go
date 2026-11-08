@@ -88,7 +88,7 @@ func TestReadPeerReferenceBindsEveryNotificationField(t *testing.T) {
 		value any
 	}{
 		{"process ID", "processId", float64(43)},
-		{"session", "sessionId", "other-session"},
+		{"fixture", "fixtureId", "other-fixture"},
 		{"execution", "executionId", "other-execution"},
 		{"connection", "connectionId", "probe"},
 		{"command", "command", "mock"},
@@ -214,7 +214,7 @@ func TestReadPeerReferenceRequiresMatchingDescriptorIdentityAndValidator(t *test
 	}{
 		{"schema version", func(f *peerReferenceFixture) { f.execution.SchemaVersion++ }},
 		{"execution identity", func(f *peerReferenceFixture) { f.execution.ExecutionID = "other-execution" }},
-		{"session identity", func(f *peerReferenceFixture) { f.execution.SessionID = "other-session" }},
+		{"fixture identity", func(f *peerReferenceFixture) { f.execution.FixtureID = "other-fixture" }},
 		{"command identity", func(f *peerReferenceFixture) { f.execution.Command = "mock" }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -283,8 +283,8 @@ func TestCollectPeerReferencesPreservesFailuresAndOneExecution(t *testing.T) {
 
 type peerReferenceFixture struct {
 	t               *testing.T
-	sessionDir      string
-	session         *lifecycle.Session
+	fixtureDir      string
+	fixture         *lifecycle.Fixture
 	root            string
 	execution       *lifecycle.Execution
 	executionDigest string
@@ -298,18 +298,18 @@ type peerReferenceFixture struct {
 
 func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 	t.Helper()
-	sessionDir := filepath.Join(t.TempDir(), "session")
-	root := filepath.Join(sessionDir, "official-records", "run", "driver")
-	executionDir := filepath.Join(sessionDir, "executions", "execution")
+	fixtureDir := filepath.Join(t.TempDir(), "fixture")
+	root := filepath.Join(fixtureDir, "official-records", "run", "driver")
+	executionDir := filepath.Join(fixtureDir, "executions", "execution")
 	require.NoError(t, os.MkdirAll(filepath.Join(executionDir, "receipts"), 0o700))
 	require.NoError(t, os.MkdirAll(root, 0o700))
 
-	session := &lifecycle.Session{SessionID: "session"}
+	fixture := &lifecycle.Fixture{FixtureID: "fixture"}
 	receipt := filepath.Join(executionDir, "receipts", "main.json")
 	execution := &lifecycle.Execution{
 		SchemaVersion: lifecycle.SchemaVersion,
 		ExecutionID:   "execution",
-		SessionID:     "session",
+		FixtureID:     "fixture",
 		Command:       "record",
 		Connections:   []lifecycle.ExecutionConnection{{ID: "main", Receipt: receipt}},
 	}
@@ -324,19 +324,19 @@ func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 		"exitCode": float64(0), "reaped": true, "cleanupComplete": true,
 	}
 	started := tool.Object{
-		"status": "running", "sessionId": "session", "processId": float64(42),
+		"status": "running", "fixtureId": "fixture", "processId": float64(42),
 		"executionId": "execution", "connectionId": "main", "command": "record",
 		"execution": executionPath, "result": resultPath, "receipt": receipt,
 		"executionSHA256": digest,
 	}
 	finished := tool.Object{
-		"status": "passed", "sessionId": "session", "processId": float64(42),
+		"status": "passed", "fixtureId": "fixture", "processId": float64(42),
 		"executionId": "execution", "connectionId": "main", "command": "record",
 		"execution": executionPath, "result": resultPath, "receipt": receipt,
 		"executionSHA256": digest,
 	}
 	f := &peerReferenceFixture{
-		t: t, sessionDir: sessionDir, session: session, root: root,
+		t: t, fixtureDir: fixtureDir, fixture: fixture, root: root,
 		execution: execution, executionDigest: digest,
 		command: "record",
 		process: process, started: started, finished: finished,
@@ -393,5 +393,5 @@ func (f *peerReferenceFixture) read() (tool.Object, *lifecycle.Execution, *lifec
 }
 
 func (f *peerReferenceFixture) invoke(validate func(lifecycle.Execution) error) (tool.Object, *lifecycle.Execution, *lifecycle.ExecutionConnection, error) {
-	return readPeerReference(f.sessionDir, f.session, f.root, "main", f.command, validate)
+	return readPeerReference(f.fixtureDir, f.fixture, f.root, "main", f.command, validate)
 }

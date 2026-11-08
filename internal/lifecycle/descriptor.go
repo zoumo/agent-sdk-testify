@@ -1,4 +1,4 @@
-// Package lifecycle owns prepared-session identity, environment routes,
+// Package lifecycle owns fixture identity, environment routes,
 // execution descriptors and finalization. Protocol replay and native process
 // behavior stay in their existing packages.
 package lifecycle
@@ -18,7 +18,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-const SchemaVersion = 3
+const SchemaVersion = 4
 
 const (
 	ToolSourceExecutable = "executable"
@@ -67,9 +67,9 @@ type Route struct {
 	Connections []ConnectionTemplate `json:"connections"`
 }
 
-type Session struct {
+type Fixture struct {
 	SchemaVersion    int               `json:"schemaVersion"`
-	SessionID        string            `json:"sessionId"`
+	FixtureID        string            `json:"fixtureId"`
 	Tool             Command           `json:"tool"`
 	ToolVersion      string            `json:"toolVersion"`
 	ToolSHA256       string            `json:"toolSHA256"`
@@ -112,7 +112,7 @@ type Admission struct {
 type Execution struct {
 	SchemaVersion int                   `json:"schemaVersion"`
 	ExecutionID   string                `json:"executionId"`
-	SessionID     string                `json:"sessionId"`
+	FixtureID     string                `json:"fixtureId"`
 	Command       string                `json:"command"`
 	Args          []string              `json:"args,omitempty"`
 	NativeArgs    []string              `json:"nativeArgs,omitempty"`
@@ -156,8 +156,8 @@ type IndexExecution struct {
 
 type Index struct {
 	SchemaVersion  int               `json:"schemaVersion"`
-	SessionID      string            `json:"sessionId"`
-	SessionSHA256  string            `json:"sessionSHA256"`
+	FixtureID      string            `json:"fixtureId"`
+	FixtureSHA256  string            `json:"fixtureSha256"`
 	Executions     []IndexExecution  `json:"executions"`
 	Artifacts      []corpus.Material `json:"-"`
 	LastUpdatedUTC string            `json:"lastUpdatedUtc"`
@@ -222,63 +222,63 @@ func SelfCommand() (Command, string, string, error) {
 	return Command{Command: self}, version.Version, hash, nil
 }
 
-func SessionPath(sessionDir string) string {
-	return filepath.Join(sessionDir, "session.json")
+func FixturePath(fixtureDir string) string {
+	return filepath.Join(fixtureDir, "fixture.json")
 }
 
-func IndexPath(sessionDir string) string {
-	return filepath.Join(sessionDir, "executions", "index.json")
+func IndexPath(fixtureDir string) string {
+	return filepath.Join(fixtureDir, "executions", "index.json")
 }
 
-func ExecutionDir(sessionDir, id string) string {
-	return filepath.Join(sessionDir, "executions", id)
+func ExecutionDir(fixtureDir, id string) string {
+	return filepath.Join(fixtureDir, "executions", id)
 }
 
-func (s Session) Validate() error {
-	if s.SchemaVersion != SchemaVersion {
-		return fmt.Errorf("unsupported session schemaVersion %d", s.SchemaVersion)
+func (f Fixture) Validate() error {
+	if f.SchemaVersion != SchemaVersion {
+		return fmt.Errorf("unsupported fixture schemaVersion %d", f.SchemaVersion)
 	}
-	if s.SessionID == "" || s.AgentType == "" || s.ToolVersion == "" || s.Tool.Command == "" {
-		return errors.New("incomplete session descriptor")
+	if f.FixtureID == "" || f.AgentType == "" || f.ToolVersion == "" || f.Tool.Command == "" {
+		return errors.New("incomplete fixture descriptor")
 	}
-	switch s.ToolSource {
+	switch f.ToolSource {
 	case "", ToolSourceExecutable, ToolSourceEmbedded:
 	default:
-		return fmt.Errorf("unsupported session toolSource %q", s.ToolSource)
+		return fmt.Errorf("unsupported fixture toolSource %q", f.ToolSource)
 	}
-	if s.ToolSource == ToolSourceEmbedded {
-		if s.Tool.Command != version.Module || s.ToolSHA256 != "" {
-			return errors.New("embedded session has an invalid tool identity")
+	if f.ToolSource == ToolSourceEmbedded {
+		if f.Tool.Command != version.Module || f.ToolSHA256 != "" {
+			return errors.New("embedded fixture has an invalid tool identity")
 		}
 	}
-	if !filepath.IsAbs(s.ResourceRoot) || !filepath.IsAbs(s.Workspace) || !filepath.IsAbs(s.Home) || !filepath.IsAbs(s.Config) || !filepath.IsAbs(s.Tmp) {
-		return errors.New("session paths must be absolute")
+	if !filepath.IsAbs(f.ResourceRoot) || !filepath.IsAbs(f.Workspace) || !filepath.IsAbs(f.Home) || !filepath.IsAbs(f.Config) || !filepath.IsAbs(f.Tmp) {
+		return errors.New("fixture paths must be absolute")
 	}
-	if s.Source.Kind != "case" && s.Source.Kind != "plan" && s.Source.Kind != "recording" {
-		return errors.New("invalid session source kind")
+	if f.Source.Kind != "case" && f.Source.Kind != "plan" && f.Source.Kind != "recording" {
+		return errors.New("invalid fixture source kind")
 	}
-	if s.Source.Path == "" || !filepath.IsAbs(s.Source.Path) {
-		return errors.New("session source path must be absolute")
+	if f.Source.Path == "" || !filepath.IsAbs(f.Source.Path) {
+		return errors.New("fixture source path must be absolute")
 	}
-	if s.HistorySeed != "" && !filepath.IsAbs(s.HistorySeed) {
-		return errors.New("session history seed must be absolute")
+	if f.HistorySeed != "" && !filepath.IsAbs(f.HistorySeed) {
+		return errors.New("fixture history seed must be absolute")
 	}
-	if err := history.ValidateBindings(s.HistorySeedFiles); err != nil {
-		return fmt.Errorf("session history seed: %w", err)
+	if err := history.ValidateBindings(f.HistorySeedFiles); err != nil {
+		return fmt.Errorf("fixture history seed: %w", err)
 	}
-	if s.Source.SHA256 == "" {
-		return errors.New("session source identity mismatch")
+	if f.Source.SHA256 == "" {
+		return errors.New("fixture source identity mismatch")
 	}
 	for _, action := range []string{"record", "mock"} {
-		route, ok := s.Routes[action]
+		route, ok := f.Routes[action]
 		if !ok {
-			return fmt.Errorf("session omits %s route", action)
+			return fmt.Errorf("fixture omits %s route", action)
 		}
 		if route.Enabled && (!filepath.IsAbs(route.Workspace) || route.Executor == "" || route.Target == "" || route.Provenance == "") {
 			return fmt.Errorf("incomplete %s route", action)
 		}
 		for _, connection := range route.Connections {
-			if err := s.validateConnectionTemplate(connection); err != nil {
+			if err := f.validateConnectionTemplate(connection); err != nil {
 				return fmt.Errorf("%s route connection %s: %w", action, connection.ID, err)
 			}
 		}
@@ -286,19 +286,19 @@ func (s Session) Validate() error {
 	return nil
 }
 
-func (s Session) validateConnectionTemplate(connection ConnectionTemplate) error {
+func (f Fixture) validateConnectionTemplate(connection ConnectionTemplate) error {
 	if connection.ID == "" {
 		return errors.New("connection id is empty")
 	}
-	return s.validateConnectionIdentity(connection.Embedded, connection.Command, connection.Launcher)
+	return f.validateConnectionIdentity(connection.Embedded, connection.Command, connection.Launcher)
 }
 
-func (s Session) validateConnectionIdentity(embedded bool, command, launcher string) error {
+func (f Fixture) validateConnectionIdentity(embedded bool, command, launcher string) error {
 	if embedded {
-		if s.ToolSource != ToolSourceEmbedded {
-			return errors.New("executable session declares an embedded connection")
+		if f.ToolSource != ToolSourceEmbedded {
+			return errors.New("executable fixture declares an embedded connection")
 		}
-		if command != version.Module || command != s.Tool.Command {
+		if command != version.Module || command != f.Tool.Command {
 			return errors.New("embedded connection command differs from the library identity")
 		}
 		if launcher != "" {
@@ -306,8 +306,8 @@ func (s Session) validateConnectionIdentity(embedded bool, command, launcher str
 		}
 		return nil
 	}
-	if s.ToolSource == ToolSourceEmbedded {
-		return errors.New("embedded session declares an executable connection")
+	if f.ToolSource == ToolSourceEmbedded {
+		return errors.New("embedded fixture declares an executable connection")
 	}
 	if !filepath.IsAbs(command) {
 		return errors.New("connection command must be an absolute executable")
@@ -318,12 +318,12 @@ func (s Session) validateConnectionIdentity(embedded bool, command, launcher str
 	return nil
 }
 
-func (e Execution) Validate(s Session) error {
-	if e.SchemaVersion != SchemaVersion || e.ExecutionID == "" || e.SessionID != s.SessionID {
+func (e Execution) Validate(f Fixture) error {
+	if e.SchemaVersion != SchemaVersion || e.ExecutionID == "" || e.FixtureID != f.FixtureID {
 		return errors.New("invalid execution identity or schemaVersion")
 	}
-	if e.Source != s.Source || (e.Command != "record" && e.Command != "mock") {
-		return errors.New("execution differs from session source or paths")
+	if e.Source != f.Source || (e.Command != "record" && e.Command != "mock") {
+		return errors.New("execution differs from fixture source or paths")
 	}
 	if !filepath.IsAbs(e.Workspace) || !filepath.IsAbs(e.ProtocolCwd) ||
 		!filepath.IsAbs(e.Home) || !filepath.IsAbs(e.Config) || !filepath.IsAbs(e.Tmp) ||
@@ -350,7 +350,7 @@ func (e Execution) Validate(s Session) error {
 		return errors.New("execution omits declared connections")
 	}
 	seen := map[string]bool{}
-	route := s.Routes[e.Command]
+	route := f.Routes[e.Command]
 	for _, c := range e.Connections {
 		if c.ID == "" || !filepath.IsAbs(c.Receipt) || seen[c.ID] {
 			return errors.New("invalid or duplicate execution connection")
@@ -363,7 +363,7 @@ func (e Execution) Validate(s Session) error {
 			!slices.Equal(c.Args, template.Args) || c.Launcher != template.Launcher {
 			return fmt.Errorf("connection %s launch contract differs from its route", c.ID)
 		}
-		if err := s.validateConnectionIdentity(c.Embedded, c.Command, c.Launcher); err != nil {
+		if err := f.validateConnectionIdentity(c.Embedded, c.Command, c.Launcher); err != nil {
 			return fmt.Errorf("connection %s: %w", c.ID, err)
 		}
 		if c.Material != "" && !filepath.IsAbs(c.Material) {
@@ -404,15 +404,15 @@ func connectionTemplate(route Route, id string) (ConnectionTemplate, bool) {
 	return ConnectionTemplate{}, false
 }
 
-func readSession(path string) (*Session, error) {
-	var s Session
-	if err := tool.ReadJSON(path, &s); err != nil {
+func readFixture(path string) (*Fixture, error) {
+	var f Fixture
+	if err := tool.ReadJSON(path, &f); err != nil {
 		return nil, err
 	}
-	if err := s.Validate(); err != nil {
+	if err := f.Validate(); err != nil {
 		return nil, err
 	}
-	return &s, nil
+	return &f, nil
 }
 
 func readIndex(path string) (*Index, error) {
@@ -420,17 +420,17 @@ func readIndex(path string) (*Index, error) {
 	if err := tool.ReadJSON(path, &index); err != nil {
 		return nil, err
 	}
-	if index.SchemaVersion != SchemaVersion || index.SessionID == "" || index.SessionSHA256 == "" {
+	if index.SchemaVersion != SchemaVersion || index.FixtureID == "" || index.FixtureSHA256 == "" {
 		return nil, errors.New("invalid execution index")
 	}
 	var materials MaterialIndex
 	if err := tool.ReadJSON(MaterialIndexPath(filepath.Dir(filepath.Dir(path))), &materials); err != nil {
 		return nil, err
 	}
-	if materials.SchemaVersion != SchemaVersion || materials.SessionID != index.SessionID {
+	if materials.SchemaVersion != SchemaVersion || materials.FixtureID != index.FixtureID {
 		return nil, errors.New("invalid material index identity or schemaVersion")
 	}
-	sessionDir := filepath.Dir(filepath.Dir(path))
+	fixtureDir := filepath.Dir(filepath.Dir(path))
 	seen := map[string]bool{}
 	for _, material := range materials.Materials {
 		if material.ID == "" || seen[material.ID] {
@@ -441,8 +441,8 @@ func readIndex(path string) (*Index, error) {
 		if err != nil {
 			return nil, err
 		}
-		if resolved != material.Path || !withinPath(sessionDir, resolved) {
-			return nil, errors.New("material path must remain inside session")
+		if resolved != material.Path || !withinPath(fixtureDir, resolved) {
+			return nil, errors.New("material path must remain inside fixture")
 		}
 	}
 	index.Artifacts = materials.Materials
@@ -453,16 +453,16 @@ func readIndex(path string) (*Index, error) {
 // the input for actions. Execution bookkeeping never selects a material.
 type MaterialIndex struct {
 	SchemaVersion int               `json:"schemaVersion"`
-	SessionID     string            `json:"sessionId"`
+	FixtureID     string            `json:"fixtureId"`
 	Materials     []corpus.Material `json:"materials"`
 }
 
-func MaterialIndexPath(sessionDir string) string {
-	return filepath.Join(sessionDir, "materials", "index.json")
+func MaterialIndexPath(fixtureDir string) string {
+	return filepath.Join(fixtureDir, "materials", "index.json")
 }
 
-func writeMaterialIndex(sessionDir string, index *Index) error {
-	return writeAtomic(MaterialIndexPath(sessionDir), MaterialIndex{SchemaVersion: SchemaVersion, SessionID: index.SessionID, Materials: index.Artifacts})
+func writeMaterialIndex(fixtureDir string, index *Index) error {
+	return writeAtomic(MaterialIndexPath(fixtureDir), MaterialIndex{SchemaVersion: SchemaVersion, FixtureID: index.FixtureID, Materials: index.Artifacts})
 }
 
 func withinPath(root, path string) bool {

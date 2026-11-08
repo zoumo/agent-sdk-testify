@@ -27,27 +27,31 @@ _Avoid_: 单条断言、专项故障测试
 **Receipt（回执）**:
 一个连接或进程的持久结果，记录协议状态、退出、清理和失败诊断。
 
-## 会话与命令
+## Fixture 与命令
 
-**Session（会话，也称 prepared 会话）**:
+**Fixture（fixture / prepared fixture）**:
 由 `prepare` 创建、由调用方管理和删除的隔离环境与持久数据根，使用
-`--session-dir` 定位。一次会话可承载多个 record/mock execution 和 verification。
-它不是 Agent 的 home 或原生配置目录。
+`--fixture-dir` 定位。一个 fixture 可承载多个 record/mock execution 和 verification。
+它不是 Agent 原生 session，也不是 Agent 的 home 或原生配置目录。
+
+**Native Agent session（原生 session）**:
+Agent 或 SDK 自己定义和管理的会话。wire 字段 `session_id`、`SessionStart`、
+`config/sessions` 和 `*.jsonl` 历史文件都保留这一原生含义，不属于工具 fixture。
 
 **Initial source（初始来源）**:
-`prepare` 选择的 `--case`、`--plan` 或 `--recording`。它决定会话的初始材料和录制
+`prepare` 选择的 `--case`、`--plan` 或 `--recording`。它决定 fixture 的初始材料和录制
 环境，不限制后续可调用的业务动作。
 
 **prepare**:
-创建 session，校验来源，建立隔离环境，并把 case、plan 或已有录制材料完整复制到
-session。它是唯一提供 source 选择的命令，不启动客户端、SDK、driver 或真实 Agent。
+创建 fixture，校验来源，建立隔离环境，并把 case、plan 或已有录制材料完整复制到
+fixture。它是唯一提供 source 选择的命令，不启动客户端、SDK、driver 或真实 Agent。
 
 **Tool source（工具来源）**:
 prepare 记录的工具入口身份：`executable` 表示 installed CLI，`embedded` 表示可导入
 Go 库。它决定允许的连接模板和 launcher，不改变 source 或材料身份。
 
 **agent record**:
-在 session 中显式启动真实 Agent，按 case 或 consumer plan 采集新的原生交互尝试。
+在 fixture 中显式启动真实 Agent，按 case 或 consumer plan 采集新的原生交互尝试。
 成功后生成新 material 并原子替换 current recording；失败保留 execution 证据但不
 替换 current。
 
@@ -59,16 +63,16 @@ Go 库。它决定允许的连接模板和 launcher，不改变 source 或材料
 实际采集结果的关联；不拥有协议 execution。
 
 **official verify**:
-在 session 中驱动官方 driver 并记录验证事实；driver 调用公开 agent mock。official verify 核对
+在 fixture 中驱动官方 driver 并记录验证事实；driver 调用公开 agent mock。official verify 核对
 业务报告及实际 mock execution 的协议、EOF、退出和清理证据，绑定精确 material
 哈希，不修改 current，也不拥有 execution 或连接；默认只产出验证证据。
 
 **agent mock**:
-在 session 中用 current recording 替代真实 Agent，作为消费者测试使用的原生协议
+在 fixture 中用 current recording 替代真实 Agent，作为消费者测试使用的原生协议
 对端。mock 不要求 current 已经 verify，也不提供 Agent 版本或元命令。
 
 **export**:
-把 current recording 的完整材料包复制到 session 外。export 不改变 session，不导出
+把 current recording 的完整材料包复制到 fixture 外。export 不改变 fixture，不导出
 全部 execution 或 receipt，也不产生 verified 或入仓结论。
 
 **Consumer（消费者）**:
@@ -76,11 +80,11 @@ Go 库。它决定允许的连接模板和 launcher，不改变 source 或材料
 业务断言和测试编排归消费者。
 
 **Consumer capture（消费者录制）**:
-外部消费者通过 `prepare --plan` 创建会话，由自己的 SDK 宿主启动 agent record，
+外部消费者通过 `prepare --plan` 创建 fixture，由自己的 SDK 宿主启动 agent record，
 代理真实 Agent 交互并保存的录制。工具准备隔离环境、配置和材料；它不是官方 case 录制。
 
 **Action execution（action 执行）**:
-会话中的一次 record 或 mock 执行，由
+fixture 中的一次 record 或 mock 执行，由
 `executions/<executionId>/execution.json` 描述；每个 execution 使用独立可写 overlay。
 它不是额外的 CLI 步骤。
 
@@ -102,7 +106,7 @@ prepare 固化的 plan、协议项目和来源身份。每次 agent record 使�
 current recording 的切换改变。
 
 **Current recording（当前录制）**:
-session 当前选中的唯一 material。verify、mock 和 export 都以它为输入；record
+fixture 当前选中的唯一 material。verify、mock 和 export 都以它为输入；record
 成功时原子替换，失败时保持不变。
 
 ## 材料与发布
@@ -115,7 +119,7 @@ session 当前选中的唯一 material。verify、mock 和 export 都以它为�
 直接作为 mock 或 export 的输入，不要求先通过 verify。
 
 **Consumer material（消费者材料）**:
-由 plan source 的 record 生成的外部材料。它可以通过同一 session 的 mock 消费或由
+由 plan source 的 record 生成的外部材料。它可以通过同一 fixture 的 mock 消费或由
 export 保存，但不经过官方验证或入仓资格，也不进入默认 case 库或内置快照。
 
 **Verification（验证证据）**:

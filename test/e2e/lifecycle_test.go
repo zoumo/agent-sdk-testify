@@ -15,13 +15,13 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	root := t.TempDir()
 	agent, _, env := isolatedCommands(t, root, "codex")
 	plan := writeConsumerPlan(t, root, "consumer-conformance")
-	session := prepareSession(t, env, "--plan", plan)
+	fixtureDir := prepareFixture(t, env, "--plan", plan)
 
-	descriptor := readJSON(t, filepath.Join(session, "session.json"))
-	require.EqualValues(t, 3, descriptor["schemaVersion"])
+	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
+	require.EqualValues(t, 4, descriptor["schemaVersion"])
 	require.Equal(t, "codex", descriptor["agentType"])
 	require.Equal(t, "plan", obj(descriptor["source"])["kind"])
-	require.Contains(t, str(obj(descriptor["source"])["path"]), filepath.Join(session, "source"))
+	require.Contains(t, str(obj(descriptor["source"])["path"]), filepath.Join(fixtureDir, "source"))
 	require.FileExists(t, filepath.Join(str(descriptor["workspace"]), "fixture.txt"))
 	require.Equal(t, "external-sdk", obj(obj(descriptor["routes"])["record"])["executor"])
 	require.Equal(t, "consumer", obj(obj(descriptor["routes"])["record"])["provenance"])
@@ -34,7 +34,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	recordConnection := obj(array(recordRoute["connections"])[0])
 	require.Equal(t, "--cmd", array(recordConnection["args"])[len(array(recordConnection["args"]))-1])
 
-	firstRecord := recordConsumer(t, env, session, agent, requestOne)
+	firstRecord := recordConsumer(t, env, fixtureDir, agent, requestOne)
 	require.Equal(t, "record", firstRecord["command"])
 	require.Equal(t, "external-sdk", firstRecord["executor"])
 	require.Equal(t, "native-agent", firstRecord["target"])
@@ -52,9 +52,9 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(str(firstRecord["workspace"]), "only-first.txt"), []byte("first\n"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(str(firstRecord["config"]), "sessions", "only-first.txt"), []byte("first\n"), 0o600))
 
-	firstIndex := materialIndex(t, session)
+	firstIndex := materialIndex(t, fixtureDir)
 	require.Len(t, array(firstIndex["materials"]), 1)
-	firstCapture := artifactByID(t, session, currentMaterialID(t, session))
+	firstCapture := artifactByID(t, fixtureDir, currentMaterialID(t, fixtureDir))
 	require.Equal(t, firstCapture["path"], firstConnection["material"])
 	require.Equal(t, firstCapture["planSHA256"], firstConnection["planSHA256"])
 	require.Equal(t, firstCapture["manifestSHA256"], firstConnection["manifestSHA256"])
@@ -75,7 +75,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	const history = "config/sessions/conformance-history.jsonl"
 	require.Equal(t, digestBytes([]byte("{\"type\":\"conformance-history\"}\n")), obj(manifest["savedFiles"])[history])
 
-	secondRecord := recordConsumer(t, env, session, agent, requestTwo)
+	secondRecord := recordConsumer(t, env, fixtureDir, agent, requestTwo)
 	require.NotEqual(t, firstRecord["executionId"], secondRecord["executionId"])
 	requireDistinct(t,
 		str(firstRecord["workspace"]), str(secondRecord["workspace"]),
@@ -89,15 +89,15 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.FileExists(t, filepath.Join(str(secondRecord["workspace"]), "fixture.txt"))
 	require.NoFileExists(t, filepath.Join(str(descriptor["workspace"]), "only-first.txt"))
 
-	secondIndex := materialIndex(t, session)
+	secondIndex := materialIndex(t, fixtureDir)
 	require.Len(t, array(secondIndex["materials"]), 2)
-	secondCapture := artifactByID(t, session, currentMaterialID(t, session))
+	secondCapture := artifactByID(t, fixtureDir, currentMaterialID(t, fixtureDir))
 	require.NotEqual(t, firstCapture["id"], secondCapture["id"])
 	require.Equal(t, filepath.Join(filepath.Dir(filepath.Dir(str(secondRecord["artifactRoot"]))), "..", "materials", str(secondCapture["id"])), secondCapture["path"])
 
-	latestMock := runPreparedMock(t, env, session, "", requestTwo)
+	latestMock := runPreparedMock(t, env, fixtureDir, "", requestTwo)
 	require.JSONEq(t, `{"id":2,"result":{"synthetic":true}}`, latestMock.stdout)
-	latestMockExecution := latestExecution(t, session, "mock")
+	latestMockExecution := latestExecution(t, fixtureDir, "mock")
 	require.Equal(t, "consumer", latestMockExecution["provenance"])
 	require.Equal(t, str(secondCapture["path"]), obj(latestMockExecution["artifact"])["path"])
 	latestConnection := obj(array(latestMockExecution["connections"])[0])
@@ -114,28 +114,28 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.True(t, bytes.Equal([]byte("{\"type\":\"conformance-history\"}\n"), historyBytes), "unexpected history bytes: %q", historyBytes)
 
 	rejectedOverride := runTool(t, env, t.TempDir(), requestOne,
-		"agent", "mock", "--session-dir", session, "--recording", str(firstCapture["path"]))
+		"agent", "mock", "--fixture-dir", fixtureDir, "--recording", str(firstCapture["path"]))
 	require.NotZero(t, rejectedOverride.code)
 	require.Contains(t, rejectedOverride.stderr, "unsupported native startup argument")
-	afterMocks := materialIndex(t, session)
-	require.Equal(t, secondCapture["id"], currentMaterialID(t, session))
+	afterMocks := materialIndex(t, fixtureDir)
+	require.Equal(t, secondCapture["id"], currentMaterialID(t, fixtureDir))
 	require.Len(t, array(afterMocks["materials"]), 2)
 
-	rejected := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session)
+	rejected := runTool(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
 	require.NotZero(t, rejected.code)
 	require.Contains(t, strings.ToLower(rejected.stderr), "no applicable official verifier")
-	for _, row := range array(sessionIndex(t, session)["executions"]) {
+	for _, row := range array(fixtureIndex(t, fixtureDir)["executions"]) {
 		require.NotEqual(t, "verify", obj(row)["command"])
 	}
 
-	require.Equal(t, filepath.Join(resolvedPath(t, session), "runtime"), descriptor["resourceRoot"])
+	require.Equal(t, filepath.Join(resolvedPath(t, fixtureDir), "runtime"), descriptor["resourceRoot"])
 	require.NotContains(t, descriptor, "finish")
-	for _, value := range array(sessionIndex(t, session)["executions"]) {
+	for _, value := range array(fixtureIndex(t, fixtureDir)["executions"]) {
 		require.Equal(t, "passed", obj(value)["status"])
 	}
 	exported := filepath.Join(root, "exported")
-	mustRun(t, env, root, "", "export", "--session-dir", session, "--output", exported)
-	require.NoError(t, os.RemoveAll(session))
+	mustRun(t, env, root, "", "export", "--fixture-dir", fixtureDir, "--output", exported)
+	require.NoError(t, os.RemoveAll(fixtureDir))
 	require.NoDirExists(t, str(descriptor["resourceRoot"]))
 	require.FileExists(t, filepath.Join(exported, "manifest.json"))
 }
@@ -144,13 +144,13 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	root := t.TempDir()
 	agent, drivers, env := isolatedCommands(t, root, "codex")
 	setControlledOfficialDriver(t, drivers, "local")
-	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
-	recordControlledOfficial(t, env, session, agent)
-	execution := latestExecution(t, session, "record")
+	fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
+	recordControlledOfficial(t, env, fixtureDir, agent)
+	execution := latestExecution(t, fixtureDir, "record")
 	require.Equal(t, "external-sdk", execution["executor"])
 	require.Equal(t, "native-agent", execution["target"])
 	require.Equal(t, "official", execution["provenance"])
-	capture := latestCapture(t, session)
+	capture := latestCapture(t, fixtureDir)
 	require.Equal(t, "capture", capture["kind"])
 	require.Equal(t, "official", capture["provenance"])
 	assertFileHashes(t, str(capture["path"]), obj(capture["files"]))
@@ -158,7 +158,7 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	require.Equal(t, "SDK-CASE-001", plan["caseId"])
 	require.Equal(t, "continuation", plan["driverProfile"])
 	require.Equal(t, "personal-skills-v1", plan["recordingIsolation"])
-	require.Equal(t, obj(obj(readJSON(t, filepath.Join(session, "session.json"))["routes"])["record"])["workspace"], plan["project"])
+	require.Equal(t, obj(obj(readJSON(t, filepath.Join(fixtureDir, "fixture.json"))["routes"])["record"])["workspace"], plan["project"])
 	manifest := readJSON(t, filepath.Join(str(capture["path"]), "manifest.json"))
 	require.Equal(t, "capture", manifest["provenance"])
 	require.Equal(t, "captured", manifest["status"])
@@ -168,8 +168,8 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	require.Equal(t, "captured", report["status"])
 	require.NotContains(t, report, "officialSDK")
 	corpus := newSyntheticCorpus(t)
-	mustRun(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
-	verificationRoot, evidence := latestOfficialVerification(t, session)
+	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
+	verificationRoot, evidence := latestOfficialVerification(t, fixtureDir)
 	require.Equal(t, "passed", evidence["status"])
 	require.Equal(t, capture["id"], obj(evidence["material"])["id"])
 	admission := obj(evidence["admission"])
@@ -191,11 +191,11 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	require.NotNil(t, adopted)
 	require.Equal(t, "admitted", adopted["adoption"])
 	require.Equal(t, "passed", adopted["verification"])
-	runPreparedMock(t, env, session, "", conformancePayload(t, capture))
-	replay := latestExecution(t, session, "mock")
+	runPreparedMock(t, env, fixtureDir, "", conformancePayload(t, capture))
+	replay := latestExecution(t, fixtureDir, "mock")
 	require.Equal(t, capture["id"], obj(replay["artifact"])["id"])
 	require.Equal(t, "official", replay["provenance"])
-	rows := array(sessionIndex(t, session)["executions"])
+	rows := array(fixtureIndex(t, fixtureDir)["executions"])
 	require.Len(t, rows, 3)
 	for _, item := range rows {
 		require.Equal(t, "passed", obj(item)["status"])
@@ -217,9 +217,9 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
-	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-032")
+	fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-032")
 
-	mainRun, mainResult := runAgentResult(t, env, session, inputs["main"], "mock", "--connection", "main")
+	mainRun, mainResult := runAgentResult(t, env, fixtureDir, inputs["main"], "mock", "--connection", "main")
 	require.Zero(t, mainRun.code, mainRun.stderr)
 	execution := readJSON(t, str(mainResult["execution"]))
 	connections := array(execution["connections"])
@@ -240,11 +240,11 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 	require.NoFileExists(t, str(probeReceipt["receipt"]))
 	require.NoFileExists(t, str(probeReceipt["processReceipt"]))
 
-	openIndex := sessionIndex(t, session)
+	openIndex := fixtureIndex(t, fixtureDir)
 	require.Len(t, array(openIndex["executions"]), 1)
 	require.Equal(t, "open", obj(array(openIndex["executions"])[0])["status"])
 
-	probeRun, probeResult := runAgentResult(t, env, session, inputs["probe"], "mock", "--connection", "probe")
+	probeRun, probeResult := runAgentResult(t, env, fixtureDir, inputs["probe"], "mock", "--connection", "probe")
 	require.Zero(t, probeRun.code, probeRun.stderr)
 	require.Equal(t, mainResult["executionId"], probeResult["executionId"])
 	require.Equal(t, "main", mainResult["connectionId"])
@@ -252,7 +252,7 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 	require.NotEqual(t, mainResult["result"], probeResult["result"])
 	require.FileExists(t, str(probeReceipt["receipt"]))
 	require.FileExists(t, str(probeReceipt["processReceipt"]))
-	closedIndex := sessionIndex(t, session)
+	closedIndex := fixtureIndex(t, fixtureDir)
 	require.Equal(t, "passed", obj(array(closedIndex["executions"])[0])["status"])
 
 	for _, value := range array(obj(array(closedIndex["executions"])[0])["connections"]) {
@@ -264,9 +264,9 @@ func TestPlanSeedHistoryConformance(t *testing.T) {
 	inputs := builtinInputs(t, "codex", "SDK-CASE-035")
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
-	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-035")
+	fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-035")
 
-	index := materialIndex(t, session)
+	index := materialIndex(t, fixtureDir)
 	require.Len(t, array(index["materials"]), 1)
 	artifact := obj(array(index["materials"])[0])
 	material := str(artifact["path"])
@@ -275,8 +275,8 @@ func TestPlanSeedHistoryConformance(t *testing.T) {
 	seedFiles := obj(obj(plan["historySeed"])["files"])
 	require.NotEmpty(t, seedFiles)
 
-	runPreparedMock(t, env, session, "", inputs["main"])
-	execution := latestExecution(t, session, "mock")
+	runPreparedMock(t, env, fixtureDir, "", inputs["main"])
+	execution := latestExecution(t, fixtureDir, "mock")
 	historyFiles := obj(execution["historyFiles"])
 	for name, value := range seedFiles {
 		digest := str(obj(value)["sha256"])
@@ -294,42 +294,42 @@ func TestMockJoinInputConformance(t *testing.T) {
 	_, _, env := isolatedCommands(t, root, "codex")
 
 	t.Run("timeout nanoseconds", func(t *testing.T) {
-		session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-032")
+		fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-032")
 		main := runTool(t, env, t.TempDir(), inputs["main"],
-			"agent", "mock", "--session-dir", session, "--timeout", "1.000",
+			"agent", "mock", "--fixture-dir", fixtureDir, "--timeout", "1.000",
 			"--", "app-server", "--listen", "stdio://",
 		)
 		require.Zero(t, main.code, main.stderr)
 
 		probe := runTool(t, env, t.TempDir(), inputs["probe"],
-			"agent", "mock", "--session-dir", session, "--connection", "probe", "--timeout", "1.000001",
+			"agent", "mock", "--fixture-dir", fixtureDir, "--connection", "probe", "--timeout", "1.000001",
 			"--", "app-server", "--listen", "stdio://",
 		)
 		require.NotZero(t, probe.code)
 		require.Contains(t, probe.stderr, "timeout differs")
-		execution := latestExecution(t, session, "mock")
-		require.Equal(t, "pending", connectionStatus(t, session, execution, "probe"))
+		execution := latestExecution(t, fixtureDir, "mock")
+		require.Equal(t, "pending", connectionStatus(t, fixtureDir, execution, "probe"))
 	})
 
 	t.Run("progress descriptor", func(t *testing.T) {
-		session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-032")
+		fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-032")
 		notification, err := os.CreateTemp(t.TempDir(), "progress")
 		require.NoError(t, err)
 		defer notification.Close()
 		main := runToolWithFiles(t, env, t.TempDir(), inputs["main"], []*os.File{notification},
-			"agent", "mock", "--session-dir", session, "--progress-fd", "3",
+			"agent", "mock", "--fixture-dir", fixtureDir, "--progress-fd", "3",
 			"--", "app-server", "--listen", "stdio://",
 		)
 		require.Zero(t, main.code, main.stderr)
 
 		probe := runTool(t, env, t.TempDir(), inputs["probe"],
-			"agent", "mock", "--session-dir", session, "--connection", "probe",
+			"agent", "mock", "--fixture-dir", fixtureDir, "--connection", "probe",
 			"--", "app-server", "--listen", "stdio://",
 		)
 		require.NotZero(t, probe.code)
 		require.Contains(t, probe.stderr, "progress descriptor differs")
-		execution := latestExecution(t, session, "mock")
-		require.Equal(t, "pending", connectionStatus(t, session, execution, "probe"))
+		execution := latestExecution(t, fixtureDir, "mock")
+		require.Equal(t, "pending", connectionStatus(t, fixtureDir, execution, "probe"))
 	})
 }
 
@@ -338,18 +338,18 @@ func TestStrictReplayFailureRetainsEvidence(t *testing.T) {
 		root := t.TempDir()
 		agent, _, env := isolatedCommands(t, root, "codex")
 		plan := writeConsumerPlan(t, root, "strict-replay-failure")
-		session := prepareSession(t, env, "--plan", plan)
-		recordConsumer(t, env, session, agent, requestOne)
+		fixtureDir := prepareFixture(t, env, "--plan", plan)
+		recordConsumer(t, env, fixtureDir, agent, requestOne)
 
 		mock := runTool(t, env, t.TempDir(), `{"id":99,"method":"wrong"}`+"\n",
-			"agent", "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://",
+			"agent", "mock", "--fixture-dir", fixtureDir, "--", "app-server", "--listen", "stdio://",
 		)
 		require.NotZero(t, mock.code)
-		execution := latestExecution(t, session, "mock")
+		execution := latestExecution(t, fixtureDir, "mock")
 		connection := obj(array(execution["connections"])[0])
 		require.FileExists(t, str(connection["receipt"]))
 		require.FileExists(t, str(connection["processReceipt"]))
-		require.Equal(t, "failed", connectionStatus(t, session, execution, "main"))
+		require.Equal(t, "failed", connectionStatus(t, fixtureDir, execution, "main"))
 		require.Equal(t, "failed", readJSON(t, str(connection["receipt"]))["status"])
 	})
 }
@@ -358,17 +358,17 @@ func TestConformanceDescriptorsAreStableJSON(t *testing.T) {
 	root := t.TempDir()
 	agent, _, env := isolatedCommands(t, root, "codex")
 	plan := writeConsumerPlan(t, root, "json-descriptors")
-	session := prepareSession(t, env, "--plan", plan)
-	recordConsumer(t, env, session, agent, requestOne)
-	runPreparedMock(t, env, session, "", requestOne)
+	fixtureDir := prepareFixture(t, env, "--plan", plan)
+	recordConsumer(t, env, fixtureDir, agent, requestOne)
+	runPreparedMock(t, env, fixtureDir, "", requestOne)
 
-	descriptor := readJSON(t, filepath.Join(session, "session.json"))
-	index := sessionIndex(t, session)
-	require.Equal(t, descriptor["sessionId"], index["sessionId"])
+	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
+	index := fixtureIndex(t, fixtureDir)
+	require.Equal(t, descriptor["fixtureId"], index["fixtureId"])
 	require.Len(t, array(index["executions"]), 2)
 	for _, value := range array(index["executions"]) {
 		row := obj(value)
-		require.Equal(t, row["descriptorSHA256"], digestFile(t, filepath.Join(session, "executions", str(row["id"]), "execution.json")))
+		require.Equal(t, row["descriptorSHA256"], digestFile(t, filepath.Join(fixtureDir, "executions", str(row["id"]), "execution.json")))
 	}
 }
 
@@ -384,27 +384,27 @@ func TestPreparedDescriptorsExcludeRuntimeAuthentication(t *testing.T) {
 		0o600,
 	))
 	plan := writeConsumerPlan(t, root, "runtime-authentication")
-	session := prepareSession(t, env, "--plan", plan)
+	fixtureDir := prepareFixture(t, env, "--plan", plan)
 
-	descriptor := readJSON(t, filepath.Join(session, "session.json"))
+	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
 	recordRoute := obj(obj(descriptor["routes"])["record"])
 	require.Contains(t, array(recordRoute["runtimeEnv"]), "OPENAI_API_KEY")
-	require.NotContains(t, readFile(t, filepath.Join(session, "session.json")), secret)
-	require.NotContains(t, readFile(t, filepath.Join(session, "source", "plan.json")), secret)
+	require.NotContains(t, readFile(t, filepath.Join(fixtureDir, "fixture.json")), secret)
+	require.NotContains(t, readFile(t, filepath.Join(fixtureDir, "source", "plan.json")), secret)
 
-	record := recordConsumer(t, env, session, agent, requestOne)
+	record := recordConsumer(t, env, fixtureDir, agent, requestOne)
 	observed := readFile(t, filepath.Join(str(record["home"]), "runtime-secret-observed"))
 	require.Equal(t, "matched\n", string(observed))
 	require.NoFileExists(t, filepath.Join(str(record["config"]), "auth.json"))
-	require.NotContains(t, readFile(t, filepath.Join(session, "executions", str(record["executionId"]), "execution.json")), secret)
-	require.NotContains(t, string(readSessionEvidence(t, session)), secret)
-	require.NotContains(t, string(readSessionEvidence(t, session)), fileSecret)
+	require.NotContains(t, readFile(t, filepath.Join(fixtureDir, "executions", str(record["executionId"]), "execution.json")), secret)
+	require.NotContains(t, string(readFixtureEvidence(t, fixtureDir)), secret)
+	require.NotContains(t, string(readFixtureEvidence(t, fixtureDir)), fileSecret)
 
-	runPreparedMock(t, env, session, "", requestOne)
-	require.NotContains(t, string(readSessionEvidence(t, session)), secret)
+	runPreparedMock(t, env, fixtureDir, "", requestOne)
+	require.NotContains(t, string(readFixtureEvidence(t, fixtureDir)), secret)
 
 	exported := filepath.Join(root, "exported")
-	mustRun(t, env, root, "", "export", "--session-dir", session, "--output", exported)
+	mustRun(t, env, root, "", "export", "--fixture-dir", fixtureDir, "--output", exported)
 	require.NotContains(t, string(readAllFiles(t, exported)), secret)
 	require.NotContains(t, string(readAllFiles(t, exported)), fileSecret)
 	require.NoDirExists(t, filepath.Join(exported, "runtime"))
@@ -436,18 +436,18 @@ func TestPreparedMockRejectsIgnoredInputsBeforeClaim(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			plan := writeConsumerPlan(t, root, "reject-"+test.name)
-			session := prepareSession(t, env, "--plan", plan)
-			args := append([]string{"agent", "mock", "--session-dir", session}, test.args...)
+			fixtureDir := prepareFixture(t, env, "--plan", plan)
+			args := append([]string{"agent", "mock", "--fixture-dir", fixtureDir}, test.args...)
 			args = append(args, "--", "app-server", "--listen", "stdio://")
 			result := runTool(t, env, t.TempDir(), requestOne, args...)
 			require.NotZero(t, result.code)
 			require.Contains(t, result.stderr, test.want)
-			require.Empty(t, array(sessionIndex(t, session)["executions"]))
+			require.Empty(t, array(fixtureIndex(t, fixtureDir)["executions"]))
 		})
 	}
 }
 
-func TestMockRequiresSessionBeforeLegacyReport(t *testing.T) {
+func TestMockRequiresFixtureBeforeLegacyReport(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	reportPath := filepath.Join(t.TempDir(), "managed-version-report.json")
@@ -456,23 +456,23 @@ func TestMockRequiresSessionBeforeLegacyReport(t *testing.T) {
 		"--", "--version",
 	)
 	require.NotZero(t, result.code)
-	require.Contains(t, result.stderr, "mock requires --session-dir")
+	require.Contains(t, result.stderr, "mock requires --fixture-dir")
 	require.NoFileExists(t, reportPath)
 }
 
 func TestCurrentRejectsUnknownMaterialIdentity(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
-	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
-	current := readJSON(t, filepath.Join(session, "current.json"))
+	fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
+	current := readJSON(t, filepath.Join(fixtureDir, "current.json"))
 	current["materialId"] = "missing-material"
-	writeJSON(t, filepath.Join(session, "current.json"), current)
-	index := readFile(t, filepath.Join(session, "executions", "index.json"))
+	writeJSON(t, filepath.Join(fixtureDir, "current.json"), current)
+	index := readFile(t, filepath.Join(fixtureDir, "executions", "index.json"))
 	for _, action := range []string{"mock", "verify"} {
-		result := runTool(t, env, t.TempDir(), "", append(publicAction(action), "--session-dir", session)...)
+		result := runTool(t, env, t.TempDir(), "", append(publicAction(action), "--fixture-dir", fixtureDir)...)
 		require.NotZero(t, result.code)
 		require.Contains(t, result.stderr, "current recording is absent from material index")
-		require.Equal(t, index, readFile(t, filepath.Join(session, "executions", "index.json")))
+		require.Equal(t, index, readFile(t, filepath.Join(fixtureDir, "executions", "index.json")))
 	}
 }
 
@@ -480,21 +480,21 @@ func TestFailedRecordKeepsLatestPublishedCapture(t *testing.T) {
 	root := t.TempDir()
 	agent, _, env := isolatedCommands(t, root, "codex")
 	plan := writeConsumerPlan(t, root, "failed-record")
-	session := prepareSession(t, env, "--plan", plan)
-	recordConsumer(t, env, session, agent, requestOne)
+	fixtureDir := prepareFixture(t, env, "--plan", plan)
+	recordConsumer(t, env, fixtureDir, agent, requestOne)
 
-	before := materialIndex(t, session)
+	before := materialIndex(t, fixtureDir)
 	require.Len(t, array(before["materials"]), 1)
-	latest := currentMaterialID(t, session)
+	latest := currentMaterialID(t, fixtureDir)
 
 	failed := runTool(t, env, t.TempDir(), requestTwo,
-		"agent", "record", "--session-dir", session, "--cmd", "/usr/bin/false", "--",
+		"agent", "record", "--fixture-dir", fixtureDir, "--cmd", "/usr/bin/false", "--",
 		"app-server", "--listen", "stdio://",
 	)
 	require.NotZero(t, failed.code)
-	after := materialIndex(t, session)
-	require.Equal(t, latest, currentMaterialID(t, session))
+	after := materialIndex(t, fixtureDir)
+	require.Equal(t, latest, currentMaterialID(t, fixtureDir))
 	require.Len(t, array(after["materials"]), 1)
 
-	require.Equal(t, "failed", obj(array(sessionIndex(t, session)["executions"])[1])["status"])
+	require.Equal(t, "failed", obj(array(fixtureIndex(t, fixtureDir)["executions"])[1])["status"])
 }

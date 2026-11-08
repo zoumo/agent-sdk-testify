@@ -1,6 +1,6 @@
 # 从 SDK 测试使用 mock
 
-`agent mock` 在 session 中把 current recording 作为原生 Agent 协议对端。SDK 仍调用自己的
+`agent mock` 在 fixture 中把 current recording 作为原生 Agent 协议对端。SDK 仍调用自己的
 公共接口；消费者负责业务断言、SDK 宿主和远端服务，工具负责严格匹配、完整消费、
 EOF、退出和清理。mock 不要求材料已经 verify，不模拟模型调用或录制中的文件副作用。
 
@@ -8,21 +8,21 @@ EOF、退出和清理。mock 不要求材料已经 verify，不模拟模型调�
 export；只有 prepare 接受材料来源。mock 没有 list、describe、managed
 alias、材料覆盖或 Agent 版本查询入口。
 
-## 准备材料与会话
+## 准备材料与 Fixture
 
 内置材料不需要源码、Python 或官方 SDK。外部材料使用完整录制包，也可由
 [消费者录制](consumer-recording.md)产生。两种导入方式分别为：
 
 ```sh
 agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
-  --session-dir /reports/case-session
+  --fixture-dir /reports/case-fixture
 
 agent-sdk-testify prepare --recording /captures/attempt \
-  --session-dir /reports/recording-session
+  --fixture-dir /reports/recording-fixture
 ```
 
-后文使用 `/reports/recording-session`。session 必须是尚不存在的绝对目录，父目录已
-存在，且来源不位于目标 session 内。prepare 完整复制输入和绑定历史，并校验副本；
+后文使用 `/reports/recording-fixture`。fixture 必须是尚不存在的绝对目录，父目录已
+存在，且来源不位于目标 fixture 内。prepare 完整复制输入和绑定历史，并校验副本；
 之后删除外部原件不影响动作。没有内置材料的 case 或 consumer plan 可 prepare，
 但 current 为空时 mock、verify、export 失败，不产生空成功。
 
@@ -31,16 +31,16 @@ agent-sdk-testify prepare --recording /captures/attempt \
 
 ## SDK 宿主环境
 
-prepare 在 session 中写入只读 `session.json`。它是内部 descriptor，不能 source、
+prepare 在 fixture 中写入只读 `fixture.json`。它是内部 descriptor，不能 source、
 eval 或修改；CLI 参数始终是目录，不是 descriptor 路径。
 
 | 字段 | 用途 |
 | --- | --- |
-| `schemaVersion` | 当前为 `3`；不兼容版本必须重新 prepare |
-| `sessionId` | 会话身份 |
+| `schemaVersion` | 当前为 `4`；不兼容版本必须重新 prepare |
+| `fixtureId` | fixture 身份 |
 | `tool.command`, `toolVersion`, `toolSHA256` | 工具路径与实际身份 |
 | `source`（含 `sha256`）, `agentType` | 不可变初始来源 |
-| `resourceRoot` | session 内的 runtime 目录 |
+| `resourceRoot` | fixture 内的 runtime 目录 |
 | `routes` | 动作环境槽和连接模板；实际可执行性由动作前提检查决定 |
 | route 的 `workspace`, `env` | SDK 宿主 cwd 和需要合并的环境 |
 | route 的 `connections` | 本次动作的连接调用模板 |
@@ -51,7 +51,7 @@ eval 或修改；CLI 参数始终是目录，不是 descriptor 路径。
 
 每个 record/mock execution 在 `executions/<executionId>/execution.json` 写入独立 descriptor，记录
 本次输入 material、workspace、env、连接、receipt 和 limits；可写 overlay 位于临时
-resourceRoot。环境基线与 session descriptor 不随 action 改写。
+resourceRoot。环境基线与 fixture descriptor 不随 action 改写。
 
 `materialization.json` 记录历史副本的来源、派生路径和双向哈希。Claude 只替换必要的
 顶层 cwd/project 身份，保留 ID、未知字段和数字字面量。只有材料或 plan 明确绑定的
@@ -60,13 +60,13 @@ resourceRoot。环境基线与 session descriptor 不随 action 改写。
 ## 启动连接
 
 ```sh
-agent-sdk-testify agent mock --session-dir /reports/recording-session
-agent-sdk-testify agent mock --session-dir /reports/recording-session --connection probe
+agent-sdk-testify agent mock --fixture-dir /reports/recording-fixture
+agent-sdk-testify agent mock --fixture-dir /reports/recording-fixture --connection probe
 ```
 
 mock 只消费 current，默认连接为 main。只有材料确实声明多个独立客户端生命周期时
 才能使用 probe 等连接；各连接可以并发，每条连接最多启动一次。普通单连接动作结束
-后，再次 mock 会创建新的 execution。会话执行与验证的协调规则见
+后，再次 mock 会创建新的 execution。fixture 执行与验证的协调规则见
 [工具设计](design.md#多个-action-execution)。
 
 | 连接字段 | 用途 |
@@ -80,7 +80,7 @@ mock 只消费 current，默认连接为 main。只有材料确实声明多个�
 
 mock 进程 receipt 的字段合同见[工具设计](design.md#agent-mock)。
 
-launcher 将追加的原生启动参数传给 mock。参数必须通过协议白名单，不能覆盖 session、
+launcher 将追加的原生启动参数传给 mock。参数必须通过协议白名单，不能覆盖 fixture、
 连接或运行参数；版本、帮助等元命令被拒绝。SDK 若自行探测原生 CLI 版本，需要在其
 测试配置中处理，mock 不提供该应答。工具顶层 --version 只报告工具版本。
 
@@ -91,28 +91,28 @@ launcher 将追加的原生启动参数传给 mock。参数必须通过协议白
 ## 导出与复用
 
 ```sh
-agent-sdk-testify export --session-dir /reports/recording-session \
+agent-sdk-testify export --fixture-dir /reports/recording-fixture \
   --output /captures/exported-recording
 agent-sdk-testify prepare --recording /captures/exported-recording \
-  --session-dir /reports/imported-session
+  --fixture-dir /reports/imported-fixture
 ```
 
-目标必须位于 session 外、父目录存在且目标尚不存在。export 只复制 current 的完整
-材料包，不包含全部 execution、receipt 或 verification，不改变 session 或可信等级。
+目标必须位于 fixture 外、父目录存在且目标尚不存在。export 只复制 current 的完整
+材料包，不包含全部 execution、receipt 或 verification，不改变 fixture 或可信等级。
 可以导出到多个新目标；导出包可再次 prepare。需要保留某次 current 时，应在下一次
 record 替换它之前显式导出；action 不接受旧材料选择参数。
 
-## 释放会话
+## 释放 Fixture
 
 关闭消费者自己的 SDK、Session/Runtime 并等待所有 peer 退出后，调用方直接删除
-session 目录。需要保留录制时先 export；只删除 `runtime/` 可以保留材料与执行证据。
-目录边界与释放时序见[工具设计](design.md#session-目录所有权)。
+fixture 目录。需要保留录制时先 export；只删除 `runtime/` 可以保留材料与执行证据。
+目录边界与释放时序见[工具设计](design.md#fixture-目录所有权)。
 
 ## 持久结果
 
-session 中保留：
+fixture 中保留：
 
-- `session.json` 和 `source/`：会话与不可变 record source。
+- `fixture.json` 和 `source/`：fixture 与不可变 record source。
 - `materials/index.json`、`materials/<materialId>/`：不可变材料注册表和完整闭包。
 - `current.json`：唯一 current material 身份，或没有 current。
 - `executions/index.json`：execution 与连接状态索引。
@@ -123,5 +123,5 @@ session 中保留：
 - `verifications/<verificationId>/`：driver 报告、失败诊断及引用 mock execution 的验证证据。
 - `prepare.json`：prepare 的结果或失败诊断。
 
-策略比较可在同一会话使用不同 mock execution，也可分别 prepare 会话。业务断言、
+策略比较可在同一 fixture 使用不同 mock execution，也可分别 prepare fixture。业务断言、
 SDK 仿真、当前兼容性和完整覆盖由消费者分别报告，协议与清理通过不能替代它们。

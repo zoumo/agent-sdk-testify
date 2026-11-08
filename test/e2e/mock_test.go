@@ -19,28 +19,28 @@ import (
 func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 	root := t.TempDir()
 	agent, _, env := isolatedCommands(t, root, "codex")
-	producer := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "mock-unverified"))
+	producer := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "mock-unverified"))
 	recordConsumer(t, env, producer, agent, requestOne)
 	original := str(latestCapture(t, producer)["path"])
-	session := prepareSession(t, env, "--recording", original)
+	fixtureDir := prepareFixture(t, env, "--recording", original)
 	require.NoError(t, os.RemoveAll(producer))
-	material := obj(array(materialIndex(t, session)["materials"])[0])
+	material := obj(array(materialIndex(t, fixtureDir)["materials"])[0])
 	require.Equal(t, "consumer", material["provenance"])
 	require.NoFileExists(t, filepath.Join(str(material["path"]), "verification.json"))
 	before := readAllFiles(t, str(material["path"]))
-	current := readFile(t, filepath.Join(session, "current.json"))
-	descriptor := readFile(t, filepath.Join(session, "session.json"))
+	current := readFile(t, filepath.Join(fixtureDir, "current.json"))
+	descriptor := readFile(t, filepath.Join(fixtureDir, "fixture.json"))
 	// The material has no official verifier; this must not become a mock gate.
-	rejected := runTool(t, env, t.TempDir(), "", "official", "verify", "--session-dir", session)
+	rejected := runTool(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
 	require.Equal(t, 1, rejected.code, rejected.stderr)
 	require.Contains(t, rejected.stderr, "no applicable official verifier")
-	require.Empty(t, array(sessionIndex(t, session)["executions"]))
+	require.Empty(t, array(fixtureIndex(t, fixtureDir)["executions"]))
 	var previousWorkspace, previousReceipt string
 	var previousReceiptBytes []byte
 	for range 2 {
-		result := runPreparedMock(t, env, session, "", requestOne)
+		result := runPreparedMock(t, env, fixtureDir, "", requestOne)
 		require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, result.stdout)
-		execution := latestExecution(t, session, "mock")
+		execution := latestExecution(t, fixtureDir, "mock")
 		require.Equal(t, material["id"], obj(execution["artifact"])["id"])
 		require.NotEqual(t, previousWorkspace, str(execution["workspace"]))
 		require.NoFileExists(t, filepath.Join(str(execution["workspace"]), "previous-execution"))
@@ -72,15 +72,15 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 		require.Zero(t, process["exitCode"])
 	}
 	require.Equal(t, before, readAllFiles(t, str(material["path"])))
-	require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
-	require.Equal(t, descriptor, readFile(t, filepath.Join(session, "session.json")))
+	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
+	require.Equal(t, descriptor, readFile(t, filepath.Join(fixtureDir, "fixture.json")))
 }
 
 func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
-	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
-	before := readAllFiles(t, session)
+	fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
+	before := readAllFiles(t, fixtureDir)
 	for _, args := range [][]string{
 		{"--case", "SDK-CASE-001"},
 		{"--recording", "/absent/material"},
@@ -110,28 +110,28 @@ func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 		{"--sdk-test-handshakes", "answer"},
 	} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
-			argv := append([]string{"agent", "mock", "--session-dir", session}, args...)
+			argv := append([]string{"agent", "mock", "--fixture-dir", fixtureDir}, args...)
 			result := runTool(t, env, t.TempDir(), requestOne, argv...)
 			require.Equal(t, 1, result.code, result.stderr)
 			require.Empty(t, result.stdout)
-			require.True(t, bytes.Equal(before, readAllFiles(t, session)), "rejected input changed session files")
+			require.True(t, bytes.Equal(before, readAllFiles(t, fixtureDir)), "rejected input changed fixture files")
 			require.NoFileExists(t, filepath.Join(root, "report.json"))
 		})
 	}
 	result := runTool(t, env, t.TempDir(), "", "agent", "mock")
 	require.Equal(t, 1, result.code, result.stderr)
-	require.Contains(t, result.stderr, "mock requires --session-dir")
+	require.Contains(t, result.stderr, "mock requires --fixture-dir")
 }
 
 func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
-	session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
-	descriptor := readJSON(t, filepath.Join(session, "session.json"))
+	fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
+	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
 	route := obj(obj(descriptor["routes"])["mock"])
 	launcher := str(obj(array(route["connections"])[0])["launcher"])
-	before := readAllFiles(t, session)
-	for _, args := range [][]string{{"--version"}, {"-v"}, {"--help"}, {"help"}, {"--session-dir", "/absent/session"}, {"--connection", "probe"}, {"--case", "SDK-CASE-001"}, {"app-server", "--listen", "http://localhost:1"}} {
+	before := readAllFiles(t, fixtureDir)
+	for _, args := range [][]string{{"--version"}, {"-v"}, {"--help"}, {"help"}, {"--fixture-dir", "/absent/fixture"}, {"--connection", "probe"}, {"--case", "SDK-CASE-001"}, {"app-server", "--listen", "http://localhost:1"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			cmd := exec.CommandContext(t.Context(), launcher, args...)
 			cmd.Env = env
@@ -141,7 +141,7 @@ func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
 			require.Error(t, cmd.Run())
 			require.Equal(t, 1, cmd.ProcessState.ExitCode(), stderr.String())
 			require.Empty(t, stdout.String())
-			require.True(t, bytes.Equal(before, readAllFiles(t, session)), "launcher rejected input changed session files")
+			require.True(t, bytes.Equal(before, readAllFiles(t, fixtureDir)), "launcher rejected input changed fixture files")
 		})
 	}
 	inputs := builtinInputs(t, "codex", "SDK-CASE-001")
@@ -151,7 +151,7 @@ func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
 	cmd.Stdin = strings.NewReader(inputs["main"])
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	execution := latestExecution(t, session, "mock")
+	execution := latestExecution(t, fixtureDir, "mock")
 	require.Equal(t, []string{"app-server", "--listen", "stdio://"}, stringsOf(execution["nativeArgs"]))
 }
 
@@ -195,11 +195,11 @@ func TestMockTimeoutPolicyAndSourceBytes(t *testing.T) {
 				_, _, env := isolatedCommands(t, root, provider)
 				raw := fmt.Sprintf(`{"version":1,"provenance":"synthetic","timeoutMs":%d,"frames":[{"ordinal":1,"direction":"s2c","epoch":1,"channel":"protocol","delayMs":%d,"wire":%s}]}`, tc.timeoutMS, tc.delayMS, tc.wire)
 				material := syntheticReplayMaterial(t, provider, raw)
-				session := prepareSession(t, env, "--recording", material)
-				args := append([]string{"agent", "mock", "--session-dir", session}, tc.args...)
+				fixtureDir := prepareFixture(t, env, "--recording", material)
+				args := append([]string{"agent", "mock", "--fixture-dir", fixtureDir}, tc.args...)
 				result := runTool(t, env, root, "", args...)
 				require.Equal(t, tc.code, result.code, result.stderr)
-				execution := latestExecution(t, session, "mock")
+				execution := latestExecution(t, fixtureDir, "mock")
 				receipt := readJSON(t, str(obj(array(execution["connections"])[0])["receipt"]))
 				require.Equal(t, digestBytes([]byte(raw)), receipt["recordingSHA256"])
 				if tc.code == 0 {
@@ -223,14 +223,14 @@ func TestMockProgressReceiptWaitsForEOF(t *testing.T) {
 			root := t.TempDir()
 			_, _, env := isolatedCommands(t, root, "codex")
 			raw := `{"ordinal":1,"direction":"s2c","epoch":1,"channel":"protocol","wire":{}}` + "\n"
-			session := prepareSession(t, env, "--recording", syntheticReplayMaterial(t, "codex", raw))
+			fixtureDir := prepareFixture(t, env, "--recording", syntheticReplayMaterial(t, "codex", raw))
 			progress, notification, err := os.Pipe()
 			require.NoError(t, err)
 			defer progress.Close()
 			defer notification.Close()
 			ctx, cancel := context.WithTimeout(t.Context(), 8*time.Second)
 			defer cancel()
-			cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), "agent", "mock", "--session-dir", session, "--timeout", "0.4", "--progress-fd", "3")
+			cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), "agent", "mock", "--fixture-dir", fixtureDir, "--timeout", "0.4", "--progress-fd", "3")
 			cmd.Env, cmd.Dir = env, root
 			cmd.ExtraFiles = []*os.File{notification}
 			input, err := cmd.StdinPipe()
@@ -256,7 +256,7 @@ func TestMockProgressReceiptWaitsForEOF(t *testing.T) {
 			line, err := bufio.NewReader(output).ReadString('\n')
 			require.NoError(t, err)
 			require.Equal(t, "{}\n", line)
-			execution := latestExecution(t, session, "mock")
+			execution := latestExecution(t, fixtureDir, "mock")
 			receiptPath := str(obj(array(execution["connections"])[0])["receipt"])
 			// Publication may reserve the path, but must not claim success yet.
 			require.Empty(t, readFile(t, receiptPath))

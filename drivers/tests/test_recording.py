@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 import record_user_story
-from peer_support import identity, prepare_record, current_capture, mock_command, run_mock
+from peer_support import identity, prepare_fixture, current_capture, mock_command, run_mock
 from record_user_story.environment import capture_root, replay_receipt, private_json, recording_temp_root
 from record_user_story.scenarios import case_recipes, _validate, recipe, digest
 
@@ -48,14 +48,14 @@ class RecordingTests(unittest.TestCase):
                 plan['agentMock'] = identity()
                 private_json(root/'plan.json', plan)
                 env = {'PATH': '/missing'}
-                session = prepare_record(root, plan)
+                fixture = prepare_fixture(root, plan)
                 startup = ['app-server'] if provider == 'codex' else ['--input-format', 'stream-json', '--output-format', 'stream-json', '--permission-prompt-tool', 'stdio']
-                captured = subprocess.run([identity()['path'], 'agent', 'record', '--session-dir', str(session),
+                captured = subprocess.run([identity()['path'], 'agent', 'record', '--fixture-dir', str(fixture),
                                            '--cmd', str(native), '--', *startup], input=request,
                                           capture_output=True, timeout=10, cwd=root, env=env)
                 self.assertEqual(captured.returncode, 0, (captured.stderr, {p.name: p.read_text() for p in root.glob('*diagnostics*.json')}))
                 self.assertEqual(captured.stdout, response)
-                capture = current_capture(session)
+                capture = current_capture(fixture)
                 transport = json.loads((capture/'raw/transport.json').read_text())
                 self.assertTrue(transport['cleanupComplete'])
                 raw = capture/'raw/raw.jsonl'
@@ -86,10 +86,10 @@ class RecordingTests(unittest.TestCase):
                 receipt = root / 'actual-receipt.json'
                 material = root / 'immutable-material'
                 capture = root / 'execution-capture'
-                descriptor = {'executionId': 'actual', 'sessionId': 'session', 'command': command,
+                descriptor = {'executionId': 'actual', 'fixtureId': 'fixture', 'command': command,
                               'artifactRoot': str(capture), 'artifact': {'path': str(material)}}
                 execution.write_text(json.dumps(descriptor))
-                started = {'status': 'running', 'executionId': 'actual', 'sessionId': 'session',
+                started = {'status': 'running', 'executionId': 'actual', 'fixtureId': 'fixture',
                            'connectionId': 'main', 'processId': 42, 'command': command,
                            'execution': str(execution), 'receipt': str(receipt)}
                 finished = dict(started, status='passed')

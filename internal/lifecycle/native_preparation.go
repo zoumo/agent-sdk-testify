@@ -8,7 +8,7 @@ import (
 )
 
 // SaveNativePreparation binds observed native preparation to its ordinary execution.
-func SaveNativePreparation(sessionDir string, session *Session, execution Execution, plan tool.Object, path string) error {
+func SaveNativePreparation(fixtureDir string, fixture *Fixture, execution Execution, plan tool.Object, path string) error {
 	digest, err := tool.FileDigest(path)
 	if err != nil {
 		return err
@@ -30,8 +30,8 @@ func SaveNativePreparation(sessionDir string, session *Session, execution Execut
 			return err
 		}
 	}
-	receipt := tool.Object{"schemaVersion": 1, "method": "native-preparation", "policy": plan["recordingIsolation"], "sessionId": session.SessionID, "executionId": execution.ExecutionID, "toolSHA256": session.ToolSHA256, "preparedPlanSHA256": digest, "nativeSHA256": plan["cliSHA256"], "args": plan["args"], "cwd": execution.Workspace, "environment": env, "configurationSHA256": configs}
-	if err := tool.WriteJSON(filepath.Join(ExecutionDir(sessionDir, execution.ExecutionID), "receipts", "isolation.json"), receipt); err != nil {
+	receipt := tool.Object{"schemaVersion": 1, "method": "native-preparation", "policy": plan["recordingIsolation"], "fixtureId": fixture.FixtureID, "executionId": execution.ExecutionID, "toolSHA256": fixture.ToolSHA256, "preparedPlanSHA256": digest, "nativeSHA256": plan["cliSHA256"], "args": plan["args"], "cwd": execution.Workspace, "environment": env, "configurationSHA256": configs}
+	if err := tool.WriteJSON(filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "receipts", "isolation.json"), receipt); err != nil {
 		return err
 	}
 	return nil

@@ -2,14 +2,14 @@
 
 面向多语言 SDK 的 case、录制和 Agent mock 工具。公开 CLI 入口为：
 
-- `prepare`：按 case、consumer plan 或已有录制创建一个可复用隔离会话。
+- `prepare`：按 case、consumer plan 或已有录制创建一个可复用隔离 fixture。
 - `agent record`：SDK 启动的采集代理，转发真实 Agent 协议并发布录制材料。
 - `agent mock`：SDK 启动的回放对端，用录制替代真实 Agent。
 - `official record`：驱动官方 SDK 调用 agent record，保存录制业务事实。
 - `official verify`：驱动官方 SDK 调用 agent mock，核验并保存验证事实。
-- `export`：把 current recording 完整导出到 session 外，供另一 session 导入。
+- `export`：把 current recording 完整导出到 fixture 外，供另一 fixture 导入。
 
-命令职责、execution 归属和会话协调见[工具设计](docs/design.md)。
+命令职责、execution 归属和 fixture 协调见[工具设计](docs/design.md)。
 
 ## Go 库入口
 
@@ -18,22 +18,23 @@ Go 使用方可以导入模块根包：
 ```go
 import agenttestify "github.com/zoumo/agent-sdk-testify"
 
-session, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-    SessionDir: "/private/session",
+fixture, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+    FixtureDir: "/private/fixture",
     Plan:       "/private/plan.json",
 })
 ```
 
-根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export`，以及 `Session.Record`
-和 `Session.Mock`，不要求安装 CLI。`official record`、`official verify` 和官方 driver
-编排仍只由 CLI 提供；协议帧、严格匹配器和材料内部格式不属于库 API。v1 不保证库会话
-与 CLI 会话可交叉执行 action，材料通过 export 和 prepare 交换。完整合同见
+根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export`，以及
+`Fixture.RecordAgent` 和 `Fixture.MockAgent`，不要求安装 CLI。`official record`、
+`official verify` 和官方 driver 编排仍只由 CLI 提供；协议帧、严格匹配器和材料内部格式
+不属于库 API。v1 不保证库 fixture 与 CLI fixture 可交叉执行 action，材料通过 export 和
+prepare 交换。完整合同见
 [可导入 Go 库入口规格](docs/library-entry-spec.md)。
 
 record 和 mock 返回连接状态、整个 execution 状态及终态标志。连接成功不等于 execution 完成：
 
 ```go
-result, err := session.Mock(ctx, agenttestify.MockOptions{
+result, err := fixture.MockAgent(ctx, agenttestify.MockAgentOptions{
     NativeArgs: []string{"app-server", "--listen", "stdio://"},
 },
     agenttestify.Streams{In: stdin, Out: stdout, Err: stderr})
@@ -56,7 +57,7 @@ if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
 不提供 simulate/replay/corpus/protocol/peer 业务入口。
 旧顶层 record/mock/verify 与 internal-protocol（含 --internal-protocol）均被拒绝，不保留别名；远程桥接由 agent record 内部处理。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
 
-规范流程是 prepare、协议执行或官方编排。调用方在所有相关进程退出后删除 session。agent record 成功时原子替换
+规范流程是 prepare、协议执行或官方编排。调用方在所有相关进程退出后删除 fixture。agent record 成功时原子替换
 唯一 current recording，agent mock 和 official verify 消费 current。官方命令保存
 业务事实并引用 agent execution，不创建自己的协议 execution。材料来源、环境隔离
 和发布合同见[工具设计](docs/design.md)。
@@ -112,20 +113,20 @@ SDK 自己构建 simulate/gate，通过显式 `AGENT_SDK_TESTIFY_BIN` 消费 moc
 
 ```sh
 agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
-  --session-dir /private/session
-agent-sdk-testify official record --session-dir /private/session \
+  --fixture-dir /private/fixture
+agent-sdk-testify official record --fixture-dir /private/fixture \
   --cmd /absolute/codex -- app-server --listen stdio://
-agent-sdk-testify official verify --session-dir /private/session
-agent-sdk-testify agent mock --session-dir /private/session
-agent-sdk-testify export --session-dir /private/session --output /private/exported-recording
+agent-sdk-testify official verify --fixture-dir /private/fixture
+agent-sdk-testify agent mock --fixture-dir /private/fixture
+agent-sdk-testify export --fixture-dir /private/fixture --output /private/exported-recording
 ```
 
 case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `--materials` 或 `--driver`。
 配置和认证由工具从 agent type 标准配置位置发现并筛选，不整体复制个人 skills、插件或指令。
 `--model`、`--initial-model`、`--history-seed` 等环境选项属于 prepare；
-`--timeout` 等执行选项属于具体 action。所有 prepared-session 命令的
-`--session-dir` 都指向同一个会话目录；prepare 要求该目录尚不存在并负责创建，
-后续命令读取该目录。`session.json` 是工具内部 descriptor，不是 CLI 参数。
+`--timeout` 等执行选项属于具体 action。所有 prepared-fixture 命令的
+`--fixture-dir` 都指向同一个 fixture 目录；prepare 要求该目录尚不存在并负责创建，
+后续命令读取该目录。`fixture.json` 是工具内部 descriptor，不是 CLI 参数。
 失败与未触发尝试仍保留原始 plan/raw、业务状态、stderr、采集与清理回执；准备阶段失败保留诊断。
 录制通过不等于官方验证、审核采用或发布通过，record 不自动执行这些后续步骤。
 
@@ -133,19 +134,19 @@ case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `-
 
 外部消费者可以 `prepare --plan`，再用 record 让自身 SDK 驱动真实 Agent。工具准备
 隔离环境、workspace、配置和历史种子，消费者只提供真实 Agent 启动命令/参数并在 SDK
-宿主应用 route descriptor；record 产物可在同一会话中直接 mock。该路径不经过官方
+宿主应用 route descriptor；record 产物可在同一 fixture 中直接 mock。该路径不经过官方
 driver，也不进入官方 case、验证、采用或内置快照；合同和用法见
 [消费者录制](docs/consumer-recording.md)。
 
 SDK 录制已有 WebSocket 服务时，启动同一个公开进程：
 
 ```sh
-agent-sdk-testify agent record --session-dir /private/session \
+agent-sdk-testify agent record --fixture-dir /private/fixture \
   --url ws://127.0.0.1:8765/agent --token-file /private/runtime/bearer-token \
   --timeout 2m --result-fd 3
 ```
 
-`--url` 与 `--cmd`、`--` 后的本地参数互斥。token 文件须为 runtime 内或 session 外的绝对路径、
+`--url` 与 `--cmd`、`--` 后的本地参数互斥。token 文件须为 runtime 内或 fixture 外的绝对路径、
 普通私有文件（例如权限 `0600`），内容为 bearer token。endpoint 和 token 文件路径
 不进入持久 execution 或材料。SDK 通过 stdin/stdout 交换 JSONL；可选的 `--result-fd`
 沿用独立执行通知接口，调用方需先提供对应文件描述符。结束时关闭 stdin，工具只关闭
@@ -157,8 +158,8 @@ agent-sdk-testify agent record --session-dir /private/session \
 
 ```sh
 agent-sdk-testify prepare --agent codex \
-  --recording /private/new-capture --session-dir /private/session
-agent-sdk-testify official verify --session-dir /private/session --timeout 2m
+  --recording /private/new-capture --fixture-dir /private/fixture
+agent-sdk-testify official verify --fixture-dir /private/fixture --timeout 2m
 ```
 
 agent type/case 从录制身份确定，只选择本工具的官方 driver；不接受 `--driver`、
@@ -173,7 +174,7 @@ agent type/case 从录制身份确定，只选择本工具的官方 driver；不
 新录制经验证后可直接沿用内部资格、私有归档与原子采用流程：
 
 ```sh
-agent-sdk-testify official verify --session-dir /private/session \
+agent-sdk-testify official verify --fixture-dir /private/fixture \
   --index /absolute/data/index.json \
   --scenarios /absolute/data/scenarios --archive /private/archives
 ```
@@ -191,8 +192,8 @@ amd64/arm64 独立归档、官方 driver wheel、manifest.json 和 SHA256SUMS。
 版本、工具源码 revision、内置材料 revision/哈希和逐产物校验和分别记录。
 运行 `make check` 执行离线完整门禁；CI 分开准备依赖后执行同一入口。
 
-消费者按 [mock 使用指南](docs/using-mock.md) prepare、在会话中
-选择 mock、执行自身业务、关闭宿主并等待相关进程退出，最后自行删除 session。SDK/MASS 的业务成功与工具协议成功
+消费者按 [mock 使用指南](docs/using-mock.md) prepare、在 fixture 中
+选择 mock、执行自身业务、关闭宿主并等待相关进程退出，最后自行删除 fixture。SDK/MASS 的业务成功与工具协议成功
 分别判断。MASS 的 mass/2 Codex
 握手与录制中的官方客户端不同时应失败，不得修改录制或放宽字段。
 [driver 环境与已知限制](drivers/README.md#官方-sdk-环境)记录实际依赖和来源。

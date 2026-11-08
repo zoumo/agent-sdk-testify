@@ -15,7 +15,7 @@ import (
 )
 
 type PrepareOptions struct {
-	SessionDir    string
+	FixtureDir    string
 	Agent         string
 	Case          string
 	Plan          string
@@ -184,7 +184,7 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err := corpus.VerifyMaterials(path, true); err != nil {
 		return nil, err
 	}
-	// Session/export packages carry a complete payload inventory in addition
+	// Fixture/export packages carry a complete payload inventory in addition
 	// to the legacy protocol manifest. Validate it before making a fresh copy.
 	var material corpus.Material
 	metadata := filepath.Join(path, "material.json")
@@ -230,7 +230,7 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 			return nil, errors.New("invalid imported material identity")
 		}
 		// Capture manifests retain their original provenance. Only complete
-		// metadata can carry the official identity of a session-produced capture.
+		// metadata can carry the official identity of a fixture-produced capture.
 		provenance = material.Provenance
 		imported = &material
 	}

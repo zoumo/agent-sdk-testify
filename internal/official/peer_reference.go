@@ -20,8 +20,8 @@ const peerNotificationLimit = 1 << 20
 // readPeerReference decodes only notifications produced for one public action
 // connection and binds them to the exact process, execution and durable result.
 func readPeerReference(
-	sessionDir string,
-	session *lifecycle.Session,
+	fixtureDir string,
+	fixture *lifecycle.Fixture,
 	root, connectionID, command string,
 	validate func(lifecycle.Execution) error,
 ) (tool.Object, *lifecycle.Execution, *lifecycle.ExecutionConnection, error) {
@@ -47,7 +47,7 @@ func readPeerReference(
 		return ref, nil, nil, err
 	}
 	ref["executionId"], ref["connectionId"] = executionID, connectionID
-	executionDir := filepath.Join(sessionDir, "executions", executionID)
+	executionDir := filepath.Join(fixtureDir, "executions", executionID)
 	executionPath := filepath.Join(executionDir, "execution.json")
 	resultPath := filepath.Join(executionDir, "receipts", connectionID+".result.json")
 	pid, ok := process["pid"].(float64)
@@ -55,7 +55,7 @@ func readPeerReference(
 		return ref, nil, nil, errors.New("protocol process omitted its process ID")
 	}
 	binding := peerNotificationBinding{
-		sessionID: session.SessionID, processID: pid, connectionID: connectionID,
+		fixtureID: fixture.FixtureID, processID: pid, connectionID: connectionID,
 		command: command, executionID: executionID, executionPath: executionPath, resultPath: resultPath,
 		process: process,
 	}
@@ -77,7 +77,7 @@ func readPeerReference(
 	}
 	if execution.SchemaVersion != lifecycle.SchemaVersion ||
 		execution.ExecutionID != executionID ||
-		execution.SessionID != session.SessionID ||
+		execution.FixtureID != fixture.FixtureID ||
 		execution.Command != command {
 		return ref, nil, nil, errors.New("execution descriptor identity mismatch")
 	}
@@ -160,7 +160,7 @@ func readPeerNotifications(path string) (tool.Object, tool.Object, error) {
 }
 
 type peerNotificationBinding struct {
-	sessionID, connectionID, command string
+	fixtureID, connectionID, command string
 	executionID, executionPath       string
 	resultPath                       string
 	processID                        float64
@@ -170,7 +170,7 @@ type peerNotificationBinding struct {
 func validatePeerNotifications(started, finished tool.Object, binding peerNotificationBinding) error {
 	for _, notification := range []tool.Object{started, finished} {
 		if notification["processId"] != binding.processID ||
-			notification["sessionId"] != binding.sessionID ||
+			notification["fixtureId"] != binding.fixtureID ||
 			notification["connectionId"] != binding.connectionID ||
 			notification["executionId"] != binding.executionID ||
 			notification["command"] != binding.command ||

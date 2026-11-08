@@ -12,7 +12,7 @@ import (
 )
 
 // These are durable evidence inputs to the validator used by
-// official verification. No session, Agent or protocol process is needed.
+// official verification. No fixture, Agent or protocol process is needed.
 func TestMockReceiptEvidenceRejectsTampering(t *testing.T) {
 	for _, tc := range []struct {
 		name, message   string
@@ -37,11 +37,11 @@ func TestMockReceiptEvidenceRejectsTampering(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			root := t.TempDir()
 			receiptPath, processPath := filepath.Join(root, "replay.json"), filepath.Join(root, "process.json")
-			execution := Execution{SessionID: "session", ExecutionID: "execution", Workspace: "/owned/workspace"}
+			execution := Execution{FixtureID: "fixture", ExecutionID: "execution", Workspace: "/owned/workspace"}
 			connection := ExecutionConnection{ID: "main"}
 			expected := replayReceiptExpectation{Provider: "codex", RecordingSHA256: strings.Repeat("a", 64), PlanSHA256: strings.Repeat("b", 64), Material: "/selected/material", Frames: 2, RequirePlan: true, RequireExitCode: true}
 			receipt := tool.Object{"version": 1, "status": "passed", "provider": "codex", "fullConsumption": true, "clientEOF": true, "cleanupComplete": true, "nativeLaunched": false, "recordingSHA256": expected.RecordingSHA256, "planSHA256": expected.PlanSHA256, "recording": expected.Material, "frames": 2, "exitCode": 0}
-			process := tool.Object{"schemaVersion": 1, "status": "passed", "sessionId": execution.SessionID, "executionId": execution.ExecutionID, "connectionId": "main", "exitCode": 0}
+			process := tool.Object{"schemaVersion": 1, "status": "passed", "fixtureId": execution.FixtureID, "executionId": execution.ExecutionID, "connectionId": "main", "exitCode": 0}
 			maps.Copy(receipt, tc.replay)
 			maps.Copy(process, tc.process)
 			if !tc.missing {

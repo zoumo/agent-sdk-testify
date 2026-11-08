@@ -63,7 +63,7 @@ func manifestAgentType(manifest, rawManifest tool.Object) (string, error) {
 	return agent, nil
 }
 
-// RecordingAgentType reconciles every saved agent identity before session import.
+// RecordingAgentType reconciles every saved agent identity before fixture import.
 func RecordingAgentType(plan, manifest, rawManifest tool.Object) (string, error) {
 	manifestAgent, err := manifestAgentType(manifest, rawManifest)
 	if err != nil {

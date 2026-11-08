@@ -37,8 +37,8 @@ func readPrivateEnvironment(root string) (map[string]string, error) {
 	return values, nil
 }
 
-func prepareExecutionAuthentication(session *Session, action, root string) error {
-	profile, err := agentProfileFor(session.AgentType)
+func prepareExecutionAuthentication(fixture *Fixture, action, root string) error {
+	profile, err := agentProfileFor(fixture.AgentType)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func prepareExecutionAuthentication(session *Session, action, root string) error
 		return nil
 	}
 	for _, name := range profile.authFiles {
-		source := filepath.Join(session.ResourceRoot, "private-config", name)
+		source := filepath.Join(fixture.ResourceRoot, "private-config", name)
 		info, err := os.Lstat(source)
 		if os.IsNotExist(err) {
 			continue
@@ -73,8 +73,8 @@ func prepareExecutionAuthentication(session *Session, action, root string) error
 	return nil
 }
 
-func scrubExecutionAuthentication(session *Session, overlayRoot string) error {
-	profile, err := agentProfileFor(session.AgentType)
+func scrubExecutionAuthentication(fixture *Fixture, overlayRoot string) error {
+	profile, err := agentProfileFor(fixture.AgentType)
 	if err != nil {
 		return err
 	}
@@ -96,16 +96,16 @@ func environmentNames(values map[string]string) []string {
 	return names
 }
 
-func executionRuntimeEnvironment(session *Session, action, root string) (map[string]string, error) {
-	env := baseEnvironment(session.AgentType, root)
+func executionRuntimeEnvironment(fixture *Fixture, action, root string) (map[string]string, error) {
+	env := baseEnvironment(fixture.AgentType, root)
 	if action != "record" {
 		return env, nil
 	}
-	private, err := readPrivateEnvironment(session.ResourceRoot)
+	private, err := readPrivateEnvironment(fixture.ResourceRoot)
 	if err != nil {
 		return nil, err
 	}
-	for _, name := range session.Routes[action].RuntimeEnv {
+	for _, name := range fixture.Routes[action].RuntimeEnv {
 		if value, ok := os.LookupEnv(name); ok {
 			env[name] = value
 		} else if value, ok := private[name]; ok {

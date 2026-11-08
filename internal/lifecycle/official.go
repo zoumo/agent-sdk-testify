@@ -15,19 +15,19 @@ import (
 // OfficialRun owns orchestration activity, never a protocol execution or overlay.
 // The action lock is held only while registering, so SDK children can start.
 type OfficialRun struct {
-	ID, Dir, SessionDir string
-	Session             *Session
+	ID, Dir, FixtureDir string
+	Fixture             *Fixture
 	lock                *Lock
 	mu                  sync.Mutex
 	processes           map[string]tool.Object
 }
 
-func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
-	sessionDir, err := CanonicalSessionDir(sessionDir)
+func BeginOfficial(fixtureDir, mode string) (*OfficialRun, error) {
+	fixtureDir, err := CanonicalFixtureDir(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	activity, err := lockFile(filepath.Join(sessionDir, "locks", "official.lock"), true, false)
+	activity, err := lockFile(filepath.Join(fixtureDir, "locks", "official.lock"), true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -37,19 +37,19 @@ func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
 			_ = activity.Close()
 		}
 	}()
-	lock, err := actionLock(sessionDir, true)
+	lock, err := actionLock(fixtureDir, true)
 	if err != nil {
 		return nil, err
 	}
 	defer lock.Close()
-	if err := checkOfficialIdle(sessionDir); err != nil {
+	if err := checkOfficialIdle(fixtureDir); err != nil {
 		return nil, err
 	}
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +66,12 @@ func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
 	} else if mode != "record" {
 		return nil, errors.New("invalid official mode")
 	}
-	dir := filepath.Join(sessionDir, parent, id)
+	dir := filepath.Join(fixtureDir, parent, id)
 	if err := os.MkdirAll(filepath.Join(dir, "driver"), 0o700); err != nil {
 		return nil, err
 	}
 	var records []string
-	registry := filepath.Join(sessionDir, parent, "index.json")
+	registry := filepath.Join(fixtureDir, parent, "index.json")
 	if err := tool.ReadJSON(registry, &records); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
@@ -79,18 +79,18 @@ func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
 	if err := writeAtomic(registry, records); err != nil {
 		return nil, err
 	}
-	if err := writeAtomic(filepath.Join(sessionDir, "official-active.json"), tool.Object{
-		"schemaVersion": 1, "sessionId": session.SessionID, "id": id, "mode": mode, "pid": os.Getpid(), "status": "running", "dir": dir, "tracked": true, "processes": map[string]tool.Object{},
+	if err := writeAtomic(filepath.Join(fixtureDir, "official-active.json"), tool.Object{
+		"schemaVersion": 1, "fixtureId": fixture.FixtureID, "id": id, "mode": mode, "pid": os.Getpid(), "status": "running", "dir": dir, "tracked": true, "processes": map[string]tool.Object{},
 	}); err != nil {
 		return nil, err
 	}
 	ok = true
-	return &OfficialRun{ID: id, Dir: dir, SessionDir: sessionDir, Session: session, lock: activity, processes: map[string]tool.Object{}}, nil
+	return &OfficialRun{ID: id, Dir: dir, FixtureDir: fixtureDir, Fixture: fixture, lock: activity, processes: map[string]tool.Object{}}, nil
 }
 
-func checkOfficialIdle(sessionDir string) error {
+func checkOfficialIdle(fixtureDir string) error {
 	var active tool.Object
-	err := tool.ReadJSON(filepath.Join(sessionDir, "official-active.json"), &active)
+	err := tool.ReadJSON(filepath.Join(fixtureDir, "official-active.json"), &active)
 	if os.IsNotExist(err) {
 		return nil
 	}
@@ -99,7 +99,7 @@ func checkOfficialIdle(sessionDir string) error {
 	}
 	// A crashed owner leaves a durable reservation. Never infer that its
 	// descendants have exited merely because the advisory lock was released.
-	return errors.New("session has active or interrupted official orchestration")
+	return errors.New("fixture has active or interrupted official orchestration")
 }
 
 // Complete is called only after owned processes and final evidence are settled.
@@ -127,17 +127,17 @@ func (r *OfficialRun) Complete(result tool.Object) error {
 	if result["cleanupComplete"] != true {
 		return errors.Join(errors.New("official processes are not confirmed stopped; activity retained"), processErr, r.lock.Close())
 	}
-	err := os.Remove(filepath.Join(r.SessionDir, "official-active.json"))
+	err := os.Remove(filepath.Join(r.FixtureDir, "official-active.json"))
 	return errors.Join(err, r.lock.Close())
 }
 
 // RecordEnvironment uses the stable normal record route slots. The first agent
 // connection binds these slots to its overlay before protocol I/O starts.
-func RecordEnvironment(session *Session) (map[string]string, error) {
-	route := session.Routes["record"]
+func RecordEnvironment(fixture *Fixture) (map[string]string, error) {
+	route := fixture.Routes["record"]
 	env := make(map[string]string, len(route.Env))
 	maps.Copy(env, route.Env)
-	private, err := readPrivateEnvironment(session.ResourceRoot)
+	private, err := readPrivateEnvironment(fixture.ResourceRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (r *OfficialRun) TrackProcess(name, state string, pid int) error {
 	defer r.mu.Unlock()
 	r.processes[name] = tool.Object{"state": state, "pid": pid}
 	var active tool.Object
-	path := filepath.Join(r.SessionDir, "official-active.json")
+	path := filepath.Join(r.FixtureDir, "official-active.json")
 	if err := tool.ReadJSON(path, &active); err != nil {
 		return err
 	}
@@ -187,17 +187,17 @@ func (r *OfficialRun) RestoreMockRoute() error {
 }
 
 func (r *OfficialRun) restoreRoute(action string) error {
-	lock, err := actionLock(r.SessionDir, true)
+	lock, err := actionLock(r.FixtureDir, true)
 	if err != nil {
 		return err
 	}
 	defer lock.Close()
-	index, err := readIndex(IndexPath(r.SessionDir))
+	index, err := readIndex(IndexPath(r.FixtureDir))
 	if err != nil {
 		return err
 	}
 	if pendingExecution(index) != nil {
 		return ErrBusy
 	}
-	return restoreRouteSlots(r.Session, action)
+	return restoreRouteSlots(r.Fixture, action)
 }

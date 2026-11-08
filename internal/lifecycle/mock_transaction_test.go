@@ -19,7 +19,7 @@ func (p mockPolicyFunc) Replay(ctx context.Context, run MockContext) error {
 	return p(ctx, run)
 }
 
-func prepareMockTransactionSession(t *testing.T, caseID string) string {
+func prepareMockTransactionFixture(t *testing.T, caseID string) string {
 	t.Helper()
 	root := t.TempDir()
 	home := filepath.Join(root, "home")
@@ -28,20 +28,20 @@ func prepareMockTransactionSession(t *testing.T, caseID string) string {
 	require.NoError(t, os.MkdirAll(config, 0o700))
 	t.Setenv("HOME", home)
 	t.Setenv("CODEX_HOME", config)
-	sessionDir := filepath.Join(root, "session")
-	_, err := Prepare(PrepareOptions{SessionDir: sessionDir, Agent: "codex", Case: caseID})
+	fixtureDir := filepath.Join(root, "fixture")
+	_, err := Prepare(PrepareOptions{FixtureDir: fixtureDir, Agent: "codex", Case: caseID})
 	require.NoError(t, err)
-	return sessionDir
+	return fixtureDir
 }
 
-func mockRequest(t *testing.T, sessionDir, connection string, fd int) MockRequest {
+func mockRequest(t *testing.T, fixtureDir, connection string, fd int) MockRequest {
 	t.Helper()
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	artifact, err := LatestArtifact(sessionDir, session)
+	artifact, err := LatestArtifact(fixtureDir, fixture)
 	require.NoError(t, err)
 	return MockRequest{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Connection: connection,
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		Timeout:    time.Second,
@@ -51,21 +51,21 @@ func mockRequest(t *testing.T, sessionDir, connection string, fd int) MockReques
 	}
 }
 
-func assertMockRouteAtTemplate(t *testing.T, sessionDir string) {
+func assertMockRouteAtTemplate(t *testing.T, fixtureDir string) {
 	t.Helper()
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	workspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	workspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(session.ResourceRoot, "templates", "mock", "workspace"), workspace)
+	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "mock", "workspace"), workspace)
 }
 
 func TestMockTransactionCommitsFinalReplay(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
-	currentBefore, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-001")
+	currentBefore, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
 	result, fd := recordResultFile(t)
-	request := mockRequest(t, sessionDir, "main", fd)
+	request := mockRequest(t, fixtureDir, "main", fd)
 	replays := 0
 
 	mockResult, err := RunMock(t.Context(), request, mockPolicyFunc(func(_ context.Context, run MockContext) error {
@@ -98,7 +98,7 @@ func TestMockTransactionCommitsFinalReplay(t *testing.T) {
 	require.Equal(t, rows[0]["executionId"], rows[1]["executionId"])
 	require.NotNil(t, rows[1]["material"])
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.NotNil(t, mockResult)
@@ -111,10 +111,10 @@ func TestMockTransactionCommitsFinalReplay(t *testing.T) {
 	require.FileExists(t, mockResult.ExecutionPath)
 	require.FileExists(t, mockResult.ResultPath)
 	require.Equal(t, "passed", index.Executions[0].Status)
-	execution := readRecordExecution(t, sessionDir, index.Executions[0].ID)
+	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	require.Equal(t, "passed", index.Executions[0].Connections[0].Status)
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
-	require.NoFileExists(t, filepath.Join(executionDirForTest(sessionDir, execution), "receipts", "main.failure.json"))
+	require.NoFileExists(t, filepath.Join(executionDirForTest(fixtureDir, execution), "receipts", "main.failure.json"))
 
 	process := tool.Object{}
 	require.NoError(t, tool.ReadJSON(execution.Connections[0].ProcessReceipt, &process))
@@ -122,23 +122,23 @@ func TestMockTransactionCommitsFinalReplay(t *testing.T) {
 	require.EqualValues(t, 0, process["exitCode"])
 	requireV1ProcessReceiptWithoutLocation(t, process)
 
-	currentAfter, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	currentAfter, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
 	require.Equal(t, currentBefore, currentAfter)
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestMockTransactionFailurePreservesCurrentAndEvidence(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
-	currentBefore, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-001")
+	currentBefore, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
-	materialsBefore, err := os.ReadFile(MaterialIndexPath(sessionDir))
+	materialsBefore, err := os.ReadFile(MaterialIndexPath(fixtureDir))
 	require.NoError(t, err)
 	result, fd := recordResultFile(t)
 	replayErr := errors.New("synthetic replay failure")
 
-	_, err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err = RunMock(t.Context(), mockRequest(t, fixtureDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		require.NoError(t, os.WriteFile(filepath.Join(run.Execution().Config, "auth.json"), []byte("transient\n"), 0o600))
 		return replayErr
 	}))
@@ -149,13 +149,13 @@ func TestMockTransactionFailurePreservesCurrentAndEvidence(t *testing.T) {
 	require.Equal(t, "failed", rows[1]["status"])
 	require.Contains(t, rows[1]["error"], replayErr.Error())
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.Equal(t, "failed", index.Executions[0].Connections[0].Status)
-	execution := readRecordExecution(t, sessionDir, index.Executions[0].ID)
-	executionDir := executionDirForTest(sessionDir, execution)
+	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
+	executionDir := executionDirForTest(fixtureDir, execution)
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
 
 	process := tool.Object{}
@@ -169,19 +169,19 @@ func TestMockTransactionFailurePreservesCurrentAndEvidence(t *testing.T) {
 	require.Equal(t, "failed", failure["status"])
 	require.Contains(t, failure["error"], replayErr.Error())
 
-	currentAfter, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	currentAfter, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
 	require.Equal(t, currentBefore, currentAfter)
-	materialsAfter, err := os.ReadFile(MaterialIndexPath(sessionDir))
+	materialsAfter, err := os.ReadFile(MaterialIndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, materialsBefore, materialsAfter)
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestMockTransactionJoinsMultiPeerExecution(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-032")
-	request := mockRequest(t, sessionDir, "main", 0)
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-032")
+	request := mockRequest(t, fixtureDir, "main", 0)
 	var executionID, overlayRoot string
 
 	mainResult, mainFD := recordResultFile(t)
@@ -195,17 +195,17 @@ func TestMockTransactionJoinsMultiPeerExecution(t *testing.T) {
 	require.Equal(t, "passed", mainRows[1]["status"])
 	require.NotNil(t, mainRows[1]["material"])
 
-	openIndex, err := readIndex(IndexPath(sessionDir))
+	openIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, openIndex.Executions, 1)
 	require.Equal(t, "open", openIndex.Executions[0].Status)
 	require.Equal(t, "passed", openIndex.Executions[0].Connections[0].Status)
 	require.Equal(t, "pending", openIndex.Executions[0].Connections[1].Status)
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	openWorkspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	openWorkspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
-	require.NotEqual(t, filepath.Join(session.ResourceRoot, "templates", "mock", "workspace"), openWorkspace)
+	require.NotEqual(t, filepath.Join(fixture.ResourceRoot, "templates", "mock", "workspace"), openWorkspace)
 
 	probeResult, probeFD := recordResultFile(t)
 	request.Connection, request.ResultFD = "probe", probeFD
@@ -221,19 +221,19 @@ func TestMockTransactionJoinsMultiPeerExecution(t *testing.T) {
 	require.NotNil(t, probeRows[1]["material"])
 	require.Equal(t, mainRows[0]["executionId"], probeRows[0]["executionId"])
 
-	closedIndex, err := readIndex(IndexPath(sessionDir))
+	closedIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, closedIndex.Executions, 1)
 	require.Equal(t, "passed", closedIndex.Executions[0].Status)
 	require.Equal(t, "passed", closedIndex.Executions[0].Connections[0].Status)
 	require.Equal(t, "passed", closedIndex.Executions[0].Connections[1].Status)
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestMockTransactionFinalPeerClosesFailedExecution(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-032")
-	request := mockRequest(t, sessionDir, "main", 0)
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-032")
+	request := mockRequest(t, fixtureDir, "main", 0)
 	mainResult, mainFD := recordResultFile(t)
 	request.ResultFD = mainFD
 	mainErr := errors.New("main replay failed")
@@ -243,7 +243,7 @@ func TestMockTransactionFinalPeerClosesFailedExecution(t *testing.T) {
 	require.ErrorIs(t, err, mainErr)
 	require.Equal(t, "failed", readRecordResults(t, mainResult)[1]["status"])
 
-	openIndex, err := readIndex(IndexPath(sessionDir))
+	openIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, "open", openIndex.Executions[0].Status)
 	require.Equal(t, "pending", openIndex.Executions[0].Connections[1].Status)
@@ -258,84 +258,84 @@ func TestMockTransactionFinalPeerClosesFailedExecution(t *testing.T) {
 	require.Equal(t, "failed", probeRows[1]["status"])
 	require.Contains(t, probeRows[1]["error"], "mock execution has failed connections")
 
-	closedIndex, err := readIndex(IndexPath(sessionDir))
+	closedIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, "failed", closedIndex.Executions[0].Status)
 	require.Equal(t, "failed", closedIndex.Executions[0].Connections[0].Status)
 	require.Equal(t, "passed", closedIndex.Executions[0].Connections[1].Status)
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
-func beginActiveMockVerify(t *testing.T, sessionDir string) *OfficialRun {
+func beginActiveMockVerify(t *testing.T, fixtureDir string) *OfficialRun {
 	t.Helper()
-	activity, err := BeginOfficial(sessionDir, "verify")
+	activity, err := BeginOfficial(fixtureDir, "verify")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = activity.Complete(tool.Object{"mode": "verify", "status": "passed", "cleanupComplete": true})
 	})
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
 	overlay := filepath.Join(t.TempDir(), "official-mock-overlay")
-	require.NoError(t, tool.CopyTree(filepath.Join(session.ResourceRoot, "templates", "mock"), overlay))
-	require.NoError(t, bindRouteSlots(filepath.Join(session.ResourceRoot, "routes", "mock"), overlay))
+	require.NoError(t, tool.CopyTree(filepath.Join(fixture.ResourceRoot, "templates", "mock"), overlay))
+	require.NoError(t, bindRouteSlots(filepath.Join(fixture.ResourceRoot, "routes", "mock"), overlay))
 	return activity
 }
 
 func TestMockTransactionPreservesRouteDuringActiveOfficialVerify(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
-	activity := beginActiveMockVerify(t, sessionDir)
-	session, err := OpenSession(sessionDir)
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-001")
+	activity := beginActiveMockVerify(t, fixtureDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
 
 	_, fd := recordResultFile(t)
 	workspaceAtReplay := ""
-	_, err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(context.Context, MockContext) error {
-		execution, err := readIndex(IndexPath(sessionDir))
+	_, err = RunMock(t.Context(), mockRequest(t, fixtureDir, "main", fd), mockPolicyFunc(func(context.Context, MockContext) error {
+		execution, err := readIndex(IndexPath(fixtureDir))
 		require.NoError(t, err)
-		workspaceAtReplay = readRecordExecution(t, sessionDir, execution.Executions[0].ID).Workspace
+		workspaceAtReplay = readRecordExecution(t, fixtureDir, execution.Executions[0].ID).Workspace
 		return nil
 	}))
 	require.NoError(t, err)
-	workspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	workspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, workspaceAtReplay, workspace)
 	require.NoError(t, activity.RestoreMockRoute())
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestMockTransactionFailurePreservesRouteDuringActiveOfficialVerify(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
-	activity := beginActiveMockVerify(t, sessionDir)
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-001")
+	activity := beginActiveMockVerify(t, fixtureDir)
 
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
 	replayErr := errors.New("synthetic replay failure")
 	workspaceAtReplay := ""
-	_, err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error {
-		bound, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	_, err = RunMock(t.Context(), mockRequest(t, fixtureDir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error {
+		bound, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 		require.NoError(t, err)
-		require.NotEqual(t, filepath.Join(session.ResourceRoot, "templates", "mock", "workspace"), bound)
+		require.NotEqual(t, filepath.Join(fixture.ResourceRoot, "templates", "mock", "workspace"), bound)
 		workspaceAtReplay = bound
 		return replayErr
 	}))
 	require.ErrorIs(t, err, replayErr)
-	workspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	workspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, workspaceAtReplay, workspace)
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.NoError(t, activity.RestoreMockRoute())
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestMockTransactionReleasesLockWhenFinalizationFails(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-001")
 	result, fd := recordResultFile(t)
-	_, err := RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err := RunMock(t.Context(), mockRequest(t, fixtureDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		return os.Mkdir(run.ProcessReceipt(), 0o700)
 	}))
 	require.Error(t, err)
@@ -343,20 +343,20 @@ func TestMockTransactionReleasesLockWhenFinalizationFails(t *testing.T) {
 
 	rows := readRecordResults(t, result)
 	require.Equal(t, "failed", rows[1]["status"])
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	failure := tool.Object{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, index.Executions[0].ID), "receipts", "main.failure.json"), &failure))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[0].ID), "receipts", "main.failure.json"), &failure))
 	require.Contains(t, failure["error"], "is a directory")
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestMockTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-001")
 	result, fd := recordResultFile(t)
-	_, err := RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err := RunMock(t.Context(), mockRequest(t, fixtureDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		return os.Mkdir(filepath.Join(run.ExecutionDir(), "mock-finalize.lock"), 0o700)
 	}))
 	require.Error(t, err)
@@ -364,20 +364,20 @@ func TestMockTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 
 	rows := readRecordResults(t, result)
 	require.Equal(t, "failed", rows[1]["status"])
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.Equal(t, "failed", index.Executions[0].Connections[0].Status)
 	failure := tool.Object{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, index.Executions[0].ID), "receipts", "main.failure.json"), &failure))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[0].ID), "receipts", "main.failure.json"), &failure))
 	require.Contains(t, failure["error"], "is a directory")
-	execution := readRecordExecution(t, sessionDir, index.Executions[0].ID)
+	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	process := tool.Object{}
 	require.NoError(t, tool.ReadJSON(execution.Connections[0].ProcessReceipt, &process))
 	require.Equal(t, "passed", process["status"])
 	requireV1ProcessReceiptWithoutLocation(t, process)
-	assertMockRouteAtTemplate(t, sessionDir)
-	assertRecordLockAvailable(t, sessionDir)
+	assertMockRouteAtTemplate(t, fixtureDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func requireV1ProcessReceiptWithoutLocation(t *testing.T, process tool.Object) {
@@ -388,15 +388,15 @@ func requireV1ProcessReceiptWithoutLocation(t *testing.T, process tool.Object) {
 }
 
 func TestMockTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
-	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-032")
-	request := mockRequest(t, sessionDir, "main", 0)
+	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-032")
+	request := mockRequest(t, fixtureDir, "main", 0)
 	_, fd := recordResultFile(t)
 	request.ResultFD = fd
 	_, err := RunMock(t.Context(), request, mockPolicyFunc(func(context.Context, MockContext) error {
 		return nil
 	}))
 	require.NoError(t, err)
-	indexBefore, err := os.ReadFile(IndexPath(sessionDir))
+	indexBefore, err := os.ReadFile(IndexPath(fixtureDir))
 	require.NoError(t, err)
 
 	for _, tc := range []struct {
@@ -455,12 +455,12 @@ func TestMockTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 				return nil
 			}))
 			require.ErrorContains(t, err, tc.want)
-			require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
+			require.Equal(t, indexBefore, readIndexBytes(t, fixtureDir))
 		})
 	}
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
-func executionDirForTest(sessionDir string, execution Execution) string {
-	return filepath.Join(sessionDir, "executions", execution.ExecutionID)
+func executionDirForTest(fixtureDir string, execution Execution) string {
+	return filepath.Join(fixtureDir, "executions", execution.ExecutionID)
 }

@@ -17,7 +17,7 @@ import (
 	agenttestify "github.com/zoumo/agent-sdk-testify"
 )
 
-func TestInstalledCLIAndLibraryShareSessionAndMaterialContract(t *testing.T) {
+func TestInstalledCLIAndLibraryShareFixtureAndMaterialContract(t *testing.T) {
 	binary := buildCLI(t, false)
 	root := t.TempDir()
 	home, config := filepath.Join(root, "host-home"), filepath.Join(root, "host-config")
@@ -29,29 +29,29 @@ func TestInstalledCLIAndLibraryShareSessionAndMaterialContract(t *testing.T) {
 	require.NoError(t, os.Mkdir(emptyPath, 0o700))
 	t.Setenv("PATH", emptyPath)
 
-	cliSession := filepath.Join(root, "cli-session")
-	runCLI(t, binary, "prepare", "--agent", "codex", "--case", "SDK-CASE-001", "--session-dir", cliSession)
-	librarySession := filepath.Join(root, "library-session")
+	cliFixture := filepath.Join(root, "cli-fixture")
+	runCLI(t, binary, "prepare", "--agent", "codex", "--case", "SDK-CASE-001", "--fixture-dir", cliFixture)
+	libraryFixture := filepath.Join(root, "library-fixture")
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: librarySession,
+		FixtureDir: libraryFixture,
 		Agent:      "codex",
 		Case:       "SDK-CASE-001",
 	})
 	require.NoError(t, err)
 	require.NotNil(t, prepared.Current)
 
-	cliSession, err = filepath.EvalSymlinks(cliSession)
+	cliFixture, err = filepath.EvalSymlinks(cliFixture)
 	require.NoError(t, err)
-	assertSessionToolSource(t, cliSession, "executable")
-	assertSessionToolSource(t, prepared.SessionDir, "embedded")
-	require.Equal(t, sharedLayout(t, cliSession), sharedLayout(t, prepared.SessionDir))
-	require.Equal(t, normalizedSession(t, cliSession), normalizedSession(t, prepared.SessionDir))
-	assertDescriptorSchemas(t, cliSession, prepared.SessionDir)
+	assertFixtureToolSource(t, cliFixture, "executable")
+	assertFixtureToolSource(t, prepared.FixtureDir, "embedded")
+	require.Equal(t, sharedLayout(t, cliFixture), sharedLayout(t, prepared.FixtureDir))
+	require.Equal(t, normalizedFixture(t, cliFixture), normalizedFixture(t, prepared.FixtureDir))
+	assertDescriptorSchemas(t, cliFixture, prepared.FixtureDir)
 
 	cliExport, libraryExport := filepath.Join(root, "cli-export"), filepath.Join(root, "library-export")
-	runCLI(t, binary, "export", "--session-dir", cliSession, "--output", cliExport)
+	runCLI(t, binary, "export", "--fixture-dir", cliFixture, "--output", cliExport)
 	require.NoError(t, agenttestify.Export(agenttestify.ExportOptions{
-		SessionDir: prepared.SessionDir,
+		FixtureDir: prepared.FixtureDir,
 		Output:     libraryExport,
 	}))
 	assertEquivalentMaterials(t, cliExport, libraryExport)
@@ -61,29 +61,29 @@ func TestInstalledCLIAndLibraryShareSessionAndMaterialContract(t *testing.T) {
 			SHA256 string `json:"sha256"`
 		} `json:"source"`
 	}
-	require.NoError(t, readJSON(filepath.Join(cliSession, "session.json"), &cliDescriptor))
+	require.NoError(t, readJSON(filepath.Join(cliFixture, "fixture.json"), &cliDescriptor))
 	require.Equal(t, cliDescriptor.Source.SHA256, prepared.Source.SHA256)
 	for _, exported := range []string{cliExport, libraryExport} {
 		assertMaterialHashes(t, prepared.Current, exported)
 	}
 
 	cliRoundTrip := filepath.Join(root, "cli-round-trip")
-	runCLI(t, binary, "prepare", "--recording", libraryExport, "--session-dir", cliRoundTrip)
+	runCLI(t, binary, "prepare", "--recording", libraryExport, "--fixture-dir", cliRoundTrip)
 	cliRoundTripExport := filepath.Join(root, "cli-round-trip-export")
-	runCLI(t, binary, "export", "--session-dir", cliRoundTrip, "--output", cliRoundTripExport)
+	runCLI(t, binary, "export", "--fixture-dir", cliRoundTrip, "--output", cliRoundTripExport)
 	assertEquivalentMaterials(t, libraryExport, cliRoundTripExport)
 	assertMaterialHashes(t, prepared.Current, cliRoundTripExport)
 
 	libraryRoundTrip := filepath.Join(root, "library-round-trip")
 	roundTripped, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: libraryRoundTrip,
+		FixtureDir: libraryRoundTrip,
 		Recording:  cliExport,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, roundTripped.Current)
 	libraryRoundTripExport := filepath.Join(root, "library-round-trip-export")
 	require.NoError(t, agenttestify.Export(agenttestify.ExportOptions{
-		SessionDir: roundTripped.SessionDir,
+		FixtureDir: roundTripped.FixtureDir,
 		Output:     libraryRoundTripExport,
 	}))
 	assertEquivalentMaterials(t, cliExport, libraryRoundTripExport)
@@ -137,46 +137,46 @@ func normalizedLayoutPath(relative string) string {
 	return materialDirectory.ReplaceAllString(relative, "materials/<material>$1")
 }
 
-func normalizedSession(t *testing.T, sessionDir string) map[string]any {
+func normalizedFixture(t *testing.T, fixtureDir string) map[string]any {
 	t.Helper()
 	var value map[string]any
-	require.NoError(t, readJSON(filepath.Join(sessionDir, "session.json"), &value))
-	return normalizeValue(value, sessionDir).(map[string]any)
+	require.NoError(t, readJSON(filepath.Join(fixtureDir, "fixture.json"), &value))
+	return normalizeValue(value, fixtureDir).(map[string]any)
 }
 
-func assertSessionToolSource(t *testing.T, sessionDir, want string) {
+func assertFixtureToolSource(t *testing.T, fixtureDir, want string) {
 	t.Helper()
 	var descriptor struct {
 		ToolSource string `json:"toolSource"`
 	}
-	require.NoError(t, readJSON(filepath.Join(sessionDir, "session.json"), &descriptor))
+	require.NoError(t, readJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 	require.Equal(t, want, descriptor.ToolSource)
 }
 
-func normalizeValue(value any, sessionDir string) any {
+func normalizeValue(value any, fixtureDir string) any {
 	switch value := value.(type) {
 	case map[string]any:
 		out := make(map[string]any, len(value))
 		for key, item := range value {
 			switch key {
-			case "sessionId", "tool", "toolVersion", "toolSHA256", "toolSource", "command", "launcher", "embedded":
+			case "fixtureId", "tool", "toolVersion", "toolSHA256", "toolSource", "command", "launcher", "embedded":
 				continue
 			}
-			out[key] = normalizeValue(item, sessionDir)
+			out[key] = normalizeValue(item, fixtureDir)
 		}
 		return out
 	case []any:
 		out := make([]any, len(value))
 		for i, item := range value {
-			out[i] = normalizeValue(item, sessionDir)
+			out[i] = normalizeValue(item, fixtureDir)
 		}
 		return out
 	case string:
-		if value == sessionDir {
-			return "<session>"
+		if value == fixtureDir {
+			return "<fixture>"
 		}
-		if strings.HasPrefix(value, sessionDir+string(filepath.Separator)) {
-			return filepath.ToSlash("<session>" + strings.TrimPrefix(value, sessionDir))
+		if strings.HasPrefix(value, fixtureDir+string(filepath.Separator)) {
+			return filepath.ToSlash("<fixture>" + strings.TrimPrefix(value, fixtureDir))
 		}
 		return value
 	default:
@@ -184,7 +184,7 @@ func normalizeValue(value any, sessionDir string) any {
 	}
 }
 
-func assertDescriptorSchemas(t *testing.T, cliSession, librarySession string) {
+func assertDescriptorSchemas(t *testing.T, cliFixture, libraryFixture string) {
 	t.Helper()
 	for _, relative := range []string{
 		"executions/index.json",
@@ -192,15 +192,15 @@ func assertDescriptorSchemas(t *testing.T, cliSession, librarySession string) {
 		"current.json",
 	} {
 		var cliValue, libraryValue any
-		require.NoError(t, readJSON(filepath.Join(cliSession, relative), &cliValue))
-		require.NoError(t, readJSON(filepath.Join(librarySession, relative), &libraryValue))
+		require.NoError(t, readJSON(filepath.Join(cliFixture, relative), &cliValue))
+		require.NoError(t, readJSON(filepath.Join(libraryFixture, relative), &libraryValue))
 		require.Equal(t, descriptorShape(cliValue), descriptorShape(libraryValue), relative)
 	}
-	var cliSessionValue, librarySessionValue any
-	require.NoError(t, readJSON(filepath.Join(cliSession, "session.json"), &cliSessionValue))
-	require.NoError(t, readJSON(filepath.Join(librarySession, "session.json"), &librarySessionValue))
-	ignored := []string{"sessionId", "tool", "toolVersion", "toolSHA256", "toolSource", "command", "launcher", "embedded"}
-	require.Equal(t, descriptorShape(cliSessionValue, ignored...), descriptorShape(librarySessionValue, ignored...), "session.json")
+	var cliFixtureValue, libraryFixtureValue any
+	require.NoError(t, readJSON(filepath.Join(cliFixture, "fixture.json"), &cliFixtureValue))
+	require.NoError(t, readJSON(filepath.Join(libraryFixture, "fixture.json"), &libraryFixtureValue))
+	ignored := []string{"fixtureId", "tool", "toolVersion", "toolSHA256", "toolSource", "command", "launcher", "embedded"}
+	require.Equal(t, descriptorShape(cliFixtureValue, ignored...), descriptorShape(libraryFixtureValue, ignored...), "fixture.json")
 }
 
 func descriptorShape(value any, ignoredKeys ...string) any {

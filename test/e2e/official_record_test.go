@@ -183,9 +183,9 @@ func controlledOfficialDriver(args []string) int {
 	}
 
 	if mode == "reuse-ref" {
-		session := filepath.Dir(filepath.Dir(filepath.Dir(request.Output)))
+		fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(request.Output)))
 		var paths map[string]string
-		if readJSONFile(filepath.Join(session, "reuse-reference.json"), &paths) != nil {
+		if readJSONFile(filepath.Join(fixtureDir, "reuse-reference.json"), &paths) != nil {
 			return 6
 		}
 		for name, source := range paths {
@@ -238,8 +238,8 @@ func controlledOfficialDriver(args []string) int {
 }
 
 func driverAction(output, binary string, args ...string) int {
-	session := filepath.Dir(filepath.Dir(filepath.Dir(output)))
-	// Session flags precede native argv, exactly as the installed CLI requires.
+	fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(output)))
+	// Fixture flags precede native argv, exactly as the installed CLI requires.
 	offset := len(args)
 	for i, arg := range args {
 		if arg == "--" {
@@ -248,7 +248,7 @@ func driverAction(output, binary string, args ...string) int {
 		}
 	}
 	argv := append([]string{}, args[:offset]...)
-	argv = append(argv, "--session-dir", session)
+	argv = append(argv, "--fixture-dir", fixtureDir)
 	argv = append(argv, args[offset:]...)
 	cmd := exec.CommandContext(context.Background(), binary, argv...)
 	err := cmd.Run()
@@ -262,12 +262,12 @@ func driverAction(output, binary string, args ...string) int {
 	return -1
 }
 
-func officialRunResult(t *testing.T, session string) object {
+func officialRunResult(t *testing.T, fixtureDir string) object {
 	t.Helper()
 	var ids []string
-	require.NoError(t, readJSONFile(filepath.Join(session, "official-records", "index.json"), &ids))
+	require.NoError(t, readJSONFile(filepath.Join(fixtureDir, "official-records", "index.json"), &ids))
 	require.Len(t, ids, 1)
-	return readJSON(t, filepath.Join(session, "official-records", ids[0], "result.json"))
+	return readJSON(t, filepath.Join(fixtureDir, "official-records", ids[0], "result.json"))
 }
 
 func TestOfficialRecordInstalledChain(t *testing.T) {
@@ -284,22 +284,22 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 			if mode == "startup-failed" {
 				require.NoError(t, os.WriteFile(filepath.Join(drivers, "agent-sdk-testify-codex"), []byte("#!/missing/interpreter\n"), 0o700))
 			}
-			session := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
-			source := obj(readJSON(t, filepath.Join(session, "session.json"))["source"])
+			fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
+			source := obj(readJSON(t, filepath.Join(fixtureDir, "fixture.json"))["source"])
 			sourceBytes := readFile(t, str(source["path"]))
-			previous := currentMaterialID(t, session)
-			args := []string{"official", "record", "--session-dir", session}
+			previous := currentMaterialID(t, fixtureDir)
+			args := []string{"official", "record", "--fixture-dir", fixtureDir}
 			if mode == "cancel-before" {
 				args = append(args, "--timeout", "1s")
 			}
 			args = append(args, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 			var command commandResult
 			if mode == "cancel-during" {
-				command = cancelOfficialDuringProtocol(t, env, session, args...)
+				command = cancelOfficialDuringProtocol(t, env, fixtureDir, args...)
 			} else {
 				command = runTool(t, env, t.TempDir(), "", args...)
 			}
-			result := officialRunResult(t, session)
+			result := officialRunResult(t, fixtureDir)
 			if mode == "local" || mode == "busy" {
 				require.Zero(t, command.code, command.stderr)
 				require.Equal(t, "passed", result["status"])
@@ -311,18 +311,18 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 				require.Contains(t, command.stderr, "protocol process failed or was not reaped")
 			}
 			require.Equal(t, sourceBytes, readFile(t, str(source["path"])))
-			require.NoFileExists(t, filepath.Join(session, "official-active.json"))
+			require.NoFileExists(t, filepath.Join(fixtureDir, "official-active.json"))
 			if mode == "no-trigger" || mode == "cancel-before" || mode == "startup-failed" {
-				require.Empty(t, array(sessionIndex(t, session)["executions"]))
-				require.Equal(t, previous, currentMaterialID(t, session))
+				require.Empty(t, array(fixtureIndex(t, fixtureDir)["executions"]))
+				require.Equal(t, previous, currentMaterialID(t, fixtureDir))
 				return
 			}
-			require.Len(t, array(sessionIndex(t, session)["executions"]), 1)
+			require.Len(t, array(fixtureIndex(t, fixtureDir)["executions"]), 1)
 			if mode == "cancel-during" {
-				require.Equal(t, previous, currentMaterialID(t, session))
+				require.Equal(t, previous, currentMaterialID(t, fixtureDir))
 				return
 			}
-			material := latestCapture(t, session)
+			material := latestCapture(t, fixtureDir)
 			require.NotEqual(t, previous, material["id"])
 			require.Equal(t, "official", material["provenance"])
 			require.NotEmpty(t, obj(material["officialOrigin"])["runId"])
@@ -336,14 +336,14 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 				plan := readJSON(t, filepath.Join(materialRoot, "plan.json"))
 				payload, marshalErr := json.Marshal(object{"id": 1, "method": "conformance", "params": object{"cwd": plan["project"]}})
 				require.NoError(t, marshalErr)
-				replayed := runPreparedMock(t, env, session, "main", string(payload)+"\n")
+				replayed := runPreparedMock(t, env, fixtureDir, "main", string(payload)+"\n")
 				require.Contains(t, replayed.stdout, `"synthetic":true`)
 				exported := filepath.Join(t.TempDir(), "exported")
-				mustRun(t, env, t.TempDir(), "", "export", "--session-dir", session, "--output", exported)
+				mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixtureDir, "--output", exported)
 				originalProof := readFile(t, filepath.Join(exported, "official-origin.json"))
-				// Removing the original session makes hidden old-session lookups fail.
-				require.NoError(t, os.RemoveAll(filepath.Join(session, "official-records")))
-				imported := prepareSession(t, env, "--recording", exported)
+				// Removing the original fixture makes hidden old-fixture lookups fail.
+				require.NoError(t, os.RemoveAll(filepath.Join(fixtureDir, "official-records")))
+				imported := prepareFixture(t, env, "--recording", exported)
 				importedMaterial := latestCapture(t, imported)
 				require.Equal(t, originalProof, readFile(t, filepath.Join(str(importedMaterial["path"]), "official-origin.json")))
 				require.Equal(t, "official", importedMaterial["provenance"])
@@ -364,18 +364,18 @@ func TestOfficialRecordExistingRemote(t *testing.T) {
 			root := t.TempDir()
 			agent, drivers, env := isolatedCommands(t, root, "codex")
 			writeExecutable(t, filepath.Join(drivers, "agent-sdk-testify-codex"), os.Executable, "conformance-official-driver", "remote", os.Getenv("AGENT_SDK_TESTIFY_BIN"))
-			session := prepareSession(t, env, "--agent", "codex", "--case", caseID, "--model", "synthetic-model")
-			previous := currentMaterialID(t, session)
+			fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", caseID, "--model", "synthetic-model")
+			previous := currentMaterialID(t, fixtureDir)
 			remote := newControlledRemote(t)
-			args := append([]string{"official", "record", "--session-dir", session}, remote.args("/success")...)
+			args := append([]string{"official", "record", "--fixture-dir", fixtureDir}, remote.args("/success")...)
 			if target == "owned" {
-				args = []string{"official", "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://"}
+				args = []string{"official", "record", "--fixture-dir", fixtureDir, "--cmd", agent, "--", "app-server", "--listen", "stdio://"}
 			}
 			command := runTool(t, env, t.TempDir(), "", args...)
 			require.Zero(t, command.code, command.stderr)
-			result := officialRunResult(t, session)
+			result := officialRunResult(t, fixtureDir)
 			require.Equal(t, "passed", result["status"])
-			material := latestCapture(t, session)
+			material := latestCapture(t, fixtureDir)
 			connections := stringsOf(material["connections"])
 			require.Len(t, array(result["connections"]), len(connections))
 			if len(connections) > 1 {
@@ -384,8 +384,8 @@ func TestOfficialRecordExistingRemote(t *testing.T) {
 				require.FileExists(t, filepath.Join(str(material["path"]), "remote-probe", "raw", "raw.jsonl"))
 				require.NotEmpty(t, obj(readJSON(t, filepath.Join(str(material["path"]), "manifest.json"))["remotePhaseFiles"]))
 			}
-			require.NotContains(t, string(readAllFiles(t, session)), remote.token)
-			require.Len(t, array(sessionIndex(t, session)["executions"]), 1)
+			require.NotContains(t, string(readAllFiles(t, fixtureDir)), remote.token)
+			require.Len(t, array(fixtureIndex(t, fixtureDir)["executions"]), 1)
 			remote.assertAlive(t)
 			if target == "owned" {
 				require.Equal(t, true, obj(result["remoteService"])["owned"])

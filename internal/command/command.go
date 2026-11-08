@@ -33,7 +33,7 @@ func Execute(ctx context.Context, args []string, streams IO) int {
 func New(streams IO) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "agent-sdk-testify",
-		Short:         "Prepare, record, verify, mock and export SDK protocol sessions",
+		Short:         "Prepare, record, verify, mock and export SDK protocol fixtures",
 		Version:       version.Version,
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -78,17 +78,17 @@ func versionCommand() *cobra.Command {
 }
 
 func exportCommand() *cobra.Command {
-	var sessionDir, output string
+	var fixtureDir, output string
 	c := &cobra.Command{
 		Use:   "export [flags]",
 		Short: "Export the complete current recording",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return application.Export(application.ExportOptions{SessionDir: sessionDir, Output: output})
+			return application.Export(application.ExportOptions{FixtureDir: fixtureDir, Output: output})
 		},
 	}
-	c.Flags().StringVar(&sessionDir, "session-dir", "", "prepared session directory")
-	c.Flags().StringVar(&output, "output", "", "new recording directory outside session")
+	c.Flags().StringVar(&fixtureDir, "fixture-dir", "", "prepared fixture directory")
+	c.Flags().StringVar(&output, "output", "", "new recording directory outside fixture")
 	return c
 }
 
@@ -96,10 +96,10 @@ func prepareCommand() *cobra.Command {
 	var o application.PrepareOptions
 	c := &cobra.Command{
 		Use:   "prepare [flags]",
-		Short: "Create a prepared test session",
+		Short: "Create a prepared test fixture",
 		Args:  cobra.NoArgs,
 	}
-	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "new persistent session directory")
+	c.Flags().StringVar(&o.FixtureDir, "fixture-dir", "", "new persistent fixture directory")
 	c.Flags().StringVar(&o.Agent, "agent", "", "agent type: codex or claude")
 	c.Flags().StringVar(&o.Case, "case", "", "official case ID")
 	c.Flags().StringVar(&o.Plan, "plan", "", "consumer plan file")
@@ -122,10 +122,10 @@ func recordCommand(streams IO) *cobra.Command {
 	o := application.RecordOptions{ResultFD: -1}
 	c := &cobra.Command{
 		Use:   "record [flags] [-- ARG ...]",
-		Short: "Record a native Agent interaction in a prepared session",
+		Short: "Record a native Agent interaction in a prepared fixture",
 		Args:  cobra.ArbitraryArgs,
 	}
-	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
+	c.Flags().StringVar(&o.FixtureDir, "fixture-dir", "", "prepared fixture directory")
 	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
 	c.Flags().StringVar(&o.Connection, "connection", "main", "declared record connection")
 	c.Flags().DurationVar(&o.ConnectTimeout, "connect-timeout", 0, "retry unavailable remote connections for this duration")
@@ -151,10 +151,10 @@ func officialRecordCommand() *cobra.Command {
 	var o official.RecordOptions
 	c := &cobra.Command{
 		Use:   "record [flags] [-- ARG ...]",
-		Short: "Record a native Agent interaction in a prepared session",
+		Short: "Record a native Agent interaction in a prepared fixture",
 		Args:  cobra.ArbitraryArgs,
 	}
-	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
+	c.Flags().StringVar(&o.FixtureDir, "fixture-dir", "", "prepared fixture directory")
 	c.Flags().StringVar(&o.Command, "cmd", "", "absolute native Agent executable")
 	c.Flags().DurationVar(&o.ConnectTimeout, "connect-timeout", 0, "retry unavailable remote connections for this duration")
 	c.Flags().StringVar(&o.URL, "url", "", "existing authenticated ws/wss endpoint (excludes --cmd and native arguments)")
@@ -167,8 +167,8 @@ func officialRecordCommand() *cobra.Command {
 		if o.URL != "" && (c.Flags().Changed("cmd") || c.ArgsLenAtDash() >= 0 || len(args) != 0) {
 			return errors.New("remote target excludes --cmd and native arguments")
 		}
-		if !filepath.IsAbs(o.SessionDir) {
-			return errors.New("--session-dir must be absolute")
+		if !filepath.IsAbs(o.FixtureDir) {
+			return errors.New("--fixture-dir must be absolute")
 		}
 		if o.Timeout < 0 || o.ConnectTimeout < 0 {
 			return errors.New("timeouts must be nonnegative")
@@ -186,20 +186,20 @@ func verifyCommand() *cobra.Command {
 	var o official.VerifyOptions
 	c := &cobra.Command{
 		Use:   "verify [flags]",
-		Short: "Verify material in a prepared session",
+		Short: "Verify material in a prepared fixture",
 		Args:  cobra.NoArgs,
 	}
-	c.Flags().StringVar(&o.SessionDir, "session-dir", "", "prepared session directory")
+	c.Flags().StringVar(&o.FixtureDir, "fixture-dir", "", "prepared fixture directory")
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-task timeout; zero disables it")
 	c.Flags().StringVar(&o.Index, "index", "", "optional fixed index: qualify and atomically adopt after verification")
 	c.Flags().StringVar(&o.Scenarios, "scenarios", "", "scenario catalog for admission (default: index sibling ../scenarios)")
 	c.Flags().StringVar(&o.Archive, "archive", "", "private admission archive (default: persistent data directory)")
 	c.RunE = func(c *cobra.Command, _ []string) error {
-		if o.SessionDir == "" {
-			return errors.New("verify requires --session-dir")
+		if o.FixtureDir == "" {
+			return errors.New("verify requires --fixture-dir")
 		}
-		if !filepath.IsAbs(o.SessionDir) {
-			return errors.New("--session-dir must be an absolute path")
+		if !filepath.IsAbs(o.FixtureDir) {
+			return errors.New("--fixture-dir must be an absolute path")
 		}
 		return official.Verify(c.Context(), o)
 	}

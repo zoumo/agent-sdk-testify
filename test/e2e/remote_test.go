@@ -108,7 +108,7 @@ func (r *controlledRemote) assertAlive(t *testing.T) {
 
 // Drive the installed process interactively: client EOF follows receipt of the
 // response, as with an SDK, so EOF cannot discard an in-flight response.
-func recordRemote(t *testing.T, env []string, session string, remote *controlledRemote, mode string) (commandResult, object) {
+func recordRemote(t *testing.T, env []string, fixtureDir string, remote *controlledRemote, mode string) (commandResult, object) {
 	t.Helper()
 	r, w, err := os.Pipe()
 	require.NoError(t, err)
@@ -118,7 +118,7 @@ func recordRemote(t *testing.T, env []string, session string, remote *controlled
 	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 	defer cancel()
 	path := "/" + mode
-	args := append([]string{"agent", "record", "--session-dir", session, "--result-fd", "3"}, remote.args(path)...)
+	args := append([]string{"agent", "record", "--fixture-dir", fixtureDir, "--result-fd", "3"}, remote.args(path)...)
 	if mode == "deadline" {
 		args = append(args, "--timeout", "1s")
 	}
@@ -196,8 +196,8 @@ func TestAgentRemoteRecordLifecycle(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(drivers, name), []byte("#!/bin/sh\ntouch "+shellQuote(marker)+"\nexit 42\n"), 0o700))
 	}
 	remote := newControlledRemote(t)
-	session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "remote-record"))
-	result, reference := recordRemote(t, env, session, remote, "success")
+	fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "remote-record"))
+	result, reference := recordRemote(t, env, fixtureDir, remote, "success")
 	require.Zero(t, result.code, result.stderr)
 	require.Equal(t, "passed", reference["status"])
 	receipt := readJSON(t, str(reference["receipt"]))
@@ -212,8 +212,8 @@ func TestAgentRemoteRecordLifecycle(t *testing.T) {
 	require.Nil(t, receipt["nativeExitCode"])
 	require.NotContains(t, receipt, "stdinEOFAction")
 	material := obj(reference["material"])
-	require.Equal(t, currentMaterialID(t, session), material["id"])
-	artifact := artifactByID(t, session, str(material["id"]))
+	require.Equal(t, currentMaterialID(t, fixtureDir), material["id"])
+	artifact := artifactByID(t, fixtureDir, str(material["id"]))
 	assertFileHashes(t, str(material["path"]), obj(artifact["files"]))
 	raw := string(readFile(t, filepath.Join(str(material["path"]), "raw", "raw.jsonl")))
 	require.Contains(t, raw, `"large":9007199254740993,"exponent":1e+09`)
@@ -223,11 +223,11 @@ func TestAgentRemoteRecordLifecycle(t *testing.T) {
 	require.Empty(t, obj(manifest["native"])["sha256"])
 	sealed := readAllFiles(t, str(material["path"]))
 	exported := filepath.Join(root, "exported")
-	mustRun(t, env, root, "", "export", "--session-dir", session, "--output", exported)
-	imported := prepareSession(t, env, "--recording", exported)
+	mustRun(t, env, root, "", "export", "--fixture-dir", fixtureDir, "--output", exported)
+	imported := prepareFixture(t, env, "--recording", exported)
 	replay := runPreparedMock(t, env, imported, "", requestOne)
 	require.JSONEq(t, remoteReply, replay.stdout)
-	for _, directory := range []string{session, exported, imported} {
+	for _, directory := range []string{fixtureDir, exported, imported} {
 		evidence := string(readAllFiles(t, directory))
 		for _, secret := range []string{remote.token, remote.tokenFile, remote.server.URL, strings.TrimPrefix(remote.server.URL, "http")} {
 			require.NotContains(t, evidence, secret)
@@ -245,14 +245,14 @@ func TestAgentRemoteFailureKeepsCurrentAndService(t *testing.T) {
 			root := t.TempDir()
 			agent, _, env := isolatedCommands(t, root, "codex")
 			remote := newControlledRemote(t)
-			session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "remote-failure"), "--max-frame-bytes", "1024")
-			recordConsumer(t, env, session, agent, requestOne)
-			current := readFile(t, filepath.Join(session, "current.json"))
-			result, reference := recordRemote(t, env, session, remote, mode)
+			fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "remote-failure"), "--max-frame-bytes", "1024")
+			recordConsumer(t, env, fixtureDir, agent, requestOne)
+			current := readFile(t, filepath.Join(fixtureDir, "current.json"))
+			result, reference := recordRemote(t, env, fixtureDir, remote, mode)
 			require.Equal(t, 1, result.code)
 			require.Equal(t, "failed", reference["status"])
 			require.NotContains(t, reference, "material")
-			require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
+			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 			receipt := readJSON(t, str(reference["receipt"]))
 			require.Equal(t, "failed", receipt["captureStatus"])
 			require.Equal(t, true, receipt["remoteConnected"])
@@ -270,8 +270,8 @@ func TestAgentRemoteFailureKeepsCurrentAndService(t *testing.T) {
 			if mode == "early" {
 				require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(str(reference["receipt"])), "raw.jsonl"))), `"direction":"s2c"`)
 			}
-			// The same service and session accept a fresh connection after failure.
-			success, _ := recordRemote(t, env, session, remote, "success")
+			// The same service and fixture accept a fresh connection after failure.
+			success, _ := recordRemote(t, env, fixtureDir, remote, "success")
 			require.Zero(t, success.code, success.stderr)
 			remote.assertAlive(t)
 		})
@@ -282,7 +282,7 @@ func TestAgentRemotePreflightAndAuthentication(t *testing.T) {
 	root := t.TempDir()
 	agent, _, env := isolatedCommands(t, root, "codex")
 	remote := newControlledRemote(t)
-	session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "remote-preflight"))
+	fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "remote-preflight"))
 	for _, extra := range [][]string{
 		{"--url", remote.args("/")[1]},
 		{"--token-file", remote.tokenFile},
@@ -295,28 +295,28 @@ func TestAgentRemotePreflightAndAuthentication(t *testing.T) {
 		append(remote.args("/"), "--", "app-server"),
 		append(remote.args("/"), "--"),
 	} {
-		before := readAllFiles(t, session)
-		result := runTool(t, env, root, "", append([]string{"agent", "record", "--session-dir", session}, extra...)...)
+		before := readAllFiles(t, fixtureDir)
+		result := runTool(t, env, root, "", append([]string{"agent", "record", "--fixture-dir", fixtureDir}, extra...)...)
 		require.Equal(t, 1, result.code, extra)
-		require.Equal(t, before, readAllFiles(t, session))
+		require.Equal(t, before, readAllFiles(t, fixtureDir))
 	}
 	for _, token := range []string{"", "invalid token"} {
 		require.NoError(t, os.WriteFile(remote.tokenFile, []byte(token), 0o600))
-		before := readAllFiles(t, session)
-		result := runTool(t, env, root, "", append([]string{"agent", "record", "--session-dir", session}, remote.args("/")...)...)
+		before := readAllFiles(t, fixtureDir)
+		result := runTool(t, env, root, "", append([]string{"agent", "record", "--fixture-dir", fixtureDir}, remote.args("/")...)...)
 		require.Equal(t, 1, result.code)
-		require.Equal(t, before, readAllFiles(t, session))
+		require.Equal(t, before, readAllFiles(t, fixtureDir))
 	}
 	require.NoError(t, os.WriteFile(remote.tokenFile, []byte(remote.token), 0o600))
 	require.NoError(t, os.Chmod(remote.tokenFile, 0o644))
-	before := readAllFiles(t, session)
-	badPermissions := runTool(t, env, root, "", append([]string{"agent", "record", "--session-dir", session}, remote.args("/")...)...)
+	before := readAllFiles(t, fixtureDir)
+	badPermissions := runTool(t, env, root, "", append([]string{"agent", "record", "--fixture-dir", fixtureDir}, remote.args("/")...)...)
 	require.Equal(t, 1, badPermissions.code)
-	require.Equal(t, before, readAllFiles(t, session))
+	require.Equal(t, before, readAllFiles(t, fixtureDir))
 	require.NoError(t, os.Chmod(remote.tokenFile, 0o600))
 	// An actual authentication rejection is an execution failure with a receipt.
 	require.NoError(t, os.WriteFile(remote.tokenFile, []byte("wrong-private-bearer"), 0o600))
-	failed, reference := runAgentResult(t, env, session, "", "record", remote.args("/")...)
+	failed, reference := runAgentResult(t, env, fixtureDir, "", "record", remote.args("/")...)
 	require.Equal(t, 1, failed.code)
 	require.Equal(t, "failed", reference["status"])
 	receipt := readJSON(t, str(reference["receipt"]))
@@ -324,31 +324,31 @@ func TestAgentRemotePreflightAndAuthentication(t *testing.T) {
 	require.Equal(t, true, receipt["cleanupComplete"])
 	require.Equal(t, false, receipt["nativeLaunched"])
 	require.NotContains(t, failed.stderr, "wrong-private-bearer")
-	require.NotContains(t, string(readAllFiles(t, session)), "wrong-private-bearer")
+	require.NotContains(t, string(readAllFiles(t, fixtureDir)), "wrong-private-bearer")
 	remote.assertAlive(t)
 }
 
-func TestRemoteTokenStaysOutsideSessionEvidence(t *testing.T) {
+func TestRemoteTokenStaysOutsideFixtureEvidence(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	remote := newControlledRemote(t)
-	session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "runtime-token"))
+	fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "runtime-token"))
 	token := []byte(remote.token + "\n")
-	path := filepath.Join(session, "source", "remote-token.private")
+	path := filepath.Join(fixtureDir, "source", "remote-token.private")
 	require.NoError(t, os.WriteFile(path, token, 0o600))
-	before := readAllFiles(t, session)
-	rejected := runTool(t, env, root, "", "agent", "record", "--session-dir", session, "--url", remote.args("/")[1], "--token-file", path)
+	before := readAllFiles(t, fixtureDir)
+	rejected := runTool(t, env, root, "", "agent", "record", "--fixture-dir", fixtureDir, "--url", remote.args("/")[1], "--token-file", path)
 	require.Equal(t, 1, rejected.code)
-	require.Contains(t, rejected.stderr, "token file must be outside session evidence")
-	require.Equal(t, before, readAllFiles(t, session))
+	require.Contains(t, rejected.stderr, "token file must be outside fixture evidence")
+	require.Equal(t, before, readAllFiles(t, fixtureDir))
 	require.NoError(t, os.Remove(path))
-	remote.tokenFile = filepath.Join(session, "runtime", "remote-token.private")
+	remote.tokenFile = filepath.Join(fixtureDir, "runtime", "remote-token.private")
 	require.NoError(t, os.WriteFile(remote.tokenFile, token, 0o600))
-	result, reference := recordRemote(t, env, session, remote, "success")
+	result, reference := recordRemote(t, env, fixtureDir, remote, "success")
 	require.Zero(t, result.code, result.stderr)
 	require.Equal(t, "passed", reference["status"])
 	exported := filepath.Join(root, "exported")
-	mustRun(t, env, root, "", "export", "--session-dir", session, "--output", exported)
+	mustRun(t, env, root, "", "export", "--fixture-dir", fixtureDir, "--output", exported)
 	require.NotContains(t, string(readAllFiles(t, exported)), remote.token)
 }
 
@@ -356,7 +356,7 @@ func TestAgentRemoteEarlyCloseBoundsBackpressuredDrain(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	remote := newControlledRemote(t)
-	session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "remote-backpressure"))
+	fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "remote-backpressure"))
 	r, w, err := os.Pipe()
 	require.NoError(t, err)
 	defer r.Close()
@@ -378,7 +378,7 @@ func TestAgentRemoteEarlyCloseBoundsBackpressuredDrain(t *testing.T) {
 	defer resultFile.Close()
 	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 	defer cancel()
-	args := append([]string{"agent", "record", "--session-dir", session, "--result-fd", "3"}, remote.args("/early")...)
+	args := append([]string{"agent", "record", "--fixture-dir", fixtureDir, "--result-fd", "3"}, remote.args("/early")...)
 	cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), args...)
 	cmd.Env, cmd.ExtraFiles, cmd.Stdout = env, []*os.File{resultFile}, w
 	stdin, err := cmd.StdinPipe()
@@ -415,6 +415,6 @@ func TestAgentRemoteEarlyCloseBoundsBackpressuredDrain(t *testing.T) {
 	}
 	require.Equal(t, strings.TrimSuffix(requestOne, "\n"), <-remote.requests)
 	require.Empty(t, remote.requests)
-	success, _ := recordRemote(t, env, session, remote, "success")
+	success, _ := recordRemote(t, env, fixtureDir, remote, "success")
 	require.Zero(t, success.code, success.stderr)
 }

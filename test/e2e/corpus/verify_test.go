@@ -26,7 +26,7 @@ func TestVerifyOfficialOnlySelection(t *testing.T) {
 		data, err := cmd.CombinedOutput()
 		if args[0] == "--help" {
 			require.NoError(t, err, "%s", data)
-			require.Contains(t, string(data), "session-dir")
+			require.Contains(t, string(data), "fixture-dir")
 		} else {
 			require.Error(t, err)
 			require.Contains(t, string(data), "unknown flag")
@@ -164,33 +164,33 @@ func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T
 		mutate(t, s.source)
 	}
 	env := []string{"PATH=" + bin + ":/usr/bin:/bin", "HOME=" + t.TempDir(), "GORACE=" + os.Getenv("GORACE")}
-	session := prepareVerifySession(t, s.source, env)
+	fixtureDir := prepareVerifyFixture(t, s.source, env)
 	t.Cleanup(func() {
 		if !t.Failed() {
 			return
 		}
 		var ids []string
-		if tool.ReadJSON(filepath.Join(session, "verifications", "index.json"), &ids) != nil || len(ids) == 0 {
+		if tool.ReadJSON(filepath.Join(fixtureDir, "verifications", "index.json"), &ids) != nil || len(ids) == 0 {
 			return
 		}
-		root := filepath.Join(session, "verifications", ids[len(ids)-1], "driver")
+		root := filepath.Join(fixtureDir, "verifications", ids[len(ids)-1], "driver")
 		if data, err := os.ReadFile(filepath.Join(root, "stderr.log")); err == nil {
 			t.Logf("driver diagnostics: %s", data)
 		}
 	})
-	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", session)
+	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--fixture-dir", fixtureDir)
 	cmd.Dir = t.TempDir()
 	cmd.Env = env
-	return cmd, s.source, session
+	return cmd, s.source, fixtureDir
 }
 
-func prepareVerifySession(t *testing.T, source string, env []string) string {
+func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 	t.Helper()
-	session := filepath.Join(t.TempDir(), "session")
+	fixtureDir := filepath.Join(t.TempDir(), "fixture")
 	var plan tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &plan))
 	prepare := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"),
-		"prepare", "--agent", "codex", "--case", tool.Str(plan["caseId"]), "--session-dir", session)
+		"prepare", "--agent", "codex", "--case", tool.Str(plan["caseId"]), "--fixture-dir", fixtureDir)
 	prepare.Dir = t.TempDir()
 	prepare.Env = env
 	data, err := prepare.CombinedOutput()
@@ -198,7 +198,7 @@ func prepareVerifySession(t *testing.T, source string, env []string) string {
 	// Install a controlled official capture at the process boundary. Production
 	// prepare --recording must not elevate an external capture to official.
 	var registry tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "materials", "index.json"), &registry))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &registry))
 	material := tool.Obj(tool.Array(registry["materials"])[0])
 	target := tool.Str(material["path"])
 	require.NoError(t, os.RemoveAll(target))
@@ -212,32 +212,32 @@ func prepareVerifySession(t *testing.T, source string, env []string) string {
 	material["files"] = files
 	material["planSHA256"], material["manifestSHA256"], material["recordingSHA256"] = files["plan.json"], files["manifest.json"], files["raw/raw.jsonl"]
 	require.NoError(t, tool.WriteJSON(filepath.Join(target, "material.json"), material))
-	require.NoError(t, tool.WriteJSON(filepath.Join(session, "materials", "index.json"), registry))
+	require.NoError(t, tool.WriteJSON(filepath.Join(fixtureDir, "materials", "index.json"), registry))
 	t.Cleanup(func() {
 		var descriptor tool.Object
-		if tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
+		if tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor) == nil {
 			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
 		}
-		_ = os.RemoveAll(session)
+		_ = os.RemoveAll(fixtureDir)
 	})
-	return session
+	return fixtureDir
 }
 
-func verifyOutput(t *testing.T, session string) string {
+func verifyOutput(t *testing.T, fixtureDir string) string {
 	t.Helper()
 	var ids []string
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "verifications", "index.json"), &ids))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "verifications", "index.json"), &ids))
 	require.NotEmpty(t, ids)
-	return filepath.Join(session, "verifications", ids[len(ids)-1])
+	return filepath.Join(fixtureDir, "verifications", ids[len(ids)-1])
 }
 
 func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
-	cmd, source, session := verifyFixture(t, "passed")
+	cmd, source, fixtureDir := verifyFixture(t, "passed")
 	before, err := corpus.Inventory(source, false)
 	require.NoError(t, err)
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	output := verifyOutput(t, session)
+	output := verifyOutput(t, fixtureDir)
 	after, err := corpus.Inventory(source, false)
 	require.NoError(t, err)
 	require.Equal(t, before, after)
@@ -252,14 +252,14 @@ func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
 }
 
 func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
-	cmd, _, session := verifyFixture(t, "passed")
+	cmd, _, fixtureDir := verifyFixture(t, "passed")
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	root := verifyOutput(t, session)
+	root := verifyOutput(t, fixtureDir)
 	var evidence, report, descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "verification.json"), &evidence))
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "driver", "replay-report.json"), &report))
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 	route := tool.Obj(tool.Obj(descriptor["routes"])["mock"])
 	observed := tool.Obj(report["observed"])
 	hostCwd, err := filepath.EvalSymlinks(tool.Str(route["workspace"]))
@@ -272,17 +272,17 @@ func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
 	refs := tool.Array(evidence["connections"])
 	require.Len(t, refs, 1)
 	var execution tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", tool.Str(tool.Obj(refs[0])["executionId"]), "execution.json"), &execution))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "executions", tool.Str(tool.Obj(refs[0])["executionId"]), "execution.json"), &execution))
 	require.Equal(t, "mock", execution["command"])
 	require.True(t, strings.HasPrefix(tool.Str(execution["workspace"]), filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions")+string(filepath.Separator)))
 	require.NotEqual(t, execution["workspace"], route["workspace"])
 }
 
 func TestVerifyRequiresPeerExitAndCleanup(t *testing.T) {
-	cmd, _, session := verifyFixture(t, "passed")
+	cmd, _, fixtureDir := verifyFixture(t, "passed")
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	output := verifyOutput(t, session)
+	output := verifyOutput(t, fixtureDir)
 	var lifecycle tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "driver", "peer-main.process.json"), &lifecycle))
 	require.InDelta(t, float64(0), lifecycle["exitCode"], 0)
@@ -293,12 +293,12 @@ func TestVerifyRequiresPeerExitAndCleanup(t *testing.T) {
 func TestVerifyFailureEvidence(t *testing.T) {
 	for _, mode := range []string{"wrong-hash"} {
 		t.Run(mode, func(t *testing.T) {
-			cmd, source, session := verifyFixture(t, mode)
+			cmd, source, fixtureDir := verifyFixture(t, mode)
 			before, err := corpus.Inventory(source, false)
 			require.NoError(t, err)
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
-			output := verifyOutput(t, session)
+			output := verifyOutput(t, fixtureDir)
 			var evidence tool.Object
 			require.NoError(t, tool.ReadJSON(filepath.Join(output, "verification.json"), &evidence))
 			require.Equal(t, "failed", evidence["status"])
@@ -312,15 +312,15 @@ func TestVerifyFailureEvidence(t *testing.T) {
 }
 
 func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
-	for _, target := range []string{"original", "session"} {
+	for _, target := range []string{"original", "fixture"} {
 		t.Run(target, func(t *testing.T) {
-			cmd, source, session := verifyFixture(t, "passed")
-			if target == "session" {
+			cmd, source, fixtureDir := verifyFixture(t, "passed")
+			if target == "fixture" {
 				var descriptor tool.Object
-				require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+				require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 				var current, registry tool.Object
-				require.NoError(t, tool.ReadJSON(filepath.Join(session, "current.json"), &current))
-				require.NoError(t, tool.ReadJSON(filepath.Join(session, "materials", "index.json"), &registry))
+				require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current))
+				require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &registry))
 				for _, value := range tool.Array(registry["materials"]) {
 					material := tool.Obj(value)
 					if material["id"] == current["materialId"] {
@@ -337,7 +337,7 @@ func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
 			require.Error(t, err, "%s", data)
 			require.Contains(t, string(data), "hash mismatch")
 			var index tool.Object
-			require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+			require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "executions", "index.json"), &index))
 			require.Empty(t, tool.Array(index["executions"]))
 		})
 	}
@@ -346,7 +346,7 @@ func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
 func TestVerifyAllSelectedPeers(t *testing.T) {
 	for _, mode := range []string{"passed", "omit-probe"} {
 		t.Run(mode, func(t *testing.T) {
-			cmd, _, session := verifyFixtureWithMutation(t, mode, func(t *testing.T, source string) {
+			cmd, _, fixtureDir := verifyFixtureWithMutation(t, mode, func(t *testing.T, source string) {
 				require.NoError(t, tool.CopyTree(filepath.Join(source, "raw"), filepath.Join(source, "remote-probe", "raw")))
 				probeRoot := filepath.Join(source, "remote-probe", "raw")
 				raw, err := os.ReadFile(filepath.Join(probeRoot, "raw.jsonl"))
@@ -377,7 +377,7 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 				require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), manifest))
 			})
 			data, err := cmd.CombinedOutput()
-			output := verifyOutput(t, session)
+			output := verifyOutput(t, fixtureDir)
 			if mode == "passed" {
 				require.NoError(t, err, "%s", data)
 				require.FileExists(t, filepath.Join(output, "driver", "connections", "probe", "replay.json"))
@@ -391,7 +391,7 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 }
 
 func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
-	cmd, source, session := verifyFixture(t, "passed")
+	cmd, source, fixtureDir := verifyFixture(t, "passed")
 	s := &corpusSuite{}
 	s.SetT(t)
 	s.SetupTest()
@@ -410,7 +410,7 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	require.NoError(t, err)
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	output := verifyOutput(t, session)
+	output := verifyOutput(t, fixtureDir)
 	var admission tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "admission-summary.json"), &admission))
 	require.Equal(t, "admitted", admission["status"])
@@ -450,20 +450,20 @@ func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
 	report["facts"] = []string{"changed after adoption"}
 	require.NoError(t, tool.WriteJSON(filepath.Join(source, "report.json"), report))
 	env := cmd.Env
-	session := prepareVerifySession(t, source, env)
-	cmd = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--session-dir", session)
+	fixtureDir := prepareVerifyFixture(t, source, env)
+	cmd = exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--fixture-dir", fixtureDir)
 	cmd.Dir = t.TempDir()
 	cmd.Env = env
-	before := sessionFiles(t, session)
+	before := fixtureFiles(t, fixtureDir)
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
 	require.Contains(t, string(data), "adopted corpus inventory drift")
-	require.Equal(t, before, sessionFiles(t, session))
-	require.NoFileExists(t, filepath.Join(session, "verifications", "index.json"))
+	require.Equal(t, before, fixtureFiles(t, fixtureDir))
+	require.NoFileExists(t, filepath.Join(fixtureDir, "verifications", "index.json"))
 }
 
 func TestVerifyRejectsAdmissionAndPreservesPrevious(t *testing.T) {
-	cmd, source, session := verifyFixture(t, "failed")
+	cmd, source, fixtureDir := verifyFixture(t, "failed")
 	s := &corpusSuite{}
 	s.SetT(t)
 	s.SetupTest()
@@ -480,7 +480,7 @@ func TestVerifyRejectsAdmissionAndPreservesPrevious(t *testing.T) {
 	cmd.Args = append(cmd.Args, "--index", s.c.Index, "--scenarios", scenarios, "--archive", s.c.Archive)
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
-	output := verifyOutput(t, session)
+	output := verifyOutput(t, fixtureDir)
 	indexAfter, err := os.ReadFile(s.c.Index)
 	require.NoError(t, err)
 	require.Equal(t, indexBefore, indexAfter)
@@ -510,12 +510,12 @@ func canonicalVerifyFixture(t *testing.T, source, caseID string) {
 	t.Helper()
 	var previous tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &previous))
-	session := filepath.Join(t.TempDir(), "canonical")
-	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "prepare", "--agent", "codex", "--case", caseID, "--session-dir", session)
+	fixtureDir := filepath.Join(t.TempDir(), "canonical")
+	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "prepare", "--agent", "codex", "--case", caseID, "--fixture-dir", fixtureDir)
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", output)
 	var descriptor, plan tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 	t.Cleanup(func() { _ = os.RemoveAll(tool.Str(descriptor["resourceRoot"])) })
 	require.NoError(t, tool.ReadJSON(tool.Str(tool.Obj(descriptor["source"])["path"]), &plan))
 	maps.Copy(previous, plan)
@@ -528,17 +528,17 @@ func canonicalVerifyFixture(t *testing.T, source, caseID string) {
 	require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), manifest))
 }
 
-func sessionFiles(t *testing.T, session string) tool.Object {
+func fixtureFiles(t *testing.T, fixture string) tool.Object {
 	t.Helper()
 	files := tool.Object{}
-	require.NoError(t, filepath.WalkDir(session, func(path string, entry os.DirEntry, err error) error {
+	require.NoError(t, filepath.WalkDir(fixture, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if entry.IsDir() {
 			return nil
 		}
-		rel, err := filepath.Rel(session, path)
+		rel, err := filepath.Rel(fixture, path)
 		if err != nil {
 			return err
 		}

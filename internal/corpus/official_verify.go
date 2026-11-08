@@ -22,7 +22,7 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 	actualSource := v.Inventory(source, false)
 	expectedSource := tool.Obj(evidence["sourceFiles"])
 	if actualSource["material.json"] == nil && expectedSource["material.json"] != nil {
-		// Adopted regression views omit the session-local material descriptor.
+		// Adopted regression views omit the fixture-local material descriptor.
 		// Every published byte must still match the original verified closure.
 		selected := tool.Object{}
 		for name := range v.Required(source, plan) {
@@ -68,14 +68,14 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 
 		material := tool.Obj(execution["artifact"])
 		v.Check(reflect.DeepEqual(material, evidence["material"]), "mock execution material differs")
-		v.Check(execution["command"] == "mock" && execution["sessionId"] == evidence["sessionId"] && execution["executionId"] == ref["executionId"], "mock execution reference differs")
+		v.Check(execution["command"] == "mock" && evidenceFixtureID(execution) == evidenceFixtureID(evidence) && execution["executionId"] == ref["executionId"], "mock execution reference differs")
 		if executionID == "" {
 			executionID = tool.Str(execution["executionId"])
 		}
 		v.Check(executionID != "" && executionID == execution["executionId"], "verified connections disagree on execution")
 		v.Check(ref["executionSHA256"] == files[prefix+"execution.json"] && reflect.DeepEqual(ref["finished"], result), "mock notification differs from durable state")
 		v.Check(result["processId"] == peer["pid"] && result["status"] == "passed" && peer["exitCode"] == float64(0) && peer["reaped"] == true && peer["cleanupComplete"] == true, "mock process was not supervised and reaped")
-		v.Check(process["sessionId"] == execution["sessionId"] && process["executionId"] == execution["executionId"] && process["connectionId"] == id && process["status"] == "passed" && process["exitCode"] == float64(0), "mock process receipt differs")
+		v.Check(evidenceFixtureID(process) == evidenceFixtureID(execution) && process["executionId"] == execution["executionId"] && process["connectionId"] == id && process["status"] == "passed" && process["exitCode"] == float64(0), "mock process receipt differs")
 		raw := "raw/raw.jsonl"
 		if id == "probe" {
 			raw = "remote-probe/" + raw
