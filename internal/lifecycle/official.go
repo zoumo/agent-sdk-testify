@@ -23,7 +23,7 @@ type OfficialRun struct {
 }
 
 func BeginOfficial(sessionDir, mode string) (*OfficialRun, error) {
-	sessionDir, err := canonicalSessionDir(sessionDir)
+	sessionDir, err := CanonicalSessionDir(sessionDir)
 	if err != nil {
 		return nil, err
 	}

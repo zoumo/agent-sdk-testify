@@ -1,6 +1,7 @@
 package application
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -190,4 +191,146 @@ func TestMockRequiresStreamsBeforeExecution(t *testing.T) {
 	options := MockOptions{SessionDir: filepath.Join(t.TempDir(), "session"), ResultFD: -1, ProgressFD: -1}
 	_, err := Mock(t.Context(), options, Streams{})
 	require.EqualError(t, err, "mock requires input, output and error streams")
+}
+
+func TestApplicationRecordPreflightOwnsTargetAndSessionInputs(t *testing.T) {
+	root := t.TempDir()
+	isolateApplicationEnvironment(t, root)
+	sessionDir := prepareApplicationPlanSession(t, root)
+	sessionDir, err := filepath.EvalSymlinks(sessionDir)
+	require.NoError(t, err)
+	executable := filepath.Join(root, "agent")
+	require.NoError(t, os.WriteFile(executable, []byte("#!/bin/sh\nexit 0\n"), 0o700))
+	resolvedExecutable, err := filepath.EvalSymlinks(executable)
+	require.NoError(t, err)
+
+	prepared, err := prepareRecord(RecordOptions{
+		SessionDir: sessionDir,
+		Command:    executable,
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+		Timeout:    time.Second,
+		ResultFD:   -1,
+	})
+	require.NoError(t, err)
+	require.Equal(t, sessionDir, prepared.SessionDir)
+	require.Equal(t, "main", prepared.Connection)
+	require.Equal(t, resolvedExecutable, prepared.Command)
+	require.Equal(t, "local", prepared.Target)
+	require.Equal(t, []string{"--session-dir", sessionDir, "--cmd", resolvedExecutable, "--", "app-server", "--listen", "stdio://"}, prepared.Args)
+
+	_, err = prepareRecord(RecordOptions{
+		SessionDir: sessionDir,
+		Command:    executable,
+		NativeArgs: []string{"unsupported"},
+		ResultFD:   -1,
+	})
+	require.ErrorContains(t, err, `unsupported native startup argument "unsupported"`)
+
+	_, err = prepareRecord(RecordOptions{
+		SessionDir: sessionDir,
+		Connection: "probe",
+		Command:    executable,
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+		ResultFD:   -1,
+	})
+	require.EqualError(t, err, "undeclared record connection probe")
+
+	tokenFile := filepath.Join(root, "token")
+	require.NoError(t, os.WriteFile(tokenFile, []byte("synthetic-token\n"), 0o600))
+	remote, err := prepareRecord(RecordOptions{
+		SessionDir: sessionDir,
+		URL:        "ws://example.invalid",
+		TokenFile:  tokenFile,
+		ResultFD:   -1,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, remote.Remote)
+	require.Equal(t, "ws://example.invalid", remote.Remote.URL)
+	require.Empty(t, remote.Command)
+	require.Len(t, remote.Target, 64)
+	require.Equal(t, []string{"--session-dir", sessionDir, "--url", "<private>", "--token-file", "<private>"}, remote.Args)
+}
+
+func TestApplicationMockPreflightSelectsCurrentAndValidatesConnection(t *testing.T) {
+	root := t.TempDir()
+	isolateApplicationEnvironment(t, root)
+	sessionDir := filepath.Join(root, "session")
+	_, err := Prepare(PrepareOptions{SessionDir: sessionDir, Agent: "codex", Case: "SDK-CASE-001"})
+	require.NoError(t, err)
+	sessionDir, err = filepath.EvalSymlinks(sessionDir)
+	require.NoError(t, err)
+
+	prepared, err := prepareMock(MockOptions{
+		SessionDir: sessionDir,
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+		ResultFD:   -1,
+		ProgressFD: -1,
+	})
+	require.NoError(t, err)
+	require.Equal(t, sessionDir, prepared.SessionDir)
+	require.Equal(t, "main", prepared.Connection)
+	require.Equal(t, "codex", prepared.Agent)
+	require.NotEmpty(t, prepared.Artifact.RecordingSHA256)
+
+	_, err = prepareMock(MockOptions{
+		SessionDir: sessionDir,
+		Connection: "probe",
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+		ResultFD:   -1,
+		ProgressFD: -1,
+	})
+	require.EqualError(t, err, "undeclared mock connection probe")
+
+	_, err = prepareMock(MockOptions{
+		SessionDir: sessionDir,
+		NativeArgs: []string{"unsupported"},
+		ResultFD:   -1,
+		ProgressFD: -1,
+	})
+	require.ErrorContains(t, err, `unsupported native startup argument "unsupported"`)
+
+	emptySession := filepath.Join(root, "empty-session")
+	plan := filepath.Join(root, "plan.json")
+	data, err := json.Marshal(map[string]any{
+		"version":       1,
+		"agentType":     "codex",
+		"caseId":        "application-boundary",
+		"driverProfile": "consumer",
+		"project":       filepath.Join(root, "project"),
+	})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(plan, append(data, '\n'), 0o600))
+	_, err = Prepare(PrepareOptions{SessionDir: emptySession, Plan: plan})
+	require.NoError(t, err)
+	_, err = prepareMock(MockOptions{SessionDir: emptySession, ResultFD: -1, ProgressFD: -1})
+	require.EqualError(t, err, "session has no current recording")
+}
+
+func isolateApplicationEnvironment(t *testing.T, root string) {
+	t.Helper()
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "home"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "config"), 0o700))
+	t.Setenv("HOME", filepath.Join(root, "home"))
+	t.Setenv("CODEX_HOME", filepath.Join(root, "config"))
+}
+
+func prepareApplicationPlanSession(t *testing.T, root string) string {
+	t.Helper()
+	plan := filepath.Join(root, "record-plan.json")
+	data, err := json.Marshal(map[string]any{
+		"version":       1,
+		"agentType":     "codex",
+		"caseId":        "application-record",
+		"driverProfile": "consumer",
+		"project":       filepath.Join(root, "project"),
+		"scenario": map[string]any{
+			"files": map[string]string{"fixture.txt": "fixture\n"},
+		},
+	})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(plan, append(data, '\n'), 0o600))
+	sessionDir := filepath.Join(root, "session")
+	_, err = Prepare(PrepareOptions{SessionDir: sessionDir, Plan: plan})
+	require.NoError(t, err)
+	return sessionDir
 }

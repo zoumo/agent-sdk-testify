@@ -20,6 +20,47 @@ const (
 	ToolSourceEmbedded   ToolSource = lifecycle.ToolSourceEmbedded
 )
 
+// ConnectionStatus is the durable result of one connection in an action
+// execution.
+type ConnectionStatus string
+
+const (
+	ConnectionStatusUnknown ConnectionStatus = ConnectionStatus(lifecycle.ConnectionStatusUnknown)
+	ConnectionStatusPending ConnectionStatus = ConnectionStatus(lifecycle.ConnectionStatusPending)
+	ConnectionStatusRunning ConnectionStatus = ConnectionStatus(lifecycle.ConnectionStatusRunning)
+	ConnectionStatusPassed  ConnectionStatus = ConnectionStatus(lifecycle.ConnectionStatusPassed)
+	ConnectionStatusFailed  ConnectionStatus = ConnectionStatus(lifecycle.ConnectionStatusFailed)
+)
+
+// ExecutionStatus is the durable result of all declared connections in one
+// action execution.
+type ExecutionStatus string
+
+const (
+	ExecutionStatusUnknown ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusUnknown)
+	ExecutionStatusRunning ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusRunning)
+	ExecutionStatusOpen    ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusOpen)
+	ExecutionStatusPassed  ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusPassed)
+	ExecutionStatusFailed  ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusFailed)
+)
+
+// ActionResult contains the durable execution and connection evidence shared
+// by record and mock calls. ConnectionStatus describes this call only;
+// ExecutionStatus and ExecutionComplete describe every declared connection.
+type ActionResult struct {
+	SessionID          string
+	ExecutionID        string
+	ConnectionID       string
+	ConnectionStatus   ConnectionStatus
+	ExecutionStatus    ExecutionStatus
+	ExecutionComplete  bool
+	Material           *Material
+	ExecutionPath      string
+	ReceiptPath        string
+	ProcessReceiptPath string
+	ResultPath         string
+}
+
 // PrepareOptions selects the immutable initial state for a new session.
 type PrepareOptions struct {
 	SessionDir    string
@@ -69,29 +110,13 @@ type MockOptions struct {
 
 // MockResult identifies the execution and connection completed by a mock call.
 type MockResult struct {
-	SessionID          string
-	ExecutionID        string
-	ConnectionID       string
-	Status             string
-	Material           *Material
-	ExecutionPath      string
-	ReceiptPath        string
-	ProcessReceiptPath string
-	ResultPath         string
+	ActionResult
 }
 
 // RecordResult identifies the execution and connection completed by a record
 // call and, on success, the newly selected material.
 type RecordResult struct {
-	SessionID          string
-	ExecutionID        string
-	ConnectionID       string
-	Status             string
-	Material           *Material
-	ExecutionPath      string
-	ReceiptPath        string
-	ProcessReceiptPath string
-	ResultPath         string
+	ActionResult
 }
 
 // ToolIdentity describes the code that prepared a session.
@@ -246,24 +271,8 @@ func (s *Session) Record(ctx context.Context, options RecordOptions, streams Str
 	if result == nil {
 		return nil, err
 	}
-	status := "failed"
-	if err == nil {
-		status = "passed"
-	}
-	var material *Material
-	if err == nil && result.Material != nil {
-		material = materialView(*result.Material)
-	}
 	return &RecordResult{
-		SessionID:          result.SessionID,
-		ExecutionID:        result.ExecutionID,
-		ConnectionID:       result.ConnectionID,
-		Status:             status,
-		Material:           material,
-		ExecutionPath:      result.ExecutionPath,
-		ReceiptPath:        result.ReceiptPath,
-		ProcessReceiptPath: result.ProcessReceiptPath,
-		ResultPath:         result.ResultPath,
+		ActionResult: actionResultView(result.ActionResult),
 	}, err
 }
 
@@ -288,28 +297,34 @@ func (s *Session) Mock(ctx context.Context, options MockOptions, streams Streams
 	if result == nil {
 		return nil, err
 	}
-	status := "failed"
-	if err == nil {
-		status = "passed"
-	}
-	material := materialView(result.Material)
 	return &MockResult{
+		ActionResult: actionResultView(result.ActionResult),
+	}, err
+}
+
+func actionResultView(result lifecycle.ActionResult) ActionResult {
+	view := ActionResult{
 		SessionID:          result.SessionID,
 		ExecutionID:        result.ExecutionID,
 		ConnectionID:       result.ConnectionID,
-		Status:             status,
-		Material:           material,
+		ConnectionStatus:   ConnectionStatus(result.ConnectionStatus),
+		ExecutionStatus:    ExecutionStatus(result.ExecutionStatus),
+		ExecutionComplete:  result.ExecutionComplete,
 		ExecutionPath:      result.ExecutionPath,
 		ReceiptPath:        result.ReceiptPath,
 		ProcessReceiptPath: result.ProcessReceiptPath,
 		ResultPath:         result.ResultPath,
-	}, err
+	}
+	if result.Material != nil {
+		view.Material = materialView(*result.Material)
+	}
+	return view
 }
 
 func sessionView(result *application.OpenResult) *Session {
 	session := result.Session
 	view := &Session{
-		SessionDir:   result.Dir,
+		SessionDir:   result.SessionDir,
 		SessionID:    session.SessionID,
 		AgentType:    session.AgentType,
 		HistorySeed:  session.HistorySeed,

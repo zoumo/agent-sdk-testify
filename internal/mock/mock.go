@@ -18,9 +18,12 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-type Options struct {
+// Prepared is the validated current-material contract for one replay policy.
+type Prepared struct {
 	SessionDir string
 	Connection string
+	Agent      string
+	Artifact   corpus.Material
 	Timeout    time.Duration
 	ResultFD   int
 	ProgressFD int
@@ -30,14 +33,22 @@ type Options struct {
 type Result = lifecycle.MockResult
 
 // Run replays the current recording in one prepared-session execution.
-func Run(ctx context.Context, o Options, input, output *os.File) (*Result, error) {
-	return mockSession(ctx, o, input, output)
+func Run(ctx context.Context, prepared Prepared, input, output *os.File) (*Result, error) {
+	return lifecycle.RunMock(ctx, lifecycle.MockRequest{
+		SessionDir: prepared.SessionDir,
+		Connection: prepared.Connection,
+		NativeArgs: prepared.NativeArgs,
+		Timeout:    prepared.Timeout,
+		ProgressFD: prepared.ProgressFD,
+		ResultFD:   prepared.ResultFD,
+		Artifact:   prepared.Artifact,
+	}, mockReplayPolicy{prepared: prepared, input: input, output: output})
 }
 
-func replayConnection(ctx context.Context, o Options, input, output *os.File, sourceRoot, agent, phase, reportPath string) (err error) {
+func replayConnection(ctx context.Context, prepared Prepared, input, output *os.File, sourceRoot, phase, reportPath string) (err error) {
 	var notification *os.File
-	if o.ProgressFD >= 3 {
-		fd, e := syscall.Dup(o.ProgressFD)
+	if prepared.ProgressFD >= 3 {
+		fd, e := syscall.Dup(prepared.ProgressFD)
 		if e != nil {
 			return e
 		}
@@ -62,16 +73,16 @@ func replayConnection(ctx context.Context, o Options, input, output *os.File, so
 		closeErr := receiptFile.Close()
 		err = errors.Join(err, closeErr, atomicMockJSON(reportPath, receipt))
 	}()
-	manifest, document, e := loadMockPhase(sourceRoot, agent, phase)
+	manifest, document, e := loadMockPhase(sourceRoot, prepared.Agent, phase)
 	if e != nil {
 		return e
 	}
-	receipt["provider"] = agent
+	receipt["provider"] = prepared.Agent
 	receipt["planSHA256"] = manifest["planSHA256"]
 	receipt["provenance"] = manifest["provenance"]
 	receipt["recordingSHA256"] = document.SHA256
 	receipt["frames"] = len(document.Frames)
-	ctx, cancel := context.WithTimeout(ctx, replayTimeout(agent, o.Timeout, document.Timeout))
+	ctx, cancel := context.WithTimeout(ctx, replayTimeout(prepared.Agent, prepared.Timeout, document.Timeout))
 	defer cancel()
 	consumed, e := mockProtocolNotifying(ctx, document, notification, input, output)
 	receipt["fullConsumption"] = consumed

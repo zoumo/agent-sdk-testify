@@ -38,20 +38,9 @@ type MockContext struct {
 	transactionContext
 }
 
-// MockResult identifies the execution and connection owned by one mock call.
-type MockResult struct {
-	SessionID          string
-	ExecutionID        string
-	ConnectionID       string
-	Material           corpus.Material
-	ExecutionPath      string
-	ReceiptPath        string
-	ProcessReceiptPath string
-	ResultPath         string
-}
-
 type mockTransaction struct {
 	lockedTransaction
+	processCWD string
 }
 
 func (m *mockTransaction) context() MockContext {
@@ -66,13 +55,18 @@ func (m *mockTransaction) result() *MockResult {
 		id = "main"
 	}
 	result := &MockResult{
-		SessionID:     m.session.SessionID,
-		ExecutionID:   m.execution.ExecutionID,
-		ConnectionID:  id,
-		Material:      cloneTransactionMaterial(m.execution.Artifact),
-		ExecutionPath: filepath.Join(m.dir, "execution.json"),
-		ResultPath:    filepath.Join(m.dir, "receipts", id+".result.json"),
+		ActionResult: ActionResult{
+			SessionID:        m.session.SessionID,
+			ExecutionID:      m.execution.ExecutionID,
+			ConnectionID:     id,
+			ConnectionStatus: ConnectionStatusUnknown,
+			ExecutionStatus:  ExecutionStatusUnknown,
+			ExecutionPath:    filepath.Join(m.dir, "execution.json"),
+			ResultPath:       filepath.Join(m.dir, "receipts", id+".result.json"),
+		},
 	}
+	material := cloneTransactionMaterial(m.execution.Artifact)
+	result.Material = &material
 	for _, connection := range m.execution.Connections {
 		if connection.ID == id {
 			result.ReceiptPath = connection.Receipt
@@ -130,7 +124,8 @@ func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
 		"connectionId":  m.connection,
 		"status":        "failed",
 		"exitCode":      -1,
-		"cwd":           m.execution.Workspace,
+		"cwd":           m.processCWD,
+		"workspace":     m.execution.Workspace,
 		"toolVersion":   version.Version,
 	}
 	if self, toolVersion, hash, err := SelfCommand(); err == nil {
@@ -228,8 +223,13 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 			finalErr = errors.New("mock transaction aborted")
 		}
 		runErr = errors.Join(runErr, run.finalize(ctx, resultStream, finalErr))
+		result.refresh(run.sessionDir)
 	}()
 
+	run.processCWD, err = actionWorkingDirectory()
+	if err != nil {
+		return result, err
+	}
 	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
 		return result, err
 	}
@@ -240,8 +240,23 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 	return result, nil
 }
 
+func actionWorkingDirectory() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	cwd, err = filepath.EvalSymlinks(cwd)
+	if err != nil {
+		return "", err
+	}
+	if !filepath.IsAbs(cwd) {
+		return "", errors.New("working directory must be absolute")
+	}
+	return cwd, nil
+}
+
 func beginMockTransaction(request MockRequest) (transaction *mockTransaction, err error) {
-	sessionDir, err := canonicalSessionDir(request.SessionDir)
+	sessionDir, err := CanonicalSessionDir(request.SessionDir)
 	if err != nil {
 		return nil, err
 	}

@@ -43,19 +43,6 @@ type RecordContext struct {
 	transactionContext
 }
 
-// RecordResult identifies the execution and connection completed by one record
-// call without exposing transaction descriptors.
-type RecordResult struct {
-	SessionID          string
-	ExecutionID        string
-	ConnectionID       string
-	Material           *corpus.Material
-	ExecutionPath      string
-	ReceiptPath        string
-	ProcessReceiptPath string
-	ResultPath         string
-}
-
 func (c RecordContext) IsOfficialCapture() bool {
 	return c.execution.Artifact.OfficialOrigin != nil
 }
@@ -80,12 +67,16 @@ func (r *recordTransaction) result() *RecordResult {
 		id = "main"
 	}
 	result := &RecordResult{
-		SessionID:          r.session.SessionID,
-		ExecutionID:        r.execution.ExecutionID,
-		ConnectionID:       id,
-		ExecutionPath:      filepath.Join(r.dir, "execution.json"),
-		ProcessReceiptPath: filepath.Join(r.dir, "receipts", id+".native-process.json"),
-		ResultPath:         filepath.Join(r.dir, "receipts", id+".result.json"),
+		ActionResult: ActionResult{
+			SessionID:          r.session.SessionID,
+			ExecutionID:        r.execution.ExecutionID,
+			ConnectionID:       id,
+			ConnectionStatus:   ConnectionStatusUnknown,
+			ExecutionStatus:    ExecutionStatusUnknown,
+			ExecutionPath:      filepath.Join(r.dir, "execution.json"),
+			ProcessReceiptPath: filepath.Join(r.dir, "receipts", id+".native-process.json"),
+			ResultPath:         filepath.Join(r.dir, "receipts", id+".result.json"),
+		},
 	}
 	for _, connection := range r.execution.Connections {
 		if connection.ID == id {
@@ -335,6 +326,7 @@ func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) 
 		}
 		runErr = errors.Join(runErr, run.finalize(ctx, policy, resultStream, finalErr))
 		run.attachPublishedMaterial(callResult, runErr)
+		callResult.refresh(run.sessionDir)
 	}()
 
 	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
@@ -360,7 +352,7 @@ func recordStatus(err error) string {
 }
 
 func beginRecordTransaction(request RecordRequest) (transaction *recordTransaction, err error) {
-	sessionDir, err := canonicalSessionDir(request.SessionDir)
+	sessionDir, err := CanonicalSessionDir(request.SessionDir)
 	if err != nil {
 		return nil, err
 	}

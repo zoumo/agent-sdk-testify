@@ -127,7 +127,9 @@ func TestLibraryRecordFailureRetainsEvidenceAndCurrent(t *testing.T) {
 	require.Equal(t, currentBefore, readFile(t, filepath.Join(sessionDir, "current.json")))
 
 	require.NotNil(t, failed)
-	require.Equal(t, "failed", failed.Status)
+	require.Equal(t, agenttestify.ConnectionStatusFailed, failed.ConnectionStatus)
+	require.Equal(t, agenttestify.ExecutionStatusFailed, failed.ExecutionStatus)
+	require.True(t, failed.ExecutionComplete)
 	require.Equal(t, prepared.SessionID, failed.SessionID)
 	require.Equal(t, "main", failed.ConnectionID)
 	require.NotEmpty(t, failed.ExecutionID)
@@ -272,7 +274,9 @@ func TestLibraryRemoteRecordWithoutCLI(t *testing.T) {
 func assertPublishedLibraryRecord(t *testing.T, prepared *agenttestify.Session, result *agenttestify.RecordResult) *agenttestify.Material {
 	t.Helper()
 	require.NotNil(t, result)
-	require.Equal(t, "passed", result.Status)
+	require.Equal(t, agenttestify.ConnectionStatusPassed, result.ConnectionStatus)
+	require.Equal(t, agenttestify.ExecutionStatusPassed, result.ExecutionStatus)
+	require.True(t, result.ExecutionComplete)
 	require.Equal(t, prepared.SessionID, result.SessionID)
 	require.Equal(t, "main", result.ConnectionID)
 	require.NotEmpty(t, result.ExecutionID)

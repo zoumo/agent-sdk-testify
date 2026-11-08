@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
@@ -17,12 +18,31 @@ import (
 )
 
 type (
-	RecordOptions = record.Options
-	RecordResult  = lifecycle.RecordResult
-	MockOptions   = mock.Options
-	MockResult    = mock.Result
-	Session       = lifecycle.Session
+	RecordResult = lifecycle.RecordResult
+	MockResult   = mock.Result
+	Session      = lifecycle.Session
 )
+
+type RecordOptions struct {
+	SessionDir     string
+	Connection     string
+	URL            string
+	TokenFile      string
+	Command        string
+	NativeArgs     []string
+	Timeout        time.Duration
+	ConnectTimeout time.Duration
+	ResultFD       int
+}
+
+type MockOptions struct {
+	SessionDir string
+	Connection string
+	Timeout    time.Duration
+	ResultFD   int
+	ProgressFD int
+	NativeArgs []string
+}
 
 type PrepareOptions struct {
 	SessionDir    string
@@ -46,9 +66,9 @@ type ExportOptions struct {
 }
 
 type OpenResult struct {
-	Session *Session
-	Current *corpus.Material
-	Dir     string
+	Session    *Session
+	Current    *corpus.Material
+	SessionDir string
 }
 
 // Streams are caller-owned process streams used by protocol actions.
@@ -94,11 +114,10 @@ func Open(sessionDir string) (*OpenResult, error) {
 	if sessionDir == "" || !filepath.IsAbs(sessionDir) {
 		return nil, errors.New("open requires an absolute session directory")
 	}
-	session, err := lifecycle.OpenSession(sessionDir)
+	session, dir, err := openPreparedSession(sessionDir)
 	if err != nil {
 		return nil, err
 	}
-	dir := filepath.Dir(session.ResourceRoot)
 	current, present, err := lifecycle.CurrentArtifact(dir, session)
 	if err != nil {
 		return nil, err
@@ -106,7 +125,7 @@ func Open(sessionDir string) (*OpenResult, error) {
 	if !present {
 		current = nil
 	}
-	return &OpenResult{Session: session, Current: current, Dir: dir}, nil
+	return &OpenResult{Session: session, Current: current, SessionDir: dir}, nil
 }
 
 // Export validates caller input and copies the current recording.
@@ -140,10 +159,16 @@ func Record(ctx context.Context, o RecordOptions, streams Streams) (*RecordResul
 	if streams.In == nil || streams.Out == nil || streams.Err == nil {
 		return nil, errors.New("record requires input, output and error streams")
 	}
-	if o.Connection == "" {
-		o.Connection = "main"
+	prepared, err := prepareRecord(o)
+	if err != nil {
+		return nil, err
 	}
-	return record.Run(ctx, o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
+	if o.Timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
+		defer cancel()
+	}
+	return record.Run(ctx, prepared, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
 }
 
 // Mock validates caller input and owns one mock action.
@@ -169,10 +194,11 @@ func Mock(ctx context.Context, o MockOptions, streams Streams) (*MockResult, err
 	if streams.In == nil || streams.Out == nil || streams.Err == nil {
 		return nil, errors.New("mock requires input, output and error streams")
 	}
-	if o.Connection == "" {
-		o.Connection = "main"
+	prepared, err := prepareMock(o)
+	if err != nil {
+		return nil, err
 	}
-	return mock.Run(ctx, o, streams.In, streams.Out)
+	return mock.Run(ctx, prepared, streams.In, streams.Out)
 }
 
 func validateResultFD(fd int) error {

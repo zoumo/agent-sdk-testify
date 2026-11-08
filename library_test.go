@@ -97,10 +97,32 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, cwd, workingDirectory(t))
 	require.Equal(t, treeHashes(t, prepared.Current.Path), treeHashes(t, output))
+	require.Equal(t, treeContents(t, prepared.Current.Path), treeContents(t, output))
 	require.NoFileExists(t, filepath.Join(output, "session.json"))
 	require.NoFileExists(t, filepath.Join(output, "current.json"))
 	require.NoDirExists(t, filepath.Join(output, "executions"))
 	require.NoDirExists(t, filepath.Join(output, "runtime"))
+
+	importedDir := filepath.Join(root, "imported")
+	imported, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		SessionDir: importedDir,
+		Agent:      "codex",
+		Recording:  output,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, imported.Current)
+	expectedMaterial := *prepared.Current
+	expectedMaterial.Path = imported.Current.Path
+	require.Equal(t, expectedMaterial, *imported.Current)
+	exportedHashes, importedHashes := treeHashes(t, output), treeHashes(t, imported.Current.Path)
+	delete(exportedHashes, "material.json")
+	delete(importedHashes, "material.json")
+	require.Equal(t, exportedHashes, importedHashes)
+	assertImportedMaterialBytes(t, output, imported.Current.Path)
+
+	reopened, err := agenttestify.Open(importedDir)
+	require.NoError(t, err)
+	require.Equal(t, imported.Current, reopened.Current)
 }
 
 func TestLibraryMockWithoutCLI(t *testing.T) {
@@ -126,7 +148,9 @@ func TestLibraryMockWithoutCLI(t *testing.T) {
 	require.Equal(t, cwd, workingDirectory(t))
 
 	require.NotNil(t, mockResult)
-	require.Equal(t, "passed", mockResult.Status)
+	require.Equal(t, agenttestify.ConnectionStatusPassed, mockResult.ConnectionStatus)
+	require.Equal(t, agenttestify.ExecutionStatusPassed, mockResult.ExecutionStatus)
+	require.True(t, mockResult.ExecutionComplete)
 	require.Equal(t, prepared.SessionID, mockResult.SessionID)
 	require.Equal(t, "main", mockResult.ConnectionID)
 	require.NotEmpty(t, mockResult.ExecutionID)
@@ -163,7 +187,9 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 	require.Equal(t, currentBefore, readFile(t, filepath.Join(sessionDir, "current.json")))
 
 	require.NotNil(t, mockResult)
-	require.Equal(t, "failed", mockResult.Status)
+	require.Equal(t, agenttestify.ConnectionStatusFailed, mockResult.ConnectionStatus)
+	require.Equal(t, agenttestify.ExecutionStatusFailed, mockResult.ExecutionStatus)
+	require.True(t, mockResult.ExecutionComplete)
 	require.Equal(t, prepared.SessionID, mockResult.SessionID)
 	require.Equal(t, "main", mockResult.ConnectionID)
 	require.NotEmpty(t, mockResult.ExecutionID)
@@ -185,6 +211,67 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 	failure := readLibraryJSON(t, failurePath)
 	require.Equal(t, "failed", failure["status"])
 	require.Contains(t, failure["error"], "early client EOF")
+}
+
+func TestLibraryMockRecordsActualCWDAndExecutionWorkspace(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	sessionDir := filepath.Join(root, "session")
+	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		SessionDir: sessionDir,
+		Agent:      "codex",
+		Case:       "SDK-CASE-001",
+	})
+	require.NoError(t, err)
+
+	callerCWD := t.TempDir()
+	t.Chdir(callerCWD)
+	expectedCWD, err := filepath.EvalSymlinks(callerCWD)
+	require.NoError(t, err)
+	mockResult, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+	}, libraryMockInput)
+	require.NoError(t, mockErr, stderr)
+	require.Equal(t, callerCWD, workingDirectory(t))
+
+	process := readLibraryJSON(t, mockResult.ProcessReceiptPath)
+	require.Equal(t, expectedCWD, process["cwd"])
+	execution := readLibraryJSON(t, mockResult.ExecutionPath)
+	require.Equal(t, execution["workspace"], process["workspace"])
+	require.NotEqual(t, process["cwd"], process["workspace"])
+}
+
+func TestLibraryMockFirstConnectionLeavesMultiConnectionExecutionOpen(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	sessionDir := filepath.Join(root, "session")
+	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		SessionDir: sessionDir,
+		Agent:      "codex",
+		Case:       "SDK-CASE-032",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, prepared.Current)
+	require.Equal(t, []string{"main", "probe"}, prepared.Current.Connections)
+
+	input := clientFrames(t, filepath.Join(prepared.Current.Path, "raw", "raw.jsonl"))
+	result, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{
+		Connection: "main",
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+	}, input)
+	require.NoError(t, mockErr, stderr)
+	require.Equal(t, agenttestify.ConnectionStatusPassed, result.ConnectionStatus)
+	require.Equal(t, agenttestify.ExecutionStatusOpen, result.ExecutionStatus)
+	require.False(t, result.ExecutionComplete)
+
+	index := readLibraryJSON(t, filepath.Join(sessionDir, "executions", "index.json"))
+	executions := index["executions"].([]any)
+	require.Len(t, executions, 1)
+	execution := executions[0].(map[string]any)
+	require.Equal(t, "open", execution["status"])
+	connections := execution["connections"].([]any)
+	require.Equal(t, "passed", connections[0].(map[string]any)["status"])
+	require.Equal(t, "pending", connections[1].(map[string]any)["status"])
 }
 
 func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
@@ -243,7 +330,9 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 		result := <-done
 		require.NoError(t, result.err)
 		require.NotNil(t, result.result)
-		require.Equal(t, "passed", result.result.Status)
+		require.Equal(t, agenttestify.ConnectionStatusPassed, result.result.ConnectionStatus)
+		require.Equal(t, agenttestify.ExecutionStatusPassed, result.result.ExecutionStatus)
+		require.True(t, result.result.ExecutionComplete)
 	}
 	require.Equal(t, cwd, workingDirectory(t))
 }
@@ -398,6 +487,47 @@ func treeHashes(t *testing.T, root string) map[string]string {
 	return hashes
 }
 
+func treeContents(t *testing.T, root string) map[string][]byte {
+	t.Helper()
+	contents := map[string][]byte{}
+	require.NoError(t, filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		contents[filepath.ToSlash(rel)] = append([]byte(nil), readFile(t, path)...)
+		return nil
+	}))
+	return contents
+}
+
+func assertImportedMaterialBytes(t *testing.T, exportedRoot, importedRoot string) {
+	t.Helper()
+	exported, imported := treeContents(t, exportedRoot), treeContents(t, importedRoot)
+	require.Len(t, imported, len(exported))
+	for name, want := range exported {
+		got, present := imported[name]
+		require.True(t, present, name)
+		if name == "material.json" {
+			// The material envelope binds its new session-local path; all other
+			// package bytes must survive the import unchanged.
+			var exportedMaterial, importedMaterial map[string]any
+			require.NoError(t, json.Unmarshal(want, &exportedMaterial))
+			require.NoError(t, json.Unmarshal(got, &importedMaterial))
+			exportedMaterial["path"], importedMaterial["path"] = "", ""
+			require.Equal(t, exportedMaterial, importedMaterial)
+			continue
+		}
+		require.Equal(t, want, got, name)
+	}
+}
+
 func readFile(t *testing.T, path string) []byte {
 	t.Helper()
 	data, err := os.ReadFile(path)
@@ -503,4 +633,22 @@ func readLibraryJSON(t *testing.T, path string) map[string]any {
 	var value map[string]any
 	require.NoError(t, json.Unmarshal(readFile(t, path), &value))
 	return value
+}
+
+func clientFrames(t *testing.T, path string) string {
+	t.Helper()
+	var frames strings.Builder
+	for line := range strings.SplitSeq(strings.TrimSpace(string(readFile(t, path))), "\n") {
+		var frame struct {
+			Direction string          `json:"direction"`
+			Wire      json.RawMessage `json:"wire"`
+		}
+		require.NoError(t, json.Unmarshal([]byte(line), &frame))
+		if frame.Direction == "c2s" {
+			frames.Write(frame.Wire)
+			frames.WriteByte('\n')
+		}
+	}
+	require.NotEmpty(t, frames.String())
+	return frames.String()
 }

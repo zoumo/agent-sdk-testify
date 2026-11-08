@@ -330,7 +330,8 @@ exec '%s' "$@"
 	firstConnection := tool.Obj(tool.Array(first["connections"])[0])
 	var firstProcess tool.Object
 	require.NoError(t, tool.ReadJSON(tool.Str(firstConnection["processReceipt"]), &firstProcess))
-	require.Equal(t, firstWorkspace, firstProcess["cwd"])
+	require.Equal(t, firstObserved["cwd"], firstProcess["cwd"])
+	require.Equal(t, firstWorkspace, firstProcess["workspace"])
 	require.NoError(t, os.WriteFile(filepath.Join(firstWorkspace, "run-first.txt"), []byte("first\n"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(tool.Str(first["home"]), "run-first.txt"), []byte("first\n"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(tool.Str(first["config"]), "run-first.txt"), []byte("first\n"), 0o600))
@@ -350,7 +351,8 @@ exec '%s' "$@"
 	secondConnection := tool.Obj(tool.Array(second["connections"])[0])
 	var secondProcess tool.Object
 	require.NoError(t, tool.ReadJSON(tool.Str(secondConnection["processReceipt"]), &secondProcess))
-	require.Equal(t, secondWorkspace, secondProcess["cwd"])
+	require.Equal(t, secondObserved["cwd"], secondProcess["cwd"])
+	require.Equal(t, secondWorkspace, secondProcess["workspace"])
 	require.FileExists(t, filepath.Join(secondWorkspace, "fixture.txt"))
 	require.NoFileExists(t, filepath.Join(secondWorkspace, "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(tool.Str(second["home"]), "run-first.txt"))

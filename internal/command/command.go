@@ -134,10 +134,10 @@ func recordCommand(streams IO) *cobra.Command {
 	c.Flags().DurationVar(&o.Timeout, "timeout", 0, "whole-action timeout; zero disables it")
 	c.Flags().IntVar(&o.ResultFD, "result-fd", -1, "Inherited execution result notification descriptor (>=3)")
 	c.RunE = func(c *cobra.Command, args []string) error {
-		if o.URL == "" && c.ArgsLenAtDash() != 0 {
+		if o.URL == "" && (c.ArgsLenAtDash() != 0 || len(args) == 0) {
 			return errors.New("local record requires --cmd and native arguments after --")
 		}
-		if o.URL != "" && (c.Flags().Changed("cmd") || c.ArgsLenAtDash() >= 0) {
+		if o.URL != "" && (c.Flags().Changed("cmd") || c.ArgsLenAtDash() >= 0 || len(args) != 0) {
 			return errors.New("remote target excludes --cmd and native arguments")
 		}
 		o.NativeArgs = append([]string(nil), args...)
