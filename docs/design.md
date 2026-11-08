@@ -29,9 +29,14 @@ prepare 创建 fixture，export 只读导出 current。agent record/mock
 
 - CLI 入口 `cmd/agent-sdk-testify` 拥有 argv、stdio、descriptor、stderr 和退出码。
 - 根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export` 以及 fixture 上的
-  `RecordAgent`、`MockAgent`；它使用调用方提供的流并直接返回错误。
+  `RecordAgent`、`MockAgent`；`RecordAgent` 和 `MockAgent` 沿用调用方的
+  `*os.File` 进程流，作为 CLI/录制薄适配。
+- 根包另提供 `StartMockAgent` 进程内入口：调用方提供 `StartMockAgentStreams`，
+  在 replay 前同步取得 `MockRun.Start`，通过 `FullConsumption`/`Done` 协调 SDK
+  半关闭，并用 `Wait` 取得完整的 `ExecutionReport`。它不启动工具二进制。
 
 两种入口共用参数校验、fixture 生命周期、execution 事务和材料规则，不维护第二套机制。
+进程内 mock 与 CLI mock 也只共用同一 replay 和 finalize 合同，不另建宽松模式。
 `official record`、`official verify`、官方 driver 编排及协议和材料内部类型仅为 CLI
 或仓库内部能力，不属于库 v1 接口。
 
@@ -130,11 +135,14 @@ prepare 完成以下工作：
   case 的官方 driver 由 official 命令选择，plan 的 SDK 宿主由消费者启动；agent
   record 不根据 source 类型启动 driver。recording 使用材料内的录制来源。
 - 将当前材料写为 current recording；没有材料时保持为空。
-- 写入只读 `fixture.json` 和可变状态索引，不启动客户端、SDK、driver 或真实 Agent。
+- 写入 schema 5 的只读 `fixture.json` 和可变状态索引，不启动客户端、SDK、driver
+  或真实 Agent。工具身份使用 `executable`/`embedded` 判别式：executable 记录绝对
+  command、argv 和哈希；embedded 记录模块路径、版本/修订和 Go 版本，不伪造
+  command、launcher 或进程身份。
 
 prepare 不修改外部材料。fixture 目录必须尚不存在；来源路径不能位于目标 fixture
 内。prepare 失败不产生可用 fixture，失败诊断保存在 fixture 内或 prepare 的诊断
-文件中。
+文件中。schema 4 及更旧 fixture 必须拒绝并重新 prepare，不能按 schema 5 猜测字段。
 
 ### 多个 action execution
 
@@ -150,6 +158,12 @@ prepare 成功后 fixture 可反复使用。agent record/mock 创建 execution�
 同一 fixture 的 record/mock execution 串行执行；同一 execution 内声明的不同
 连接可以并发。official 编排期间，driver 按普通合同启动 agent record 或 agent mock；
 不预分配协议 execution，不增加跳过 execution 的官方专用模式。
+
+库 `StartMockAgent` 在领取新 execution 或按显式 execution id 加入、claim 本次
+connection 并写入 running result 后才返回 `MockRun.Start`；协议 I/O 不早于该快照。
+新 execution 的后续声明连接必须显式加入同一 execution，不通过扫描最新目录或隐式
+猜测归属。`MockRun.Wait` 只在 replay 与 finalize goroutine 结束后返回；多连接
+execution 的最终事实由 `Fixture.ExecutionReport` 或 execution index 给出。
 
 fixture 同时只允许一个 official 编排，并登记其运行状态。official verify 固定 current
 material，期间拒绝 agent record、official record 和另一次 official verify，允许
@@ -347,9 +361,20 @@ mock 不执行录制中的 shell、文件编辑、hooks 或模型调用，也不
 它不模拟 Agent CLI 的版本、帮助或其他元命令。消费者负责启动 SDK 宿主、应用
 prepare 返回的环境和 workspace，并自行执行与报告业务断言。
 
+库消费者使用 `StartMockAgentStreams` 提供 `Reader`、`Writer` 和诊断 `Stderr`。
+`Reader` 是 SDK 到 mock 的读取端，`Writer` 是 mock 到 SDK 的写入端；关闭任一端都必须
+解除相应的并发阻塞 I/O。正常完成时 mock 在最终检查后关闭 `Writer`；abort 或
+transport failure 时关闭相关方向。`Stderr` 只承载诊断，不参与协议、完成或取消。
+
 每次 mock 创建新 execution。普通流程只有 `main` 连接；只有 case 确实声明多个独立
 原生客户端生命周期时才允许多连接。同一 execution 的连接可以并发，但每个声明连接
 最多启动一次，并分别完成严格匹配、完整消费、EOF、退出和清理。
+
+replay 在服务端帧、pending request 检查和握手 barrier 之后、额外客户端字节和 EOF
+检查之前触发完整消费事件。该事件只允许 SDK 半关闭输入，不表示成功；完整消费到达前
+失败时事件不触发，但 `Done`/`Wait` 必须结束。正常完成、canceled、aborted、transport、
+strict-replay、timeout 和 cleanup 使用不同终态；`Wait` 是权威完成结果，提前收到
+`Writer` EOF 不能替代它。
 
 mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
 连接已经完成。mock 进程 receipt 不记录 `cwd` 或 `workspace`；执行位置和协议项目
@@ -357,8 +382,15 @@ mock 结果分别给出本次连接状态和整个 execution 状态；连接 `pa
 校验器忽略旧 receipt 中可能存在的这两个字段，回放和历史文件始终从 fixture/execution
 根定位。
 
-官方 driver 与外部消费者使用同一个公开 agent mock 进程接口和 execution 合同。
-official verify 不直接调用协议回放函数替代公开 agent mock。
+库 mock 的 `ExecutionReport` 覆盖 execution 声明的全部连接，并从 descriptor、
+index、receipt 和 result 重新校验生成。进程内连接记录 `transport=in-process`、
+`nativeLaunched=false` 和空 `exitCode`，不得伪造 PID、executable 或进程退出。
+报告依赖的事实缺失或哈希不一致时 fail closed。完整 API 见
+[可导入 Go 库入口规格](library-entry-spec.md#启动-handle)。
+
+官方 driver 和 CLI 消费者使用公开 agent mock 进程接口，库消费者使用
+`StartMockAgent`；两者共用同一 execution、回放和 receipt 合同。official verify
+仍通过公开 agent mock 进程入口工作，不直接调用协议回放函数替代它。
 
 ### 远程录制与命令边界
 
@@ -444,6 +476,10 @@ consumer material 和外部用户自行保存的录制可以进入自己的 fixt
   在启动 driver 前失败。
 - mock 缺少 current recording、材料格式不兼容或连接声明不可用时，在领取 execution
   前失败。
+- 库 `StartMockAgent` 必须使用与 CLI mock 相同的 execution、严格回放和 finalize；
+  进程内连接不得伪造 executable、PID、launcher 或退出码。
+- fixture、execution 和 index 使用 schema 5；embedded 工具身份不得把 module path
+  当作 command，schema 4 明确拒绝。
 - export 不改变 fixture，不产生可信结论，目标必须在 fixture 外且不能覆盖已有目录。
 - 只有精确官方 case material 的 verify 通过可以作为入仓资格的一部分；mock 成功、
   export 成功不能替代。
@@ -458,6 +494,12 @@ record 和 mock 的失败分为领取 execution 前后两类：
 - **领取后失败**：真实 Agent、采集传输或回放连接在执行中失败。工具必须保留
   execution descriptor、已产生的原始帧、stderr、连接 receipt、进程状态和清理结果，
   并按统一 finalize 路径结束 execution。
+
+领取后失败还必须记录机器可读的失败类别，至少区分 canceled、aborted、transport、
+strict-replay、timeout、cleanup 和 internal。`FullConsumption` 已触发、`ClientEOF`
+为 true 或连接 receipt 看起来正常都不能覆盖这些失败；abort 不得伪造客户端 EOF。
+库 `Wait` 与持久 execution index 的结论一致，并在返回前完成 replay/finalize
+goroutine 收尾。
 
 verify 前置检查失败直接返回诊断；开始验证后，无论 driver 启动失败、业务失败、
 超时、取消或缺少 mock 证据，都在 verification 中保留已知事实和失败原因。
@@ -487,12 +529,18 @@ prepare 为 fixture 创建独立环境基线，包括 workspace、HOME、config�
 和连接槽。每个 record/mock execution 从基线派生可写 overlay，一个 execution 的副作用不能进入
 另一个 execution。Codex 使用 `CODEX_HOME`，Claude 使用 `CLAUDE_CONFIG_DIR`。
 
+库 mock 的启动环境必须来自本次 execution 的 `ExecutionStart`，不能使用 prepare 的
+route template。Codex transport 的 `Dir` 使用 `ProtocolCwd`，它只是逻辑协议项目身份，
+禁止通过 `os.Chdir` 改变宿主 cwd；Claude transport 的 `WorkDir` 使用 `Workspace`，
+同时作为原生 cwd 和历史 discovery 位置。两者都使用合并后的有效 `Env` 作为完整替换
+环境，不能修改 `os.Environ` 或调用全局 `os.Setenv`。
+
 认证只来自工具允许的原生配置和当前进程中的白名单变量。工具不复制个人 skills、
 插件、记忆、项目指令或无关 session；不把完整 Agent home 当作 fixture 数据。
 
 plan source 的消费者必须在启动自己的 SDK 宿主前应用当前 route 的 env、workspace、
-历史和连接命令；只配置 record 或 mock 子进程不能配置父进程。消费者不能覆盖隔离
-路径或原生环境变量。
+历史和连接命令；库 mock 消费者则使用 `StartMockAgent` 返回的 `ExecutionStart`。
+只配置 record 或 mock 子进程不能配置父进程。消费者不能覆盖隔离路径或原生环境变量。
 
 record 完成时只快照回放所需的原生 session/history 子树，并记录来源、派生路径和
 哈希。官方验证和消费者在 mock execution overlay 中产生的宿主状态不会自动提升为新的
@@ -529,6 +577,11 @@ recording 从 manifest 推断，case 只有在只有一个可用 binding 时才�
 - 来源、plan、manifest、raw 或绑定历史哈希无效。
 - 原生进程异常退出或工具自有资源未清理。
 
+完整消费事件只在这批服务端帧和已到达请求完成 pending request 检查、必要握手
+barrier 之后，以及额外客户端字节/EOF 检查之前触发。它允许 SDK 半关闭输入，但不
+表示 EOF、cleanup 或 execution 成功；提前 EOF、额外字节、超时、取消和清理失败分别
+记录，不能互相覆盖。SDK 因主动半关闭产生的本地写错误不是 replay transport failure。
+
 mock 不支持的分支或协议明确失败，不搜索其他 material、不猜测 agent type、不启动
 真实 Agent。consumer material 使用同一回放引擎，不会因为来源是消费者而增加通配、
 字段忽略或 UUID 自动生成规则。
@@ -548,6 +601,20 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 - 同一 fixture 的 record/mock execution 串行；同一 execution 的多连接可以并发。
 - 没有 current 或适用 verifier 时，verify 在启动 driver 前失败。
 - 没有 current 或连接声明不可用时，mock 在领取 execution 前失败。
+- 库 mock 用 `io.Pipe` 或等价可关闭流完成 prepare → `StartMockAgent` → SDK
+  `CloseInput` → `Wait`，测试环境没有 `agent-sdk-testify` 可执行文件或 PATH 发现。
+- `MockRun.Start` 来自实际 execution overlay，包含当前 workspace、protocol cwd、
+  env 和 connection；调用前后宿主 cwd 与全局环境不变。
+- `FullConsumption` 在 pending request/握手之后、额外字节/EOF 之前触发且不丢信号；
+  SDK 未启动、提前取消或 abort 时事件不触发，但 `Done`/`Wait` 结束且不伪造 EOF。
+- 正常、canceled、aborted、transport、strict-replay、timeout 和 cleanup 分别记录
+  失败类别；重复 `CloseInput` 使用 `ErrInputClosed`，半关闭在途写错误不是 transport。
+- 多连接通过显式 execution id 加入；`ExecutionReport` 覆盖全部声明连接，进程内
+  连接没有伪造的 PID、executable 或退出码。
+- Codex 使用 `ProtocolCwd` 作为逻辑 transport cwd，Claude 使用 `Workspace`；
+  两者使用 `ExecutionStart.Env` 替换环境，不修改全局环境。
+- schema 4 fixture 被拒绝，embedded fixture 不含 module-path-as-command；executable
+  fixture 的进程 mock 路径继续通过 CLI descriptor 验收。
 - driver 启动失败、提前退出、验证取消和 mock 缺失时保留验证事实；未完成的验证
   不能产生成功结论或允许清理仍在使用的资源。
 - 旧顶层 record/mock/verify 和整个 internal-protocol 入口被拒绝。

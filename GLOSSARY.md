@@ -48,7 +48,8 @@ fixture。它是唯一提供 source 选择的命令，不启动客户端、SDK�
 
 **Tool source（工具来源）**:
 prepare 记录的工具入口身份：`executable` 表示 installed CLI，`embedded` 表示可导入
-Go 库。它决定允许的连接模板和 launcher，不改变 source 或材料身份。
+Go 库。两者使用判别式身份：executable 记录绝对路径与哈希，embedded 记录模块路径、
+版本/修订和 Go 版本，不把 module path 当作 command，也不伪造 launcher。
 
 **agent record**:
 在 fixture 中显式启动真实 Agent，按 case 或 consumer plan 采集新的原生交互尝试。
@@ -100,6 +101,27 @@ fixture 中的一次 record 或 mock 执行，由
 record 或 mock 返回的连接与 execution 状态、终态标志、材料身份和证据路径。连接
 `passed` 不等于 `ExecutionComplete`；持久事实以 execution index 为准，无法刷新时
 状态为 `unknown`。
+
+**Execution start（执行启动快照）**:
+`StartMockAgent` 在领取 execution、claim connection 并写入 running 结果后返回的只读
+快照，包含实际 overlay 的 workspace、protocol cwd、home、config、tmp、有效环境、
+native 声明和 connection 身份。它不是 prepare 的 route template，也不能由调用方
+修改后冒充本次执行环境。
+
+**Full consumption（完整消费）**:
+服务端录制帧和已到达请求完成 pending request 检查及必要握手 barrier 后、额外客户端
+字节和 EOF 检查前触发的唯一事件。它只允许 SDK 半关闭输入，不表示 EOF、清理或
+execution 成功；完整消费到达前失败不触发，且不能替代 `Wait`。
+
+**In-process mock（进程内 mock）**:
+通过 `StartMockAgent` 和调用方提供的 `StartMockAgentStreams` 在同一进程内执行
+严格回放，不启动 `agent-sdk-testify` 可执行文件。它仍创建正常 execution、receipt
+和 report，但不具有进程、PID 或原生 CLI 退出码。
+
+**Execution report（执行报告）**:
+由 testify 从 execution descriptor、index、receipt 和 result 校验后生成的 typed
+报告，覆盖 execution 声明的全部 connection。它区分本连接与整个 execution 状态，
+进程内连接的 transport、EOF、清理和失败类别不依赖解析内部 JSON 文件。
 
 **Record source（录制来源）**:
 prepare 固化的 plan、协议项目和来源身份。每次 agent record 使用同一 record source，不随

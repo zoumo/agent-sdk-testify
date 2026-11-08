@@ -40,7 +40,8 @@
 21. 作为远程服务使用者，我希望结束采集只关闭工具自己的连接，以便不终止我的已有服务。
 22. 作为维护者，我希望官方编排不阻塞其 agent 子进程，以便等待 driver 时不会发生 fixture 锁死锁。
 23. 作为消费者，我希望 SDK 后处理期间保留运行环境，以便在协议退出后读取历史。
-24. 作为维护者，我希望整个协议实现仅供仓库内部使用，以便跨仓库接入始终通过进程合同。
+24. 作为维护者，我希望 official 编排仍通过进程合同，而库消费者可直接使用类型化
+    mock 入口，以便既不新增 CLI 依赖也不绕过 execution。
 25. 作为 CLI 用户，我希望旧入口和旧 session 命名明确失败，以便不会误用另一套生命周期或产生空成功。
 
 ## Implementation Decisions
@@ -58,8 +59,12 @@
 - 协议包迁入 internal，复用已有采集、回放、原始 JSON 和录制格式能力。
 - 新命令结构替代旧顶层 record/mock/verify 及 internal-protocol，不保留兼容别名；
   不兼容数据必须拒绝，不能静默解释或改写原始来源字节。CLI 使用
-  `--fixture-dir`、`fixture.json`、`fixtureId` 和 schema 4，并拒绝旧
+  `--fixture-dir`、`fixture.json`、`fixtureId` 和 schema 5，并拒绝旧
   `--session-dir` 与 schema 3。
+- 库 mock 通过 `StartMockAgent` 使用进程内 `StartMockAgentStreams`，与 CLI mock
+  共享 execution、严格回放、receipt 和 material 合同；official 编排继续使用
+  公开 CLI 进程入口，不改为库调用。embedded fixture 使用判别式工具身份，不得把
+  module path 当作可执行 command。
 - official 活动登记和 agent execution 按工具设计协调，不持有妨碍子进程
   创建 execution 的锁；中断和失败保留事实，不生成虚假的完整结果。
 - 同步 CLI 说明、术语、开发规范和 driver 请求合同；目标规则仅在工具设计维护。
@@ -68,8 +73,10 @@
 
 ## Testing Decisions
 
-以 installed CLI 为统一纵向验收接缝。通过 argv、stdio、退出码、
-descriptor、文件与哈希检查外部可观察行为，不以内部函数调用替代验收。
+CLI 以 installed CLI 为纵向验收接缝，通过 argv、stdio、退出码、descriptor、
+文件与哈希检查外部可观察行为；库 mock 以根包公开 API 为另一条纵向接缝，使用
+`StartMockAgent`、`FullConsumption`、`Wait` 和 `ExecutionReport` 验收，不启动
+工具二进制。两条路径共用同一 fixture 与 execution 事实，不用内部函数测试替代验收。
 沿用现有 conformance suite、受控进程、synthetic 材料和 driver substitute。
 
 覆盖[设计要求的测试边界](design.md#测试边界)，并特别验证原路径删除后的独立性、
