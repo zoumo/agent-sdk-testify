@@ -10,9 +10,9 @@ import (
 )
 
 // Export copies the exact current package without creating an execution or
-// changing session state.
-func Export(sessionDir, output string) error {
-	dir, err := CanonicalSessionDir(sessionDir)
+// changing fixture state.
+func Export(fixtureDir, output string) error {
+	dir, err := CanonicalFixtureDir(fixtureDir)
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func Export(sessionDir, output string) error {
 		return err
 	}
 	if rel == "." || filepath.IsLocal(rel) {
-		return errors.New("--output must be outside session")
+		return errors.New("--output must be outside fixture")
 	}
 	if _, err := os.Lstat(target); !os.IsNotExist(err) {
 		if err == nil {
@@ -37,7 +37,7 @@ func Export(sessionDir, output string) error {
 		}
 		return err
 	}
-	// Use the existing lock file, without creating anything in the session.
+	// Use the existing lock file, without creating anything in the fixture.
 	// An exclusive lock also excludes mock connections that hold shared locks.
 	file, err := os.OpenFile(filepath.Join(dir, "locks", "action.lock"), os.O_RDWR, 0)
 	if err != nil {
@@ -48,11 +48,11 @@ func Export(sessionDir, output string) error {
 		return err
 	}
 	defer lock.Close()
-	session, err := readSessionUnlocked(dir)
+	fixture, err := readFixtureUnlocked(dir)
 	if err != nil {
 		return err
 	}
-	material, err := LatestArtifact(dir, session)
+	material, err := LatestArtifact(dir, fixture)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func Export(sessionDir, output string) error {
 	}
 	// Recheck the selected source against its registry after copying. This also
 	// rejects out-of-band tampering that occurred while reading the package.
-	if _, err := inspectMaterial(session, *material); err != nil {
+	if _, err := inspectMaterial(fixture, *material); err != nil {
 		return err
 	}
 	return renameExport(stage, target)

@@ -29,25 +29,25 @@ func randomID() (string, error) {
 	return hex.EncodeToString(value[:]), nil
 }
 
-func validatePreparePaths(sessionDir string, source *sourceSpec) (string, error) {
-	if !filepath.IsAbs(sessionDir) {
-		return "", errors.New("--session-dir must be an absolute path")
+func validatePreparePaths(fixtureDir string, source *sourceSpec) (string, error) {
+	if !filepath.IsAbs(fixtureDir) {
+		return "", errors.New("--fixture-dir must be an absolute path")
 	}
-	parent, err := filepath.EvalSymlinks(filepath.Dir(sessionDir))
+	parent, err := filepath.EvalSymlinks(filepath.Dir(fixtureDir))
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(parent, filepath.Base(sessionDir))
+	dir := filepath.Join(parent, filepath.Base(fixtureDir))
 	if _, err := os.Lstat(dir); !os.IsNotExist(err) {
 		if err == nil {
-			return "", fmt.Errorf("--session-dir already exists: %s", dir)
+			return "", fmt.Errorf("--fixture-dir already exists: %s", dir)
 		}
 		return "", err
 	}
 	if source.source.Kind == "recording" {
 		rel, err := filepath.Rel(source.source.Path, dir)
 		if err != nil || filepath.IsLocal(rel) {
-			return "", errors.New("--session-dir must be outside the recording")
+			return "", errors.New("--fixture-dir must be outside the recording")
 		}
 	}
 	return dir, nil
@@ -109,10 +109,10 @@ func bindRouteSlots(routeRoot, targetRoot string) error {
 	return nil
 }
 
-func restoreRouteSlots(session *Session, action string) error {
+func restoreRouteSlots(fixture *Fixture, action string) error {
 	return bindRouteSlots(
-		filepath.Join(session.ResourceRoot, "routes", action),
-		filepath.Join(session.ResourceRoot, "templates", action),
+		filepath.Join(fixture.ResourceRoot, "routes", action),
+		filepath.Join(fixture.ResourceRoot, "templates", action),
 	)
 }
 
@@ -124,9 +124,9 @@ func cleanMockConfig(root string, plan tool.Object, provider string) error {
 	return profile.writeConfig(root, plan)
 }
 
-func writeConnectionLauncher(root, id, self, sessionDir string) (string, error) {
+func writeConnectionLauncher(root, id, self, fixtureDir string) (string, error) {
 	quote := func(value string) string { return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'" }
-	invocation := strings.Join([]string{quote(self), quote("agent"), quote("mock"), quote("--session-dir"), quote(sessionDir), quote("--connection"), quote(id)}, " ")
+	invocation := strings.Join([]string{quote(self), quote("agent"), quote("mock"), quote("--fixture-dir"), quote(fixtureDir), quote("--connection"), quote(id)}, " ")
 	path := filepath.Join(root, "peer-"+id)
 	script := "#!/bin/sh\nexec " + invocation + " -- \"$@\"\n"
 	if err := os.MkdirAll(root, 0o700); err != nil {
@@ -145,8 +145,8 @@ func ConnectionIDs(source Source, plan tool.Object) []string {
 	return []string{"main"}
 }
 
-func writePlanSnapshot(sessionDir string, raw []byte) (string, error) {
-	path := filepath.Join(sessionDir, "source", "plan.json")
+func writePlanSnapshot(fixtureDir string, raw []byte) (string, error) {
+	path := filepath.Join(fixtureDir, "source", "plan.json")
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return "", err
 	}
@@ -161,11 +161,11 @@ func writePlanSnapshot(sessionDir string, raw []byte) (string, error) {
 	return path, nil
 }
 
-func initialBuiltin(session *Session, materialRoot string) (*builtin.Material, error) {
-	if session.Source.Kind != "case" {
+func initialBuiltin(fixture *Fixture, materialRoot string) (*builtin.Material, error) {
+	if fixture.Source.Kind != "case" {
 		return nil, nil
 	}
-	material, _, available, err := builtin.SelectOptional(session.AgentType, session.Source.ID)
+	material, _, available, err := builtin.SelectOptional(fixture.AgentType, fixture.Source.ID)
 	if err != nil || !available {
 		return nil, err
 	}
@@ -183,24 +183,24 @@ func initialBuiltin(session *Session, materialRoot string) (*builtin.Material, e
 	return material, nil
 }
 
-// Prepare creates a caller-owned session directory containing its runtime
+// Prepare creates a caller-owned fixture directory containing its runtime
 // baseline. It never starts a client, SDK, driver or native Agent.
-func Prepare(o PrepareOptions) (result *Session, err error) {
+func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	spec, err := resolveSource(o)
 	if err != nil {
 		return nil, err
 	}
-	sessionDir, err := validatePreparePaths(o.SessionDir, spec)
+	fixtureDir, err := validatePreparePaths(o.FixtureDir, spec)
 	if err != nil {
 		return nil, err
 	}
-	if err := os.Mkdir(sessionDir, 0o700); err != nil {
+	if err := os.Mkdir(fixtureDir, 0o700); err != nil {
 		return nil, err
 	}
 	var root string
 	defer func() {
 		if err != nil {
-			_ = os.Remove(SessionPath(sessionDir))
+			_ = os.Remove(FixturePath(fixtureDir))
 			diagnostic := map[string]any{"schemaVersion": SchemaVersion, "status": "failed", "error": err.Error(), "resourceRoot": root}
 			if root != "" {
 				cleanup := os.RemoveAll(root)
@@ -209,10 +209,10 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 					diagnostic["cleanupError"] = cleanup.Error()
 				}
 			}
-			_ = writeAtomic(filepath.Join(sessionDir, "prepare.json"), diagnostic)
+			_ = writeAtomic(filepath.Join(fixtureDir, "prepare.json"), diagnostic)
 		}
 	}()
-	root = filepath.Join(sessionDir, "runtime")
+	root = filepath.Join(fixtureDir, "runtime")
 	if err := os.Mkdir(root, 0o700); err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			return nil, err
 		}
 	}
-	sessionID, err := randomID()
+	fixtureID, err := randomID()
 	if err != nil {
 		return nil, err
 	}
@@ -275,11 +275,11 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 			return nil, errors.New("--history-seed must be an unlinked directory")
 		}
-		rel, err := filepath.Rel(sourceSeed, sessionDir)
+		rel, err := filepath.Rel(sourceSeed, fixtureDir)
 		if err != nil || filepath.IsLocal(rel) {
-			return nil, errors.New("--session-dir must be outside the history seed")
+			return nil, errors.New("--fixture-dir must be outside the history seed")
 		}
-		historySeed = filepath.Join(sessionDir, "source", "history-seed")
+		historySeed = filepath.Join(fixtureDir, "source", "history-seed")
 		if err := copyMaterial(sourceSeed, historySeed); err != nil {
 			return nil, err
 		}
@@ -309,9 +309,9 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			return nil, err
 		}
 	}
-	session := &Session{
+	fixture := &Fixture{
 		SchemaVersion:    SchemaVersion,
-		SessionID:        sessionID,
+		FixtureID:        fixtureID,
 		Tool:             self,
 		ToolVersion:      toolVersion,
 		ToolSHA256:       toolHash,
@@ -339,16 +339,16 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		return nil, err
 	}
 	if spec.source.Kind == "case" || spec.source.Kind == "plan" {
-		path, err := writePlanSnapshot(sessionDir, spec.planBytes)
+		path, err := writePlanSnapshot(fixtureDir, spec.planBytes)
 		if err != nil {
 			return nil, err
 		}
-		session.Source.Path = path
+		fixture.Source.Path = path
 	}
-	ids := ConnectionIDs(session.Source, spec.plan)
+	ids := ConnectionIDs(fixture.Source, spec.plan)
 	for _, action := range []string{"record", "mock"} {
 		if !spec.routes[action] {
-			session.Routes[action] = Route{Enabled: false}
+			fixture.Routes[action] = Route{Enabled: false}
 			continue
 		}
 		routeRoot := filepath.Join(root, "routes", action)
@@ -371,14 +371,14 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			Enabled:     true,
 			Executor:    map[string]string{"record": "external-sdk", "mock": "external-sdk"}[action],
 			Target:      map[string]string{"record": "native-agent", "mock": "replay"}[action],
-			Provenance:  session.Source.Provenance,
+			Provenance:  fixture.Source.Provenance,
 			Workspace:   filepath.Join(routeRoot, "workspace"),
 			ProtocolCwd: planProtocolCwd(spec.plan, filepath.Join(routeRoot, "workspace")),
 			Env:         baseEnvironment(agentType, routeRoot),
 		}
 		if action == "record" {
 			route.RuntimeEnv = environmentNames(privateEnv)
-			route.Provenance, err = executionProvenance(session, action, nil)
+			route.Provenance, err = executionProvenance(fixture, action, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -387,22 +387,22 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			template := ConnectionTemplate{
 				ID:       id,
 				Command:  self.Command,
-				Args:     []string{"agent", "mock", "--session-dir", sessionDir, "--connection", id},
+				Args:     []string{"agent", "mock", "--fixture-dir", fixtureDir, "--connection", id},
 				Embedded: o.EmbeddedTool,
 			}
 			switch action {
 			case "record":
-				template.Args = []string{"agent", "record", "--session-dir", sessionDir, "--cmd"}
+				template.Args = []string{"agent", "record", "--fixture-dir", fixtureDir, "--cmd"}
 			}
 			if action == "mock" && !o.EmbeddedTool {
-				template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, self.Command, sessionDir)
+				template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, self.Command, fixtureDir)
 				if err != nil {
 					return nil, err
 				}
 			}
 			route.Connections = append(route.Connections, template)
 		}
-		session.Routes[action] = route
+		fixture.Routes[action] = route
 	}
 	materialID, err := randomID()
 	if err != nil {
@@ -414,11 +414,11 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		}
 		materialID = spec.material.ID
 	}
-	materialRoot := filepath.Join(sessionDir, "materials", materialID)
+	materialRoot := filepath.Join(fixtureDir, "materials", materialID)
 	var materialArtifact *corpus.Material
-	switch session.Source.Kind {
+	switch fixture.Source.Kind {
 	case "case":
-		material, err := initialBuiltin(session, materialRoot)
+		material, err := initialBuiltin(fixture, materialRoot)
 		if err != nil {
 			return nil, err
 		}
@@ -430,16 +430,16 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 			materialArtifact = artifact
 		}
 	case "recording":
-		if err := copyMaterial(session.Source.Path, materialRoot); err != nil {
+		if err := copyMaterial(fixture.Source.Path, materialRoot); err != nil {
 			return nil, err
 		}
-		session.Source.Path = materialRoot
+		fixture.Source.Path = materialRoot
 		if spec.material != nil {
 			imported := *spec.material
 			imported.Path = materialRoot
 			materialArtifact = &imported
 		} else {
-			artifact, err := artifactForMaterial(materialRoot, session.Source.Provenance, "initial", ids)
+			artifact, err := artifactForMaterial(materialRoot, fixture.Source.Provenance, "initial", ids)
 			if err != nil {
 				return nil, err
 			}
@@ -460,55 +460,55 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
 			return nil, err
 		}
-		if _, err := inspectMaterial(session, *materialArtifact); err != nil {
+		if _, err := inspectMaterial(fixture, *materialArtifact); err != nil {
 			return nil, err
 		}
 	}
-	if _, err := LoadPlan(session); err != nil {
+	if _, err := LoadPlan(fixture); err != nil {
 		return nil, err
 	}
-	if err := session.Validate(); err != nil {
+	if err := fixture.Validate(); err != nil {
 		return nil, err
 	}
-	sessionPath := SessionPath(sessionDir)
-	if err := writeExclusive(sessionPath, session); err != nil {
+	fixturePath := FixturePath(fixtureDir)
+	if err := writeExclusive(fixturePath, fixture); err != nil {
 		return nil, err
 	}
-	sessionHash, err := tool.FileDigest(sessionPath)
+	fixtureHash, err := tool.FileDigest(fixturePath)
 	if err != nil {
 		return nil, err
 	}
-	index := &Index{SchemaVersion: SchemaVersion, SessionID: session.SessionID, SessionSHA256: sessionHash, LastUpdatedUTC: now()}
+	index := &Index{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, FixtureSHA256: fixtureHash, LastUpdatedUTC: now()}
 	if materialArtifact != nil {
 		index.Artifacts = append(index.Artifacts, *materialArtifact)
 	}
-	if err := os.MkdirAll(filepath.Join(sessionDir, "materials"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(fixtureDir, "materials"), 0o700); err != nil {
 		return nil, err
 	}
-	if err := writeMaterialIndex(sessionDir, index); err != nil {
+	if err := writeMaterialIndex(fixtureDir, index); err != nil {
 		return nil, err
 	}
-	if err := writeExclusive(IndexPath(sessionDir), index); err != nil {
+	if err := writeExclusive(IndexPath(fixtureDir), index); err != nil {
 		return nil, err
 	}
 	currentID := ""
 	if materialArtifact != nil {
 		currentID = materialArtifact.ID
 	}
-	if err := writeCurrent(sessionDir, session, currentID); err != nil {
+	if err := writeCurrent(fixtureDir, fixture, currentID); err != nil {
 		return nil, err
 	}
-	if err := os.Chmod(sessionPath, 0o400); err != nil {
+	if err := os.Chmod(fixturePath, 0o400); err != nil {
 		return nil, err
 	}
-	lock, err := actionLock(sessionDir, true)
+	lock, err := actionLock(fixtureDir, true)
 	if err != nil {
 		return nil, err
 	}
 	if err := lock.Close(); err != nil {
 		return nil, err
 	}
-	return session, nil
+	return fixture, nil
 }
 
 // copyMaterial checks the entire closure on both sides of the copy. In
@@ -526,7 +526,7 @@ func copyMaterial(source, target string) error {
 		return err
 	}
 	if !reflect.DeepEqual(before, after) {
-		return errors.New("material changed while copying into session")
+		return errors.New("material changed while copying into fixture")
 	}
 	return nil
 }

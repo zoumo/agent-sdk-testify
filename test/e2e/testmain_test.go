@@ -172,7 +172,7 @@ func conformanceDriver(args []string) int {
 		return 6
 	}
 	if mode == "verify-cleanup-failure" {
-		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(req.Output))), "session.json")
+		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(req.Output))), "fixture.json")
 		var descriptor object
 		if readJSONFile(slot, &descriptor) != nil {
 			return 7
@@ -211,13 +211,13 @@ func conformanceRecordFault() int {
 		if arg != "--conformance-fault" || i+2 >= len(os.Args) {
 			continue
 		}
-		mode, session := os.Args[i+1], os.Args[i+2]
+		mode, fixtureDir := os.Args[i+1], os.Args[i+2]
 		var index struct {
 			Executions []struct {
 				ID string `json:"id"`
 			} `json:"executions"`
 		}
-		if readJSONFile(filepath.Join(session, "executions", "index.json"), &index) != nil || len(index.Executions) == 0 {
+		if readJSONFile(filepath.Join(fixtureDir, "executions", "index.json"), &index) != nil || len(index.Executions) == 0 {
 			return 7
 		}
 		id := index.Executions[len(index.Executions)-1].ID
@@ -226,22 +226,22 @@ func conformanceRecordFault() int {
 				ID string `json:"id"`
 			} `json:"artifact"`
 		}
-		if readJSONFile(filepath.Join(session, "executions", id, "execution.json"), &execution) != nil {
+		if readJSONFile(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution) != nil {
 			return 7
 		}
 		var descriptor struct {
 			ResourceRoot string `json:"resourceRoot"`
 		}
-		if readJSONFile(filepath.Join(session, "session.json"), &descriptor) != nil {
+		if readJSONFile(filepath.Join(fixtureDir, "fixture.json"), &descriptor) != nil {
 			return 7
 		}
 		switch mode {
 		case "publication":
-			if os.Mkdir(filepath.Join(session, "materials", execution.Artifact.ID), 0o700) != nil {
+			if os.Mkdir(filepath.Join(fixtureDir, "materials", execution.Artifact.ID), 0o700) != nil {
 				return 7
 			}
 		case "current":
-			if os.Chmod(session, 0o500) != nil {
+			if os.Chmod(fixtureDir, 0o500) != nil {
 				return 7
 			}
 		case "cleanup":

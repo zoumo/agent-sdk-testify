@@ -11,7 +11,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func inspectMaterial(session *Session, artifact corpus.Material) (*corpus.MaterialInspection, error) {
+func inspectMaterial(fixture *Fixture, artifact corpus.Material) (*corpus.MaterialInspection, error) {
 	inspection, err := corpus.InspectMaterial(artifact)
 	if err != nil {
 		return nil, err
@@ -21,11 +21,11 @@ func inspectMaterial(session *Session, artifact corpus.Material) (*corpus.Materi
 	if provider == "" {
 		provider = tool.Str(plan["agentType"])
 	}
-	if provider != session.AgentType {
-		return nil, errors.New("material agent type differs from session")
+	if provider != fixture.AgentType {
+		return nil, errors.New("material agent type differs from fixture")
 	}
-	if (session.Source.Kind == "case" || session.Source.Kind == "plan") && tool.Str(plan["caseId"]) != session.Source.ID {
-		return nil, errors.New("material case differs from session source")
+	if (fixture.Source.Kind == "case" || fixture.Source.Kind == "plan") && tool.Str(plan["caseId"]) != fixture.Source.ID {
+		return nil, errors.New("material case differs from fixture source")
 	}
 	if artifact.Provenance == "builtin" {
 		if _, err := builtin.CheckPreparedRoot(artifact.Path); err != nil {
@@ -33,10 +33,10 @@ func inspectMaterial(session *Session, artifact corpus.Material) (*corpus.Materi
 		}
 	}
 	if artifact.Provenance == "official" && artifact.Kind == "capture" {
-		if session.Source.Provenance == "consumer" {
+		if fixture.Source.Provenance == "consumer" {
 			return nil, errors.New("official capture provenance conflicts with its action or source")
 		}
-		bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: session.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
+		bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: fixture.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
 		if err != nil || tool.Str(plan["driverProfile"]) == "" || tool.Str(plan["driverProfile"]) != tool.Str(bound["driverProfile"]) {
 			return nil, errors.New("official capture has no applicable driver binding")
 		}
@@ -44,16 +44,16 @@ func inspectMaterial(session *Session, artifact corpus.Material) (*corpus.Materi
 	return inspection, nil
 }
 
-func executionProvenance(session *Session, action string, material *corpus.Material) (string, error) {
+func executionProvenance(fixture *Fixture, action string, material *corpus.Material) (string, error) {
 	switch action {
 	case "record":
-		switch session.Source.Kind {
+		switch fixture.Source.Kind {
 		case "case":
 			return "external", nil
 		case "plan":
 			return "consumer", nil
 		case "recording":
-			if session.Source.Provenance == "consumer" {
+			if fixture.Source.Provenance == "consumer" {
 				return "consumer", nil
 			}
 			return "external", nil

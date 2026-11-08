@@ -3,7 +3,7 @@
 `agent-sdk-testify` 是面向多语言 SDK 的独立录制与回放工具。它维护 case、
 官方 driver、录制材料、固定索引和内置快照；SDK 业务测试由消费者自己编排。
 
-公开 CLI 分为会话、协议对端和官方编排三组：
+公开 CLI 分为 fixture、协议对端和官方编排三组：
 
 ```text
 agent-sdk-testify
@@ -17,7 +17,7 @@ agent-sdk-testify
   export
 ```
 
-prepare 创建会话，export 只读导出 current。agent record/mock
+prepare 创建 fixture，export 只读导出 current。agent record/mock
 是 SDK 启动的协议对端；official record/verify 编排官方 SDK driver 并保存业务事实。
 本文单独使用 record、mock 时指 agent record、agent mock，验证指 official verify；
 涉及官方录制编排时使用完整名称 official record。仓库路径、编码和测试规则见
@@ -28,22 +28,22 @@ prepare 创建会话，export 只读导出 current。agent record/mock
 同一 module 提供 CLI 和 Go 库两种入口，二者是同一应用核心的薄适配器：
 
 - CLI 入口 `cmd/agent-sdk-testify` 拥有 argv、stdio、descriptor、stderr 和退出码。
-- 根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export` 以及会话上的
-  `Record`、`Mock`；它使用调用方提供的流并直接返回错误。
+- 根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export` 以及 fixture 上的
+  `RecordAgent`、`MockAgent`；它使用调用方提供的流并直接返回错误。
 
-两种入口共用参数校验、会话生命周期、execution 事务和材料规则，不维护第二套机制。
+两种入口共用参数校验、fixture 生命周期、execution 事务和材料规则，不维护第二套机制。
 `official record`、`official verify`、官方 driver 编排及协议和材料内部类型仅为 CLI
 或仓库内部能力，不属于库 v1 接口。
 
 ## 问题与目标
 
 录制、验证、回放和消费者测试通常需要不同的隔离环境，但不应因此产生多套生命周期。
-本工具用一次 `prepare` 建立一个自包含 session，之后在同一 session 中反复执行
-协议执行或官方编排。调用方管理 session 目录的生命周期。
+本工具用一次 `prepare` 建立一个自包含 fixture，之后在同一 fixture 中反复执行
+协议执行或官方编排。调用方管理 fixture 目录的生命周期。
 
 目标如下：
 
-- `session-dir` 是唯一数据根。外部材料只在 prepare 时进入 session，后续动作不再
+- `fixture-dir` 是唯一数据根。外部材料只在 prepare 时进入 fixture，后续动作不再
   读取原路径。
 - 一次 prepare 可以承载多个独立 action execution。record 成功后产生的录制成为
   current recording，后续 verify 和 mock 默认消费它。
@@ -63,42 +63,42 @@ prepare 创建会话，export 只读导出 current。agent record/mock
 - 不把“命令可以调用”解释为“命令必然成功”，也不在 source 类型上添加不必要的
   命令级禁令。
 - 不让 export 或 mock 隐式执行 verify、资格判断或仓库写入。
-- 不降低严格回放要求，不为会话复用增加通配、忽略字段或自动生成关联 ID 的规则。
+- 不降低严格回放要求，不为 fixture 复用增加通配、忽略字段或自动生成关联 ID 的规则。
 
 ## 领域模型
 
 | 概念 | 定义 |
 | --- | --- |
-| Session | 由 prepare 创建、由调用方管理和删除的运行环境与持久数据根。 |
+| Fixture | 由 prepare 创建、由调用方管理和删除的运行环境与持久数据根；不是 Agent 原生 session。 |
 | Initial source | prepare 选择的 case、plan 或已有 recording；只决定初始状态，不限制后续动作。 |
 | Material | 完整、不可变的录制材料包，包含 plan、manifest、raw、绑定历史和来源哈希。 |
-| Current recording | session 当前选中的唯一 material；verify、mock 和 export 以它为输入，record 成功时替换它。 |
+| Current recording | fixture 当前选中的唯一 material；verify、mock 和 export 以它为输入，record 成功时替换它。 |
 | Action execution | 一次 record 或 mock 产生的 execution，具有独立 descriptor、overlay、receipt 和失败证据。 |
 | Action result | record 或 mock 返回的连接/execution 状态、材料及证据路径。 |
 | Receipt | 连接或进程的持久结果，记录协议、退出、清理和诊断。 |
 | Verification | 一次官方验证的事实与结论，绑定精确 material、driver 身份及实际参与的 mock execution；不拥有协议连接或 execution。 |
 | Admission | 把具备资格的材料显式归档并写入默认 case 库的动作。 |
-| Export | 把 current recording 的完整材料包复制到 session 外的只读导出动作。 |
+| Export | 把 current recording 的完整材料包复制到 fixture 外的只读导出动作。 |
 
 Material 是回放输入，不必先经过 verify。Verified 是 material 上的一份证据，不是
 material 的固有类型，也不会随着 current recording 切换而转移。
 
-## 会话生命周期
+## Fixture 生命周期
 
 规范流程是：
 
 ```sh
-agent-sdk-testify prepare --case SDK-CASE-001 --session-dir /private/session
-agent-sdk-testify official record --session-dir /private/session \
+agent-sdk-testify prepare --case SDK-CASE-001 --fixture-dir /private/fixture
+agent-sdk-testify official record --fixture-dir /private/fixture \
   --cmd /absolute/agent -- <native-args>
-agent-sdk-testify official verify --session-dir /private/session
-agent-sdk-testify agent mock --session-dir /private/session
-agent-sdk-testify export --session-dir /private/session \
+agent-sdk-testify official verify --fixture-dir /private/fixture
+agent-sdk-testify agent mock --fixture-dir /private/fixture
+agent-sdk-testify export --fixture-dir /private/fixture \
   --output /private/exported-recording
 ```
 
-`--session-dir` 在所有命令中表示同一个绝对目录。prepare 创建该目录；agent record/mock、
-official record/verify 和 export 打开该目录。`session.json` 是工具拥有的内部
+`--fixture-dir` 在所有命令中表示同一个绝对目录。prepare 创建该目录；agent record/mock、
+official record/verify 和 export 打开该目录。`fixture.json` 是工具拥有的内部
 descriptor，调用方只传目录，不定位或修改其中的文件。
 
 ### prepare
@@ -108,7 +108,7 @@ descriptor，调用方只传目录，不定位或修改其中的文件。
 - `--case CASE`：官方 case。工具复制 case 的不可变来源；存在内置材料时同时导入
   current recording，没有内置材料时 current 为空。
 - `--plan FILE`：消费者 plan。工具建立录制环境并复制 plan；初始 current 为空。
-- `--recording PATH`：已有录制材料。工具把完整材料包复制进 session，并把副本设为
+- `--recording PATH`：已有录制材料。工具把完整材料包复制进 fixture，并把副本设为
   current recording。
 
 这三种来源可以理解为两种初始状态：
@@ -124,87 +124,87 @@ descriptor，调用方只传目录，不定位或修改其中的文件。
 prepare 完成以下工作：
 
 - 校验 source、agent type、材料格式和哈希。
-- 创建 session 目录及其 runtime 子目录、环境基线和连接槽。
-- 将 case、plan 或已有录制材料完整复制到 session，并校验副本哈希。
+- 创建 fixture 目录及其 runtime 子目录、环境基线和连接槽。
+- 将 case、plan 或已有录制材料完整复制到 fixture，并校验副本哈希。
 - 固化不可变的 record source：保存 plan、协议 cwd、agent binding 和来源身份。
   case 的官方 driver 由 official 命令选择，plan 的 SDK 宿主由消费者启动；agent
   record 不根据 source 类型启动 driver。recording 使用材料内的录制来源。
 - 将当前材料写为 current recording；没有材料时保持为空。
-- 写入只读 `session.json` 和可变状态索引，不启动客户端、SDK、driver 或真实 Agent。
+- 写入只读 `fixture.json` 和可变状态索引，不启动客户端、SDK、driver 或真实 Agent。
 
-prepare 不修改外部材料。session 目录必须尚不存在；来源路径不能位于目标 session
-内。prepare 失败不产生可用 session，失败诊断保存在 session 内或 prepare 的诊断
+prepare 不修改外部材料。fixture 目录必须尚不存在；来源路径不能位于目标 fixture
+内。prepare 失败不产生可用 fixture，失败诊断保存在 fixture 内或 prepare 的诊断
 文件中。
 
 ### 多个 action execution
 
-prepare 成功后 session 可反复使用。agent record/mock 创建 execution；official record/verify
+prepare 成功后 fixture 可反复使用。agent record/mock 创建 execution；official record/verify
 保存独立的编排事实，不创建协议 execution：
 
 1. 通过前置检查后才领取 execution id。
 2. 从不可变环境基线派生本次可写 overlay。
-3. agent record 启动或连接真实 Agent，agent mock 提供回放连接；材料来自 session。
+3. agent record 启动或连接真实 Agent，agent mock 提供回放连接；材料来自 fixture。
 4. 完成连接、进程、收尾和 receipt 持久化。
 5. 原子更新 execution index；record 成功时额外原子切换 current recording。
 
-同一 session 的 record/mock execution 串行执行；同一 execution 内声明的不同
+同一 fixture 的 record/mock execution 串行执行；同一 execution 内声明的不同
 连接可以并发。official 编排期间，driver 按普通合同启动 agent record 或 agent mock；
 不预分配协议 execution，不增加跳过 execution 的官方专用模式。
 
-会话同时只允许一个 official 编排，并登记其运行状态。official verify 固定 current
+fixture 同时只允许一个 official 编排，并登记其运行状态。official verify 固定 current
 material，期间拒绝 agent record、official record 和另一次 official verify，允许
 agent mock。official record 允许其 driver 调用 agent record；不允许另一次 official
 编排交错。官方录制的 execution 归属通过正常结果接口明确关联，不能靠最新目录推测。
 
-official 编排登记与 execution 创建按同一会话状态协调；official 命令等待 driver 时
+official 编排登记与 execution 创建按同一 fixture 状态协调；official 命令等待 driver 时
 不持有 agent 命令需要的 execution 锁。编排结束前等待 driver 及其启动的 agent
 进程退出，保存事实后解除活动登记。中断遗留的执行和活动登记保留为未完成事实，
 不能被后续成功结果覆盖；调用方负责等待自己启动的全部进程退出。
 
 agent 命令与 official 命令可以重复调用，不要求成对出现，也不要求上一次验证成功。
 
-### session 目录所有权
+### fixture 目录所有权
 
-调用方拥有整个 session 目录。prepare 把运行环境放在 `<session>/runtime`，
-`resourceRoot` 指向该目录；工具不创建 session 外的长期运行根。
+调用方拥有整个 fixture 目录。prepare 把运行环境放在 `<fixture>/runtime`，
+`resourceRoot` 指向该目录；工具不创建 fixture 外的长期运行根。
 
 各 action 在返回前完成自身的协议、材料和资源释放检查，保存成功或失败结果。
 mock 在结束时校验本次 execution 绑定的源历史和派生历史；运行中新建的非绑定文件
-不成为回放输入。工具不在会话结束时重新审计全部历史 execution。
+不成为回放输入。工具不在 fixture 结束时重新审计全部历史 execution。
 
-调用方先关闭 SDK 宿主、等待相关进程全部退出，再按需删除 runtime 或整个 session。
-需要在删除整个 session 后保留 current material 时，先 export 到 session 外。
-整个 session 的删除同时移除运行环境、材料和执行证据。session 没有 open/closed
-状态、关闭命令或会话级最终报告；各次执行和官方编排的结果分别保留。
+调用方先关闭 SDK 宿主、等待相关进程全部退出，再按需删除 runtime 或整个 fixture。
+需要在删除整个 fixture 后保留 current material 时，先 export 到 fixture 外。
+整个 fixture 的删除同时移除运行环境、材料和执行证据。fixture 没有 open/closed
+状态、关闭命令或 fixture 级最终报告；各次执行和官方编排的结果分别保留。
 
 ## 命令与数据边界
 
 | 命令 | 数据选择 | 主要产物 | 是否改变 current recording |
 | --- | --- | --- | --- |
-| `prepare` | `--case`、`--plan` 或 `--recording` | session、环境基线、初始 material | 初始化，可设置一次 |
-| `agent record` | 仅 session 中的 record source 和 session 设置 | execution、成功后的新 material | 成功时原子替换 |
-| `official record` | session 中的官方 case/binding 和 record source | driver 事实、record execution/material 引用 | 由 agent record 成功发布时替换 |
-| `official verify` | 仅 session 中的 current recording | driver 事实、mock execution 引用、verification 证据 | 否 |
-| `agent mock` | 仅 session 中的 current recording | execution、协议与进程 receipt | 否 |
-| `export` | 仅 session 中的 current recording | session 外的完整材料包 | 否 |
+| `prepare` | `--case`、`--plan` 或 `--recording` | fixture、环境基线、初始 material | 初始化，可设置一次 |
+| `agent record` | 仅 fixture 中的 record source 和 fixture 设置 | execution、成功后的新 material | 成功时原子替换 |
+| `official record` | fixture 中的官方 case/binding 和 record source | driver 事实、record execution/material 引用 | 由 agent record 成功发布时替换 |
+| `official verify` | 仅 fixture 中的 current recording | driver 事实、mock execution 引用、verification 证据 | 否 |
+| `agent mock` | 仅 fixture 中的 current recording | execution、协议与进程 receipt | 否 |
+| `export` | 仅 fixture 中的 current recording | fixture 外的完整材料包 | 否 |
 
 agent record/mock 和 official record/verify 不接受 `--case`、`--plan` 或 `--recording`，也不接受
 直接指向材料的路径。所有材料选择已经在 prepare 完成。`agent mock` 不接受 Agent 版本
 查询或元命令。
 
 agent record、official record 的 `--cmd` 和 `--` 后参数只描述本次真实 Agent 启动，
-远程连接参数描述已有服务，不改变 session 的
+远程连接参数描述已有服务，不改变 fixture 的
 source 或 current recording。mock 的连接和超时参数属于本次 execution；verify 的
 超时属于本次验证，不创建连接或 execution。
 具体 flag 可以按实现需要增减，但上述数据边界不变。
 
 ## 数据布局与所有权
 
-session 目录是持久控制面和唯一业务数据根：
+fixture 目录是持久控制面和唯一业务数据根：
 
 ```text
-<session>/
-  session.json
+<fixture>/
+  fixture.json
   source/
     plan.json               # case 或 plan 的不可变来源副本
     history-seed/           # 可选，显式历史种子的不可变副本
@@ -240,13 +240,13 @@ session 目录是持久控制面和唯一业务数据根：
   runtime/                  # 可丢弃的环境基线、route、overlay 和私有运行配置
 ```
 
-`session.json` 只保存 schema、session 身份、工具身份、agent type、source 身份、
+`fixture.json` 只保存 schema、fixture 身份、工具身份、agent type、source 身份、
 环境基线和连接合同，不在 action 执行期间改写。current recording、execution index
 和 official 编排活动登记保存在受锁保护的可变文件中。
 
 环境基线和每个 execution 的独立 workspace、HOME、config、tmp、历史 overlay
 均位于 runtime。materials、executions、official-records 和 verifications 保存持久
-材料与证据。目录释放时序见[session 目录所有权](#session-目录所有权)。
+材料与证据。目录释放时序见[fixture 目录所有权](#fixture-目录所有权)。
 
 record 成功时，工具先把完整材料写入新的不可变 material 目录并校验全部哈希，再
 原子更新 `current.json`。任何一步失败都不能把半成品设为 current。旧 material
@@ -276,7 +276,7 @@ execution 前失败。plan source 的消费者流程见[消费者录制](consume
 
 ### official record
 
-official record 选择当前 session 的精确官方 case/binding 和 driver，准备 SDK
+official record 选择当前 fixture 的精确官方 case/binding 和 driver，准备 SDK
 宿主环境并启动 driver；driver 通过官方 SDK 启动公开 agent record，后者才负责
 真实 Agent 和录制 execution。official record 只持有编排状态、driver 进程及业务
 事实，不创建自己的协议 execution 或第二套 overlay。消费者 plan 无适用官方
@@ -306,14 +306,14 @@ official verify 只负责驱动和记录事实：
 
 1. 校验并固定 current material 的身份和哈希，登记本次 verification。
 2. 选择官方 driver，提供正常的公开 mock 命令和 SDK 宿主环境。
-3. 启动 driver，由 driver 使用官方 SDK 调用公开 `agent mock --session-dir ...`；需要
+3. 启动 driver，由 driver 使用官方 SDK 调用公开 `agent mock --fixture-dir ...`；需要
    多连接时使用材料声明的连接参数。mock 自己创建和结束 execution、管理 overlay、
    连接、receipt 和清理，verify 不预分配这些对象，也不覆盖 mock 的材料选择。
 4. 保存 driver 的业务报告、实际 SDK 身份、退出状态和诊断，核对本次实际调用的
    mock execution、连接 receipt 和进程退出事实，写入 verification。
 
 driver 必须明确报告实际调用对应的 execution ID 和连接 ID；verify 核对这些引用
-属于当前 session、绑定本次固定 material，且覆盖所需的全部连接。不能通过扫描
+属于当前 fixture、绑定本次固定 material，且覆盖所需的全部连接。不能通过扫描
 目录、选择最新 execution 或复用其他成功回执来猜测归属。普通 mock 也使用相同的
 execution 身份与结果接口，不增加内部回放命令或跳过 execution 的 verify 模式。
 SDK 宿主应用 mock 的正常环境合同；verify 不创建第二套协议 overlay。
@@ -354,7 +354,7 @@ prepare 返回的环境和 workspace，并自行执行与报告业务断言。
 mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
 连接已经完成。mock 进程 receipt 不记录 `cwd` 或 `workspace`；执行位置和协议项目
 身份以 execution descriptor 的 `workspace`、`protocolCwd` 为准。为兼容 v1，
-校验器忽略旧 receipt 中可能存在的这两个字段，回放和历史文件始终从 session/execution
+校验器忽略旧 receipt 中可能存在的这两个字段，回放和历史文件始终从 fixture/execution
 根定位。
 
 官方 driver 与外部消费者使用同一个公开 agent mock 进程接口和 execution 合同。
@@ -364,7 +364,7 @@ official verify 不直接调用协议回放函数替代公开 agent mock。
 
 agent record 内部提供 stdio 与认证 WebSocket 的双向桥接，不提供独立 connect
 命令。目标由调用方显式声明为本地 executable/argv 或已有远程 endpoint，两者
-互斥；远程认证通过私有运行文件传入，不进入 session 的持久证据。official record
+互斥；远程认证通过私有运行文件传入，不进入 fixture 的持久证据。official record
 可按官方 case 需要准备远程服务并将目标交给 driver，driver 仍启动 agent record。
 
 本地与远程目标复用相同的采集、execution、原始字节和 receipt 合同。远程模式
@@ -379,18 +379,18 @@ agent record 内部提供 stdio 与认证 WebSocket 的双向桥接，不提供�
 
 ### export
 
-export 把 current recording 的完整材料包复制到 session 外：
+export 把 current recording 的完整材料包复制到 fixture 外：
 
 - 包含 material identity、plan、manifest、raw、绑定历史和来源哈希。
-- 不包含整个 session、其他材料、全部 execution、receipt、verification 或 runtime。
+- 不包含整个 fixture、其他材料、全部 execution、receipt、verification 或 runtime。
 - 不产生 verified、admission eligibility 或 admitted 结论。
-- 不修改 current recording、execution index 或 session 状态。
+- 不修改 current recording、execution index 或 fixture 状态。
 
-目标目录必须位于 session 外且尚不存在。工具先写入同父目录下的临时目录，校验副本
+目标目录必须位于 fixture 外且尚不存在。工具先写入同父目录下的临时目录，校验副本
 哈希，再原子 rename 为目标目录。export 可以重复执行；不同目标互不覆盖。导出包
 可以作为下一次 `prepare --recording` 的输入。
 
-只要 session 中的材料仍存在且哈希有效，就可以重复 export。
+只要 fixture 中的材料仍存在且哈希有效，就可以重复 export。
 
 ## 信任与入仓
 
@@ -421,18 +421,18 @@ export 把 current recording 的完整材料包复制到 session 外：
 资格判断和采用都不能由 record、mock 或 export 隐式触发。采用是显式、
 原子、可重试的仓库写入；写入前保留旧索引，写入失败不删除已验证材料。
 
-consumer material 和外部用户自行保存的录制可以进入自己的 session、由用户自己的
+consumer material 和外部用户自行保存的录制可以进入自己的 fixture、由用户自己的
 验证流程评价并通过 export 保存，但不能冒充官方 case 验证，也不进入默认 case
 库或内置快照。
 
 ## 不变量
 
-- prepare 是外部材料进入 session 的唯一入口；prepare 完成后 action 不再读取原始
+- prepare 是外部材料进入 fixture 的唯一入口；prepare 完成后 action 不再读取原始
   外部材料路径。
 - prepare 完整复制并校验副本；删除 prepare 的原路径不能影响后续 verify、mock 或
   export。
 - 一次 prepare 可以承载多个 action execution；source 类型不限制可调用的业务动作。
-- session 执行与验证的并发规则见[多个 action execution](#多个-action-execution)；
+- fixture 执行与验证的并发规则见[多个 action execution](#多个-action-execution)；
   verify 必须允许其 driver 调用公开 mock。
 - 每个 action execution 有唯一 id、不可变 descriptor、独立 overlay 和最终 receipt。
 - record 只有成功完成材料闭包后才原子替换 current recording；失败不能部分更新。
@@ -444,7 +444,7 @@ consumer material 和外部用户自行保存的录制可以进入自己的 sess
   在启动 driver 前失败。
 - mock 缺少 current recording、材料格式不兼容或连接声明不可用时，在领取 execution
   前失败。
-- export 不改变 session，不产生可信结论，目标必须在 session 外且不能覆盖已有目录。
+- export 不改变 fixture，不产生可信结论，目标必须在 fixture 外且不能覆盖已有目录。
 - 只有精确官方 case material 的 verify 通过可以作为入仓资格的一部分；mock 成功、
   export 成功不能替代。
 
@@ -452,7 +452,7 @@ consumer material 和外部用户自行保存的录制可以进入自己的 sess
 
 record 和 mock 的失败分为领取 execution 前后两类：
 
-- **领取前失败**：session 不存在或忙碌；record 没有可执行的 record source；
+- **领取前失败**：fixture 不存在或忙碌；record 没有可执行的 record source；
   mock 没有 current recording
   或兼容的连接声明。工具不创建 execution，直接返回诊断。
 - **领取后失败**：真实 Agent、采集传输或回放连接在执行中失败。工具必须保留
@@ -477,18 +477,18 @@ execution index 和 current pointer。verification 在 driver 和 mock 的事实
 写入自身结论，之后才可显式采用。索引更新失败时，未索引的 execution 或 material
 保持可诊断状态，不能伪装成成功。
 
-凭证、认证变量和原生私有配置只写入 session/runtime 中的私有运行文件，不进入
-session.json、material、execution、官方编排记录、verification 或 export 包。
-远程 token 文件可以位于 runtime 或 session 外，不能位于 session 的持久证据区。
+凭证、认证变量和原生私有配置只写入 fixture/runtime 中的私有运行文件，不进入
+fixture.json、material、execution、官方编排记录、verification 或 export 包。
+远程 token 文件可以位于 runtime 或 fixture 外，不能位于 fixture 的持久证据区。
 
 ## 环境与隔离
 
-prepare 为 session 创建独立环境基线，包括 workspace、HOME、config、tmp、历史种子
+prepare 为 fixture 创建独立环境基线，包括 workspace、HOME、config、tmp、历史种子
 和连接槽。每个 record/mock execution 从基线派生可写 overlay，一个 execution 的副作用不能进入
 另一个 execution。Codex 使用 `CODEX_HOME`，Claude 使用 `CLAUDE_CONFIG_DIR`。
 
 认证只来自工具允许的原生配置和当前进程中的白名单变量。工具不复制个人 skills、
-插件、记忆、项目指令或无关会话；不把完整 Agent home 当作 session 数据。
+插件、记忆、项目指令或无关 session；不把完整 Agent home 当作 fixture 数据。
 
 plan source 的消费者必须在启动自己的 SDK 宿主前应用当前 route 的 env、workspace、
 历史和连接命令；只配置 record 或 mock 子进程不能配置父进程。消费者不能覆盖隔离
@@ -496,7 +496,7 @@ plan source 的消费者必须在启动自己的 SDK 宿主前应用当前 route
 
 record 完成时只快照回放所需的原生 session/history 子树，并记录来源、派生路径和
 哈希。官方验证和消费者在 mock execution overlay 中产生的宿主状态不会自动提升为新的
-material。删除 runtime 不影响材料导出；删除整个 session 前需要先导出待保留材料。
+material。删除 runtime 不影响材料导出；删除整个 fixture 前需要先导出待保留材料。
 
 ## Case 与 agent type 配置
 
@@ -508,7 +508,7 @@ case 身份、输入顺序、required/optional、`live-selected-path`、`planned
 recording 从 manifest 推断，case 只有在只有一个可用 binding 时才自动选择；存在
 多个 binding 时必须显式给出 `--agent`。显式值与推断值不一致时 prepare 失败。
 
-外部 plan 的 caseId 是消费者自定义身份，不是官方 catalog case。它参与自身 session
+外部 plan 的 caseId 是消费者自定义身份，不是官方 catalog case。它参与自身 fixture
 的 plan 和 manifest 绑定，但不参与官方 case、资格或内置材料选择。
 
 新增 case 同时更新场景、agent binding、验收规范、测试和固定索引要求；不能只增加
@@ -535,7 +535,7 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 
 ## 测试边界
 
-完整流程验收通过公开 Go 库入口和 installed CLI 的消费者接口验证 session 合同，不直接
+完整流程验收通过公开 Go 库入口和 installed CLI 的消费者接口验证 fixture 合同，不直接
 调用 lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
 
 - prepare 完整复制材料后，删除原始路径仍可 verify、mock 和 export。
@@ -544,8 +544,8 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 - 没有 verified 的 current material 可以正常 mock。
 - verify 不创建 execution；driver 必须调用公开 mock，由 mock 管理 execution。
 - verification 精确引用本次实际启动的 mock execution，不能采用其他调用的成功证据。
-- 验证期间 record 和重复 verify 失败，但 driver 的公开 mock 不被会话锁阻塞。
-- 同一 session 的 record/mock execution 串行；同一 execution 的多连接可以并发。
+- 验证期间 record 和重复 verify 失败，但 driver 的公开 mock 不被 fixture 锁阻塞。
+- 同一 fixture 的 record/mock execution 串行；同一 execution 的多连接可以并发。
 - 没有 current 或适用 verifier 时，verify 在启动 driver 前失败。
 - 没有 current 或连接声明不可用时，mock 在领取 execution 前失败。
 - driver 启动失败、提前退出、验证取消和 mock 缺失时保留验证事实；未完成的验证
@@ -557,8 +557,8 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 - agent record 的远程目标保留认证、双向采集、EOF、取消和连接关闭证据，不终止
   调用方已有服务，也不启动本地 Agent。
 - mock 不响应 Agent CLI 版本或元命令。
-- export 可重复、不改变 session、不产生入仓结论，导出包可再次 prepare。
-- runtime 全部位于 session 内；调用方删除 session 后没有遗留运行目录。
+- export 可重复、不改变 fixture、不产生入仓结论，导出包可再次 prepare。
+- runtime 全部位于 fixture 内；调用方删除 fixture 后没有遗留运行目录。
 - 删除 runtime 后仍能 export 材料；export 包不包含 runtime 或私有配置。
 - Claude 源历史与派生历史在 mock 返回前校验，失败写入该 action 结果。
 - 只有精确官方 case material 的 verify 通过才具备入仓资格；consumer material 和

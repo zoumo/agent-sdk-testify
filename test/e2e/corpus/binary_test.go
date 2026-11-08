@@ -12,7 +12,7 @@ import (
 )
 
 func TestBinaryUsesItselfOutsideCheckout(t *testing.T) {
-	cmd, _, session := verifyFixture(t, "passed")
+	cmd, _, fixtureDir := verifyFixture(t, "passed")
 	binary := filepath.Join(t.TempDir(), "agent-sdk-testify")
 	require.NoError(t, tool.CopyFile(os.Getenv("AGENT_SDK_TESTIFY_BIN"), binary))
 	require.NoError(t, os.Chmod(binary, 0o700))
@@ -20,24 +20,24 @@ func TestBinaryUsesItselfOutsideCheckout(t *testing.T) {
 	cmd.Args[0] = binary
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	output := verifyOutput(t, session)
+	output := verifyOutput(t, fixtureDir)
 	var peer tool.Command
-	require.NoError(t, tool.ReadJSON(filepath.Join(peerRequestRoot(t, session, output), "peer-main.json"), &peer))
+	require.NoError(t, tool.ReadJSON(filepath.Join(peerRequestRoot(t, fixtureDir, output), "peer-main.json"), &peer))
 	require.Equal(t, binary, peer.Command)
 	require.Equal(t, []string{"agent", "mock"}, peer.Args[:2])
-	prepared := filepath.Join(t.TempDir(), "session")
-	out, err := exec.CommandContext(t.Context(), binary, "prepare", "--session-dir", prepared, "--agent", "codex", "--case", "SDK-CASE-001").CombinedOutput()
+	prepared := filepath.Join(t.TempDir(), "fixture")
+	out, err := exec.CommandContext(t.Context(), binary, "prepare", "--fixture-dir", prepared, "--agent", "codex", "--case", "SDK-CASE-001").CombinedOutput()
 	require.NoError(t, err, "%s", out)
-	require.FileExists(t, filepath.Join(prepared, "session.json"))
+	require.FileExists(t, filepath.Join(prepared, "fixture.json"))
 	var descriptor tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(prepared, "session.json"), &descriptor))
+	require.NoError(t, tool.ReadJSON(filepath.Join(prepared, "fixture.json"), &descriptor))
 	require.Equal(t, "SDK-CASE-001", tool.Obj(descriptor["source"])["id"])
 	t.Cleanup(func() { _ = os.RemoveAll(tool.Str(descriptor["resourceRoot"])) })
 }
 
-func peerRequestRoot(t *testing.T, session, verification string) string {
+func peerRequestRoot(t *testing.T, fixtureDir, verification string) string {
 	t.Helper()
 	var descriptor tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 	return filepath.Join(tool.Str(descriptor["resourceRoot"]), "official", filepath.Base(verification))
 }

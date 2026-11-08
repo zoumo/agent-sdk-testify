@@ -74,7 +74,7 @@ git -C /absolute/codex-source rev-parse HEAD
 
 `--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。agent record、official record 通过 `--cmd ABS` 和
 `--` 后的原生 argv 显式指定 executable 及其参数；`official verify` 向 driver 提供公开
-`agent mock --session-dir ...` 进程入口，由 driver 使用官方 SDK 启动，
+`agent mock --fixture-dir ...` 进程入口，由 driver 使用官方 SDK 启动，
 不得回落到已安装的真实 Codex 或 Claude。源码 SDK、录制中的原生 CLI 和工具自身
 是三个独立版本身份。
 
@@ -134,7 +134,7 @@ attempt 身份不可改写；失败与未触发结果不伪装成通过。
 execution、原生隔离准备回执及业务报告携带到验证证据和归档中；资格检查读取这些
 实际事实，不补写材料中的旧 `summary.json` 或业务通过状态。采用前提见
 [信任与入仓](../docs/design.md#信任与入仓)。归档保留隔离准备和最终业务事实的
-实际文件与哈希，导出包仍只包含封闭材料，不携带原 session 的编排事实。
+实际文件与哈希，导出包仍只包含封闭材料，不携带原 fixture 的编排事实。
 旧材料继续读取原有来源和业务证据布局。
 
 以下输入不得混用：

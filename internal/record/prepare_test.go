@@ -47,16 +47,16 @@ func TestOfficialPreparationRunsNativeProbeOncePerExecution(t *testing.T) {
 	command := filepath.Join(root, "synthetic-agent")
 	require.NoError(t, os.WriteFile(command, []byte("#!/bin/sh\nprintf 'probe\\n' >> \"$PROBE_COUNT\"\nprintf 'synthetic-native\\n'\n"), 0o700))
 
-	sessionDir := filepath.Join(root, "session")
-	_, err := lifecycle.Prepare(lifecycle.PrepareOptions{SessionDir: sessionDir, Agent: "codex", Case: "SDK-CASE-032"})
+	fixtureDir := filepath.Join(root, "fixture")
+	_, err := lifecycle.Prepare(lifecycle.PrepareOptions{FixtureDir: fixtureDir, Agent: "codex", Case: "SDK-CASE-032"})
 	require.NoError(t, err)
 
 	policy := &prepareOncePolicy{command: command}
 	for _, connection := range []string{"main", "probe"} {
 		_, err := lifecycle.RunRecord(t.Context(), lifecycle.RecordRequest{
-			SessionDir: sessionDir,
+			FixtureDir: fixtureDir,
 			Connection: connection,
-			Args:       []string{"--session-dir", sessionDir, "--cmd", command, "--"},
+			Args:       []string{"--fixture-dir", fixtureDir, "--cmd", command, "--"},
 			Timeout:    time.Second,
 			Target:     "local",
 		}, policy)

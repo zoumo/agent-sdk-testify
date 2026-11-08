@@ -64,8 +64,8 @@ def mock_command(provider, source, *args, binary=None):
     (material / 'plan.json').write_bytes(data)
     (material / 'manifest.json').write_text(json.dumps({'provenance': 'synthetic',
         'planSHA256': hashlib.sha256(data).hexdigest(), 'files': {'raw.jsonl': hashlib.sha256(raw).hexdigest()}}))
-    session = root / 'session'
-    prepare = [binary, 'prepare', '--recording', str(material), '--session-dir', str(session)]
+    fixture = root / 'fixture'
+    prepare = [binary, 'prepare', '--recording', str(material), '--fixture-dir', str(fixture)]
     invocation, preparation, receipt = [], [], None
     it = iter(args)
     for arg in it:
@@ -79,20 +79,20 @@ def mock_command(provider, source, *args, binary=None):
     if result.returncode:
         # Return the actual failing public invocation for exit-code assertions.
         return prepare
-    descriptor = json.loads((session / 'session.json').read_text())
+    descriptor = json.loads((fixture / 'fixture.json').read_text())
     atexit.register(shutil.rmtree, descriptor['resourceRoot'], ignore_errors=True)
-    command = [binary, 'agent', 'mock', '--session-dir', str(session), *invocation]
-    _mock_runs[tuple(command)] = (session, receipt)
+    command = [binary, 'agent', 'mock', '--fixture-dir', str(fixture), *invocation]
+    _mock_runs[tuple(command)] = (fixture, receipt)
     return command
 
 
 def run_mock(command, **kwargs):
     import json
     result = subprocess.run(command, **kwargs)
-    session, receipt = _mock_runs.get(tuple(command), (None, None))
+    fixture, receipt = _mock_runs.get(tuple(command), (None, None))
     if result.returncode == 0 and receipt is not None:
-        index = json.loads((session / 'executions/index.json').read_text())
-        execution = json.loads((session / 'executions' / index['executions'][-1]['id'] / 'execution.json').read_text())
+        index = json.loads((fixture / 'executions/index.json').read_text())
+        execution = json.loads((fixture / 'executions' / index['executions'][-1]['id'] / 'execution.json').read_text())
         actual = execution['connections'][0]['receipt']
         # A test convenience copy of the actual public execution receipt.
         with receipt.open('xb') as target:
@@ -101,7 +101,7 @@ def run_mock(command, **kwargs):
 
 
 
-def prepare_record(root, plan, binary=None):
+def prepare_fixture(root, plan, binary=None):
     import json
     import atexit
     import shutil
@@ -110,18 +110,18 @@ def prepare_record(root, plan, binary=None):
     source.write_text(json.dumps({'version': 1, 'agentType': plan['provider'],
         'caseId': plan['caseId'], 'driverProfile': 'consumer', 'project': plan['project'],
         'scenario': {'files': plan.get('scenario', {}).get('files', {})}}))
-    session = root / 'session'
-    result = subprocess.run([binary, 'prepare', '--plan', str(source), '--session-dir', str(session)],
+    fixture = root / 'fixture'
+    result = subprocess.run([binary, 'prepare', '--plan', str(source), '--fixture-dir', str(fixture)],
                             capture_output=True, timeout=5)
     if result.returncode:
         raise ValueError(result.stderr.decode())
-    descriptor = json.loads((session / 'session.json').read_text())
+    descriptor = json.loads((fixture / 'fixture.json').read_text())
     atexit.register(shutil.rmtree, descriptor['resourceRoot'], ignore_errors=True)
-    return session
+    return fixture
 
 
-def current_capture(session):
+def current_capture(fixture):
     import json
-    current = json.loads((session / 'current.json').read_text())
-    index = json.loads((session / 'materials/index.json').read_text())
+    current = json.loads((fixture / 'current.json').read_text())
+    index = json.loads((fixture / 'materials/index.json').read_text())
     return Path(next(item['path'] for item in index['materials'] if item['id'] == current['materialId']))

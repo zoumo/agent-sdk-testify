@@ -17,8 +17,8 @@ func TestNativePreparationBindsActualEnvironmentAndPlan(t *testing.T) {
 	require.NoError(t, tool.WriteJSON(path, plan))
 	execution := Execution{ExecutionID: "execution", Config: filepath.Join(root, "config"), Workspace: filepath.Join(root, "workspace"), RuntimeEnv: map[string]string{"HOME": filepath.Join(root, "home"), "CODEX_HOME": filepath.Join(root, "config"), "OPENAI_API_KEY": "private-credential"}}
 	require.NoError(t, os.MkdirAll(filepath.Join(ExecutionDir(root, "execution"), "receipts"), 0o700))
-	session := &Session{SessionID: "session", ToolSHA256: "tool"}
-	require.NoError(t, SaveNativePreparation(root, session, execution, plan, path))
+	fixture := &Fixture{FixtureID: "fixture", ToolSHA256: "tool"}
+	require.NoError(t, SaveNativePreparation(root, fixture, execution, plan, path))
 	var receipt tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(root, "execution"), "receipts", "isolation.json"), &receipt))
 	require.Equal(t, execution.RuntimeEnv["HOME"], tool.Obj(receipt["environment"])["HOME"])

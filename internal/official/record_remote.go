@@ -12,7 +12,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func waitRecordStart(ctx context.Context, sessionDir string, session *lifecycle.Session, path string) (*lifecycle.Execution, error) {
+func waitRecordStart(ctx context.Context, fixtureDir string, fixture *lifecycle.Fixture, path string) (*lifecycle.Execution, error) {
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
 	for {
@@ -23,14 +23,14 @@ func waitRecordStart(ctx context.Context, sessionDir string, session *lifecycle.
 			_ = f.Close()
 			if err == nil {
 				id := tool.Str(started["executionId"])
-				if id == "" || filepath.Base(id) != id || !filepath.IsLocal(id) || started["status"] != "running" || started["sessionId"] != session.SessionID || started["command"] != "record" || started["connectionId"] != "main" {
+				if id == "" || filepath.Base(id) != id || !filepath.IsLocal(id) || started["status"] != "running" || started["fixtureId"] != fixture.FixtureID || started["command"] != "record" || started["connectionId"] != "main" {
 					return nil, errors.New("owned service received an invalid execution start")
 				}
 				var execution lifecycle.Execution
-				if err := tool.ReadJSON(filepath.Join(sessionDir, "executions", id, "execution.json"), &execution); err != nil {
+				if err := tool.ReadJSON(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution); err != nil {
 					return nil, err
 				}
-				if err := execution.Validate(*session); err != nil {
+				if err := execution.Validate(*fixture); err != nil {
 					return nil, err
 				}
 				return &execution, nil

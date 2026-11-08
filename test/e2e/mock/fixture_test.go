@@ -55,7 +55,7 @@ func mockTestAgent() int {
 	}
 }
 
-func sessionTool(t *testing.T, env []string, args ...string) *exec.Cmd {
+func fixtureTool(t *testing.T, env []string, args ...string) *exec.Cmd {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
@@ -66,7 +66,7 @@ func sessionTool(t *testing.T, env []string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-func sessionExecutable(t *testing.T, env []string, executable string, args ...string) *exec.Cmd {
+func fixtureExecutable(t *testing.T, env []string, executable string, args ...string) *exec.Cmd {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
@@ -77,10 +77,10 @@ func sessionExecutable(t *testing.T, env []string, executable string, args ...st
 	return cmd
 }
 
-func latestSessionExecution(t *testing.T, session, command string) (tool.Object, string) {
+func latestFixtureExecution(t *testing.T, fixture, command string) (tool.Object, string) {
 	t.Helper()
 	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", "index.json"), &index))
 	rows := tool.Array(index["executions"])
 	for i := range slices.Backward(rows) {
 		row := tool.Obj(rows[i])
@@ -89,10 +89,10 @@ func latestSessionExecution(t *testing.T, session, command string) (tool.Object,
 		}
 		id := tool.Str(row["id"])
 		var execution tool.Object
-		require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", id, "execution.json"), &execution))
+		require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", id, "execution.json"), &execution))
 		return execution, id
 	}
-	t.Fatalf("session has no %s execution", command)
+	t.Fatalf("fixture has no %s execution", command)
 	return nil, ""
 }
 
@@ -133,14 +133,14 @@ func workspaceHashes(t *testing.T, root string) map[string]string {
 	return hashes
 }
 
-func consumerSession(t *testing.T) (string, []string) {
+func consumerFixture(t *testing.T) (string, []string) {
 	t.Helper()
 	base := t.TempDir()
 	plan := filepath.Join(base, "plan.json")
 	require.NoError(t, tool.WriteJSON(plan, tool.Object{
 		"version":       1,
 		"agentType":     "codex",
-		"caseId":        "consumer-session",
+		"caseId":        "consumer-fixture",
 		"driverProfile": "consumer",
 		"project":       filepath.Join(base, "original-project"),
 		"model":         "synthetic-model",
@@ -160,25 +160,25 @@ func consumerSession(t *testing.T) (string, []string) {
 		"CODEX_HOME=" + config,
 		"GORACE=" + os.Getenv("GORACE"),
 	}
-	session := filepath.Join(base, "session")
-	prepare := sessionTool(t, env, "prepare", "--plan", plan, "--session-dir", session)
+	fixture := filepath.Join(base, "fixture")
+	prepare := fixtureTool(t, env, "prepare", "--plan", plan, "--fixture-dir", fixture)
 	data, err := prepare.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	t.Cleanup(func() {
 		var descriptor tool.Object
-		if tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
+		if tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor) == nil {
 			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
 		}
 	})
-	return session, env
+	return fixture, env
 }
 
-func recordConsumerCapture(t *testing.T, session string, env []string) {
+func recordConsumerCapture(t *testing.T, fixture string, env []string) {
 	t.Helper()
-	recordConsumerRequest(t, session, env, `{"id":1,"method":"ping"}`+"\n")
+	recordConsumerRequest(t, fixture, env, `{"id":1,"method":"ping"}`+"\n")
 }
 
-func recordConsumerRequest(t *testing.T, session string, env []string, request string) {
+func recordConsumerRequest(t *testing.T, fixture string, env []string, request string) {
 	t.Helper()
 	agent, err := os.Executable()
 	require.NoError(t, err)
@@ -186,7 +186,7 @@ func recordConsumerRequest(t *testing.T, session string, env []string, request s
 	quoted := "'" + strings.ReplaceAll(agent, "'", "'\"'\"'") + "'"
 	require.NoError(t, os.WriteFile(launcher, []byte("#!/bin/sh\n"+testutil.RaceShellExport()+"exec "+quoted+" \"$@\"\n"), 0o700))
 	agent = launcher
-	record := sessionTool(t, env, "agent", "record", "--session-dir", session, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
+	record := fixtureTool(t, env, "agent", "record", "--fixture-dir", fixture, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	record.Stdin = strings.NewReader(request)
 	var stderr bytes.Buffer
 	record.Stderr = &stderr
@@ -199,13 +199,13 @@ func recordConsumerRequest(t *testing.T, session string, env []string, request s
 
 func TestPreparedHalfOpenMockRetainsPendingConnection(t *testing.T) {
 	mainInput, _ := builtinConnectionTranscript(t, "codex", "SDK-CASE-032", "main")
-	session, env := preparedSessionWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-032")
-	main := sessionTool(t, env, "agent", "mock", "--session-dir", session, "--connection", "main", "--", "app-server", "--listen", "stdio://")
+	fixture, env := preparedFixtureWithArgs(t, "prepare", "--agent", "codex", "--case", "SDK-CASE-032")
+	main := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture, "--connection", "main", "--", "app-server", "--listen", "stdio://")
 	main.Stdin = strings.NewReader(mainInput)
 	data, err := main.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 
-	execution, executionID := latestSessionExecution(t, session, "mock")
+	execution, executionID := latestFixtureExecution(t, fixture, "mock")
 	var mainConnection, probeConnection tool.Object
 	for _, value := range tool.Array(execution["connections"]) {
 		connection := tool.Obj(value)
@@ -222,10 +222,10 @@ func TestPreparedHalfOpenMockRetainsPendingConnection(t *testing.T) {
 	require.NoFileExists(t, tool.Str(probeConnection["receipt"]))
 
 	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", "index.json"), &index))
 	require.Equal(t, "open", tool.Obj(tool.Array(index["executions"])[0])["status"])
 
-	require.FileExists(t, filepath.Join(session, "executions", executionID, "execution.json"))
+	require.FileExists(t, filepath.Join(fixture, "executions", executionID, "execution.json"))
 	require.FileExists(t, tool.Str(mainConnection["receipt"]))
 	require.FileExists(t, tool.Str(mainConnection["processReceipt"]))
 	require.NoFileExists(t, tool.Str(probeConnection["receipt"]))
@@ -233,39 +233,39 @@ func TestPreparedHalfOpenMockRetainsPendingConnection(t *testing.T) {
 }
 
 func TestPreparedMockUsesCurrentWithoutRecordSource(t *testing.T) {
-	session, env := consumerSession(t)
-	recordConsumerCapture(t, session, env)
+	fixture, env := consumerFixture(t)
+	recordConsumerCapture(t, fixture, env)
 	var descriptor tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor))
 	sourcePath := tool.Str(tool.Obj(descriptor["source"])["path"])
 	require.NoError(t, os.Remove(sourcePath))
-	cmd := sessionTool(t, env, "agent", "mock", "--session-dir", session)
+	cmd := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture)
 	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	assert.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, string(data))
 }
 
-func TestPreparedSessionTamperRejected(t *testing.T) {
-	session, env := consumerSession(t)
-	path := filepath.Join(session, "session.json")
+func TestPreparedFixtureTamperRejected(t *testing.T) {
+	fixture, env := consumerFixture(t)
+	path := filepath.Join(fixture, "fixture.json")
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(path, &descriptor))
 	descriptor["toolVersion"] = "tampered"
 	require.NoError(t, os.Chmod(path, 0o600))
 	require.NoError(t, tool.WriteJSON(path, descriptor))
-	data, err := sessionTool(t, env, "agent", "mock", "--session-dir", session).CombinedOutput()
+	data, err := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture).CombinedOutput()
 	require.Error(t, err, "%s", data)
-	assert.Contains(t, string(data), "session descriptor changed after prepare")
+	assert.Contains(t, string(data), "fixture descriptor changed after prepare")
 }
 
 func TestPreparedMockLauncherUsesIsolatedExecutionOverlays(t *testing.T) {
-	session, env := consumerSession(t)
-	recordConsumerCapture(t, session, env)
-	resolvedSession, err := filepath.EvalSymlinks(session)
+	fixture, env := consumerFixture(t)
+	recordConsumerCapture(t, fixture, env)
+	resolvedFixture, err := filepath.EvalSymlinks(fixture)
 	require.NoError(t, err)
 	var descriptor tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor))
 	route := tool.Obj(tool.Obj(descriptor["routes"])["mock"])
 	routeWorkspace := tool.Str(route["workspace"])
 	launcher := tool.Str(tool.Obj(tool.Array(route["connections"])[0])["launcher"])
@@ -292,7 +292,7 @@ exec '%s' "$@"
 	require.NoError(t, os.WriteFile(wrapper, []byte(script), 0o700))
 
 	run := func(label string) (tool.Object, string, map[string]string) {
-		cmd := sessionExecutable(t, routeHostEnvironment(route, map[string]string{
+		cmd := fixtureExecutable(t, routeHostEnvironment(route, map[string]string{
 			"RUN_LABEL": label,
 		}), wrapper, "app-server", "--listen", "stdio://")
 		cmd.Dir = routeWorkspace
@@ -312,7 +312,7 @@ exec '%s' "$@"
 			require.True(t, ok, line)
 			observed[key] = value
 		}
-		execution, id := latestSessionExecution(t, session, "mock")
+		execution, id := latestFixtureExecution(t, fixture, "mock")
 		return execution, id, observed
 	}
 
@@ -320,7 +320,7 @@ exec '%s' "$@"
 	firstWorkspace := tool.Str(first["workspace"])
 	firstRoot := filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions", firstID)
 	require.NotEqual(t, routeWorkspace, firstWorkspace)
-	require.True(t, strings.HasPrefix(firstWorkspace, resolvedSession+string(filepath.Separator)))
+	require.True(t, strings.HasPrefix(firstWorkspace, resolvedFixture+string(filepath.Separator)))
 	require.True(t, strings.HasPrefix(firstWorkspace, firstRoot+string(filepath.Separator)))
 	require.Equal(t, tool.Str(first["home"]), tool.Str(tool.Obj(first["env"])["HOME"]))
 	require.Equal(t, tool.Str(first["config"]), tool.Str(tool.Obj(first["env"])["CODEX_HOME"]))
@@ -382,15 +382,15 @@ func resolvedSymlink(t *testing.T, path string) string {
 }
 
 func TestPreparedConsumerRecordFailure(t *testing.T) {
-	session, env := consumerSession(t)
-	record := sessionTool(t, env, "agent", "record", "--session-dir", session, "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
+	fixture, env := consumerFixture(t)
+	record := fixtureTool(t, env, "agent", "record", "--fixture-dir", fixture, "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
 	data, err := record.CombinedOutput()
 	require.Error(t, err, "%s", data)
 
 	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", "index.json"), &index))
 	var materials tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "materials", "index.json"), &materials))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "materials", "index.json"), &materials))
 	assert.Empty(t, tool.Array(materials["materials"]))
 
 	require.Equal(t, "failed", tool.Obj(tool.Array(index["executions"])[0])["status"])
@@ -409,17 +409,17 @@ func TestConsumerPlanAgentTypeCannotBeOverriddenByLegacyProvider(t *testing.T) {
 				"driverProfile": "consumer",
 				"project":       filepath.Join(base, "project"),
 			}))
-			session := filepath.Join(base, "session")
-			cmd := sessionTool(t, []string{
+			fixture := filepath.Join(base, "fixture")
+			cmd := fixtureTool(t, []string{
 				"PATH=" + os.Getenv("PATH"),
 				"HOME=" + filepath.Join(base, "home"),
 				"GORACE=" + os.Getenv("GORACE"),
-			}, "prepare", "--agent", "codex", "--plan", plan, "--session-dir", session)
+			}, "prepare", "--agent", "codex", "--plan", plan, "--fixture-dir", fixture)
 			data, err := cmd.CombinedOutput()
 			require.Error(t, err, "%s", data)
 			assert.Contains(t, string(data), "agentType")
 			assert.Contains(t, string(data), "provider")
-			require.NoDirExists(t, session)
+			require.NoDirExists(t, fixture)
 		})
 	}
 }
@@ -478,29 +478,29 @@ func syntheticCaseMaterial(t *testing.T, caseID, provenance string, files map[st
 	return root
 }
 
-func TestPreparedHistoryRejectsUnboundFilesBeforeSession(t *testing.T) {
+func TestPreparedHistoryRejectsUnboundFilesBeforeFixture(t *testing.T) {
 	root := syntheticCaseMaterial(t, "SDK-CASE-001", "external", map[string]string{"config/sessions/history.jsonl": "bound\n"})
 	var manifest tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "manifest.json"), &manifest))
 	delete(manifest, "savedFiles")
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), manifest))
-	session := filepath.Join(t.TempDir(), "session")
-	data, err := sessionTool(t, os.Environ(), "prepare", "--session-dir", session, "--recording", root).CombinedOutput()
+	fixture := filepath.Join(t.TempDir(), "fixture")
+	data, err := fixtureTool(t, os.Environ(), "prepare", "--fixture-dir", fixture, "--recording", root).CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "unbound history")
-	assert.NoFileExists(t, filepath.Join(session, "session.json"))
+	assert.NoFileExists(t, filepath.Join(fixture, "fixture.json"))
 }
 
 func TestPreparedMockUsesSelectedArtifactProvenance(t *testing.T) {
 	root := syntheticCaseMaterial(t, "SDK-CASE-001", "consumer", map[string]string{
 		"config/sessions/history.jsonl": "consumer\n",
 	})
-	session, env := preparedSessionWithArgs(t, "prepare", "--recording", root)
-	cmd := sessionTool(t, env, "agent", "mock", "--session-dir", session, "--", "app-server", "--listen", "stdio://")
+	fixture, env := preparedFixtureWithArgs(t, "prepare", "--recording", root)
+	cmd := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture, "--", "app-server", "--listen", "stdio://")
 	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
-	execution, _ := latestSessionExecution(t, session, "mock")
+	execution, _ := latestFixtureExecution(t, fixture, "mock")
 	assert.Equal(t, "consumer", execution["provenance"])
 	assert.Equal(t, "mock", tool.Obj(execution["artifact"])["action"])
 	data, err = os.ReadFile(filepath.Join(tool.Str(execution["config"]), "sessions", "history.jsonl"))
@@ -510,12 +510,12 @@ func TestPreparedMockUsesSelectedArtifactProvenance(t *testing.T) {
 
 func TestPreparedVerifyRejectsConsumerMaterial(t *testing.T) {
 	root := syntheticCaseMaterial(t, "SDK-CASE-001", "consumer", nil)
-	session, env := preparedSessionWithArgs(t, "prepare", "--recording", root)
-	data, err := sessionTool(t, env, "official", "verify", "--session-dir", session).CombinedOutput()
+	fixture, env := preparedFixtureWithArgs(t, "prepare", "--recording", root)
+	data, err := fixtureTool(t, env, "official", "verify", "--fixture-dir", fixture).CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "no applicable official verifier")
 	var index tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "executions", "index.json"), &index))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", "index.json"), &index))
 	assert.Empty(t, tool.Array(index["executions"]))
 }
 
@@ -531,13 +531,13 @@ func TestPreparedMaterialProvenanceConflictFailsBeforeReplay(t *testing.T) {
 	require.NoError(t, err)
 	manifest["planSHA256"] = planHash
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), manifest))
-	session := filepath.Join(t.TempDir(), "session")
-	data, err := sessionTool(t, os.Environ(), "prepare", "--session-dir", session, "--recording", root).CombinedOutput()
+	fixture := filepath.Join(t.TempDir(), "fixture")
+	data, err := fixtureTool(t, os.Environ(), "prepare", "--fixture-dir", fixture, "--recording", root).CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "provenance")
 }
 
-func preparedSessionWithArgs(t *testing.T, args ...string) (string, []string) {
+func preparedFixtureWithArgs(t *testing.T, args ...string) (string, []string) {
 	t.Helper()
 	base := t.TempDir()
 	home := filepath.Join(base, "home")
@@ -550,14 +550,14 @@ func preparedSessionWithArgs(t *testing.T, args ...string) (string, []string) {
 		"CODEX_HOME=" + config,
 		"GORACE=" + os.Getenv("GORACE"),
 	}
-	session := filepath.Join(base, "session")
-	data, err := sessionTool(t, env, append(args, "--session-dir", session)...).CombinedOutput()
+	fixture := filepath.Join(base, "fixture")
+	data, err := fixtureTool(t, env, append(args, "--fixture-dir", fixture)...).CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	t.Cleanup(func() {
 		var descriptor tool.Object
-		if tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor) == nil {
+		if tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor) == nil {
 			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
 		}
 	})
-	return session, env
+	return fixture, env
 }

@@ -50,7 +50,7 @@ func sealedCapture(t *testing.T, connection string) Material {
 	require.NoError(t, tool.WriteJSON(source, tool.Object{"caseId": "synthetic"}))
 	digest, err := tool.FileDigest(source)
 	require.NoError(t, err)
-	origin := &OfficialOrigin{RunID: "original-run", SessionID: "original-session", CaseID: "synthetic", AgentType: "codex", SourceSHA256: digest, DriverSHA256: strings.Repeat("d", 64), Connections: []string{connection}}
+	origin := &OfficialOrigin{RunID: "original-run", FixtureID: "original-fixture", CaseID: "synthetic", AgentType: "codex", SourceSHA256: digest, DriverSHA256: strings.Repeat("d", 64), Connections: []string{connection}}
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "official-origin.json"), origin))
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "plan.json"), tool.Object{"caseId": origin.CaseID, "provider": origin.AgentType, "sourcePlanSHA256": digest}))
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), tool.Object{"sourcePlanSHA256": digest}))
@@ -82,7 +82,7 @@ func TestSealedOwnershipDoesNotQualifyUnsettledBusiness(t *testing.T) {
 	run := t.TempDir()
 	require.Error(t, ValidateOfficialRecord(run, material))
 	result := tool.Object{
-		"status": "passed", "sessionId": material.OfficialOrigin.SessionID, "cleanupComplete": true,
+		"status": "passed", "fixtureId": material.OfficialOrigin.FixtureID, "cleanupComplete": true,
 		"driverProcess": tool.Object{"reaped": true, "exitCode": 0}, "business": tool.Object{"status": "failed"},
 		"driver":      tool.Object{"sha256": material.OfficialOrigin.DriverSHA256},
 		"connections": []any{tool.Object{"connectionId": "main", "material": material, "finished": tool.Object{"status": "passed"}}},

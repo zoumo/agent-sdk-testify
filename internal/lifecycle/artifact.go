@@ -28,34 +28,34 @@ func artifactForMaterial(root, provenance, action string, connections []string) 
 	return material, nil
 }
 
-func LoadPlan(session *Session) (tool.Object, error) {
-	path := session.Source.Path
-	switch session.Source.Kind {
+func LoadPlan(fixture *Fixture) (tool.Object, error) {
+	path := fixture.Source.Path
+	switch fixture.Source.Kind {
 	case "case", "plan":
 	case "recording":
-		path = filepath.Join(session.Source.Path, "plan.json")
+		path = filepath.Join(fixture.Source.Path, "plan.json")
 	default:
-		return nil, errors.New("unknown session source")
+		return nil, errors.New("unknown fixture source")
 	}
-	if session.Source.Kind == "case" || session.Source.Kind == "plan" {
+	if fixture.Source.Kind == "case" || fixture.Source.Kind == "plan" {
 		hash, err := tool.FileDigest(path)
 		if err != nil {
 			return nil, err
 		}
-		if hash != session.Source.SHA256 {
-			return nil, errors.New("session source changed after prepare")
+		if hash != fixture.Source.SHA256 {
+			return nil, errors.New("fixture source changed after prepare")
 		}
 	} else {
 		planHash, err := tool.FileDigest(path)
 		if err != nil {
 			return nil, err
 		}
-		manifestHash, err := tool.FileDigest(filepath.Join(session.Source.Path, "manifest.json"))
+		manifestHash, err := tool.FileDigest(filepath.Join(fixture.Source.Path, "manifest.json"))
 		if err != nil {
 			return nil, err
 		}
-		if tool.DigestBytes([]byte(planHash+"\n"+manifestHash+"\n")) != session.Source.SHA256 {
-			return nil, errors.New("session source changed after prepare")
+		if tool.DigestBytes([]byte(planHash+"\n"+manifestHash+"\n")) != fixture.Source.SHA256 {
+			return nil, errors.New("fixture source changed after prepare")
 		}
 	}
 	var plan tool.Object
@@ -65,20 +65,20 @@ func LoadPlan(session *Session) (tool.Object, error) {
 	return plan, nil
 }
 
-// CurrentArtifact resolves the single current recording. A session without a
+// CurrentArtifact resolves the single current recording. A fixture without a
 // current recording is a valid prepared state and returns present=false.
-func CurrentArtifact(sessionDir string, session *Session) (*corpus.Material, bool, error) {
+func CurrentArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, bool, error) {
 	var current Current
-	if err := tool.ReadJSON(filepath.Join(sessionDir, "current.json"), &current); err != nil {
+	if err := tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current); err != nil {
 		return nil, false, err
 	}
-	if current.SchemaVersion != SchemaVersion || current.SessionID != session.SessionID {
+	if current.SchemaVersion != SchemaVersion || current.FixtureID != fixture.FixtureID {
 		return nil, false, errors.New("invalid current recording identity or schemaVersion")
 	}
 	if current.MaterialID == "" {
 		return nil, false, nil
 	}
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return nil, false, err
 	}
@@ -86,7 +86,7 @@ func CurrentArtifact(sessionDir string, session *Session) (*corpus.Material, boo
 		if artifact.ID != current.MaterialID {
 			continue
 		}
-		if _, err := inspectMaterial(session, artifact); err != nil {
+		if _, err := inspectMaterial(fixture, artifact); err != nil {
 			return nil, false, err
 		}
 		return &artifact, true, nil
@@ -95,23 +95,23 @@ func CurrentArtifact(sessionDir string, session *Session) (*corpus.Material, boo
 }
 
 // LatestArtifact resolves the single current recording.
-func LatestArtifact(sessionDir string, session *Session) (*corpus.Material, error) {
-	material, present, err := CurrentArtifact(sessionDir, session)
+func LatestArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, error) {
+	material, present, err := CurrentArtifact(fixtureDir, fixture)
 	if err != nil {
 		return nil, err
 	}
 	if !present {
-		return nil, errors.New("session has no current recording")
+		return nil, errors.New("fixture has no current recording")
 	}
 	return material, nil
 }
 
 type Current struct {
 	SchemaVersion int    `json:"schemaVersion"`
-	SessionID     string `json:"sessionId"`
+	FixtureID     string `json:"fixtureId"`
 	MaterialID    string `json:"materialId,omitempty"`
 }
 
-func writeCurrent(sessionDir string, session *Session, materialID string) error {
-	return writeAtomic(filepath.Join(sessionDir, "current.json"), Current{SchemaVersion: SchemaVersion, SessionID: session.SessionID, MaterialID: materialID})
+func writeCurrent(fixtureDir string, fixture *Fixture, materialID string) error {
+	return writeAtomic(filepath.Join(fixtureDir, "current.json"), Current{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, MaterialID: materialID})
 }

@@ -217,7 +217,7 @@ func CheckMaterial(root string, material *Material) error {
 	return checkMaterial(root, material, false)
 }
 
-func checkMaterial(root string, material *Material, sessionMetadata bool) error {
+func checkMaterial(root string, material *Material, materialDescriptor bool) error {
 	if err := CheckSelection(material); err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func checkMaterial(root string, material *Material, sessionMetadata bool) error 
 	if err != nil {
 		return err
 	}
-	if sessionMetadata {
+	if materialDescriptor {
 		delete(files, "material.json")
 	}
 	if len(files) != len(material.Files) {
@@ -244,16 +244,16 @@ func checkMaterial(root string, material *Material, sessionMetadata bool) error 
 
 func CheckRoot(root string) (*Material, error) { return checkRoot(root, false) }
 
-// CheckPreparedRoot accepts the session-owned material descriptor in addition
+// CheckPreparedRoot accepts the fixture-owned material descriptor in addition
 // to the exact builtin payload. All payload bytes still match the snapshot.
 func CheckPreparedRoot(root string) (*Material, error) { return checkRoot(root, true) }
 
-func checkRoot(root string, sessionMetadata bool) (*Material, error) {
+func checkRoot(root string, materialDescriptor bool) (*Material, error) {
 	files, err := corpus.Inventory(root, false)
 	if err != nil {
 		return nil, err
 	}
-	if sessionMetadata {
+	if materialDescriptor {
 		delete(files, "material.json")
 	}
 	m, _, err := Read()
@@ -273,7 +273,7 @@ func checkRoot(root string, sessionMetadata bool) (*Material, error) {
 			}
 		}
 		if matches {
-			if err := checkMaterial(root, material, sessionMetadata); err != nil {
+			if err := checkMaterial(root, material, materialDescriptor); err != nil {
 				return nil, err
 			}
 			return material, nil

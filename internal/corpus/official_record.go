@@ -21,7 +21,7 @@ func ValidateOfficialRecord(root string, artifact Material) error {
 		return err
 	}
 	process := tool.Obj(result["driverProcess"])
-	if result["status"] != "passed" || result["sessionId"] != artifact.OfficialOrigin.SessionID || result["cleanupComplete"] != true || process["reaped"] != true || process["exitCode"] != float64(0) || tool.Obj(result["business"])["status"] != "passed" {
+	if result["status"] != "passed" || evidenceFixtureID(result) != artifact.OfficialOrigin.FixtureID || result["cleanupComplete"] != true || process["reaped"] != true || process["exitCode"] != float64(0) || tool.Obj(result["business"])["status"] != "passed" {
 		return errors.New("official capture has no successful settled orchestration")
 	}
 	files, err := history.HashTree(filepath.Join(root, "driver"))

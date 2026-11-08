@@ -20,7 +20,7 @@ import (
 
 // Prepared is the validated target and stream contract for one record policy.
 type Prepared struct {
-	SessionDir string
+	FixtureDir string
 	Connection string
 	Args       []string
 	NativeArgs []string
@@ -33,7 +33,7 @@ type Prepared struct {
 
 func Run(ctx context.Context, prepared Prepared, streams capture.IO) (*lifecycle.RecordResult, error) {
 	return lifecycle.RunRecord(ctx, lifecycle.RecordRequest{
-		SessionDir: prepared.SessionDir,
+		FixtureDir: prepared.FixtureDir,
 		Connection: prepared.Connection,
 		Args:       prepared.Args,
 		Timeout:    prepared.Timeout,
@@ -117,7 +117,7 @@ func captureNative(ctx context.Context, run lifecycle.RecordContext, command str
 // reports are deliberately absent: they may be produced after this publication.
 func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	execution := run.Execution()
-	session := run.Session()
+	fixture := run.Fixture()
 	planPath := execution.Source.Path
 	if execution.Source.Kind == "recording" {
 		planPath = filepath.Join(planPath, "plan.json")
@@ -126,7 +126,7 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := lifecycle.LoadPlan(&session); err != nil {
+	if _, err := lifecycle.LoadPlan(&fixture); err != nil {
 		return nil, err
 	}
 	if run.IsOfficialCapture() {

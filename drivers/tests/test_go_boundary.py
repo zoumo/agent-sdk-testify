@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 from request_support import request_case
-from peer_support import identity, prepare_record, current_capture
+from peer_support import identity, prepare_fixture, current_capture
 from record_user_story.scenarios import recipe, digest
 import shlex
 
@@ -100,10 +100,10 @@ for line in sys.stdin:
             modules = {'openai_codex.client': sdk, 'openai_codex.generated.v2_all': generated, 'pydantic': pydantic}
             with patch.dict(sys.modules, modules), patch('record_user_story.drivers.sdk_identity', return_value=plan['officialSDK']):
                 binary = identity()['path']
-                session = prepare_record(root, plan)
+                fixture = prepare_fixture(root, plan)
                 launcher = root/'record-peer'
                 command_file = root/'record-command.json'
-                command_file.write_text(json.dumps({'command': binary, 'args': ['agent', 'record', '--session-dir', str(session), '--cmd', plan['cli'], '--', 'app-server']}))
+                command_file.write_text(json.dumps({'command': binary, 'args': ['agent', 'record', '--fixture-dir', str(fixture), '--cmd', plan['cli'], '--', 'app-server']}))
                 notices = root/'record-results.jsonl'
                 plan['_agentResults'] = {'main': str(notices)}
                 launcher.write_text('#!/bin/sh\nexec ' + shlex.join([binary, '--internal-peer', '--request', str(command_file), '--results', str(notices)]) + '\n')
@@ -111,7 +111,7 @@ for line in sys.stdin:
                 request_case(plan, peer={'command': str(launcher), 'args': []})
                 report = json.loads((root/'report.json').read_bytes())
                 self.assertEqual((report['inputs'], report['results'], report['status']), (2, 2, 'passed'))
-                capture = current_capture(session)
+                capture = current_capture(fixture)
                 shutil.copytree(capture/'raw', root/'raw', dirs_exist_ok=True)
                 before = {p.name: p.read_bytes() for p in (root/'raw').iterdir()}
                 go_manifest = json.loads(before['manifest.json'])
@@ -127,7 +127,7 @@ for line in sys.stdin:
                 launcher = replay_root/'mock-peer'
                 receipt = replay_root/'peer.json'
                 command_file = replay_root/'mock-command.json'
-                command_file.write_text(json.dumps({'command': binary, 'args': ['agent', 'mock', '--session-dir', str(session)]}))
+                command_file.write_text(json.dumps({'command': binary, 'args': ['agent', 'mock', '--fixture-dir', str(fixture)]}))
                 notices = replay_root/'mock-results.jsonl'
                 replay_plan['_agentResults'] = {'main': str(notices)}
                 launcher.write_text('#!/bin/sh\nexec ' + shlex.join([binary, '--internal-peer', '--request', str(command_file), '--results', str(notices)]) + '\n')
@@ -135,8 +135,8 @@ for line in sys.stdin:
                 request_case(replay_plan, peer={'command': str(launcher), 'args': []})
                 replay_report = next(replay_root.glob('*report.json'))
                 self.assertEqual(json.loads(replay_report.read_bytes())['status'], 'passed')
-                index = json.loads((session/'executions/index.json').read_text())
-                execution = json.loads((session/'executions'/index['executions'][-1]['id']/'execution.json').read_text())
+                index = json.loads((fixture/'executions/index.json').read_text())
+                execution = json.loads((fixture/'executions'/index['executions'][-1]['id']/'execution.json').read_text())
                 completion = json.loads(Path(execution['connections'][0]['receipt']).read_text())
                 self.assertTrue(completion['fullConsumption'])
                 self.assertTrue(completion['clientEOF'])

@@ -41,7 +41,7 @@ const (
 // ActionResult is the shared evidence returned after one record or mock
 // connection call. A passed connection does not imply a complete execution.
 type ActionResult struct {
-	SessionID          string
+	FixtureID          string
 	ExecutionID        string
 	ConnectionID       string
 	ConnectionStatus   ConnectionStatus
@@ -66,11 +66,11 @@ type MockResult struct {
 	ActionResult
 }
 
-func (r *ActionResult) refresh(sessionDir string) {
+func (r *ActionResult) refresh(fixtureDir string) {
 	r.ConnectionStatus = ConnectionStatusUnknown
 	r.ExecutionStatus = ExecutionStatusUnknown
 	r.ExecutionComplete = false
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return
 	}
@@ -121,7 +121,7 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 	path := filepath.Join(run.dir, "receipts", id+".result.json")
 	value := tool.Object{
 		"schemaVersion": 1,
-		"sessionId":     run.session.SessionID,
+		"fixtureId":     run.fixture.FixtureID,
 		"processId":     os.Getpid(),
 		"executionId":   run.execution.ExecutionID,
 		"connectionId":  id,

@@ -1,6 +1,7 @@
 package corpus
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -31,7 +32,7 @@ type Material struct {
 // into the material before publication; the later run result is separate evidence.
 type OfficialOrigin struct {
 	RunID              string   `json:"runId"`
-	SessionID          string   `json:"sessionId"`
+	FixtureID          string   `json:"fixtureId"`
 	CaseID             string   `json:"caseId"`
 	AgentType          string   `json:"agentType"`
 	RecordSourceSHA256 string   `json:"recordSourceSHA256"`
@@ -40,11 +41,30 @@ type OfficialOrigin struct {
 	Connections        []string `json:"connections"`
 }
 
+// UnmarshalJSON keeps immutable repository evidence readable after the
+// tool-owned identity moved from sessionId to fixtureId. MarshalJSON remains
+// the default struct encoding and therefore never writes the old field.
+func (o *OfficialOrigin) UnmarshalJSON(data []byte) error {
+	type wire OfficialOrigin
+	var decoded struct {
+		*wire
+		LegacyFixtureID string `json:"sessionId"`
+	}
+	decoded.wire = (*wire)(o)
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	if o.FixtureID == "" {
+		o.FixtureID = decoded.LegacyFixtureID
+	}
+	return nil
+}
+
 // ValidateOfficialCapture checks portable, sealed capture ownership. It does
-// not read the originating session or imply that the parent's business passed.
+// not read the originating fixture or imply that the parent's business passed.
 func ValidateOfficialCapture(artifact Material) error {
 	origin := artifact.OfficialOrigin
-	if origin == nil || origin.RunID == "" || origin.SessionID == "" || len(origin.DriverSHA256) != 64 {
+	if origin == nil || origin.RunID == "" || origin.FixtureID == "" || len(origin.DriverSHA256) != 64 {
 		return errors.New("official capture origin is incomplete")
 	}
 	var sealed OfficialOrigin
@@ -252,7 +272,7 @@ func checkMaterialProvenance(artifact Material, plan, manifest tool.Object, sele
 	return nil
 }
 
-// ReadMaterial describes an imported payload. Its caller assigns session-local
+// ReadMaterial describes an imported payload. Its caller assigns fixture-local
 // identity and checks any builtin snapshot against the builtin contract.
 func ReadMaterial(root, provenance string) (*Material, error) {
 	material := &Material{Kind: "material", Path: root, Provenance: provenance}

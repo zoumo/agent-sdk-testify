@@ -60,16 +60,16 @@ func TestLibraryRecordWithoutCLI(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Plan:       writeLibraryPlan(t, root),
 	})
 	require.NoError(t, err)
 	require.Nil(t, prepared.Current)
 
 	peer := writeLibraryRecordPeer(t, root, "success")
-	result, stdout, stderr, recordErr := runLibraryRecord(t, prepared, agenttestify.RecordOptions{
+	result, stdout, stderr, recordErr := runLibraryRecord(t, prepared, agenttestify.RecordAgentOptions{
 		Command:    peer,
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		Timeout:    10 * time.Second,
@@ -87,7 +87,7 @@ func TestLibraryRecordWithoutCLI(t *testing.T) {
 	require.Equal(t, true, receipt["cleanupComplete"])
 	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(result.ReceiptPath), "stderr.raw"))), "synthetic library record peer")
 
-	opened, err := agenttestify.Open(sessionDir)
+	opened, err := agenttestify.Open(fixtureDir)
 	require.NoError(t, err)
 	require.Equal(t, result.Material, opened.Current)
 	require.Equal(t, cwd, workingDirectory(t))
@@ -97,25 +97,25 @@ func TestLibraryRecordFailureRetainsEvidenceAndCurrent(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Plan:       writeLibraryPlan(t, root),
 	})
 	require.NoError(t, err)
 
 	successPeer := writeLibraryRecordPeer(t, root, "success")
-	success, _, _, err := runLibraryRecord(t, prepared, agenttestify.RecordOptions{
+	success, _, _, err := runLibraryRecord(t, prepared, agenttestify.RecordAgentOptions{
 		Command:    successPeer,
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		Timeout:    10 * time.Second,
 	}, `{"id":1,"method":"synthetic"}`+"\n")
 	require.NoError(t, err)
 	require.NotNil(t, success.Material)
-	currentBefore := readFile(t, filepath.Join(sessionDir, "current.json"))
+	currentBefore := readFile(t, filepath.Join(fixtureDir, "current.json"))
 
 	failurePeer := writeLibraryRecordPeer(t, root, "failure")
-	failed, stdout, stderr, recordErr := runLibraryRecord(t, prepared, agenttestify.RecordOptions{
+	failed, stdout, stderr, recordErr := runLibraryRecord(t, prepared, agenttestify.RecordAgentOptions{
 		Command:    failurePeer,
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		Timeout:    10 * time.Second,
@@ -124,13 +124,13 @@ func TestLibraryRecordFailureRetainsEvidenceAndCurrent(t *testing.T) {
 	require.Empty(t, stdout)
 	require.Empty(t, stderr)
 	require.Equal(t, cwd, workingDirectory(t))
-	require.Equal(t, currentBefore, readFile(t, filepath.Join(sessionDir, "current.json")))
+	require.Equal(t, currentBefore, readFile(t, filepath.Join(fixtureDir, "current.json")))
 
 	require.NotNil(t, failed)
 	require.Equal(t, agenttestify.ConnectionStatusFailed, failed.ConnectionStatus)
 	require.Equal(t, agenttestify.ExecutionStatusFailed, failed.ExecutionStatus)
 	require.True(t, failed.ExecutionComplete)
-	require.Equal(t, prepared.SessionID, failed.SessionID)
+	require.Equal(t, prepared.FixtureID, failed.FixtureID)
 	require.Equal(t, "main", failed.ConnectionID)
 	require.NotEmpty(t, failed.ExecutionID)
 	require.Nil(t, failed.Material)
@@ -147,7 +147,7 @@ func TestLibraryRecordFailureRetainsEvidenceAndCurrent(t *testing.T) {
 	require.FileExists(t, failurePath)
 	require.Equal(t, "failed", readLibraryJSON(t, failurePath)["status"])
 
-	opened, err := agenttestify.Open(sessionDir)
+	opened, err := agenttestify.Open(fixtureDir)
 	require.NoError(t, err)
 	require.Equal(t, success.Material, opened.Current)
 	require.Equal(t, cwd, workingDirectory(t))
@@ -192,9 +192,9 @@ func TestLibraryRemoteRecordWithoutCLI(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Plan:       writeLibraryPlan(t, root),
 	})
 	require.NoError(t, err)
@@ -215,12 +215,12 @@ func TestLibraryRemoteRecordWithoutCLI(t *testing.T) {
 	defer cancel()
 
 	type outcome struct {
-		result *agenttestify.RecordResult
+		result *agenttestify.RecordAgentResult
 		err    error
 	}
 	done := make(chan outcome, 1)
 	go func() {
-		result, err := prepared.Record(ctx, agenttestify.RecordOptions{
+		result, err := prepared.RecordAgent(ctx, agenttestify.RecordAgentOptions{
 			URL:       "ws" + strings.TrimPrefix(server.URL, "http"),
 			TokenFile: tokenFile,
 			Timeout:   10 * time.Second,
@@ -254,7 +254,7 @@ func TestLibraryRemoteRecordWithoutCLI(t *testing.T) {
 	require.Equal(t, true, receipt["remoteClosed"])
 	require.Equal(t, false, receipt["nativeLaunched"])
 
-	opened, err := agenttestify.Open(sessionDir)
+	opened, err := agenttestify.Open(fixtureDir)
 	require.NoError(t, err)
 	require.Equal(t, recorded.result.Material, opened.Current)
 
@@ -271,20 +271,20 @@ func TestLibraryRemoteRecordWithoutCLI(t *testing.T) {
 	}
 }
 
-func assertPublishedLibraryRecord(t *testing.T, prepared *agenttestify.Session, result *agenttestify.RecordResult) *agenttestify.Material {
+func assertPublishedLibraryRecord(t *testing.T, prepared *agenttestify.Fixture, result *agenttestify.RecordAgentResult) *agenttestify.Material {
 	t.Helper()
 	require.NotNil(t, result)
 	require.Equal(t, agenttestify.ConnectionStatusPassed, result.ConnectionStatus)
 	require.Equal(t, agenttestify.ExecutionStatusPassed, result.ExecutionStatus)
 	require.True(t, result.ExecutionComplete)
-	require.Equal(t, prepared.SessionID, result.SessionID)
+	require.Equal(t, prepared.FixtureID, result.FixtureID)
 	require.Equal(t, "main", result.ConnectionID)
 	require.NotEmpty(t, result.ExecutionID)
 	require.NotNil(t, result.Material)
 	require.Len(t, result.Material.PlanSHA256, 64)
 	require.Len(t, result.Material.ManifestSHA256, 64)
 	require.Len(t, result.Material.RecordingSHA256, 64)
-	require.Equal(t, filepath.Join(prepared.SessionDir, "materials", result.Material.ID), result.Material.Path)
+	require.Equal(t, filepath.Join(prepared.FixtureDir, "materials", result.Material.ID), result.Material.Path)
 	require.FileExists(t, result.ExecutionPath)
 	require.FileExists(t, result.ReceiptPath)
 	require.FileExists(t, result.ResultPath)
@@ -301,13 +301,13 @@ func assertPublishedLibraryRecord(t *testing.T, prepared *agenttestify.Session, 
 
 func runLibraryRecord(
 	t *testing.T,
-	session *agenttestify.Session,
-	options agenttestify.RecordOptions,
+	fixture *agenttestify.Fixture,
+	options agenttestify.RecordAgentOptions,
 	input string,
-) (*agenttestify.RecordResult, string, string, error) {
+) (*agenttestify.RecordAgentResult, string, string, error) {
 	t.Helper()
 	streams := newLibraryStreams(t, t.TempDir(), input)
-	result, runErr := session.Record(t.Context(), options, streams.io)
+	result, runErr := fixture.RecordAgent(t.Context(), options, streams.io)
 	return result, streams.output(t), streams.errors(t), runErr
 }
 

@@ -34,7 +34,7 @@ func (p recordPolicyFunc) Package(ctx context.Context, run RecordContext) (*corp
 	return p.finalize(ctx, run)
 }
 
-func prepareRecordTransactionSession(t *testing.T) string {
+func prepareRecordTransactionFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	home := filepath.Join(root, "home")
@@ -58,13 +58,13 @@ func prepareRecordTransactionSession(t *testing.T) string {
 			"parameters": tool.Object{"keep": 9007199254740993},
 		},
 	}))
-	sessionDir := filepath.Join(root, "session")
-	_, err := Prepare(PrepareOptions{SessionDir: sessionDir, Plan: plan})
+	fixtureDir := filepath.Join(root, "fixture")
+	_, err := Prepare(PrepareOptions{FixtureDir: fixtureDir, Plan: plan})
 	require.NoError(t, err)
-	return sessionDir
+	return fixtureDir
 }
 
-func prepareMultiRecordTransactionSession(t *testing.T) string {
+func prepareMultiRecordTransactionFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	home := filepath.Join(root, "home")
@@ -74,13 +74,13 @@ func prepareMultiRecordTransactionSession(t *testing.T) string {
 	require.NoError(t, os.WriteFile(filepath.Join(config, "auth.json"), []byte("{\"syntheticToken\":\"private\"}\n"), 0o600))
 	t.Setenv("HOME", home)
 	t.Setenv("CODEX_HOME", config)
-	sessionDir := filepath.Join(root, "session")
-	_, err := Prepare(PrepareOptions{SessionDir: sessionDir, Agent: "codex", Case: "SDK-CASE-032"})
+	fixtureDir := filepath.Join(root, "fixture")
+	_, err := Prepare(PrepareOptions{FixtureDir: fixtureDir, Agent: "codex", Case: "SDK-CASE-032"})
 	require.NoError(t, err)
-	return sessionDir
+	return fixtureDir
 }
 
-func prepareOfficialRecordTransactionSession(t *testing.T) (sessionDir, mockTemplate, mockOverlay string) {
+func prepareOfficialRecordTransactionFixture(t *testing.T) (fixtureDir, mockTemplate, mockOverlay string) {
 	t.Helper()
 	root := t.TempDir()
 	home := filepath.Join(root, "home")
@@ -89,11 +89,11 @@ func prepareOfficialRecordTransactionSession(t *testing.T) (sessionDir, mockTemp
 	require.NoError(t, os.MkdirAll(config, 0o700))
 	t.Setenv("HOME", home)
 	t.Setenv("CODEX_HOME", config)
-	sessionDir = filepath.Join(root, "session")
-	_, err := Prepare(PrepareOptions{SessionDir: sessionDir, Agent: "codex", Case: "SDK-CASE-001"})
+	fixtureDir = filepath.Join(root, "fixture")
+	_, err := Prepare(PrepareOptions{FixtureDir: fixtureDir, Agent: "codex", Case: "SDK-CASE-001"})
 	require.NoError(t, err)
 
-	activity, err := BeginOfficial(sessionDir, "record")
+	activity, err := BeginOfficial(fixtureDir, "record")
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = activity.Complete(tool.Object{"mode": "record", "status": "passed", "cleanupComplete": true})
@@ -107,13 +107,13 @@ func prepareOfficialRecordTransactionSession(t *testing.T) (sessionDir, mockTemp
 		t.Setenv(key, value)
 	}
 
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	mockTemplate = filepath.Join(session.ResourceRoot, "templates", "mock")
+	mockTemplate = filepath.Join(fixture.ResourceRoot, "templates", "mock")
 	mockOverlay = filepath.Join(root, "mock-route-overlay")
 	require.NoError(t, tool.CopyTree(mockTemplate, mockOverlay))
-	require.NoError(t, bindRouteSlots(filepath.Join(session.ResourceRoot, "routes", "mock"), mockOverlay))
-	return sessionDir, mockTemplate, mockOverlay
+	require.NoError(t, bindRouteSlots(filepath.Join(fixture.ResourceRoot, "routes", "mock"), mockOverlay))
+	return fixtureDir, mockTemplate, mockOverlay
 }
 
 func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
@@ -142,7 +142,7 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			sourcePlanSHA256 := ""
 			execution := run.Execution()
 			if execution.Artifact.OfficialOrigin != nil {
-				sourcePlan, err := os.ReadFile(run.Session().Source.Path)
+				sourcePlan, err := os.ReadFile(run.Fixture().Source.Path)
 				require.NoError(t, err)
 				require.NoError(t, os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), sourcePlan, 0o600))
 				sourcePlanSHA256 = tool.DigestBytes(sourcePlan)
@@ -198,11 +198,11 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 	}
 }
 
-func recordTransactionRequest(sessionDir string, resultFD int) RecordRequest {
+func recordTransactionRequest(fixtureDir string, resultFD int) RecordRequest {
 	return RecordRequest{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Connection: "main",
-		Args:       []string{"--session-dir", sessionDir, "--cmd", "synthetic", "--"},
+		Args:       []string{"--fixture-dir", fixtureDir, "--cmd", "synthetic", "--"},
 		Timeout:    time.Second,
 		Target:     "synthetic-target",
 		ResultFD:   resultFD,
@@ -254,9 +254,9 @@ func readRecordResultsIfAny(t *testing.T, file *os.File) []tool.Object {
 	return results
 }
 
-func assertRecordLockAvailable(t *testing.T, sessionDir string) {
+func assertRecordLockAvailable(t *testing.T, fixtureDir string) {
 	t.Helper()
-	lock, err := actionLock(sessionDir, true)
+	lock, err := actionLock(fixtureDir, true)
 	require.NoError(t, err, "record transaction retained the action lock")
 	require.NoError(t, lock.Close())
 }
@@ -266,80 +266,80 @@ type currentRecordingSnapshot struct {
 	materials []byte
 }
 
-func snapshotCurrentRecording(t *testing.T, sessionDir string) currentRecordingSnapshot {
+func snapshotCurrentRecording(t *testing.T, fixtureDir string) currentRecordingSnapshot {
 	t.Helper()
-	current, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	current, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
-	materials, err := os.ReadFile(MaterialIndexPath(sessionDir))
+	materials, err := os.ReadFile(MaterialIndexPath(fixtureDir))
 	require.NoError(t, err)
 	return currentRecordingSnapshot{current: current, materials: materials}
 }
 
-func (s currentRecordingSnapshot) requireUnchanged(t *testing.T, sessionDir string) {
+func (s currentRecordingSnapshot) requireUnchanged(t *testing.T, fixtureDir string) {
 	t.Helper()
-	current, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	current, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
 	require.Equal(t, s.current, current)
-	materials, err := os.ReadFile(MaterialIndexPath(sessionDir))
+	materials, err := os.ReadFile(MaterialIndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, s.materials, materials)
 }
 
-func bindRecordMockRoute(t *testing.T, sessionDir string) string {
+func bindRecordMockRoute(t *testing.T, fixtureDir string) string {
 	t.Helper()
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	template := filepath.Join(session.ResourceRoot, "templates", "mock")
+	template := filepath.Join(fixture.ResourceRoot, "templates", "mock")
 	overlay := filepath.Join(t.TempDir(), "mock-overlay")
 	require.NoError(t, tool.CopyTree(template, overlay))
-	require.NoError(t, bindRouteSlots(filepath.Join(session.ResourceRoot, "routes", "mock"), overlay))
-	target, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	require.NoError(t, bindRouteSlots(filepath.Join(fixture.ResourceRoot, "routes", "mock"), overlay))
+	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(overlay, "workspace"), target)
 	return template
 }
 
-func readRecordExecution(t *testing.T, sessionDir, executionID string) Execution {
+func readRecordExecution(t *testing.T, fixtureDir, executionID string) Execution {
 	t.Helper()
 	var execution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, executionID), "execution.json"), &execution))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, executionID), "execution.json"), &execution))
 	return execution
 }
 
 func TestRecordTransactionKeepsOfficialRecordRouteAndRestoresMockRoute(t *testing.T) {
-	sessionDir, mockTemplate, mockOverlay := prepareOfficialRecordTransactionSession(t)
+	fixtureDir, mockTemplate, mockOverlay := prepareOfficialRecordTransactionFixture(t)
 	var packages int
 	result, fd := recordResultFile(t)
-	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), successfulRecordPolicy(t, &packages))
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), successfulRecordPolicy(t, &packages))
 	require.NoError(t, err)
 	require.Equal(t, 1, packages)
 	require.Equal(t, "passed", readRecordResults(t, result)[1]["status"])
 
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	mockWorkspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	mockWorkspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(mockTemplate, "workspace"), mockWorkspace)
 	require.NotEqual(t, filepath.Join(mockOverlay, "workspace"), mockWorkspace)
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "passed", index.Executions[0].Status)
-	execution := readRecordExecution(t, sessionDir, index.Executions[0].ID)
+	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	require.Equal(t, "official", execution.Provenance)
-	recordWorkspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	recordWorkspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, execution.Workspace, recordWorkspace)
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionBeginAbortClosesAllocatedExecution(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
-	session, err := OpenSession(sessionDir)
+	fixtureDir := prepareRecordTransactionFixture(t)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(session.ResourceRoot, "baseline", "record-target.private"), []byte("different-target"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(fixture.ResourceRoot, "baseline", "record-target.private"), []byte("different-target"), 0o600))
 	result, fd := recordResultFile(t)
 	policy := recordPolicyFunc{
 		prepare: func(context.Context, RecordContext, RecordProbeTracker) (tool.Object, error) {
@@ -355,32 +355,32 @@ func TestRecordTransactionBeginAbortClosesAllocatedExecution(t *testing.T) {
 			return nil, nil
 		},
 	}
-	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), policy)
 	require.ErrorContains(t, err, "targets differ")
 	require.Empty(t, readRecordResultsIfAny(t, result))
 
-	stateBefore.requireUnchanged(t, sessionDir)
-	index, err := readIndex(IndexPath(sessionDir))
+	stateBefore.requireUnchanged(t, fixtureDir)
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.Equal(t, "failed", index.Executions[0].Connections[0].Status)
-	aborted := readRecordExecution(t, sessionDir, index.Executions[0].ID)
+	aborted := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	require.NoFileExists(t, filepath.Join(aborted.Config, "auth.json"))
-	target, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(session.ResourceRoot, "templates", "record", "workspace"), target)
-	assertRecordLockAvailable(t, sessionDir)
+	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
+	fixtureDir := prepareRecordTransactionFixture(t)
 	var packages int
 	result, fd := recordResultFile(t)
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
 
-	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), successfulRecordPolicy(t, &packages))
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), successfulRecordPolicy(t, &packages))
 	require.NoError(t, err)
 	require.Equal(t, 1, packages)
 
@@ -390,7 +390,7 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	require.Equal(t, results[0]["executionId"], results[1]["executionId"])
 	require.NotNil(t, results[1]["material"])
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "passed", index.Executions[0].Status)
@@ -399,26 +399,26 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	require.Equal(t, material.ID, tool.Obj(results[1]["material"])["id"])
 
 	var current Current
-	require.NoError(t, tool.ReadJSON(filepath.Join(sessionDir, "current.json"), &current))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current))
 	require.Equal(t, material.ID, current.MaterialID)
-	_, err = inspectMaterial(session, material)
+	_, err = inspectMaterial(fixture, material)
 	require.NoError(t, err)
 
-	target, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(session.ResourceRoot, "templates", "record", "workspace"), target)
+	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
 	execution := Execution{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, index.Executions[0].ID), "execution.json"), &execution))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[0].ID), "execution.json"), &execution))
 	require.Equal(t, material, execution.Artifact)
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *testing.T) {
-	sessionDir := prepareMultiRecordTransactionSession(t)
+	fixtureDir := prepareMultiRecordTransactionFixture(t)
 	var packages int
 	policy := successfulRecordPolicy(t, &packages)
-	request := recordTransactionRequest(sessionDir, 0)
+	request := recordTransactionRequest(fixtureDir, 0)
 
 	mainResult, mainFD := recordResultFile(t)
 	mainRequest := request
@@ -429,17 +429,17 @@ func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *t
 	require.NotContains(t, mainRows[1], "material")
 	require.Zero(t, packages)
 
-	openIndex, err := readIndex(IndexPath(sessionDir))
+	openIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, openIndex.Executions, 1)
 	require.Equal(t, "open", openIndex.Executions[0].Status)
-	currentBeforeFinal, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	currentBeforeFinal, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
 	var openExecution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, openIndex.Executions[0].ID), "execution.json"), &openExecution))
-	session, err := OpenSession(sessionDir)
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, openIndex.Executions[0].ID), "execution.json"), &openExecution))
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	openRoute, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	openRoute, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
 	require.NotEqual(t, openExecution.ArtifactRoot, openRoute)
 
@@ -453,32 +453,32 @@ func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *t
 	require.Equal(t, mainRows[0]["executionId"], probeRows[0]["executionId"])
 	require.Equal(t, 1, packages)
 
-	closedIndex, err := readIndex(IndexPath(sessionDir))
+	closedIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, closedIndex.Executions, 1)
 	require.Equal(t, "passed", closedIndex.Executions[0].Status)
 	require.Len(t, closedIndex.Artifacts, len(openIndex.Artifacts)+1)
-	currentAfterFinal, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	currentAfterFinal, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
 	require.NotEqual(t, currentBeforeFinal, currentAfterFinal)
 
-	target, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(session.ResourceRoot, "templates", "record", "workspace"), target)
-	assertRecordLockAvailable(t, sessionDir)
+	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionFailurePreservesCurrentAndDurableEvidence(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
+	fixtureDir := prepareRecordTransactionFixture(t)
 	var packages int
 	initialPolicy := successfulRecordPolicy(t, &packages)
 	initialResult, initialFD := recordResultFile(t)
-	request := recordTransactionRequest(sessionDir, initialFD)
+	request := recordTransactionRequest(fixtureDir, initialFD)
 	require.NoError(t, runRecordTransaction(t.Context(), request, initialPolicy))
 	require.Equal(t, 1, packages)
 	require.Equal(t, "passed", readRecordResults(t, initialResult)[1]["status"])
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
-	mockTemplate := bindRecordMockRoute(t, sessionDir)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
+	mockTemplate := bindRecordMockRoute(t, fixtureDir)
 
 	failing := recordPolicyFunc{
 		prepare: func(_ context.Context, run RecordContext, _ RecordProbeTracker) (tool.Object, error) {
@@ -500,39 +500,39 @@ func TestRecordTransactionFailurePreservesCurrentAndDurableEvidence(t *testing.T
 	require.Equal(t, "failed", failureRows[1]["status"])
 	require.NotContains(t, failureRows[1], "material")
 
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 2)
 	require.Equal(t, "failed", index.Executions[1].Status)
 	var failedExecution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, index.Executions[1].ID), "execution.json"), &failedExecution))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[1].ID), "execution.json"), &failedExecution))
 	require.NoFileExists(t, filepath.Join(failedExecution.Config, "auth.json"))
 	failure := tool.Object{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, index.Executions[1].ID), "receipts", "main.failure.json"), &failure))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[1].ID), "receipts", "main.failure.json"), &failure))
 	require.Equal(t, "failed", failure["status"])
 	require.Contains(t, failure["error"], "context canceled")
 
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	target, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(session.ResourceRoot, "templates", "record", "workspace"), target)
-	mockWorkspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
+	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
+	mockWorkspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(mockTemplate, "workspace"), mockWorkspace)
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionFinalizationFailureWritesResultAndPreservesCurrent(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
+	fixtureDir := prepareRecordTransactionFixture(t)
 	var packages int
 	initialResult, initialFD := recordResultFile(t)
-	request := recordTransactionRequest(sessionDir, initialFD)
+	request := recordTransactionRequest(fixtureDir, initialFD)
 	require.NoError(t, runRecordTransaction(t.Context(), request, successfulRecordPolicy(t, &packages)))
 	require.Equal(t, "passed", readRecordResults(t, initialResult)[1]["status"])
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 
 	finalizationErr := errors.New("synthetic package failure")
 	policy := successfulRecordPolicy(t, &packages)
@@ -547,21 +547,21 @@ func TestRecordTransactionFinalizationFailureWritesResultAndPreservesCurrent(t *
 	require.Equal(t, "failed", failureRows[1]["status"])
 	require.NotContains(t, failureRows[1], "material")
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 2)
 	require.Equal(t, "failed", index.Executions[1].Status)
-	executionDir := ExecutionDir(sessionDir, index.Executions[1].ID)
+	executionDir := ExecutionDir(fixtureDir, index.Executions[1].ID)
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
 	require.Contains(t, failure["error"], finalizationErr.Error())
-	assertRecordLockAvailable(t, sessionDir)
-	stateBefore.requireUnchanged(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 }
 
 func TestRecordTransactionStartedResultDeliveryFailurePreservesCurrentAndReleasesLock(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
+	fixtureDir := prepareRecordTransactionFixture(t)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 
 	reader, writer, err := os.Pipe()
 	require.NoError(t, err)
@@ -581,35 +581,35 @@ func TestRecordTransactionStartedResultDeliveryFailurePreservesCurrentAndRelease
 			return nil, nil
 		},
 	}
-	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, int(writer.Fd())), policy)
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, int(writer.Fd())), policy)
 	require.Error(t, err)
 
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.Empty(t, index.Executions[0].ArtifactID)
 	require.Equal(t, "failed", index.Executions[0].Connections[0].Status)
-	executionDir := ExecutionDir(sessionDir, index.Executions[0].ID)
+	executionDir := ExecutionDir(fixtureDir, index.Executions[0].ID)
 	result := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.result.json"), &result))
 	require.Equal(t, "failed", result["status"])
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
 	require.Equal(t, "failed", failure["status"])
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionFinalResultDeliveryFailurePreservesCurrentAndReleasesLock(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
+	fixtureDir := prepareRecordTransactionFixture(t)
 	var packages int
 	initialResult, initialFD := recordResultFile(t)
-	request := recordTransactionRequest(sessionDir, initialFD)
+	request := recordTransactionRequest(fixtureDir, initialFD)
 	require.NoError(t, runRecordTransaction(t.Context(), request, successfulRecordPolicy(t, &packages)))
 	require.Equal(t, "passed", readRecordResults(t, initialResult)[1]["status"])
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 
 	reader, writer, err := os.Pipe()
 	require.NoError(t, err)
@@ -625,29 +625,29 @@ func TestRecordTransactionFinalResultDeliveryFailurePreservesCurrentAndReleasesL
 	require.ErrorContains(t, err, "broken pipe")
 	require.Equal(t, 2, packages)
 
-	currentAfter, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
+	currentAfter, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
 	require.Equal(t, stateBefore.current, currentAfter)
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 2)
 	require.Equal(t, "failed", index.Executions[1].Status)
 	require.Empty(t, index.Executions[1].ArtifactID)
-	executionDir := ExecutionDir(sessionDir, index.Executions[1].ID)
+	executionDir := ExecutionDir(fixtureDir, index.Executions[1].ID)
 	result := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.result.json"), &result))
 	require.Equal(t, "failed", result["status"])
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
 	require.Contains(t, failure["error"], "broken pipe")
-	execution := readRecordExecution(t, sessionDir, index.Executions[1].ID)
+	execution := readRecordExecution(t, fixtureDir, index.Executions[1].ID)
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionPublicationFailurePreservesCurrentAndReleasesLock(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
+	fixtureDir := prepareRecordTransactionFixture(t)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 
 	var packages int
 	policy := successfulRecordPolicy(t, &packages)
@@ -661,28 +661,28 @@ func TestRecordTransactionPublicationFailurePreservesCurrentAndReleasesLock(t *t
 		return artifact, nil
 	}
 	result, fd := recordResultFile(t)
-	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), policy)
 	require.ErrorContains(t, err, "artifact hash mismatch: plan.json")
 	require.Equal(t, 1, packages)
 	require.Equal(t, "failed", readRecordResults(t, result)[1]["status"])
 
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.Empty(t, index.Executions[0].ArtifactID)
-	executionDir := ExecutionDir(sessionDir, index.Executions[0].ID)
+	executionDir := ExecutionDir(fixtureDir, index.Executions[0].ID)
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
 	require.Contains(t, failure["error"], "artifact hash mismatch: plan.json")
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionLatePublicationFailurePreservesCurrentAndReleasesLock(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
+	fixtureDir := prepareRecordTransactionFixture(t)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 
 	var packages int
 	policy := successfulRecordPolicy(t, &packages)
@@ -692,38 +692,38 @@ func TestRecordTransactionLatePublicationFailurePreservesCurrentAndReleasesLock(
 		if err != nil {
 			return nil, err
 		}
-		materialRoot := filepath.Join(sessionDir, "materials", artifact.ID)
+		materialRoot := filepath.Join(fixtureDir, "materials", artifact.ID)
 		require.NoError(t, os.Mkdir(materialRoot, 0o700))
 		t.Cleanup(func() { _ = os.RemoveAll(materialRoot) })
 		return artifact, nil
 	}
 	result, fd := recordResultFile(t)
-	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), policy)
 	require.ErrorContains(t, err, "material identity already exists")
 	require.Equal(t, 1, packages)
 	require.Equal(t, "failed", readRecordResults(t, result)[1]["status"])
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.Empty(t, index.Executions[0].ArtifactID)
-	executionDir := ExecutionDir(sessionDir, index.Executions[0].ID)
+	executionDir := ExecutionDir(fixtureDir, index.Executions[0].ID)
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
 	require.Contains(t, failure["error"], "material identity already exists")
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	target, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(session.ResourceRoot, "templates", "record", "workspace"), target)
-	assertRecordLockAvailable(t, sessionDir)
+	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
-	sessionDir := prepareRecordTransactionSession(t)
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
+	fixtureDir := prepareRecordTransactionFixture(t)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 
 	var packages int
 	policy := successfulRecordPolicy(t, &packages)
@@ -734,29 +734,29 @@ func TestRecordTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 		return os.Mkdir(filepath.Join(run.ExecutionDir(), "record-finalize.lock"), 0o700)
 	}
 	result, fd := recordResultFile(t)
-	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), policy)
 	require.ErrorContains(t, err, "is a directory")
 	require.Zero(t, packages)
 	require.Equal(t, "failed", readRecordResults(t, result)[1]["status"])
 
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "failed", index.Executions[0].Status)
 	require.Equal(t, "failed", index.Executions[0].Connections[0].Status)
-	execution := readRecordExecution(t, sessionDir, index.Executions[0].ID)
+	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
 	failure := tool.Object{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, index.Executions[0].ID), "receipts", "main.failure.json"), &failure))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[0].ID), "receipts", "main.failure.json"), &failure))
 	require.Contains(t, failure["error"], "is a directory")
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionNonFinalResultDeliveryFailurePreservesCurrentAndReleasesLock(t *testing.T) {
-	sessionDir := prepareMultiRecordTransactionSession(t)
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
+	fixtureDir := prepareMultiRecordTransactionFixture(t)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 
 	reader, writer, err := os.Pipe()
 	require.NoError(t, err)
@@ -768,27 +768,27 @@ func TestRecordTransactionNonFinalResultDeliveryFailurePreservesCurrentAndReleas
 		require.NoError(t, capture(ctx, run))
 		return reader.Close()
 	}
-	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, int(writer.Fd())), policy)
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, int(writer.Fd())), policy)
 	require.ErrorContains(t, err, "broken pipe")
 	require.Zero(t, packages)
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
 	require.Equal(t, "open", index.Executions[0].Status)
 	require.Equal(t, "passed", index.Executions[0].Connections[0].Status)
 	require.Equal(t, "pending", index.Executions[0].Connections[1].Status)
 	result := tool.Object{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, index.Executions[0].ID), "receipts", "main.result.json"), &result))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[0].ID), "receipts", "main.result.json"), &result))
 	require.Equal(t, "passed", result["status"])
-	assertRecordLockAvailable(t, sessionDir)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionNonFinalFailureWaitsForFinalConnection(t *testing.T) {
-	sessionDir := prepareMultiRecordTransactionSession(t)
-	stateBefore := snapshotCurrentRecording(t, sessionDir)
-	request := recordTransactionRequest(sessionDir, 0)
+	fixtureDir := prepareMultiRecordTransactionFixture(t)
+	stateBefore := snapshotCurrentRecording(t, fixtureDir)
+	request := recordTransactionRequest(fixtureDir, 0)
 
 	failingResult, failingFD := recordResultFile(t)
 	mainRequest := request
@@ -809,16 +809,16 @@ func TestRecordTransactionNonFinalFailureWaitsForFinalConnection(t *testing.T) {
 	require.ErrorIs(t, err, context.DeadlineExceeded)
 	require.Equal(t, "failed", readRecordResults(t, failingResult)[1]["status"])
 
-	openIndex, err := readIndex(IndexPath(sessionDir))
+	openIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, openIndex.Executions, 1)
 	require.Equal(t, "open", openIndex.Executions[0].Status)
 	require.Equal(t, "failed", openIndex.Executions[0].Connections[0].Status)
 	require.Equal(t, "pending", openIndex.Executions[0].Connections[1].Status)
 	require.Len(t, openIndex.Artifacts, 1)
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 	var openExecution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(sessionDir, openIndex.Executions[0].ID), "execution.json"), &openExecution))
+	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, openIndex.Executions[0].ID), "execution.json"), &openExecution))
 	require.FileExists(t, filepath.Join(openExecution.Config, "auth.json"))
 
 	var packages int
@@ -830,55 +830,55 @@ func TestRecordTransactionNonFinalFailureWaitsForFinalConnection(t *testing.T) {
 	require.Zero(t, packages)
 	require.Equal(t, "failed", readRecordResults(t, probeResult)[1]["status"])
 
-	closedIndex, err := readIndex(IndexPath(sessionDir))
+	closedIndex, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Equal(t, "failed", closedIndex.Executions[0].Status)
 	require.Equal(t, "failed", closedIndex.Executions[0].Connections[0].Status)
 	require.Equal(t, "passed", closedIndex.Executions[0].Connections[1].Status)
 	require.Len(t, closedIndex.Artifacts, 1)
-	stateBefore.requireUnchanged(t, sessionDir)
+	stateBefore.requireUnchanged(t, fixtureDir)
 	require.NoFileExists(t, filepath.Join(openExecution.Config, "auth.json"))
 
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	target, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "record", "workspace"))
+	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(session.ResourceRoot, "templates", "record", "workspace"), target)
-	assertRecordLockAvailable(t, sessionDir)
+	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
 func TestRecordTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
-	sessionDir := prepareMultiRecordTransactionSession(t)
+	fixtureDir := prepareMultiRecordTransactionFixture(t)
 	var packages int
 	policy := successfulRecordPolicy(t, &packages)
 	result, fd := recordResultFile(t)
-	request := recordTransactionRequest(sessionDir, fd)
+	request := recordTransactionRequest(fixtureDir, fd)
 	require.NoError(t, runRecordTransaction(t.Context(), request, policy))
 	require.Equal(t, "passed", readRecordResults(t, result)[1]["status"])
-	indexBefore, err := os.ReadFile(IndexPath(sessionDir))
+	indexBefore, err := os.ReadFile(IndexPath(fixtureDir))
 	require.NoError(t, err)
 
 	duplicate := request
 	duplicateFD := fd
 	duplicate.ResultFD = duplicateFD
 	require.ErrorIs(t, runRecordTransaction(t.Context(), duplicate, policy), ErrBusy)
-	require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
+	require.Equal(t, indexBefore, readIndexBytes(t, fixtureDir))
 
 	incompatibleTimeout := request
 	incompatibleTimeout.Connection, incompatibleTimeout.Timeout = "probe", 2*time.Second
 	require.ErrorContains(t, runRecordTransaction(t.Context(), incompatibleTimeout, policy), "target or timeout")
-	require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
+	require.Equal(t, indexBefore, readIndexBytes(t, fixtureDir))
 
 	incompatibleTarget := request
 	incompatibleTarget.Connection, incompatibleTarget.Target = "probe", "different-target"
 	require.ErrorContains(t, runRecordTransaction(t.Context(), incompatibleTarget, policy), "targets differ")
-	require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
-	assertRecordLockAvailable(t, sessionDir)
+	require.Equal(t, indexBefore, readIndexBytes(t, fixtureDir))
+	assertRecordLockAvailable(t, fixtureDir)
 }
 
-func readIndexBytes(t *testing.T, sessionDir string) []byte {
+func readIndexBytes(t *testing.T, fixtureDir string) []byte {
 	t.Helper()
-	data, err := os.ReadFile(IndexPath(sessionDir))
+	data, err := os.ReadFile(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	return data
 }

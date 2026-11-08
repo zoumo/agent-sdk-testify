@@ -18,13 +18,13 @@ import (
 
 // Each caller owns a separate result channel. Tests resolve the actual execution
 // from that channel, never from the newest execution directory.
-func runAgentResult(t *testing.T, env []string, session, input, action string, extra ...string) (commandResult, object) {
+func runAgentResult(t *testing.T, env []string, fixtureDir, input, action string, extra ...string) (commandResult, object) {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "result.jsonl")
 	file, err := os.Create(path)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = file.Close() })
-	args := []string{"agent", action, "--session-dir", session, "--result-fd", "3"}
+	args := []string{"agent", action, "--fixture-dir", fixtureDir, "--result-fd", "3"}
 	args = append(args, extra...)
 	result := runToolWithFiles(t, env, t.TempDir(), input, []*os.File{file}, args...)
 	require.NoError(t, file.Close())
@@ -49,28 +49,28 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 			agent, drivers, env := isolatedCommands(t, root, "codex")
 			marker := filepath.Join(root, "driver-launched")
 			require.NoError(t, os.WriteFile(filepath.Join(drivers, "agent-sdk-testify-codex"), []byte("#!/bin/sh\ntouch "+shellQuote(marker)+"\nexit 42\n"), 0o700))
-			var session string
+			var fixtureDir string
 			switch source {
 			case "case":
-				session = prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
+				fixtureDir = prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
 			case "plan":
-				session = prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "public-agent"))
+				fixtureDir = prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "public-agent"))
 			case "recording":
-				producer := prepareSession(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
+				producer := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
 				material := artifactByID(t, producer, currentMaterialID(t, producer))
-				session = prepareSession(t, env, "--recording", str(material["path"]))
+				fixtureDir = prepareFixture(t, env, "--recording", str(material["path"]))
 				require.NoError(t, os.RemoveAll(producer))
 			}
-			descriptor := readJSON(t, filepath.Join(session, "session.json"))
+			descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
 			for _, action := range []string{"record", "mock"} {
 				route := obj(obj(descriptor["routes"])[action])
 				require.Equal(t, "external-sdk", route["executor"])
 				require.Equal(t, []string{"agent", action}, stringsOf(obj(array(route["connections"])[0])["args"])[:2])
 			}
-			initial := currentMaterialID(t, session)
+			initial := currentMaterialID(t, fixtureDir)
 			var previousID, previousWorkspace string
 			for range 2 {
-				result, reference := runAgentResult(t, env, session, requestOne, "record", "--cmd", agent, "--", "app-server", "--listen", "stdio://")
+				result, reference := runAgentResult(t, env, fixtureDir, requestOne, "record", "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 				require.Zero(t, result.code, result.stderr)
 				require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, result.stdout)
 				require.Equal(t, "passed", reference["status"])
@@ -82,7 +82,7 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				previousID, previousWorkspace = str(reference["executionId"]), str(execution["workspace"])
 				material := obj(reference["material"])
 				require.NotEqual(t, initial, material["id"])
-				require.Equal(t, currentMaterialID(t, session), material["id"])
+				require.Equal(t, currentMaterialID(t, fixtureDir), material["id"])
 				artifact := obj(execution["artifact"])
 				for key, value := range material {
 					require.Equal(t, artifact[key], value, key)
@@ -97,7 +97,7 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				sealed := readAllFiles(t, str(material["path"]))
 				// A parent business report written after capture cannot enter the material.
 				writeJSON(t, filepath.Join(root, "parent-report.json"), object{"status": "failed"})
-				replay, mockReference := runAgentResult(t, env, session, requestOne, "mock", "--", "app-server", "--listen", "stdio://")
+				replay, mockReference := runAgentResult(t, env, fixtureDir, requestOne, "mock", "--", "app-server", "--listen", "stdio://")
 				require.Zero(t, replay.code, replay.stderr)
 				require.Equal(t, "passed", mockReference["status"])
 				require.Equal(t, material, mockReference["material"])
@@ -113,24 +113,24 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 func TestAgentFailureResultsKeepCurrent(t *testing.T) {
 	root := t.TempDir()
 	agent, _, env := isolatedCommands(t, root, "codex")
-	session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "agent-failure"))
-	recordConsumer(t, env, session, agent, requestOne)
-	current := readFile(t, filepath.Join(session, "current.json"))
+	fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "agent-failure"))
+	recordConsumer(t, env, fixtureDir, agent, requestOne)
+	current := readFile(t, filepath.Join(fixtureDir, "current.json"))
 	failing := filepath.Join(root, "failing-agent")
 	require.NoError(t, os.WriteFile(failing, []byte("#!/bin/sh\necho native-failure >&2\nexit 7\n"), 0o700))
-	failed, reference := runAgentResult(t, env, session, requestTwo, "record", "--cmd", failing, "--", "app-server", "--listen", "stdio://")
+	failed, reference := runAgentResult(t, env, fixtureDir, requestTwo, "record", "--cmd", failing, "--", "app-server", "--listen", "stdio://")
 	require.Equal(t, 1, failed.code)
 	require.Equal(t, "failed", reference["status"])
 	require.NotContains(t, reference, "material")
 	require.FileExists(t, str(reference["receipt"]))
 	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(str(reference["receipt"])), "stderr.raw"))), "native-failure")
-	require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
-	bad, mockReference := runAgentResult(t, env, session, `{"id":1,"method":"wrong"}`+"\n", "mock")
+	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
+	bad, mockReference := runAgentResult(t, env, fixtureDir, `{"id":1,"method":"wrong"}`+"\n", "mock")
 	require.Equal(t, 1, bad.code)
 	require.Equal(t, "failed", mockReference["status"])
 	require.Equal(t, "failed", readJSON(t, str(mockReference["receipt"]))["status"])
 	require.Equal(t, "failed", readJSON(t, str(mockReference["processReceipt"]))["status"])
-	require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
+	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 }
 
 func TestAgentCancellationPersistsOwnedExecution(t *testing.T) {
@@ -138,16 +138,16 @@ func TestAgentCancellationPersistsOwnedExecution(t *testing.T) {
 		t.Run(action, func(t *testing.T) {
 			root := t.TempDir()
 			agent, _, env := isolatedCommands(t, root, "codex")
-			session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "agent-cancel"))
-			recordConsumer(t, env, session, agent, requestOne)
-			current := readFile(t, filepath.Join(session, "current.json"))
+			fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "agent-cancel"))
+			recordConsumer(t, env, fixtureDir, agent, requestOne)
+			current := readFile(t, filepath.Join(fixtureDir, "current.json"))
 			r, w, err := os.Pipe()
 			require.NoError(t, err)
 			defer r.Close()
 			defer w.Close()
 			ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 			defer cancel()
-			args := []string{"agent", action, "--session-dir", session, "--result-fd", "3"}
+			args := []string{"agent", action, "--fixture-dir", fixtureDir, "--result-fd", "3"}
 			if action == "record" {
 				args = append(args, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 			}
@@ -186,7 +186,7 @@ func TestAgentCancellationPersistsOwnedExecution(t *testing.T) {
 			require.Equal(t, "failed", completed["status"])
 			require.Equal(t, completed, readJSON(t, str(completed["result"])))
 			require.FileExists(t, str(completed["receipt"]))
-			require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
+			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 		})
 	}
 }
@@ -196,9 +196,9 @@ func TestAgentResultBackpressureIsBounded(t *testing.T) {
 		t.Run(action, func(t *testing.T) {
 			root := t.TempDir()
 			agent, _, env := isolatedCommands(t, root, "codex")
-			session := prepareSession(t, env, "--plan", writeConsumerPlan(t, root, "result-backpressure"))
-			recordConsumer(t, env, session, agent, requestOne)
-			current := readFile(t, filepath.Join(session, "current.json"))
+			fixtureDir := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "result-backpressure"))
+			recordConsumer(t, env, fixtureDir, agent, requestOne)
+			current := readFile(t, filepath.Join(fixtureDir, "current.json"))
 			r, w, err := os.Pipe()
 			require.NoError(t, err)
 			defer r.Close()
@@ -212,7 +212,7 @@ func TestAgentResultBackpressureIsBounded(t *testing.T) {
 					break
 				}
 			}
-			args := []string{"agent", action, "--session-dir", session, "--result-fd", "3"}
+			args := []string{"agent", action, "--fixture-dir", fixtureDir, "--result-fd", "3"}
 			if action == "record" {
 				args = append(args, "--timeout", "50ms", "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 			} else {
@@ -223,14 +223,14 @@ func TestAgentResultBackpressureIsBounded(t *testing.T) {
 			require.Less(t, time.Since(started), 3*time.Second, "notification ignored timeout/backpressure")
 			require.Equal(t, 1, result.code)
 			require.Contains(t, result.stderr, "timeout")
-			rows := array(sessionIndex(t, session)["executions"])
+			rows := array(fixtureIndex(t, fixtureDir)["executions"])
 			require.Len(t, rows, 2)
 			require.Equal(t, "failed", obj(rows[1])["status"])
 			id := str(obj(rows[1])["id"])
-			reference := readJSON(t, filepath.Join(session, "executions", id, "receipts", "main.result.json"))
+			reference := readJSON(t, filepath.Join(fixtureDir, "executions", id, "receipts", "main.result.json"))
 			require.Equal(t, id, reference["executionId"])
 			require.Equal(t, "failed", reference["status"])
-			require.Equal(t, current, readFile(t, filepath.Join(session, "current.json")))
+			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 		})
 	}
 }

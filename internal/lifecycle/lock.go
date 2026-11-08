@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-var ErrBusy = errors.New("session action busy")
+var ErrBusy = errors.New("fixture action busy")
 
 type Lock struct {
 	file *os.File
@@ -55,12 +55,12 @@ func (l *Lock) Downgrade() error {
 	return syscall.Flock(int(l.file.Fd()), syscall.LOCK_SH)
 }
 
-func metadataLock(sessionDir string) (*Lock, error) {
-	return lockFile(filepath.Join(sessionDir, "locks", "metadata.lock"), true, true)
+func metadataLock(fixtureDir string) (*Lock, error) {
+	return lockFile(filepath.Join(fixtureDir, "locks", "metadata.lock"), true, true)
 }
 
-func actionLock(sessionDir string, exclusive bool) (*Lock, error) {
-	return lockFile(filepath.Join(sessionDir, "locks", "action.lock"), exclusive, false)
+func actionLock(fixtureDir string, exclusive bool) (*Lock, error) {
+	return lockFile(filepath.Join(fixtureDir, "locks", "action.lock"), exclusive, false)
 }
 
 func lockExport(file *os.File) (*Lock, error) {

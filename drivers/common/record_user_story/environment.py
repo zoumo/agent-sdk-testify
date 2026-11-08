@@ -58,11 +58,11 @@ def capture_root(plan):
     if (started.get('status') != 'running' or finished.get('status') != 'passed'
             or started.get('connectionId') != 'main'
             or any(started.get(key) != finished.get(key)
-                   for key in ('executionId', 'sessionId', 'connectionId', 'execution', 'processId'))):
+                   for key in ('executionId', 'fixtureId', 'connectionId', 'execution', 'processId'))):
         raise ValueError('record command results disagree')
     execution = json.loads(read_regular(Path(finished['execution']), 1024 * 1024))
     if (execution.get('executionId') != finished['executionId']
-            or execution.get('sessionId') != finished['sessionId'] or execution.get('command') not in ('record', 'mock')):
+            or execution.get('fixtureId') != finished['fixtureId'] or execution.get('command') not in ('record', 'mock')):
         raise ValueError('record execution differs from result')
     if execution['command'] == 'mock':
         return Path(execution['artifact']['path'])

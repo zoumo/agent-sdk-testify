@@ -41,6 +41,6 @@ func stoppedLaunch(process tool.Object) error {
 	case "started":
 		return confirmedExited(processPID(process["pid"]), true)
 	default:
-		return errors.New("process launch is unresolved; session remains busy")
+		return errors.New("process launch is unresolved; fixture remains busy")
 	}
 }

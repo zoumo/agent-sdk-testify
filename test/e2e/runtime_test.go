@@ -13,16 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestClaudeHistoryMockCompletesWithoutSessionFinalization(t *testing.T) {
+func TestClaudeHistoryMockCompletesWithoutNativeSessionFinalization(t *testing.T) {
 	for _, caseID := range []string{"SDK-CASE-016", "SDK-CASE-018", "SDK-CASE-019", "SDK-CASE-020", "SDK-CASE-029", "SDK-CASE-033", "SDK-CASE-034", "SDK-CASE-036"} {
 		t.Run(caseID, func(t *testing.T) {
 			_, _, env := isolatedCommands(t, t.TempDir(), "claude")
-			session := prepareSession(t, env, "--agent", "claude", "--case", caseID)
-			material := str(obj(array(materialIndex(t, session)["materials"])[0])["path"])
+			fixtureDir := prepareFixture(t, env, "--agent", "claude", "--case", caseID)
+			material := str(obj(array(materialIndex(t, fixtureDir)["materials"])[0])["path"])
 			original := readAllFiles(t, material)
 			input := builtinInputs(t, "claude", caseID)["main"]
-			mustRun(t, env, t.TempDir(), input, "agent", "mock", "--session-dir", session)
-			execution := latestExecution(t, session, "mock")
+			mustRun(t, env, t.TempDir(), input, "agent", "mock", "--fixture-dir", fixtureDir)
+			execution := latestExecution(t, fixtureDir, "mock")
 			source := obj(readJSON(t, filepath.Join(material, "manifest.json"))["savedFiles"])
 			bindings := obj(execution["historyFiles"])
 			require.Greater(t, len(bindings), len(source))
@@ -30,12 +30,12 @@ func TestClaudeHistoryMockCompletesWithoutSessionFinalization(t *testing.T) {
 				require.Equal(t, digest, bindings[name])
 			}
 			assertFileHashes(t, filepath.Dir(str(execution["workspace"])), bindings)
-			require.Equal(t, "passed", connectionStatus(t, session, execution, "main"))
+			require.Equal(t, "passed", connectionStatus(t, fixtureDir, execution, "main"))
 			require.Equal(t, original, readAllFiles(t, material))
-			require.NoFileExists(t, filepath.Join(session, "finish.json"))
-			runtime := str(readJSON(t, filepath.Join(session, "session.json"))["resourceRoot"])
-			require.Equal(t, filepath.Join(resolvedPath(t, session), "runtime"), runtime)
-			require.NoError(t, os.RemoveAll(session))
+			require.NoFileExists(t, filepath.Join(fixtureDir, "finish.json"))
+			runtime := str(readJSON(t, filepath.Join(fixtureDir, "fixture.json"))["resourceRoot"])
+			require.Equal(t, filepath.Join(resolvedPath(t, fixtureDir), "runtime"), runtime)
+			require.NoError(t, os.RemoveAll(fixtureDir))
 			require.NoDirExists(t, runtime)
 		})
 	}
@@ -57,10 +57,10 @@ func TestMockRejectsHistoryDriftBeforePublishingActionSuccess(t *testing.T) {
 			manifest["planSHA256"] = digestFile(t, filepath.Join(material, "plan.json"))
 			manifest["savedFiles"] = object{history: digestBytes(content)}
 			writeJSON(t, filepath.Join(material, "manifest.json"), manifest)
-			session := prepareSession(t, env, "--recording", material)
+			fixtureDir := prepareFixture(t, env, "--recording", material)
 			ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 			defer cancel()
-			cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), "agent", "mock", "--session-dir", session)
+			cmd := exec.CommandContext(ctx, os.Getenv("AGENT_SDK_TESTIFY_BIN"), "agent", "mock", "--fixture-dir", fixtureDir)
 			cmd.Env = env
 			stdin, err := cmd.StdinPipe()
 			require.NoError(t, err)
@@ -74,7 +74,7 @@ func TestMockRejectsHistoryDriftBeforePublishingActionSuccess(t *testing.T) {
 			line, err := bufio.NewReader(stdout).ReadString('\n')
 			require.NoError(t, err)
 			require.Equal(t, "{}\n", line)
-			execution := latestExecution(t, session, "mock")
+			execution := latestExecution(t, fixtureDir, "mock")
 			name := history
 			if target == "derived" {
 				name = ""
@@ -89,7 +89,7 @@ func TestMockRejectsHistoryDriftBeforePublishingActionSuccess(t *testing.T) {
 			require.NoError(t, stdin.Close())
 			require.Error(t, cmd.Wait())
 			require.Contains(t, stderr.String(), "history hash mismatch")
-			require.Equal(t, "failed", connectionStatus(t, session, execution, "main"))
+			require.Equal(t, "failed", connectionStatus(t, fixtureDir, execution, "main"))
 			connection := obj(array(execution["connections"])[0])
 			require.Equal(t, "failed", readJSON(t, str(connection["processReceipt"]))["status"])
 			require.Equal(t, content, readFile(t, filepath.Join(material, history)))

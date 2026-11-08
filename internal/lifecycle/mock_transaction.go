@@ -18,7 +18,7 @@ import (
 // MockRequest contains the immutable inputs shared by every connection of one
 // mock execution.
 type MockRequest struct {
-	SessionDir string
+	FixtureDir string
 	Connection string
 	NativeArgs []string
 	Timeout    time.Duration
@@ -55,7 +55,7 @@ func (m *mockTransaction) result() *MockResult {
 	}
 	result := &MockResult{
 		ActionResult: ActionResult{
-			SessionID:        m.session.SessionID,
+			FixtureID:        m.fixture.FixtureID,
 			ExecutionID:      m.execution.ExecutionID,
 			ConnectionID:     id,
 			ConnectionStatus: ConnectionStatusUnknown,
@@ -118,7 +118,7 @@ func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
 	}
 	process := tool.Object{
 		"schemaVersion": 1,
-		"sessionId":     m.session.SessionID,
+		"fixtureId":     m.fixture.FixtureID,
 		"executionId":   m.execution.ExecutionID,
 		"connectionId":  m.connection,
 		"status":        "failed",
@@ -139,17 +139,17 @@ func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
 }
 
 func (m *mockTransaction) settleConnection(status string) (ready, passed bool, err error) {
-	return settleTransactionConnection(m.sessionDir, "mock", m.execution.ExecutionID, m.connection, status)
+	return settleTransactionConnection(m.fixtureDir, "mock", m.execution.ExecutionID, m.connection, status)
 }
 
 func (m *mockTransaction) pass() error {
 	if err := m.restoreRoutes(); err != nil {
 		return err
 	}
-	if err := scrubExecutionAuthentication(m.session, m.overlayRoot); err != nil {
+	if err := scrubExecutionAuthentication(m.fixture, m.overlayRoot); err != nil {
 		return err
 	}
-	return updateIndex(m.sessionDir, func(index *Index) error {
+	return updateIndex(m.fixtureDir, func(index *Index) error {
 		for i := range index.Executions {
 			execution := &index.Executions[i]
 			if execution.ID != m.execution.ExecutionID {
@@ -164,20 +164,20 @@ func (m *mockTransaction) pass() error {
 }
 
 func (m *mockTransaction) fail() error {
-	return failTransaction(m.session, m.sessionDir, "mock", m.execution.ExecutionID, m.overlayRoot, m.restoreRoutes)
+	return failTransaction(m.fixture, m.fixtureDir, "mock", m.execution.ExecutionID, m.overlayRoot, m.restoreRoutes)
 }
 
 func (m *mockTransaction) restoreRoutes() error {
 	var active tool.Object
-	err := tool.ReadJSON(filepath.Join(m.sessionDir, "official-active.json"), &active)
+	err := tool.ReadJSON(filepath.Join(m.fixtureDir, "official-active.json"), &active)
 	if err == nil {
-		if active["sessionId"] == m.session.SessionID && active["mode"] == "verify" {
+		if active["fixtureId"] == m.fixture.FixtureID && active["mode"] == "verify" {
 			return nil
 		}
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	return restoreRouteSlots(m.session, "mock")
+	return restoreRouteSlots(m.fixture, "mock")
 }
 
 // RunMock owns one mock connection from allocation or join through result
@@ -220,7 +220,7 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 			finalErr = errors.New("mock transaction aborted")
 		}
 		runErr = errors.Join(runErr, run.finalize(ctx, resultStream, finalErr))
-		result.refresh(run.sessionDir)
+		result.refresh(run.fixtureDir)
 	}()
 
 	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
@@ -234,17 +234,17 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 }
 
 func beginMockTransaction(request MockRequest) (transaction *mockTransaction, err error) {
-	sessionDir, err := CanonicalSessionDir(request.SessionDir)
+	fixtureDir, err := CanonicalFixtureDir(request.FixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	allocation, err := lockFile(filepath.Join(sessionDir, "locks", "mock-start.lock"), true, true)
+	allocation, err := lockFile(filepath.Join(fixtureDir, "locks", "mock-start.lock"), true, true)
 	if err != nil {
 		return nil, err
 	}
 	defer allocation.Close()
 
-	lock, exclusive, err := beginActionLock(sessionDir)
+	lock, exclusive, err := beginActionLock(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
@@ -255,25 +255,25 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		}
 	}()
 
-	session, err := OpenSession(sessionDir)
+	fixture, err := OpenFixture(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	route, routeAvailable := session.Routes["mock"]
+	route, routeAvailable := fixture.Routes["mock"]
 	if !routeAvailable || !route.Enabled {
-		return nil, errors.New("mock is not available for this session")
+		return nil, errors.New("mock is not available for this fixture")
 	}
-	current, err := LatestArtifact(sessionDir, session)
+	current, err := LatestArtifact(fixtureDir, fixture)
 	if err != nil {
 		return nil, err
 	}
 	if !reflect.DeepEqual(*current, request.Artifact) {
 		return nil, errors.New("current recording changed before execution")
 	}
-	if _, err := executionConnections(sessionDir, "mock", current.Connections, current, route); err != nil {
+	if _, err := executionConnections(fixtureDir, "mock", current.Connections, current, route); err != nil {
 		return nil, err
 	}
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return nil, err
 	}
@@ -284,8 +284,8 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if ok || !allocated || run == nil {
 			return
 		}
-		err = errors.Join(err, failTransaction(run.session, sessionDir, "mock", run.execution.ExecutionID, run.overlayRoot, func() error {
-			return restoreRouteSlots(run.session, "mock")
+		err = errors.Join(err, failTransaction(run.fixture, fixtureDir, "mock", run.execution.ExecutionID, run.overlayRoot, func() error {
+			return restoreRouteSlots(run.fixture, "mock")
 		}))
 	}()
 	if pending := pendingExecution(index); pending != nil {
@@ -295,12 +295,12 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 			}
 			return nil, ErrBusy
 		}
-		dir := ExecutionDir(sessionDir, pending.ID)
+		dir := ExecutionDir(fixtureDir, pending.ID)
 		var execution Execution
 		if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
 			return nil, err
 		}
-		if err := execution.Validate(*session); err != nil {
+		if err := execution.Validate(*fixture); err != nil {
 			return nil, err
 		}
 		if hash, err := tool.FileDigest(filepath.Join(dir, "execution.json")); err != nil || hash != pending.DescriptorSHA256 {
@@ -309,11 +309,11 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if err := validateMockJoin(execution, request.NativeArgs, request.Timeout, request.ProgressFD, &request.Artifact); err != nil {
 			return nil, err
 		}
-		plan, err := LoadPlan(session)
+		plan, err := LoadPlan(fixture)
 		if err != nil {
 			return nil, err
 		}
-		run = newTransactionContext(session, plan, execution, sessionDir)
+		run = newTransactionContext(fixture, plan, execution, fixtureDir)
 	} else {
 		if !exclusive {
 			return nil, ErrBusy
@@ -321,8 +321,8 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if !slices.Contains(current.Connections, request.Connection) {
 			return nil, fmt.Errorf("undeclared mock connection %s", request.Connection)
 		}
-		commandArgs := append([]string{"--session-dir", sessionDir, "--connection", request.Connection}, request.NativeArgs...)
-		run, err = createTransactionLocked(sessionDir, "mock", commandArgs, request.NativeArgs, request.Timeout, request.ProgressFD, current, nil, nil)
+		commandArgs := append([]string{"--fixture-dir", fixtureDir, "--connection", request.Connection}, request.NativeArgs...)
+		run, err = createTransactionLocked(fixtureDir, "mock", commandArgs, request.NativeArgs, request.Timeout, request.ProgressFD, current, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -338,7 +338,7 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		}
 		err = errors.Join(err, removeFileIfExists(claimPath))
 	}()
-	claimPath, err = claimTransactionConnection(sessionDir, run.execution, request.Connection)
+	claimPath, err = claimTransactionConnection(fixtureDir, run.execution, request.Connection)
 	if err != nil {
 		return nil, err
 	}

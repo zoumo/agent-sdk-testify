@@ -29,26 +29,26 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Agent:      "codex",
 		Case:       "SDK-CASE-001",
 	})
 	require.NoError(t, err)
 	require.Equal(t, cwd, workingDirectory(t))
-	canonicalSession, err := filepath.EvalSymlinks(sessionDir)
+	canonicalFixture, err := filepath.EvalSymlinks(fixtureDir)
 	require.NoError(t, err)
-	require.Equal(t, canonicalSession, prepared.SessionDir)
+	require.Equal(t, canonicalFixture, prepared.FixtureDir)
 	require.Equal(t, agenttestify.ToolSourceEmbedded, prepared.Tool.Source)
 	require.Equal(t, libraryModule, prepared.Tool.Command)
 	require.NotEmpty(t, prepared.Tool.Version)
 	require.Empty(t, prepared.Tool.SHA256)
 	require.NotNil(t, prepared.Current)
 
-	require.FileExists(t, filepath.Join(sessionDir, "session.json"))
-	require.FileExists(t, filepath.Join(sessionDir, "current.json"))
+	require.FileExists(t, filepath.Join(fixtureDir, "fixture.json"))
+	require.FileExists(t, filepath.Join(fixtureDir, "current.json"))
 	for _, path := range []string{
 		"runtime/baseline/workspace",
 		"runtime/routes/record",
@@ -57,15 +57,15 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 		"runtime/templates/mock",
 		"source",
 	} {
-		require.DirExists(t, filepath.Join(sessionDir, filepath.FromSlash(path)))
+		require.DirExists(t, filepath.Join(fixtureDir, filepath.FromSlash(path)))
 	}
 	for _, path := range []string{
 		"executions/index.json",
 		"materials/index.json",
 	} {
-		require.FileExists(t, filepath.Join(sessionDir, filepath.FromSlash(path)))
+		require.FileExists(t, filepath.Join(fixtureDir, filepath.FromSlash(path)))
 	}
-	descriptor, err := os.Stat(filepath.Join(sessionDir, "session.json"))
+	descriptor, err := os.Stat(filepath.Join(fixtureDir, "fixture.json"))
 	require.NoError(t, err)
 	require.Zero(t, descriptor.Mode().Perm()&0o222)
 
@@ -80,10 +80,10 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 		}
 	}
 
-	opened, err := agenttestify.Open(sessionDir)
+	opened, err := agenttestify.Open(fixtureDir)
 	require.NoError(t, err)
 	require.Equal(t, cwd, workingDirectory(t))
-	require.Equal(t, prepared.SessionID, opened.SessionID)
+	require.Equal(t, prepared.FixtureID, opened.FixtureID)
 	require.Equal(t, prepared.Tool, opened.Tool)
 	require.Equal(t, prepared.AgentType, opened.AgentType)
 	require.Equal(t, prepared.Source, opened.Source)
@@ -93,19 +93,19 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.Equal(t, prepared.Current, opened.Current)
 
 	output := filepath.Join(root, "exported")
-	err = agenttestify.Export(agenttestify.ExportOptions{SessionDir: sessionDir, Output: output})
+	err = agenttestify.Export(agenttestify.ExportOptions{FixtureDir: fixtureDir, Output: output})
 	require.NoError(t, err)
 	require.Equal(t, cwd, workingDirectory(t))
 	require.Equal(t, treeHashes(t, prepared.Current.Path), treeHashes(t, output))
 	require.Equal(t, treeContents(t, prepared.Current.Path), treeContents(t, output))
-	require.NoFileExists(t, filepath.Join(output, "session.json"))
+	require.NoFileExists(t, filepath.Join(output, "fixture.json"))
 	require.NoFileExists(t, filepath.Join(output, "current.json"))
 	require.NoDirExists(t, filepath.Join(output, "executions"))
 	require.NoDirExists(t, filepath.Join(output, "runtime"))
 
 	importedDir := filepath.Join(root, "imported")
 	imported, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: importedDir,
+		FixtureDir: importedDir,
 		Agent:      "codex",
 		Recording:  output,
 	})
@@ -129,16 +129,16 @@ func TestLibraryMockWithoutCLI(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Agent:      "codex",
 		Case:       "SDK-CASE-001",
 	})
 	require.NoError(t, err)
 
-	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{
+	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 	}, libraryMockInput)
 	require.NoError(t, mockErr, stderr)
@@ -151,7 +151,7 @@ func TestLibraryMockWithoutCLI(t *testing.T) {
 	require.Equal(t, agenttestify.ConnectionStatusPassed, mockResult.ConnectionStatus)
 	require.Equal(t, agenttestify.ExecutionStatusPassed, mockResult.ExecutionStatus)
 	require.True(t, mockResult.ExecutionComplete)
-	require.Equal(t, prepared.SessionID, mockResult.SessionID)
+	require.Equal(t, prepared.FixtureID, mockResult.FixtureID)
 	require.Equal(t, "main", mockResult.ConnectionID)
 	require.NotEmpty(t, mockResult.ExecutionID)
 	require.Equal(t, prepared.Current, mockResult.Material)
@@ -169,28 +169,28 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Agent:      "codex",
 		Case:       "SDK-CASE-001",
 	})
 	require.NoError(t, err)
-	currentBefore := readFile(t, filepath.Join(sessionDir, "current.json"))
+	currentBefore := readFile(t, filepath.Join(fixtureDir, "current.json"))
 
-	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{}, "")
+	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{}, "")
 	require.ErrorContains(t, mockErr, "early client EOF")
 	require.Empty(t, stdout)
 	require.Empty(t, stderr)
 	require.Equal(t, cwd, workingDirectory(t))
-	require.Equal(t, currentBefore, readFile(t, filepath.Join(sessionDir, "current.json")))
+	require.Equal(t, currentBefore, readFile(t, filepath.Join(fixtureDir, "current.json")))
 
 	require.NotNil(t, mockResult)
 	require.Equal(t, agenttestify.ConnectionStatusFailed, mockResult.ConnectionStatus)
 	require.Equal(t, agenttestify.ExecutionStatusFailed, mockResult.ExecutionStatus)
 	require.True(t, mockResult.ExecutionComplete)
-	require.Equal(t, prepared.SessionID, mockResult.SessionID)
+	require.Equal(t, prepared.FixtureID, mockResult.FixtureID)
 	require.Equal(t, "main", mockResult.ConnectionID)
 	require.NotEmpty(t, mockResult.ExecutionID)
 	require.Equal(t, prepared.Current, mockResult.Material)
@@ -216,9 +216,9 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 func TestLibraryMockOmitsProcessLocationAndPreservesCallerCWD(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Agent:      "codex",
 		Case:       "SDK-CASE-001",
 	})
@@ -226,7 +226,7 @@ func TestLibraryMockOmitsProcessLocationAndPreservesCallerCWD(t *testing.T) {
 
 	callerCWD := t.TempDir()
 	t.Chdir(callerCWD)
-	mockResult, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{
+	mockResult, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 	}, libraryMockInput)
 	require.NoError(t, mockErr, stderr)
@@ -249,9 +249,9 @@ func TestLibraryMockOmitsProcessLocationAndPreservesCallerCWD(t *testing.T) {
 func TestLibraryMockFirstConnectionLeavesMultiConnectionExecutionOpen(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Agent:      "codex",
 		Case:       "SDK-CASE-032",
 	})
@@ -260,7 +260,7 @@ func TestLibraryMockFirstConnectionLeavesMultiConnectionExecutionOpen(t *testing
 	require.Equal(t, []string{"main", "probe"}, prepared.Current.Connections)
 
 	input := clientFrames(t, filepath.Join(prepared.Current.Path, "raw", "raw.jsonl"))
-	result, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{
+	result, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{
 		Connection: "main",
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 	}, input)
@@ -269,7 +269,7 @@ func TestLibraryMockFirstConnectionLeavesMultiConnectionExecutionOpen(t *testing
 	require.Equal(t, agenttestify.ExecutionStatusOpen, result.ExecutionStatus)
 	require.False(t, result.ExecutionComplete)
 
-	index := readLibraryJSON(t, filepath.Join(sessionDir, "executions", "index.json"))
+	index := readLibraryJSON(t, filepath.Join(fixtureDir, "executions", "index.json"))
 	executions := index["executions"].([]any)
 	require.Len(t, executions, 1)
 	execution := executions[0].(map[string]any)
@@ -283,17 +283,17 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
-	options := agenttestify.MockOptions{NativeArgs: []string{"app-server", "--listen", "stdio://"}}
+	options := agenttestify.MockAgentOptions{NativeArgs: []string{"app-server", "--listen", "stdio://"}}
 
 	type call struct {
 		in, out, err *os.File
-		session      *agenttestify.Session
+		fixture      *agenttestify.Fixture
 	}
 	var calls []call
 	for index := range 2 {
-		sessionDir := filepath.Join(root, "session-"+strconv.Itoa(index))
+		fixtureDir := filepath.Join(root, "fixture-"+strconv.Itoa(index))
 		prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-			SessionDir: sessionDir,
+			FixtureDir: fixtureDir,
 			Agent:      "codex",
 			Case:       "SDK-CASE-001",
 		})
@@ -309,12 +309,12 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 			in:      writeLibraryStream(t, streamRoot, "stdin", libraryMockInput),
 			out:     out,
 			err:     errOut,
-			session: prepared,
+			fixture: prepared,
 		})
 	}
 
 	type outcome struct {
-		result *agenttestify.MockResult
+		result *agenttestify.MockAgentResult
 		err    error
 	}
 	start := make(chan struct{})
@@ -322,7 +322,7 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 	for _, configured := range calls {
 		go func() {
 			<-start
-			result, err := configured.session.Mock(t.Context(), options, agenttestify.Streams{
+			result, err := configured.fixture.MockAgent(t.Context(), options, agenttestify.Streams{
 				In:  configured.in,
 				Out: configured.out,
 				Err: configured.err,
@@ -346,31 +346,31 @@ func TestLibraryOpenWithoutCurrent(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
-	sessionDir := filepath.Join(root, "session")
+	fixtureDir := filepath.Join(root, "fixture")
 	plan := writeLibraryPlan(t, root)
 
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
-		SessionDir: sessionDir,
+		FixtureDir: fixtureDir,
 		Plan:       plan,
 	})
 	require.NoError(t, err)
 	require.Nil(t, prepared.Current)
 	require.Equal(t, cwd, workingDirectory(t))
 
-	opened, err := agenttestify.Open(sessionDir)
+	opened, err := agenttestify.Open(fixtureDir)
 	require.NoError(t, err)
 	require.Nil(t, opened.Current)
-	require.Equal(t, prepared.SessionID, opened.SessionID)
+	require.Equal(t, prepared.FixtureID, opened.FixtureID)
 	require.Equal(t, cwd, workingDirectory(t))
 
 	output := filepath.Join(root, "exported")
-	err = agenttestify.Export(agenttestify.ExportOptions{SessionDir: sessionDir, Output: output})
+	err = agenttestify.Export(agenttestify.ExportOptions{FixtureDir: fixtureDir, Output: output})
 	require.ErrorContains(t, err, "no current recording")
 	require.NoDirExists(t, output)
 	require.Equal(t, cwd, workingDirectory(t))
 }
 
-func TestLibraryPrepareRejectsInvalidOptionsWithoutPartialSession(t *testing.T) {
+func TestLibraryPrepareRejectsInvalidOptionsWithoutPartialFixture(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	cwd := workingDirectory(t)
@@ -380,51 +380,51 @@ func TestLibraryPrepareRejectsInvalidOptionsWithoutPartialSession(t *testing.T) 
 		options func(string) agenttestify.PrepareOptions
 	}{
 		{
-			name: "missing session directory",
+			name: "missing fixture directory",
 			options: func(string) agenttestify.PrepareOptions {
 				return agenttestify.PrepareOptions{Agent: "codex", Case: "SDK-CASE-001"}
 			},
 		},
 		{
-			name: "relative session directory",
+			name: "relative fixture directory",
 			options: func(string) agenttestify.PrepareOptions {
-				return agenttestify.PrepareOptions{SessionDir: "relative", Agent: "codex", Case: "SDK-CASE-001"}
+				return agenttestify.PrepareOptions{FixtureDir: "relative", Agent: "codex", Case: "SDK-CASE-001"}
 			},
 		},
 		{
 			name: "missing source",
-			options: func(sessionDir string) agenttestify.PrepareOptions {
-				return agenttestify.PrepareOptions{SessionDir: sessionDir, Agent: "codex"}
+			options: func(fixtureDir string) agenttestify.PrepareOptions {
+				return agenttestify.PrepareOptions{FixtureDir: fixtureDir, Agent: "codex"}
 			},
 		},
 		{
 			name: "negative limits",
-			options: func(sessionDir string) agenttestify.PrepareOptions {
+			options: func(fixtureDir string) agenttestify.PrepareOptions {
 				return agenttestify.PrepareOptions{
-					SessionDir: sessionDir, Agent: "codex", Case: "SDK-CASE-001", MaxFrames: -1,
+					FixtureDir: fixtureDir, Agent: "codex", Case: "SDK-CASE-001", MaxFrames: -1,
 				}
 			},
 		},
 		{
 			name: "unknown agent",
-			options: func(sessionDir string) agenttestify.PrepareOptions {
-				return agenttestify.PrepareOptions{SessionDir: sessionDir, Agent: "unknown", Case: "SDK-CASE-001"}
+			options: func(fixtureDir string) agenttestify.PrepareOptions {
+				return agenttestify.PrepareOptions{FixtureDir: fixtureDir, Agent: "unknown", Case: "SDK-CASE-001"}
 			},
 		},
 		{
 			name: "missing plan",
-			options: func(sessionDir string) agenttestify.PrepareOptions {
+			options: func(fixtureDir string) agenttestify.PrepareOptions {
 				return agenttestify.PrepareOptions{
-					SessionDir: sessionDir, Plan: filepath.Join(root, "missing-plan.json"),
+					FixtureDir: fixtureDir, Plan: filepath.Join(root, "missing-plan.json"),
 				}
 			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			sessionDir := filepath.Join(t.TempDir(), "session")
-			_, err := agenttestify.Prepare(test.options(sessionDir))
+			fixtureDir := filepath.Join(t.TempDir(), "fixture")
+			_, err := agenttestify.Prepare(test.options(fixtureDir))
 			require.Error(t, err)
-			require.NoDirExists(t, sessionDir)
+			require.NoDirExists(t, fixtureDir)
 			require.Equal(t, cwd, workingDirectory(t))
 		})
 	}
@@ -445,7 +445,7 @@ func TestLibraryOpenAndExportRejectInvalidInputs(t *testing.T) {
 	require.NoError(t, os.Mkdir(existing, 0o700))
 	require.NoError(t, os.WriteFile(filepath.Join(existing, "sentinel"), []byte("preserve\n"), 0o600))
 	err := agenttestify.Export(agenttestify.ExportOptions{
-		SessionDir: filepath.Join(root, "missing-session"),
+		FixtureDir: filepath.Join(root, "missing-fixture"),
 		Output:     existing,
 	})
 	require.Error(t, err)
@@ -520,7 +520,7 @@ func assertImportedMaterialBytes(t *testing.T, exportedRoot, importedRoot string
 		got, present := imported[name]
 		require.True(t, present, name)
 		if name == "material.json" {
-			// The material envelope binds its new session-local path; all other
+			// The material envelope binds its new fixture-local path; all other
 			// package bytes must survive the import unchanged.
 			var exportedMaterial, importedMaterial map[string]any
 			require.NoError(t, json.Unmarshal(want, &exportedMaterial))
@@ -560,13 +560,13 @@ func writeLibraryPlan(t *testing.T, root string) string {
 
 func runLibraryMock(
 	t *testing.T,
-	session *agenttestify.Session,
-	options agenttestify.MockOptions,
+	fixture *agenttestify.Fixture,
+	options agenttestify.MockAgentOptions,
 	input string,
-) (*agenttestify.MockResult, string, string, error) {
+) (*agenttestify.MockAgentResult, string, string, error) {
 	t.Helper()
 	streams := newLibraryStreams(t, t.TempDir(), input)
-	result, runErr := session.Mock(t.Context(), options, streams.io)
+	result, runErr := fixture.MockAgent(t.Context(), options, streams.io)
 	return result, streams.output(t), streams.errors(t), runErr
 }
 

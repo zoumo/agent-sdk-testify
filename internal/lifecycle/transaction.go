@@ -22,7 +22,7 @@ func (t *lockedTransaction) releaseLock() error {
 	return t.lock.Close()
 }
 
-func claimTransactionConnection(sessionDir string, execution Execution, connection string) (string, error) {
+func claimTransactionConnection(fixtureDir string, execution Execution, connection string) (string, error) {
 	path, err := connectionClaimPath(execution, connection)
 	if err != nil {
 		return "", err
@@ -30,7 +30,7 @@ func claimTransactionConnection(sessionDir string, execution Execution, connecti
 	if err := createConnectionClaim(path); err != nil {
 		return "", fmt.Errorf("%s connection %s already started: %w", execution.Command, connection, err)
 	}
-	if err := markConnection(sessionDir, execution.ExecutionID, connection, "running", "open"); err != nil {
+	if err := markConnection(fixtureDir, execution.ExecutionID, connection, "running", "open"); err != nil {
 		return "", errors.Join(err, removeFileIfExists(path))
 	}
 	return path, nil
@@ -50,9 +50,9 @@ func finishTransactionFailure(ctx context.Context, run *transactionContext, stre
 	return errors.Join(err, writeTransactionResult(ctx, run, stream, err))
 }
 
-func settleTransactionConnection(sessionDir, action, executionID, connection, status string) (ready, passed bool, err error) {
+func settleTransactionConnection(fixtureDir, action, executionID, connection, status string) (ready, passed bool, err error) {
 	passed = true
-	err = updateIndex(sessionDir, func(index *Index) error {
+	err = updateIndex(fixtureDir, func(index *Index) error {
 		for i := range index.Executions {
 			execution := &index.Executions[i]
 			if execution.ID != executionID {
@@ -77,9 +77,9 @@ func settleTransactionConnection(sessionDir, action, executionID, connection, st
 	return ready, passed, err
 }
 
-func failTransaction(session *Session, sessionDir, action, executionID, overlayRoot string, restore func() error) error {
-	errs := []error{restore(), scrubExecutionAuthentication(session, overlayRoot)}
-	errs = append(errs, updateIndex(sessionDir, func(index *Index) error {
+func failTransaction(fixture *Fixture, fixtureDir, action, executionID, overlayRoot string, restore func() error) error {
+	errs := []error{restore(), scrubExecutionAuthentication(fixture, overlayRoot)}
+	errs = append(errs, updateIndex(fixtureDir, func(index *Index) error {
 		for i := range index.Executions {
 			execution := &index.Executions[i]
 			if execution.ID != executionID {

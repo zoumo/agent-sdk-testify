@@ -20,11 +20,11 @@ import (
 type (
 	RecordResult = lifecycle.RecordResult
 	MockResult   = mock.Result
-	Session      = lifecycle.Session
+	Fixture      = lifecycle.Fixture
 )
 
 type RecordOptions struct {
-	SessionDir     string
+	FixtureDir     string
 	Connection     string
 	URL            string
 	TokenFile      string
@@ -36,7 +36,7 @@ type RecordOptions struct {
 }
 
 type MockOptions struct {
-	SessionDir string
+	FixtureDir string
 	Connection string
 	Timeout    time.Duration
 	ResultFD   int
@@ -45,7 +45,7 @@ type MockOptions struct {
 }
 
 type PrepareOptions struct {
-	SessionDir    string
+	FixtureDir    string
 	Agent         string
 	Case          string
 	Plan          string
@@ -61,14 +61,14 @@ type PrepareOptions struct {
 }
 
 type ExportOptions struct {
-	SessionDir string
+	FixtureDir string
 	Output     string
 }
 
 type OpenResult struct {
-	Session    *Session
+	Fixture    *Fixture
 	Current    *corpus.Material
-	SessionDir string
+	FixtureDir string
 }
 
 // Streams are caller-owned process streams used by protocol actions.
@@ -78,22 +78,22 @@ type Streams struct {
 	Err *os.File
 }
 
-// Prepare validates caller input and creates one prepared session.
-func Prepare(o PrepareOptions) (*Session, error) {
-	if o.SessionDir == "" {
-		return nil, errors.New("prepare requires --session-dir")
+// Prepare validates caller input and creates one prepared fixture.
+func Prepare(o PrepareOptions) (*Fixture, error) {
+	if o.FixtureDir == "" {
+		return nil, errors.New("prepare requires --fixture-dir")
 	}
-	if !filepath.IsAbs(o.SessionDir) {
-		return nil, errors.New("--session-dir must be an absolute path")
+	if !filepath.IsAbs(o.FixtureDir) {
+		return nil, errors.New("--fixture-dir must be an absolute path")
 	}
 	if o.ProtocolBytes < 0 || o.StderrBytes < 0 || o.MaxFrames < 0 || o.MaxFrameBytes < 0 {
 		return nil, errors.New("prepare limits must be nonnegative")
 	}
-	if err := requireNewSessionDir(o.SessionDir); err != nil {
+	if err := requireNewFixtureDir(o.FixtureDir); err != nil {
 		return nil, err
 	}
 	return lifecycle.Prepare(lifecycle.PrepareOptions{
-		SessionDir:    o.SessionDir,
+		FixtureDir:    o.FixtureDir,
 		Agent:         o.Agent,
 		Case:          o.Case,
 		Plan:          o.Plan,
@@ -109,31 +109,31 @@ func Prepare(o PrepareOptions) (*Session, error) {
 	})
 }
 
-// Open reads the prepared session and its optional current recording.
-func Open(sessionDir string) (*OpenResult, error) {
-	if sessionDir == "" || !filepath.IsAbs(sessionDir) {
-		return nil, errors.New("open requires an absolute session directory")
+// Open reads the prepared fixture and its optional current recording.
+func Open(fixtureDir string) (*OpenResult, error) {
+	if fixtureDir == "" || !filepath.IsAbs(fixtureDir) {
+		return nil, errors.New("open requires an absolute fixture directory")
 	}
-	session, dir, err := openPreparedSession(sessionDir)
+	fixture, dir, err := openPreparedFixture(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	current, present, err := lifecycle.CurrentArtifact(dir, session)
+	current, present, err := lifecycle.CurrentArtifact(dir, fixture)
 	if err != nil {
 		return nil, err
 	}
 	if !present {
 		current = nil
 	}
-	return &OpenResult{Session: session, Current: current, SessionDir: dir}, nil
+	return &OpenResult{Fixture: fixture, Current: current, FixtureDir: dir}, nil
 }
 
 // Export validates caller input and copies the current recording.
 func Export(o ExportOptions) error {
-	if !filepath.IsAbs(o.SessionDir) || !filepath.IsAbs(o.Output) {
-		return errors.New("export requires absolute --session-dir and --output paths")
+	if !filepath.IsAbs(o.FixtureDir) || !filepath.IsAbs(o.Output) {
+		return errors.New("export requires absolute --fixture-dir and --output paths")
 	}
-	return lifecycle.Export(o.SessionDir, o.Output)
+	return lifecycle.Export(o.FixtureDir, o.Output)
 }
 
 // Record validates caller input and owns one record action.
@@ -144,8 +144,8 @@ func Record(ctx context.Context, o RecordOptions, streams Streams) (*RecordResul
 	if o.URL != "" && (o.Command != "" || len(o.NativeArgs) != 0) {
 		return nil, errors.New("remote target excludes --cmd and native arguments")
 	}
-	if !filepath.IsAbs(o.SessionDir) {
-		return nil, errors.New("--session-dir must be absolute")
+	if !filepath.IsAbs(o.FixtureDir) {
+		return nil, errors.New("--fixture-dir must be absolute")
 	}
 	if o.Timeout < 0 || o.ConnectTimeout < 0 {
 		return nil, errors.New("timeouts must be nonnegative")
@@ -179,11 +179,11 @@ func Mock(ctx context.Context, o MockOptions, streams Streams) (*MockResult, err
 	if o.ResultFD >= 3 && o.ResultFD == o.ProgressFD {
 		return nil, errors.New("result-fd and progress-fd must use separate descriptors")
 	}
-	if o.SessionDir == "" {
-		return nil, errors.New("mock requires --session-dir")
+	if o.FixtureDir == "" {
+		return nil, errors.New("mock requires --fixture-dir")
 	}
-	if !filepath.IsAbs(o.SessionDir) {
-		return nil, errors.New("--session-dir must be an absolute path")
+	if !filepath.IsAbs(o.FixtureDir) {
+		return nil, errors.New("--fixture-dir must be an absolute path")
 	}
 	if o.Timeout < 0 {
 		return nil, errors.New("mock timeout must be nonnegative")
@@ -208,11 +208,11 @@ func validateResultFD(fd int) error {
 	return nil
 }
 
-func requireNewSessionDir(sessionDir string) error {
-	_, err := os.Lstat(sessionDir)
+func requireNewFixtureDir(fixtureDir string) error {
+	_, err := os.Lstat(fixtureDir)
 	switch {
 	case err == nil:
-		return fmt.Errorf("--session-dir already exists: %s", sessionDir)
+		return fmt.Errorf("--fixture-dir already exists: %s", fixtureDir)
 	case errors.Is(err, os.ErrNotExist):
 		return nil
 	default:

@@ -15,32 +15,32 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-// CanonicalSessionDir validates and resolves one prepared-session directory.
-func CanonicalSessionDir(sessionDir string) (string, error) {
-	if !filepath.IsAbs(sessionDir) {
-		return "", errors.New("--session-dir must be absolute")
+// CanonicalFixtureDir validates and resolves one prepared-fixture directory.
+func CanonicalFixtureDir(fixtureDir string) (string, error) {
+	if !filepath.IsAbs(fixtureDir) {
+		return "", errors.New("--fixture-dir must be absolute")
 	}
-	parent, err := filepath.EvalSymlinks(filepath.Dir(sessionDir))
+	parent, err := filepath.EvalSymlinks(filepath.Dir(fixtureDir))
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(parent, filepath.Base(sessionDir))
+	dir := filepath.Join(parent, filepath.Base(fixtureDir))
 	info, err := os.Lstat(dir)
 	if err != nil {
 		return "", err
 	}
 	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return "", errors.New("session directory is not an unlinked directory")
+		return "", errors.New("fixture directory is not an unlinked directory")
 	}
 	return dir, nil
 }
 
-func readSessionUnlocked(sessionDir string) (*Session, error) {
-	dir, err := CanonicalSessionDir(sessionDir)
+func readFixtureUnlocked(fixtureDir string) (*Fixture, error) {
+	dir, err := CanonicalFixtureDir(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	session, err := readSession(SessionPath(dir))
+	fixture, err := readFixture(FixturePath(dir))
 	if err != nil {
 		return nil, err
 	}
@@ -48,30 +48,30 @@ func readSessionUnlocked(sessionDir string) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	hash, err := tool.FileDigest(SessionPath(dir))
+	hash, err := tool.FileDigest(FixturePath(dir))
 	if err != nil {
 		return nil, err
 	}
-	if hash != index.SessionSHA256 || index.SessionID != session.SessionID {
-		return nil, errors.New("session descriptor changed after prepare")
+	if hash != index.FixtureSHA256 || index.FixtureID != fixture.FixtureID {
+		return nil, errors.New("fixture descriptor changed after prepare")
 	}
-	if session.ResourceRoot != filepath.Join(dir, "runtime") {
-		return nil, errors.New("session runtime must be inside session/runtime")
+	if fixture.ResourceRoot != filepath.Join(dir, "runtime") {
+		return nil, errors.New("fixture runtime must be inside fixture/runtime")
 	}
-	return session, nil
+	return fixture, nil
 }
 
-func OpenSession(sessionDir string) (*Session, error) {
-	return readSessionUnlocked(sessionDir)
+func OpenFixture(fixtureDir string) (*Fixture, error) {
+	return readFixtureUnlocked(fixtureDir)
 }
 
-func updateIndex(sessionDir string, mutate func(*Index) error) error {
-	lock, err := metadataLock(sessionDir)
+func updateIndex(fixtureDir string, mutate func(*Index) error) error {
+	lock, err := metadataLock(fixtureDir)
 	if err != nil {
 		return err
 	}
 	defer lock.Close()
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return err
 	}
@@ -80,12 +80,12 @@ func updateIndex(sessionDir string, mutate func(*Index) error) error {
 		return err
 	}
 	if !reflect.DeepEqual(oldMaterials, index.Artifacts) {
-		if err := writeMaterialIndex(sessionDir, index); err != nil {
+		if err := writeMaterialIndex(fixtureDir, index); err != nil {
 			return err
 		}
 	}
 	index.LastUpdatedUTC = now()
-	return writeAtomic(IndexPath(sessionDir), index)
+	return writeAtomic(IndexPath(fixtureDir), index)
 }
 
 func pendingExecution(index *Index) *IndexExecution {
@@ -162,30 +162,30 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 	return connections, nil
 }
 
-func createExecutionOverlay(session *Session, action, dir string, plan tool.Object, material *corpus.Material) (string, map[string]string, error) {
-	route, ok := session.Routes[action]
+func createExecutionOverlay(fixture *Fixture, action, dir string, plan tool.Object, material *corpus.Material) (string, map[string]string, error) {
+	route, ok := fixture.Routes[action]
 	if !ok || !route.Enabled {
-		return "", nil, fmt.Errorf("%s is not available for this session", action)
+		return "", nil, fmt.Errorf("%s is not available for this fixture", action)
 	}
-	overlayRoot := filepath.Join(session.ResourceRoot, "executions", filepath.Base(dir))
+	overlayRoot := filepath.Join(fixture.ResourceRoot, "executions", filepath.Base(dir))
 	success := false
 	slotsTouched := false
 	defer func() {
 		if !success {
 			if slotsTouched {
-				_ = restoreRouteSlots(session, action)
+				_ = restoreRouteSlots(fixture, action)
 			}
 			_ = os.RemoveAll(overlayRoot)
 		}
 	}()
-	if err := tool.CopyTree(filepath.Join(session.ResourceRoot, "baseline"), overlayRoot); err != nil {
+	if err := tool.CopyTree(filepath.Join(fixture.ResourceRoot, "baseline"), overlayRoot); err != nil {
 		return "", nil, err
 	}
-	if err := prepareExecutionAuthentication(session, action, overlayRoot); err != nil {
+	if err := prepareExecutionAuthentication(fixture, action, overlayRoot); err != nil {
 		return "", nil, err
 	}
 	if action == "mock" {
-		if err := cleanMockConfig(overlayRoot, plan, session.AgentType); err != nil {
+		if err := cleanMockConfig(overlayRoot, plan, fixture.AgentType); err != nil {
 			return "", nil, err
 		}
 		if err := history.Reset(overlayRoot); err != nil {
@@ -203,13 +203,13 @@ func createExecutionOverlay(session *Session, action, dir string, plan tool.Obje
 			return "", nil, err
 		}
 	}
-	if action == "record" && session.Source.Kind == "recording" {
-		if _, err := history.Materialize(session.Source.Path, overlayRoot); err != nil {
+	if action == "record" && fixture.Source.Kind == "recording" {
+		if _, err := history.Materialize(fixture.Source.Path, overlayRoot); err != nil {
 			return "", nil, err
 		}
 	}
 	slotsTouched = true
-	if err := bindRouteSlots(filepath.Join(session.ResourceRoot, "routes", action), overlayRoot); err != nil {
+	if err := bindRouteSlots(filepath.Join(fixture.ResourceRoot, "routes", action), overlayRoot); err != nil {
 		return "", nil, err
 	}
 	success = true
@@ -223,14 +223,14 @@ func executionProtocolCwd(action string, plan tool.Object, workspace string) str
 	return planProtocolCwd(plan, workspace)
 }
 
-func newExecution(session *Session, action, id, overlayRoot, artifactRoot string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
+func newExecution(fixture *Fixture, action, id, overlayRoot, artifactRoot string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
 	workspace := filepath.Join(overlayRoot, "workspace")
-	limits := session.Limits
+	limits := fixture.Limits
 	if timeout > 0 {
 		limits.TimeoutNS = int64(timeout)
 	}
-	route := session.Routes[action]
-	provenance, err := executionProvenance(session, action, material)
+	route := fixture.Routes[action]
+	provenance, err := executionProvenance(fixture, action, material)
 	if err != nil {
 		return Execution{}, err
 	}
@@ -241,11 +241,11 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	execution := Execution{
 		SchemaVersion: SchemaVersion,
 		ExecutionID:   id,
-		SessionID:     session.SessionID,
+		FixtureID:     fixture.FixtureID,
 		Command:       action,
 		Args:          append([]string(nil), commandArgs...),
 		NativeArgs:    append([]string(nil), nativeArgs...),
-		Source:        session.Source,
+		Source:        fixture.Source,
 		Executor:      route.Executor,
 		Target:        route.Target,
 		Provenance:    provenance,
@@ -256,14 +256,14 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 		Tmp:           filepath.Join(overlayRoot, "tmp"),
 		HistorySeed:   filepath.Join(overlayRoot, "history-seed"),
 		HistoryFiles:  historyFiles,
-		Env:           baseEnvironment(session.AgentType, overlayRoot),
+		Env:           baseEnvironment(fixture.AgentType, overlayRoot),
 		Connections:   connections,
 		ArtifactRoot:  artifactRoot,
 		Admission:     admission,
 		Limits:        limits,
 		StartedAt:     now(),
 	}
-	runtimeEnv, err := executionRuntimeEnvironment(session, action, overlayRoot)
+	runtimeEnv, err := executionRuntimeEnvironment(fixture, action, overlayRoot)
 	if err != nil {
 		return Execution{}, err
 	}
@@ -291,26 +291,26 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 	return execution, nil
 }
 
-func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, admission *Admission, origin *corpus.OfficialOrigin) (*transactionContext, error) {
-	sessionDir, err := CanonicalSessionDir(sessionDir)
+func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, admission *Admission, origin *corpus.OfficialOrigin) (*transactionContext, error) {
+	fixtureDir, err := CanonicalFixtureDir(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
-	session, err := readSessionUnlocked(sessionDir)
+	fixture, err := readFixtureUnlocked(fixtureDir)
 	if err != nil {
 		return nil, err
 	}
 	if action == "record" && origin == nil {
-		if err := checkOfficialIdle(sessionDir); err != nil {
+		if err := checkOfficialIdle(fixtureDir); err != nil {
 			return nil, err
 		}
 	}
-	route, ok := session.Routes[action]
+	route, ok := fixture.Routes[action]
 	if !ok || !route.Enabled {
 		if action == "record" {
 			return nil, errors.New("record source has no executable route: plan, driver binding or protocol cwd is unavailable")
 		}
-		return nil, fmt.Errorf("%s is not available for this session", action)
+		return nil, fmt.Errorf("%s is not available for this fixture", action)
 	}
 	if action != "record" && material == nil {
 		return nil, fmt.Errorf("%s requires an input material", action)
@@ -319,34 +319,34 @@ func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs 
 	routeBound := false
 	defer func() {
 		if !success && routeBound {
-			_ = restoreRouteSlots(session, action)
+			_ = restoreRouteSlots(fixture, action)
 		}
 	}()
 	if action == "record" && origin == nil {
-		if err := checkOfficialIdle(sessionDir); err != nil {
+		if err := checkOfficialIdle(fixtureDir); err != nil {
 			return nil, err
 		}
 	}
-	index, err := readIndex(IndexPath(sessionDir))
+	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return nil, err
 	}
 	if pending := pendingExecution(index); pending != nil {
-		return nil, fmt.Errorf("session has unfinished execution %s", pending.ID)
+		return nil, fmt.Errorf("fixture has unfinished execution %s", pending.ID)
 	}
 	var plan tool.Object
 	if action == "record" {
-		plan, err = LoadPlan(session)
+		plan, err = LoadPlan(fixture)
 		if err != nil {
 			return nil, err
 		}
-		if session.Source.Kind == "recording" {
+		if fixture.Source.Kind == "recording" {
 			found := false
 			for _, source := range index.Artifacts {
-				if source.Path != session.Source.Path {
+				if source.Path != fixture.Source.Path {
 					continue
 				}
-				if _, err := inspectMaterial(session, source); err != nil {
+				if _, err := inspectMaterial(fixture, source); err != nil {
 					return nil, err
 				}
 				found = true
@@ -363,19 +363,19 @@ func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs 
 		}
 	}
 	if material != nil {
-		current, err := LatestArtifact(sessionDir, session)
+		current, err := LatestArtifact(fixtureDir, fixture)
 		if err != nil {
 			return nil, err
 		}
 		if !reflect.DeepEqual(current, material) {
 			return nil, errors.New("current recording changed before execution")
 		}
-		inspection, err := inspectMaterial(session, *current)
+		inspection, err := inspectMaterial(fixture, *current)
 		if err != nil {
 			return nil, err
 		}
 		plan = inspection.Plan
-		if _, err := executionConnections(sessionDir, action, current.Connections, current, route); err != nil {
+		if _, err := executionConnections(fixtureDir, action, current.Connections, current, route); err != nil {
 			return nil, err
 		}
 	}
@@ -383,7 +383,7 @@ func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs 
 	if err != nil {
 		return nil, err
 	}
-	dir := ExecutionDir(sessionDir, id)
+	dir := ExecutionDir(fixtureDir, id)
 	if err := os.MkdirAll(filepath.Join(dir, "receipts"), 0o700); err != nil {
 		return nil, err
 	}
@@ -391,18 +391,18 @@ func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs 
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
-	overlayRoot, historyFiles, err := createExecutionOverlay(session, action, dir, plan, material)
+	overlayRoot, historyFiles, err := createExecutionOverlay(fixture, action, dir, plan, material)
 	if err != nil {
 		return nil, err
 	}
 	routeBound = true
-	ids := ConnectionIDs(session.Source, plan)
+	ids := ConnectionIDs(fixture.Source, plan)
 	if material != nil {
 		if len(material.Connections) > 0 {
 			ids = append([]string(nil), material.Connections...)
 		}
 	}
-	execution, err := newExecution(session, action, id, overlayRoot, artifactRoot, commandArgs, nativeArgs, timeout, progressFD, ids, material, admission, plan, historyFiles)
+	execution, err := newExecution(fixture, action, id, overlayRoot, artifactRoot, commandArgs, nativeArgs, timeout, progressFD, ids, material, admission, plan, historyFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +411,7 @@ func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs 
 		execution.Artifact.Provenance = "official"
 		execution.Artifact.OfficialOrigin = origin
 	}
-	if err := execution.Validate(*session); err != nil {
+	if err := execution.Validate(*fixture); err != nil {
 		return nil, err
 	}
 	descriptorPath := filepath.Join(dir, "execution.json")
@@ -430,7 +430,7 @@ func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs 
 	if action == "mock" {
 		executionStatus = "open"
 	}
-	if err := updateIndex(sessionDir, func(value *Index) error {
+	if err := updateIndex(fixtureDir, func(value *Index) error {
 		for _, existing := range value.Executions {
 			if existing.ID == id {
 				return errors.New("duplicate execution identity")
@@ -450,18 +450,18 @@ func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs 
 		return nil, err
 	}
 	success = true
-	return newTransactionContext(session, plan, execution, sessionDir), nil
+	return newTransactionContext(fixture, plan, execution, fixtureDir), nil
 }
 
-func beginActionLock(sessionDir string) (*Lock, bool, error) {
-	lock, err := actionLock(sessionDir, true)
+func beginActionLock(fixtureDir string) (*Lock, bool, error) {
+	lock, err := actionLock(fixtureDir, true)
 	if err == nil {
 		return lock, true, nil
 	}
 	if !errors.Is(err, ErrBusy) {
 		return nil, false, err
 	}
-	lock, err = actionLock(sessionDir, false)
+	lock, err = actionLock(fixtureDir, false)
 	if err != nil {
 		return nil, false, err
 	}
@@ -533,8 +533,8 @@ func createConnectionClaim(path string) (err error) {
 	return nil
 }
 
-func markConnection(sessionDir, executionID, connection, status, executionStatus string) error {
-	return updateIndex(sessionDir, func(index *Index) error {
+func markConnection(fixtureDir, executionID, connection, status, executionStatus string) error {
+	return updateIndex(fixtureDir, func(index *Index) error {
 		for i := range index.Executions {
 			if index.Executions[i].ID != executionID {
 				continue

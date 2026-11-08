@@ -12,15 +12,15 @@ import (
 
 // References come exclusively from each launcher's actual notification pipe.
 // No directory inventory, latest execution or caller-supplied success is used.
-func mockReferences(sessionDir string, session *lifecycle.Session, root string, ids []string, material corpus.Material, previous map[string]bool) ([]tool.Object, error) {
+func mockReferences(fixtureDir string, fixture *lifecycle.Fixture, root string, ids []string, material corpus.Material, previous map[string]bool) ([]tool.Object, error) {
 	return collectPeerReferences(ids, func(id string) (tool.Object, error) {
-		return mockReference(sessionDir, session, root, id, material, previous)
+		return mockReference(fixtureDir, fixture, root, id, material, previous)
 	})
 }
 
-func mockReference(sessionDir string, session *lifecycle.Session, root, id string, pinned corpus.Material, previous map[string]bool) (tool.Object, error) {
-	ref, execution, connection, err := readPeerReference(sessionDir, session, root, id, "mock", func(execution lifecycle.Execution) error {
-		return lifecycle.ValidateMockExecution(sessionDir, session, execution)
+func mockReference(fixtureDir string, fixture *lifecycle.Fixture, root, id string, pinned corpus.Material, previous map[string]bool) (tool.Object, error) {
+	ref, execution, connection, err := readPeerReference(fixtureDir, fixture, root, id, "mock", func(execution lifecycle.Execution) error {
+		return lifecycle.ValidateMockExecution(fixtureDir, fixture, execution)
 	})
 	if err != nil {
 		return ref, err
@@ -40,10 +40,10 @@ func mockReference(sessionDir string, session *lifecycle.Session, root, id strin
 	if finished["processReceipt"] != connection.ProcessReceipt || started["processReceipt"] != connection.ProcessReceipt {
 		return ref, errors.New("mock process receipt reference differs")
 	}
-	if err := lifecycle.ValidateMockConnection(session.AgentType, *execution, *connection); err != nil {
+	if err := lifecycle.ValidateMockConnection(fixture.AgentType, *execution, *connection); err != nil {
 		return ref, err
 	}
-	dir := filepath.Join(sessionDir, "executions", execution.ExecutionID)
+	dir := filepath.Join(fixtureDir, "executions", execution.ExecutionID)
 	hashes := tool.Object{}
 	for _, path := range []string{connection.Receipt, connection.ProcessReceipt, filepath.Join(dir, "receipts", id+".result.json")} {
 		hash, err := tool.FileDigest(path)
@@ -57,7 +57,7 @@ func mockReference(sessionDir string, session *lifecycle.Session, root, id strin
 }
 
 // Snapshot exact durable evidence for archive revalidation, without rewriting
-// receipts or requiring access to the original session after export/archive.
+// receipts or requiring access to the original fixture after export/archive.
 func snapshotMocks(root string, refs []tool.Object) error {
 	for _, ref := range refs {
 		connection, ok := ref["connection"].(lifecycle.ExecutionConnection)

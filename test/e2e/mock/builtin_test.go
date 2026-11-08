@@ -26,19 +26,19 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 					if mode == "builtin" {
 						args = []string{"prepare", "--agent", provider, "--case", "SDK-CASE-001"}
 					}
-					session, env := preparedSessionWithArgs(t, args...)
-					cmd := sessionTool(t, env, "agent", "mock", "--session-dir", session)
+					fixtureDir, env := preparedFixtureWithArgs(t, args...)
+					cmd := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixtureDir)
 					cmd.Stdin = strings.NewReader(input)
 					var stderr bytes.Buffer
 					cmd.Stderr = &stderr
 					out, err := cmd.Output()
 					require.NoError(t, err, "%s", stderr.String())
-					receipt := mockReceipt(t, session)
+					receipt := mockReceipt(t, fixtureDir)
 					assert.Equal(t, true, receipt["cleanupComplete"])
 					assert.Equal(t, "passed", receipt["status"])
 					if mode == "builtin" {
 						good = out
-						execution, _ := latestSessionExecution(t, session, "mock")
+						execution, _ := latestFixtureExecution(t, fixtureDir, "mock")
 						assert.Equal(t, "builtin", execution["provenance"])
 					} else {
 						assert.Equal(t, string(good), string(out))
@@ -54,31 +54,31 @@ func TestBuiltinMissingAndUnsupported(t *testing.T) {
 		{"codex", "SDK-CASE-003"}, {"codex", "SDK-CASE-012"}, {"claude", "SDK-CASE-003"}, {"claude", "SDK-CASE-026"},
 	} {
 		t.Run(test.provider+test.id, func(t *testing.T) {
-			session, env := preparedSessionWithArgs(t, "prepare", "--agent", test.provider, "--case", test.id)
-			data, err := sessionTool(t, env, "agent", "mock", "--session-dir", session).CombinedOutput()
+			fixtureDir, env := preparedFixtureWithArgs(t, "prepare", "--agent", test.provider, "--case", test.id)
+			data, err := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixtureDir).CombinedOutput()
 			require.Error(t, err)
 			assert.Contains(t, string(data), "no current recording")
 		})
 	}
-	session := filepath.Join(t.TempDir(), "session")
-	data, err := sessionTool(t, os.Environ(), "prepare", "--session-dir", session, "--agent", "codex", "--case", "SDK-CASE-999").CombinedOutput()
+	fixtureDir := filepath.Join(t.TempDir(), "fixture")
+	data, err := fixtureTool(t, os.Environ(), "prepare", "--fixture-dir", fixtureDir, "--agent", "codex", "--case", "SDK-CASE-999").CombinedOutput()
 	require.Error(t, err)
 	assert.Contains(t, string(data), "absent from shared materials")
 }
 
-// Removed query envelopes are replaced by the session's lossless material copy.
+// Removed query envelopes are replaced by the fixture's lossless material copy.
 func TestPreparedMaterialsPreserveNativeBytes(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
 		t.Run(provider, func(t *testing.T) {
 			_, source := builtinTranscript(t, provider, "SDK-CASE-018")
-			session, _ := preparedSessionWithArgs(t, "prepare", "--agent", provider, "--case", "SDK-CASE-018")
+			fixtureDir, _ := preparedFixtureWithArgs(t, "prepare", "--agent", provider, "--case", "SDK-CASE-018")
 			// The registry owns the immutable current material.
 			var index struct {
 				Materials []struct {
 					Path string `json:"path"`
 				} `json:"materials"`
 			}
-			require.NoError(t, tool.ReadJSON(filepath.Join(session, "materials", "index.json"), &index))
+			require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &index))
 			require.Len(t, index.Materials, 1)
 			material := index.Materials[0].Path
 			for _, name := range []string{"plan.json", "report.json", "raw/raw.jsonl"} {
@@ -100,9 +100,9 @@ func TestPreparedMaterialsPreserveNativeBytes(t *testing.T) {
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "manifest.json"), manifest))
 	report := []byte(`{"status":"passed","protected":{"unknown":9007199254740993,"decimal":1.00,"html":"<native>"}}`)
 	require.NoError(t, os.WriteFile(filepath.Join(root, "report.json"), report, 0o600))
-	session, _ := preparedSessionWithArgs(t, "prepare", "--recording", root)
+	fixtureDir, _ := preparedFixtureWithArgs(t, "prepare", "--recording", root)
 	var descriptor tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(session, "session.json"), &descriptor))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 	material := tool.Str(tool.Obj(descriptor["source"])["path"])
 	copied, err := os.ReadFile(filepath.Join(material, "report.json"))
 	require.NoError(t, err)

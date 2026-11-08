@@ -222,19 +222,19 @@ func str(value any) string {
 	return valueString
 }
 
-func sessionIndex(t *testing.T, session string) object {
+func fixtureIndex(t *testing.T, fixture string) object {
 	t.Helper()
-	return readJSON(t, filepath.Join(session, "executions", "index.json"))
+	return readJSON(t, filepath.Join(fixture, "executions", "index.json"))
 }
 
-func executionByID(t *testing.T, session, id string) object {
+func executionByID(t *testing.T, fixture, id string) object {
 	t.Helper()
-	return readJSON(t, filepath.Join(session, "executions", id, "execution.json"))
+	return readJSON(t, filepath.Join(fixture, "executions", id, "execution.json"))
 }
 
-func connectionStatus(t *testing.T, session string, execution object, id string) any {
+func connectionStatus(t *testing.T, fixture string, execution object, id string) any {
 	t.Helper()
-	for _, value := range array(sessionIndex(t, session)["executions"]) {
+	for _, value := range array(fixtureIndex(t, fixture)["executions"]) {
 		row := obj(value)
 		if str(row["id"]) != str(execution["executionId"]) {
 			continue
@@ -250,62 +250,62 @@ func connectionStatus(t *testing.T, session string, execution object, id string)
 	return nil
 }
 
-func latestExecution(t *testing.T, session, command string) object {
+func latestExecution(t *testing.T, fixture, command string) object {
 	t.Helper()
-	index := sessionIndex(t, session)
+	index := fixtureIndex(t, fixture)
 	rows := array(index["executions"])
 	for i := range slices.Backward(rows) {
 		row := obj(rows[i])
 		if str(row["command"]) == command {
-			return executionByID(t, session, str(row["id"]))
+			return executionByID(t, fixture, str(row["id"]))
 		}
 	}
-	t.Fatalf("session has no %s execution", command)
+	t.Fatalf("fixture has no %s execution", command)
 	return nil
 }
 
-func artifactByID(t *testing.T, session, id string) object {
+func artifactByID(t *testing.T, fixture, id string) object {
 	t.Helper()
-	index := materialIndex(t, session)
+	index := materialIndex(t, fixture)
 	for _, value := range array(index["materials"]) {
 		artifact := obj(value)
 		if str(artifact["id"]) == id {
 			return artifact
 		}
 	}
-	t.Fatalf("session has no artifact %s", id)
+	t.Fatalf("fixture has no artifact %s", id)
 	return nil
 }
 
-func latestCapture(t *testing.T, session string) object {
+func latestCapture(t *testing.T, fixture string) object {
 	t.Helper()
-	id := currentMaterialID(t, session)
+	id := currentMaterialID(t, fixture)
 	require.NotEmpty(t, id)
-	return artifactByID(t, session, id)
+	return artifactByID(t, fixture, id)
 }
 
-func prepareSession(t *testing.T, env []string, args ...string) string {
+func prepareFixture(t *testing.T, env []string, args ...string) string {
 	t.Helper()
 	base := t.TempDir()
-	session := filepath.Join(base, "session")
-	args = append(args, "--session-dir", session)
+	fixture := filepath.Join(base, "fixture")
+	args = append(args, "--fixture-dir", fixture)
 	result := mustRun(t, env, base, "", append([]string{"prepare"}, args...)...)
 	require.Empty(t, result.stderr)
 	t.Cleanup(func() {
 		if t.Failed() {
 			for _, parent := range []string{"official-records", "verifications"} {
 				var ids []string
-				if readJSONFile(filepath.Join(session, parent, "index.json"), &ids) != nil || len(ids) == 0 {
+				if readJSONFile(filepath.Join(fixture, parent, "index.json"), &ids) != nil || len(ids) == 0 {
 					continue
 				}
-				path := filepath.Join(session, parent, ids[len(ids)-1], "driver", "stderr.log")
+				path := filepath.Join(fixture, parent, ids[len(ids)-1], "driver", "stderr.log")
 				if data, err := os.ReadFile(path); err == nil {
 					t.Logf("official driver diagnostics: %s", data)
 				}
 			}
 		}
 	})
-	return session
+	return fixture
 }
 
 func writeConsumerPlan(t *testing.T, base, caseID string) string {
@@ -327,10 +327,10 @@ func writeConsumerPlan(t *testing.T, base, caseID string) string {
 	return path
 }
 
-func recordConsumer(t *testing.T, env []string, session, agent, request string) object {
+func recordConsumer(t *testing.T, env []string, fixture, agent, request string) object {
 	t.Helper()
 	result := mustRun(t, env, t.TempDir(), request,
-		"agent", "record", "--session-dir", session, "--cmd", agent, "--",
+		"agent", "record", "--fixture-dir", fixture, "--cmd", agent, "--",
 		"app-server", "--listen", "stdio://",
 	)
 	var responses []object
@@ -344,12 +344,12 @@ func recordConsumer(t *testing.T, env []string, session, agent, request string) 
 	}
 	require.Len(t, responses, 1)
 	require.Equal(t, true, obj(responses[0]["result"])["synthetic"])
-	return latestExecution(t, session, "record")
+	return latestExecution(t, fixture, "record")
 }
 
-func runPreparedMock(t *testing.T, env []string, session, connection, request string, extra ...string) commandResult {
+func runPreparedMock(t *testing.T, env []string, fixture, connection, request string, extra ...string) commandResult {
 	t.Helper()
-	args := []string{"agent", "mock", "--session-dir", session}
+	args := []string{"agent", "mock", "--fixture-dir", fixture}
 	if connection != "" {
 		args = append(args, "--connection", connection)
 	}
@@ -363,8 +363,8 @@ func runPreparedMock(t *testing.T, env []string, session, connection, request st
 // builtinInputs reads the raw bytes imported by the installed prepare CLI.
 func builtinInputs(t *testing.T, provider, caseID string) map[string]string {
 	t.Helper()
-	session := prepareSession(t, os.Environ(), "--agent", provider, "--case", caseID)
-	material := str(obj(array(materialIndex(t, session)["materials"])[0])["path"])
+	fixture := prepareFixture(t, os.Environ(), "--agent", provider, "--case", caseID)
+	material := str(obj(array(materialIndex(t, fixture)["materials"])[0])["path"])
 	inputs := map[string]string{}
 	for _, phase := range []struct{ id, path string }{{"main", "raw/raw.jsonl"}, {"probe", "remote-probe/raw/raw.jsonl"}} {
 		data, err := os.ReadFile(filepath.Join(material, phase.path))
@@ -437,14 +437,14 @@ func requireDistinct(t *testing.T, values ...string) {
 	}
 }
 
-func materialIndex(t *testing.T, session string) object {
+func materialIndex(t *testing.T, fixture string) object {
 	t.Helper()
-	return readJSON(t, filepath.Join(session, "materials", "index.json"))
+	return readJSON(t, filepath.Join(fixture, "materials", "index.json"))
 }
 
-func currentMaterialID(t *testing.T, session string) string {
+func currentMaterialID(t *testing.T, fixture string) string {
 	t.Helper()
-	return str(readJSON(t, filepath.Join(session, "current.json"))["materialId"])
+	return str(readJSON(t, filepath.Join(fixture, "current.json"))["materialId"])
 }
 
 func publicAction(action string) []string {
@@ -454,15 +454,15 @@ func publicAction(action string) []string {
 	return []string{"agent", action}
 }
 
-func latestVerificationRoot(t *testing.T, session string) string {
+func latestVerificationRoot(t *testing.T, fixture string) string {
 	t.Helper()
-	root, _ := latestOfficialVerification(t, session)
+	root, _ := latestOfficialVerification(t, fixture)
 	return root
 }
 
 // Cancellation is triggered at the observed protocol boundary. The existing
 // process watchdog remains 45s; native startup cost cannot cancel the wrong phase.
-func cancelOfficialDuringProtocol(t *testing.T, env []string, session string, args ...string) commandResult {
+func cancelOfficialDuringProtocol(t *testing.T, env []string, fixture string, args ...string) commandResult {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 45*time.Second)
 	defer cancel()
@@ -478,7 +478,7 @@ func cancelOfficialDuringProtocol(t *testing.T, env []string, session string, ar
 	ready := false
 	for !ready {
 		var active object
-		if readJSONFile(filepath.Join(session, "official-active.json"), &active) == nil {
+		if readJSONFile(filepath.Join(fixture, "official-active.json"), &active) == nil {
 			var checkpoint object
 			ready = readJSONFile(filepath.Join(str(active["dir"]), "driver", "checkpoint.json"), &checkpoint) == nil
 		}
@@ -501,11 +501,11 @@ func cancelOfficialDuringProtocol(t *testing.T, env []string, session string, ar
 }
 
 // Runtime may contain private configuration; it is not durable evidence.
-func readSessionEvidence(t *testing.T, session string) []byte {
+func readFixtureEvidence(t *testing.T, fixture string) []byte {
 	t.Helper()
 	var contents []byte
-	for _, name := range []string{"session.json", "source", "materials", "executions"} {
-		path := filepath.Join(session, name)
+	for _, name := range []string{"fixture.json", "source", "materials", "executions"} {
+		path := filepath.Join(fixture, name)
 		info, err := os.Stat(path)
 		require.NoError(t, err)
 		if info.IsDir() {
