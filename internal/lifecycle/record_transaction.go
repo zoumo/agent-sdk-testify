@@ -61,6 +61,43 @@ func (r *recordTransaction) context() RecordContext {
 	}
 }
 
+func (r *recordTransaction) result() *RecordResult {
+	id := r.connection
+	if id == "" {
+		id = "main"
+	}
+	result := &RecordResult{
+		ActionResult: ActionResult{
+			SessionID:          r.session.SessionID,
+			ExecutionID:        r.execution.ExecutionID,
+			ConnectionID:       id,
+			ConnectionStatus:   ConnectionStatusUnknown,
+			ExecutionStatus:    ExecutionStatusUnknown,
+			ExecutionPath:      filepath.Join(r.dir, "execution.json"),
+			ProcessReceiptPath: filepath.Join(r.dir, "receipts", id+".native-process.json"),
+			ResultPath:         filepath.Join(r.dir, "receipts", id+".result.json"),
+		},
+	}
+	for _, connection := range r.execution.Connections {
+		if connection.ID == id {
+			result.ReceiptPath = connection.Receipt
+			if connection.ProcessReceipt != "" {
+				result.ProcessReceiptPath = connection.ProcessReceipt
+			}
+			break
+		}
+	}
+	return result
+}
+
+func (r *recordTransaction) attachPublishedMaterial(result *RecordResult, runErr error) {
+	if result == nil || runErr != nil || r.execution.Artifact.ManifestSHA256 == "" {
+		return
+	}
+	material := cloneTransactionMaterial(r.execution.Artifact)
+	result.Material = &material
+}
+
 func (r *recordTransaction) prepare(ctx context.Context, policy RecordPolicy) (plan tool.Object, err error) {
 	lock, err := lockFile(filepath.Join(r.dir, "record-finalize.lock"), true, true)
 	if err != nil {
@@ -261,24 +298,25 @@ func bindRecordCapture(session *Session, execution Execution, artifactRoot strin
 
 // RunRecord owns one record connection from allocation or join through result
 // delivery and lock release.
-func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) (runErr error) {
+func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) (callResult *RecordResult, runErr error) {
 	if policy == nil {
-		return errors.New("record policy is required")
+		return nil, errors.New("record policy is required")
 	}
 	if request.Connection == "" {
 		request.Connection = "main"
 	}
-	result, err := ResultStream(request.ResultFD)
+	resultStream, err := ResultStream(request.ResultFD)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if result != nil {
-		defer result.Close()
+	if resultStream != nil {
+		defer resultStream.Close()
 	}
 	run, err := beginRecordTransaction(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	callResult = run.result()
 	defer func() { runErr = errors.Join(runErr, run.releaseLock()) }()
 	completed := false
 	defer func() {
@@ -286,22 +324,24 @@ func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) 
 		if !completed && finalErr == nil {
 			finalErr = errors.New("record transaction aborted")
 		}
-		runErr = errors.Join(runErr, run.finalize(ctx, policy, result, finalErr))
+		runErr = errors.Join(runErr, run.finalize(ctx, policy, resultStream, finalErr))
+		run.attachPublishedMaterial(callResult, runErr)
+		callResult.refresh(run.sessionDir)
 	}()
 
-	if err := notifyActionStarted(ctx, &run.transactionContext, result); err != nil {
-		return err
+	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
+		return callResult, err
 	}
 	plan, err := run.prepare(ctx, policy)
 	if err != nil {
-		return err
+		return callResult, err
 	}
 	run.plan = plan
 	if err := policy.Capture(ctx, run.context()); err != nil {
-		return err
+		return callResult, err
 	}
 	completed = true
-	return nil
+	return callResult, nil
 }
 
 func recordStatus(err error) string {
@@ -312,7 +352,7 @@ func recordStatus(err error) string {
 }
 
 func beginRecordTransaction(request RecordRequest) (transaction *recordTransaction, err error) {
-	sessionDir, err := canonicalSessionDir(request.SessionDir)
+	sessionDir, err := CanonicalSessionDir(request.SessionDir)
 	if err != nil {
 		return nil, err
 	}

@@ -187,7 +187,6 @@ func validateMockReceipts(receiptPath, processPath string, execution Execution, 
 		process["sessionId"] != execution.SessionID ||
 		process["executionId"] != execution.ExecutionID ||
 		process["connectionId"] != connection.ID ||
-		process["cwd"] != execution.Workspace ||
 		process["error"] != nil {
 		return errors.Join(replayErr, errors.New("mock process receipt is absent or unsuccessful"))
 	}

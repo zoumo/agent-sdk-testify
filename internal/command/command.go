@@ -11,10 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
+	"github.com/zoumo/agent-sdk-testify/internal/application"
 	"github.com/zoumo/agent-sdk-testify/internal/official"
-	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
-	"github.com/zoumo/agent-sdk-testify/internal/record"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
@@ -59,7 +57,7 @@ func New(streams IO) *cobra.Command {
 		peerCommand(streams),
 	)
 	agent := &cobra.Command{Use: "agent", Short: "Native Agent protocol peers", Args: cobra.NoArgs}
-	agent.AddCommand(recordCommand(streams), mockCommand())
+	agent.AddCommand(recordCommand(streams), mockCommand(streams))
 	root.AddCommand(agent)
 	officialCommands := &cobra.Command{Use: "official", Short: "Official SDK orchestration", Args: cobra.NoArgs}
 	officialCommands.AddCommand(officialRecordCommand(), verifyCommand())
@@ -86,10 +84,7 @@ func exportCommand() *cobra.Command {
 		Short: "Export the complete current recording",
 		Args:  cobra.NoArgs,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			if !filepath.IsAbs(sessionDir) || !filepath.IsAbs(output) {
-				return errors.New("export requires absolute --session-dir and --output paths")
-			}
-			return lifecycle.Export(sessionDir, output)
+			return application.Export(application.ExportOptions{SessionDir: sessionDir, Output: output})
 		},
 	}
 	c.Flags().StringVar(&sessionDir, "session-dir", "", "prepared session directory")
@@ -98,7 +93,7 @@ func exportCommand() *cobra.Command {
 }
 
 func prepareCommand() *cobra.Command {
-	var o lifecycle.PrepareOptions
+	var o application.PrepareOptions
 	c := &cobra.Command{
 		Use:   "prepare [flags]",
 		Short: "Create a prepared test session",
@@ -117,26 +112,14 @@ func prepareCommand() *cobra.Command {
 	c.Flags().Int64Var(&o.MaxFrames, "max-frames", 0, "frame limit; zero uses material defaults")
 	c.Flags().Int64Var(&o.MaxFrameBytes, "max-frame-bytes", 0, "maximum native frame bytes; zero uses material defaults")
 	c.RunE = func(c *cobra.Command, _ []string) error {
-		if o.SessionDir == "" {
-			return errors.New("prepare requires --session-dir")
-		}
-		if !filepath.IsAbs(o.SessionDir) {
-			return errors.New("--session-dir must be an absolute path")
-		}
-		if o.ProtocolBytes < 0 || o.StderrBytes < 0 || o.MaxFrames < 0 || o.MaxFrameBytes < 0 {
-			return errors.New("prepare limits must be nonnegative")
-		}
-		if err := requireNewSessionDir(o.SessionDir); err != nil {
-			return err
-		}
-		_, err := lifecycle.Prepare(o)
+		_, err := application.Prepare(o)
 		return err
 	}
 	return c
 }
 
 func recordCommand(streams IO) *cobra.Command {
-	o := record.Options{ResultFD: -1}
+	o := application.RecordOptions{ResultFD: -1}
 	c := &cobra.Command{
 		Use:   "record [flags] [-- ARG ...]",
 		Short: "Record a native Agent interaction in a prepared session",
@@ -157,20 +140,9 @@ func recordCommand(streams IO) *cobra.Command {
 		if o.URL != "" && (c.Flags().Changed("cmd") || c.ArgsLenAtDash() >= 0 || len(args) != 0) {
 			return errors.New("remote target excludes --cmd and native arguments")
 		}
-		if !filepath.IsAbs(o.SessionDir) {
-			return errors.New("--session-dir must be absolute")
-		}
-		if o.Timeout < 0 || o.ConnectTimeout < 0 {
-			return errors.New("timeouts must be nonnegative")
-		}
-		if o.ConnectTimeout > 0 && o.URL == "" {
-			return errors.New("connect-timeout requires a remote target")
-		}
-		if err := validateResultFD(o.ResultFD); err != nil {
-			return err
-		}
 		o.NativeArgs = append([]string(nil), args...)
-		return record.Run(c.Context(), o, capture.IO{In: streams.In, Out: streams.Out, Err: streams.Err})
+		_, err := application.Record(c.Context(), o, application.Streams{In: streams.In, Out: streams.Out, Err: streams.Err})
+		return err
 	}
 	return c
 }
@@ -234,8 +206,8 @@ func verifyCommand() *cobra.Command {
 	return c
 }
 
-func mockCommand() *cobra.Command {
-	return newMockCommand()
+func mockCommand(streams IO) *cobra.Command {
+	return newMockCommand(streams)
 }
 
 func peerCommand(streams IO) *cobra.Command {
@@ -270,17 +242,5 @@ func internalArgs(args []string) []string {
 		return append([]string{"internal-peer"}, args[1:]...)
 	default:
 		return args
-	}
-}
-
-func requireNewSessionDir(sessionDir string) error {
-	_, err := os.Lstat(sessionDir)
-	switch {
-	case err == nil:
-		return fmt.Errorf("--session-dir already exists: %s", sessionDir)
-	case errors.Is(err, os.ErrNotExist):
-		return nil
-	default:
-		return err
 	}
 }

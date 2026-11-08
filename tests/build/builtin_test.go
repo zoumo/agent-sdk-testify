@@ -17,7 +17,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
 	generator := filepath.Join(t.TempDir(), "generator")
-	cmd := exec.CommandContext(t.Context(), "go", "build", "-tags", "builtin_generate", "-o", generator, ".")
+	cmd := exec.CommandContext(t.Context(), "go", "build", "-tags", "builtin_generate", "-o", generator, "./cmd/agent-sdk-testify")
 	cmd.Dir = repository
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)

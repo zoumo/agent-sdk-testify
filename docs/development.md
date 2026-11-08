@@ -7,8 +7,9 @@
 生产代码及默认测试不得导入 agent-sdk-go、Go driver 或 SDK fixture 容器。
 官方 SDK 仅作为 official record/verify 的显式环境依赖，不在运行时自动安装。
 
-消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立回执接入，
-不通过跨仓库 Go 库。
+CLI 消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立
+回执接入。模块根包是可导入库包，入口职责以[工具设计](design.md#入口与职责)为准，
+公开 API 以[可导入 Go 库入口规格](library-entry-spec.md)为准。
 公开 CLI 结构和职责以[工具设计](design.md)为准。agent record/mock 不依赖官方
 SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命令。
 材料资格、归档、采用和远程传输为内部能力，不提供独立 internal-protocol 入口。
@@ -18,8 +19,12 @@ SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命
 ```text
 agent-sdk-testify/
   go.mod / go.sum / Makefile / .golangci.yaml
-  main.go                   # 唯一根目录 Go 文件
+  doc.go / library.go       # 可导入库包 agenttestify 的公开入口
+  library*_test.go          # agenttestify_test 外部黑盒测试
+  cmd/agent-sdk-testify/
+    main.go                 # CLI 入口
   internal/
+    application/            # prepare/record/mock/export 的唯一应用用例层
     lifecycle/              # prepare 与会话/execution 状态
     record/ mock/           # agent 协议执行
     catalog/ corpus/        # case/catalog 与材料资格、采用、索引
@@ -34,12 +39,12 @@ agent-sdk-testify/
     builtin/                # 生成的发布快照
   tests/intergration/       # 多模块集成测试
   test/e2e/                 # installed CLI 的完整流程测试
-  tests/build/              # 生成器等独立构建检查
+  tests/build/              # 生成器、入口一致性与独立构建检查
   drivers/                  # 官方 driver 与 Python wheel
   docs/ / scripts/ / README.md / LICENSE
 ```
 
-布局变更时同步 imports、embeds、脚本、测试及文档。不要添加无需求的 cmd/pkg、
+布局变更时同步 imports、embeds、脚本、测试及文档。不要添加无需求的 pkg、
 框架、转发层、动态插件或通用流程 DSL。
 
 协议包不依赖 case 编号、driver 或 SDK。capture 拥有自己的 I/O、选项和类型化错误，
@@ -48,12 +53,18 @@ agent-sdk-testify/
 端到端测试使用与消费者相同的进程接口，不导入被测 SDK 来间接证明工具正确性。
 
 协议代码统一位于 `internal/protocol/`，保留 capture、recording、replay、rawjson 的
-职责边界，不提供跨仓库 Go API。command 只解析参数并调用内部能力，不增加重复的
-选项转发层。official 编排、driver 和公开 agent 命令的职责以
+职责边界，作为仓库内部实现供 `application`、`record`、`mock`、`official` 和
+`lifecycle` 使用，不公开协议帧、严格匹配器或材料 wire 类型。`internal/command` 只解析
+CLI 参数并调用 `application` 或 CLI 专属的 `official`，不增加重复的选项转发层。
+official 编排、driver 和公开 agent 命令的职责以
 [工具设计](design.md#记录验证与回放)为准。
 
 ### 内部职责与依赖
 
+- `application` 是 prepare、record、mock、export 的唯一应用用例层，统一拥有参数校验、
+  会话操作编排和结果交付。`internal/command` 只解析 argv、注入 stdio/descriptor，
+  并把返回错误映射为退出码和 stderr；根库入口只转换公开类型和调用方流。两个适配层
+  都不得绕过 `application` 直接编排 `lifecycle`、`record`、`mock` 或 `corpus`。
 - `record`、`mock` 是公开 agent 命令的策略适配器：`record` 只提供录制准备、采集和
   材料打包，`mock` 只提供回放。`lifecycle` 拥有一次 action execution 从开始或加入
   到结果交付和释放锁的完整事务，包括连接 claim、overlay、index 转换、收尾串行化、
@@ -73,8 +84,8 @@ agent-sdk-testify/
   execution 的关系校验、current 选择和原子发布；官方 verifier 的选择归 `official`。
   材料相关包不得反向依赖 `lifecycle`，也不新增通用校验框架。
 - 以上内部调整保留公开 CLI、持久数据合同、严格回放、来源原字节和失败证据。
-  测试迁移必须保留原有行为覆盖；协议专项可以使用受控内核进程，纵向验收仍通过
-  installed CLI，不为测试保留第二套产品实现。
+  测试迁移必须保留原有行为覆盖；协议专项可以使用受控内核进程，纵向验收通过公开库
+  或 installed CLI 的对应消费者接口，不为测试保留第二套产品实现。
 
 ## 材料与测试输入
 
@@ -90,8 +101,8 @@ consumer material 保持在消费者私有目录，不登记固定索引、不�
 快照；普通版本变更也需要重新生成：
 
 ```sh
-go run -tags builtin_generate . --revision FULL_40_CHARACTER_SOURCE_COMMIT
-go run -tags builtin_generate . --check
+go run -tags builtin_generate ./cmd/agent-sdk-testify --revision FULL_40_CHARACTER_SOURCE_COMMIT
+go run -tags builtin_generate ./cmd/agent-sdk-testify --check
 ```
 
 生成器从固定索引选择 `admitted` 且 `verification=passed` 的材料，校验完整闭包并
@@ -117,6 +128,12 @@ required/optional、planned/unsupported 及原因必须保留。
 | 单元测试 | 与被测代码放在一起的 `*_test.go` | 单个模块的规则，如协议匹配、哈希、字段校验、配置和历史派生 | 直接调用函数，不启动 CLI、SDK、Agent 或子进程，不访问网络 |
 | 集成测试 | `tests/intergration/` | 多个真实模块之间的协作，如材料加载与校验、采集与回放、状态与回执 | 可以使用临时文件、本地管道和回环连接，必要时 mock 外部依赖；不走完整 CLI 流程 |
 | 端到端测试 | `test/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
+
+根目录 `library*_test.go` 是公开库能力的最高验收接缝：测试包固定为
+`agenttestify_test`，只导入模块公开路径，不调用 CLI；可以使用临时文件、受控子进程
+和本地回环连接。这些测试由 `make test` 和 `make test-race` 纳入默认门禁。
+`tests/build/` 比较公开库会话与 installed CLI 会话的 layout、descriptor 形状、
+material 字节和哈希，不复制 CLI 用例集。
 
 集成测试只有在验证 EOF、退出、取消或清理等进程行为时才启动必要的受控子进程。
 受控进程调用真实 capture/replay 内核，不复制产品实现，不增加测试专用产品入口。
@@ -144,7 +161,8 @@ SDK 公共接口、消费者业务断言及 simulate 由消费者仓库负责。
 ### race 与真实执行
 
 race 是检查方式，不是第四层测试。单元和集成测试使用 `go test -race`；端到端测试
-实际启动的 CLI 必须由 `go build -race` 构建，仅给测试进程加 `-race` 不算覆盖 CLI。
+实际启动的 CLI 必须由 `go build -race ./cmd/agent-sdk-testify` 构建，仅给测试进程加
+`-race` 不算覆盖 CLI。
 复用二进制时须核验构建模式，受控 launcher 必须传递 race 配置；子进程报告数据竞争时，
 即使该 case 预期业务失败，测试也必须失败。
 完整门禁中的同一套 CLI 流程只需用 race CLI 跑一次；普通发布二进制另做少量启动和打包检查。
@@ -156,8 +174,8 @@ synthetic 身份。官方验证、SDK 仿真和真实 E2E 分别报告，不互�
 
 ### 离线门禁
 
-使用 Go 1.26。完整门禁由 `make check` 执行，覆盖格式、lint、独立构建、默认测试、race、
-vet、依赖边界、源码目录外运行、driver 测试和 wheel 打包检查。
+使用 Go 1.26。完整门禁由 `make check` 执行，覆盖格式、lint、独立构建、公开库测试、
+默认测试、race、vet、依赖边界、源码目录外运行、driver 测试和 wheel 打包检查。
 case/索引身份、全部录制字节、来源哈希和政策检查不得弱化。
 
 材料缺失、失败和未验证须保持可见；内置成功子集不能抵扣完整 required 覆盖。

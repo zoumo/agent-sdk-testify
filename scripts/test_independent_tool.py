@@ -26,21 +26,21 @@ class IndependentToolTests(unittest.TestCase):
         environment = dict(os.environ)
         environment.pop('AGENT_SDK_TESTIFY_BIN', None)
         environment.update(GOPROXY='off', GOSUMDB='off', GOWORK='off')
-        result = subprocess.run(['go', 'test', './internal/...'],
+        result = subprocess.run(['go', 'test', '.', './internal/...'],
                                 cwd=ROOT, env=environment, capture_output=True, text=True, timeout=120)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         dependencies = subprocess.check_output(['go', 'list', '-deps', '-test', './...'],
                                                cwd=ROOT, env=environment, text=True)
         self.assertNotIn('github.com/zoumo/agent-sdk-go', dependencies)
 
-    def test_installed_binary_has_independent_module_identity(self):
+    def test_installed_binary_has_repository_package_identity(self):
         with tempfile.TemporaryDirectory() as temporary:
             binary = Path(os.environ.get('AGENT_SDK_TESTIFY_BIN', str(Path(temporary) / 'agent-sdk-testify')))
             if not os.environ.get('AGENT_SDK_TESTIFY_BIN'):
-                subprocess.run(['go', 'build', '-o', str(binary), '.'],
+                subprocess.run(['go', 'build', '-o', str(binary), './cmd/agent-sdk-testify'],
                                cwd=ROOT, check=True, capture_output=True)
             identity = subprocess.check_output(['go', 'version', '-m', str(binary)], text=True)
-            self.assertIn('path\tgithub.com/zoumo/agent-sdk-testify\n', identity)
+            self.assertIn('path\tgithub.com/zoumo/agent-sdk-testify/cmd/agent-sdk-testify\n', identity)
             self.assertNotIn('github.com/zoumo/agent-sdk-go', identity)
             result = subprocess.run([str(binary), 'version'], cwd=temporary,
                                     env={'PATH': '/missing', 'HOME': temporary},

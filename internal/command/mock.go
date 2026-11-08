@@ -4,18 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/zoumo/agent-sdk-testify/internal/mock"
+	"github.com/zoumo/agent-sdk-testify/internal/application"
 )
 
-func newMockCommand() *cobra.Command {
-	var o mock.Options
+func newMockCommand(streams IO) *cobra.Command {
+	var o application.MockOptions
 	var seconds float64
 	var help bool
 	o.ProgressFD = -1
@@ -45,28 +44,10 @@ func newMockCommand() *cobra.Command {
 			return err
 		}
 		o.NativeArgs = native
-		if err := validateMockModes(o); err != nil {
-			return err
-		}
-		return mock.Run(c.Context(), o)
-	}
-	return c
-}
-
-func validateMockModes(o mock.Options) error {
-	if err := validateResultFD(o.ResultFD); err != nil {
+		_, err = application.Mock(c.Context(), o, application.Streams{In: streams.In, Out: streams.Out, Err: streams.Err})
 		return err
 	}
-	if o.ResultFD >= 3 && o.ResultFD == o.ProgressFD {
-		return errors.New("result-fd and progress-fd must use separate descriptors")
-	}
-	if o.SessionDir == "" {
-		return errors.New("mock requires --session-dir")
-	}
-	if !filepath.IsAbs(o.SessionDir) {
-		return errors.New("--session-dir must be an absolute path")
-	}
-	return nil
+	return c
 }
 
 // parseInterleavedFlags separates reviewed command flags from native startup
@@ -113,11 +94,4 @@ func secondsDuration(seconds float64) (time.Duration, error) {
 		return 0, errors.New("mock timeout must be at least one nanosecond")
 	}
 	return duration, nil
-}
-
-func validateResultFD(fd int) error {
-	if fd != -1 && fd < 3 {
-		return errors.New("result-fd must be >=3")
-	}
-	return nil
 }

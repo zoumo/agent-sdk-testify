@@ -12,7 +12,7 @@ import (
 // Export copies the exact current package without creating an execution or
 // changing session state.
 func Export(sessionDir, output string) error {
-	dir, err := canonicalSessionDir(sessionDir)
+	dir, err := CanonicalSessionDir(sessionDir)
 	if err != nil {
 		return err
 	}

@@ -27,6 +27,7 @@ type PrepareOptions struct {
 	StderrBytes   int64
 	MaxFrames     int64
 	MaxFrameBytes int64
+	EmbeddedTool  bool
 }
 
 type sourceSpec struct {

@@ -78,6 +78,8 @@ mock 只消费 current，默认连接为 main。只有材料确实声明多个�
 | `planSHA256`, `manifestSHA256`, `recordingSHA256` | 材料身份 |
 | `receipt`, `processReceipt` | 持久协议回执和进程回执 |
 
+mock 进程 receipt 的字段合同见[工具设计](design.md#agent-mock)。
+
 launcher 将追加的原生启动参数传给 mock。参数必须通过协议白名单，不能覆盖 session、
 连接或运行参数；版本、帮助等元命令被拒绝。SDK 若自行探测原生 CLI 版本，需要在其
 测试配置中处理，mock 不提供该应答。工具顶层 --version 只报告工具版本。

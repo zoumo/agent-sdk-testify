@@ -53,7 +53,7 @@ func TestOfficialPreparationRunsNativeProbeOncePerExecution(t *testing.T) {
 
 	policy := &prepareOncePolicy{command: command}
 	for _, connection := range []string{"main", "probe"} {
-		err := lifecycle.RunRecord(t.Context(), lifecycle.RecordRequest{
+		_, err := lifecycle.RunRecord(t.Context(), lifecycle.RecordRequest{
 			SessionDir: sessionDir,
 			Connection: connection,
 			Args:       []string{"--session-dir", sessionDir, "--cmd", command, "--"},

@@ -15,7 +15,8 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func canonicalSessionDir(sessionDir string) (string, error) {
+// CanonicalSessionDir validates and resolves one prepared-session directory.
+func CanonicalSessionDir(sessionDir string) (string, error) {
 	if !filepath.IsAbs(sessionDir) {
 		return "", errors.New("--session-dir must be absolute")
 	}
@@ -35,7 +36,7 @@ func canonicalSessionDir(sessionDir string) (string, error) {
 }
 
 func readSessionUnlocked(sessionDir string) (*Session, error) {
-	dir, err := canonicalSessionDir(sessionDir)
+	dir, err := CanonicalSessionDir(sessionDir)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +127,7 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 			Command:  template.Command,
 			Args:     append([]string(nil), template.Args...),
 			Launcher: template.Launcher,
+			Embedded: template.Embedded,
 		}
 		switch action {
 		case "record":
@@ -290,7 +292,7 @@ func newExecution(session *Session, action, id, overlayRoot, artifactRoot string
 }
 
 func createTransactionLocked(sessionDir, action string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, material *corpus.Material, admission *Admission, origin *corpus.OfficialOrigin) (*transactionContext, error) {
-	sessionDir, err := canonicalSessionDir(sessionDir)
+	sessionDir, err := CanonicalSessionDir(sessionDir)
 	if err != nil {
 		return nil, err
 	}

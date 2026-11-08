@@ -23,6 +23,18 @@ prepare 创建会话，export 只读导出 current。agent record/mock
 涉及官方录制编排时使用完整名称 official record。仓库路径、编码和测试规则见
 [开发规范](development.md)。
 
+## 入口与职责
+
+同一 module 提供 CLI 和 Go 库两种入口，二者是同一应用核心的薄适配器：
+
+- CLI 入口 `cmd/agent-sdk-testify` 拥有 argv、stdio、descriptor、stderr 和退出码。
+- 根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export` 以及会话上的
+  `Record`、`Mock`；它使用调用方提供的流并直接返回错误。
+
+两种入口共用参数校验、会话生命周期、execution 事务和材料规则，不维护第二套机制。
+`official record`、`official verify`、官方 driver 编排及协议和材料内部类型仅为 CLI
+或仓库内部能力，不属于库 v1 接口。
+
 ## 问题与目标
 
 录制、验证、回放和消费者测试通常需要不同的隔离环境，但不应因此产生多套生命周期。
@@ -62,6 +74,7 @@ prepare 创建会话，export 只读导出 current。agent record/mock
 | Material | 完整、不可变的录制材料包，包含 plan、manifest、raw、绑定历史和来源哈希。 |
 | Current recording | session 当前选中的唯一 material；verify、mock 和 export 以它为输入，record 成功时替换它。 |
 | Action execution | 一次 record 或 mock 产生的 execution，具有独立 descriptor、overlay、receipt 和失败证据。 |
+| Action result | record 或 mock 返回的连接/execution 状态、材料及证据路径。 |
 | Receipt | 连接或进程的持久结果，记录协议、退出、清理和诊断。 |
 | Verification | 一次官方验证的事实与结论，绑定精确 material、driver 身份及实际参与的 mock execution；不拥有协议连接或 execution。 |
 | Admission | 把具备资格的材料显式归档并写入默认 case 库的动作。 |
@@ -338,6 +351,12 @@ prepare 返回的环境和 workspace，并自行执行与报告业务断言。
 原生客户端生命周期时才允许多连接。同一 execution 的连接可以并发，但每个声明连接
 最多启动一次，并分别完成严格匹配、完整消费、EOF、退出和清理。
 
+mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
+连接已经完成。mock 进程 receipt 不记录 `cwd` 或 `workspace`；执行位置和协议项目
+身份以 execution descriptor 的 `workspace`、`protocolCwd` 为准。为兼容 v1，
+校验器忽略旧 receipt 中可能存在的这两个字段，回放和历史文件始终从 session/execution
+根定位。
+
 官方 driver 与外部消费者使用同一个公开 agent mock 进程接口和 execution 合同。
 official verify 不直接调用协议回放函数替代公开 agent mock。
 
@@ -516,8 +535,8 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 
 ## 测试边界
 
-完整流程验收通过 installed CLI 和消费者实际使用的进程接口验证 session 合同，不直接调用
-lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
+完整流程验收通过公开 Go 库入口和 installed CLI 的消费者接口验证 session 合同，不直接
+调用 lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
 
 - prepare 完整复制材料后，删除原始路径仍可 verify、mock 和 export。
 - record 成功原子替换 current；record 失败保留 execution 且 current 不变。

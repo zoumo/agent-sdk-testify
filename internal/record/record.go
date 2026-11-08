@@ -12,101 +12,38 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
-	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-type Options struct {
-	SessionDir     string
-	Connection     string
-	URL            string
-	TokenFile      string
-	Command        string
-	NativeArgs     []string
-	Timeout        time.Duration
-	ConnectTimeout time.Duration
-	ResultFD       int
+// Prepared is the validated target and stream contract for one record policy.
+type Prepared struct {
+	SessionDir string
+	Connection string
+	Args       []string
+	NativeArgs []string
+	Command    string
+	Remote     *capture.ConnectOptions
+	Target     string
+	Timeout    time.Duration
+	ResultFD   int
 }
 
-func Run(ctx context.Context, o Options, streams capture.IO) (runErr error) {
-	if o.Timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, o.Timeout)
-		defer cancel()
-	}
-	var executable string
-	var remote *capture.ConnectOptions
-	var err error
-	if o.URL != "" || o.TokenFile != "" {
-		if o.URL == "" || o.TokenFile == "" || o.Command != "" || len(o.NativeArgs) != 0 {
-			return errors.New("remote record requires --url and --token-file, excluding local command and arguments")
-		}
-		remote = &capture.ConnectOptions{URL: o.URL, TokenFile: o.TokenFile, ConnectTimeout: o.ConnectTimeout}
-		if err := remote.Validate(); err != nil {
-			return err
-		}
-	} else {
-		executable, err = tool.ValidateCommand(o.Command)
-		if err != nil {
-			return err
-		}
-	}
-	o.SessionDir, err = filepath.EvalSymlinks(o.SessionDir)
-	if err != nil {
-		return err
-	}
-	if remote != nil {
-		tokenPath, pathErr := filepath.EvalSymlinks(remote.TokenFile)
-		if pathErr != nil {
-			return errors.New("private token file unavailable")
-		}
-		if rel, relErr := filepath.Rel(o.SessionDir, tokenPath); relErr == nil && filepath.IsLocal(rel) {
-			runtimeRelative, runtimeErr := filepath.Rel(filepath.Join(o.SessionDir, "runtime"), tokenPath)
-			if runtimeErr != nil || !filepath.IsLocal(runtimeRelative) {
-				return errors.New("token file must be outside session evidence (use runtime or an external file)")
-			}
-		}
-	}
-	session, err := lifecycle.OpenSession(o.SessionDir)
-	if err != nil {
-		return err
-	}
-	if remote == nil {
-		if err := protocol.ValidateNativeArgs(session.AgentType, o.NativeArgs); err != nil {
-			return err
-		}
-	}
-	commandArgs := append([]string{"--session-dir", o.SessionDir, "--cmd", executable, "--"}, o.NativeArgs...)
-	if remote != nil {
-		// Connection location and authentication paths are invocation-only data.
-		commandArgs = []string{"--session-dir", o.SessionDir, "--url", "<private>", "--token-file", "<private>"}
-	}
-	if o.Connection == "" {
-		o.Connection = "main"
-	}
-	target := "local"
-	if remote != nil {
-		token, err := os.ReadFile(remote.TokenFile)
-		if err != nil {
-			return err
-		}
-		target = tool.DigestBytes(append(append([]byte(remote.URL), 0), token...))
-	}
+func Run(ctx context.Context, prepared Prepared, streams capture.IO) (*lifecycle.RecordResult, error) {
 	return lifecycle.RunRecord(ctx, lifecycle.RecordRequest{
-		SessionDir: o.SessionDir,
-		Connection: o.Connection,
-		Args:       commandArgs,
-		Timeout:    o.Timeout,
-		Target:     target,
-		ResultFD:   o.ResultFD,
+		SessionDir: prepared.SessionDir,
+		Connection: prepared.Connection,
+		Args:       prepared.Args,
+		Timeout:    prepared.Timeout,
+		Target:     prepared.Target,
+		ResultFD:   prepared.ResultFD,
 	}, recordPolicy{
-		command: executable,
-		args:    o.NativeArgs,
-		remote:  remote,
-		timeout: o.Timeout,
+		command: prepared.Command,
+		args:    prepared.NativeArgs,
+		remote:  prepared.Remote,
+		timeout: prepared.Timeout,
 		streams: streams,
 	})
 }

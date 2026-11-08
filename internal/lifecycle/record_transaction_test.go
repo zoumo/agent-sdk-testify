@@ -209,6 +209,11 @@ func recordTransactionRequest(sessionDir string, resultFD int) RecordRequest {
 	}
 }
 
+func runRecordTransaction(ctx context.Context, request RecordRequest, policy RecordPolicy) error {
+	_, err := RunRecord(ctx, request, policy)
+	return err
+}
+
 func recordResultFile(t *testing.T) (*os.File, int) {
 	t.Helper()
 	file, err := os.CreateTemp(t.TempDir(), "record-result")
@@ -305,7 +310,7 @@ func TestRecordTransactionKeepsOfficialRecordRouteAndRestoresMockRoute(t *testin
 	sessionDir, mockTemplate, mockOverlay := prepareOfficialRecordTransactionSession(t)
 	var packages int
 	result, fd := recordResultFile(t)
-	err := RunRecord(t.Context(), recordTransactionRequest(sessionDir, fd), successfulRecordPolicy(t, &packages))
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), successfulRecordPolicy(t, &packages))
 	require.NoError(t, err)
 	require.Equal(t, 1, packages)
 	require.Equal(t, "passed", readRecordResults(t, result)[1]["status"])
@@ -350,7 +355,7 @@ func TestRecordTransactionBeginAbortClosesAllocatedExecution(t *testing.T) {
 			return nil, nil
 		},
 	}
-	err = RunRecord(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
 	require.ErrorContains(t, err, "targets differ")
 	require.Empty(t, readRecordResultsIfAny(t, result))
 
@@ -375,7 +380,7 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	session, err := OpenSession(sessionDir)
 	require.NoError(t, err)
 
-	err = RunRecord(t.Context(), recordTransactionRequest(sessionDir, fd), successfulRecordPolicy(t, &packages))
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), successfulRecordPolicy(t, &packages))
 	require.NoError(t, err)
 	require.Equal(t, 1, packages)
 
@@ -418,7 +423,7 @@ func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *t
 	mainResult, mainFD := recordResultFile(t)
 	mainRequest := request
 	mainRequest.Connection, mainRequest.ResultFD = "main", mainFD
-	require.NoError(t, RunRecord(t.Context(), mainRequest, policy))
+	require.NoError(t, runRecordTransaction(t.Context(), mainRequest, policy))
 	mainRows := readRecordResults(t, mainResult)
 	require.Equal(t, "passed", mainRows[1]["status"])
 	require.NotContains(t, mainRows[1], "material")
@@ -441,7 +446,7 @@ func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *t
 	probeResult, probeFD := recordResultFile(t)
 	probeRequest := request
 	probeRequest.Connection, probeRequest.ResultFD = "probe", probeFD
-	require.NoError(t, RunRecord(t.Context(), probeRequest, policy))
+	require.NoError(t, runRecordTransaction(t.Context(), probeRequest, policy))
 	probeRows := readRecordResults(t, probeResult)
 	require.Equal(t, "passed", probeRows[1]["status"])
 	require.NotNil(t, probeRows[1]["material"])
@@ -469,7 +474,7 @@ func TestRecordTransactionFailurePreservesCurrentAndDurableEvidence(t *testing.T
 	initialPolicy := successfulRecordPolicy(t, &packages)
 	initialResult, initialFD := recordResultFile(t)
 	request := recordTransactionRequest(sessionDir, initialFD)
-	require.NoError(t, RunRecord(t.Context(), request, initialPolicy))
+	require.NoError(t, runRecordTransaction(t.Context(), request, initialPolicy))
 	require.Equal(t, 1, packages)
 	require.Equal(t, "passed", readRecordResults(t, initialResult)[1]["status"])
 	stateBefore := snapshotCurrentRecording(t, sessionDir)
@@ -489,7 +494,7 @@ func TestRecordTransactionFailurePreservesCurrentAndDurableEvidence(t *testing.T
 	}
 	failureResult, failureFD := recordResultFile(t)
 	request.ResultFD = failureFD
-	err := RunRecord(t.Context(), request, failing)
+	err := runRecordTransaction(t.Context(), request, failing)
 	require.ErrorIs(t, err, context.Canceled)
 	failureRows := readRecordResults(t, failureResult)
 	require.Equal(t, "failed", failureRows[1]["status"])
@@ -525,7 +530,7 @@ func TestRecordTransactionFinalizationFailureWritesResultAndPreservesCurrent(t *
 	var packages int
 	initialResult, initialFD := recordResultFile(t)
 	request := recordTransactionRequest(sessionDir, initialFD)
-	require.NoError(t, RunRecord(t.Context(), request, successfulRecordPolicy(t, &packages)))
+	require.NoError(t, runRecordTransaction(t.Context(), request, successfulRecordPolicy(t, &packages)))
 	require.Equal(t, "passed", readRecordResults(t, initialResult)[1]["status"])
 	stateBefore := snapshotCurrentRecording(t, sessionDir)
 
@@ -536,7 +541,7 @@ func TestRecordTransactionFinalizationFailureWritesResultAndPreservesCurrent(t *
 	}
 	result, fd := recordResultFile(t)
 	request.ResultFD = fd
-	err := RunRecord(t.Context(), request, policy)
+	err := runRecordTransaction(t.Context(), request, policy)
 	require.ErrorIs(t, err, finalizationErr)
 	failureRows := readRecordResults(t, result)
 	require.Equal(t, "failed", failureRows[1]["status"])
@@ -576,7 +581,7 @@ func TestRecordTransactionStartedResultDeliveryFailurePreservesCurrentAndRelease
 			return nil, nil
 		},
 	}
-	err = RunRecord(t.Context(), recordTransactionRequest(sessionDir, int(writer.Fd())), policy)
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, int(writer.Fd())), policy)
 	require.Error(t, err)
 
 	stateBefore.requireUnchanged(t, sessionDir)
@@ -602,7 +607,7 @@ func TestRecordTransactionFinalResultDeliveryFailurePreservesCurrentAndReleasesL
 	var packages int
 	initialResult, initialFD := recordResultFile(t)
 	request := recordTransactionRequest(sessionDir, initialFD)
-	require.NoError(t, RunRecord(t.Context(), request, successfulRecordPolicy(t, &packages)))
+	require.NoError(t, runRecordTransaction(t.Context(), request, successfulRecordPolicy(t, &packages)))
 	require.Equal(t, "passed", readRecordResults(t, initialResult)[1]["status"])
 	stateBefore := snapshotCurrentRecording(t, sessionDir)
 
@@ -616,7 +621,7 @@ func TestRecordTransactionFinalResultDeliveryFailurePreservesCurrentAndReleasesL
 		return reader.Close()
 	}
 	request.ResultFD = int(writer.Fd())
-	err = RunRecord(t.Context(), request, policy)
+	err = runRecordTransaction(t.Context(), request, policy)
 	require.ErrorContains(t, err, "broken pipe")
 	require.Equal(t, 2, packages)
 
@@ -656,7 +661,7 @@ func TestRecordTransactionPublicationFailurePreservesCurrentAndReleasesLock(t *t
 		return artifact, nil
 	}
 	result, fd := recordResultFile(t)
-	err := RunRecord(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
 	require.ErrorContains(t, err, "artifact hash mismatch: plan.json")
 	require.Equal(t, 1, packages)
 	require.Equal(t, "failed", readRecordResults(t, result)[1]["status"])
@@ -693,7 +698,7 @@ func TestRecordTransactionLatePublicationFailurePreservesCurrentAndReleasesLock(
 		return artifact, nil
 	}
 	result, fd := recordResultFile(t)
-	err := RunRecord(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
 	require.ErrorContains(t, err, "material identity already exists")
 	require.Equal(t, 1, packages)
 	require.Equal(t, "failed", readRecordResults(t, result)[1]["status"])
@@ -729,7 +734,7 @@ func TestRecordTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 		return os.Mkdir(filepath.Join(run.ExecutionDir(), "record-finalize.lock"), 0o700)
 	}
 	result, fd := recordResultFile(t)
-	err := RunRecord(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
+	err := runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, fd), policy)
 	require.ErrorContains(t, err, "is a directory")
 	require.Zero(t, packages)
 	require.Equal(t, "failed", readRecordResults(t, result)[1]["status"])
@@ -763,7 +768,7 @@ func TestRecordTransactionNonFinalResultDeliveryFailurePreservesCurrentAndReleas
 		require.NoError(t, capture(ctx, run))
 		return reader.Close()
 	}
-	err = RunRecord(t.Context(), recordTransactionRequest(sessionDir, int(writer.Fd())), policy)
+	err = runRecordTransaction(t.Context(), recordTransactionRequest(sessionDir, int(writer.Fd())), policy)
 	require.ErrorContains(t, err, "broken pipe")
 	require.Zero(t, packages)
 	stateBefore.requireUnchanged(t, sessionDir)
@@ -800,7 +805,7 @@ func TestRecordTransactionNonFinalFailureWaitsForFinalConnection(t *testing.T) {
 			return nil, nil
 		},
 	}
-	err := RunRecord(t.Context(), mainRequest, failing)
+	err := runRecordTransaction(t.Context(), mainRequest, failing)
 	require.ErrorIs(t, err, context.DeadlineExceeded)
 	require.Equal(t, "failed", readRecordResults(t, failingResult)[1]["status"])
 
@@ -820,7 +825,7 @@ func TestRecordTransactionNonFinalFailureWaitsForFinalConnection(t *testing.T) {
 	probeResult, probeFD := recordResultFile(t)
 	probeRequest := request
 	probeRequest.Connection, probeRequest.ResultFD = "probe", probeFD
-	err = RunRecord(t.Context(), probeRequest, successfulRecordPolicy(t, &packages))
+	err = runRecordTransaction(t.Context(), probeRequest, successfulRecordPolicy(t, &packages))
 	require.EqualError(t, err, "record execution has failed connections")
 	require.Zero(t, packages)
 	require.Equal(t, "failed", readRecordResults(t, probeResult)[1]["status"])
@@ -848,7 +853,7 @@ func TestRecordTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 	policy := successfulRecordPolicy(t, &packages)
 	result, fd := recordResultFile(t)
 	request := recordTransactionRequest(sessionDir, fd)
-	require.NoError(t, RunRecord(t.Context(), request, policy))
+	require.NoError(t, runRecordTransaction(t.Context(), request, policy))
 	require.Equal(t, "passed", readRecordResults(t, result)[1]["status"])
 	indexBefore, err := os.ReadFile(IndexPath(sessionDir))
 	require.NoError(t, err)
@@ -856,17 +861,17 @@ func TestRecordTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 	duplicate := request
 	duplicateFD := fd
 	duplicate.ResultFD = duplicateFD
-	require.ErrorIs(t, RunRecord(t.Context(), duplicate, policy), ErrBusy)
+	require.ErrorIs(t, runRecordTransaction(t.Context(), duplicate, policy), ErrBusy)
 	require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
 
 	incompatibleTimeout := request
 	incompatibleTimeout.Connection, incompatibleTimeout.Timeout = "probe", 2*time.Second
-	require.ErrorContains(t, RunRecord(t.Context(), incompatibleTimeout, policy), "target or timeout")
+	require.ErrorContains(t, runRecordTransaction(t.Context(), incompatibleTimeout, policy), "target or timeout")
 	require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
 
 	incompatibleTarget := request
 	incompatibleTarget.Connection, incompatibleTarget.Target = "probe", "different-target"
-	require.ErrorContains(t, RunRecord(t.Context(), incompatibleTarget, policy), "targets differ")
+	require.ErrorContains(t, runRecordTransaction(t.Context(), incompatibleTarget, policy), "targets differ")
 	require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
 	assertRecordLockAvailable(t, sessionDir)
 }

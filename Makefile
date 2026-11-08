@@ -19,7 +19,7 @@ fmt-check:
 	$(GOLANGCI_LINT) fmt --diff
 
 test:
-	$(GO) test ./internal/...
+	$(GO) test . ./internal/...
 
 test-integration:
 	$(GO) test ./tests/intergration/...
@@ -31,15 +31,15 @@ test-build:
 	$(GO) test ./tests/build/...
 
 test-race:
-	$(GO) test -race ./internal/... ./tests/intergration/...
+	$(GO) test -race . ./internal/... ./tests/intergration/...
 
 vet:
 	$(GO) vet ./...
 
 build:
 	@mkdir -p "$(dir $(BINARY))"
-	$(GO) run -tags builtin_generate . --check
-	$(GO) build -trimpath -o "$(BINARY)" .
+	$(GO) run -tags builtin_generate ./cmd/agent-sdk-testify --check
+	$(GO) build -trimpath -o "$(BINARY)" ./cmd/agent-sdk-testify
 
 bundle:
 	PYTHON="$(PYTHON)" bash scripts/build.sh

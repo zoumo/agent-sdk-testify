@@ -68,7 +68,7 @@ func TestMockTransactionCommitsFinalReplay(t *testing.T) {
 	request := mockRequest(t, sessionDir, "main", fd)
 	replays := 0
 
-	err = RunMock(t.Context(), request, mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	mockResult, err := RunMock(t.Context(), request, mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		replays++
 		require.Equal(t, "main", run.Connection())
 		require.Equal(t, "mock", run.Execution().Command)
@@ -101,6 +101,15 @@ func TestMockTransactionCommitsFinalReplay(t *testing.T) {
 	index, err := readIndex(IndexPath(sessionDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 1)
+	require.NotNil(t, mockResult)
+	require.Equal(t, request.Artifact, *mockResult.Material)
+	require.Equal(t, index.Executions[0].ID, mockResult.ExecutionID)
+	require.Equal(t, "main", mockResult.ConnectionID)
+	require.Equal(t, ConnectionStatusPassed, mockResult.ConnectionStatus)
+	require.Equal(t, ExecutionStatusPassed, mockResult.ExecutionStatus)
+	require.True(t, mockResult.ExecutionComplete)
+	require.FileExists(t, mockResult.ExecutionPath)
+	require.FileExists(t, mockResult.ResultPath)
 	require.Equal(t, "passed", index.Executions[0].Status)
 	execution := readRecordExecution(t, sessionDir, index.Executions[0].ID)
 	require.Equal(t, "passed", index.Executions[0].Connections[0].Status)
@@ -111,7 +120,7 @@ func TestMockTransactionCommitsFinalReplay(t *testing.T) {
 	require.NoError(t, tool.ReadJSON(execution.Connections[0].ProcessReceipt, &process))
 	require.Equal(t, "passed", process["status"])
 	require.EqualValues(t, 0, process["exitCode"])
-	require.Equal(t, execution.Workspace, process["cwd"])
+	requireV1ProcessReceiptWithoutLocation(t, process)
 
 	currentAfter, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
 	require.NoError(t, err)
@@ -129,7 +138,7 @@ func TestMockTransactionFailurePreservesCurrentAndEvidence(t *testing.T) {
 	result, fd := recordResultFile(t)
 	replayErr := errors.New("synthetic replay failure")
 
-	err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		require.NoError(t, os.WriteFile(filepath.Join(run.Execution().Config, "auth.json"), []byte("transient\n"), 0o600))
 		return replayErr
 	}))
@@ -154,6 +163,7 @@ func TestMockTransactionFailurePreservesCurrentAndEvidence(t *testing.T) {
 	require.Equal(t, "failed", process["status"])
 	require.EqualValues(t, 1, process["exitCode"])
 	require.Contains(t, process["error"], replayErr.Error())
+	requireV1ProcessReceiptWithoutLocation(t, process)
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
 	require.Equal(t, "failed", failure["status"])
@@ -176,10 +186,11 @@ func TestMockTransactionJoinsMultiPeerExecution(t *testing.T) {
 
 	mainResult, mainFD := recordResultFile(t)
 	request.ResultFD = mainFD
-	require.NoError(t, RunMock(t.Context(), request, mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err := RunMock(t.Context(), request, mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		executionID, overlayRoot = run.Execution().ExecutionID, run.ExecutionDir()
 		return nil
-	})))
+	}))
+	require.NoError(t, err)
 	mainRows := readRecordResults(t, mainResult)
 	require.Equal(t, "passed", mainRows[1]["status"])
 	require.NotNil(t, mainRows[1]["material"])
@@ -198,12 +209,13 @@ func TestMockTransactionJoinsMultiPeerExecution(t *testing.T) {
 
 	probeResult, probeFD := recordResultFile(t)
 	request.Connection, request.ResultFD = "probe", probeFD
-	require.NoError(t, RunMock(t.Context(), request, mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err = RunMock(t.Context(), request, mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		require.Equal(t, executionID, run.Execution().ExecutionID)
 		require.Equal(t, overlayRoot, run.ExecutionDir())
 		require.Equal(t, "probe", run.Connection())
 		return nil
-	})))
+	}))
+	require.NoError(t, err)
 	probeRows := readRecordResults(t, probeResult)
 	require.Equal(t, "passed", probeRows[1]["status"])
 	require.NotNil(t, probeRows[1]["material"])
@@ -225,9 +237,10 @@ func TestMockTransactionFinalPeerClosesFailedExecution(t *testing.T) {
 	mainResult, mainFD := recordResultFile(t)
 	request.ResultFD = mainFD
 	mainErr := errors.New("main replay failed")
-	require.ErrorIs(t, RunMock(t.Context(), request, mockPolicyFunc(func(context.Context, MockContext) error {
+	_, err := RunMock(t.Context(), request, mockPolicyFunc(func(context.Context, MockContext) error {
 		return mainErr
-	})), mainErr)
+	}))
+	require.ErrorIs(t, err, mainErr)
 	require.Equal(t, "failed", readRecordResults(t, mainResult)[1]["status"])
 
 	openIndex, err := readIndex(IndexPath(sessionDir))
@@ -237,7 +250,7 @@ func TestMockTransactionFinalPeerClosesFailedExecution(t *testing.T) {
 
 	probeResult, probeFD := recordResultFile(t)
 	request.Connection, request.ResultFD = "probe", probeFD
-	err = RunMock(t.Context(), request, mockPolicyFunc(func(context.Context, MockContext) error {
+	_, err = RunMock(t.Context(), request, mockPolicyFunc(func(context.Context, MockContext) error {
 		return nil
 	}))
 	require.EqualError(t, err, "mock execution has failed connections")
@@ -277,12 +290,13 @@ func TestMockTransactionPreservesRouteDuringActiveOfficialVerify(t *testing.T) {
 
 	_, fd := recordResultFile(t)
 	workspaceAtReplay := ""
-	require.NoError(t, RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(context.Context, MockContext) error {
+	_, err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(context.Context, MockContext) error {
 		execution, err := readIndex(IndexPath(sessionDir))
 		require.NoError(t, err)
 		workspaceAtReplay = readRecordExecution(t, sessionDir, execution.Executions[0].ID).Workspace
 		return nil
-	})))
+	}))
+	require.NoError(t, err)
 	workspace, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, workspaceAtReplay, workspace)
@@ -299,7 +313,7 @@ func TestMockTransactionFailurePreservesRouteDuringActiveOfficialVerify(t *testi
 	require.NoError(t, err)
 	replayErr := errors.New("synthetic replay failure")
 	workspaceAtReplay := ""
-	err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error {
+	_, err = RunMock(t.Context(), mockRequest(t, sessionDir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error {
 		bound, err := os.Readlink(filepath.Join(session.ResourceRoot, "routes", "mock", "workspace"))
 		require.NoError(t, err)
 		require.NotEqual(t, filepath.Join(session.ResourceRoot, "templates", "mock", "workspace"), bound)
@@ -321,7 +335,7 @@ func TestMockTransactionFailurePreservesRouteDuringActiveOfficialVerify(t *testi
 func TestMockTransactionReleasesLockWhenFinalizationFails(t *testing.T) {
 	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
 	result, fd := recordResultFile(t)
-	err := RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err := RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		return os.Mkdir(run.ProcessReceipt(), 0o700)
 	}))
 	require.Error(t, err)
@@ -342,7 +356,7 @@ func TestMockTransactionReleasesLockWhenFinalizationFails(t *testing.T) {
 func TestMockTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 	sessionDir := prepareMockTransactionSession(t, "SDK-CASE-001")
 	result, fd := recordResultFile(t)
-	err := RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
+	_, err := RunMock(t.Context(), mockRequest(t, sessionDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
 		return os.Mkdir(filepath.Join(run.ExecutionDir(), "mock-finalize.lock"), 0o700)
 	}))
 	require.Error(t, err)
@@ -361,8 +375,16 @@ func TestMockTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 	process := tool.Object{}
 	require.NoError(t, tool.ReadJSON(execution.Connections[0].ProcessReceipt, &process))
 	require.Equal(t, "passed", process["status"])
+	requireV1ProcessReceiptWithoutLocation(t, process)
 	assertMockRouteAtTemplate(t, sessionDir)
 	assertRecordLockAvailable(t, sessionDir)
+}
+
+func requireV1ProcessReceiptWithoutLocation(t *testing.T, process tool.Object) {
+	t.Helper()
+	require.EqualValues(t, 1, process["schemaVersion"])
+	require.NotContains(t, process, "cwd")
+	require.NotContains(t, process, "workspace")
 }
 
 func TestMockTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
@@ -370,9 +392,10 @@ func TestMockTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 	request := mockRequest(t, sessionDir, "main", 0)
 	_, fd := recordResultFile(t)
 	request.ResultFD = fd
-	require.NoError(t, RunMock(t.Context(), request, mockPolicyFunc(func(context.Context, MockContext) error {
+	_, err := RunMock(t.Context(), request, mockPolicyFunc(func(context.Context, MockContext) error {
 		return nil
-	})))
+	}))
+	require.NoError(t, err)
 	indexBefore, err := os.ReadFile(IndexPath(sessionDir))
 	require.NoError(t, err)
 
@@ -427,10 +450,11 @@ func TestMockTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 			if tc.mutate != nil {
 				tc.mutate(&probe)
 			}
-			require.ErrorContains(t, RunMock(t.Context(), probe, mockPolicyFunc(func(context.Context, MockContext) error {
+			_, err := RunMock(t.Context(), probe, mockPolicyFunc(func(context.Context, MockContext) error {
 				t.Fatal("rejected join invoked replay")
 				return nil
-			})), tc.want)
+			}))
+			require.ErrorContains(t, err, tc.want)
 			require.Equal(t, indexBefore, readIndexBytes(t, sessionDir))
 		})
 	}

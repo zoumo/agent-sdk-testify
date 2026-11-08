@@ -10,8 +10,85 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
+
+// ConnectionStatus is the durable result of one connection in an action
+// execution.
+type ConnectionStatus string
+
+const (
+	ConnectionStatusUnknown ConnectionStatus = "unknown"
+	ConnectionStatusPending ConnectionStatus = "pending"
+	ConnectionStatusRunning ConnectionStatus = "running"
+	ConnectionStatusPassed  ConnectionStatus = "passed"
+	ConnectionStatusFailed  ConnectionStatus = "failed"
+)
+
+// ExecutionStatus is the durable result of all declared connections in one
+// action execution.
+type ExecutionStatus string
+
+const (
+	ExecutionStatusUnknown ExecutionStatus = "unknown"
+	ExecutionStatusRunning ExecutionStatus = "running"
+	ExecutionStatusOpen    ExecutionStatus = "open"
+	ExecutionStatusPassed  ExecutionStatus = "passed"
+	ExecutionStatusFailed  ExecutionStatus = "failed"
+)
+
+// ActionResult is the shared evidence returned after one record or mock
+// connection call. A passed connection does not imply a complete execution.
+type ActionResult struct {
+	SessionID          string
+	ExecutionID        string
+	ConnectionID       string
+	ConnectionStatus   ConnectionStatus
+	ExecutionStatus    ExecutionStatus
+	ExecutionComplete  bool
+	Material           *corpus.Material
+	ExecutionPath      string
+	ReceiptPath        string
+	ProcessReceiptPath string
+	ResultPath         string
+}
+
+// RecordResult identifies the execution and connection completed by one record
+// call and, on success, the newly selected material.
+type RecordResult struct {
+	ActionResult
+}
+
+// MockResult identifies the execution and connection completed by one mock
+// call.
+type MockResult struct {
+	ActionResult
+}
+
+func (r *ActionResult) refresh(sessionDir string) {
+	r.ConnectionStatus = ConnectionStatusUnknown
+	r.ExecutionStatus = ExecutionStatusUnknown
+	r.ExecutionComplete = false
+	index, err := readIndex(IndexPath(sessionDir))
+	if err != nil {
+		return
+	}
+	for _, execution := range index.Executions {
+		if execution.ID != r.ExecutionID {
+			continue
+		}
+		r.ExecutionStatus = ExecutionStatus(execution.Status)
+		r.ExecutionComplete = execution.Status == string(ExecutionStatusPassed) || execution.Status == string(ExecutionStatusFailed)
+		for _, connection := range execution.Connections {
+			if connection.ID == r.ConnectionID {
+				r.ConnectionStatus = ConnectionStatus(connection.Status)
+				return
+			}
+		}
+		return
+	}
+}
 
 // ResultStream duplicates a caller-owned descriptor before an execution starts.
 // Close-on-exec prevents the native Agent from keeping the notification pipe open.

@@ -65,32 +65,45 @@ func LoadPlan(session *Session) (tool.Object, error) {
 	return plan, nil
 }
 
-// LatestArtifact resolves the single current recording.
-func LatestArtifact(sessionDir string, session *Session) (*corpus.Material, error) {
+// CurrentArtifact resolves the single current recording. A session without a
+// current recording is a valid prepared state and returns present=false.
+func CurrentArtifact(sessionDir string, session *Session) (*corpus.Material, bool, error) {
 	var current Current
 	if err := tool.ReadJSON(filepath.Join(sessionDir, "current.json"), &current); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if current.SchemaVersion != SchemaVersion || current.SessionID != session.SessionID {
-		return nil, errors.New("invalid current recording identity or schemaVersion")
+		return nil, false, errors.New("invalid current recording identity or schemaVersion")
 	}
 	if current.MaterialID == "" {
-		return nil, errors.New("session has no current recording")
+		return nil, false, nil
 	}
 	index, err := readIndex(IndexPath(sessionDir))
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	for _, artifact := range index.Artifacts {
 		if artifact.ID != current.MaterialID {
 			continue
 		}
 		if _, err := inspectMaterial(session, artifact); err != nil {
-			return nil, err
+			return nil, false, err
 		}
-		return &artifact, nil
+		return &artifact, true, nil
 	}
-	return nil, errors.New("current recording is absent from material index")
+	return nil, false, errors.New("current recording is absent from material index")
+}
+
+// LatestArtifact resolves the single current recording.
+func LatestArtifact(sessionDir string, session *Session) (*corpus.Material, error) {
+	material, present, err := CurrentArtifact(sessionDir, session)
+	if err != nil {
+		return nil, err
+	}
+	if !present {
+		return nil, errors.New("session has no current recording")
+	}
+	return material, nil
 }
 
 type Current struct {

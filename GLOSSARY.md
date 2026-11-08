@@ -42,6 +42,10 @@ _Avoid_: 单条断言、专项故障测试
 创建 session，校验来源，建立隔离环境，并把 case、plan 或已有录制材料完整复制到
 session。它是唯一提供 source 选择的命令，不启动客户端、SDK、driver 或真实 Agent。
 
+**Tool source（工具来源）**:
+prepare 记录的工具入口身份：`executable` 表示 installed CLI，`embedded` 表示可导入
+Go 库。它决定允许的连接模板和 launcher，不改变 source 或材料身份。
+
 **agent record**:
 在 session 中显式启动真实 Agent，按 case 或 consumer plan 采集新的原生交互尝试。
 成功后生成新 material 并原子替换 current recording；失败保留 execution 证据但不
@@ -68,7 +72,8 @@ session。它是唯一提供 source 选择的命令，不启动客户端、SDK�
 全部 execution 或 receipt，也不产生 verified 或入仓结论。
 
 **Consumer（消费者）**:
-通过 mock 的进程接口运行自身 SDK 或产品测试的一方。业务断言和测试编排归消费者。
+通过公开 Go 库入口或 installed CLI/mock 的进程接口运行自身 SDK 或产品测试的一方。
+业务断言和测试编排归消费者。
 
 **Consumer capture（消费者录制）**:
 外部消费者通过 `prepare --plan` 创建会话，由自己的 SDK 宿主启动 agent record，
@@ -78,6 +83,19 @@ session。它是唯一提供 source 选择的命令，不启动客户端、SDK�
 会话中的一次 record 或 mock 执行，由
 `executions/<executionId>/execution.json` 描述；每个 execution 使用独立可写 overlay。
 它不是额外的 CLI 步骤。
+
+**Connection status（连接状态）**:
+一个 connection 在 action execution 中的持久状态，按 `pending`、`running`、
+`passed`、`failed` 进展。它只说明该连接，不代表同一 execution 的其他连接。
+
+**Execution status（执行状态）**:
+一个 action execution 全部声明连接的汇总状态。仍有 `pending` 或 `running` 连接时为
+`open`，全部通过时为 `passed`，任一失败后为 `failed`。
+
+**Action result（action 结果）**:
+record 或 mock 返回的连接与 execution 状态、终态标志、材料身份和证据路径。连接
+`passed` 不等于 `ExecutionComplete`；持久事实以 execution index 为准，无法刷新时
+状态为 `unknown`。
 
 **Record source（录制来源）**:
 prepare 固化的 plan、协议项目和来源身份。每次 agent record 使用同一 record source，不随
