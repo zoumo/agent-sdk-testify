@@ -213,7 +213,7 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 	require.Contains(t, failure["error"], "early client EOF")
 }
 
-func TestLibraryMockRecordsActualCWDAndExecutionWorkspace(t *testing.T) {
+func TestLibraryMockOmitsProcessLocationAndPreservesCallerCWD(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	sessionDir := filepath.Join(root, "session")
@@ -226,8 +226,6 @@ func TestLibraryMockRecordsActualCWDAndExecutionWorkspace(t *testing.T) {
 
 	callerCWD := t.TempDir()
 	t.Chdir(callerCWD)
-	expectedCWD, err := filepath.EvalSymlinks(callerCWD)
-	require.NoError(t, err)
 	mockResult, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 	}, libraryMockInput)
@@ -235,10 +233,17 @@ func TestLibraryMockRecordsActualCWDAndExecutionWorkspace(t *testing.T) {
 	require.Equal(t, callerCWD, workingDirectory(t))
 
 	process := readLibraryJSON(t, mockResult.ProcessReceiptPath)
-	require.Equal(t, expectedCWD, process["cwd"])
+	require.EqualValues(t, 1, process["schemaVersion"])
+	require.NotContains(t, process, "cwd")
+	require.NotContains(t, process, "workspace")
+
 	execution := readLibraryJSON(t, mockResult.ExecutionPath)
-	require.Equal(t, execution["workspace"], process["workspace"])
-	require.NotEqual(t, process["cwd"], process["workspace"])
+	workspace, ok := execution["workspace"].(string)
+	require.True(t, ok)
+	require.True(t, filepath.IsAbs(workspace))
+	protocolCwd, ok := execution["protocolCwd"].(string)
+	require.True(t, ok)
+	require.True(t, filepath.IsAbs(protocolCwd))
 }
 
 func TestLibraryMockFirstConnectionLeavesMultiConnectionExecutionOpen(t *testing.T) {

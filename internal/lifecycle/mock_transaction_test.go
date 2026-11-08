@@ -120,10 +120,7 @@ func TestMockTransactionCommitsFinalReplay(t *testing.T) {
 	require.NoError(t, tool.ReadJSON(execution.Connections[0].ProcessReceipt, &process))
 	require.Equal(t, "passed", process["status"])
 	require.EqualValues(t, 0, process["exitCode"])
-	cwd, err := actionWorkingDirectory()
-	require.NoError(t, err)
-	require.Equal(t, cwd, process["cwd"])
-	require.Equal(t, execution.Workspace, process["workspace"])
+	requireV1ProcessReceiptWithoutLocation(t, process)
 
 	currentAfter, err := os.ReadFile(filepath.Join(sessionDir, "current.json"))
 	require.NoError(t, err)
@@ -166,6 +163,7 @@ func TestMockTransactionFailurePreservesCurrentAndEvidence(t *testing.T) {
 	require.Equal(t, "failed", process["status"])
 	require.EqualValues(t, 1, process["exitCode"])
 	require.Contains(t, process["error"], replayErr.Error())
+	requireV1ProcessReceiptWithoutLocation(t, process)
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
 	require.Equal(t, "failed", failure["status"])
@@ -377,8 +375,16 @@ func TestMockTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 	process := tool.Object{}
 	require.NoError(t, tool.ReadJSON(execution.Connections[0].ProcessReceipt, &process))
 	require.Equal(t, "passed", process["status"])
+	requireV1ProcessReceiptWithoutLocation(t, process)
 	assertMockRouteAtTemplate(t, sessionDir)
 	assertRecordLockAvailable(t, sessionDir)
+}
+
+func requireV1ProcessReceiptWithoutLocation(t *testing.T, process tool.Object) {
+	t.Helper()
+	require.EqualValues(t, 1, process["schemaVersion"])
+	require.NotContains(t, process, "cwd")
+	require.NotContains(t, process, "workspace")
 }
 
 func TestMockTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {

@@ -352,8 +352,10 @@ prepare 返回的环境和 workspace，并自行执行与报告业务断言。
 最多启动一次，并分别完成严格匹配、完整消费、EOF、退出和清理。
 
 mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
-连接已经完成。进程 receipt 的 `cwd` 是实际 mock 进程工作目录，`workspace` 是
-本次 execution 的 overlay workspace；回放和历史文件始终从 session/execution 根定位。
+连接已经完成。mock 进程 receipt 不记录 `cwd` 或 `workspace`；执行位置和协议项目
+身份以 execution descriptor 的 `workspace`、`protocolCwd` 为准。为兼容 v1，
+校验器忽略旧 receipt 中可能存在的这两个字段，回放和历史文件始终从 session/execution
+根定位。
 
 官方 driver 与外部消费者使用同一个公开 agent mock 进程接口和 execution 合同。
 official verify 不直接调用协议回放函数替代公开 agent mock。

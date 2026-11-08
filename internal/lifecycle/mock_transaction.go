@@ -40,7 +40,6 @@ type MockContext struct {
 
 type mockTransaction struct {
 	lockedTransaction
-	processCWD string
 }
 
 func (m *mockTransaction) context() MockContext {
@@ -124,8 +123,6 @@ func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
 		"connectionId":  m.connection,
 		"status":        "failed",
 		"exitCode":      -1,
-		"cwd":           m.processCWD,
-		"workspace":     m.execution.Workspace,
 		"toolVersion":   version.Version,
 	}
 	if self, toolVersion, hash, err := SelfCommand(); err == nil {
@@ -226,10 +223,6 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 		result.refresh(run.sessionDir)
 	}()
 
-	run.processCWD, err = actionWorkingDirectory()
-	if err != nil {
-		return result, err
-	}
 	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
 		return result, err
 	}
@@ -238,21 +231,6 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 	}
 	completed = true
 	return result, nil
-}
-
-func actionWorkingDirectory() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	cwd, err = filepath.EvalSymlinks(cwd)
-	if err != nil {
-		return "", err
-	}
-	if !filepath.IsAbs(cwd) {
-		return "", errors.New("working directory must be absolute")
-	}
-	return cwd, nil
 }
 
 func beginMockTransaction(request MockRequest) (transaction *mockTransaction, err error) {

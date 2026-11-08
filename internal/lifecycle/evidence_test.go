@@ -30,8 +30,8 @@ func TestMockReceiptEvidenceRejectsTampering(t *testing.T) {
 		{name: "no EOF", replay: tool.Object{"clientEOF": false}, message: "strict full consumption"},
 		{name: "no cleanup", replay: tool.Object{"cleanupComplete": false}, message: "strict full consumption"},
 		{name: "missing receipt", missing: true, message: "no such file"},
-		{name: "process workspace", process: tool.Object{"workspace": "/different/workspace"}, message: "process receipt is absent or unsuccessful"},
-		{name: "relative process cwd", process: tool.Object{"cwd": "relative"}, message: "process receipt is absent or unsuccessful"},
+		{name: "legacy location ignored", process: tool.Object{"cwd": "/caller/process", "workspace": "/different/workspace"}},
+		{name: "malformed legacy location ignored", process: tool.Object{"cwd": "relative", "workspace": 42}},
 		{name: "process exit", process: tool.Object{"exitCode": 9}, message: "process exit is absent or nonzero"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestMockReceiptEvidenceRejectsTampering(t *testing.T) {
 			connection := ExecutionConnection{ID: "main"}
 			expected := replayReceiptExpectation{Provider: "codex", RecordingSHA256: strings.Repeat("a", 64), PlanSHA256: strings.Repeat("b", 64), Material: "/selected/material", Frames: 2, RequirePlan: true, RequireExitCode: true}
 			receipt := tool.Object{"version": 1, "status": "passed", "provider": "codex", "fullConsumption": true, "clientEOF": true, "cleanupComplete": true, "nativeLaunched": false, "recordingSHA256": expected.RecordingSHA256, "planSHA256": expected.PlanSHA256, "recording": expected.Material, "frames": 2, "exitCode": 0}
-			process := tool.Object{"schemaVersion": 1, "status": "passed", "sessionId": execution.SessionID, "executionId": execution.ExecutionID, "connectionId": "main", "cwd": "/caller/process", "workspace": execution.Workspace, "exitCode": 0}
+			process := tool.Object{"schemaVersion": 1, "status": "passed", "sessionId": execution.SessionID, "executionId": execution.ExecutionID, "connectionId": "main", "exitCode": 0}
 			maps.Copy(receipt, tc.replay)
 			maps.Copy(process, tc.process)
 			if !tc.missing {
