@@ -101,9 +101,7 @@ if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
 的路径；成功 record 和 mock 结果包含本次材料身份。路径均从绝对 session 或 execution
 根解析。
 
-mock 进程 receipt 不重复记录 `cwd` 或 `workspace`，遵循[工具设计](design.md#agent-mock)
-的 v1 合同；本次 execution 的 `workspace`、`protocolCwd` 以 execution descriptor 为准。
-v1 校验忽略旧 receipt 中的这两个遗留字段。
+mock 进程 receipt 的字段合同见[工具设计](design.md#agent-mock)。
 
 ## Testing Decisions
 

@@ -325,7 +325,7 @@ exec '%s' "$@"
 	require.Equal(t, tool.Str(first["home"]), tool.Str(tool.Obj(first["env"])["HOME"]))
 	require.Equal(t, tool.Str(first["config"]), tool.Str(tool.Obj(first["env"])["CODEX_HOME"]))
 	require.Equal(t, tool.Str(first["tmp"]), tool.Str(tool.Obj(first["env"])["TMPDIR"]))
-	require.NotEmpty(t, firstObserved)
+	assertObservedHostEnvironment(t, route, firstObserved)
 	assertRouteSlotsAtTemplate()
 	firstConnection := tool.Obj(tool.Array(first["connections"])[0])
 	var firstProcess tool.Object
@@ -347,7 +347,7 @@ exec '%s' "$@"
 	require.NotEqual(t, firstID, secondID)
 	require.NotEqual(t, firstWorkspace, secondWorkspace)
 	require.True(t, strings.HasPrefix(secondWorkspace, secondRoot+string(filepath.Separator)))
-	require.NotEmpty(t, secondObserved)
+	assertObservedHostEnvironment(t, route, secondObserved)
 	assertRouteSlotsAtTemplate()
 	secondConnection := tool.Obj(tool.Array(second["connections"])[0])
 	var secondProcess tool.Object
@@ -361,6 +361,17 @@ exec '%s' "$@"
 	require.NoFileExists(t, filepath.Join(tool.Str(second["config"]), "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(firstWorkspace, "run-second.txt"))
 	require.Equal(t, firstHashes, workspaceHashes(t, firstWorkspace))
+}
+
+func assertObservedHostEnvironment(t *testing.T, route tool.Object, observed map[string]string) {
+	t.Helper()
+	env := tool.Obj(route["env"])
+	require.Equal(t, map[string]string{
+		"cwd":    resolvedSymlink(t, tool.Str(route["workspace"])),
+		"home":   resolvedSymlink(t, tool.Str(env["HOME"])),
+		"config": resolvedSymlink(t, tool.Str(env["CODEX_HOME"])),
+		"tmp":    resolvedSymlink(t, tool.Str(env["TMPDIR"])),
+	}, observed)
 }
 
 func resolvedSymlink(t *testing.T, path string) string {

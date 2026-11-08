@@ -42,6 +42,8 @@ func TestInstalledCLIAndLibraryShareSessionAndMaterialContract(t *testing.T) {
 
 	cliSession, err = filepath.EvalSymlinks(cliSession)
 	require.NoError(t, err)
+	assertSessionToolSource(t, cliSession, "executable")
+	assertSessionToolSource(t, prepared.SessionDir, "embedded")
 	require.Equal(t, sharedLayout(t, cliSession), sharedLayout(t, prepared.SessionDir))
 	require.Equal(t, normalizedSession(t, cliSession), normalizedSession(t, prepared.SessionDir))
 	assertDescriptorSchemas(t, cliSession, prepared.SessionDir)
@@ -140,6 +142,15 @@ func normalizedSession(t *testing.T, sessionDir string) map[string]any {
 	var value map[string]any
 	require.NoError(t, readJSON(filepath.Join(sessionDir, "session.json"), &value))
 	return normalizeValue(value, sessionDir).(map[string]any)
+}
+
+func assertSessionToolSource(t *testing.T, sessionDir, want string) {
+	t.Helper()
+	var descriptor struct {
+		ToolSource string `json:"toolSource"`
+	}
+	require.NoError(t, readJSON(filepath.Join(sessionDir, "session.json"), &descriptor))
+	require.Equal(t, want, descriptor.ToolSource)
 }
 
 func normalizeValue(value any, sessionDir string) any {

@@ -237,6 +237,7 @@ func Prepare(o PrepareOptions) (result *Session, err error) {
 		if err != nil {
 			return nil, err
 		}
+		toolSource = ToolSourceExecutable
 	}
 	agentType := spec.agentType
 	if err := validateAgent(agentType); err != nil {
