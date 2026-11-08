@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 type lockedTransaction struct {
@@ -38,7 +36,7 @@ func claimTransactionConnection(fixtureDir string, execution Execution, connecti
 
 func writeTransactionResult(ctx context.Context, run *transactionContext, stream *os.File, runErr error) error {
 	if runErr != nil {
-		if err := tool.WriteJSON(filepath.Join(run.dir, "receipts", run.connection+".failure.json"), tool.Object{"status": "failed", "error": runErr.Error()}); err != nil {
+		if err := writeFailureEvidence(filepath.Join(run.dir, "receipts", run.connection+".failure.json"), runErr); err != nil {
 			runErr = errors.Join(runErr, err)
 		}
 	}

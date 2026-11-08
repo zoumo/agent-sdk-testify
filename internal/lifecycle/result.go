@@ -64,6 +64,12 @@ type RecordResult struct {
 // call.
 type MockResult struct {
 	ActionResult
+	Execution *ExecutionReport
+}
+
+func (r *MockResult) refresh(fixtureDir string) {
+	r.ActionResult.refresh(fixtureDir)
+	r.Execution, _ = mockExecutionReport(fixtureDir, r.ExecutionID)
 }
 
 func (r *ActionResult) refresh(fixtureDir string) {
@@ -83,10 +89,10 @@ func (r *ActionResult) refresh(fixtureDir string) {
 		for _, connection := range execution.Connections {
 			if connection.ID == r.ConnectionID {
 				r.ConnectionStatus = ConnectionStatus(connection.Status)
-				return
+				break
 			}
 		}
-		return
+		break
 	}
 }
 
@@ -122,13 +128,17 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 	value := tool.Object{
 		"schemaVersion": 1,
 		"fixtureId":     run.fixture.FixtureID,
-		"processId":     os.Getpid(),
 		"executionId":   run.execution.ExecutionID,
 		"connectionId":  id,
-		"command":       run.execution.Command,
 		"status":        status,
 		"execution":     filepath.Join(run.dir, "execution.json"),
 		"result":        path,
+	}
+	if run.connectionTransport() == ConnectionTransportInProcess {
+		value["transport"] = ConnectionTransportInProcess
+	} else {
+		value["processId"] = os.Getpid()
+		value["command"] = run.execution.Command
 	}
 	for _, connection := range run.execution.Connections {
 		if connection.ID == id {
@@ -148,6 +158,9 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 	}
 	if actionErr != nil {
 		value["error"] = actionErr.Error()
+		if class := FailureClassOf(actionErr); class != "" {
+			value["failureClass"] = string(class)
+		}
 	}
 	return path, value
 }

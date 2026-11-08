@@ -141,7 +141,9 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 			connection.Receipt = filepath.Join(base, "raw", "transport.json")
 		case "mock":
 			connection.Receipt = filepath.Join(dir, "receipts", id+".json")
-			connection.ProcessReceipt = filepath.Join(dir, "receipts", id+".process.json")
+			if template.Transport == ConnectionTransportProcess {
+				connection.ProcessReceipt = filepath.Join(dir, "receipts", id+".process.json")
+			}
 		}
 		if action == "record" {
 			connection.Material = dir

@@ -1,9 +1,11 @@
 package agenttestify_test
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -171,12 +173,21 @@ func TestLibraryMockWithoutCLI(t *testing.T) {
 	require.Equal(t, prepared.Current, mockResult.Material)
 	require.FileExists(t, mockResult.ExecutionPath)
 	require.FileExists(t, mockResult.ResultPath)
-	require.FileExists(t, mockResult.ProcessReceiptPath)
+	require.Empty(t, mockResult.ProcessReceiptPath)
+	require.NoFileExists(t, filepath.Join(filepath.Dir(mockResult.ExecutionPath), "receipts", "main.process.json"))
 	receipt := readLibraryJSON(t, mockResult.ReceiptPath)
 	require.Equal(t, "passed", receipt["status"])
 	require.Equal(t, true, receipt["fullConsumption"])
 	require.Equal(t, true, receipt["clientEOF"])
+	require.Equal(t, "in-process", receipt["transport"])
+	require.NotContains(t, receipt, "exitCode")
 	require.Equal(t, prepared.Current.RecordingSHA256, receipt["recordingSHA256"])
+	require.NotNil(t, mockResult.Execution)
+	connection := mockResult.Execution.Connections[0]
+	require.Equal(t, agenttestify.MockTransportInProcess, connection.Transport)
+	require.Nil(t, connection.ExitCode)
+	require.Empty(t, connection.ProcessReceiptPath)
+	require.True(t, connection.CleanupComplete)
 }
 
 func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
@@ -196,7 +207,7 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{}, "")
 	require.ErrorContains(t, mockErr, "early client EOF")
 	require.Empty(t, stdout)
-	require.Empty(t, stderr)
+	require.Contains(t, stderr, "early client EOF")
 	require.Equal(t, cwd, workingDirectory(t))
 	require.Equal(t, currentBefore, readFile(t, filepath.Join(fixtureDir, "current.json")))
 
@@ -214,11 +225,11 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 	require.Equal(t, false, receipt["clientEOF"])
 	require.Equal(t, prepared.Current.RecordingSHA256, receipt["recordingSHA256"])
 	require.Contains(t, receipt["error"], "early client EOF")
-
-	process := readLibraryJSON(t, mockResult.ProcessReceiptPath)
-	require.Equal(t, "failed", process["status"])
-	require.EqualValues(t, 1, process["exitCode"])
-	require.Contains(t, process["error"], "early client EOF")
+	require.Equal(t, "strict-replay", receipt["failureClass"])
+	require.Empty(t, mockResult.ProcessReceiptPath)
+	require.NoFileExists(t, filepath.Join(filepath.Dir(mockResult.ExecutionPath), "receipts", "main.process.json"))
+	require.NotNil(t, mockResult.Execution)
+	require.Equal(t, agenttestify.FailureClassStrictReplay, mockResult.Execution.Connections[0].Failure)
 
 	failurePath := filepath.Join(filepath.Dir(mockResult.ExecutionPath), "receipts", "main.failure.json")
 	require.FileExists(t, failurePath)
@@ -227,7 +238,7 @@ func TestLibraryMockFailureRetainsEvidence(t *testing.T) {
 	require.Contains(t, failure["error"], "early client EOF")
 }
 
-func TestLibraryMockOmitsProcessLocationAndPreservesCallerCWD(t *testing.T) {
+func TestLibraryMockOmitsProcessEvidenceAndPreservesCallerCWD(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
 	fixtureDir := filepath.Join(root, "fixture")
@@ -246,10 +257,10 @@ func TestLibraryMockOmitsProcessLocationAndPreservesCallerCWD(t *testing.T) {
 	require.NoError(t, mockErr, stderr)
 	require.Equal(t, callerCWD, workingDirectory(t))
 
-	process := readLibraryJSON(t, mockResult.ProcessReceiptPath)
-	require.EqualValues(t, 1, process["schemaVersion"])
-	require.NotContains(t, process, "cwd")
-	require.NotContains(t, process, "workspace")
+	require.Empty(t, mockResult.ProcessReceiptPath)
+	require.NotNil(t, mockResult.Execution)
+	require.Nil(t, mockResult.Execution.Connections[0].ExitCode)
+	require.False(t, mockResult.Execution.Connections[0].NativeLaunched)
 
 	execution := readLibraryJSON(t, mockResult.ExecutionPath)
 	workspace, ok := execution["workspace"].(string)
@@ -300,8 +311,7 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 	options := agenttestify.MockAgentOptions{NativeArgs: []string{"app-server", "--listen", "stdio://"}}
 
 	type call struct {
-		in, out, err *os.File
-		fixture      *agenttestify.Fixture
+		fixture *agenttestify.Fixture
 	}
 	var calls []call
 	for index := range 2 {
@@ -312,17 +322,7 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 			Case:       "SDK-CASE-001",
 		})
 		require.NoError(t, err)
-		streamRoot := t.TempDir()
-		out, err := os.CreateTemp(streamRoot, "stdout-*")
-		require.NoError(t, err)
-		t.Cleanup(func() { _ = out.Close() })
-		errOut, err := os.CreateTemp(streamRoot, "stderr-*")
-		require.NoError(t, err)
-		t.Cleanup(func() { _ = errOut.Close() })
 		calls = append(calls, call{
-			in:      writeLibraryStream(t, streamRoot, "stdin", libraryMockInput),
-			out:     out,
-			err:     errOut,
 			fixture: prepared,
 		})
 	}
@@ -336,11 +336,16 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 	for _, configured := range calls {
 		go func() {
 			<-start
-			result, err := configured.fixture.MockAgent(t.Context(), options, agenttestify.Streams{
-				In:  configured.in,
-				Out: configured.out,
-				Err: configured.err,
+			run, err := configured.fixture.StartMockAgent(t.Context(), options, agenttestify.StartMockAgentStreams{
+				Reader: io.NopCloser(strings.NewReader(libraryMockInput)),
+				Writer: &testWriteCloser{},
+				Stderr: &bytes.Buffer{},
 			})
+			if err != nil {
+				done <- outcome{err: err}
+				return
+			}
+			result, err := run.Wait(t.Context())
 			done <- outcome{result: result, err: err}
 		}()
 	}
@@ -579,9 +584,18 @@ func runLibraryMock(
 	input string,
 ) (*agenttestify.MockAgentResult, string, string, error) {
 	t.Helper()
-	streams := newLibraryStreams(t, t.TempDir(), input)
-	result, runErr := fixture.MockAgent(t.Context(), options, streams.io)
-	return result, streams.output(t), streams.errors(t), runErr
+	output := &testWriteCloser{}
+	var errorsOutput bytes.Buffer
+	run, err := fixture.StartMockAgent(t.Context(), options, agenttestify.StartMockAgentStreams{
+		Reader: io.NopCloser(strings.NewReader(input)),
+		Writer: output,
+		Stderr: &errorsOutput,
+	})
+	if run == nil {
+		return nil, "", errorsOutput.String(), err
+	}
+	result, runErr := run.Wait(t.Context())
+	return result, output.String(), errorsOutput.String(), runErr
 }
 
 type libraryStreams struct {

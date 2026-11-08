@@ -25,12 +25,20 @@ type MockRequest struct {
 	ProgressFD int
 	ResultFD   int
 	Artifact   corpus.Material
+	RequireNew bool
 }
 
 // MockPolicy supplies replay for one connection. The transaction owns every
 // lock, index transition, route, receipt, notification, and closure step.
 type MockPolicy interface {
 	Replay(context.Context, MockContext) error
+}
+
+// MockStartedPolicy optionally observes the claimed connection after running
+// evidence is durable and before protocol replay starts.
+type MockStartedPolicy interface {
+	MockPolicy
+	Started(context.Context, MockContext) error
 }
 
 // MockContext is a read-only snapshot of transaction-owned state.
@@ -89,6 +97,7 @@ func (m *mockTransaction) finalize(ctx context.Context, stream *os.File, replayE
 }
 
 func (m *mockTransaction) finalizeOutcome(ctx context.Context, stream *os.File, replayErr error) error {
+	replayErr = errors.Join(replayErr, contextFailure(ctx))
 	processErr := m.writeProcessReceipt(replayErr)
 	err := errors.Join(replayErr, processErr)
 	status := "passed"
@@ -105,6 +114,12 @@ func (m *mockTransaction) finalizeOutcome(ctx context.Context, stream *os.File, 
 	if !allPassed {
 		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, err, errors.New("mock execution has failed connections"))
 	}
+	if contextErr := contextFailure(ctx); contextErr != nil {
+		if _, _, settleErr := m.settleConnection("failed"); settleErr != nil {
+			return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, contextErr, settleErr)
+		}
+		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, contextErr)
+	}
 	if err := m.pass(); err != nil {
 		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, err)
 	}
@@ -114,6 +129,9 @@ func (m *mockTransaction) finalizeOutcome(ctx context.Context, stream *os.File, 
 func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
 	path := m.context().ProcessReceipt()
 	if path == "" {
+		if m.context().connectionTransport() == ConnectionTransportInProcess {
+			return nil
+		}
 		return errors.New("mock process receipt path is absent")
 	}
 	process := tool.Object{
@@ -134,6 +152,9 @@ func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
 		process["status"], process["exitCode"] = "passed", 0
 	} else {
 		process["exitCode"], process["error"] = 1, replayErr.Error()
+		if class := FailureClassOf(replayErr); class != "" {
+			process["failureClass"] = string(class)
+		}
 	}
 	return tool.WriteJSON(path, process)
 }
@@ -226,11 +247,17 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
 		return result, err
 	}
+	if policyWithStart, ok := policy.(MockStartedPolicy); ok {
+		if err := policyWithStart.Started(ctx, run.context()); err != nil {
+			return result, err
+		}
+	}
 	if err := policy.Replay(ctx, run.context()); err != nil {
 		return result, err
 	}
-	completed = true
-	return result, nil
+	runErr = contextFailure(ctx)
+	completed = runErr == nil
+	return result, runErr
 }
 
 func beginMockTransaction(request MockRequest) (transaction *mockTransaction, err error) {
@@ -289,6 +316,9 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		}))
 	}()
 	if pending := pendingExecution(index); pending != nil {
+		if request.RequireNew {
+			return nil, fmt.Errorf("fixture has unfinished execution %s", pending.ID)
+		}
 		if pending.Command != "mock" || connectionStarted(pending, request.Connection) {
 			if pending.Command == "mock" {
 				return nil, fmt.Errorf("mock connection %s already started for execution %s", request.Connection, pending.ID)

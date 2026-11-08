@@ -36,12 +36,13 @@ type RecordOptions struct {
 }
 
 type MockOptions struct {
-	FixtureDir string
-	Connection string
-	Timeout    time.Duration
-	ResultFD   int
-	ProgressFD int
-	NativeArgs []string
+	FixtureDir  string
+	Connection  string
+	ExecutionID string
+	Timeout     time.Duration
+	ResultFD    int
+	ProgressFD  int
+	NativeArgs  []string
 }
 
 type PrepareOptions struct {
@@ -173,6 +174,9 @@ func Record(ctx context.Context, o RecordOptions, streams Streams) (*RecordResul
 
 // Mock validates caller input and owns one mock action.
 func Mock(ctx context.Context, o MockOptions, streams Streams) (*MockResult, error) {
+	if o.ExecutionID != "" {
+		return nil, errors.New("explicit mock execution joins require StartMockAgent")
+	}
 	if err := validateResultFD(o.ResultFD); err != nil {
 		return nil, err
 	}

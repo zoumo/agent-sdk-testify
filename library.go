@@ -2,6 +2,8 @@ package agenttestify
 
 import (
 	"context"
+	"errors"
+	"io"
 	"maps"
 	"os"
 	"slices"
@@ -51,6 +53,27 @@ const (
 	ExecutionStatusOpen    ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusOpen)
 	ExecutionStatusPassed  ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusPassed)
 	ExecutionStatusFailed  ExecutionStatus = ExecutionStatus(lifecycle.ExecutionStatusFailed)
+)
+
+// MockTransport distinguishes a process adapter from an in-process mock.
+type MockTransport string
+
+const (
+	MockTransportInProcess MockTransport = MockTransport(lifecycle.MockTransportInProcess)
+	MockTransportProcess   MockTransport = MockTransport(lifecycle.MockTransportProcess)
+)
+
+// FailureClass is the machine-readable terminal reason for a mock run.
+type FailureClass string
+
+const (
+	FailureClassCanceled     FailureClass = FailureClass(lifecycle.FailureClassCanceled)
+	FailureClassAborted      FailureClass = FailureClass(lifecycle.FailureClassAborted)
+	FailureClassTransport    FailureClass = FailureClass(lifecycle.FailureClassTransport)
+	FailureClassStrictReplay FailureClass = FailureClass(lifecycle.FailureClassStrictReplay)
+	FailureClassTimeout      FailureClass = FailureClass(lifecycle.FailureClassTimeout)
+	FailureClassCleanup      FailureClass = FailureClass(lifecycle.FailureClassCleanup)
+	FailureClassInternal     FailureClass = FailureClass(lifecycle.FailureClassInternal)
 )
 
 // ActionResult contains the durable execution and connection evidence shared
@@ -112,14 +135,82 @@ type Streams struct {
 
 // MockAgentOptions selects one replay connection in a prepared fixture.
 type MockAgentOptions struct {
-	Connection string
-	Timeout    time.Duration
-	NativeArgs []string
+	Connection  string
+	ExecutionID string
+	Timeout     time.Duration
+	NativeArgs  []string
 }
 
 // MockAgentResult identifies the execution and connection completed by a mock call.
 type MockAgentResult struct {
 	ActionResult
+	Execution *ExecutionReport
+}
+
+// StartMockAgentStreams are closeable directional streams transferred to one
+// in-process mock run.
+type StartMockAgentStreams struct {
+	Reader io.ReadCloser
+	Writer io.WriteCloser
+	Stderr io.Writer
+}
+
+// ExecutionStart is the immutable overlay snapshot available before protocol I/O.
+type ExecutionStart struct {
+	FixtureID       string
+	ExecutionID     string
+	ConnectionID    string
+	Material        Material
+	ExecutionSHA256 string
+	ExecutionPath   string
+
+	Workspace    string
+	ProtocolCwd  string
+	Home         string
+	Config       string
+	Tmp          string
+	HistoryFiles map[string]string
+	Env          map[string]string
+	NativeArgs   []string
+	Transport    MockTransport
+}
+
+// ExecutionReport is the validated report for every connection in an execution.
+type ExecutionReport struct {
+	FixtureID       string
+	ExecutionID     string
+	Status          ExecutionStatus
+	Complete        bool
+	Material        Material
+	ExecutionSHA256 string
+	ExecutionPath   string
+	Connections     []ConnectionReport
+}
+
+// ConnectionReport contains one connection's durable protocol evidence.
+type ConnectionReport struct {
+	ID     string
+	Status ConnectionStatus
+
+	Transport       MockTransport
+	FullConsumption bool
+	ClientEOF       bool
+	NativeLaunched  bool
+	CleanupComplete bool
+	ExitCode        *int
+	Failure         FailureClass
+	Error           string
+
+	ReceiptPath        string
+	ProcessReceiptPath string
+	ResultPath         string
+}
+
+// MockRun coordinates one in-process mock connection.
+type MockRun struct {
+	Start ExecutionStart
+
+	run *application.MockRun
 }
 
 // RecordAgentResult identifies the execution and connection completed by a record
@@ -297,12 +388,13 @@ func (f *Fixture) MockAgent(ctx context.Context, options MockAgentOptions, strea
 		fixtureDir = f.FixtureDir
 	}
 	result, err := application.Mock(ctx, application.MockOptions{
-		FixtureDir: fixtureDir,
-		Connection: options.Connection,
-		Timeout:    options.Timeout,
-		ResultFD:   -1,
-		ProgressFD: -1,
-		NativeArgs: slices.Clone(options.NativeArgs),
+		FixtureDir:  fixtureDir,
+		Connection:  options.Connection,
+		ExecutionID: options.ExecutionID,
+		Timeout:     options.Timeout,
+		ResultFD:    -1,
+		ProgressFD:  -1,
+		NativeArgs:  slices.Clone(options.NativeArgs),
 	}, application.Streams{
 		In:  streams.In,
 		Out: streams.Out,
@@ -313,7 +405,74 @@ func (f *Fixture) MockAgent(ctx context.Context, options MockAgentOptions, strea
 	}
 	return &MockAgentResult{
 		ActionResult: actionResultView(result.ActionResult),
+		Execution:    executionReportView(result.Execution),
 	}, err
+}
+
+// StartMockAgent claims one in-process mock execution and releases replay only
+// after the start snapshot is ready.
+func (f *Fixture) StartMockAgent(ctx context.Context, options MockAgentOptions, streams StartMockAgentStreams) (*MockRun, error) {
+	fixtureDir := ""
+	if f != nil {
+		fixtureDir = f.FixtureDir
+	}
+	run, err := application.StartMock(ctx, application.MockOptions{
+		FixtureDir:  fixtureDir,
+		Connection:  options.Connection,
+		ExecutionID: options.ExecutionID,
+		Timeout:     options.Timeout,
+		NativeArgs:  slices.Clone(options.NativeArgs),
+	}, application.StartMockStreams{
+		Reader: streams.Reader,
+		Writer: streams.Writer,
+		Stderr: streams.Stderr,
+	})
+	if run == nil {
+		return nil, err
+	}
+	return &MockRun{
+		Start: executionStartView(run.Start),
+		run:   run,
+	}, err
+}
+
+// FullConsumption reports the one-shot safe point for SDK input half-close.
+func (r *MockRun) FullConsumption() <-chan struct{} {
+	if r == nil || r.run == nil {
+		return nil
+	}
+	return r.run.FullConsumption()
+}
+
+// Done closes after this connection's replay, receipt and finalization end.
+func (r *MockRun) Done() <-chan struct{} {
+	if r == nil || r.run == nil {
+		return nil
+	}
+	return r.run.Done()
+}
+
+// Wait returns the authoritative repeatable terminal result.
+func (r *MockRun) Wait(ctx context.Context) (*MockAgentResult, error) {
+	if r == nil || r.run == nil {
+		return nil, errors.New("mock run is unavailable")
+	}
+	result, err := r.run.Wait(ctx)
+	if result == nil {
+		return nil, err
+	}
+	return &MockAgentResult{
+		ActionResult: actionResultView(result.ActionResult),
+		Execution:    executionReportView(result.Execution),
+	}, err
+}
+
+// Abort cancels the run and closes fixture-side streams. It is idempotent.
+func (r *MockRun) Abort() error {
+	if r == nil || r.run == nil {
+		return errors.New("mock run is unavailable")
+	}
+	return r.run.Abort()
 }
 
 func actionResultView(result lifecycle.ActionResult) ActionResult {
@@ -331,6 +490,65 @@ func actionResultView(result lifecycle.ActionResult) ActionResult {
 	}
 	if result.Material != nil {
 		view.Material = materialView(*result.Material)
+	}
+	return view
+}
+
+func executionStartView(start application.ExecutionStart) ExecutionStart {
+	return ExecutionStart{
+		FixtureID:       start.FixtureID,
+		ExecutionID:     start.ExecutionID,
+		ConnectionID:    start.ConnectionID,
+		Material:        *materialView(start.Material),
+		ExecutionSHA256: start.ExecutionSHA256,
+		ExecutionPath:   start.ExecutionPath,
+		Workspace:       start.Workspace,
+		ProtocolCwd:     start.ProtocolCwd,
+		Home:            start.Home,
+		Config:          start.Config,
+		Tmp:             start.Tmp,
+		HistoryFiles:    maps.Clone(start.HistoryFiles),
+		Env:             maps.Clone(start.Env),
+		NativeArgs:      slices.Clone(start.NativeArgs),
+		Transport:       MockTransport(start.Transport),
+	}
+}
+
+func executionReportView(report *lifecycle.ExecutionReport) *ExecutionReport {
+	if report == nil {
+		return nil
+	}
+	view := &ExecutionReport{
+		FixtureID:       report.FixtureID,
+		ExecutionID:     report.ExecutionID,
+		Status:          ExecutionStatus(report.Status),
+		Complete:        report.Complete,
+		Material:        *materialView(report.Material),
+		ExecutionSHA256: report.ExecutionSHA256,
+		ExecutionPath:   report.ExecutionPath,
+		Connections:     make([]ConnectionReport, len(report.Connections)),
+	}
+	for i, connection := range report.Connections {
+		var exitCode *int
+		if connection.ExitCode != nil {
+			code := *connection.ExitCode
+			exitCode = &code
+		}
+		view.Connections[i] = ConnectionReport{
+			ID:                 connection.ID,
+			Status:             ConnectionStatus(connection.Status),
+			Transport:          MockTransport(connection.Transport),
+			FullConsumption:    connection.FullConsumption,
+			ClientEOF:          connection.ClientEOF,
+			NativeLaunched:     connection.NativeLaunched,
+			CleanupComplete:    connection.CleanupComplete,
+			ExitCode:           exitCode,
+			Failure:            FailureClass(connection.Failure),
+			Error:              connection.Error,
+			ReceiptPath:        connection.ReceiptPath,
+			ProcessReceiptPath: connection.ProcessReceiptPath,
+			ResultPath:         connection.ResultPath,
+		}
 	}
 	return view
 }

@@ -96,6 +96,14 @@ func prepareRecord(o RecordOptions) (record.Prepared, error) {
 }
 
 func prepareMock(o MockOptions) (mock.Prepared, error) {
+	return prepareMockMode(o, false)
+}
+
+func prepareInProcessMock(o MockOptions) (mock.Prepared, error) {
+	return prepareMockMode(o, true)
+}
+
+func prepareMockMode(o MockOptions, inProcess bool) (mock.Prepared, error) {
 	if o.Connection == "" {
 		o.Connection = "main"
 	}
@@ -112,6 +120,18 @@ func prepareMock(o MockOptions) (mock.Prepared, error) {
 	}
 	if !slices.Contains(material.Connections, o.Connection) {
 		return mock.Prepared{}, fmt.Errorf("undeclared mock connection %s", o.Connection)
+	}
+	if inProcess {
+		transport := ""
+		for _, connection := range fixture.Routes["mock"].Connections {
+			if connection.ID == o.Connection {
+				transport = connection.Transport
+				break
+			}
+		}
+		if transport != lifecycle.ConnectionTransportInProcess {
+			return mock.Prepared{}, fmt.Errorf("mock connection %s is not in-process", o.Connection)
+		}
 	}
 	if err := mock.ValidateMaterial(*material, fixture.AgentType); err != nil {
 		return mock.Prepared{}, err

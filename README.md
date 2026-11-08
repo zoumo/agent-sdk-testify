@@ -25,10 +25,12 @@ fixture, err := agenttestify.Prepare(agenttestify.PrepareOptions{
 ```
 
 根包 `agenttestify` 提供类型化的 `Prepare`、`Open`、`Export`，以及
-`Fixture.RecordAgent` 和 `Fixture.MockAgent`，不要求安装 CLI。`official record`、
-`official verify` 和官方 driver 编排仍只由 CLI 提供；协议帧、严格匹配器和材料内部格式
-不属于库 API。v1 不保证库 fixture 与 CLI fixture 可交叉执行 action，材料通过 export 和
-prepare 交换。完整合同见
+`Fixture.RecordAgent`、`Fixture.MockAgent` 和进程内 `Fixture.StartMockAgent`，不要求
+安装 CLI。进程内 SDK 使用 `StartMockAgent` 的可关闭双向流，在协议 I/O 前读取
+`MockRun.Start`，通过 `FullConsumption` 半关闭输入，并从 `Wait` 取得权威结果；
+`MockAgent` 保留 `*os.File` 进程适配。`official record`、`official verify` 和官方
+driver 编排仍只由 CLI 提供；协议帧、严格匹配器和材料内部格式不属于库 API。v1 不保证
+库 fixture 与 CLI fixture 可交叉执行 action，材料通过 export 和 prepare 交换。完整合同见
 [可导入 Go 库入口规格](docs/library-entry-spec.md)。
 
 record 和 mock 返回连接状态、整个 execution 状态及终态标志。连接成功不等于 execution 完成：

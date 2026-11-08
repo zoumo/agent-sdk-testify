@@ -106,6 +106,15 @@ func (c transactionContext) ProcessReceipt() string {
 	return ""
 }
 
+func (c transactionContext) connectionTransport() string {
+	for _, connection := range c.execution.Connections {
+		if connection.ID == c.connection {
+			return connection.Transport
+		}
+	}
+	return ""
+}
+
 func cloneTransactionObject(value tool.Object) tool.Object {
 	if value == nil {
 		return nil

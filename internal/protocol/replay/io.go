@@ -3,6 +3,7 @@ package replay
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"sync"
 	"syscall"
@@ -67,6 +68,16 @@ func Run(ctx context.Context, document *recording.Document, limits recording.Lim
 		}
 	}
 	return play(ctx, document, limits, handshakes, in, out, complete)
+}
+
+// RunStreams applies the same strict replay engine to caller-owned closeable
+// streams. The caller remains responsible for closing them to interrupt a
+// blocked operation when ctx is canceled.
+func RunStreams(ctx context.Context, document *recording.Document, limits recording.Limits, handshakes string, input io.ReadCloser, output io.WriteCloser, complete func() error) error {
+	if ctx == nil || document == nil || input == nil || output == nil {
+		return errors.New("context, document and closeable protocol streams required")
+	}
+	return play(ctx, document, limits, handshakes, input, output, complete)
 }
 
 type ownedFile struct {
