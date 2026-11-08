@@ -36,9 +36,12 @@ eval 或修改；CLI 参数始终是目录，不是 descriptor 路径。
 
 | 字段 | 用途 |
 | --- | --- |
-| `schemaVersion` | 当前为 `4`；不兼容版本必须重新 prepare |
+| `schemaVersion` | 当前为 `5`；不兼容版本必须重新 prepare |
 | `fixtureId` | fixture 身份 |
-| `tool.command`, `toolVersion`, `toolSHA256` | 工具路径与实际身份 |
+| `tool.source` | `executable` 或 `embedded` 工具身份判别式 |
+| `tool.version` | 工具来源的精确版本 |
+| `tool.command`, `tool.sha256` | executable 工具的绝对路径与哈希 |
+| `tool.module`, `tool.moduleSum`, `tool.moduleRevision`, `tool.moduleTime`, `tool.goVersion` | embedded 工具的模块来源身份；`moduleTime` 是可用时的 VCS 提交时间 |
 | `source`（含 `sha256`）, `agentType` | 不可变初始来源 |
 | `resourceRoot` | fixture 内的 runtime 目录 |
 | `routes` | 动作环境槽和连接模板；实际可执行性由动作前提检查决定 |
@@ -72,8 +75,9 @@ mock 只消费 current，默认连接为 main。只有材料确实声明多个�
 | 连接字段 | 用途 |
 | --- | --- |
 | `id` | main 或材料声明的其他连接 |
-| `command`, `args` | 可直接执行的原生协议命令 |
-| `launcher` | 只接受 executable 的 SDK 使用的临时启动器 |
+| `transport` | `process` 或 `in-process`；决定是否存在可执行字段 |
+| `command`, `args` | process 连接可直接执行的原生协议命令 |
+| `launcher` | process 连接中只接受 executable 的 SDK 使用的临时启动器 |
 | `recording` | 当前连接的录制 |
 | `planSHA256`, `manifestSHA256`, `recordingSHA256` | 材料身份 |
 | `receipt`, `processReceipt` | 持久协议回执和进程回执 |

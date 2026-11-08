@@ -194,6 +194,10 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err != nil {
 		return nil, err
 	}
+	toolIdentity, err := prepareToolIdentity(o.EmbeddedTool)
+	if err != nil {
+		return nil, err
+	}
 	if err := os.Mkdir(fixtureDir, 0o700); err != nil {
 		return nil, err
 	}
@@ -225,19 +229,6 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	fixtureID, err := randomID()
 	if err != nil {
 		return nil, err
-	}
-	var self Command
-	var toolVersion, toolHash, toolSource string
-	if o.EmbeddedTool {
-		self = Command{Command: version.Module}
-		toolVersion = version.Version
-		toolSource = ToolSourceEmbedded
-	} else {
-		self, toolVersion, toolHash, err = SelfCommand()
-		if err != nil {
-			return nil, err
-		}
-		toolSource = ToolSourceExecutable
 	}
 	agentType := spec.agentType
 	if err := validateAgent(agentType); err != nil {
@@ -312,10 +303,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	fixture := &Fixture{
 		SchemaVersion:    SchemaVersion,
 		FixtureID:        fixtureID,
-		Tool:             self,
-		ToolVersion:      toolVersion,
-		ToolSHA256:       toolHash,
-		ToolSource:       toolSource,
+		Tool:             toolIdentity,
 		AgentType:        agentType,
 		Source:           spec.source,
 		HistorySeed:      historySeed,
@@ -384,20 +372,19 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			}
 		}
 		for _, id := range ids {
-			template := ConnectionTemplate{
-				ID:       id,
-				Command:  self.Command,
-				Args:     []string{"agent", "mock", "--fixture-dir", fixtureDir, "--connection", id},
-				Embedded: o.EmbeddedTool,
-			}
-			switch action {
-			case "record":
-				template.Args = []string{"agent", "record", "--fixture-dir", fixtureDir, "--cmd"}
-			}
-			if action == "mock" && !o.EmbeddedTool {
-				template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, self.Command, fixtureDir)
-				if err != nil {
-					return nil, err
+			template := ConnectionTemplate{ID: id, Transport: ConnectionTransportInProcess}
+			if !o.EmbeddedTool {
+				template.Transport = ConnectionTransportProcess
+				template.Command = toolIdentity.Command
+				switch action {
+				case "record":
+					template.Args = []string{"agent", "record", "--fixture-dir", fixtureDir, "--cmd"}
+				case "mock":
+					template.Args = []string{"agent", "mock", "--fixture-dir", fixtureDir, "--connection", id}
+					template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, toolIdentity.Command, fixtureDir)
+					if err != nil {
+						return nil, err
+					}
 				}
 			}
 			route.Connections = append(route.Connections, template)
@@ -509,6 +496,35 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		return nil, err
 	}
 	return fixture, nil
+}
+
+func prepareToolIdentity(embedded bool) (ToolIdentity, error) {
+	if embedded {
+		build, err := version.ReadEmbeddedIdentity()
+		if err != nil {
+			return ToolIdentity{}, err
+		}
+		return ToolIdentity{
+			Source:         ToolSourceEmbedded,
+			Version:        build.Version,
+			Module:         build.Module,
+			ModuleSum:      build.Sum,
+			ModuleRevision: build.Revision,
+			ModuleTime:     build.Time,
+			GoVersion:      build.GoVersion,
+		}, nil
+	}
+	command, toolVersion, hash, err := SelfCommand()
+	if err != nil {
+		return ToolIdentity{}, err
+	}
+	return ToolIdentity{
+		Source:  ToolSourceExecutable,
+		Version: toolVersion,
+		Command: command.Command,
+		Args:    append([]string(nil), command.Args...),
+		SHA256:  hash,
+	}, nil
 }
 
 // copyMaterial checks the entire closure on both sides of the copy. In

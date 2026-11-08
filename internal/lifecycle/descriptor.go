@@ -4,6 +4,8 @@
 package lifecycle
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,16 +20,86 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-const SchemaVersion = 4
+const SchemaVersion = 5
 
 const (
-	ToolSourceExecutable = "executable"
-	ToolSourceEmbedded   = "embedded"
+	ToolSourceExecutable ToolSource = "executable"
+	ToolSourceEmbedded   ToolSource = "embedded"
+
+	ConnectionTransportProcess   = "process"
+	ConnectionTransportInProcess = "in-process"
 )
 
 type Command struct {
 	Command string   `json:"command"`
 	Args    []string `json:"args,omitempty"`
+}
+
+type ToolSource string
+
+type ToolIdentity struct {
+	Source         ToolSource `json:"source"`
+	Version        string     `json:"version"`
+	Command        string     `json:"command,omitempty"`
+	Args           []string   `json:"args,omitempty"`
+	SHA256         string     `json:"sha256,omitempty"`
+	Module         string     `json:"module,omitempty"`
+	ModuleSum      string     `json:"moduleSum,omitempty"`
+	ModuleRevision string     `json:"moduleRevision,omitempty"`
+	ModuleTime     string     `json:"moduleTime,omitempty"`
+	GoVersion      string     `json:"goVersion,omitempty"`
+}
+
+func (t ToolIdentity) Validate() error {
+	switch t.Source {
+	case ToolSourceExecutable:
+		if t.Version == "" || t.Command == "" || !filepath.IsAbs(t.Command) || t.SHA256 == "" {
+			return errors.New("executable identity requires absolute command, version, and SHA-256")
+		}
+		if digest, err := hex.DecodeString(t.SHA256); err != nil || len(digest) != sha256.Size {
+			return errors.New("executable identity SHA-256 is invalid")
+		}
+		if t.Module != "" || t.ModuleSum != "" || t.ModuleRevision != "" || t.ModuleTime != "" || t.GoVersion != "" {
+			return errors.New("executable identity declares embedded module fields")
+		}
+	case ToolSourceEmbedded:
+		if t.Command != "" || len(t.Args) != 0 || t.SHA256 != "" {
+			return errors.New("embedded identity declares executable fields")
+		}
+		if t.Module != version.Module {
+			return fmt.Errorf("embedded identity module must be %s", version.Module)
+		}
+		if t.GoVersion == "" {
+			return errors.New("embedded identity requires the Go version")
+		}
+		if t.Version == "(devel)" && t.ModuleRevision == "" {
+			return errors.New("embedded development identity requires an exact module revision")
+		}
+		if t.Version != "(devel)" && !version.ExactModuleVersion(t.Version) {
+			return fmt.Errorf("embedded identity version %q is not exact", t.Version)
+		}
+		if t.ModuleSum != "" && !version.ValidModuleSum(t.ModuleSum) {
+			return errors.New("embedded identity module sum is invalid")
+		}
+		if t.ModuleRevision != "" && !version.ValidRevision(t.ModuleRevision) {
+			return errors.New("embedded identity module revision is invalid")
+		}
+		if t.ModuleTime != "" && !version.ValidCommitTime(t.ModuleTime) {
+			return errors.New("embedded identity module time is invalid")
+		}
+		if t.ModuleRevision == "" && t.ModuleSum == "" {
+			return errors.New("embedded identity has neither an exact revision nor a module sum")
+		}
+	default:
+		return fmt.Errorf("unsupported tool source %q", t.Source)
+	}
+	return nil
+}
+
+func (t ToolIdentity) bindSHA256(evidence tool.Object) {
+	if t.SHA256 != "" {
+		evidence["toolSHA256"] = t.SHA256
+	}
 }
 
 type Source struct {
@@ -48,11 +120,25 @@ type Limits struct {
 }
 
 type ConnectionTemplate struct {
-	ID       string   `json:"id"`
-	Command  string   `json:"command"`
-	Args     []string `json:"args,omitempty"`
-	Launcher string   `json:"launcher,omitempty"`
-	Embedded bool     `json:"embedded,omitempty"`
+	ID        string   `json:"id"`
+	Transport string   `json:"transport"`
+	Command   string   `json:"command,omitempty"`
+	Args      []string `json:"args,omitempty"`
+	Launcher  string   `json:"launcher,omitempty"`
+}
+
+func (c *ConnectionTemplate) UnmarshalJSON(data []byte) error {
+	type connectionTemplate ConnectionTemplate
+	var decoded connectionTemplate
+	fields, err := decodeConnectionObject(data, &decoded)
+	if err != nil {
+		return err
+	}
+	if err := validateConnectionFields(fields, decoded.Transport, "id", "transport", "command", "args", "launcher"); err != nil {
+		return err
+	}
+	*c = ConnectionTemplate(decoded)
+	return nil
 }
 
 type Route struct {
@@ -70,10 +156,7 @@ type Route struct {
 type Fixture struct {
 	SchemaVersion    int               `json:"schemaVersion"`
 	FixtureID        string            `json:"fixtureId"`
-	Tool             Command           `json:"tool"`
-	ToolVersion      string            `json:"toolVersion"`
-	ToolSHA256       string            `json:"toolSHA256"`
-	ToolSource       string            `json:"toolSource,omitempty"`
+	Tool             ToolIdentity      `json:"tool"`
 	AgentType        string            `json:"agentType"`
 	Source           Source            `json:"source"`
 	HistorySeed      string            `json:"historySeed,omitempty"`
@@ -91,7 +174,8 @@ type Fixture struct {
 
 type ExecutionConnection struct {
 	ID              string   `json:"id"`
-	Command         string   `json:"command"`
+	Transport       string   `json:"transport"`
+	Command         string   `json:"command,omitempty"`
 	Args            []string `json:"args,omitempty"`
 	Launcher        string   `json:"launcher,omitempty"`
 	Material        string   `json:"material,omitempty"`
@@ -100,7 +184,23 @@ type ExecutionConnection struct {
 	RecordingSHA256 string   `json:"recordingSHA256,omitempty"`
 	Receipt         string   `json:"receipt"`
 	ProcessReceipt  string   `json:"processReceipt,omitempty"`
-	Embedded        bool     `json:"embedded,omitempty"`
+}
+
+func (c *ExecutionConnection) UnmarshalJSON(data []byte) error {
+	type executionConnection ExecutionConnection
+	var decoded executionConnection
+	fields, err := decodeConnectionObject(data, &decoded)
+	if err != nil {
+		return err
+	}
+	if err := validateConnectionFields(fields, decoded.Transport,
+		"id", "transport", "command", "args", "launcher", "material",
+		"planSHA256", "manifestSHA256", "recordingSHA256", "receipt", "processReceipt",
+	); err != nil {
+		return err
+	}
+	*c = ExecutionConnection(decoded)
+	return nil
 }
 
 type Admission struct {
@@ -236,20 +336,13 @@ func ExecutionDir(fixtureDir, id string) string {
 
 func (f Fixture) Validate() error {
 	if f.SchemaVersion != SchemaVersion {
-		return fmt.Errorf("unsupported fixture schemaVersion %d", f.SchemaVersion)
+		return unsupportedSchema("fixture", f.SchemaVersion)
 	}
-	if f.FixtureID == "" || f.AgentType == "" || f.ToolVersion == "" || f.Tool.Command == "" {
+	if f.FixtureID == "" || f.AgentType == "" {
 		return errors.New("incomplete fixture descriptor")
 	}
-	switch f.ToolSource {
-	case "", ToolSourceExecutable, ToolSourceEmbedded:
-	default:
-		return fmt.Errorf("unsupported fixture toolSource %q", f.ToolSource)
-	}
-	if f.ToolSource == ToolSourceEmbedded {
-		if f.Tool.Command != version.Module || f.ToolSHA256 != "" {
-			return errors.New("embedded fixture has an invalid tool identity")
-		}
+	if err := f.Tool.Validate(); err != nil {
+		return fmt.Errorf("fixture tool: %w", err)
 	}
 	if !filepath.IsAbs(f.ResourceRoot) || !filepath.IsAbs(f.Workspace) || !filepath.IsAbs(f.Home) || !filepath.IsAbs(f.Config) || !filepath.IsAbs(f.Tmp) {
 		return errors.New("fixture paths must be absolute")
@@ -290,37 +383,41 @@ func (f Fixture) validateConnectionTemplate(connection ConnectionTemplate) error
 	if connection.ID == "" {
 		return errors.New("connection id is empty")
 	}
-	return f.validateConnectionIdentity(connection.Embedded, connection.Command, connection.Launcher)
+	return f.validateConnectionIdentity(connection.Transport, connection.Command, connection.Args, connection.Launcher)
 }
 
-func (f Fixture) validateConnectionIdentity(embedded bool, command, launcher string) error {
-	if embedded {
-		if f.ToolSource != ToolSourceEmbedded {
-			return errors.New("executable fixture declares an embedded connection")
+func (f Fixture) validateConnectionIdentity(transport, command string, args []string, launcher string) error {
+	switch transport {
+	case ConnectionTransportProcess:
+		if f.Tool.Source != ToolSourceExecutable {
+			return errors.New("embedded fixture declares a process connection")
 		}
-		if command != version.Module || command != f.Tool.Command {
-			return errors.New("embedded connection command differs from the library identity")
+		if !filepath.IsAbs(command) {
+			return errors.New("connection command must be an absolute executable")
 		}
-		if launcher != "" {
-			return errors.New("embedded connection declares an executable launcher")
+		if launcher != "" && !filepath.IsAbs(launcher) {
+			return errors.New("connection launcher must be absolute")
 		}
 		return nil
+	case ConnectionTransportInProcess:
+		if f.Tool.Source != ToolSourceEmbedded {
+			return errors.New("executable fixture declares an in-process connection")
+		}
+		if command != "" || len(args) != 0 || launcher != "" {
+			return errors.New("in-process connection declares executable fields")
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported connection transport %q", transport)
 	}
-	if f.ToolSource == ToolSourceEmbedded {
-		return errors.New("embedded fixture declares an executable connection")
-	}
-	if !filepath.IsAbs(command) {
-		return errors.New("connection command must be an absolute executable")
-	}
-	if launcher != "" && !filepath.IsAbs(launcher) {
-		return errors.New("connection launcher must be absolute")
-	}
-	return nil
 }
 
 func (e Execution) Validate(f Fixture) error {
-	if e.SchemaVersion != SchemaVersion || e.ExecutionID == "" || e.FixtureID != f.FixtureID {
-		return errors.New("invalid execution identity or schemaVersion")
+	if err := requireSchema("execution", e.SchemaVersion); err != nil {
+		return err
+	}
+	if e.ExecutionID == "" || e.FixtureID != f.FixtureID {
+		return errors.New("invalid execution identity")
 	}
 	if e.Source != f.Source || (e.Command != "record" && e.Command != "mock") {
 		return errors.New("execution differs from fixture source or paths")
@@ -359,11 +456,11 @@ func (e Execution) Validate(f Fixture) error {
 		if !ok {
 			return fmt.Errorf("connection %s is not declared by its route", c.ID)
 		}
-		if c.Embedded != template.Embedded || c.Command != template.Command ||
+		if c.Transport != template.Transport || c.Command != template.Command ||
 			!slices.Equal(c.Args, template.Args) || c.Launcher != template.Launcher {
 			return fmt.Errorf("connection %s launch contract differs from its route", c.ID)
 		}
-		if err := f.validateConnectionIdentity(c.Embedded, c.Command, c.Launcher); err != nil {
+		if err := f.validateConnectionIdentity(c.Transport, c.Command, c.Args, c.Launcher); err != nil {
 			return fmt.Errorf("connection %s: %w", c.ID, err)
 		}
 		if c.Material != "" && !filepath.IsAbs(c.Material) {
@@ -420,15 +517,21 @@ func readIndex(path string) (*Index, error) {
 	if err := tool.ReadJSON(path, &index); err != nil {
 		return nil, err
 	}
-	if index.SchemaVersion != SchemaVersion || index.FixtureID == "" || index.FixtureSHA256 == "" {
+	if err := requireSchema("execution index", index.SchemaVersion); err != nil {
+		return nil, err
+	}
+	if index.FixtureID == "" || index.FixtureSHA256 == "" {
 		return nil, errors.New("invalid execution index")
 	}
 	var materials MaterialIndex
 	if err := tool.ReadJSON(MaterialIndexPath(filepath.Dir(filepath.Dir(path))), &materials); err != nil {
 		return nil, err
 	}
-	if materials.SchemaVersion != SchemaVersion || materials.FixtureID != index.FixtureID {
-		return nil, errors.New("invalid material index identity or schemaVersion")
+	if err := requireSchema("material index", materials.SchemaVersion); err != nil {
+		return nil, err
+	}
+	if materials.FixtureID != index.FixtureID {
+		return nil, errors.New("invalid material index identity")
 	}
 	fixtureDir := filepath.Dir(filepath.Dir(path))
 	seen := map[string]bool{}
@@ -465,6 +568,17 @@ func writeMaterialIndex(fixtureDir string, index *Index) error {
 	return writeAtomic(MaterialIndexPath(fixtureDir), MaterialIndex{SchemaVersion: SchemaVersion, FixtureID: index.FixtureID, Materials: index.Artifacts})
 }
 
+func unsupportedSchema(kind string, got int) error {
+	return fmt.Errorf("unsupported %s schemaVersion %d; schema %d is required", kind, got, SchemaVersion)
+}
+
+func requireSchema(kind string, got int) error {
+	if got != SchemaVersion {
+		return unsupportedSchema(kind, got)
+	}
+	return nil
+}
+
 func withinPath(root, path string) bool {
 	root, err := filepath.EvalSymlinks(root)
 	if err != nil {
@@ -476,4 +590,34 @@ func withinPath(root, path string) bool {
 	}
 	rel, err := filepath.Rel(root, path)
 	return err == nil && (rel == "." || (rel != ".." && filepath.IsLocal(rel)))
+}
+
+func decodeConnectionObject(data []byte, target any) (map[string]json.RawMessage, error) {
+	if err := json.Unmarshal(data, target); err != nil {
+		return nil, err
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return nil, err
+	}
+	return fields, nil
+}
+
+func validateConnectionFields(fields map[string]json.RawMessage, transport string, allowed ...string) error {
+	if transport != ConnectionTransportProcess && transport != ConnectionTransportInProcess {
+		return nil
+	}
+	if transport == ConnectionTransportInProcess {
+		for _, name := range []string{"command", "args", "argv", "launcher"} {
+			if _, present := fields[name]; present {
+				return errors.New("in-process connection declares executable fields")
+			}
+		}
+	}
+	for name := range fields {
+		if !slices.Contains(allowed, name) {
+			return fmt.Errorf("unsupported connection field %q", name)
+		}
+	}
+	return nil
 }

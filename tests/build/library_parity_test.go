@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -16,6 +17,8 @@ import (
 
 	agenttestify "github.com/zoumo/agent-sdk-testify"
 )
+
+const libraryModule = "github.com/zoumo/agent-sdk-testify"
 
 func TestInstalledCLIAndLibraryShareFixtureAndMaterialContract(t *testing.T) {
 	binary := buildCLI(t, false)
@@ -44,6 +47,10 @@ func TestInstalledCLIAndLibraryShareFixtureAndMaterialContract(t *testing.T) {
 	require.NoError(t, err)
 	assertFixtureToolSource(t, cliFixture, "executable")
 	assertFixtureToolSource(t, prepared.FixtureDir, "embedded")
+	cliOpened, err := agenttestify.Open(cliFixture)
+	require.NoError(t, err)
+	assertPublicFixtureIdentity(t, cliOpened, agenttestify.ToolSourceExecutable)
+	assertPublicFixtureIdentity(t, prepared, agenttestify.ToolSourceEmbedded)
 	require.Equal(t, sharedLayout(t, cliFixture), sharedLayout(t, prepared.FixtureDir))
 	require.Equal(t, normalizedFixture(t, cliFixture), normalizedFixture(t, prepared.FixtureDir))
 	assertDescriptorSchemas(t, cliFixture, prepared.FixtureDir)
@@ -133,6 +140,8 @@ func sharedLayout(t *testing.T, root string) []string {
 
 var materialDirectory = regexp.MustCompile(`^materials/[0-9a-f]{32}(/|$)`)
 
+var fixtureIdentityKeys = []string{"fixtureId", "tool", "transport", "command", "args", "launcher"}
+
 func normalizedLayoutPath(relative string) string {
 	return materialDirectory.ReplaceAllString(relative, "materials/<material>$1")
 }
@@ -147,10 +156,45 @@ func normalizedFixture(t *testing.T, fixtureDir string) map[string]any {
 func assertFixtureToolSource(t *testing.T, fixtureDir, want string) {
 	t.Helper()
 	var descriptor struct {
-		ToolSource string `json:"toolSource"`
+		Tool struct {
+			Source string `json:"source"`
+		} `json:"tool"`
 	}
 	require.NoError(t, readJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
-	require.Equal(t, want, descriptor.ToolSource)
+	require.Equal(t, want, descriptor.Tool.Source)
+}
+
+func assertPublicFixtureIdentity(t *testing.T, fixture *agenttestify.Fixture, source agenttestify.ToolSource) {
+	t.Helper()
+	require.Equal(t, source, fixture.Tool.Source)
+	for _, action := range []string{"record", "mock"} {
+		route := fixture.Routes[action]
+		require.True(t, route.Enabled)
+		require.NotEmpty(t, route.Connections)
+		for _, connection := range route.Connections {
+			switch source {
+			case agenttestify.ToolSourceExecutable:
+				require.Equal(t, agenttestify.ConnectionTransportProcess, connection.Transport)
+				require.True(t, filepath.IsAbs(connection.Command))
+			case agenttestify.ToolSourceEmbedded:
+				require.Equal(t, agenttestify.ConnectionTransportInProcess, connection.Transport)
+				require.Empty(t, connection.Command)
+				require.Empty(t, connection.Args)
+				require.Empty(t, connection.Launcher)
+			}
+		}
+	}
+	switch source {
+	case agenttestify.ToolSourceExecutable:
+		require.True(t, filepath.IsAbs(fixture.Tool.Command))
+		require.NotEmpty(t, fixture.Tool.SHA256)
+		require.Empty(t, fixture.Tool.Module)
+	case agenttestify.ToolSourceEmbedded:
+		require.Equal(t, libraryModule, fixture.Tool.Module)
+		require.Empty(t, fixture.Tool.Command)
+		require.Empty(t, fixture.Tool.Args)
+		require.Empty(t, fixture.Tool.SHA256)
+	}
 }
 
 func normalizeValue(value any, fixtureDir string) any {
@@ -158,8 +202,7 @@ func normalizeValue(value any, fixtureDir string) any {
 	case map[string]any:
 		out := make(map[string]any, len(value))
 		for key, item := range value {
-			switch key {
-			case "fixtureId", "tool", "toolVersion", "toolSHA256", "toolSource", "command", "launcher", "embedded":
+			if slices.Contains(fixtureIdentityKeys, key) {
 				continue
 			}
 			out[key] = normalizeValue(item, fixtureDir)
@@ -194,13 +237,16 @@ func assertDescriptorSchemas(t *testing.T, cliFixture, libraryFixture string) {
 		var cliValue, libraryValue any
 		require.NoError(t, readJSON(filepath.Join(cliFixture, relative), &cliValue))
 		require.NoError(t, readJSON(filepath.Join(libraryFixture, relative), &libraryValue))
+		require.EqualValues(t, 5, cliValue.(map[string]any)["schemaVersion"], relative)
+		require.EqualValues(t, 5, libraryValue.(map[string]any)["schemaVersion"], relative)
 		require.Equal(t, descriptorShape(cliValue), descriptorShape(libraryValue), relative)
 	}
 	var cliFixtureValue, libraryFixtureValue any
 	require.NoError(t, readJSON(filepath.Join(cliFixture, "fixture.json"), &cliFixtureValue))
 	require.NoError(t, readJSON(filepath.Join(libraryFixture, "fixture.json"), &libraryFixtureValue))
-	ignored := []string{"fixtureId", "tool", "toolVersion", "toolSHA256", "toolSource", "command", "launcher", "embedded"}
-	require.Equal(t, descriptorShape(cliFixtureValue, ignored...), descriptorShape(libraryFixtureValue, ignored...), "fixture.json")
+	require.EqualValues(t, 5, cliFixtureValue.(map[string]any)["schemaVersion"])
+	require.EqualValues(t, 5, libraryFixtureValue.(map[string]any)["schemaVersion"])
+	require.Equal(t, descriptorShape(cliFixtureValue, fixtureIdentityKeys...), descriptorShape(libraryFixtureValue, fixtureIdentityKeys...), "fixture.json")
 }
 
 func descriptorShape(value any, ignoredKeys ...string) any {

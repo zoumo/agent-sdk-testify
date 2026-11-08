@@ -391,6 +391,7 @@ type ToolIdentity struct {
     Module         string
     ModuleSum      string
     ModuleRevision string
+    ModuleTime     string
     GoVersion      string
 }
 ```

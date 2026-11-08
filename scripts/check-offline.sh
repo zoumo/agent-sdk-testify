@@ -15,18 +15,18 @@ phase() {
 }
 go mod verify
 go run -tags builtin_generate ./cmd/agent-sdk-testify --check
-phase unit go test -json -count=1 -timeout=5m . ./internal/... > .artifacts/acceptance/ut.jsonl
-phase integration go test -json -count=1 -timeout=5m ./tests/intergration/... > .artifacts/acceptance/integration.jsonl
-phase unit-race go test -json -race -count=1 -timeout=10m . ./internal/... > .artifacts/acceptance/race.jsonl
-phase integration-race go test -json -race -count=1 -timeout=10m ./tests/intergration/... > .artifacts/acceptance/integration-race.jsonl
+phase unit go test -buildvcs=true -json -count=1 -timeout=5m . ./internal/... > .artifacts/acceptance/ut.jsonl
+phase integration go test -buildvcs=true -json -count=1 -timeout=5m ./tests/intergration/... > .artifacts/acceptance/integration.jsonl
+phase unit-race go test -buildvcs=true -json -race -count=1 -timeout=10m . ./internal/... > .artifacts/acceptance/race.jsonl
+phase integration-race go test -buildvcs=true -json -race -count=1 -timeout=10m ./tests/intergration/... > .artifacts/acceptance/integration-race.jsonl
 phase build-normal go build -o .artifacts/acceptance/agent-sdk-testify ./cmd/agent-sdk-testify
 phase build-race go build -race -o .artifacts/acceptance/agent-sdk-testify-race ./cmd/agent-sdk-testify
 export AGENT_SDK_TESTIFY_NORMAL_BIN="$PWD/.artifacts/acceptance/agent-sdk-testify"
 export AGENT_SDK_TESTIFY_RACE_BIN="$PWD/.artifacts/acceptance/agent-sdk-testify-race"
 go version -m "$AGENT_SDK_TESTIFY_NORMAL_BIN" > .artifacts/acceptance/cli-build-info.txt
 go version -m "$AGENT_SDK_TESTIFY_RACE_BIN" >> .artifacts/acceptance/cli-build-info.txt
-phase e2e-race env AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_RACE_BIN" bash scripts/with-agent-sdk-testify.sh --race go test -json -race -count=1 -timeout=10m ./test/e2e/... > .artifacts/acceptance/e2e-race.jsonl
-phase build-checks go test -json -count=1 -timeout=5m ./tests/build/... > .artifacts/acceptance/build.jsonl
+phase e2e-race env AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_RACE_BIN" bash scripts/with-agent-sdk-testify.sh --race go test -buildvcs=true -json -race -count=1 -timeout=10m ./test/e2e/... > .artifacts/acceptance/e2e-race.jsonl
+phase build-checks go test -buildvcs=true -json -count=1 -timeout=5m ./tests/build/... > .artifacts/acceptance/build.jsonl
 go vet ./...
 go list -deps -test ./... > .artifacts/acceptance/dependencies.txt
 "$python" -c "from pathlib import Path; assert 'github.com/zoumo/agent-sdk-go' not in Path('.artifacts/acceptance/dependencies.txt').read_text()"

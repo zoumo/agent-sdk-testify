@@ -151,8 +151,8 @@ func (r *recordTransaction) finalizeOutcome(ctx context.Context, policy RecordPo
 	if artifact == nil {
 		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, errors.New("record policy produced no material"))
 	}
-	var current Current
-	if err := tool.ReadJSON(filepath.Join(r.fixtureDir, "current.json"), &current); err != nil {
+	current, err := readCurrent(r.fixtureDir, r.fixture.FixtureID)
+	if err != nil {
 		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, err)
 	}
 	if err := r.publish(*artifact); err != nil {
@@ -473,7 +473,8 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	}()
 	if origin != nil {
 		path := filepath.Join(run.dir, "receipts", request.Connection+".origin.json")
-		proof := tool.Object{"schemaVersion": 1, "origin": origin, "connectionId": request.Connection, "executionId": run.execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid(), "toolSHA256": fixture.ToolSHA256}
+		proof := tool.Object{"schemaVersion": 1, "origin": origin, "connectionId": request.Connection, "executionId": run.execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid()}
+		fixture.Tool.bindSHA256(proof)
 		if err := writeExclusive(path, proof); err != nil {
 			return nil, err
 		}

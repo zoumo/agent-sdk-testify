@@ -68,12 +68,9 @@ func LoadPlan(fixture *Fixture) (tool.Object, error) {
 // CurrentArtifact resolves the single current recording. A fixture without a
 // current recording is a valid prepared state and returns present=false.
 func CurrentArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, bool, error) {
-	var current Current
-	if err := tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current); err != nil {
+	current, err := readCurrent(fixtureDir, fixture.FixtureID)
+	if err != nil {
 		return nil, false, err
-	}
-	if current.SchemaVersion != SchemaVersion || current.FixtureID != fixture.FixtureID {
-		return nil, false, errors.New("invalid current recording identity or schemaVersion")
 	}
 	if current.MaterialID == "" {
 		return nil, false, nil
@@ -92,6 +89,20 @@ func CurrentArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, boo
 		return &artifact, true, nil
 	}
 	return nil, false, errors.New("current recording is absent from material index")
+}
+
+func readCurrent(fixtureDir, fixtureID string) (Current, error) {
+	var current Current
+	if err := tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current); err != nil {
+		return Current{}, err
+	}
+	if err := requireSchema("current recording", current.SchemaVersion); err != nil {
+		return Current{}, err
+	}
+	if current.FixtureID != fixtureID {
+		return Current{}, errors.New("invalid current recording identity")
+	}
+	return current, nil
 }
 
 // LatestArtifact resolves the single current recording.

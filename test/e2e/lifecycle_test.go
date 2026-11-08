@@ -18,7 +18,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	fixtureDir := prepareFixture(t, env, "--plan", plan)
 
 	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
-	require.EqualValues(t, 4, descriptor["schemaVersion"])
+	require.EqualValues(t, 5, descriptor["schemaVersion"])
 	require.Equal(t, "codex", descriptor["agentType"])
 	require.Equal(t, "plan", obj(descriptor["source"])["kind"])
 	require.Contains(t, str(obj(descriptor["source"])["path"]), filepath.Join(fixtureDir, "source"))

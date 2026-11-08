@@ -77,7 +77,7 @@ func (v *Validation) publicCaptureBusiness(source, replay string, plan tool.Obje
 			found = true
 			started, finished, process := tool.Obj(ref["started"]), tool.Obj(ref["finished"]), tool.Obj(ref["process"])
 			v.Check(ref["executionId"] == execution["executionId"] && ref["executionSHA256"] == v.Digest(replay, prefix+"execution.json") && reflect.DeepEqual(ref["material"], material), "original connection capture reference differs")
-			v.Check(reflect.DeepEqual(proof["origin"], origin) && proof["executionId"] == execution["executionId"] && proof["connectionId"] == id && proof["toolSHA256"] == fixture["toolSHA256"] && proof["protocolPid"] == process["pid"] && proof["supervisorPid"] == process["supervisorPid"], "original native launch proof differs")
+			v.Check(reflect.DeepEqual(proof["origin"], origin) && proof["executionId"] == execution["executionId"] && proof["connectionId"] == id && proof["toolSHA256"] == fixtureToolSHA256(fixture) && proof["protocolPid"] == process["pid"] && proof["supervisorPid"] == process["supervisorPid"], "original native launch proof differs")
 			v.Check(process["started"] == true && process["reaped"] == true && process["exitCode"] == float64(0) && process["cleanupComplete"] == true && process["error"] == nil, "original public record process failed")
 			v.Check(reflect.DeepEqual(process, v.Read(replay, prefix+"run/driver/peer-"+id+".process.json")), "original launcher process differs")
 			v.Check(reflect.DeepEqual(finished, durable) && started["status"] == "running" && finished["status"] == "passed", "original record notification differs from durable result")
@@ -96,7 +96,7 @@ func (v *Validation) publicCaptureBusiness(source, replay string, plan tool.Obje
 func (v *Validation) captureIsolation(replay, prefix string, plan, fixture, execution tool.Object) {
 	receipt := v.Read(replay, prefix+"isolation.json")
 	prepared := v.Read(replay, prefix+"prepared-plan.json")
-	v.Check(receipt["schemaVersion"] == float64(1) && receipt["method"] == "native-preparation" && receipt["policy"] == "personal-skills-v1" && evidenceFixtureID(receipt) == evidenceFixtureID(fixture) && receipt["executionId"] == execution["executionId"] && receipt["toolSHA256"] == fixture["toolSHA256"], "recording-time native isolation evidence is missing or differs")
+	v.Check(receipt["schemaVersion"] == float64(1) && receipt["method"] == "native-preparation" && receipt["policy"] == "personal-skills-v1" && evidenceFixtureID(receipt) == evidenceFixtureID(fixture) && receipt["executionId"] == execution["executionId"] && receipt["toolSHA256"] == fixtureToolSHA256(fixture), "recording-time native isolation evidence is missing or differs")
 	v.Check(receipt["preparedPlanSHA256"] == v.Digest(replay, prefix+"prepared-plan.json"), "prepared isolation plan hash differs")
 	derived := tool.Object{}
 	for key, value := range plan {
@@ -117,4 +117,15 @@ func (v *Validation) captureIsolation(replay, prefix string, plan, fixture, exec
 	v.Check(configKey != "" && env[configKey] == execution["config"] && env[configKey] == tool.Obj(execution["env"])[configKey], "actual native config escapes isolation")
 	v.Check(receipt["cwd"] == execution["workspace"] && execution["protocolCwd"] == execution["workspace"] && prepared["root"] == overlay && prepared["home"] == execution["home"] && prepared["config"] == execution["config"] && prepared["project"] == tool.Obj(tool.Obj(fixture["routes"])["record"])["workspace"], "recording cwd and normal route binding differ")
 	v.Check(receipt["nativeSHA256"] == plan["cliSHA256"] && reflect.DeepEqual(receipt["args"], plan["args"]), "native isolation invocation differs from sealed plan")
+}
+
+func fixtureToolSHA256(fixture tool.Object) any {
+	switch fixture["schemaVersion"] {
+	case float64(5):
+		return tool.Obj(fixture["tool"])["sha256"]
+	case float64(1), float64(2), float64(3):
+		return fixture["toolSHA256"]
+	default:
+		return nil
+	}
 }

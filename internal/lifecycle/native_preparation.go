@@ -30,7 +30,8 @@ func SaveNativePreparation(fixtureDir string, fixture *Fixture, execution Execut
 			return err
 		}
 	}
-	receipt := tool.Object{"schemaVersion": 1, "method": "native-preparation", "policy": plan["recordingIsolation"], "fixtureId": fixture.FixtureID, "executionId": execution.ExecutionID, "toolSHA256": fixture.ToolSHA256, "preparedPlanSHA256": digest, "nativeSHA256": plan["cliSHA256"], "args": plan["args"], "cwd": execution.Workspace, "environment": env, "configurationSHA256": configs}
+	receipt := tool.Object{"schemaVersion": 1, "method": "native-preparation", "policy": plan["recordingIsolation"], "fixtureId": fixture.FixtureID, "executionId": execution.ExecutionID, "preparedPlanSHA256": digest, "nativeSHA256": plan["cliSHA256"], "args": plan["args"], "cwd": execution.Workspace, "environment": env, "configurationSHA256": configs}
+	fixture.Tool.bindSHA256(receipt)
 	if err := tool.WriteJSON(filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "receipts", "isolation.json"), receipt); err != nil {
 		return err
 	}

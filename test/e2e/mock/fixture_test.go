@@ -251,12 +251,25 @@ func TestPreparedFixtureTamperRejected(t *testing.T) {
 	path := filepath.Join(fixture, "fixture.json")
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(path, &descriptor))
-	descriptor["toolVersion"] = "tampered"
+	tool.Obj(descriptor["tool"])["version"] = "tampered"
 	require.NoError(t, os.Chmod(path, 0o600))
 	require.NoError(t, tool.WriteJSON(path, descriptor))
 	data, err := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture).CombinedOutput()
 	require.Error(t, err, "%s", data)
 	assert.Contains(t, string(data), "fixture descriptor changed after prepare")
+}
+
+func TestPreparedSchemaFourFixtureRejected(t *testing.T) {
+	fixture, env := consumerFixture(t)
+	path := filepath.Join(fixture, "fixture.json")
+	var descriptor tool.Object
+	require.NoError(t, tool.ReadJSON(path, &descriptor))
+	descriptor["schemaVersion"] = 4
+	require.NoError(t, os.Chmod(path, 0o600))
+	require.NoError(t, tool.WriteJSON(path, descriptor))
+	data, err := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture).CombinedOutput()
+	require.Error(t, err, "%s", data)
+	assert.Contains(t, string(data), "unsupported fixture schemaVersion 4; schema 5 is required")
 }
 
 func TestPreparedMockLauncherUsesIsolatedExecutionOverlays(t *testing.T) {

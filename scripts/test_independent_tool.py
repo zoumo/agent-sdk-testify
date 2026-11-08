@@ -26,7 +26,7 @@ class IndependentToolTests(unittest.TestCase):
         environment = dict(os.environ)
         environment.pop('AGENT_SDK_TESTIFY_BIN', None)
         environment.update(GOPROXY='off', GOSUMDB='off', GOWORK='off')
-        result = subprocess.run(['go', 'test', '.', './internal/...'],
+        result = subprocess.run(['go', 'test', '-buildvcs=true', '.', './internal/...'],
                                 cwd=ROOT, env=environment, capture_output=True, text=True, timeout=120)
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         dependencies = subprocess.check_output(['go', 'list', '-deps', '-test', './...'],

@@ -16,8 +16,17 @@ import (
 type ToolSource string
 
 const (
-	ToolSourceExecutable ToolSource = lifecycle.ToolSourceExecutable
-	ToolSourceEmbedded   ToolSource = lifecycle.ToolSourceEmbedded
+	ToolSourceExecutable ToolSource = ToolSource(lifecycle.ToolSourceExecutable)
+	ToolSourceEmbedded   ToolSource = ToolSource(lifecycle.ToolSourceEmbedded)
+)
+
+// ConnectionTransport distinguishes a launchable process connection from an
+// in-process connection with no executable identity.
+type ConnectionTransport string
+
+const (
+	ConnectionTransportProcess   ConnectionTransport = lifecycle.ConnectionTransportProcess
+	ConnectionTransportInProcess ConnectionTransport = lifecycle.ConnectionTransportInProcess
 )
 
 // ConnectionStatus is the durable result of one connection in an action
@@ -121,11 +130,16 @@ type RecordAgentResult struct {
 
 // ToolIdentity describes the code that prepared a fixture.
 type ToolIdentity struct {
-	Command string
-	Args    []string
-	Version string
-	SHA256  string
-	Source  ToolSource
+	Source         ToolSource
+	Version        string
+	Command        string
+	Args           []string
+	SHA256         string
+	Module         string
+	ModuleSum      string
+	ModuleRevision string
+	ModuleTime     string
+	GoVersion      string
 }
 
 // Source identifies the initial case, plan or recording.
@@ -149,11 +163,11 @@ type Limits struct {
 
 // Connection describes one route connection template.
 type Connection struct {
-	ID       string
-	Command  string
-	Args     []string
-	Launcher string
-	Embedded bool
+	ID        string
+	Transport ConnectionTransport
+	Command   string
+	Args      []string
+	Launcher  string
 }
 
 // Route describes one action's isolated host environment.
@@ -337,11 +351,16 @@ func fixtureView(result *application.OpenResult) *Fixture {
 		Env:          maps.Clone(fixture.Env),
 		Limits:       limitsView(fixture.Limits),
 		Tool: ToolIdentity{
-			Command: fixture.Tool.Command,
-			Args:    slices.Clone(fixture.Tool.Args),
-			Version: fixture.ToolVersion,
-			SHA256:  fixture.ToolSHA256,
-			Source:  ToolSourceExecutable,
+			Source:         ToolSource(fixture.Tool.Source),
+			Version:        fixture.Tool.Version,
+			Command:        fixture.Tool.Command,
+			Args:           slices.Clone(fixture.Tool.Args),
+			SHA256:         fixture.Tool.SHA256,
+			Module:         fixture.Tool.Module,
+			ModuleSum:      fixture.Tool.ModuleSum,
+			ModuleRevision: fixture.Tool.ModuleRevision,
+			ModuleTime:     fixture.Tool.ModuleTime,
+			GoVersion:      fixture.Tool.GoVersion,
 		},
 		Source: Source{
 			Kind:          fixture.Source.Kind,
@@ -351,9 +370,6 @@ func fixtureView(result *application.OpenResult) *Fixture {
 			Provenance:    fixture.Source.Provenance,
 			DriverProfile: fixture.Source.DriverProfile,
 		},
-	}
-	if fixture.ToolSource == lifecycle.ToolSourceEmbedded {
-		view.Tool.Source = ToolSourceEmbedded
 	}
 	view.Routes = make(map[string]Route, len(fixture.Routes))
 	for name, route := range fixture.Routes {
@@ -379,11 +395,11 @@ func routeView(route lifecycle.Route) Route {
 	view.Connections = make([]Connection, len(route.Connections))
 	for i, connection := range route.Connections {
 		view.Connections[i] = Connection{
-			ID:       connection.ID,
-			Command:  connection.Command,
-			Args:     slices.Clone(connection.Args),
-			Launcher: connection.Launcher,
-			Embedded: connection.Embedded,
+			ID:        connection.ID,
+			Transport: ConnectionTransport(connection.Transport),
+			Command:   connection.Command,
+			Args:      slices.Clone(connection.Args),
+			Launcher:  connection.Launcher,
 		}
 	}
 	return view

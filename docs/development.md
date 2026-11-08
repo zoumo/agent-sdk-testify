@@ -132,6 +132,8 @@ required/optional、planned/unsupported 及原因必须保留。
 根目录 `library*_test.go` 是公开库能力的最高验收接缝：测试包固定为
 `agenttestify_test`，只导入模块公开路径，不调用 CLI；可以使用临时文件、受控子进程
 和本地回环连接。这些测试由 `make test` 和 `make test-race` 纳入默认门禁。
+embedded prepare 读取 Go build info 中的精确 VCS 身份，因此根库测试必须以
+`-buildvcs=true` 在干净工作树上运行；`Makefile` 和离线门禁已固定该参数。
 `tests/build/` 比较公开库 fixture 与 installed CLI fixture 的 layout、descriptor 形状、
 material 字节和哈希，不复制 CLI 用例集。
 

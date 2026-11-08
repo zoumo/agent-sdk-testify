@@ -42,13 +42,26 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, canonicalFixture, prepared.FixtureDir)
 	require.Equal(t, agenttestify.ToolSourceEmbedded, prepared.Tool.Source)
-	require.Equal(t, libraryModule, prepared.Tool.Command)
-	require.NotEmpty(t, prepared.Tool.Version)
+	require.Equal(t, libraryModule, prepared.Tool.Module)
+	require.NotEqual(t, "0.1.0-dev", prepared.Tool.Version)
+	require.NotEmpty(t, prepared.Tool.ModuleRevision)
+	require.NotEmpty(t, prepared.Tool.ModuleTime)
+	require.NotEmpty(t, prepared.Tool.GoVersion)
+	require.Empty(t, prepared.Tool.Command)
+	require.Empty(t, prepared.Tool.Args)
 	require.Empty(t, prepared.Tool.SHA256)
 	require.NotNil(t, prepared.Current)
 
 	require.FileExists(t, filepath.Join(fixtureDir, "fixture.json"))
 	require.FileExists(t, filepath.Join(fixtureDir, "current.json"))
+	fixtureDescriptor := readLibraryJSON(t, filepath.Join(fixtureDir, "fixture.json"))
+	require.EqualValues(t, 5, fixtureDescriptor["schemaVersion"])
+	tool := fixtureDescriptor["tool"].(map[string]any)
+	require.Equal(t, "embedded", tool["source"])
+	require.Equal(t, libraryModule, tool["module"])
+	require.NotContains(t, tool, "command")
+	require.NotContains(t, tool, "args")
+	require.NotContains(t, tool, "sha256")
 	for _, path := range []string{
 		"runtime/baseline/workspace",
 		"runtime/routes/record",
@@ -74,8 +87,9 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 		require.True(t, route.Enabled)
 		require.NotEmpty(t, route.Connections)
 		for _, connection := range route.Connections {
-			require.True(t, connection.Embedded)
-			require.Equal(t, libraryModule, connection.Command)
+			require.Equal(t, agenttestify.ConnectionTransportInProcess, connection.Transport)
+			require.Empty(t, connection.Command)
+			require.Empty(t, connection.Args)
 			require.Empty(t, connection.Launcher)
 		}
 	}

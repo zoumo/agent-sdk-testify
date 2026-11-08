@@ -58,6 +58,9 @@ func readFixtureUnlocked(fixtureDir string) (*Fixture, error) {
 	if fixture.ResourceRoot != filepath.Join(dir, "runtime") {
 		return nil, errors.New("fixture runtime must be inside fixture/runtime")
 	}
+	if _, err := readCurrent(dir, fixture.FixtureID); err != nil {
+		return nil, err
+	}
 	return fixture, nil
 }
 
@@ -123,11 +126,11 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 			return nil, fmt.Errorf("route does not declare connection %s", id)
 		}
 		connection := ExecutionConnection{
-			ID:       id,
-			Command:  template.Command,
-			Args:     append([]string(nil), template.Args...),
-			Launcher: template.Launcher,
-			Embedded: template.Embedded,
+			ID:        id,
+			Transport: template.Transport,
+			Command:   template.Command,
+			Args:      append([]string(nil), template.Args...),
+			Launcher:  template.Launcher,
 		}
 		switch action {
 		case "record":

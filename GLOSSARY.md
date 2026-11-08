@@ -49,7 +49,8 @@ fixture。它是唯一提供 source 选择的命令，不启动客户端、SDK�
 **Tool source（工具来源）**:
 prepare 记录的工具入口身份：`executable` 表示 installed CLI，`embedded` 表示可导入
 Go 库。两者使用判别式身份：executable 记录绝对路径与哈希，embedded 记录模块路径、
-版本/修订和 Go 版本，不把 module path 当作 command，也不伪造 launcher。
+版本/修订、可用时的提交时间和 Go 版本，不把 module path 当作 command，也不伪造
+launcher。
 
 **agent record**:
 在 fixture 中显式启动真实 Agent，按 case 或 consumer plan 采集新的原生交互尝试。
