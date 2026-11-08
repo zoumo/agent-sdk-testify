@@ -16,7 +16,8 @@
 - agent record/mock 共用逐 execution `execution.json` 合同；official record/verify 的职责和证据归属遵循
   [工具设计](docs/design.md#official-verify)，不得另建内部协议命令或跳过 execution 的官方专用模式。
 - case、官方 driver、官方录制、材料及索引归本仓库；plan source 的 record consumer
-  material 归消费者，不进入本仓库索引或内置快照。测试接入点为 mock 的进程接口。
+  material 归消费者，不进入本仓库索引或内置快照。纵向测试接入点为公开 Go 库入口
+  和 installed CLI 的消费者接口。
 - 保留录制原字节与来源；默认离线，不启动真实 Agent 或新增录制。
 - SDK 参考合同仅定义消费者行为；SDK 编排由 SDK 仓库负责。
 - Issue tracker：GitHub Issues，仓库 zoumo/agent-sdk-testify；规格 triage 标签 ready-for-agent。

@@ -74,6 +74,7 @@ prepare 创建会话，export 只读导出 current。agent record/mock
 | Material | 完整、不可变的录制材料包，包含 plan、manifest、raw、绑定历史和来源哈希。 |
 | Current recording | session 当前选中的唯一 material；verify、mock 和 export 以它为输入，record 成功时替换它。 |
 | Action execution | 一次 record 或 mock 产生的 execution，具有独立 descriptor、overlay、receipt 和失败证据。 |
+| Action result | record 或 mock 返回的连接/execution 状态、材料及证据路径。 |
 | Receipt | 连接或进程的持久结果，记录协议、退出、清理和诊断。 |
 | Verification | 一次官方验证的事实与结论，绑定精确 material、driver 身份及实际参与的 mock execution；不拥有协议连接或 execution。 |
 | Admission | 把具备资格的材料显式归档并写入默认 case 库的动作。 |
@@ -349,6 +350,10 @@ prepare 返回的环境和 workspace，并自行执行与报告业务断言。
 每次 mock 创建新 execution。普通流程只有 `main` 连接；只有 case 确实声明多个独立
 原生客户端生命周期时才允许多连接。同一 execution 的连接可以并发，但每个声明连接
 最多启动一次，并分别完成严格匹配、完整消费、EOF、退出和清理。
+
+mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
+连接已经完成。进程 receipt 的 `cwd` 是实际 mock 进程工作目录，`workspace` 是
+本次 execution 的 overlay workspace；回放和历史文件始终从 session/execution 根定位。
 
 官方 driver 与外部消费者使用同一个公开 agent mock 进程接口和 execution 合同。
 official verify 不直接调用协议回放函数替代公开 agent mock。

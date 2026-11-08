@@ -30,6 +30,22 @@ session, err := agenttestify.Prepare(agenttestify.PrepareOptions{
 与 CLI 会话可交叉执行 action，材料通过 export 和 prepare 交换。完整合同见
 [可导入 Go 库入口规格](docs/library-entry-spec.md)。
 
+record 和 mock 返回连接状态、整个 execution 状态及终态标志。连接成功不等于 execution 完成：
+
+```go
+result, err := session.Mock(ctx, agenttestify.MockOptions{
+    NativeArgs: []string{"app-server", "--listen", "stdio://"},
+},
+    agenttestify.Streams{In: stdin, Out: stdout, Err: stderr})
+if err != nil {
+    return err
+}
+if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
+    !result.ExecutionComplete {
+    // 同一 execution 仍有其他声明连接未完成。
+}
+```
+
 本仓库维护 case、官方 driver、录制及材料库；`simulate`、Go driver 和 SDK 验收编排
 留在 `agent-sdk-go`。SDK 与 MASS 直接消费本仓库的 mock。
 

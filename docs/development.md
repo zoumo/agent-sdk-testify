@@ -8,8 +8,8 @@
 官方 SDK 仅作为 official record/verify 的显式环境依赖，不在运行时自动安装。
 
 CLI 消费者通过 `prepare --plan` 和 record 采集、mock 进程、会话/运行描述与独立
-回执接入。模块根包是可导入库包，公开 API 以
-[可导入 Go 库入口规格](library-entry-spec.md)为准。
+回执接入。模块根包是可导入库包，入口职责以[工具设计](design.md#入口与职责)为准，
+公开 API 以[可导入 Go 库入口规格](library-entry-spec.md)为准。
 公开 CLI 结构和职责以[工具设计](design.md)为准。agent record/mock 不依赖官方
 SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命令。
 材料资格、归档、采用和远程传输为内部能力，不提供独立 internal-protocol 入口。
@@ -39,7 +39,7 @@ agent-sdk-testify/
     builtin/                # 生成的发布快照
   tests/intergration/       # 多模块集成测试
   test/e2e/                 # installed CLI 的完整流程测试
-  tests/build/              # 生成器等独立构建检查
+  tests/build/              # 生成器、入口一致性与独立构建检查
   drivers/                  # 官方 driver 与 Python wheel
   docs/ / scripts/ / README.md / LICENSE
 ```
@@ -63,8 +63,8 @@ official 编排、driver 和公开 agent 命令的职责以
 
 - `application` 是 prepare、record、mock、export 的唯一应用用例层，统一拥有参数校验、
   会话操作编排和结果交付。`internal/command` 只解析 argv、注入 stdio/descriptor，
-  并把返回错误映射为退出码和 stderr；根目录库入口与 CLI 的对应命令都经由
-  `application`，不直接编排 `lifecycle`、`record`、`mock` 或 `corpus`。
+  并把返回错误映射为退出码和 stderr；根库入口只转换公开类型和调用方流。两个适配层
+  都不得绕过 `application` 直接编排 `lifecycle`、`record`、`mock` 或 `corpus`。
 - `record`、`mock` 是公开 agent 命令的策略适配器：`record` 只提供录制准备、采集和
   材料打包，`mock` 只提供回放。`lifecycle` 拥有一次 action execution 从开始或加入
   到结果交付和释放锁的完整事务，包括连接 claim、overlay、index 转换、收尾串行化、
@@ -132,6 +132,8 @@ required/optional、planned/unsupported 及原因必须保留。
 根目录 `library*_test.go` 是公开库能力的最高验收接缝：测试包固定为
 `agenttestify_test`，只导入模块公开路径，不调用 CLI；可以使用临时文件、受控子进程
 和本地回环连接。这些测试由 `make test` 和 `make test-race` 纳入默认门禁。
+`tests/build/` 比较公开库会话与 installed CLI 会话的 layout、descriptor 形状、
+material 字节和哈希，不复制 CLI 用例集。
 
 集成测试只有在验证 EOF、退出、取消或清理等进程行为时才启动必要的受控子进程。
 受控进程调用真实 capture/replay 内核，不复制产品实现，不增加测试专用产品入口。

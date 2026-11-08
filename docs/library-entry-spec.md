@@ -11,9 +11,8 @@ stdio 和运行目录也被二进制入口独占。
 
 根目录作为可导入 Go 库 `github.com/zoumo/agent-sdk-testify`，包名 `agenttestify`，
 提供 prepare、open、export、record、mock 的类型化入口；CLI 迁入
-`cmd/agent-sdk-testify`。两者只是同一应用核心的薄适配器，共用参数校验、会话
-生命周期、执行事务和材料规则，不维护第二套机制。CLI 行为、持久数据合同和严格
-回放保持不变，official record/verify 仍只由 CLI 提供。
+`cmd/agent-sdk-testify`。入口职责以[工具设计](design.md#入口与职责)为准。CLI
+行为、持久数据合同和严格回放保持不变，official record/verify 仍只由 CLI 提供。
 
 ## User Stories
 
@@ -51,17 +50,17 @@ stdio 和运行目录也被二进制入口独占。
   `agenttestify`，CLI 入口位于 `cmd/agent-sdk-testify`。不新增嵌套 module、go.work
   或第二套发布路径。
 - 新增内部应用核心，统一实现 prepare、record、mock、export 的参数校验、会话查找、
-  execution 事务和结果交付。CLI 与公开库都调用该核心，均不直接编排 lifecycle、
-  record、mock 或 corpus。
+  execution 事务和结果交付。入口与内部依赖边界遵循
+  [工具设计](design.md#入口与职责)。
 - 公开 API 为 prepare、open、export 与会话上的 record、mock。参数与结果使用公开
   类型；库调用返回 error，不返回退出码，也不写全局日志。CLI 负责把 error 映射为
   退出码和 stderr 诊断。
 - 库 record/mock 接受显式 `Streams`，stdin、stdout、stderr 均为调用方提供；
   沿用 `*os.File`，不引入通用 I/O 抽象。CLI 传入自己的进程流。
-- descriptor 通知、进度 pipe 和 argv 解析只属于 CLI 适配层。库通过返回结果或
-  显式回调获得执行身份与状态，不复用文件 descriptor 协议。
-- 回放与历史检查必须在指定工作目录内执行，不调用进程级 chdir；并发库调用不得
-  改变宿主进程状态。
+- descriptor 通知、进度 pipe 和 argv 解析只属于 CLI 适配层。库通过返回的 action
+  结果获得执行身份与状态，不复用文件 descriptor 协议。
+- 回放与历史检查从 session 和 execution overlay 的绝对路径定位文件，不依赖或
+  改变进程工作目录；并发库调用不得改变宿主进程状态。
 - prepare 支持嵌入工具身份：库调用不要求可执行文件路径，会话记录库模块身份、
   版本和嵌入源；CLI 调用继续记录实际可执行文件、版本与哈希。会话与连接校验接受
   两种身份形态，但不放宽 connection 与 route 的对应关系。
@@ -76,21 +75,49 @@ stdio 和运行目录也被二进制入口独占。
 - 布局迁移同步 Makefile、构建/检查/包装/发布脚本、内置快照生成命令、测试构建
   路径及 README、工具设计、开发规范。
 
+## 公开结果与状态
+
+record 和 mock 返回 `RecordResult` 或 `MockResult`，两者都嵌入 `ActionResult`。
+`ConnectionStatus` 只描述本次调用领取的连接；`ExecutionStatus` 汇总同一 execution
+的全部声明连接；`ExecutionComplete` 仅在 execution 已到达终态 `passed` 或 `failed`
+时为 true。连接成功不等于 execution 完成。状态以 execution index 的最终事实为准。
+无法从 index 刷新状态时两个状态均为 `unknown`，调用方应结合返回错误和证据路径诊断。
+
+```go
+result, err := session.Mock(ctx, agenttestify.MockOptions{
+    Connection: "main",
+    NativeArgs: []string{"app-server", "--listen", "stdio://"},
+}, agenttestify.Streams{In: stdin, Out: stdout, Err: stderr})
+if err != nil {
+    return err
+}
+if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
+    !result.ExecutionComplete {
+    // 同一 execution 的其他声明连接仍未完成。
+}
+```
+
+`ActionResult` 还给出 execution descriptor、连接 receipt、进程 receipt 和持久 result
+的路径；成功 record 和 mock 结果包含本次材料身份。路径均从绝对 session 或 execution
+根解析。
+
+mock 进程 receipt 的 `cwd` 是实际执行 mock 的进程工作目录，`workspace` 是本次
+execution 的 overlay workspace。两者含义不同，回放和材料路径不从 `cwd` 推导。
+
 ## Testing Decisions
 
-最高验收接缝是公开 Go 库包。外部测试文件位于根目录，包名 `agenttestify_test`，
-只导入公开模块路径，不导入 `internal`，不调用 CLI，并确保测试环境没有
-`agent-sdk-testify` 可执行文件或可从 PATH 解析的工具，以证明库能力自足。
+纵向验收接缝是公开 Go 库入口和 installed CLI 的消费者接口。库外部测试文件位于
+根目录，包名 `agenttestify_test`，只导入公开模块路径，不导入 `internal`，不调用
+CLI，并确保测试环境没有 `agent-sdk-testify` 可执行文件或可从 PATH 解析的工具，
+以证明库能力自足。CLI 使用已构建二进制的 argv、stdio、退出码和 descriptor 验收。
 
-测试只断言外部可观察行为：会话产物、执行状态、材料身份与哈希、回放结果、错误
-类别和宿主进程 cwd 不变。不针对私有函数或内部结构写断言。
+公开库测试只断言外部可观察行为：会话产物、执行状态、材料身份与哈希、回放结果、
+错误类别和宿主进程 cwd 不变。`application` 的私有 preflight 边界由同包单元测试
+覆盖，纵向验收不依赖这些内部断言。
 
 CLI 继续使用现有 installed-CLI conformance 测试，覆盖同一命令行为、退出码和
-descriptor；不为库复制整套 CLI 用例。application 核心的特殊边界可在其上层用
-同一公开行为验证。
-
-逐 ticket 只做必要的构建和静态检查，不运行完整测试；全部 ticket 实现后集中执行
-开发规范要求的完整离线门禁并修复失败，既定验收覆盖保持不变。
+descriptor；不为库复制整套 CLI 用例。两种入口的 session 与材料合同通过同一
+fixture 比较，application 核心的特殊边界在其上层用同一公开行为验证。
 
 ## Out of Scope
 
@@ -100,12 +127,3 @@ descriptor；不为库复制整套 CLI 用例。application 核心的特殊边�
 - 不保证库会话与 CLI 会话可以交叉执行 action。
 - 不改变 case 身份、required 集合、材料入仓政策或严格回放。
 - 不新增真实录制、不启动真实 Agent 验证、不执行网络验证。
-
-## Further Notes
-
-Issue tracker 为仓库配置的 GitHub Issues，使用 ready-for-agent 标签。
-任务按依赖顺序实施；每张 ticket 使用独立 chat 和独立分支，完成后合并回目标分支
-`codex/library-entry`，不直接改动 main。主 chat 负责编排、核对合并，并在全部
-ticket 实现后统一执行离线门禁与修复。
-
-外部测试包名固定为 `agenttestify_test`，与库包 `agenttestify` 同目录。
