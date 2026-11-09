@@ -101,7 +101,7 @@ func captureNative(ctx context.Context, run lifecycle.RecordContext, command str
 		ClearEnv:       true,
 		Command:        commandArgs,
 		NativeVersion:  tool.Str(plan["cliVersion"]),
-		ProxyVersion:   version.Version,
+		ProxyVersion:   version.String(),
 		StdinEOFAction: eofAction,
 		Timeout:        timeout,
 		ProtocolBytes:  execution.Limits.ProtocolBytes,

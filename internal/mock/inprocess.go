@@ -91,7 +91,7 @@ func replayInProcessConnection(ctx context.Context, policy inProcessReplayPolicy
 		"clientEOF":       false,
 		"cleanupComplete": true,
 		"recording":       run.Artifact().Path,
-		"toolVersion":     version.Version,
+		"toolVersion":     version.String(),
 	}
 	var replayErr, historyErr, closeErr, reportErr error
 	consumed, clientEOF := false, false

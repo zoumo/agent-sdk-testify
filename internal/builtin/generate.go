@@ -37,22 +37,34 @@ func Generate(o GenerateOptions) error {
 		o.Diagnostics = io.Discard
 	}
 	target := filepath.Join(o.Root, "data", "builtin")
-	if o.Check && o.Revision == "" {
-		var old Manifest
-		if err := tool.ReadJSON(filepath.Join(target, "manifest.json"), &old); err != nil {
+	var previous Manifest
+	if o.Check {
+		if err := tool.ReadJSON(filepath.Join(target, "manifest.json"), &previous); err != nil {
 			return err
 		}
-		o.Revision = old.SourceRevision
+		if o.Revision == "" {
+			o.Revision = previous.SourceRevision
+		}
 	}
 	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(o.Revision) {
 		return errors.New("full source --revision required")
+	}
+	toolVersion := version.String()
+	if o.Check && !version.ExactModuleVersion(toolVersion) {
+		toolVersion = previous.ToolVersion
+	}
+	if !version.ExactModuleVersion(toolVersion) {
+		return fmt.Errorf("builtin generation requires an exact Git tag, got %q", toolVersion)
+	}
+	if o.Check && toolVersion != previous.ToolVersion {
+		return fmt.Errorf("builtin drift: toolVersion is %s, want %s", toolVersion, previous.ToolVersion)
 	}
 	c := corpus.Corpus{Index: filepath.Join(o.Root, "data", "index.json"), Scenarios: filepath.Join(o.Root, "data", "scenarios")}
 	index, err := c.LoadIndex()
 	if err != nil {
 		return err
 	}
-	m := Manifest{SchemaVersion: 1, ToolVersion: version.Version, SourceRevision: o.Revision, Scope: "local technical candidates; public release not authorized", Catalog: map[string]string{}, Coverage: []tool.Object{}, Materials: []Material{}}
+	m := Manifest{SchemaVersion: 1, ToolVersion: toolVersion, SourceRevision: o.Revision, Scope: "local technical candidates; public release not authorized", Catalog: map[string]string{}, Coverage: []tool.Object{}, Materials: []Material{}}
 	m.IndexSHA256, err = tool.FileDigest(c.Index)
 	if err != nil {
 		return err

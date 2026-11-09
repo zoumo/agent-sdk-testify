@@ -140,7 +140,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if err != nil {
 		return err
 	}
-	evidence["tool"] = tool.Object{"version": version.Version, "sha256": toolHash}
+	evidence["tool"] = tool.Object{"version": version.String(), "sha256": toolHash}
 	// Preconditions do not create orchestration facts. Registration then pins the
 	// exact preflight input against concurrent record before a driver can start.
 	activity, err = lifecycle.BeginOfficial(o.FixtureDir, "verify")

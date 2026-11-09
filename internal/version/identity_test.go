@@ -155,7 +155,7 @@ func TestExplicitEmbeddedIdentityFailsClosed(t *testing.T) {
 		{
 			name: "non-exact version",
 			mutate: func(identity *EmbeddedIdentity) {
-				identity.Version = "0.1.0-dev"
+				identity.Version = "0.1"
 			},
 			want: "is not exact",
 		},
@@ -298,7 +298,7 @@ func TestEmbeddedIdentityFailsClosed(t *testing.T) {
 			name: "non-exact main version",
 			info: &debug.BuildInfo{
 				GoVersion: "go1.26.10",
-				Main:      debug.Module{Path: Module, Version: "0.1.0-dev"},
+				Main:      debug.Module{Path: Module, Version: "0.1"},
 				Settings:  validSettings,
 			},
 			want: "not a release, pseudo-version, or development revision",
