@@ -15,8 +15,23 @@ func String() string {
 		return buildVersion
 	}
 	info, ok := debug.ReadBuildInfo()
-	if !ok || info.Main.Version == "" || info.Main.Version == "(devel)" {
+	return versionFromBuildInfo(info, ok)
+}
+
+func versionFromBuildInfo(info *debug.BuildInfo, ok bool) string {
+	if !ok || info == nil {
 		return "devel"
 	}
-	return info.Main.Version
+	module, _ := embeddedModule(info)
+	if module == nil {
+		return "devel"
+	}
+	selected := module
+	if module.Replace != nil {
+		selected = module.Replace
+	}
+	if !ExactModuleVersion(selected.Version) {
+		return "devel"
+	}
+	return selected.Version
 }
