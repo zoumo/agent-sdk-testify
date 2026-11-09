@@ -266,6 +266,33 @@ record 成功时，工具先把完整材料写入新的不可变 material 目录
 原子更新 `current.json`。任何一步失败都不能把半成品设为 current。旧 material
 和旧 verification 保留，但不再是 current，也不会被后续动作自动选择。
 
+## schema 版本与兼容
+
+`fixture.json`、`execution.json`、execution/material index 和 `current.json`
+是同一个 fixture 控制面合同，共用一个 `schemaVersion`。这些文件在 prepare、
+record、mock 和切换 current 时一起写入并相互引用，分别版本会产生无法判定的混合
+状态。material/manifest 保留自身格式版本；进程 receipt、官方编排和 verification
+中的 `schemaVersion` 属于各自证据合同，不与 fixture 控制面版本比较。
+
+持久化语义发生不兼容变化时才升版。以下任一变化必须升版：
+
+- 删除或重命名字段，改变类型、单位、编码、必填性或缺失时的默认语义。
+- 改变现有字段、身份、哈希、路径、状态或文件间关联的含义。
+- 新增字段后旧版 reader 不能忽略该字段，或新版 reader 无法继续读取旧数据。
+- 改变严格回放、failure class、证据归属等会影响既有持久化结论解释的规则。
+
+仅修改注释、错误文案或内部实现，或者新增旧版 reader 可以忽略、缺失时有明确默认值
+的可选字段，不升版。版本号单调递增，每次不兼容变更只加一，不复用已发布的值。
+一次连贯的破坏性变更只升一次；不能为尚未发布的多个字段分批升版，也不能保留中间
+格式。版本号、兼容判断、相关规格和拒绝旧版的测试必须在同一个变更中提交。
+
+读取持久化合同前先校验版本。fixture 控制面只接受当前 `schemaVersion`；更旧和更新
+的版本都在执行前失败，不按当前字段猜测、不迁移、不双读，也不接受混合版本目录。
+fixture 由调用方拥有且可重新 prepare，因此控制面的兼容窗口为零：升级后重新
+prepare；需要保留的材料先用旧工具 export，再用 `prepare --recording` 导入新
+fixture。material/manifest 的格式变化按自身合同处理，不因控制面升版而改写。
+`schemaVersion` 不是工具版本、协议版本或 SDK 版本，不能互相替代。
+
 ## 记录、验证与回放
 
 ### agent record
