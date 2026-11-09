@@ -10,38 +10,37 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
+
 jobs:
-  offline:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  ubuntu:
+    name: ubuntu
+    permissions:
+      contents: read
+    uses: ./.github/workflows/offline-platform.yml
+    with:
+      runner: ubuntu-latest
+
+  macos:
+    name: macos
+    permissions:
+      contents: read
+    uses: ./.github/workflows/offline-platform.yml
+    with:
+      runner: macos-latest
+
+  required:
+    name: offline (required)
+    if: always()
+    needs: [ubuntu, macos]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.26.x'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Prepare build dependencies
-        run: |
-          go mod download
-          python3 -m pip install 'setuptools>=68' wheel
-          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-      - name: Validate offline
+      - name: Require all offline validation jobs
         env:
-          GOPROXY: 'off'
-          GOSUMDB: 'off'
-          PIP_NO_INDEX: '1'
-          GOTOOLCHAIN: local
-          GOENV: 'off'
-          PYTHON: python3
-        run: make check
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: standalone-${{ matrix.os }}
-          path: .artifacts/acceptance
+          UBUNTU: ${{ needs.ubuntu.result }}
+          MACOS: ${{ needs.macos.result }}
+        run: |
+          set -euo pipefail
+          echo "ubuntu: ${UBUNTU}"
+          echo "macos: ${MACOS}"
+          test "${UBUNTU}" = success
+          test "${MACOS}" = success
