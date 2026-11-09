@@ -20,11 +20,11 @@ jobs:
         task: [quality, test, race, e2e, build]
     runs-on: ${{ inputs.runner }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.26.x'
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
       - name: Prepare build dependencies
@@ -48,7 +48,7 @@ jobs:
             make fmt-check lint
           fi
           bash scripts/check-offline.sh "${{ matrix.task }}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: standalone-${{ matrix.task }}-${{ inputs.runner }}
