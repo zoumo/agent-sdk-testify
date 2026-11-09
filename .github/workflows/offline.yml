@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   offline:
-    name: ${{ matrix.task }} (${{ matrix.os }})
+    name: ${{ matrix.os == 'ubuntu-latest' && 'ubuntu' || 'macos' }} / ${{ matrix.task }}
     strategy:
       fail-fast: false
       matrix:
@@ -54,3 +54,17 @@ jobs:
         with:
           name: standalone-${{ matrix.task }}-${{ matrix.os }}
           path: .artifacts/acceptance
+
+  required:
+    name: offline (required)
+    if: always()
+    needs: offline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all offline validation jobs
+        env:
+          RESULT: ${{ needs.offline.result }}
+        run: |
+          set -euo pipefail
+          echo "offline matrix result: ${RESULT}"
+          test "${RESULT}" = success
