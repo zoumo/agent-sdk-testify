@@ -11,13 +11,19 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
 	generator := filepath.Join(t.TempDir(), "generator")
-	cmd := exec.CommandContext(t.Context(), "go", "build", "-tags", "builtin_generate", "-o", generator, "./cmd/agent-sdk-testify")
+	buildVersion := os.Getenv("AGENT_SDK_TESTIFY_VERSION")
+	if buildVersion == "" {
+		buildVersion = "devel"
+	}
+	ldflags := "-X=" + version.Module + "/internal/version.buildVersion=" + buildVersion
+	cmd := exec.CommandContext(t.Context(), "go", "build", "-tags", "builtin_generate", "-ldflags", ldflags, "-o", generator, "./cmd/agent-sdk-testify")
 	cmd.Dir = repository
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
