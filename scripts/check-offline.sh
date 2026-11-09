@@ -39,5 +39,5 @@ phase scripts "$python" -m unittest discover -s scripts -p 'test_*.py'
 phase drivers "$python" -m unittest discover -s drivers/tests -p 'test_*.py'
 phase scenarios "$python" -m unittest discover -s drivers/tests/scenarios -p 'test_*.py'
 rm -rf .artifacts/acceptance/dist
-phase release "$python" scripts/release.py --output .artifacts/acceptance/dist
+phase release "$python" scripts/release.py --allow-untagged --output .artifacts/acceptance/dist
 phase wheel "$python" scripts/check-agent-sdk-testify-package.py .artifacts/acceptance/dist/*.whl

@@ -14,6 +14,10 @@ def exact_version():
     return result.stdout.strip() if result.returncode == 0 else 'devel'
 
 
+def version_ldflags():
+    return ['-ldflags=-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=' + exact_version()]
+
+
 class IndependentToolTests(unittest.TestCase):
     def test_repository_build_does_not_require_sdk_driver(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -43,7 +47,7 @@ class IndependentToolTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             binary = Path(os.environ.get('AGENT_SDK_TESTIFY_BIN', str(Path(temporary) / 'agent-sdk-testify')))
             if not os.environ.get('AGENT_SDK_TESTIFY_BIN'):
-                subprocess.run(['go', 'build', '-o', str(binary), './cmd/agent-sdk-testify'],
+                subprocess.run(['go', 'build', *version_ldflags(), '-o', str(binary), './cmd/agent-sdk-testify'],
                                cwd=ROOT, check=True, capture_output=True)
             identity = subprocess.check_output(['go', 'version', '-m', str(binary)], text=True)
             self.assertIn('path\tgithub.com/zoumo/agent-sdk-testify/cmd/agent-sdk-testify\n', identity)

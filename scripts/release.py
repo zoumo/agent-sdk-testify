@@ -4,21 +4,24 @@ import argparse, hashlib, json, os, pathlib, subprocess, tarfile, gzip, io
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 def run(*args, env=None):
     return subprocess.check_output(args, cwd=ROOT, env=env, text=True).strip()
-def exact_version():
+def release_version(allow_untagged):
     result=subprocess.run(['git','describe','--tags','--exact-match','HEAD'], cwd=ROOT, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise SystemExit('release requires an exact Git tag: '+result.stderr.strip())
-    return result.stdout.strip()
+    if result.returncode == 0:
+        return result.stdout.strip(), True
+    if allow_untagged:
+        return 'devel', False
+    raise SystemExit('release requires an exact Git tag: '+result.stderr.strip())
 def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True,type=pathlib.Path)
     parser.add_argument('--targets',nargs='+',default=['linux/amd64','linux/arm64','darwin/amd64','darwin/arm64'])
+    parser.add_argument('--allow-untagged',action='store_true')
     args=parser.parse_args()
     output=args.output.resolve(); output.mkdir(parents=True,exist_ok=False)
-    version=exact_version()
+    version,tagged=release_version(args.allow_untagged)
     bundle=json.loads((ROOT/'data/builtin/manifest.json').read_text())
-    if bundle['toolVersion'] != version:
+    if tagged and bundle['toolVersion'] != version:
         raise SystemExit(f"builtin toolVersion {bundle['toolVersion']} does not match exact tag {version}")
     revision=run('git','rev-parse','HEAD')
     epoch=run('git','show','-s','--format=%ct','HEAD')

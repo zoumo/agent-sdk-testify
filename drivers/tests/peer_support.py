@@ -32,7 +32,7 @@ def identity(value=None, expected=None):
         version = result.stdout.decode().strip()
     except (OSError, subprocess.SubprocessError, UnicodeError) as exc:
         raise IdentityError('Go agent-sdk-testify version probe failed') from exc
-    if not re.fullmatch(r'agent-sdk-testify [0-9][^\s]*', version) or result.stderr:
+    if not re.fullmatch(r'agent-sdk-testify (?:devel|v[0-9][^\s]*)', version) or result.stderr:
         raise IdentityError('unsupported Go agent-sdk-testify version response')
     actual = {'path': str(path), 'sha256': digest, 'version': version}
     if expected is not None and actual['version'] != expected.get('version'):
