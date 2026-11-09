@@ -38,6 +38,8 @@ func stoppedLaunch(process tool.Object) error {
 	switch process["state"] {
 	case "not-started":
 		return nil
+	case "stopped":
+		return nil
 	case "started":
 		return confirmedExited(processPID(process["pid"]), true)
 	default:

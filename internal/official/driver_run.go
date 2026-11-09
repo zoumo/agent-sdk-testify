@@ -107,10 +107,13 @@ func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error
 		result.Process["exitCode"] = cmd.ProcessState.ExitCode()
 	}
 	if cmd.Process != nil {
-		result.Process["pid"] = cmd.Process.Pid
-		if err := tool.WaitProcessGroup(cmd.Process.Pid); err != nil {
+		pid := cmd.Process.Pid
+		result.Process["pid"] = pid
+		if err := tool.WaitProcessGroup(pid); err != nil {
 			result.Process["cleanupComplete"] = false
 			result.ProcessGroupFailed = true
+			runErr = errors.Join(runErr, err)
+		} else if err := o.Activity.TrackProcess("driver", "stopped", pid); err != nil {
 			runErr = errors.Join(runErr, err)
 		}
 	}

@@ -67,7 +67,11 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 		probeErr = errors.Join(probeErr, track("not-started", 0))
 	}
 	if probe.Process != nil {
-		if err := tool.WaitProcessGroup(probe.Process.Pid); err != nil {
+		pid := probe.Process.Pid
+		if err := tool.WaitProcessGroup(pid); err != nil {
+			return errors.Join(probeErr, err)
+		}
+		if err := track("stopped", pid); err != nil {
 			return errors.Join(probeErr, err)
 		}
 	}

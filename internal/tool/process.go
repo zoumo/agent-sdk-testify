@@ -88,20 +88,37 @@ func WaitDriver(ctx context.Context, cmd *exec.Cmd, started ...func(int) error) 
 // WaitProcessGroup confirms that even descendants abandoned by an SDK have
 // stopped. A surviving group leaves the official reservation intact.
 func WaitProcessGroup(pid int) error {
-	deadline := time.NewTimer(3 * time.Second)
-	defer deadline.Stop()
-	ticker := time.NewTicker(10 * time.Millisecond)
-	defer ticker.Stop()
+	deadline := time.Now().Add(3 * time.Second)
 	for {
-		if err := syscall.Kill(-pid, 0); errors.Is(err, syscall.ESRCH) {
-			return nil
+		gone, err := processGroupGone(pid)
+		if err != nil || gone {
+			return err
 		}
-		select {
-		case <-deadline.C:
-			return errors.New("owned process group has not exited")
-		case <-ticker.C:
+		remaining := time.Until(deadline)
+		if remaining <= 0 {
+			time.Sleep(10 * time.Millisecond)
+			gone, err = processGroupGone(pid)
+			if err != nil || gone {
+				return err
+			}
+			return fmt.Errorf("owned process group %d has not exited", pid)
 		}
+		time.Sleep(min(remaining, 10*time.Millisecond))
 	}
+}
+
+func processGroupGone(pid int) (bool, error) {
+	if pid <= 0 {
+		return false, errors.New("process identity is unavailable")
+	}
+	err := syscall.Kill(-pid, 0)
+	if errors.Is(err, syscall.ESRCH) {
+		return true, nil
+	}
+	if err == nil || errors.Is(err, syscall.EPERM) {
+		return false, nil
+	}
+	return false, fmt.Errorf("inspect owned process group %d: %w", pid, err)
 }
 
 type PeerOptions struct {
