@@ -18,7 +18,10 @@ import (
 	agenttestify "github.com/zoumo/agent-sdk-testify"
 )
 
-const libraryModule = "github.com/zoumo/agent-sdk-testify"
+const (
+	libraryModule    = "github.com/zoumo/agent-sdk-testify"
+	libraryModuleSum = "h1:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+)
 
 const libraryMockInput = `{"id":"4ef523ca-fb64-44f9-827e-7111bb9dda9e","method":"initialize","params":{"clientInfo":{"name":"official-python-story-recorder","title":"Protocol recording","version":"0.0.0.dev0"},"capabilities":{"experimentalApi":true}}}
 {"method":"initialized"}
@@ -139,6 +142,44 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	reopened, err := agenttestify.Open(importedDir)
 	require.NoError(t, err)
 	require.Equal(t, imported.Current, reopened.Current)
+}
+
+func TestLibraryPrepareAcceptsExplicitEmbeddedIdentity(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	first, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		FixtureDir: filepath.Join(root, "first"),
+		Agent:      "codex",
+		Case:       "SDK-CASE-001",
+	})
+	require.NoError(t, err)
+
+	identity := &agenttestify.EmbeddedIdentity{
+		Version:   first.Tool.Version,
+		Sum:       libraryModuleSum,
+		Revision:  first.Tool.ModuleRevision,
+		Time:      first.Tool.ModuleTime,
+		GoVersion: first.Tool.GoVersion,
+	}
+	second, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		FixtureDir:       filepath.Join(root, "second"),
+		Agent:            "codex",
+		Case:             "SDK-CASE-001",
+		EmbeddedIdentity: identity,
+	})
+	require.NoError(t, err)
+	require.Equal(t, first.Tool, second.Tool)
+
+	identity.GoVersion = ""
+	invalidDir := filepath.Join(root, "invalid")
+	_, err = agenttestify.Prepare(agenttestify.PrepareOptions{
+		FixtureDir:       invalidDir,
+		Agent:            "codex",
+		Case:             "SDK-CASE-001",
+		EmbeddedIdentity: identity,
+	})
+	require.ErrorContains(t, err, "requires the Go version")
+	require.NoDirExists(t, invalidDir)
 }
 
 func TestLibraryMockWithoutCLI(t *testing.T) {

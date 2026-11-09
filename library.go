@@ -12,6 +12,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/application"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 // ToolSource identifies how the library or CLI entered the prepared fixture.
@@ -107,6 +108,19 @@ type PrepareOptions struct {
 	StderrBytes   int64
 	MaxFrames     int64
 	MaxFrameBytes int64
+
+	// EmbeddedIdentity supplies the exact module identity when a non-main test
+	// binary omits this module from its build dependencies.
+	EmbeddedIdentity *EmbeddedIdentity
+}
+
+// EmbeddedIdentity is the exact imported module identity of agent-sdk-testify.
+type EmbeddedIdentity struct {
+	Version   string
+	Sum       string
+	Revision  string
+	Time      string
+	GoVersion string
 }
 
 // ExportOptions names the fixture and a new directory outside it.
@@ -310,20 +324,31 @@ type Fixture struct {
 
 // Prepare creates one fixture using the embedded library tool identity.
 func Prepare(options PrepareOptions) (*Fixture, error) {
+	var embeddedIdentity *version.EmbeddedIdentity
+	if options.EmbeddedIdentity != nil {
+		embeddedIdentity = &version.EmbeddedIdentity{
+			Version:   options.EmbeddedIdentity.Version,
+			Sum:       options.EmbeddedIdentity.Sum,
+			Revision:  options.EmbeddedIdentity.Revision,
+			Time:      options.EmbeddedIdentity.Time,
+			GoVersion: options.EmbeddedIdentity.GoVersion,
+		}
+	}
 	_, err := application.Prepare(application.PrepareOptions{
-		FixtureDir:    options.FixtureDir,
-		Agent:         options.Agent,
-		Case:          options.Case,
-		Plan:          options.Plan,
-		Recording:     options.Recording,
-		Model:         options.Model,
-		InitialModel:  options.InitialModel,
-		HistorySeed:   options.HistorySeed,
-		ProtocolBytes: options.ProtocolBytes,
-		StderrBytes:   options.StderrBytes,
-		MaxFrames:     options.MaxFrames,
-		MaxFrameBytes: options.MaxFrameBytes,
-		EmbeddedTool:  true,
+		FixtureDir:       options.FixtureDir,
+		Agent:            options.Agent,
+		Case:             options.Case,
+		Plan:             options.Plan,
+		Recording:        options.Recording,
+		Model:            options.Model,
+		InitialModel:     options.InitialModel,
+		HistorySeed:      options.HistorySeed,
+		ProtocolBytes:    options.ProtocolBytes,
+		StderrBytes:      options.StderrBytes,
+		MaxFrames:        options.MaxFrames,
+		MaxFrameBytes:    options.MaxFrameBytes,
+		EmbeddedTool:     true,
+		EmbeddedIdentity: embeddedIdentity,
 	})
 	if err != nil {
 		return nil, err

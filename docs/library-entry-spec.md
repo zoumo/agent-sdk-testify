@@ -409,6 +409,26 @@ type ToolIdentity struct {
   主模块使用精确 VCS revision（以及可用时的 commit time）形成可审计身份；无法得到
   精确身份或工作树标记为 modified 时，embedded `Prepare` 必须失败，不能生成可执行
   假身份。
+- 非 main 包的 Go 测试二进制可能省略 package-under-test 的 module dependency。
+  `PrepareOptions.EmbeddedIdentity` 因此提供显式回退：
+
+  ```go
+  type EmbeddedIdentity struct {
+      Version   string
+      Sum       string
+      Revision  string
+      Time      string
+      GoVersion string
+  }
+  ```
+
+  build info 已能证明本模块身份时，自证结果仍是权威值；显式输入不能覆盖它，且与
+  build info 中已有字段冲突时必须失败。本模块从 build info 缺失时才使用回退，并要求
+  build info 存在且 Go version 一致。`Version` 必须是精确版本，`Sum` 必须是精确
+  `h1:` sum，`Revision` 必须是 40 或 64 位小写十六进制，`Time` 必须是 RFC 3339；
+  pseudo-version 的时间戳和 revision 后缀还必须分别与 `Time`、`Revision` 一致。
+  调用方应从 `go.mod` 和 `go.sum` 的 exact pin 生成这些测试常量，不得使用 replace、
+  latest 或伪造 executable 身份。未提供该字段时，现有 `Prepare` 自证行为不变。
 
 execution connection 同样使用判别式：
 

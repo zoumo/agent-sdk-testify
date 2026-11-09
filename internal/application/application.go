@@ -15,6 +15,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/mock"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/record"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 type (
@@ -46,19 +47,20 @@ type MockOptions struct {
 }
 
 type PrepareOptions struct {
-	FixtureDir    string
-	Agent         string
-	Case          string
-	Plan          string
-	Recording     string
-	Model         string
-	InitialModel  string
-	HistorySeed   string
-	ProtocolBytes int64
-	StderrBytes   int64
-	MaxFrames     int64
-	MaxFrameBytes int64
-	EmbeddedTool  bool
+	FixtureDir       string
+	Agent            string
+	Case             string
+	Plan             string
+	Recording        string
+	Model            string
+	InitialModel     string
+	HistorySeed      string
+	ProtocolBytes    int64
+	StderrBytes      int64
+	MaxFrames        int64
+	MaxFrameBytes    int64
+	EmbeddedTool     bool
+	EmbeddedIdentity *version.EmbeddedIdentity
 }
 
 type ExportOptions struct {
@@ -94,19 +96,20 @@ func Prepare(o PrepareOptions) (*Fixture, error) {
 		return nil, err
 	}
 	return lifecycle.Prepare(lifecycle.PrepareOptions{
-		FixtureDir:    o.FixtureDir,
-		Agent:         o.Agent,
-		Case:          o.Case,
-		Plan:          o.Plan,
-		Recording:     o.Recording,
-		Model:         o.Model,
-		InitialModel:  o.InitialModel,
-		HistorySeed:   o.HistorySeed,
-		ProtocolBytes: o.ProtocolBytes,
-		StderrBytes:   o.StderrBytes,
-		MaxFrames:     o.MaxFrames,
-		MaxFrameBytes: o.MaxFrameBytes,
-		EmbeddedTool:  o.EmbeddedTool,
+		FixtureDir:       o.FixtureDir,
+		Agent:            o.Agent,
+		Case:             o.Case,
+		Plan:             o.Plan,
+		Recording:        o.Recording,
+		Model:            o.Model,
+		InitialModel:     o.InitialModel,
+		HistorySeed:      o.HistorySeed,
+		ProtocolBytes:    o.ProtocolBytes,
+		StderrBytes:      o.StderrBytes,
+		MaxFrames:        o.MaxFrames,
+		MaxFrameBytes:    o.MaxFrameBytes,
+		EmbeddedTool:     o.EmbeddedTool,
+		EmbeddedIdentity: o.EmbeddedIdentity,
 	})
 }
 

@@ -194,7 +194,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err != nil {
 		return nil, err
 	}
-	toolIdentity, err := prepareToolIdentity(o.EmbeddedTool)
+	toolIdentity, err := prepareToolIdentity(o.EmbeddedTool, o.EmbeddedIdentity)
 	if err != nil {
 		return nil, err
 	}
@@ -498,9 +498,9 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	return fixture, nil
 }
 
-func prepareToolIdentity(embedded bool) (ToolIdentity, error) {
+func prepareToolIdentity(embedded bool, provided *version.EmbeddedIdentity) (ToolIdentity, error) {
 	if embedded {
-		build, err := version.ReadEmbeddedIdentity()
+		build, err := version.ResolveEmbeddedIdentity(provided)
 		if err != nil {
 			return ToolIdentity{}, err
 		}

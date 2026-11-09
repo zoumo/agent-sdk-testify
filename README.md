@@ -33,6 +33,10 @@ driver 编排仍只由 CLI 提供；协议帧、严格匹配器和材料内部�
 库 fixture 与 CLI fixture 可交叉执行 action，材料通过 export 和 prepare 交换。完整合同见
 [可导入 Go 库入口规格](docs/library-entry-spec.md)。
 
+非 main 包测试二进制的 build info 可能省略本 module dependency。此时可把 `go.mod`
+和 `go.sum` 中 exact pin 的版本、sum、revision、commit time 与 Go version 作为
+`PrepareOptions.EmbeddedIdentity` 传入；build info 能自证时仍以自证结果为准。
+
 record 和 mock 返回连接状态、整个 execution 状态及终态标志。连接成功不等于 execution 完成：
 
 ```go

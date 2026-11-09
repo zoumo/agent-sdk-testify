@@ -2,6 +2,7 @@ package version
 
 import (
 	"runtime/debug"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,6 +12,7 @@ const (
 	testRevision = "c4d2e2a5cdd67f61ef41b7932b66ca454c4077a8"
 	testSum      = "h1:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 	testTime     = "2026-11-08T18:12:20Z"
+	testVersion  = "v0.0.0-20261108181220-c4d2e2a5cdd6"
 )
 
 func TestEmbeddedIdentityUsesExactBuildInformation(t *testing.T) {
@@ -73,6 +75,149 @@ func TestEmbeddedIdentityUsesExactBuildInformation(t *testing.T) {
 		require.Equal(t, testRevision, identity.Revision)
 		require.Equal(t, testTime, identity.Time)
 	})
+}
+
+func TestEmbeddedIdentityFallsBackWhenBuildInfoOmitsDependency(t *testing.T) {
+	info := &debug.BuildInfo{
+		GoVersion: "go1.26.3",
+		Main:      debug.Module{Path: "example.com/sdk/internal/mocktest.test", Version: "(devel)"},
+	}
+	provided := agentTestifyIdentity("go1.26.3")
+
+	identity, err := resolveEmbeddedIdentity(info, provided)
+	require.NoError(t, err)
+	require.Equal(t, BuildIdentity{
+		Module:    Module,
+		Version:   provided.Version,
+		Sum:       provided.Sum,
+		Revision:  provided.Revision,
+		Time:      provided.Time,
+		GoVersion: provided.GoVersion,
+	}, identity)
+}
+
+func TestEmbeddedIdentityKeepsSelfProvenIdentity(t *testing.T) {
+	info := &debug.BuildInfo{
+		GoVersion: "go1.26.10",
+		Main:      debug.Module{Path: "example.com/consumer", Version: "(devel)"},
+		Deps: []*debug.Module{{
+			Path:    Module,
+			Version: "v0.2.0",
+			Sum:     testSum,
+		}},
+	}
+	provided := agentTestifyIdentity("go1.26.10")
+	provided.Version = "v0.2.0"
+
+	identity, err := resolveEmbeddedIdentity(info, provided)
+	require.NoError(t, err)
+	require.Equal(t, "v0.2.0", identity.Version)
+	require.Equal(t, testSum, identity.Sum)
+	require.Empty(t, identity.Revision)
+
+	provided.Version = "v0.3.0"
+	_, err = resolveEmbeddedIdentity(info, provided)
+	require.ErrorContains(t, err, "version")
+	require.ErrorContains(t, err, "conflicts with build information")
+}
+
+func TestExplicitEmbeddedIdentityFailsClosed(t *testing.T) {
+	info := &debug.BuildInfo{
+		GoVersion: "go1.26.3",
+		Main:      debug.Module{Path: "example.com/sdk/internal/mocktest.test", Version: "(devel)"},
+	}
+	for _, test := range []struct {
+		name   string
+		mutate func(*EmbeddedIdentity)
+		want   string
+	}{
+		{
+			name: "missing Go version",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.GoVersion = ""
+			},
+			want: "requires the Go version",
+		},
+		{
+			name: "invalid Go version",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.GoVersion = "1.26.3"
+			},
+			want: "invalid Go version",
+		},
+		{
+			name: "different Go version",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.GoVersion = "go1.26.4"
+			},
+			want: "differs from build Go version",
+		},
+		{
+			name: "non-exact version",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.Version = "0.1.0-dev"
+			},
+			want: "is not exact",
+		},
+		{
+			name: "invalid sum",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.Sum = "h1:not-a-sum"
+			},
+			want: "exact h1 module sum",
+		},
+		{
+			name: "short revision",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.Revision = testRevision[:39]
+			},
+			want: "full 40- or 64-character lowercase revision",
+		},
+		{
+			name: "invalid time",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.Time = "yesterday"
+			},
+			want: "RFC 3339 commit time",
+		},
+		{
+			name: "pseudo timestamp mismatch",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.Time = "2026-11-08T18:12:21Z"
+			},
+			want: "timestamp differs from commit time",
+		},
+		{
+			name: "pseudo revision mismatch",
+			mutate: func(identity *EmbeddedIdentity) {
+				identity.Revision = "d4d2e2a5cdd67f61ef41b7932b66ca454c4077a8"
+			},
+			want: "revision differs from commit revision",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			provided := agentTestifyIdentity("go1.26.3")
+			test.mutate(provided)
+			_, err := resolveEmbeddedIdentity(info, provided)
+			require.ErrorContains(t, err, test.want)
+		})
+	}
+
+	_, err := resolveEmbeddedIdentity(nil, agentTestifyIdentity("go1.26.3"))
+	require.ErrorContains(t, err, "build info is absent")
+
+	_, err = resolveEmbeddedIdentity(info, nil)
+	require.ErrorContains(t, err, "does not contain module")
+}
+
+func agentTestifyIdentity(goVersion string) *EmbeddedIdentity {
+	return &EmbeddedIdentity{
+		Version:   testVersion,
+		Sum:       testSum,
+		Revision:  testRevision,
+		Time:      testTime,
+		GoVersion: goVersion,
+	}
 }
 
 func TestEmbeddedIdentityFailsClosed(t *testing.T) {
@@ -244,5 +389,19 @@ func TestValidCommitTime(t *testing.T) {
 	require.True(t, ValidCommitTime(testTime))
 	for _, value := range []string{"", "yesterday", "2026-11-08", "2026-11-08T18:12:20"} {
 		require.False(t, ValidCommitTime(value), value)
+	}
+}
+
+func TestValidRevision(t *testing.T) {
+	require.True(t, ValidRevision(testRevision))
+	require.True(t, ValidRevision(testRevision+testRevision[:24]))
+	for _, value := range []string{
+		"",
+		testRevision[:39],
+		testRevision + "0",
+		strings.ToUpper(testRevision),
+		testRevision[:39] + "g",
+	} {
+		require.False(t, ValidRevision(value), value)
 	}
 }

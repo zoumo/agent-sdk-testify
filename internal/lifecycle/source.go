@@ -12,22 +12,24 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 type PrepareOptions struct {
-	FixtureDir    string
-	Agent         string
-	Case          string
-	Plan          string
-	Recording     string
-	Model         string
-	InitialModel  string
-	HistorySeed   string
-	ProtocolBytes int64
-	StderrBytes   int64
-	MaxFrames     int64
-	MaxFrameBytes int64
-	EmbeddedTool  bool
+	FixtureDir       string
+	Agent            string
+	Case             string
+	Plan             string
+	Recording        string
+	Model            string
+	InitialModel     string
+	HistorySeed      string
+	ProtocolBytes    int64
+	StderrBytes      int64
+	MaxFrames        int64
+	MaxFrameBytes    int64
+	EmbeddedTool     bool
+	EmbeddedIdentity *version.EmbeddedIdentity
 }
 
 type sourceSpec struct {
