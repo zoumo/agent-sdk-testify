@@ -3,7 +3,7 @@
 ## Module 与依赖
 
 使用单一 module `github.com/zoumo/agent-sdk-testify` 和单一工具二进制，
-使用 Go 1.26 和 golangci-lint 2.12.2；不添加嵌套 module、replace 或 go.work。
+使用 Go 1.26.10 和 golangci-lint 2.12.2；不添加嵌套 module、replace 或 go.work。
 生产代码及默认测试不得导入 agent-sdk-go、Go driver 或 SDK fixture 容器。
 官方 SDK 仅作为 official record/verify 的显式环境依赖，不在运行时自动安装。
 
@@ -179,7 +179,7 @@ synthetic 身份。官方验证、SDK 仿真和真实 E2E 分别报告，不互�
 
 ### 离线门禁
 
-使用 Go 1.26。完整门禁由 `make check` 执行，覆盖格式、lint、独立构建、公开库测试、
+使用 Go 1.26.10。完整门禁由 `make check` 执行，覆盖格式、lint、独立构建、公开库测试、
 默认测试、race、vet、依赖边界、源码目录外运行、driver 测试和 wheel 打包检查。
 case/索引身份、全部录制字节、来源哈希和政策检查不得弱化。
 

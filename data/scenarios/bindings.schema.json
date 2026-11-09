@@ -107,6 +107,14 @@
               },
               "backgroundReadBarrier": {
                 "type": "boolean"
+              },
+              "effort": {
+                "type": "string",
+                "minLength": 1
+              },
+              "targetEffort": {
+                "type": "string",
+                "minLength": 1
               }
             },
             "additionalProperties": false

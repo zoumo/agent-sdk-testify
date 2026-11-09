@@ -333,7 +333,11 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null
+      "progressBarrier": null,
+      "parameters": {
+        "effort": "low",
+        "targetEffort": "medium"
+      }
     },
     "SDK-CASE-028": {
       "files": {

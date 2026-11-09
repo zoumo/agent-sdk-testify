@@ -44,3 +44,18 @@ func TestClaudeSelectedEndpointCredentials(t *testing.T) {
 	claudeAuthEnvironment(settings, env)
 	require.Equal(t, map[string]string{"ANTHROPIC_BASE_URL": "selected-endpoint", "ANTHROPIC_API_KEY": "selected-key"}, env)
 }
+
+func TestClaudeEffortUsesConfiguredCreationValue(t *testing.T) {
+	args, err := claudeNativeArgs("structured-input", tool.Object{
+		"setting": "effort", "configurationTiming": "between-inputs", "effort": "low",
+	})
+	require.NoError(t, err)
+	require.Contains(t, args, "--effort")
+	require.Equal(t, "low", args[len(args)-1])
+	require.NotContains(t, args, "--max-thinking-tokens")
+
+	_, err = claudeNativeArgs("structured-input", tool.Object{
+		"setting": "effort", "configurationTiming": "between-inputs",
+	})
+	require.ErrorContains(t, err, "initial effort")
+}

@@ -94,6 +94,11 @@ def codex(plan, report, flow):
                 params['model'] = plan['model']
         if parameters.get('configurationTiming') == 'creation' and parameters.get('setting') == 'thinking':
             params['config'] = {'model_reasoning_effort': 'low'}
+        if parameters.get('configurationTiming') == 'between-inputs' and parameters.get('setting') == 'effort':
+            initial_effort = parameters.get('effort')
+            if not isinstance(initial_effort, str) or not initial_effort:
+                raise ValueError('effort case requires an explicit initial effort')
+            params['config'] = {'model_reasoning_effort': initial_effort}
         # This pinned SDK's generated model omits dynamicTools. Its documented
         # JsonObject overload preserves this explicit native extension.
         thread = client.thread_start(params)
@@ -116,7 +121,13 @@ def codex(plan, report, flow):
         def variant_configuration():
             requested = {'threadId': identity}
             setting = parameters.get('setting')
-            key, value = ('effort', 'low') if setting == 'effort' else (('summary', 'none') if setting == 'display' else ('model', plan['model']))
+            if setting == 'effort':
+                target_effort = parameters.get('targetEffort')
+                if not isinstance(target_effort, str) or not target_effort:
+                    raise ValueError('effort case requires an explicit target effort')
+                key, value = 'effort', target_effort
+            else:
+                key, value = (('summary', 'none') if setting == 'display' else ('model', plan['model']))
             requested[key] = value
             response = client.request('thread/settings/update', requested, response_model=NativeAcknowledgement)
             configuration_acknowledged(report, flow, requested, parameters['configurationTiming'])

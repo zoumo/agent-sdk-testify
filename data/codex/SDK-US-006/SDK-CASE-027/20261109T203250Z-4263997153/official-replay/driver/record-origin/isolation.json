@@ -1,0 +1,33 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "configurationSHA256": {
+    "config.toml": "938e771925dd9fcb795c3c572b5c4a6d99bb805b87fcfb11edff5dc92602708e"
+  },
+  "cwd": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/executions/aa7882a874581b9b398dc4566c2adf5d/workspace",
+  "environment": {
+    "CODEX_HOME": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/executions/aa7882a874581b9b398dc4566c2adf5d/config",
+    "HOME": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/executions/aa7882a874581b9b398dc4566c2adf5d/home",
+    "TMPDIR": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/executions/aa7882a874581b9b398dc4566c2adf5d/tmp",
+    "XDG_CACHE_HOME": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/executions/aa7882a874581b9b398dc4566c2adf5d/home/.cache",
+    "XDG_CONFIG_HOME": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/executions/aa7882a874581b9b398dc4566c2adf5d/home/.config",
+    "XDG_DATA_HOME": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/executions/aa7882a874581b9b398dc4566c2adf5d/home/.local/share"
+  },
+  "executionId": "aa7882a874581b9b398dc4566c2adf5d",
+  "fixtureId": "1ad654200d92488192cc50c023ab62a9",
+  "method": "native-preparation",
+  "nativeSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "47231dc6101e75387d39778ac16fc67190999ba764be9b0430ea123599a39e5e",
+  "schemaVersion": 1,
+  "toolSHA256": "5e502dc424bb1168d933e4bbe702afbd816f204eb9e2dc7e8296c71bdfd921d3"
+}

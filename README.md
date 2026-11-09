@@ -84,7 +84,7 @@ if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
 
 ## 独立构建与离线测试
 
-使用 Go 1.26 和 golangci-lint 2.12.2，不需要 Go SDK checkout、Go driver 或官方 SDK。
+使用 Go 1.26.10 和 golangci-lint 2.12.2，不需要 Go SDK checkout、Go driver 或官方 SDK。
 CLI 也可以用 `go build ./cmd/agent-sdk-testify` 独立构建。
 `make test` 运行根目录公开库测试和内部单元测试，不构建 CLI。集成和完整流程分别运行：
 

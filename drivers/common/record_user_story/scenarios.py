@@ -271,7 +271,14 @@ def recipe(provider, story, directory=None, case_id=None):
         raise ValueError('configuration operation unsupported by Python adapter')
     answers = dict(core['expect'].get('answers', {}), **binding['answers'])
     if 'question.answer' in core['expect']['requests']:
-        if not isinstance(answers.get('choice'), str) or not isinstance(answers.get('options'), list) or (not core.get('parameters', {}).get('freeText') and answers['choice'] not in answers['options']):
+        choice = answers.get('choice')
+        choices = choice if isinstance(choice, list) else [choice]
+        if (not isinstance(answers.get('options'), list) or not choices
+                or any(not isinstance(value, str) or not value for value in choices)
+                or len(set(choices)) != len(choices)
+                or (core.get('parameters', {}).get('freeText') and not isinstance(choice, str))
+                or (not core.get('parameters', {}).get('freeText')
+                    and any(value not in answers['options'] for value in choices))):
             raise ValueError('question answer is not a configured option')
     files = dict(core['setup']['files'], **binding['files'])
     for name in files:
@@ -281,6 +288,16 @@ def recipe(provider, story, directory=None, case_id=None):
     requests = binding['requests']
     if set(requests) != set(core['expect']['requests']):
         raise ValueError('native request bindings differ from expected interactions')
+    parameters = dict(core.get('parameters', {}), **binding.get('parameters', {}))
+    if ({'effort', 'targetEffort'} & parameters.keys()) and parameters.get('setting') != 'effort':
+        raise ValueError('effort values require the effort setting')
+    if parameters.get('setting') == 'effort':
+        initial, target = parameters.get('effort'), parameters.get('targetEffort')
+        if (parameters.get('configurationTiming') != 'between-inputs'
+                or not isinstance(initial, str) or not initial
+                or not isinstance(target, str) or not target
+                or initial == target):
+            raise ValueError('effort change requires distinct creation and runtime effort values')
     result = dict(identity, bundle=core['driverProfile'], driverProfile=core['driverProfile'], mode=mode,
                 reason=execution['reason'], prompts=prompts, files=files, submission=submission,
                 progressAction=trigger, requiredRequests=[requests[name] for name in core['expect']['requests']],
@@ -288,7 +305,7 @@ def recipe(provider, story, directory=None, case_id=None):
                 steps=core['steps'] if mode == 'live-selected-path' else [],
                 limits=dict(core['limits'], inputs=len(prompts)), scope=case['scope'])
     if 'parameters' in core or 'parameters' in binding:
-        result['parameters'] = dict(core.get('parameters', {}), **binding.get('parameters', {}))
+        result['parameters'] = parameters
     return result
 
 

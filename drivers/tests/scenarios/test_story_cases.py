@@ -125,6 +125,17 @@ class StoryCaseTests(unittest.TestCase):
             self.assertEqual(summary['status'], 'partial')
             self.assertIn('SDK-CASE-027', summary['missingCases'])
 
+    def test_effort_case_requires_distinct_creation_and_runtime_values(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp) / 'scenarios'
+            shutil.copytree(scenario_directory(), directory)
+            binding_path = directory / 'bindings/claude.json'
+            binding = json.loads(binding_path.read_text())
+            binding['cases']['SDK-CASE-027']['parameters']['targetEffort'] = 'low'
+            binding_path.write_text(json.dumps(binding))
+            with self.assertRaisesRegex(ValueError, 'distinct creation and runtime'):
+                recipe('claude', 'SDK-US-006', directory, case_id='SDK-CASE-027')
+
     def test_optional_failures_do_not_waive_or_block_required_cases(self):
         for provider in ('codex', 'claude'):
             cases = case_recipes(provider, stories='SDK-US-001')

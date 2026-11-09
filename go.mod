@@ -2,6 +2,8 @@ module github.com/zoumo/agent-sdk-testify
 
 go 1.26.0
 
+toolchain go1.26.10
+
 require (
 	github.com/coder/websocket v1.8.15
 	github.com/pelletier/go-toml/v2 v2.4.3

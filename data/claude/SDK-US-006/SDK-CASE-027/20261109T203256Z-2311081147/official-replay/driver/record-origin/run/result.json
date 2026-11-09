@@ -1,0 +1,1569 @@
+{
+  "agentType": "claude",
+  "business": {
+    "message": "",
+    "sdk": {
+      "package": "claude-agent-sdk",
+      "version": "0.2.174"
+    },
+    "status": "passed"
+  },
+  "case": "SDK-CASE-027",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-09T20:32:17.514857Z",
+  "connections": [
+    {
+      "connection": {
+        "id": "main",
+        "transport": "process",
+        "command": "/Users/jim/.codex/worktrees/d6ed/agent-sdk-testify/.artifacts/027-dev/agent-sdk-testify",
+        "args": [
+          "agent",
+          "record",
+          "--fixture-dir",
+          "/private/tmp/ast-027-claude-pass.5luIp8/fixture",
+          "--cmd"
+        ],
+        "material": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/materials/8ec3ca0cfaafb06beae2edc5a42db45b",
+        "planSHA256": "bd3ead5cf2c66d4cb575b0c597d35a2f4ab4f25402eb84b2479c44bb9f5b7dbf",
+        "manifestSHA256": "03e90e1d949da2a99adb740aa932e442224dc68b958175610e5b4aaa487093ef",
+        "recordingSHA256": "6441d6ae1ddfd71fab9bafb2101710bab7fa047f4d59e33f11e19b4a3a644baf",
+        "receipt": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/record/raw/transport.json"
+      },
+      "connectionId": "main",
+      "executionId": "726e32bb1e6e97429ed1715bbf85134b",
+      "executionSHA256": "6c7358f159d2c3d3cb1bfa77818ed22d0745b46eeaf3e3f0546d2694e3a1937b",
+      "finished": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/execution.json",
+        "executionId": "726e32bb1e6e97429ed1715bbf85134b",
+        "executionSHA256": "6c7358f159d2c3d3cb1bfa77818ed22d0745b46eeaf3e3f0546d2694e3a1937b",
+        "fixtureId": "f62042da636246ad2bc1282999b5d526",
+        "material": {
+          "id": "8ec3ca0cfaafb06beae2edc5a42db45b",
+          "manifestSHA256": "03e90e1d949da2a99adb740aa932e442224dc68b958175610e5b4aaa487093ef",
+          "path": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/materials/8ec3ca0cfaafb06beae2edc5a42db45b",
+          "planSHA256": "bd3ead5cf2c66d4cb575b0c597d35a2f4ab4f25402eb84b2479c44bb9f5b7dbf",
+          "provenance": "official",
+          "recordingSHA256": "6441d6ae1ddfd71fab9bafb2101710bab7fa047f4d59e33f11e19b4a3a644baf"
+        },
+        "processId": 56888,
+        "receipt": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/record/raw/transport.json",
+        "result": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/receipts/main.result.json",
+        "schemaVersion": 1,
+        "status": "passed"
+      },
+      "material": {
+        "officialOrigin": {
+          "runId": "ede9d678318a7056369047c0d9286291",
+          "fixtureId": "f62042da636246ad2bc1282999b5d526",
+          "caseId": "SDK-CASE-027",
+          "agentType": "claude",
+          "recordSourceSHA256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+          "sourceSHA256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+          "driverSHA256": "079948882624b38362bada1890ac2fb5d705a6f08926362444b612fbe33e1ac3",
+          "connections": [
+            "main"
+          ]
+        },
+        "files": {
+          "manifest.json": "03e90e1d949da2a99adb740aa932e442224dc68b958175610e5b4aaa487093ef",
+          "official-origin.json": "bb648ee8a5361ada52a16764595a268ea0833d51c2f12f23ef5fd3354ea013db",
+          "origin/main.json": "141b9ae541ee03dfa586974ffa1bc4a62ff7d7bdc80083cc14e8e12052df1b98",
+          "plan.json": "bd3ead5cf2c66d4cb575b0c597d35a2f4ab4f25402eb84b2479c44bb9f5b7dbf",
+          "raw/manifest.json": "9b1e9bfee03a85042bcd54c6ac6c042e5192c1dc2baf891a2e6751e23484cf87",
+          "raw/raw.jsonl": "6441d6ae1ddfd71fab9bafb2101710bab7fa047f4d59e33f11e19b4a3a644baf",
+          "raw/stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+          "raw/transport.json": "f042cf06fae9917d17d353783511e74a9d703f21e03d96a1763114041cb21d46",
+          "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+          "source-plan.json": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4"
+        },
+        "id": "8ec3ca0cfaafb06beae2edc5a42db45b",
+        "kind": "capture",
+        "action": "record",
+        "provenance": "official",
+        "path": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/materials/8ec3ca0cfaafb06beae2edc5a42db45b",
+        "planSHA256": "bd3ead5cf2c66d4cb575b0c597d35a2f4ab4f25402eb84b2479c44bb9f5b7dbf",
+        "manifestSHA256": "03e90e1d949da2a99adb740aa932e442224dc68b958175610e5b4aaa487093ef",
+        "recordingSHA256": "6441d6ae1ddfd71fab9bafb2101710bab7fa047f4d59e33f11e19b4a3a644baf",
+        "connections": [
+          "main"
+        ],
+        "createdAt": "2026-11-09T20:32:17.401425Z"
+      },
+      "process": {
+        "cleanupComplete": true,
+        "exitCode": 0,
+        "pid": 56888,
+        "reaped": true,
+        "schemaVersion": 1,
+        "started": true,
+        "supervisorPid": 56854
+      },
+      "started": {
+        "command": "record",
+        "connectionId": "main",
+        "execution": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/execution.json",
+        "executionId": "726e32bb1e6e97429ed1715bbf85134b",
+        "executionSHA256": "f5b65a4ff97fb4692cf0faa79492b43dffc5e05b1fc13d245f16e7e98b5110cc",
+        "fixtureId": "f62042da636246ad2bc1282999b5d526",
+        "processId": 56888,
+        "receipt": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/record/raw/transport.json",
+        "result": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/receipts/main.result.json",
+        "schemaVersion": 1,
+        "status": "running"
+      }
+    }
+  ],
+  "credentialScan": "pass",
+  "driver": {
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/official-env/bin/agent-sdk-testify-claude",
+    "sha256": "079948882624b38362bada1890ac2fb5d705a6f08926362444b612fbe33e1ac3"
+  },
+  "driverFiles": {
+    "materials/case.json": "d2f2da32e5a42afedb66b6f254c349b709f72fdb9851c2f17f219f998e41f4ee",
+    "peer-main.process.json": "c6a53d40c6ee8538ed134d9ac4dd55e006844f8be6fcf4b1bf663a908f6700b5",
+    "peer-main.results.jsonl": "5c03db7c59e4760ee5d9b78b9fc9e7475dd72b1e119eab97a534f0198cc6be20",
+    "report.json": "ba6df916a17768a8608a3fca230d54006e3119ff767bd846dbe7bf09bfe86d7d",
+    "request.json": "f8408d3a034dfc59f3d8eebf5ed379d88a3a472eff74be1d67911006798d365d",
+    "result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "driverProcess": {
+    "cleanupComplete": true,
+    "exitCode": 0,
+    "reaped": true,
+    "started": true
+  },
+  "fixtureId": "f62042da636246ad2bc1282999b5d526",
+  "id": "ede9d678318a7056369047c0d9286291",
+  "mode": "record",
+  "processes": {
+    "driver": {
+      "pid": 56839,
+      "state": "stopped"
+    }
+  },
+  "recordPreparation": {
+    "executionId": "726e32bb1e6e97429ed1715bbf85134b",
+    "isolationSHA256": "5c9257d0697dda1c085d05e62feed9b405da04fd5041b9c095d87168622c3c72",
+    "preparedPlanSHA256": "ef9f5650fcc85d1007d471ec7910ec4e9da461c739e0c8bfd1464648f083235b"
+  },
+  "report": {
+    "branchStatus": "passed",
+    "captureStatus": "complete",
+    "case": {
+      "id": "SDK-CASE-027",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态",
+        "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
+      ],
+      "scope": "创建时显式选择原生 effort A，首次结果后请求修改为不同 effort B，再提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-027",
+    "cliVersion": null,
+    "configurationEvidence": {
+      "creationOperation": "claude --effort",
+      "effectiveScope": "creation argument; runtime settings readback after acknowledgement; per-turn use not independently reported",
+      "initialEffort": "low",
+      "observed": [
+        {
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "scope": "assistant-message",
+          "source": "assistant"
+        },
+        {
+          "model": "theta/DeepSeek-V4.1-Flash-1017",
+          "scope": "assistant-message",
+          "source": "assistant"
+        }
+      ],
+      "observedEffort": "high",
+      "requests": [
+        {
+          "acknowledged": true,
+          "completedInputs": 1,
+          "requested": {
+            "settings": {
+              "effortLevel": "high"
+            },
+            "subtype": "apply_flag_settings"
+          },
+          "timing": "between-inputs"
+        }
+      ],
+      "runtimeOperation": "apply_flag_settings",
+      "targetEffort": "high"
+    },
+    "events": 25,
+    "facts": [
+      "driver uses official Python SDK; raw bytes captured at native process boundary"
+    ],
+    "flowTrace": [
+      {
+        "input": 0,
+        "step": "submit"
+      },
+      {
+        "input": 0,
+        "step": "result"
+      },
+      {
+        "completedInputs": 1,
+        "requested": {
+          "settings": {
+            "effortLevel": "high"
+          },
+          "subtype": "apply_flag_settings"
+        },
+        "step": "configuration-acknowledged",
+        "timing": "between-inputs"
+      },
+      {
+        "input": 1,
+        "step": "submit"
+      },
+      {
+        "input": 1,
+        "step": "result"
+      },
+      {
+        "step": "close-drain"
+      }
+    ],
+    "gaps": [],
+    "inputs": 2,
+    "officialSDK": {
+      "package": "claude-agent-sdk",
+      "version": "0.2.174"
+    },
+    "provider": "claude",
+    "receipts": [
+      {
+        "input-submitted": {
+          "completionObserved": false,
+          "written": true
+        }
+      },
+      {
+        "result": {
+          "api_error_status": null,
+          "deferred_tool_use": null,
+          "duration_api_ms": 850,
+          "duration_ms": 1128,
+          "errors": null,
+          "is_error": false,
+          "model_usage": {
+            "theta/DeepSeek-V4.1-Flash-1017": {
+              "cacheCreationInputTokens": 0,
+              "cacheReadInputTokens": 0,
+              "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+              "contextWindow": 200000,
+              "costBasis": "unknown",
+              "costUSD": 0.05866,
+              "inputTokens": 11717,
+              "maxOutputTokens": 32000,
+              "outputTokens": 3,
+              "provider": "firstParty",
+              "thinkingTokens": 0,
+              "webSearchRequests": 0
+            }
+          },
+          "num_turns": 1,
+          "origin": null,
+          "permission_denials": [],
+          "result": "Ready",
+          "session_id": "b56c824f-23e4-4fae-acec-34f26ee8646b",
+          "stop_reason": "end_turn",
+          "structured_output": null,
+          "subtype": "success",
+          "terminal_reason": "completed",
+          "total_cost_usd": 0.05866,
+          "usage": {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "inference_geo": "",
+            "input_tokens": 11717,
+            "iterations": [],
+            "output_tokens": 3,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_fetch_requests": 0,
+              "web_search_requests": 0
+            },
+            "service_tier": "standard",
+            "speed": "standard"
+          },
+          "uuid": "d7a1269e-a613-4d93-bed9-9969e76bb6c0"
+        }
+      },
+      {
+        "variant-configuration": {
+          "observed": {
+            "applied": {
+              "advisor": null,
+              "effort": "high",
+              "model": "theta/DeepSeek-V4.1-Flash-1017",
+              "ultracode": false
+            },
+            "effective": {
+              "effortLevel": "high",
+              "hooks": {
+                "ConfigChange": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=ConfigChange",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "CwdChanged": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=CwdChanged",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "Elicitation": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=Elicitation",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "ElicitationResult": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=ElicitationResult",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "FileChanged": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=FileChanged",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "InstructionsLoaded": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=InstructionsLoaded",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "MessageDisplay": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=MessageDisplay",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "Notification": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=Notification",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PermissionDenied": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PermissionDenied",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PermissionRequest": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PermissionRequest",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PostCompact": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PostCompact",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PostToolBatch": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PostToolBatch",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PostToolUse": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PostToolUse",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PostToolUseFailure": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PostToolUseFailure",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PreCompact": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PreCompact",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "PreToolUse": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=PreToolUse",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "SessionEnd": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=SessionEnd",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "SessionStart": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=SessionStart",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "Setup": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=Setup",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "Stop": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=Stop",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "StopFailure": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=StopFailure",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=12",
+                          "--connect_timeout=1"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 15,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "SubagentStart": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=SubagentStart",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "SubagentStop": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=SubagentStop",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "TaskCompleted": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=TaskCompleted",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "TaskCreated": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=TaskCreated",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "TeammateIdle": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=TeammateIdle",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "UserPromptExpansion": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=UserPromptExpansion",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ],
+                "UserPromptSubmit": [
+                  {
+                    "hooks": [
+                      {
+                        "args": [
+                          "--agent_name=claude_code",
+                          "--event_name=UserPromptSubmit",
+                          "--host=127.0.0.1",
+                          "--port=56889",
+                          "--timeout=24",
+                          "--connect_timeout=3"
+                        ],
+                        "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                        "timeout": 30,
+                        "type": "command"
+                      }
+                    ],
+                    "matcher": "*"
+                  }
+                ]
+              },
+              "model": "auto/deepseek-v4.1-flash-1017[1m]"
+            },
+            "sources": [
+              {
+                "settings": {
+                  "effortLevel": "medium",
+                  "model": "auto/deepseek-v4.1-flash-1017[1m]"
+                },
+                "source": "userSettings"
+              },
+              {
+                "settings": {
+                  "effortLevel": "high"
+                },
+                "source": "flagSettings"
+              },
+              {
+                "settings": {
+                  "hooks": {
+                    "ConfigChange": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=ConfigChange",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "CwdChanged": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=CwdChanged",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "Elicitation": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=Elicitation",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "ElicitationResult": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=ElicitationResult",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "FileChanged": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=FileChanged",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "InstructionsLoaded": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=InstructionsLoaded",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "MessageDisplay": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=MessageDisplay",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "Notification": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=Notification",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PermissionDenied": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PermissionDenied",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PermissionRequest": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PermissionRequest",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PostCompact": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PostCompact",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PostToolBatch": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PostToolBatch",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PostToolUse": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PostToolUse",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PostToolUseFailure": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PostToolUseFailure",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PreCompact": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PreCompact",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "PreToolUse": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=PreToolUse",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "SessionEnd": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=SessionEnd",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "SessionStart": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=SessionStart",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "Setup": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=Setup",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "Stop": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=Stop",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "StopFailure": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=StopFailure",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=12",
+                              "--connect_timeout=1"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 15,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "SubagentStart": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=SubagentStart",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "SubagentStop": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=SubagentStop",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "TaskCompleted": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=TaskCompleted",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "TaskCreated": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=TaskCreated",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "TeammateIdle": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=TeammateIdle",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "UserPromptExpansion": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=UserPromptExpansion",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ],
+                    "UserPromptSubmit": [
+                      {
+                        "hooks": [
+                          {
+                            "args": [
+                              "--agent_name=claude_code",
+                              "--event_name=UserPromptSubmit",
+                              "--host=127.0.0.1",
+                              "--port=56889",
+                              "--timeout=24",
+                              "--connect_timeout=3"
+                            ],
+                            "command": "/Library/Application Support/starpoint/AgentSecurity/agent_guard_cli",
+                            "timeout": 30,
+                            "type": "command"
+                          }
+                        ],
+                        "matcher": "*"
+                      }
+                    ]
+                  }
+                },
+                "source": "policySettings"
+              }
+            ]
+          },
+          "requested": {
+            "settings": {
+              "effortLevel": "high"
+            },
+            "subtype": "apply_flag_settings"
+          },
+          "response": {},
+          "timing": "between-inputs"
+        }
+      },
+      {
+        "input-submitted": {
+          "completionObserved": false,
+          "written": true
+        }
+      },
+      {
+        "result": {
+          "api_error_status": null,
+          "deferred_tool_use": null,
+          "duration_api_ms": 1358,
+          "duration_ms": 713,
+          "errors": null,
+          "is_error": false,
+          "model_usage": {
+            "theta/DeepSeek-V4.1-Flash-1017": {
+              "cacheCreationInputTokens": 0,
+              "cacheReadInputTokens": 0,
+              "canonicalModel": "theta/deepseek-v4.1-flash-1017",
+              "contextWindow": 200000,
+              "costBasis": "unknown",
+              "costUSD": 0.11746,
+              "inputTokens": 23462,
+              "maxOutputTokens": 32000,
+              "outputTokens": 6,
+              "provider": "firstParty",
+              "thinkingTokens": 0,
+              "webSearchRequests": 0
+            }
+          },
+          "num_turns": 1,
+          "origin": null,
+          "permission_denials": [],
+          "result": "Done",
+          "session_id": "b56c824f-23e4-4fae-acec-34f26ee8646b",
+          "stop_reason": "end_turn",
+          "structured_output": null,
+          "subtype": "success",
+          "terminal_reason": "completed",
+          "total_cost_usd": 0.11746,
+          "usage": {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "inference_geo": "",
+            "input_tokens": 11745,
+            "iterations": [],
+            "output_tokens": 3,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_fetch_requests": 0,
+              "web_search_requests": 0
+            },
+            "service_tier": "standard",
+            "speed": "standard"
+          },
+          "uuid": "f85be0b6-a91d-463a-8dde-644cd9467267"
+        }
+      },
+      {
+        "effort-observation": {
+          "effective": "high",
+          "initial": "low",
+          "source": "get_settings",
+          "target": "high"
+        }
+      }
+    ],
+    "requests": 0,
+    "results": 2,
+    "scenarioSHA256": null,
+    "status": "passed",
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "schemaVersion": 1,
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-027",
+    "path": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/source/plan.json",
+    "sha256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+    "provenance": "official",
+    "driverProfile": "structured-input"
+  },
+  "startedAt": "2026-11-09T20:32:11.525001Z",
+  "status": "passed"
+}

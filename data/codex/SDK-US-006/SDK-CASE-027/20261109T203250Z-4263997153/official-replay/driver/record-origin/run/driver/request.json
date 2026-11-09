@@ -1,0 +1,9 @@
+{
+  "case": "SDK-CASE-027",
+  "materials": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/official-records/dadc3e4f6f01658fcee1c7139ee0443c/driver/materials",
+  "workspace": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/routes/record/workspace",
+  "peer": {
+    "command": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/runtime/official/dadc3e4f6f01658fcee1c7139ee0443c/peer-main"
+  },
+  "output": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/official-records/dadc3e4f6f01658fcee1c7139ee0443c/driver"
+}

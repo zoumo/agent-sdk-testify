@@ -1,0 +1,21 @@
+{
+  "command": "record",
+  "connectionId": "main",
+  "execution": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/executions/aa7882a874581b9b398dc4566c2adf5d/execution.json",
+  "executionId": "aa7882a874581b9b398dc4566c2adf5d",
+  "executionSHA256": "8c097c8c541bdd1e56ece67575e667abdd9f630dfb8e68e604fc420b3bf7f0db",
+  "fixtureId": "1ad654200d92488192cc50c023ab62a9",
+  "material": {
+    "id": "2a8acaea35f9ba8bd50491bf7c71cb3f",
+    "manifestSHA256": "6b6550659d6dcbe8e7de63b212d9580313084813ac25e13531b5eee0704efadf",
+    "path": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/materials/2a8acaea35f9ba8bd50491bf7c71cb3f",
+    "planSHA256": "baf1ae92d111a2e23cafd68717a622292d88f19b490c1fdf6af1fd4a6705bf4d",
+    "provenance": "official",
+    "recordingSHA256": "c1cd46134fb6948044886be9aca8949a5eb0863986fb3a842b9d27ed18877457"
+  },
+  "processId": 52381,
+  "receipt": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/executions/aa7882a874581b9b398dc4566c2adf5d/record/raw/transport.json",
+  "result": "/private/tmp/ast-027-codex-new.3yWB9P/fixture/executions/aa7882a874581b9b398dc4566c2adf5d/receipts/main.result.json",
+  "schemaVersion": 1,
+  "status": "passed"
+}
