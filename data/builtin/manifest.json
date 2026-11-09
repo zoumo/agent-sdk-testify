@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "toolVersion": "0.1.0-dev",
+  "toolVersion": "v0.1.0",
   "sourceRevision": "db7e3678906aa7f5962152750d1098beab1e2210",
   "scope": "local technical candidates; public release not authorized",
   "indexSHA256": "8cca384ec02f2e231ec7bc41a2bd176b82607915e3f2e7ededb454e7e651645f",

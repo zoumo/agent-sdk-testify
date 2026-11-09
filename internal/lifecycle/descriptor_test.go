@@ -101,7 +101,7 @@ func TestToolIdentityValidatesExecutableAndEmbeddedUnions(t *testing.T) {
 		{
 			name: "inexact version",
 			identity: ToolIdentity{
-				Source: embedded.Source, Version: version.Version, Module: embedded.Module,
+				Source: embedded.Source, Version: "0.1.0", Module: embedded.Module,
 				ModuleRevision: embedded.ModuleRevision, GoVersion: embedded.GoVersion,
 			},
 			want: "is not exact",

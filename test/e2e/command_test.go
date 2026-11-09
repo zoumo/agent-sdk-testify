@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 func TestPublicCommands(t *testing.T) {
@@ -37,7 +39,11 @@ func TestPublicCommands(t *testing.T) {
 		out, stderr, code = runCLI(t, binary, nil, args...)
 		require.Zero(t, code, stderr)
 		require.Empty(t, stderr)
-		require.Contains(t, string(out), "agent-sdk-testify 0.1.0-dev")
+		expected := os.Getenv("AGENT_SDK_TESTIFY_VERSION")
+		if expected == "" {
+			expected = version.String()
+		}
+		require.Equal(t, "agent-sdk-testify "+expected+"\n", string(out))
 	}
 
 	out, stderr, code = runCLI(t, binary, nil, "--internal-peer", "--help")

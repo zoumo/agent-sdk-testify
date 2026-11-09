@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-sdk-testify-driver"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Native Python SDK cases for the Go agent-sdk-testify runner"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,3 +30,6 @@ claude_driver = "claude/official/claude_driver"
 
 [tool.setuptools.package-data]
 record_user_story = ["schemas/*.json", "examples/*.json", "examples/bindings/*.json"]
+
+[tool.setuptools.dynamic]
+version = {attr = "record_user_story.__version__"}

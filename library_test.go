@@ -48,7 +48,7 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.Equal(t, canonicalFixture, prepared.FixtureDir)
 	require.Equal(t, agenttestify.ToolSourceEmbedded, prepared.Tool.Source)
 	require.Equal(t, libraryModule, prepared.Tool.Module)
-	require.NotEqual(t, "0.1.0-dev", prepared.Tool.Version)
+	require.NotEmpty(t, prepared.Tool.Version)
 	require.NotEmpty(t, prepared.Tool.ModuleRevision)
 	require.NotEmpty(t, prepared.Tool.ModuleTime)
 	require.NotEmpty(t, prepared.Tool.GoVersion)

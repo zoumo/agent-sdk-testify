@@ -98,11 +98,14 @@ consumer material 保持在消费者私有目录，不登记固定索引、不�
 合成输入只用于专项测试，不能登记为真实录制或用户故事成功证据。
 
 完成 verify、资格审核和采用后，用材料所在的完整 40 位源码 revision 重新生成内置
-快照；普通版本变更也需要重新生成：
+快照；普通版本变更也需要重新生成。生成必须发生在带精确 Git tag 的提交上，版本由
+tag 注入，源码不维护版本常量：
 
 ```sh
-go run -tags builtin_generate ./cmd/agent-sdk-testify --revision FULL_40_CHARACTER_SOURCE_COMMIT
-go run -tags builtin_generate ./cmd/agent-sdk-testify --check
+version=$(git describe --tags --exact-match)
+ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"
+go run -tags builtin_generate -ldflags="$ldflags" ./cmd/agent-sdk-testify --revision FULL_40_CHARACTER_SOURCE_COMMIT
+go run -tags builtin_generate -ldflags="$ldflags" ./cmd/agent-sdk-testify --check
 ```
 
 生成器从固定索引选择 `admitted` 且 `verification=passed` 的材料，校验完整闭包并

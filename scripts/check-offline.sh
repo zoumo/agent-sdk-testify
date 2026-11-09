@@ -9,6 +9,9 @@ if (( $# > 1 )); then
 fi
 export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off PIP_NO_INDEX=1
 export GORACE="${GORACE:-} atexit_sleep_ms=0"
+version=$(git describe --tags --exact-match 2>/dev/null || printf devel)
+ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"
+export AGENT_SDK_TESTIFY_VERSION="$version"
 artifact_dir=.artifacts/acceptance
 mkdir -p "$artifact_dir"
 : > "$artifact_dir/phase-times.tsv"
@@ -25,28 +28,28 @@ check_environment() {
 
 quality_checks() {
   go mod verify
-  go run -tags builtin_generate ./cmd/agent-sdk-testify --check
+  go run -tags builtin_generate -ldflags="$ldflags" ./cmd/agent-sdk-testify --check
   go vet ./...
   go list -deps -test ./... > "$artifact_dir/dependencies.txt"
   "$python" -c "from pathlib import Path; assert 'github.com/zoumo/agent-sdk-go' not in Path('$artifact_dir/dependencies.txt').read_text()"
 }
 
 normal_tests() {
-  phase unit go test -buildvcs=true -json -count=1 -timeout=5m . ./internal/... > "$artifact_dir/ut.jsonl"
-  phase integration go test -buildvcs=true -json -count=1 -timeout=5m ./tests/intergration/... > "$artifact_dir/integration.jsonl"
+  phase unit go test -buildvcs=true -ldflags="$ldflags" -json -count=1 -timeout=5m . ./internal/... > "$artifact_dir/ut.jsonl"
+  phase integration go test -buildvcs=true -ldflags="$ldflags" -json -count=1 -timeout=5m ./tests/intergration/... > "$artifact_dir/integration.jsonl"
 }
 
 race_tests() {
-  phase unit-race go test -buildvcs=true -json -race -count=1 -timeout=10m . ./internal/... > "$artifact_dir/race.jsonl"
-  phase integration-race go test -buildvcs=true -json -race -count=1 -timeout=10m ./tests/intergration/... > "$artifact_dir/integration-race.jsonl"
+  phase unit-race go test -buildvcs=true -ldflags="$ldflags" -json -race -count=1 -timeout=10m . ./internal/... > "$artifact_dir/race.jsonl"
+  phase integration-race go test -buildvcs=true -ldflags="$ldflags" -json -race -count=1 -timeout=10m ./tests/intergration/... > "$artifact_dir/integration-race.jsonl"
 }
 
 build_normal() {
-  phase build-normal go build -o "$artifact_dir/agent-sdk-testify" ./cmd/agent-sdk-testify
+  phase build-normal go build -ldflags="$ldflags" -o "$artifact_dir/agent-sdk-testify" ./cmd/agent-sdk-testify
 }
 
 build_race() {
-  phase build-race go build -race -o "$artifact_dir/agent-sdk-testify-race" ./cmd/agent-sdk-testify
+  phase build-race go build -ldflags="$ldflags" -race -o "$artifact_dir/agent-sdk-testify-race" ./cmd/agent-sdk-testify
 }
 
 build_binaries() {
@@ -74,7 +77,7 @@ build_and_package_checks() {
   phase drivers "$python" -m unittest discover -s drivers/tests -p 'test_*.py'
   phase scenarios "$python" -m unittest discover -s drivers/tests/scenarios -p 'test_*.py'
   rm -rf "$artifact_dir/dist"
-  phase release "$python" scripts/release.py --output "$artifact_dir/dist"
+  phase release "$python" scripts/release.py --allow-untagged --output "$artifact_dir/dist"
   phase wheel "$python" scripts/check-agent-sdk-testify-package.py "$artifact_dir"/dist/*.whl
 }
 

@@ -69,7 +69,7 @@ git -C /absolute/codex-source rev-parse HEAD
 /absolute/official-env/bin/python -m pip install \
   --no-deps --no-build-isolation /absolute/codex-source/sdk/python
 /absolute/official-env/bin/python -m pip install \
-  --no-deps /absolute/agent_sdk_testify_driver-0.1.0-py3-none-any.whl
+  --no-deps /absolute/agent_sdk_testify_driver-*.whl
 ```
 
 `--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。agent record、official record 通过 `--cmd ABS` 和

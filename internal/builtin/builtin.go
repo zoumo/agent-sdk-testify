@@ -60,7 +60,7 @@ func Read() (*Manifest, string, error) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		return nil, "", err
 	}
-	if m.SchemaVersion != 1 || m.ToolVersion != version.Version || len(m.Materials) == 0 {
+	if m.SchemaVersion != 1 || !version.ExactModuleVersion(m.ToolVersion) || len(m.Materials) == 0 {
 		return nil, "", errors.New("invalid or empty builtin manifest; regenerate")
 	}
 	catalog := data.Scenarios()

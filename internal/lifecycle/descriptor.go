@@ -319,7 +319,7 @@ func SelfCommand() (Command, string, string, error) {
 	if err != nil {
 		return Command{}, "", "", err
 	}
-	return Command{Command: self}, version.Version, hash, nil
+	return Command{Command: self}, version.String(), hash, nil
 }
 
 func FixturePath(fixtureDir string) string {

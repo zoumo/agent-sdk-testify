@@ -1,5 +1,8 @@
 GO ?= go
-GO_TEST_FLAGS ?= -buildvcs=true
+MODULE ?= github.com/zoumo/agent-sdk-testify
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo devel)
+GO_LDFLAGS ?= -X=$(MODULE)/internal/version.buildVersion=$(VERSION)
+GO_TEST_FLAGS ?= -buildvcs=true -ldflags=$(GO_LDFLAGS)
 GOLANGCI_LINT ?= golangci-lint
 PYTHON ?= python3
 BIN_DIR ?= bin
@@ -39,8 +42,8 @@ vet:
 
 build:
 	@mkdir -p "$(dir $(BINARY))"
-	$(GO) run -tags builtin_generate ./cmd/agent-sdk-testify --check
-	$(GO) build -trimpath -o "$(BINARY)" ./cmd/agent-sdk-testify
+	$(GO) run -tags builtin_generate -ldflags=$(GO_LDFLAGS) ./cmd/agent-sdk-testify --check
+	$(GO) build -trimpath -ldflags=$(GO_LDFLAGS) -o "$(BINARY)" ./cmd/agent-sdk-testify
 
 bundle:
 	PYTHON="$(PYTHON)" bash scripts/build.sh

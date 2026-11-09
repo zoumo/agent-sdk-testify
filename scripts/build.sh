@@ -8,6 +8,9 @@ if [[ $# != 0 ]]; then
 fi
 output=${AGENT_SDK_TESTIFY_BUILD_DIR:-"$source/.artifacts/build"}
 mkdir -p "$output"
-go -C "$source" run -tags builtin_generate ./cmd/agent-sdk-testify --check
-go -C "$source" build -o "$output/agent-sdk-testify" ./cmd/agent-sdk-testify
-"${PYTHON:-python3}" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$output" "$source/drivers"
+version=$(git -C "$source" describe --tags --exact-match 2>/dev/null || printf devel)
+ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"
+go -C "$source" run -tags builtin_generate -ldflags="$ldflags" ./cmd/agent-sdk-testify --check
+go -C "$source" build -ldflags="$ldflags" -o "$output/agent-sdk-testify" ./cmd/agent-sdk-testify
+AGENT_SDK_TESTIFY_VERSION="$version" \
+  "${PYTHON:-python3}" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$output" "$source/drivers"
