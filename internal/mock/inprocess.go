@@ -46,14 +46,15 @@ func RunInProcess(ctx context.Context, prepared Prepared, streams InProcessStrea
 		return nil, errors.New("in-process mock requires stream cleanup")
 	}
 	return lifecycle.RunMock(ctx, lifecycle.MockRequest{
-		FixtureDir: prepared.FixtureDir,
-		Connection: prepared.Connection,
-		NativeArgs: prepared.NativeArgs,
-		Timeout:    prepared.Timeout,
-		ProgressFD: -1,
-		ResultFD:   -1,
-		Artifact:   prepared.Artifact,
-		RequireNew: true,
+		FixtureDir:  prepared.FixtureDir,
+		Connection:  prepared.Connection,
+		ExecutionID: prepared.ExecutionID,
+		NativeArgs:  prepared.NativeArgs,
+		Timeout:     prepared.Timeout,
+		ProgressFD:  -1,
+		ResultFD:    -1,
+		Artifact:    prepared.Artifact,
+		RequireNew:  prepared.ExecutionID == "",
 	}, inProcessReplayPolicy{
 		prepared:  prepared,
 		streams:   streams,

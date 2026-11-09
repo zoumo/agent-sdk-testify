@@ -101,6 +101,25 @@ func pendingExecution(index *Index) *IndexExecution {
 	return nil
 }
 
+func findIndexExecution(index *Index, id string) (*IndexExecution, error) {
+	seen := make(map[string]bool, len(index.Executions))
+	var found *IndexExecution
+	for i := range index.Executions {
+		execution := &index.Executions[i]
+		if execution.ID == "" {
+			return nil, errors.New("execution index contains an empty identity")
+		}
+		if seen[execution.ID] {
+			return nil, fmt.Errorf("duplicate execution identity %s in index", execution.ID)
+		}
+		seen[execution.ID] = true
+		if execution.ID == id {
+			found = execution
+		}
+	}
+	return found, nil
+}
+
 func connectionStarted(execution *IndexExecution, id string) bool {
 	for _, connection := range execution.Connections {
 		if connection.ID == id && connection.Status != "pending" {

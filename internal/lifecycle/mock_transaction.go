@@ -18,14 +18,15 @@ import (
 // MockRequest contains the immutable inputs shared by every connection of one
 // mock execution.
 type MockRequest struct {
-	FixtureDir string
-	Connection string
-	NativeArgs []string
-	Timeout    time.Duration
-	ProgressFD int
-	ResultFD   int
-	Artifact   corpus.Material
-	RequireNew bool
+	FixtureDir  string
+	Connection  string
+	ExecutionID string
+	NativeArgs  []string
+	Timeout     time.Duration
+	ProgressFD  int
+	ResultFD    int
+	Artifact    corpus.Material
+	RequireNew  bool
 }
 
 // MockPolicy supplies replay for one connection. The transaction owns every
@@ -241,7 +242,9 @@ func RunMock(ctx context.Context, request MockRequest, policy MockPolicy) (resul
 			finalErr = errors.New("mock transaction aborted")
 		}
 		runErr = errors.Join(runErr, run.finalize(ctx, resultStream, finalErr))
-		result.refresh(run.fixtureDir)
+		if refreshErr := result.refresh(run.fixtureDir); refreshErr != nil {
+			runErr = errors.Join(runErr, ClassifyFailure(FailureClassInternal, refreshErr))
+		}
 	}()
 
 	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
@@ -297,6 +300,9 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 	if !reflect.DeepEqual(*current, request.Artifact) {
 		return nil, errors.New("current recording changed before execution")
 	}
+	if _, err := inspectMaterial(fixture, *current); err != nil {
+		return nil, err
+	}
 	if _, err := executionConnections(fixtureDir, "mock", current.Connections, current, route); err != nil {
 		return nil, err
 	}
@@ -315,14 +321,35 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 			return restoreRouteSlots(run.fixture, "mock")
 		}))
 	}()
-	if pending := pendingExecution(index); pending != nil {
-		if request.RequireNew {
+	var pending *IndexExecution
+	if request.ExecutionID != "" {
+		pending, err = findIndexExecution(index, request.ExecutionID)
+		if err != nil {
+			return nil, err
+		}
+		if pending == nil {
+			return nil, fmt.Errorf("mock execution %s is absent from index", request.ExecutionID)
+		}
+		if pending.Command != "mock" {
+			return nil, fmt.Errorf("execution %s is not a mock execution", request.ExecutionID)
+		}
+		if pending.Status != string(ExecutionStatusOpen) {
+			return nil, fmt.Errorf("mock execution %s is already complete", request.ExecutionID)
+		}
+		if other := pendingExecution(index); other != nil && other.ID != pending.ID {
+			return nil, fmt.Errorf("fixture has unfinished execution %s", other.ID)
+		}
+	} else {
+		if _, err := findIndexExecution(index, ""); err != nil {
+			return nil, err
+		}
+		pending = pendingExecution(index)
+		if pending != nil && request.RequireNew {
 			return nil, fmt.Errorf("fixture has unfinished execution %s", pending.ID)
 		}
-		if pending.Command != "mock" || connectionStarted(pending, request.Connection) {
-			if pending.Command == "mock" {
-				return nil, fmt.Errorf("mock connection %s already started for execution %s", request.Connection, pending.ID)
-			}
+	}
+	if pending != nil {
+		if pending.Command != "mock" {
 			return nil, ErrBusy
 		}
 		dir := ExecutionDir(fixtureDir, pending.ID)
@@ -333,8 +360,21 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if err := execution.Validate(*fixture); err != nil {
 			return nil, err
 		}
+		if err := validateMockExecutionContract(fixture, fixtureDir, index, *pending, execution); err != nil {
+			return nil, err
+		}
 		if hash, err := tool.FileDigest(filepath.Join(dir, "execution.json")); err != nil || hash != pending.DescriptorSHA256 {
 			return nil, errors.New("mock descriptor changed")
+		}
+		statuses, err := reportConnectionStatuses(*pending, execution)
+		if err != nil {
+			return nil, err
+		}
+		if err := validateExecutionStatus(ExecutionStatus(pending.Status), statuses); err != nil {
+			return nil, err
+		}
+		if connectionStarted(pending, request.Connection) {
+			return nil, fmt.Errorf("mock connection %s already started for execution %s", request.Connection, pending.ID)
 		}
 		if err := validateMockJoin(execution, request.NativeArgs, request.Timeout, request.ProgressFD, &request.Artifact); err != nil {
 			return nil, err

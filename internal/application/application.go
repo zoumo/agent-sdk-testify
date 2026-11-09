@@ -129,6 +129,14 @@ func Open(fixtureDir string) (*OpenResult, error) {
 	return &OpenResult{Fixture: fixture, Current: current, FixtureDir: dir}, nil
 }
 
+// ExecutionReport regenerates validated evidence for one mock execution.
+func ExecutionReport(fixtureDir, executionID string) (*lifecycle.ExecutionReport, error) {
+	if fixtureDir == "" || !filepath.IsAbs(fixtureDir) {
+		return nil, errors.New("execution report requires an absolute fixture directory")
+	}
+	return lifecycle.ReadMockExecutionReport(fixtureDir, executionID)
+}
+
 // Export validates caller input and copies the current recording.
 func Export(o ExportOptions) error {
 	if !filepath.IsAbs(o.FixtureDir) || !filepath.IsAbs(o.Output) {

@@ -436,6 +436,20 @@ func (f *Fixture) StartMockAgent(ctx context.Context, options MockAgentOptions, 
 	}, err
 }
 
+// ExecutionReport regenerates a validated report for every connection in one
+// mock execution without creating or advancing an execution.
+func (f *Fixture) ExecutionReport(executionID string) (*ExecutionReport, error) {
+	fixtureDir := ""
+	if f != nil {
+		fixtureDir = f.FixtureDir
+	}
+	report, err := application.ExecutionReport(fixtureDir, executionID)
+	if err != nil {
+		return nil, err
+	}
+	return executionReportView(report), nil
+}
+
 // FullConsumption reports the one-shot safe point for SDK input half-close.
 func (r *MockRun) FullConsumption() <-chan struct{} {
 	if r == nil || r.run == nil {

@@ -463,6 +463,9 @@ func (e Execution) Validate(f Fixture) error {
 		if err := f.validateConnectionIdentity(c.Transport, c.Command, c.Args, c.Launcher); err != nil {
 			return fmt.Errorf("connection %s: %w", c.ID, err)
 		}
+		if c.Transport == ConnectionTransportInProcess && c.ProcessReceipt != "" {
+			return fmt.Errorf("connection %s in-process connection declares a process receipt", c.ID)
+		}
 		if c.Material != "" && !filepath.IsAbs(c.Material) {
 			return errors.New("connection material must be absolute")
 		}
@@ -612,6 +615,9 @@ func validateConnectionFields(fields map[string]json.RawMessage, transport strin
 			if _, present := fields[name]; present {
 				return errors.New("in-process connection declares executable fields")
 			}
+		}
+		if _, present := fields["processReceipt"]; present {
+			return errors.New("in-process connection declares a process receipt")
 		}
 	}
 	for name := range fields {

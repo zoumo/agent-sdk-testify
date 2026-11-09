@@ -67,9 +67,25 @@ type MockResult struct {
 	Execution *ExecutionReport
 }
 
-func (r *MockResult) refresh(fixtureDir string) {
-	r.ActionResult.refresh(fixtureDir)
-	r.Execution, _ = mockExecutionReport(fixtureDir, r.ExecutionID)
+func (r *MockResult) refresh(fixtureDir string) error {
+	r.ConnectionStatus = ConnectionStatusUnknown
+	r.ExecutionStatus = ExecutionStatusUnknown
+	r.ExecutionComplete = false
+	report, err := ReadMockExecutionReport(fixtureDir, r.ExecutionID)
+	if err != nil {
+		r.Execution = nil
+		return err
+	}
+	r.Execution = report
+	r.ExecutionStatus = report.Status
+	r.ExecutionComplete = report.Complete
+	for _, connection := range report.Connections {
+		if connection.ID == r.ConnectionID {
+			r.ConnectionStatus = connection.Status
+			break
+		}
+	}
+	return nil
 }
 
 func (r *ActionResult) refresh(fixtureDir string) {

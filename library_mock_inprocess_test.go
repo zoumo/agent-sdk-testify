@@ -75,6 +75,7 @@ func TestLibraryStartMockAgentFullConsumptionAndReport(t *testing.T) {
 		t.Fatal("run completed before client EOF")
 	default:
 	}
+	require.False(t, output.Closed(), "full consumption must not close the writer before client EOF")
 	require.NoError(t, input.CloseEOF())
 
 	result, err := run.Wait(t.Context())
@@ -248,10 +249,10 @@ func TestLibraryStartMockAgentRejectsPreflightFailures(t *testing.T) {
 			want:    "reader and writer must be separate",
 		},
 		{
-			name:    "explicit join",
+			name:    "unknown explicit join",
 			options: agenttestify.MockAgentOptions{ExecutionID: "explicit"},
 			streams: valid,
-			want:    "explicit mock execution joins are not implemented",
+			want:    "absent from index",
 		},
 		{
 			name:    "undeclared connection",
@@ -570,6 +571,11 @@ func TestLibraryStartMockAgentWaitIsRepeatableAndConcurrent(t *testing.T) {
 	require.NotSame(t, first.result, second.result)
 	first.result.Material.Connections[0] = "mutated"
 	require.NotEqual(t, "mutated", second.result.Material.Connections[0])
+
+	repeated, err := run.Wait(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, first.result.ExecutionID, repeated.ExecutionID)
+	require.Equal(t, first.result.Execution, repeated.Execution)
 }
 
 func TestLibraryStartMockAgentDoesNotJoinOpenExecution(t *testing.T) {

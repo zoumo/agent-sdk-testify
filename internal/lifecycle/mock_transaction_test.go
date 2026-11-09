@@ -16,7 +16,65 @@ import (
 type mockPolicyFunc func(context.Context, MockContext) error
 
 func (p mockPolicyFunc) Replay(ctx context.Context, run MockContext) error {
-	return p(ctx, run)
+	err := p(ctx, run)
+	if receiptErr := writeMockPolicyReceipt(run, err); receiptErr != nil {
+		return errors.Join(err, receiptErr)
+	}
+	return err
+}
+
+func writeMockPolicyReceipt(run MockContext, replayErr error) error {
+	path := run.ConnectionReceipt()
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return err
+	}
+	artifact := run.Artifact()
+	connectionPath, err := connectionRecordingPath(artifact.Path, run.Connection())
+	if err != nil {
+		return err
+	}
+	recordingSHA256, err := tool.FileDigest(connectionPath)
+	if err != nil {
+		return err
+	}
+	frames, err := recordingFrameCount(connectionPath, run.Fixture().AgentType)
+	if err != nil {
+		return err
+	}
+	transport := ""
+	for _, connection := range run.Execution().Connections {
+		if connection.ID == run.Connection() {
+			transport = connection.Transport
+			break
+		}
+	}
+	receipt := tool.Object{
+		"schemaVersion":   1,
+		"version":         1,
+		"status":          "failed",
+		"peer":            "test mock policy",
+		"transport":       transport,
+		"provider":        run.Fixture().AgentType,
+		"recording":       artifact.Path,
+		"planSHA256":      artifact.PlanSHA256,
+		"recordingSHA256": recordingSHA256,
+		"frames":          frames,
+		"nativeLaunched":  false,
+		"fullConsumption": replayErr == nil,
+		"clientEOF":       replayErr == nil,
+		"cleanupComplete": true,
+	}
+	if replayErr == nil {
+		receipt["status"] = "passed"
+	} else {
+		receipt["error"] = replayErr.Error()
+		cause := replayErr
+		if FailureClassOf(cause) == "" {
+			cause = ClassifyFailure(FailureClassInternal, cause)
+		}
+		receipt["failureClass"] = string(FailureClassOf(cause))
+	}
+	return tool.WriteJSON(path, receipt)
 }
 
 func prepareMockTransactionFixture(t *testing.T, caseID string) string {

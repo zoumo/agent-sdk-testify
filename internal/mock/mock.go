@@ -20,14 +20,15 @@ import (
 
 // Prepared is the validated current-material contract for one replay policy.
 type Prepared struct {
-	FixtureDir string
-	Connection string
-	Agent      string
-	Artifact   corpus.Material
-	Timeout    time.Duration
-	ResultFD   int
-	ProgressFD int
-	NativeArgs []string
+	FixtureDir  string
+	Connection  string
+	ExecutionID string
+	Agent       string
+	Artifact    corpus.Material
+	Timeout     time.Duration
+	ResultFD    int
+	ProgressFD  int
+	NativeArgs  []string
 }
 
 type Result = lifecycle.MockResult
@@ -35,13 +36,14 @@ type Result = lifecycle.MockResult
 // Run replays the current recording in one prepared-fixture execution.
 func Run(ctx context.Context, prepared Prepared, input, output *os.File) (*Result, error) {
 	return lifecycle.RunMock(ctx, lifecycle.MockRequest{
-		FixtureDir: prepared.FixtureDir,
-		Connection: prepared.Connection,
-		NativeArgs: prepared.NativeArgs,
-		Timeout:    prepared.Timeout,
-		ProgressFD: prepared.ProgressFD,
-		ResultFD:   prepared.ResultFD,
-		Artifact:   prepared.Artifact,
+		FixtureDir:  prepared.FixtureDir,
+		Connection:  prepared.Connection,
+		ExecutionID: prepared.ExecutionID,
+		NativeArgs:  prepared.NativeArgs,
+		Timeout:     prepared.Timeout,
+		ProgressFD:  prepared.ProgressFD,
+		ResultFD:    prepared.ResultFD,
+		Artifact:    prepared.Artifact,
 	}, mockReplayPolicy{prepared: prepared, input: input, output: output})
 }
 

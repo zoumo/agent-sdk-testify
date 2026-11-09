@@ -82,9 +82,6 @@ func StartMock(ctx context.Context, o MockOptions, streams StartMockStreams) (*M
 	if ctx == nil {
 		return nil, errors.New("mock requires a context")
 	}
-	if o.ExecutionID != "" {
-		return nil, errors.New("explicit mock execution joins are not implemented")
-	}
 	if o.FixtureDir == "" {
 		return nil, errors.New("mock requires --fixture-dir")
 	}

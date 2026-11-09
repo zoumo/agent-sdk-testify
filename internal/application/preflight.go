@@ -111,6 +111,12 @@ func prepareMockMode(o MockOptions, inProcess bool) (mock.Prepared, error) {
 	if err != nil {
 		return mock.Prepared{}, err
 	}
+	if inProcess && fixture.Tool.Source != lifecycle.ToolSourceEmbedded {
+		return mock.Prepared{}, errors.New("in-process mock requires embedded fixture")
+	}
+	if !inProcess && fixture.Tool.Source != lifecycle.ToolSourceExecutable {
+		return mock.Prepared{}, errors.New("process mock requires executable fixture")
+	}
 	if err := protocol.ValidateNativeArgs(fixture.AgentType, o.NativeArgs); err != nil {
 		return mock.Prepared{}, err
 	}
@@ -137,14 +143,15 @@ func prepareMockMode(o MockOptions, inProcess bool) (mock.Prepared, error) {
 		return mock.Prepared{}, err
 	}
 	return mock.Prepared{
-		FixtureDir: fixtureDir,
-		Connection: o.Connection,
-		Agent:      fixture.AgentType,
-		Artifact:   *material,
-		Timeout:    o.Timeout,
-		ResultFD:   o.ResultFD,
-		ProgressFD: o.ProgressFD,
-		NativeArgs: slices.Clone(o.NativeArgs),
+		FixtureDir:  fixtureDir,
+		Connection:  o.Connection,
+		ExecutionID: o.ExecutionID,
+		Agent:       fixture.AgentType,
+		Artifact:    *material,
+		Timeout:     o.Timeout,
+		ResultFD:    o.ResultFD,
+		ProgressFD:  o.ProgressFD,
+		NativeArgs:  slices.Clone(o.NativeArgs),
 	}, nil
 }
 
