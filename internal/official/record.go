@@ -152,7 +152,11 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		o.URL, o.TokenFile = service.URL(), service.TokenFile()
 		defer func() {
 			cleanupErr := service.Close()
-			if !service.Stopped() {
+			if cleanupErr == nil {
+				if pid := service.ProcessID(); pid > 0 {
+					runErr = errors.Join(runErr, activity.TrackProcess("service", "stopped", pid))
+				}
+			} else {
 				result["cleanupComplete"] = false
 			}
 			cleanup := tool.Object{}

@@ -161,14 +161,16 @@ func (j *journal) run(ctx context.Context, cmd *exec.Cmd, streams IO, report *re
 		go func() { done <- cleanupGroup(nativePID, j.options.CleanupTimeout) }()
 	}
 	stopped := false
+	var drainTimeout <-chan time.Time
 	stop := func() {
 		if stopped {
 			return
 		}
 		stopped = true
 		inputStopped.Store(true)
-		closeFiles(clientIn, clientOut, input, output, stderr)
+		closeFiles(clientIn, clientOut, input)
 		beginCleanup()
+		drainTimeout = time.After(2*j.options.CleanupTimeout + time.Second)
 	}
 	failed := func(why string, e error) {
 		if runErr == nil {
@@ -237,7 +239,11 @@ func (j *journal) run(ctx context.Context, cmd *exec.Cmd, streams IO, report *re
 				cleanupOK = false
 				failed("cleanup-error", err)
 				close(abandonWait)
+				closeFiles(output, stderr)
 			}
+		case <-drainTimeout:
+			drainTimeout = nil
+			closeFiles(output, stderr)
 		case <-contextDone:
 			contextDone = nil
 			failed(contextReason(ctx), ctx.Err())

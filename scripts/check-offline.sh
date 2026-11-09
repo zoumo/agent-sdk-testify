@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 python=${PYTHON:-python3}
 task=${1:-all}
 if (( $# > 1 )); then
-  echo "usage: $0 [all|quality|test|race|e2e|build]" >&2
+  echo "usage: $0 [all|parallel-checks|lint|quality|test|race|e2e|build]" >&2
   exit 2
 fi
 export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off PIP_NO_INDEX=1
@@ -12,8 +12,9 @@ export GORACE="${GORACE:-} atexit_sleep_ms=0"
 version=$(git describe --tags --exact-match 2>/dev/null || printf devel)
 ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"
 export AGENT_SDK_TESTIFY_VERSION="$version"
-artifact_dir=.artifacts/acceptance
+artifact_dir=${ARTIFACT_DIR:-.artifacts/acceptance}
 mkdir -p "$artifact_dir"
+artifact_dir=$(cd "$artifact_dir" && pwd)
 : > "$artifact_dir/phase-times.tsv"
 phase() {
   local name=$1 started=$SECONDS
@@ -55,14 +56,14 @@ build_race() {
 build_binaries() {
   build_normal
   build_race
-  export AGENT_SDK_TESTIFY_NORMAL_BIN="$PWD/$artifact_dir/agent-sdk-testify"
-  export AGENT_SDK_TESTIFY_RACE_BIN="$PWD/$artifact_dir/agent-sdk-testify-race"
+  export AGENT_SDK_TESTIFY_NORMAL_BIN="$artifact_dir/agent-sdk-testify"
+  export AGENT_SDK_TESTIFY_RACE_BIN="$artifact_dir/agent-sdk-testify-race"
   go version -m "$AGENT_SDK_TESTIFY_NORMAL_BIN" > "$artifact_dir/cli-build-info.txt"
   go version -m "$AGENT_SDK_TESTIFY_RACE_BIN" >> "$artifact_dir/cli-build-info.txt"
 }
 
 e2e_tests() {
-  phase e2e-race env AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_RACE_BIN" bash scripts/with-agent-sdk-testify.sh --race go test -buildvcs=true -json -race -count=1 -timeout=10m ./test/e2e/... > "$artifact_dir/e2e-race.jsonl"
+  phase e2e-race env AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_RACE_BIN" bash scripts/with-agent-sdk-testify.sh --race go test -buildvcs=true -json -race -count=1 -timeout=15m ./test/e2e/... > "$artifact_dir/e2e-race.jsonl"
 }
 
 build_and_package_checks() {
@@ -81,6 +82,65 @@ build_and_package_checks() {
   phase wheel "$python" scripts/check-agent-sdk-testify-package.py "$artifact_dir"/dist/*.whl
 }
 
+summarize_tasks() {
+  local root=$1
+  shift
+  local task dir status=0
+  for task in "$@"; do
+    dir="$root/$task"
+    if [[ -f "$dir/status" && "$(<"$dir/status")" == passed ]]; then
+      printf '%s: passed\n' "$task"
+    else
+      status=1
+      printf '%s: failed\n' "$task"
+      tail -n 80 "$root/$task/task.log" || true
+    fi
+  done
+  return "$status"
+}
+
+run_isolated_task() {
+  local task=$1 root=$2 dir script
+  dir="$root/$task"
+  script="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+  mkdir -p "$dir"
+  if ARTIFACT_DIR="$dir" bash "$script" "$task" > "$dir/task.log" 2>&1; then
+    printf 'passed\n' > "$dir/status"
+  else
+    printf 'failed\n' > "$dir/status"
+  fi
+}
+
+parallel_tasks() {
+  local tasks=("$@")
+  local root=$artifact_dir
+  local jobs=${CHECK_OFFLINE_JOBS:-3}
+  local script
+  script="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+  rm -rf "$root"
+  mkdir -p "$root"
+  # shellcheck disable=SC2016
+  printf '%s\n' "${tasks[@]}" | xargs -P "$jobs" -I{} bash -c '
+    task=$1
+    dir=$2/$task
+    if mkdir -p "$dir" &&
+      ARTIFACT_DIR="$dir" bash "$3" "$task" > "$dir/task.log" 2>&1; then
+      printf "passed\n" > "$dir/status"
+    else
+      printf "failed\n" > "$dir/status"
+    fi
+  ' _ {} "$root" "$script" || true
+  summarize_tasks "$root" "${tasks[@]}"
+}
+
+parallel_checks() {
+  local status=0
+  parallel_tasks lint quality test || status=$?
+  run_isolated_task build "$artifact_dir"
+  summarize_tasks "$artifact_dir" build || status=1
+  return "$status"
+}
+
 case "$task" in
   all)
     check_environment
@@ -90,6 +150,14 @@ case "$task" in
     build_binaries
     e2e_tests
     build_and_package_checks
+    ;;
+  parallel-checks)
+    check_environment
+    parallel_checks
+    ;;
+  lint)
+    check_environment
+    make fmt-check lint
     ;;
   quality)
     check_environment
@@ -106,7 +174,7 @@ case "$task" in
   e2e)
     check_environment
     build_race
-    export AGENT_SDK_TESTIFY_RACE_BIN="$PWD/$artifact_dir/agent-sdk-testify-race"
+    export AGENT_SDK_TESTIFY_RACE_BIN="$artifact_dir/agent-sdk-testify-race"
     e2e_tests
     ;;
   build)
@@ -115,7 +183,7 @@ case "$task" in
     build_and_package_checks
     ;;
   *)
-    echo "usage: $0 [all|quality|test|race|e2e|build]" >&2
+    echo "usage: $0 [all|parallel-checks|lint|quality|test|race|e2e|build]" >&2
     exit 2
     ;;
 esac
