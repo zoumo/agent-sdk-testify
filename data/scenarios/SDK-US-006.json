@@ -373,7 +373,7 @@
     {
       "id": "SDK-CASE-027",
       "storyId": "SDK-US-006",
-      "goal": "选择原生 effort 并执行任务",
+      "goal": "选择并运行时修改原生 effort 后执行任务",
       "required": true,
       "implementation": "implemented",
       "name": "simulation-027",
@@ -387,7 +387,8 @@
         }
       },
       "inputs": {
-        "input-1": "Explain in two sentences how addition works."
+        "input-1": "Reply with the word Ready.",
+        "input-2": "Reply with the word Done."
       },
       "steps": [
         {
@@ -403,20 +404,30 @@
           "onMissing": "untriggered"
         },
         {
+          "op": "input.submit",
+          "input": "input-2"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
           "op": "session.close"
         }
       ],
       "expect": {
         "requests": [],
         "missingEvidence": "untriggered",
-        "scope": "首次输入前显式选择原生 effort；Claude 在创建时配置，Codex 使用原生配置字段。验证传参、接受及任务执行，不承诺所有时机均可动态修改。",
+        "scope": "创建时显式选择原生 effort A，首次结果后请求修改为不同 effort B，再提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
         "outOfScope": [
           "其他 case 的使用流程",
-          "人工构造的协议错误和精确竞态"
+          "人工构造的协议错误和精确竞态",
+          "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
         ]
       },
       "limits": {
-        "inputs": 1,
+        "inputs": 2,
         "activitySeconds": 0,
         "transportSeconds": 0,
         "protocolBytes": 0,
@@ -424,7 +435,7 @@
       },
       "driverProfile": "structured-input",
       "parameters": {
-        "configurationTiming": "before-first-input",
+        "configurationTiming": "between-inputs",
         "setting": "effort"
       }
     },

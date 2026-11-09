@@ -1,0 +1,44 @@
+{
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--effort",
+    "low",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "configurationSHA256": {
+    "settings.json": "efac7b5ebb25f0d1e17996f3be1681f3d0c105a960fa9f12c35fa989bd8c4a71"
+  },
+  "cwd": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/config",
+    "HOME": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/home",
+    "TMPDIR": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/tmp",
+    "XDG_CACHE_HOME": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/home/.cache",
+    "XDG_CONFIG_HOME": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/home/.config",
+    "XDG_DATA_HOME": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/home/.local/share"
+  },
+  "executionId": "726e32bb1e6e97429ed1715bbf85134b",
+  "fixtureId": "f62042da636246ad2bc1282999b5d526",
+  "method": "native-preparation",
+  "nativeSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "ef9f5650fcc85d1007d471ec7910ec4e9da461c739e0c8bfd1464648f083235b",
+  "schemaVersion": 1,
+  "toolSHA256": "5e502dc424bb1168d933e4bbe702afbd816f204eb9e2dc7e8296c71bdfd921d3"
+}

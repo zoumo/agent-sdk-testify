@@ -263,9 +263,9 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "b3fb780940c81814c27490ceb136547d71ff6e7d74f7bbeeff7f6a5f39dd7e2b",
+      "adoptionSHA256": "4813de52a67426f538662432dff43fc78756ed5d6c6406420c2d23c1121fb667",
       "caseId": "SDK-CASE-027",
-      "materials": "claude/SDK-US-006/SDK-CASE-027/20261104T190254Z-611368367",
+      "materials": "claude/SDK-US-006/SDK-CASE-027/20261109T203256Z-2311081147",
       "provider": "claude",
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -620,9 +620,9 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "76143c157f72bbaaf78ffbe8d9859c6b481e2d910c5f35ab551600448817a25f",
+      "adoptionSHA256": "5d1bb62d1743bb2f78ced1b05d23e5fe4881095337664b159aac78eb5eb87755",
       "caseId": "SDK-CASE-027",
-      "materials": "codex/SDK-US-006/SDK-CASE-027/20261104T190354Z-4188348641",
+      "materials": "codex/SDK-US-006/SDK-CASE-027/20261109T203250Z-4263997153",
       "provider": "codex",
       "requirement": "required",
       "storyId": "SDK-US-006",

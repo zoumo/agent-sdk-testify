@@ -1,0 +1,20 @@
+{
+  "connectionId": "main",
+  "executionId": "726e32bb1e6e97429ed1715bbf85134b",
+  "origin": {
+    "runId": "ede9d678318a7056369047c0d9286291",
+    "fixtureId": "f62042da636246ad2bc1282999b5d526",
+    "caseId": "SDK-CASE-027",
+    "agentType": "claude",
+    "recordSourceSHA256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+    "sourceSHA256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+    "driverSHA256": "079948882624b38362bada1890ac2fb5d705a6f08926362444b612fbe33e1ac3",
+    "connections": [
+      "main"
+    ]
+  },
+  "protocolPid": 56888,
+  "schemaVersion": 1,
+  "supervisorPid": 56854,
+  "toolSHA256": "5e502dc424bb1168d933e4bbe702afbd816f204eb9e2dc7e8296c71bdfd921d3"
+}

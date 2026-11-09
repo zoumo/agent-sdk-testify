@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--effort",
+      "low",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ],
+    "cwd": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "files": {
+    "raw.jsonl": "6441d6ae1ddfd71fab9bafb2101710bab7fa047f4d59e33f11e19b4a3a644baf",
+    "stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+    "transport.json": "f042cf06fae9917d17d353783511e74a9d703f21e03d96a1763114041cb21d46"
+  }
+}

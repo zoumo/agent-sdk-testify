@@ -1,0 +1,9 @@
+{
+  "case": "SDK-CASE-027",
+  "materials": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/verifications/b48ad76dcb6fefeb28ee74a1b217cf61/driver/materials",
+  "workspace": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/routes/mock/workspace",
+  "peer": {
+    "command": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/official/b48ad76dcb6fefeb28ee74a1b217cf61/peer-main"
+  },
+  "output": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/verifications/b48ad76dcb6fefeb28ee74a1b217cf61/driver"
+}

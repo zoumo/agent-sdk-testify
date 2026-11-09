@@ -222,6 +222,52 @@ class SimulationPipelineTests(unittest.TestCase):
         trace = [step['step'] for step in report['flowTrace']]
         self.assertLess(trace.index('configuration-acknowledged'), trace.index('submit'))
 
+    def test_codex_effort_uses_creation_config_and_runtime_settings(self):
+        actions = []
+        class Client:
+            def __init__(self, **_): self.turn = 0
+            def __enter__(self): return self
+            def __exit__(self, *_): pass
+            def initialize(self): return {}
+            def thread_start(self, params):
+                actions.append(('thread-start', params.get('config')))
+                return Value(thread=Value(id='root', reasoningEffort='low'), model='model')
+            def request(self, method, params, **_):
+                actions.append((method, params))
+                return {}
+            def turn_start(self, *_args, **_kwargs):
+                self.turn += 1
+                return Value(turn=Value(id='turn-' + str(self.turn)))
+            def next_turn_notification(self, identity):
+                return Value(method='turn/completed', payload=Value(
+                    turn=Value(id=identity, status=Value(value='completed'))))
+        raw_frames = [
+            {'direction': 'c2s', 'wire': {'id': 'start', 'method': 'thread/start', 'params': {
+                'config': {'model_reasoning_effort': 'low'}}}},
+            {'direction': 's2c', 'wire': {'id': 'start', 'result': {'thread': {
+                'id': 'root', 'reasoningEffort': 'low'}}}},
+            {'direction': 'c2s', 'wire': {'id': 'turn-1', 'method': 'turn/start',
+                                          'params': {'threadId': 'root'}}},
+            {'direction': 's2c', 'wire': {'id': 'turn-1', 'result': {'turn': {'id': 'turn-1'}}}},
+            {'direction': 's2c', 'wire': {'method': 'turn/completed',
+                                          'params': {'turn': {'id': 'turn-1'}}}},
+            {'direction': 'c2s', 'wire': {'id': 'effort', 'method': 'thread/settings/update',
+                                          'params': {'threadId': 'root', 'effort': 'medium'}}},
+            {'direction': 's2c', 'wire': {'id': 'effort', 'result': {}}},
+            {'direction': 's2c', 'wire': {'method': 'thread/settings/updated', 'params': {
+                'threadId': 'root', 'threadSettings': {'effort': 'medium'}}}},
+            {'direction': 'c2s', 'wire': {'id': 'turn-2', 'method': 'turn/start',
+                                          'params': {'threadId': 'root'}}},
+            {'direction': 's2c', 'wire': {'id': 'turn-2', 'result': {'turn': {'id': 'turn-2'}}}},
+            {'direction': 's2c', 'wire': {'method': 'turn/completed',
+                                          'params': {'turn': {'id': 'turn-2'}}}},
+        ]
+        report = self.worker('SDK-CASE-027', Client, raw_frames=raw_frames)
+        self.assertEqual(report['status'], 'passed')
+        self.assertEqual(actions, [('thread-start', {'model_reasoning_effort': 'low'}),
+                                   ('thread/settings/update', {'threadId': 'root', 'effort': 'medium'})])
+        self.assertEqual(report['configurationEvidence']['observedEffort'], 'medium')
+
     def test_close_requires_explicit_close_rejected_input_and_reaped_process(self):
         actions = []
         class Client:

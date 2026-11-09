@@ -115,8 +115,13 @@ async def claude(plan, report, flow):
             for question in values.get('questions', []):
                 labels = [item.get('label') for item in question.get('options', [])]
                 choice = flow.definition['answers'].get('choice', 'Ready')
-                if labels and choice not in labels and not parameters.get('freeText'):
-                    choice = labels[0]
+                choices = choice if isinstance(choice, list) else [choice]
+                if labels and not parameters.get('freeText') and (
+                        not choices or any(value not in labels for value in choices)):
+                    choices = labels[:1]
+                if not choices or any(not isinstance(value, str) or not value for value in choices):
+                    raise ValueError('question answer must contain nonempty strings')
+                choice = ', '.join(choices)
                 answers[question['question']] = choice
             flow.request('question')
             used.add(tool)
@@ -195,6 +200,19 @@ async def claude(plan, report, flow):
             if parameters.get('setting') == 'model':
                 await client.set_model(plan['model'] or None)
                 requested = {'subtype': 'set_model', 'model': plan['model'] or None}
+            elif parameters.get('setting') == 'effort':
+                target_effort = parameters.get('targetEffort')
+                if not isinstance(target_effort, str) or not target_effort:
+                    raise ValueError('effort case requires an explicit target effort')
+                requested = {'subtype': 'apply_flag_settings',
+                             'settings': {'effortLevel': target_effort}}
+                response = await client._query._send_control_request(requested)
+                configuration_acknowledged(report, flow, requested, parameters['configurationTiming'])
+                observed = await client._query._send_control_request({'subtype': 'get_settings'})
+                report['receipts'].append({'variant-configuration': {
+                    'timing': parameters['configurationTiming'], 'requested': requested,
+                    'response': response, 'observed': observed}})
+                return
             else:
                 requested = {'subtype': 'set_max_thinking_tokens', 'max_thinking_tokens': 1024}
                 if parameters.get('setting') == 'display':

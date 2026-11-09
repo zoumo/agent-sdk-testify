@@ -1,4 +1,7 @@
 """Assert changed models and actual media answers, not transport acknowledgements."""
+import json
+from pathlib import Path
+
 from .scenarios import Untriggered
 
 
@@ -27,6 +30,9 @@ def assess(plan, frames, report):
         raise Untriggered('native thinking budget effect is not established by protocol observations')
     if setting == 'display':
         assess_display(plan, frames, report)
+        return
+    if setting == 'effort':
+        assess_effort(plan, frames, report)
         return
     if setting != 'model' or timing not in ('before-first-input', 'between-inputs', 'during-execution'):
         return
@@ -68,6 +74,185 @@ def assess(plan, frames, report):
     evidence['effectiveScope'] = ('current execution not guaranteed; observed models only' if timing == 'during-execution'
                                   else ('assistant-message model after change; theta prefix mapping only'
                                         if plan['provider'] == 'claude' else 'thread-settings model; execution model not independently reported'))
+
+
+def _claude_control_response(frames, index, request):
+    request_id = request.get('request_id')
+    for later in range(index + 1, len(frames)):
+        frame = frames[later]
+        wire = frame['wire']
+        if frame['direction'] != 's2c' or wire.get('type') != 'control_response':
+            continue
+        body = wire.get('response', {})
+        if body.get('request_id') == request_id:
+            return later, body
+    return None, None
+
+
+def assess_effort(plan, frames, report):
+    """Require creation A, runtime request B, and a later native observation."""
+    parameters = plan['scenario'].get('parameters', {})
+    initial, target = parameters.get('effort'), parameters.get('targetEffort')
+    if (parameters.get('configurationTiming') != 'between-inputs'
+            or not isinstance(initial, str) or not initial
+            or not isinstance(target, str) or not target or initial == target):
+        raise Untriggered('effort change requires distinct creation and runtime values')
+    evidence = report.setdefault('configurationEvidence', {
+        'requests': [], 'observed': [], 'effectiveScope': 'unknown'})
+    if plan['provider'] == 'claude':
+        assess_claude_effort(plan, frames, report, evidence, initial, target)
+    elif plan['provider'] == 'codex':
+        assess_codex_effort(frames, report, evidence, initial, target)
+    else:
+        raise Untriggered('effort evidence is unsupported for provider')
+
+
+def assess_claude_effort(plan, frames, report, evidence, initial, target):
+    args = plan.get('args') or []
+    if plan.get('_agentResults') or plan.get('root'):
+        from .environment import capture_root
+        source = capture_root(plan) / 'plan.json'
+        if source.exists():
+            recorded = json.loads(source.read_bytes())
+            if (recorded.get('provider') != plan['provider']
+                    or recorded.get('caseId') != plan['scenario']['case']['id']):
+                raise Untriggered('recorded launch plan has a different case identity')
+            args = recorded.get('args') or []
+    creation = []
+    for index, value in enumerate(args):
+        if value == '--effort':
+            creation.append(args[index + 1] if index + 1 < len(args) else None)
+        elif value.startswith('--effort='):
+            creation.append(value.split('=', 1)[1])
+    if creation != [initial]:
+        raise Untriggered('Claude creation effort is not the configured --effort value')
+    inputs = [(index, frame['wire']) for index, frame in enumerate(frames)
+              if frame['direction'] == 'c2s' and frame['wire'].get('type') == 'user'
+              and frame['wire'].get('parent_tool_use_id') is None]
+    results = [(index, frame['wire']) for index, frame in enumerate(frames)
+               if frame['direction'] == 's2c' and frame['wire'].get('type') == 'result'
+               and frame['wire'].get('parent_tool_use_id') is None]
+    if len(inputs) != 2 or len(results) != 2:
+        raise Untriggered('effort change requires two root inputs and results')
+    applies = [(index, frame['wire']) for index, frame in enumerate(frames)
+               if frame['direction'] == 'c2s' and frame['wire'].get('type') == 'control_request'
+               and frame['wire'].get('request', {}).get('subtype') == 'apply_flag_settings']
+    if len(applies) != 1:
+        raise Untriggered('runtime effort requires exactly one apply_flag_settings request')
+    apply_at, apply = applies[0]
+    if apply.get('request', {}).get('settings', {}).get('effortLevel') != target:
+        raise Untriggered('runtime effort request does not carry the configured target')
+    ack_at, ack = _claude_control_response(frames, apply_at, apply)
+    if ack_at is None or ack.get('subtype') != 'success':
+        raise Untriggered('runtime effort request was not acknowledged')
+    settings = [(index, frame['wire']) for index, frame in enumerate(frames)
+                if index > ack_at and frame['direction'] == 'c2s'
+                and frame['wire'].get('type') == 'control_request'
+                and frame['wire'].get('request', {}).get('subtype') == 'get_settings']
+    if not settings:
+        raise Untriggered('runtime effort lacks a native get_settings observation')
+    settings_at, request = settings[0]
+    observed_at, observed = _claude_control_response(frames, settings_at, request)
+    if observed_at is None or observed.get('subtype') != 'success':
+        raise Untriggered('runtime effort readback was not successful')
+    effective = observed.get('response', {}).get('effective', {})
+    if effective.get('effortLevel') != target:
+        raise Untriggered('runtime effort readback does not report the configured target')
+    if any(frame['direction'] == 'c2s' and frame['wire'].get('type') == 'control_request'
+           and frame['wire'].get('request', {}).get('subtype') == 'set_max_thinking_tokens'
+           for frame in frames):
+        raise Untriggered('effort must not be represented as a thinking-token budget')
+    if not (inputs[0][0] < results[0][0] < apply_at < ack_at < settings_at
+            < observed_at < inputs[1][0] < results[1][0]):
+        raise Untriggered('effort readback is not ordered before the second input')
+    evidence.update(initialEffort=initial, targetEffort=target,
+                    creationOperation='claude --effort', runtimeOperation='apply_flag_settings',
+                    observedEffort=effective.get('effortLevel'),
+                    effectiveScope='creation argument; runtime settings readback after acknowledgement; '
+                                    'per-turn use not independently reported')
+    report.setdefault('receipts', []).append({'effort-observation': {
+        'initial': initial, 'target': target, 'source': 'get_settings',
+        'effective': effective.get('effortLevel')}})
+
+
+def _codex_response(frames, index, request):
+    request_id = request.get('id')
+    for later in range(index + 1, len(frames)):
+        frame = frames[later]
+        wire = frame['wire']
+        if frame['direction'] == 's2c' and wire.get('id') == request_id:
+            return later, wire
+    return None, None
+
+
+def assess_codex_effort(frames, report, evidence, initial, target):
+    starts = [(index, frame['wire']) for index, frame in enumerate(frames)
+              if frame['direction'] == 'c2s' and frame['wire'].get('method') == 'thread/start']
+    if len(starts) != 1:
+        raise Untriggered('effort change requires exactly one native thread/start')
+    start_at, start = starts[0]
+    config = start.get('params', {}).get('config', {})
+    if config.get('model_reasoning_effort') != initial:
+        raise Untriggered('thread/start does not carry the configured creation effort')
+    start_response_at, start_response = _codex_response(frames, start_at, start)
+    if start_response_at is None:
+        raise Untriggered('thread/start effort request lacks a response')
+    thread = start_response.get('result', {}).get('thread', {})
+    thread_id = thread.get('id')
+    if not thread_id:
+        raise Untriggered('thread/start response has no thread identity')
+    creation_observed = thread.get('reasoningEffort')
+    if creation_observed is not None and creation_observed != initial:
+        raise Untriggered('thread/start response reports a different creation effort')
+    turns = []
+    for index, request in [(index, frame['wire']) for index, frame in enumerate(frames)
+                           if frame['direction'] == 'c2s'
+                           and frame['wire'].get('method') == 'turn/start'
+                           and frame['wire'].get('params', {}).get('threadId') == thread_id]:
+        response_at, response = _codex_response(frames, index, request)
+        turn_id = response.get('result', {}).get('turn', {}).get('id') if response else None
+        if response_at is None or not turn_id:
+            raise Untriggered('turn/start effort execution lacks a turn identity')
+        completed = [(at, frame['wire']) for at, frame in enumerate(frames)
+                     if at > response_at and frame['direction'] == 's2c'
+                     and frame['wire'].get('method') == 'turn/completed'
+                     and frame['wire'].get('params', {}).get('turn', {}).get('id') == turn_id]
+        if len(completed) != 1:
+            raise Untriggered('turn/start effort execution lacks one completion')
+        turns.append({'start': index, 'response': response_at, 'completed': completed[0][0]})
+    if len(turns) != 2:
+        raise Untriggered('effort change requires two root executions')
+    updates = [(index, frame['wire']) for index, frame in enumerate(frames)
+               if frame['direction'] == 'c2s' and frame['wire'].get('method') == 'thread/settings/update'
+               and frame['wire'].get('params', {}).get('threadId') == thread_id
+               and frame['wire'].get('params', {}).get('effort') == target
+               and index > turns[0]['completed']]
+    if len(updates) != 1:
+        raise Untriggered('runtime effort requires one thread/settings/update after the first result')
+    update_at, update = updates[0]
+    ack_at, ack = _codex_response(frames, update_at, update)
+    if ack_at is None or 'result' not in ack or 'error' in ack:
+        raise Untriggered('runtime effort update was not acknowledged')
+    observed = [(index, frame['wire']) for index, frame in enumerate(frames)
+                if ack_at < index < turns[1]['completed'] and frame['direction'] == 's2c'
+                and frame['wire'].get('method') == 'thread/settings/updated'
+                and frame['wire'].get('params', {}).get('threadId') == thread_id
+                and frame['wire'].get('params', {}).get('threadSettings', {}).get('effort') == target]
+    if not observed:
+        raise Untriggered('runtime effort lacks a later native thread/settings observation')
+    observed_at, observed_wire = observed[0]
+    if not (turns[0]['start'] < turns[0]['completed'] < update_at < ack_at < observed_at
+            < turns[1]['completed'] and turns[0]['completed'] < turns[1]['start']):
+        raise Untriggered('runtime effort observation is not ordered with the two executions')
+    evidence.update(initialEffort=initial, targetEffort=target,
+                    creationOperation='thread/start config', runtimeOperation='thread/settings/update',
+                    observedEffort=observed_wire.get('params', {}).get('threadSettings', {}).get('effort'),
+                    effectiveScope='creation thread config; runtime thread settings observed after acknowledgement; '
+                                    'per-turn execution use not independently reported')
+    report.setdefault('receipts', []).append({'effort-observation': {
+        'initial': initial, 'target': target, 'source': 'thread/settings/updated',
+        'effective': observed_wire.get('params', {}).get('threadSettings', {}).get('effort'),
+        'creationObserved': creation_observed}})
 
 
 def assess_display(plan, frames, report):

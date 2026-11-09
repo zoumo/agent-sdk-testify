@@ -1,4 +1,6 @@
+import json
 import sys
+import tempfile
 from pathlib import Path
 import unittest
 from copy import deepcopy
@@ -92,3 +94,120 @@ class ConfigurationEvidenceTests(unittest.TestCase):
             else:
                 with self.assertRaises(Untriggered):
                     assess(plan, frames, {'receipts': []})
+
+    def test_effort_requires_creation_runtime_and_later_native_observation(self):
+        claude_plan = {'provider': 'claude', 'args': ['--effort', 'low'], 'scenario': {'parameters': {
+            'setting': 'effort', 'configurationTiming': 'between-inputs',
+            'effort': 'low', 'targetEffort': 'high'}}}
+        claude_frames = [
+            {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
+            {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'effort',
+                                          'request': {'subtype': 'apply_flag_settings',
+                                                      'settings': {'effortLevel': 'high'}}}},
+            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
+                'subtype': 'success', 'request_id': 'effort', 'response': {}}}},
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'readback',
+                                          'request': {'subtype': 'get_settings'}}},
+            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
+                'subtype': 'success', 'request_id': 'readback',
+                'response': {'effective': {'effortLevel': 'high'}}}}},
+            {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
+            {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
+        ]
+        report = {'receipts': []}
+        assess(claude_plan, claude_frames, report)
+        self.assertEqual(report['configurationEvidence']['observedEffort'], 'high')
+        for failure in ('missing-readback', 'ack-only', 'wrong-readback', 'budget-substitute', 'wrong-creation'):
+            invalid = deepcopy(claude_frames)
+            if failure == 'missing-readback':
+                invalid = [frame for frame in invalid if frame['wire'].get('request_id') != 'readback']
+            elif failure == 'ack-only':
+                invalid = invalid[:4] + invalid[6:]
+            elif failure == 'wrong-readback':
+                invalid[5]['wire']['response']['response']['effective']['effortLevel'] = 'low'
+            elif failure == 'budget-substitute':
+                invalid.insert(2, {'direction': 'c2s', 'wire': {
+                    'type': 'control_request', 'request_id': 'budget',
+                    'request': {'subtype': 'set_max_thinking_tokens', 'max_thinking_tokens': 1024}}})
+            else:
+                claude_plan['args'] = ['--effort', 'medium']
+            with self.subTest(failure=failure), self.assertRaises(Untriggered):
+                assess(claude_plan, invalid, {'receipts': []})
+            claude_plan['args'] = ['--effort', 'low']
+
+        codex_plan = {'provider': 'codex', 'scenario': {'parameters': {
+            'setting': 'effort', 'configurationTiming': 'between-inputs',
+            'effort': 'low', 'targetEffort': 'medium'}}}
+        codex_frames = [
+            {'direction': 'c2s', 'wire': {'id': 'start', 'method': 'thread/start',
+                                          'params': {'config': {'model_reasoning_effort': 'low'}}}},
+            {'direction': 's2c', 'wire': {'id': 'start', 'result': {'thread': {
+                'id': 'thread-1', 'reasoningEffort': 'low'}}}},
+            {'direction': 'c2s', 'wire': {'id': 'turn-1', 'method': 'turn/start',
+                                          'params': {'threadId': 'thread-1'}}},
+            {'direction': 's2c', 'wire': {'id': 'turn-1', 'result': {'turn': {'id': 'execution-1'}}}},
+            {'direction': 's2c', 'wire': {'method': 'turn/completed',
+                                          'params': {'turn': {'id': 'execution-1'}}}},
+            {'direction': 'c2s', 'wire': {'id': 'effort', 'method': 'thread/settings/update',
+                                          'params': {'threadId': 'thread-1', 'effort': 'medium'}}},
+            {'direction': 's2c', 'wire': {'id': 'effort', 'result': {}}},
+            {'direction': 's2c', 'wire': {'method': 'thread/settings/updated', 'params': {
+                'threadId': 'thread-1', 'threadSettings': {'effort': 'medium'}}}},
+            {'direction': 'c2s', 'wire': {'id': 'turn-2', 'method': 'turn/start',
+                                          'params': {'threadId': 'thread-1'}}},
+            {'direction': 's2c', 'wire': {'id': 'turn-2', 'result': {'turn': {'id': 'execution-2'}}}},
+            {'direction': 's2c', 'wire': {'method': 'turn/completed',
+                                          'params': {'turn': {'id': 'execution-2'}}}},
+        ]
+        report = {'receipts': []}
+        assess(codex_plan, codex_frames, report)
+        self.assertEqual(report['configurationEvidence']['observedEffort'], 'medium')
+        for failure in ('missing-observation', 'wrong-creation', 'wrong-runtime', 'ack-only'):
+            invalid = deepcopy(codex_frames)
+            if failure == 'missing-observation':
+                invalid.pop(7)
+            elif failure == 'wrong-creation':
+                invalid[0]['wire']['params']['config']['model_reasoning_effort'] = 'medium'
+            elif failure == 'wrong-runtime':
+                invalid[5]['wire']['params']['effort'] = 'high'
+            else:
+                invalid.pop(7)
+            with self.subTest(failure=failure), self.assertRaises(Untriggered):
+                assess(codex_plan, invalid, {'receipts': []})
+
+    def test_effort_creation_reads_the_recorded_launch_plan(self):
+        frames = [
+            {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
+            {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'effort',
+                                          'request': {'subtype': 'apply_flag_settings',
+                                                      'settings': {'effortLevel': 'high'}}}},
+            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
+                'subtype': 'success', 'request_id': 'effort', 'response': {}}}},
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'readback',
+                                          'request': {'subtype': 'get_settings'}}},
+            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
+                'subtype': 'success', 'request_id': 'readback',
+                'response': {'effective': {'effortLevel': 'high'}}}}},
+            {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
+            {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = {'provider': 'claude', 'root': tmp,
+                    'args': ['--output-format', 'stream-json'],
+                    'scenario': {'case': {'id': 'SDK-CASE-027'}, 'parameters': {
+                        'setting': 'effort', 'configurationTiming': 'between-inputs',
+                        'effort': 'low', 'targetEffort': 'high'}}}
+            (Path(tmp) / 'plan.json').write_text(json.dumps({
+                'provider': 'claude', 'caseId': 'SDK-CASE-027',
+                'args': ['--effort', 'low']}))
+            report = {'receipts': []}
+            assess(plan, frames, report)
+            self.assertEqual(report['configurationEvidence']['observedEffort'], 'high')
+
+            (Path(tmp) / 'plan.json').write_text(json.dumps({
+                'provider': 'claude', 'caseId': 'SDK-CASE-027',
+                'args': ['--effort', 'medium']}))
+            with self.assertRaisesRegex(Untriggered, 'creation effort'):
+                assess(plan, frames, {'receipts': []})

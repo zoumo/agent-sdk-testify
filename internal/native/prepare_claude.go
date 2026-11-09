@@ -56,7 +56,11 @@ func claudeCaseArgs(profile string, params tool.Object) ([]string, error) {
 		args = append(args, "--max-thinking-tokens", "1024")
 	}
 	if params["setting"] == "effort" {
-		args = append(args, "--effort", "low")
+		effort := tool.Str(params["effort"])
+		if effort == "" {
+			return nil, errors.New("claude effort case requires an explicit initial effort")
+		}
+		args = append(args, "--effort", effort)
 	}
 	return args, nil
 }

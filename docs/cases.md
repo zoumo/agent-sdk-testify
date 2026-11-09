@@ -71,7 +71,7 @@ Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在
 | SDK-CASE-024 | SDK-US-006 | required | 执行期间请求修改模型并观察结果 |
 | SDK-CASE-025 | SDK-US-006 | optional | 创建会话时选择思考模式 |
 | SDK-CASE-026 | SDK-US-006 | optional | 修改原生思考预算并执行任务 |
-| SDK-CASE-027 | SDK-US-006 | required | 选择原生 effort 并执行任务 |
+| SDK-CASE-027 | SDK-US-006 | required | 选择并运行时修改原生 effort 后执行任务 |
 | SDK-CASE-028 | SDK-US-006 | required | 验证思考展示配置透传和原生响应处理 |
 | SDK-CASE-029 | SDK-US-006 | required | 配置根会话并观察子 Agent 的实际继承情况 |
 | SDK-CASE-030 | SDK-US-007 | required | 在执行进度后中断并读取确认及终态 |
@@ -137,13 +137,15 @@ Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在
 | 024 | 当前执行仍活动时发送不同模型的配置请求；接受时记录可观察的生效范围，拒绝时记录原生原因；保留当前执行终态。 | 不保证正在执行的请求立即换模型，不自动中断、等待空闲、重建或重试。该 case 验证执行期配置处理；成功切换及后续输入使用新模型须由 022／023 证明。 |
 | 025 | 可选：创建时选择独立的原生思考模式，例如 Claude 的 enabled／adaptive／disabled；核对启动参数与对应原生配置证据。Claude enabled 携带预算时使用原生 --max-thinking-tokens 编码，须记录该映射。 | effort 或展示设置不替代模式；预算仅在原生明确将其作为模式编码时可作选择证据，不证明预算生效。没有独立模式的 agent type 报 unsupported；不要求会话创建后动态切换模式。 |
 | 026 | 可选：请求修改原生思考 token 预算，记录数值、回执及实际可观察的作用范围。只有范围得到证实时才能声明预算目标通过。 | 不将 effort 转换为 token 数，不把 ack、输出长度或耗时当作硬预算生效证明。原生已废弃预算不构成硬上限承诺。 |
-| 027 | 必需：在首次输入前显式选择原生 effort 并执行任务。Claude 通过创建时 --effort，Codex 通过原生配置字段；核对确切传参及可取得的接受／观察证据。 | 不统一各 agent type 的档位，不映射为模式或预算，不保证增加思考 token、提高质量或固定耗时。Claude 创建时配置不冒充动态修改；本 case 不证明所有时机均可修改 effort。 |
+| 027 | 必需：创建时显式选择原生 effort A 并执行任务，首次结果后请求修改为不同 effort B，再提交第二次输入并观察结果；分阶段核对确切原生请求、接受与观察证据及生效范围。Claude 创建时使用 `--effort`，运行时使用 `apply_flag_settings.effortLevel`，并以 `get_settings` 的有效值作为配置观察；Codex 创建时使用 `thread/start` 的原生配置字段，运行时使用 `thread/settings/update`，并以后续 `thread/settings/updated` 作为观察证据。 | 不统一各 agent type 的档位，不映射为模式或预算，不保证增加思考 token、提高质量或固定耗时。ack 不冒充观察值；不保证当前执行立即切换，也不把后续文本自报或任务输出当作 effort 生效证明。 |
 | 028 | 验证 Codex summary／Claude thinking_display 的原生字段和值透传、请求关联成功响应处理及后续执行完成；原生拒绝须按错误返回，不得伪装成接受。实际展示效果可作补充观察，不作为门禁条件。 | 隐藏展示不表示关闭推理，不保证节省推理成本；Codex summary 与 Claude display 不强行统一为相同内容。 |
 | 029 | 当前流程仅验证模型：根会话明确设置模型后委派子任务，比较根请求、根观察值及子创建／运行时的原生模型事实，并记录来源与作用范围。 | 不证明思考模式、effort、预算或展示继承，不预设父子模型必须相同。原生明确给出默认或覆盖值可作为观察结论；子配置未暴露时保持未知，不能从主结果或 ack 推断已继承。 |
 
 025 的独立模式与 027 的 effort 是不同目标。Codex 025 只有
 model_reasoning_effort 证据，不能作为独立模式通过；保留材料并更正验证状态。
-动态 effort 只按原生接口支持范围验证，不把 Claude 的创建时参数包装成动态能力。
+027 的创建时 effort 与运行时 effort 分阶段取证。运行时更新沿用单字段请求和
+完整状态回执边界；没有原生观察值时保持 unverified，不把创建参数当成动态能力，
+也不把 `set_max_thinking_tokens` 当作 effort。
 
 ### 中断、关闭与独立查询
 
@@ -183,9 +185,9 @@ model_reasoning_effort 证据，不能作为独立模式通过；保留材料并
 | Codex 连接与资源 | 007 | stdio 只终止自有进程；WS/WSS Close 不停止远端服务。保留 TLS、Origin、认证及错误隐私边界，不自动重连或恢复旧句柄。慢消费、失联、排空与清理分别可观察，公开 WSS 的部署验证须单独提供证据。 |
 | Codex 子详细交付 | 005 | SessionOptions.ChildDetailPolicy 默认 preserve，suppress 仅封闭方法白名单；低层 ResumeThread 不接受该策略。保留 Raw、父工具结果、审批原权限、关系及 terminal，unknown/mixed 整帧保留。 |
 | Claude 输入与回执 | 001、002 | stream-json 完整本地写入不表示模型接受/执行；priority/shouldQuery 保留原生含义，不添加 scheduler、steer 或通用 Turn。control_response 按原 request_id 关联；取消写入的 NotSent/OutcomeUnknown 不互换或重发。 |
-| Claude 权限与问答 | 003、004 | 仅实际 can_use_tool 创建权限；AskUserQuestion 使用完整题文键，通过 UpdatedInput 保留 questions 和 unknown；普通 tool_use、tool_result、输入与历史均不授予回答权。自动批准路径不保证发请求，延迟时可继续 Receive，撤销/终止/已答后不再授予权限。 |
+| Claude 权限与问答 | 003、004 | 仅实际 can_use_tool 创建权限；AskUserQuestion 使用完整题文键，通过 UpdatedInput 保留 questions 和 unknown；普通 tool_use、tool_result、输入与历史均不授予回答权。多选统一 form 可接受字符串数组，adapter 写回原生前以 `", "` 连接为字符串；原生数组答案未验证并在本地拒绝。自动批准路径不保证发请求，延迟时可继续 Receive，撤销/终止/已答后不再授予权限。 |
 | Claude 结果与后台状态 | 002、005 | 检查 result.is_error 和原生错误字段，不能只看 subtype:success；后续 idle、initialize 接受和请求转发选项均不证明模型或工具成功；root result 不证明子任务已停止。 |
-| Claude 思考配置 | 006 | 创建 thinking enabled/adaptive/disabled 与动态 max_thinking_tokens/display 分开；省略、null-clear 和 0 分开。effort 不映射成 budget，ack 不作 observed 或子继承证明，原生 deprecated budget 不保证硬 token 上限。 |
+| Claude 思考配置 | 006 | 创建 thinking enabled/adaptive/disabled 与动态 max_thinking_tokens/display 分开；省略、null-clear 和 0 分开。创建 `--effort` 与运行时 `apply_flag_settings.effortLevel` 分开；effort 不映射成 budget，ack 不作 observed 或子继承证明，`get_settings` 有效值只证明配置观察，不证明单次执行使用；原生 deprecated budget 不保证硬 token 上限。 |
 | Claude 主历史与发现 | 008 | 独立查询要求 ConfigDir，不隐式读取 HOME；metadata 的 head/tail 采样与完整可见消息链分开，保留压缩及并行 tool-result 恢复规则与 unknown。offset/limit 是内容切片，不伪造 cursor、total、原子快照或 running；Session.ListSubagents 的本地子记录发现不等于独立子历史。 |
 | Claude 子详细交付 | 005 | Options/SessionOptions.ChildDetailPolicy 包括显式 ResumeID，initialize 仍 forwardSubagentText:true；仅已确认 task/tool alias 的纯详细形状可过滤，mixed/unknown/system/结果/权限保留。 |
 | Claude 独立子历史 | 008 | 显式 ConfigDir、父 UUID 与安全非 UUID agentID，独立 list/get；nested 布局、sidecar unknown、子 parentUuid 链、可见切片、资源/一致性/错误及 stricter-than-upstream 边界均明确。不用主链恢复，不建立 live 权限。 |

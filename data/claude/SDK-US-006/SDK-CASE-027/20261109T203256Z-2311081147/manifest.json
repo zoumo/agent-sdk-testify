@@ -1,0 +1,52 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "9b1e9bfee03a85042bcd54c6ac6c042e5192c1dc2baf891a2e6751e23484cf87",
+    "raw.jsonl": "6441d6ae1ddfd71fab9bafb2101710bab7fa047f4d59e33f11e19b4a3a644baf",
+    "stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+    "transport.json": "f042cf06fae9917d17d353783511e74a9d703f21e03d96a1763114041cb21d46"
+  },
+  "native": {
+    "args": [
+      "--output-format",
+      "stream-json",
+      "--input-format",
+      "stream-json",
+      "--permission-prompt-tool",
+      "stdio",
+      "--verbose",
+      "--include-partial-messages",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--effort",
+      "low",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "theta/DeepSeek-V4.1-Flash-1017"
+    ],
+    "cwd": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace",
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "planSHA256": "bd3ead5cf2c66d4cb575b0c597d35a2f4ab4f25402eb84b2479c44bb9f5b7dbf",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "f042cf06fae9917d17d353783511e74a9d703f21e03d96a1763114041cb21d46",
+  "savedFiles": {},
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+  "status": "captured"
+}
