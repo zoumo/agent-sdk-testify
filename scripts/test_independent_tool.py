@@ -8,6 +8,12 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def exact_version():
+    result = subprocess.run(['git', 'describe', '--tags', '--exact-match', 'HEAD'],
+                            cwd=ROOT, capture_output=True, text=True)
+    return result.stdout.strip() if result.returncode == 0 else 'devel'
+
+
 class IndependentToolTests(unittest.TestCase):
     def test_repository_build_does_not_require_sdk_driver(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -46,7 +52,7 @@ class IndependentToolTests(unittest.TestCase):
                                     env={'PATH': '/missing', 'HOME': temporary},
                                     capture_output=True, text=True, timeout=10)
             self.assertEqual(0, result.returncode, result.stderr)
-            self.assertIn('0.1.0', result.stdout)
+            self.assertEqual('agent-sdk-testify '+exact_version()+'\n', result.stdout)
 
 
 if __name__ == '__main__':

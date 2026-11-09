@@ -401,7 +401,7 @@ type ToolIdentity struct {
 - `Source == embedded`：`Module` 必须是
   `github.com/zoumo/agent-sdk-testify`；`Command`、`Args` 和 `SHA256` 必须为空；
   不存在 launcher、argv 或可执行身份。`Version` 必须是精确 release、pseudo-version
-  或带 `ModuleRevision` 的开发身份；不得仅写 `0.1.0-dev`。
+  或带 `ModuleRevision` 的开发身份；不得只写未绑定 tag 的开发标签。
 - `Open`/fixture/connection 校验接受 executable 或 embedded 判别式，但不得混合；
   embedded connection 不得引用 executable 字段，executable fixture 不得声明
   in-process connection。

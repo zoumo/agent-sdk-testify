@@ -64,7 +64,7 @@ func replayConnection(ctx context.Context, prepared Prepared, input, output *os.
 	}
 	receipt := tool.Object{
 		"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
-		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": version.Version,
+		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": version.String(),
 	}
 	defer func() {
 		receipt["exitCode"] = 0

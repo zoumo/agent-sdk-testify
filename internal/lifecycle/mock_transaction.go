@@ -142,7 +142,7 @@ func (m *mockTransaction) writeProcessReceipt(replayErr error) error {
 		"connectionId":  m.connection,
 		"status":        "failed",
 		"exitCode":      -1,
-		"toolVersion":   version.Version,
+		"toolVersion":   version.String(),
 	}
 	if self, toolVersion, hash, err := SelfCommand(); err == nil {
 		process["tool"] = self

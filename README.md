@@ -61,7 +61,8 @@ if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
 `internal/protocol/`。权威场景、采用材料和内置快照统一位于 `data/`，官方 driver
 与 wheel 位于 `drivers/`。
 不提供 simulate/replay/corpus/protocol/peer 业务入口。
-旧顶层 record/mock/verify 与 internal-protocol（含 --internal-protocol）均被拒绝，不保留别名；远程桥接由 agent record 内部处理。当前版本 `0.1.0-dev` 是本地开发版本，尚未发布。
+旧顶层 record/mock/verify 与 internal-protocol（含 --internal-protocol）均被拒绝，不保留别名；远程桥接由 agent record 内部处理。
+版本只由 Git tag 表示，源码不维护版本常量；CLI 从构建时的精确 tag 或 Go module build info 读取版本。
 
 规范流程是 prepare、协议执行或官方编排。调用方在所有相关进程退出后删除 fixture。agent record 成功时原子替换
 唯一 current recording，agent mock 和 official verify 消费 current。官方命令保存
@@ -195,6 +196,7 @@ SDK simulate 不参与采用判断。资格与采用成功不单独证明内容�
 `make release OUTPUT=/absolute/new-dist` 生成 Linux/macOS
 amd64/arm64 独立归档、官方 driver wheel、manifest.json 和 SHA256SUMS。
 先显式准备 Go module 与 Python 构建依赖；脚本不会下载依赖、推送或发布。
+发布必须从带精确 Git tag 的提交构建；未打 tag 时构建仍显示 `devel`，但不允许生成 release。
 版本、工具源码 revision、内置材料 revision/哈希和逐产物校验和分别记录。
 运行 `make check` 执行离线完整门禁；CI 分开准备依赖后执行同一入口。
 

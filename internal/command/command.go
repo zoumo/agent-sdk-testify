@@ -34,7 +34,7 @@ func New(streams IO) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "agent-sdk-testify",
 		Short:         "Prepare, record, verify, mock and export SDK protocol fixtures",
-		Version:       version.Version,
+		Version:       version.String(),
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		Args:          cobra.NoArgs,
@@ -72,7 +72,7 @@ func versionCommand() *cobra.Command {
 		Short: "Print the executable version",
 		Args:  cobra.NoArgs,
 		Run: func(c *cobra.Command, _ []string) {
-			c.Print("agent-sdk-testify " + version.Version + "\n")
+			c.Print("agent-sdk-testify " + version.String() + "\n")
 		},
 	}
 }
