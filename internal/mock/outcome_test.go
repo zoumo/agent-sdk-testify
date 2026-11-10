@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,7 +32,24 @@ func TestReplayFailureClass(t *testing.T) {
 		{name: "short write", replayErr: io.ErrShortWrite, want: lifecycle.FailureClassTransport},
 		{name: "canceled", replayErr: context.Canceled, want: lifecycle.FailureClassCanceled},
 		{name: "timeout", replayErr: context.DeadlineExceeded, want: lifecycle.FailureClassTimeout},
+		{
+			name: "deadline precedes classified stream close",
+			replayErr: errors.Join(
+				lifecycle.ClassifyFailure(lifecycle.FailureClassTransport, io.ErrClosedPipe),
+				context.DeadlineExceeded,
+			),
+			want: lifecycle.FailureClassTimeout,
+		},
 		{name: "abort stops replay", stopCause: lifecycle.ClassifyFailure(lifecycle.FailureClassAborted, errors.New("mock run aborted")), replayErr: errors.New("early client EOF"), want: lifecycle.FailureClassAborted},
+		{
+			name:      "abort precedes deadline and classified stream close",
+			stopCause: lifecycle.ClassifyFailure(lifecycle.FailureClassAborted, errors.New("mock run aborted")),
+			replayErr: errors.Join(
+				context.DeadlineExceeded,
+				lifecycle.ClassifyFailure(lifecycle.FailureClassTransport, io.ErrClosedPipe),
+			),
+			want: lifecycle.FailureClassAborted,
+		},
 		{name: "history drift", replayErr: nil, historyErr: errors.New("history hash mismatch"), want: lifecycle.FailureClassInternal},
 		{name: "cleanup", cleanupErr: errors.New("close failure"), want: lifecycle.FailureClassCleanup},
 		{name: "replay precedes cleanup", replayErr: errors.New("extra client byte after scenario"), cleanupErr: errors.New("close failure"), want: lifecycle.FailureClassStrictReplay},
@@ -40,6 +58,90 @@ func TestReplayFailureClass(t *testing.T) {
 			require.Equal(t, test.want, replayFailureClass(test.stopCause, test.replayErr, test.historyErr, test.cleanupErr))
 		})
 	}
+}
+
+func TestReplayOutcomeDeadlineAuthorityPreservesCauses(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "main.json")
+	outcome, err := openReplayOutcome(path, tool.Object{
+		"status": "failed", "fullConsumption": false, "clientEOF": false, "cleanupComplete": true,
+	})
+	require.NoError(t, err)
+	outcome.recordReplay(false, errors.Join(
+		context.DeadlineExceeded,
+		lifecycle.ClassifyFailure(lifecycle.FailureClassTransport, io.ErrClosedPipe),
+	))
+	err = outcome.finish(nil, nil)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	require.ErrorIs(t, err, io.ErrClosedPipe)
+	require.Equal(t, lifecycle.FailureClassTimeout, lifecycle.FailureClassOf(err))
+	require.True(t, strings.HasPrefix(err.Error(), "timeout:"), err.Error())
+
+	receipt := tool.Object{}
+	require.NoError(t, tool.ReadJSON(path, &receipt))
+	require.Equal(t, "failed", receipt["status"])
+	require.Equal(t, "timeout", receipt["failureClass"])
+	require.NotContains(t, receipt, "exitCode")
+}
+
+func TestReplayOutcomeReceiptCloseFailure(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		exitCode int
+		hasExit  bool
+		wantCode int
+	}{
+		{name: "process", exitCode: 0, hasExit: true, wantCode: 1},
+		{name: "in-process"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "main.json")
+			receipt := tool.Object{
+				"status": "failed", "fullConsumption": true, "clientEOF": true, "cleanupComplete": true,
+			}
+			if test.hasExit {
+				receipt["exitCode"] = test.exitCode
+			}
+			outcome, err := openReplayOutcome(path, receipt)
+			require.NoError(t, err)
+			outcome.recordReplay(true, nil)
+			require.NoError(t, outcome.file.Close())
+
+			err = outcome.finish(nil, nil)
+			require.ErrorContains(t, err, "file already closed")
+			require.Equal(t, lifecycle.FailureClassCleanup, lifecycle.FailureClassOf(err))
+			require.True(t, strings.HasPrefix(err.Error(), "cleanup:"), err.Error())
+
+			published := tool.Object{}
+			require.NoError(t, tool.ReadJSON(path, &published))
+			require.Equal(t, "failed", published["status"])
+			require.Equal(t, false, published["cleanupComplete"])
+			require.Equal(t, "cleanup", published["failureClass"])
+			require.Contains(t, published["error"], "file already closed")
+			if test.hasExit {
+				require.EqualValues(t, test.wantCode, published["exitCode"])
+			} else {
+				require.NotContains(t, published, "exitCode")
+			}
+		})
+	}
+}
+
+func TestReplayOutcomeReceiptWriteFailurePreservesCause(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "main.json")
+	outcome, err := openReplayOutcome(path, tool.Object{
+		"status": "failed", "cleanupComplete": true, "unsupported": func() {},
+	})
+	require.NoError(t, err)
+	outcome.recordReplay(false, errors.New("original replay failure"))
+
+	err = outcome.finish(nil, nil)
+	require.ErrorContains(t, err, "original replay failure")
+	require.ErrorContains(t, err, "unsupported type")
+	require.Equal(t, lifecycle.FailureClassCleanup, lifecycle.FailureClassOf(err))
+	require.True(t, strings.HasPrefix(err.Error(), "cleanup:"), err.Error())
+
+	receipt := tool.Object{}
+	require.Error(t, tool.ReadJSON(path, &receipt))
 }
 
 func TestReplayOutcomePreservesFactsAndReceipt(t *testing.T) {

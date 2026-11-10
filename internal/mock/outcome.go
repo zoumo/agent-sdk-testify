@@ -69,31 +69,38 @@ func (o *replayOutcome) finish(stopCause error, cleanup func(error) error) error
 	} else {
 		finalErr = errors.Join(finalErr, cleanupErr)
 	}
+	closeErr := o.file.Close()
+	if closeErr != nil {
+		finalErr = errors.Join(finalErr, closeErr)
+		failureClass = lifecycle.FailureClassCleanup
+	}
+	if finalErr != nil && failureClass == "" {
+		failureClass = lifecycle.FailureClassInternal
+	}
 	o.receipt["fullConsumption"] = o.fullConsumption
 	o.receipt["clientEOF"] = o.clientEOF
-	o.receipt["cleanupComplete"] = cleanupErr == nil
+	o.receipt["cleanupComplete"] = cleanupErr == nil && closeErr == nil
 	if finalErr != nil {
+		o.receipt["status"] = "failed"
 		o.receipt["error"] = finalErr.Error()
+	} else {
+		o.receipt["status"] = "passed"
 	}
 	if failureClass != "" {
 		o.receipt["failureClass"] = string(failureClass)
 	}
 	if _, hasExitCode := o.receipt["exitCode"]; hasExitCode {
 		if finalErr == nil {
-			o.receipt["status"], o.receipt["exitCode"] = "passed", 0
+			o.receipt["exitCode"] = 0
 		} else {
 			o.receipt["exitCode"] = 1
 		}
-	} else if finalErr == nil {
-		o.receipt["status"] = "passed"
 	}
 
-	reportErr := errors.Join(o.file.Close(), atomicMockJSON(o.path, o.receipt))
+	reportErr := atomicMockJSON(o.path, o.receipt)
 	if reportErr != nil {
 		finalErr = errors.Join(finalErr, reportErr)
-		if failureClass == "" {
-			failureClass = lifecycle.FailureClassCleanup
-		}
+		failureClass = lifecycle.FailureClassCleanup
 	}
 	if finalErr == nil {
 		return nil
@@ -101,7 +108,7 @@ func (o *replayOutcome) finish(stopCause error, cleanup func(error) error) error
 	if failureClass == "" {
 		failureClass = lifecycle.FailureClassInternal
 	}
-	return lifecycle.ClassifyFailure(failureClass, finalErr)
+	return classifyReplayOutcome(failureClass, finalErr)
 }
 
 func replayFailureClass(stopCause, replayErr, historyErr, cleanupErr error) lifecycle.FailureClass {
@@ -111,14 +118,16 @@ func replayFailureClass(stopCause, replayErr, historyErr, cleanupErr error) life
 		}
 	}
 	if replayErr != nil {
-		if class := lifecycle.FailureClassOf(replayErr); class != "" {
-			return class
-		}
 		switch {
 		case errors.Is(replayErr, context.DeadlineExceeded):
 			return lifecycle.FailureClassTimeout
 		case errors.Is(replayErr, context.Canceled):
 			return lifecycle.FailureClassCanceled
+		}
+		if class := lifecycle.FailureClassOf(replayErr); class != "" {
+			return class
+		}
+		switch {
 		case transportFailure(replayErr):
 			return lifecycle.FailureClassTransport
 		default:
@@ -135,6 +144,18 @@ func replayFailureClass(stopCause, replayErr, historyErr, cleanupErr error) life
 		return lifecycle.FailureClassCleanup
 	}
 	return ""
+}
+
+func classifyReplayOutcome(class lifecycle.FailureClass, err error) error {
+	if err == nil {
+		return nil
+	}
+	if lifecycle.FailureClassOf(err) == class {
+		return err
+	}
+	// ClassifyFailure preserves an existing nested class, which cannot express
+	// that the replay outcome or receipt publication phase is authoritative.
+	return &lifecycle.ClassifiedError{Class: class, Err: err}
 }
 
 func transportFailure(err error) bool {
