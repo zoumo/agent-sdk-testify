@@ -419,7 +419,7 @@
       "expect": {
         "requests": [],
         "missingEvidence": "untriggered",
-        "scope": "创建时显式选择原生 effort A，首次结果后请求修改为不同 effort B，再提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+        "scope": "创建时显式选择原生 effort A，首次结果后先读取原生 applied 状态，再请求修改为不同 effort B 并提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
         "outOfScope": [
           "其他 case 的使用流程",
           "人工构造的协议错误和精确竞态",

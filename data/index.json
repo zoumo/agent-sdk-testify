@@ -263,9 +263,9 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "4813de52a67426f538662432dff43fc78756ed5d6c6406420c2d23c1121fb667",
+      "adoptionSHA256": "a8feb9cc0bd24648f0b8052db5fa938eb349cbe729d7697c371f82ad03f17383",
       "caseId": "SDK-CASE-027",
-      "materials": "claude/SDK-US-006/SDK-CASE-027/20261109T203256Z-2311081147",
+      "materials": "claude/SDK-US-006/SDK-CASE-027/20261110T053345Z-3520140880",
       "provider": "claude",
       "requirement": "required",
       "storyId": "SDK-US-006",

@@ -9,7 +9,12 @@ from record_user_story.stimuli import content
 from record_user_story.environment import stdin_eof_action
 
 
-from record_user_story.adapters.common import serial, proxy_command, configuration_acknowledged
+from record_user_story.adapters.common import (
+    serial,
+    proxy_command,
+    configuration_acknowledged,
+    effort_keeps_ultracode,
+)
 
 
 def cancelled_result(native, session_id):
@@ -204,14 +209,19 @@ async def claude(plan, report, flow):
                 target_effort = parameters.get('targetEffort')
                 if not isinstance(target_effort, str) or not target_effort:
                     raise ValueError('effort case requires an explicit target effort')
+                preflight = await client._query._send_control_request({'subtype': 'get_settings'})
+                applied = preflight.get('applied', {}) if isinstance(preflight, dict) else {}
+                current_ultracode = applied.get('ultracode')
+                if not isinstance(current_ultracode, bool):
+                    raise RuntimeError('get_settings did not report a boolean applied.ultracode')
                 requested = {'subtype': 'apply_flag_settings',
-                             'settings': {'effortLevel': target_effort}}
+                             'settings': {'effortLevel': target_effort,
+                                          'ultracode': effort_keeps_ultracode(target_effort, current_ultracode)}}
                 response = await client._query._send_control_request(requested)
                 configuration_acknowledged(report, flow, requested, parameters['configurationTiming'])
-                observed = await client._query._send_control_request({'subtype': 'get_settings'})
                 report['receipts'].append({'variant-configuration': {
                     'timing': parameters['configurationTiming'], 'requested': requested,
-                    'response': response, 'observed': observed}})
+                    'response': response, 'preflight': preflight}})
                 return
             else:
                 requested = {'subtype': 'set_max_thinking_tokens', 'max_thinking_tokens': 1024}

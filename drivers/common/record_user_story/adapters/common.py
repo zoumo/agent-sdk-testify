@@ -14,6 +14,18 @@ def proxy_command(plan):
     return [peer['command'], *peer.get('args', [])]
 
 
+def effort_keeps_ultracode(level, current):
+    """Mirror the SDK's effort/ultracode merge rule."""
+    if level is None:
+        return False
+    level = level.strip().lower()
+    if level == 'ultracode':
+        return True
+    if level == 'xhigh':
+        return current
+    return False
+
+
 def configuration_acknowledged(report, flow, requested, timing):
     evidence = report.setdefault('configurationEvidence', {'requests': [], 'observed': [], 'effectiveScope': 'unknown'})
     evidence['requests'].append({'requested': requested, 'acknowledged': True,

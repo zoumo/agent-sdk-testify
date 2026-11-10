@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 5,
+  "executionId": "66079c8ba86e17edd18285adef366561",
+  "fixtureId": "0dc9543f5af47981677640b1981e2c22",
+  "command": "record",
+  "args": [
+    "--fixture-dir",
+    "/private/tmp/ast-027-v2-claude.73Bpbt/fixture",
+    "--cmd",
+    "/Users/jim/bin/claude",
+    "--",
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-027",
+    "path": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/source/plan.json",
+    "sha256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+    "provenance": "official",
+    "driverProfile": "structured-input"
+  },
+  "executor": "external-sdk",
+  "target": "native-agent",
+  "provenance": "official",
+  "workspace": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/workspace",
+  "protocolCwd": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/workspace",
+  "home": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home",
+  "config": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/config",
+  "tmp": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/tmp",
+  "historySeed": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/history-seed",
+  "env": {
+    "CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS": "1",
+    "CLAUDE_CONFIG_DIR": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/config",
+    "DISABLE_AUTOUPDATER": "1",
+    "HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home",
+    "LANG": "C.UTF-8",
+    "PATH": "/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/jim/.ssctl/bin:/Users/jim/.utoo-proxy:/Applications/golutra.app/Contents/MacOS:/Users/jim/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/podman/bin:/Users/jim/.codex/tmp/arg0-macos/codex-arg0ppULaU:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/jim/.kusion/kclvm/bin:/Users/jim/.kusion/bin:/opt/zerobrew/opt/mise/bin:/Users/jim/.zerobrew/bin:/Users/jim/.skills-manager/bin:/Users/jim/.bun/bin:/Applications/Obsidian.app/Contents/MacOS:/Users/jim/.pnpm:/Users/jim/.krew/bin:/opt/zerobrew/opt/gnu-sed/libexec/gnubin:/opt/zerobrew/opt/findutils/libexec/gnubin:/opt/zerobrew/opt/coreutils/libexec/gnubin:/Users/jim/bin:/Users/jim/.dotfiles/bin:/opt/zerobrew/bin:/Users/jim/.orbstack/bin:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS",
+    "TEMP": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/tmp",
+    "TMP": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/tmp",
+    "TMPDIR": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/tmp",
+    "XDG_CACHE_HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home/.cache",
+    "XDG_CONFIG_HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home/.config",
+    "XDG_DATA_HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home/.local/share"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "command": "/Users/jim/.codex/worktrees/d6ed/agent-sdk-testify/.artifacts/027-dev/agent-sdk-testify",
+      "args": [
+        "agent",
+        "record",
+        "--fixture-dir",
+        "/private/tmp/ast-027-v2-claude.73Bpbt/fixture",
+        "--cmd"
+      ],
+      "material": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/materials/c38472387899b843db7af7e18d093672",
+      "planSHA256": "fb4454e2f42e0a0924f81d5298b4391ef18ddbba2d322f4d1b0769e19aaa9c94",
+      "manifestSHA256": "6032dec67d29a8a59824501804969ddb61bc9382b7a753f8aa3b690d362e7a6b",
+      "recordingSHA256": "a1f540b9d531724375abd39eb5cef09ae6f9c0535d623f5f13f130a4fd3e74a0",
+      "receipt": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/executions/66079c8ba86e17edd18285adef366561/record/raw/transport.json"
+    }
+  ],
+  "artifactRoot": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/executions/66079c8ba86e17edd18285adef366561/record",
+  "artifact": {
+    "officialOrigin": {
+      "runId": "31558d8b0b442cff9b723d740e0e1ed5",
+      "fixtureId": "0dc9543f5af47981677640b1981e2c22",
+      "caseId": "SDK-CASE-027",
+      "agentType": "claude",
+      "recordSourceSHA256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+      "sourceSHA256": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4",
+      "driverSHA256": "78c6cf710676f07a55d9a409898ec3b6f5a3e21306421012ce3527d6eeee54ba",
+      "connections": [
+        "main"
+      ]
+    },
+    "files": {
+      "manifest.json": "6032dec67d29a8a59824501804969ddb61bc9382b7a753f8aa3b690d362e7a6b",
+      "official-origin.json": "4b301e3938989376b5a4edb5c27d809d2bf93e9f6b781c5bf3619907b3d20d79",
+      "origin/main.json": "a646489875718dc1da483dc3918ba49b238da7fe6afc1f37872c0dd7538bade0",
+      "plan.json": "fb4454e2f42e0a0924f81d5298b4391ef18ddbba2d322f4d1b0769e19aaa9c94",
+      "raw/manifest.json": "b986086d25aa8f22a5ec4b3633d3dee6df719c0d00a9105f8f6f81c184c43be5",
+      "raw/raw.jsonl": "a1f540b9d531724375abd39eb5cef09ae6f9c0535d623f5f13f130a4fd3e74a0",
+      "raw/stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
+      "raw/transport.json": "3c019df35100645a1dedabdebc1e43a9b452e52b3dcc9af8bb247cbbd030bced",
+      "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+      "source-plan.json": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4"
+    },
+    "id": "c38472387899b843db7af7e18d093672",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "path": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/materials/c38472387899b843db7af7e18d093672",
+    "planSHA256": "fb4454e2f42e0a0924f81d5298b4391ef18ddbba2d322f4d1b0769e19aaa9c94",
+    "manifestSHA256": "6032dec67d29a8a59824501804969ddb61bc9382b7a753f8aa3b690d362e7a6b",
+    "recordingSHA256": "a1f540b9d531724375abd39eb5cef09ae6f9c0535d623f5f13f130a4fd3e74a0",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-10T05:33:04.806756Z"
+  },
+  "limits": {
+    "timeoutNs": 300000000000
+  },
+  "startedAt": "2026-11-10T05:32:57.853367Z"
+}
