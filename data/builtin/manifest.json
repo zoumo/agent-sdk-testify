@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "toolVersion": "v0.1.1",
-  "sourceRevision": "b7c1fd72fc178dc0ce5d2e21aa4bb5d63269c23c",
+  "sourceRevision": "13b1feb2cf904fb1347dd0f4818485066db22b5c",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "50272472627c069c54639b31f00ae74eda9739e622c23d2e772c6dd7f6e03ea4",
+  "indexSHA256": "90731f3c4aa3a1e23e565d923e72e51728e49a4963fab74c7cf2158fa69c0739",
   "catalog": {
     "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
     "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
     "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
     "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-    "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+    "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
     "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
     "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
     "bindings.schema.json": "3aacaf0924c4508d4dd9274e4c5390bb64e96ce700179dcf1619748196f344a9",
@@ -20,7 +20,7 @@
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "11efd2ce5fd6ff68d85a559c83ffefeb3bd633396a47d0da2bb5f01dc4eb91e8"
   },
-  "archiveSHA256": "cb9b7fdeb592ff3aba4df9b691f856a1f48e28057011e79e4c6489ee76e9c3ca",
+  "archiveSHA256": "38507c468ae2520fb5404ff369155c490ad67c5dbd9ad60269c4682008f1de25",
   "coverage": [
     {
       "adoption": "admitted",
@@ -314,10 +314,10 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "4813de52a67426f538662432dff43fc78756ed5d6c6406420c2d23c1121fb667",
+      "adoptionSHA256": "a8feb9cc0bd24648f0b8052db5fa938eb349cbe729d7697c371f82ad03f17383",
       "available": true,
       "caseId": "SDK-CASE-027",
-      "materials": "claude/SDK-US-006/SDK-CASE-027/20261109T203256Z-2311081147",
+      "materials": "claude/SDK-US-006/SDK-CASE-027/20261110T053345Z-3520140880",
       "provider": "claude",
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -3465,7 +3465,7 @@
         "source-plan.json": "f9defaf6b2be6bc3f558626a0bb7d27f6abb43d3b4de9c4b6e2831ed7f5e862d"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
@@ -3606,7 +3606,7 @@
         "source-plan.json": "3251ba25b867215cbcc12b019edc89ff26ad3b3d73ac005d8449ac869db48277"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
@@ -3752,7 +3752,7 @@
         "source-plan.json": "b90201a7452b251a8f05d7afa1272ed6684d322f7fb0477a26e22e8466799922"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
@@ -3896,7 +3896,7 @@
         "source-plan.json": "f9eeccbb6575146ea3018e794ad83a4aa451162165a2e32870920256965216f5"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
@@ -4038,7 +4038,7 @@
         "source-plan.json": "93ea0e6b889b4479eb14193376759b466b4cb38bf82113d8742d8da1c253fb13"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
@@ -4135,62 +4135,62 @@
       "provider": "claude",
       "caseId": "SDK-CASE-027",
       "storyId": "SDK-US-006",
-      "attempt": "20261109T203256Z-2311081147",
-      "path": "claude/SDK-US-006/SDK-CASE-027/20261109T203256Z-2311081147",
+      "attempt": "20261110T053345Z-3520140880",
+      "path": "claude/SDK-US-006/SDK-CASE-027/20261110T053345Z-3520140880",
       "files": {
-        "adoption.json": "4813de52a67426f538662432dff43fc78756ed5d6c6406420c2d23c1121fb667",
-        "manifest.json": "03e90e1d949da2a99adb740aa932e442224dc68b958175610e5b4aaa487093ef",
-        "official-origin.json": "bb648ee8a5361ada52a16764595a268ea0833d51c2f12f23ef5fd3354ea013db",
-        "official-replay/driver/connections/main/execution.json": "36ce2e7c805076a142a8e0aeee1bb184af560c5979d5ee7d4ea69a2dc62b755a",
-        "official-replay/driver/connections/main/process.json": "4094b996ffd25c2e4e0901a06681e0dc58ea5b8d86ae7fc6493f8b43b5a8d754",
-        "official-replay/driver/connections/main/replay.json": "c1d73346c27e32b6dd500ec17ab50b9dfc894f3397883fcde266726f82b6d30e",
-        "official-replay/driver/connections/main/result.json": "7f61fa2cb37b3c024db6e15508df92de9d1992ba04aec789d3734076eda24e47",
-        "official-replay/driver/materials/case.json": "61c37cf5949aec578e4e6794f7759cb7807a69e1a38a64efe933f886506ab969",
-        "official-replay/driver/peer-main.process.json": "a26f8e57e3158550069a27bc8a6fbc4cf9c28320e2ad11143c3d9631467817f3",
-        "official-replay/driver/peer-main.results.jsonl": "6c0bc491f6255156de7361d0d95cde2d319218214a07ef7e2c972041bb3a4373",
-        "official-replay/driver/record-origin/execution.json": "6c7358f159d2c3d3cb1bfa77818ed22d0745b46eeaf3e3f0546d2694e3a1937b",
-        "official-replay/driver/record-origin/fixture.json": "f54766df1174976c52d85c04b46fc222fa6337ed5fb29b2df2c2b5677eeb6dec",
-        "official-replay/driver/record-origin/isolation.json": "5c9257d0697dda1c085d05e62feed9b405da04fd5041b9c095d87168622c3c72",
-        "official-replay/driver/record-origin/prepared-plan.json": "ef9f5650fcc85d1007d471ec7910ec4e9da461c739e0c8bfd1464648f083235b",
-        "official-replay/driver/record-origin/results/main.json": "2eee72c10c0725710191206eef1a99e4e21f3b40e882fecc48a5f201f78706b3",
-        "official-replay/driver/record-origin/run/driver-files.json": "fcdd7a461160f732ed74f8e316ba00468dccd9727547a33c5fd0ef5fb050a42b",
-        "official-replay/driver/record-origin/run/driver/materials/case.json": "d2f2da32e5a42afedb66b6f254c349b709f72fdb9851c2f17f219f998e41f4ee",
-        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "c6a53d40c6ee8538ed134d9ac4dd55e006844f8be6fcf4b1bf663a908f6700b5",
-        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "5c03db7c59e4760ee5d9b78b9fc9e7475dd72b1e119eab97a534f0198cc6be20",
-        "official-replay/driver/record-origin/run/driver/report.json": "ba6df916a17768a8608a3fca230d54006e3119ff767bd846dbe7bf09bfe86d7d",
-        "official-replay/driver/record-origin/run/driver/request.json": "f8408d3a034dfc59f3d8eebf5ed379d88a3a472eff74be1d67911006798d365d",
+        "adoption.json": "a8feb9cc0bd24648f0b8052db5fa938eb349cbe729d7697c371f82ad03f17383",
+        "manifest.json": "6032dec67d29a8a59824501804969ddb61bc9382b7a753f8aa3b690d362e7a6b",
+        "official-origin.json": "4b301e3938989376b5a4edb5c27d809d2bf93e9f6b781c5bf3619907b3d20d79",
+        "official-replay/driver/connections/main/execution.json": "84303e0b95ddb7678469a4f5505525e906428bc619e69717ffd955a1715ad193",
+        "official-replay/driver/connections/main/process.json": "68be5ea25bb47beb2bc4c1ff58ed82e2d65fa18a3fc30857482b2365103193fc",
+        "official-replay/driver/connections/main/replay.json": "0ef41c870a435f601ea81633f36da1cf633b27978f554f1c475e169b65f86c7b",
+        "official-replay/driver/connections/main/result.json": "74b059a78a2ae9d95a17d78ed82aed7a3a6efdcbe2cb1ac4b699fa23d56951fa",
+        "official-replay/driver/materials/case.json": "4d9438d462e71537aa17457d0711e35aaa32784efbd3135b82b5df17ac4adba8",
+        "official-replay/driver/peer-main.process.json": "3a0c89290994051b55cb6bd7439452e511f596138b174e6183ff50a697417e4c",
+        "official-replay/driver/peer-main.results.jsonl": "4ece1ec9800bc2d2222226d31ae58328702698015b5e85393824db2000fe5fd1",
+        "official-replay/driver/record-origin/execution.json": "834b716aece541182ed9ed0554f6162939177ca74950766d1dea2bd6273fef71",
+        "official-replay/driver/record-origin/fixture.json": "a7e2ad88053bde80b8e495da71944a152c0bf5192dcfd444654126d950cdfbbe",
+        "official-replay/driver/record-origin/isolation.json": "caa663472bcd1aa7a2c111c56a1b85786678317ca97653740d914764663479f9",
+        "official-replay/driver/record-origin/prepared-plan.json": "58d8d00825732b9bd2338c78f7c06e117c3b3547732cead2d8af9f71cf4a1e7c",
+        "official-replay/driver/record-origin/results/main.json": "86c0b8f895f8c6bb12c13971da25c9da945c15df13a19700ef495da8620cc835",
+        "official-replay/driver/record-origin/run/driver-files.json": "cf6c7f71e563828208fbcb6ddc5355aa962e8cc2e83244169d64e13e6141fa35",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "d34881198656a7808a21b025f6709556a777829dbe8709dc076f1a598df4278b",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "4d7a224bb0c208a01d5da924a021ab0aacb69b719c09c03e3238743309aea71d",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "d382c150d4c7768a438c508cb514f61de90c7d5dd57ed1d918e2d9fecfedbce4",
+        "official-replay/driver/record-origin/run/driver/report.json": "4568c09a1725d1cfaa4cd768a236832403746e8aecff1a5bdebaa782f1650acd",
+        "official-replay/driver/record-origin/run/driver/request.json": "f545a82da7ec7afc1d8607ef9e692dbf7c8594d6028064ce9c216b62a2b6a38e",
         "official-replay/driver/record-origin/run/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
         "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "official-replay/driver/record-origin/run/origin.json": "bb648ee8a5361ada52a16764595a268ea0833d51c2f12f23ef5fd3354ea013db",
-        "official-replay/driver/record-origin/run/result.json": "bb5615737cbace470bd221543e34f82a20fdf22c973cc01b140e95a283e5fc50",
-        "official-replay/driver/replay-report.json": "a8a5a9d0a4f0f5eaae91773af3c8856446a8560518dc726567051d267b71e572",
-        "official-replay/driver/request.json": "2dc61035f3922ff3f95e9329e4ec5e95742e5ae5457808c0e6f3df5c2c887a17",
+        "official-replay/driver/record-origin/run/origin.json": "4b301e3938989376b5a4edb5c27d809d2bf93e9f6b781c5bf3619907b3d20d79",
+        "official-replay/driver/record-origin/run/result.json": "52d408b84b0de0d47141b30b3e98da5d02439389d17b40a5fa5fd12e2ea0eb0f",
+        "official-replay/driver/replay-report.json": "90dafe511e9b75bda064c4fe978d880e70111b9f4f05535503359822bddbc910",
+        "official-replay/driver/request.json": "46e0423575663adf7f8a0b03cfffd870b5e28dd4d460164a81076ad98ceee397",
         "official-replay/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
         "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "official-replay/verification.json": "3c1cbd206a975e2071fc4590acaa3b9bb377003eba40b5af810014cd3aaf9592",
-        "origin/main.json": "141b9ae541ee03dfa586974ffa1bc4a62ff7d7bdc80083cc14e8e12052df1b98",
-        "plan.json": "bd3ead5cf2c66d4cb575b0c597d35a2f4ab4f25402eb84b2479c44bb9f5b7dbf",
-        "raw/manifest.json": "9b1e9bfee03a85042bcd54c6ac6c042e5192c1dc2baf891a2e6751e23484cf87",
-        "raw/raw.jsonl": "6441d6ae1ddfd71fab9bafb2101710bab7fa047f4d59e33f11e19b4a3a644baf",
+        "official-replay/verification.json": "49a4433918d17ec7d97755e70ebb6e0a9d8a196f298ea09a719978a5cb9ff176",
+        "origin/main.json": "a646489875718dc1da483dc3918ba49b238da7fe6afc1f37872c0dd7538bade0",
+        "plan.json": "fb4454e2f42e0a0924f81d5298b4391ef18ddbba2d322f4d1b0769e19aaa9c94",
+        "raw/manifest.json": "b986086d25aa8f22a5ec4b3633d3dee6df719c0d00a9105f8f6f81c184c43be5",
+        "raw/raw.jsonl": "a1f540b9d531724375abd39eb5cef09ae6f9c0535d623f5f13f130a4fd3e74a0",
         "raw/stderr.raw": "539e440555b60e5a5330fe5ef9a103322ba65fd673e8d721f0757e2e9c50a40f",
-        "raw/transport.json": "f042cf06fae9917d17d353783511e74a9d703f21e03d96a1763114041cb21d46",
+        "raw/transport.json": "3c019df35100645a1dedabdebc1e43a9b452e52b3dcc9af8bb247cbbd030bced",
         "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
-        "review.json": "bbdb2e20718416b0a937dd82679b02d9d97e1b26f6fe606e9b3de797044940ec",
+        "review.json": "330bfda08af9a2701e946f947f51d59dab01c6f7d502793d2e16b8173a05b967",
         "source-plan.json": "c4c856eb8c23ebc8376f65b8e10c782d10e07e16b95c31fba1f6ece1bde0d8b4"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-09T20:32:56.232498Z"
+        "qualifiedAt": "2026-11-10T05:33:45.173697Z"
       },
       "plan": {
-        "_fixtureProject": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace",
+        "_fixtureProject": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/workspace",
         "args": [
           "--output-format",
           "stream-json",
@@ -4202,7 +4202,7 @@
           "--include-partial-messages",
           "--print",
           "--system-prompt",
-          "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/workspace\". Use paths relative to this directory.",
+          "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/workspace\". Use paths relative to this directory.",
           "--no-session-persistence",
           "--effort",
           "low",
@@ -4227,19 +4227,19 @@
         "cli": "/Users/jim/bin/claude",
         "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
         "cliVersion": "2.1.258 (Claude Code)",
-        "config": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/config",
+        "config": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/config",
         "driverProfile": "structured-input",
-        "home": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b/home",
+        "home": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home",
         "model": "theta/DeepSeek-V4.1-Flash-1017",
-        "project": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/routes/record/workspace",
+        "project": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/routes/record/workspace",
         "prompts": [
           "Reply with the word Ready.",
           "Reply with the word Done."
         ],
         "provider": "claude",
-        "raw": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/executions/726e32bb1e6e97429ed1715bbf85134b/record/raw",
+        "raw": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/executions/66079c8ba86e17edd18285adef366561/record/raw",
         "recordingIsolation": "personal-skills-v1",
-        "root": "/private/tmp/ast-027-claude-pass.5luIp8/fixture/runtime/executions/726e32bb1e6e97429ed1715bbf85134b",
+        "root": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561",
         "scenario": {
           "answers": {},
           "case": {
@@ -4330,7 +4330,7 @@
         "source-plan.json": "0bf1300e6c3d83ec30d36686648e7561886c40d636d86563a00f98b21c3e3a7e"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
@@ -4476,7 +4476,7 @@
         "source-plan.json": "067424b2125461f84cc45c191979aa46bb9ae1518e416e6075590af085be28cc"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
       },
       "officialSDK": {},
@@ -7948,7 +7948,7 @@
         "source-plan.json": "77eb011ab166eff69f53bbdf590e448406aa2fbfac1bb509f56e15708b77cee7"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
       },
       "officialSDK": {},
@@ -8080,7 +8080,7 @@
         "source-plan.json": "6d8ad3792ee3c7de09e4cd371621380635d308c506dd3d0ef817f7f31faee627"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
       },
       "officialSDK": {},
@@ -8219,7 +8219,7 @@
         "source-plan.json": "eed2ee35190d21a0dc12c9d9c1912f270e1382e683e7588069e9011a45ef217c"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
       },
       "officialSDK": {},
@@ -8354,7 +8354,7 @@
         "source-plan.json": "86994fe19cf1bacddcb1a80afe4f76efafd57afc74b33599a75b2b03568c60c0"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
       },
       "officialSDK": {},
@@ -8487,7 +8487,7 @@
         "source-plan.json": "cb1b5cf11f5c21f56d6bc10a564157c0abc8e2d28facfae9579df76e2e8f7f8b"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
       },
       "officialSDK": {},
@@ -8625,7 +8625,7 @@
         "source-plan.json": "535e4337d98e7c4df90483c6d60e5e05a1895e13079ef938c0c5810b6fd4b9a9"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
       },
       "officialSDK": {},
@@ -8761,7 +8761,7 @@
         "source-plan.json": "401b49da783dadd5dbb3c3a855dba9469a8aaa88d129dcb958b30ad817919f62"
       },
       "contracts": {
-        "SDK-US-006.json": "60c553704d3244ca9a882933160ed4417216f1ad9456c48c421048d50524b501",
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
         "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
       },
       "officialSDK": {},

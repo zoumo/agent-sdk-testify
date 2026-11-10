@@ -95,37 +95,55 @@ class ConfigurationEvidenceTests(unittest.TestCase):
                 with self.assertRaises(Untriggered):
                     assess(plan, frames, {'receipts': []})
 
-    def test_effort_requires_creation_runtime_and_later_native_observation(self):
+    def test_effort_uses_sdk_preflight_and_target_payload_between_inputs(self):
         claude_plan = {'provider': 'claude', 'args': ['--effort', 'low'], 'scenario': {'parameters': {
             'setting': 'effort', 'configurationTiming': 'between-inputs',
             'effort': 'low', 'targetEffort': 'high'}}}
         claude_frames = [
             {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
             {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
-            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'effort',
-                                          'request': {'subtype': 'apply_flag_settings',
-                                                      'settings': {'effortLevel': 'high'}}}},
-            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
-                'subtype': 'success', 'request_id': 'effort', 'response': {}}}},
-            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'readback',
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'preflight',
                                           'request': {'subtype': 'get_settings'}}},
             {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
-                'subtype': 'success', 'request_id': 'readback',
-                'response': {'effective': {'effortLevel': 'high'}}}}},
+                'subtype': 'success', 'request_id': 'preflight',
+                'response': {'applied': {'effort': 'low', 'ultracode': True}}}}},
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'effort',
+                                          'request': {'subtype': 'apply_flag_settings',
+                                                      'settings': {'effortLevel': 'high',
+                                                                   'ultracode': False}}}},
+            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
+                'subtype': 'success', 'request_id': 'effort', 'response': {}}}},
             {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
             {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
         ]
         report = {'receipts': []}
         assess(claude_plan, claude_frames, report)
-        self.assertEqual(report['configurationEvidence']['observedEffort'], 'high')
-        for failure in ('missing-readback', 'ack-only', 'wrong-readback', 'budget-substitute', 'wrong-creation'):
+        self.assertEqual(report['configurationEvidence']['preflightEffort'], 'low')
+        self.assertEqual(report['configurationEvidence']['preflightUltracode'], True)
+        self.assertEqual(report['configurationEvidence']['targetEffort'], 'high')
+        for failure in ('missing-preflight', 'apply-before-preflight', 'wrong-preflight-effort',
+                        'missing-ultracode', 'wrong-ultracode', 'extra-setting', 'missing-ack',
+                        'extra-readback', 'budget-substitute', 'wrong-creation'):
             invalid = deepcopy(claude_frames)
-            if failure == 'missing-readback':
-                invalid = [frame for frame in invalid if frame['wire'].get('request_id') != 'readback']
-            elif failure == 'ack-only':
-                invalid = invalid[:4] + invalid[6:]
-            elif failure == 'wrong-readback':
-                invalid[5]['wire']['response']['response']['effective']['effortLevel'] = 'low'
+            if failure == 'missing-preflight':
+                invalid = invalid[:2] + invalid[4:]
+            elif failure == 'apply-before-preflight':
+                invalid[2], invalid[4] = invalid[4], invalid[2]
+                invalid[3], invalid[5] = invalid[5], invalid[3]
+            elif failure == 'wrong-preflight-effort':
+                invalid[3]['wire']['response']['response']['applied']['effort'] = 'high'
+            elif failure == 'missing-ultracode':
+                invalid[3]['wire']['response']['response']['applied'].pop('ultracode')
+            elif failure == 'wrong-ultracode':
+                invalid[4]['wire']['request']['settings']['ultracode'] = True
+            elif failure == 'extra-setting':
+                invalid[4]['wire']['request']['settings']['other'] = 'unexpected'
+            elif failure == 'missing-ack':
+                invalid = invalid[:5] + invalid[6:]
+            elif failure == 'extra-readback':
+                invalid.insert(6, {'direction': 'c2s', 'wire': {
+                    'type': 'control_request', 'request_id': 'readback',
+                    'request': {'subtype': 'get_settings'}}})
             elif failure == 'budget-substitute':
                 invalid.insert(2, {'direction': 'c2s', 'wire': {
                     'type': 'control_request', 'request_id': 'budget',
@@ -180,16 +198,17 @@ class ConfigurationEvidenceTests(unittest.TestCase):
         frames = [
             {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
             {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
-            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'effort',
-                                          'request': {'subtype': 'apply_flag_settings',
-                                                      'settings': {'effortLevel': 'high'}}}},
-            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
-                'subtype': 'success', 'request_id': 'effort', 'response': {}}}},
-            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'readback',
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'preflight',
                                           'request': {'subtype': 'get_settings'}}},
             {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
-                'subtype': 'success', 'request_id': 'readback',
-                'response': {'effective': {'effortLevel': 'high'}}}}},
+                'subtype': 'success', 'request_id': 'preflight',
+                'response': {'applied': {'effort': 'low', 'ultracode': False}}}}},
+            {'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'effort',
+                                          'request': {'subtype': 'apply_flag_settings',
+                                                      'settings': {'effortLevel': 'high',
+                                                                   'ultracode': False}}}},
+            {'direction': 's2c', 'wire': {'type': 'control_response', 'response': {
+                'subtype': 'success', 'request_id': 'effort', 'response': {}}}},
             {'direction': 'c2s', 'wire': {'type': 'user', 'parent_tool_use_id': None}},
             {'direction': 's2c', 'wire': {'type': 'result', 'parent_tool_use_id': None}},
         ]
@@ -204,7 +223,8 @@ class ConfigurationEvidenceTests(unittest.TestCase):
                 'args': ['--effort', 'low']}))
             report = {'receipts': []}
             assess(plan, frames, report)
-            self.assertEqual(report['configurationEvidence']['observedEffort'], 'high')
+            self.assertEqual(report['configurationEvidence']['targetEffort'], 'high')
+            self.assertEqual(report['configurationEvidence']['preflightUltracode'], False)
 
             (Path(tmp) / 'plan.json').write_text(json.dumps({
                 'provider': 'claude', 'caseId': 'SDK-CASE-027',

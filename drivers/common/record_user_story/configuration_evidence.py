@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 
+from .adapters.common import effort_keeps_ultracode
 from .scenarios import Untriggered
 
 
@@ -134,45 +135,53 @@ def assess_claude_effort(plan, frames, report, evidence, initial, target):
                and frame['wire'].get('parent_tool_use_id') is None]
     if len(inputs) != 2 or len(results) != 2:
         raise Untriggered('effort change requires two root inputs and results')
+    settings = [(index, frame['wire']) for index, frame in enumerate(frames)
+                if frame['direction'] == 'c2s' and frame['wire'].get('type') == 'control_request'
+                and frame['wire'].get('request', {}).get('subtype') == 'get_settings']
+    if len(settings) != 1:
+        raise Untriggered('runtime effort requires exactly one get_settings preflight')
+    preflight_request_at, settings_request = settings[0]
+    preflight_response_at, settings_response = _claude_control_response(
+        frames, preflight_request_at, settings_request)
+    if preflight_response_at is None or settings_response.get('subtype') != 'success':
+        raise Untriggered('runtime effort preflight was not successful')
+    preflight = settings_response.get('response', {}).get('applied', {})
+    if preflight.get('effort') != initial:
+        raise Untriggered('runtime effort preflight does not report the configured creation effort')
+    current_ultracode = preflight.get('ultracode')
+    if not isinstance(current_ultracode, bool):
+        raise Untriggered('runtime effort preflight does not report applied.ultracode')
     applies = [(index, frame['wire']) for index, frame in enumerate(frames)
-               if frame['direction'] == 'c2s' and frame['wire'].get('type') == 'control_request'
+               if index > preflight_response_at and frame['direction'] == 'c2s'
+               and frame['wire'].get('type') == 'control_request'
                and frame['wire'].get('request', {}).get('subtype') == 'apply_flag_settings']
     if len(applies) != 1:
-        raise Untriggered('runtime effort requires exactly one apply_flag_settings request')
+        raise Untriggered('runtime effort requires exactly one apply_flag_settings request after preflight')
     apply_at, apply = applies[0]
-    if apply.get('request', {}).get('settings', {}).get('effortLevel') != target:
-        raise Untriggered('runtime effort request does not carry the configured target')
+    requested_settings = apply.get('request', {}).get('settings', {})
+    expected_ultracode = effort_keeps_ultracode(target, current_ultracode)
+    if requested_settings != {'effortLevel': target, 'ultracode': expected_ultracode}:
+        raise Untriggered('runtime effort request does not match the target and preflight state')
     ack_at, ack = _claude_control_response(frames, apply_at, apply)
     if ack_at is None or ack.get('subtype') != 'success':
         raise Untriggered('runtime effort request was not acknowledged')
-    settings = [(index, frame['wire']) for index, frame in enumerate(frames)
-                if index > ack_at and frame['direction'] == 'c2s'
-                and frame['wire'].get('type') == 'control_request'
-                and frame['wire'].get('request', {}).get('subtype') == 'get_settings']
-    if not settings:
-        raise Untriggered('runtime effort lacks a native get_settings observation')
-    settings_at, request = settings[0]
-    observed_at, observed = _claude_control_response(frames, settings_at, request)
-    if observed_at is None or observed.get('subtype') != 'success':
-        raise Untriggered('runtime effort readback was not successful')
-    effective = observed.get('response', {}).get('effective', {})
-    if effective.get('effortLevel') != target:
-        raise Untriggered('runtime effort readback does not report the configured target')
     if any(frame['direction'] == 'c2s' and frame['wire'].get('type') == 'control_request'
            and frame['wire'].get('request', {}).get('subtype') == 'set_max_thinking_tokens'
            for frame in frames):
         raise Untriggered('effort must not be represented as a thinking-token budget')
-    if not (inputs[0][0] < results[0][0] < apply_at < ack_at < settings_at
-            < observed_at < inputs[1][0] < results[1][0]):
-        raise Untriggered('effort readback is not ordered before the second input')
+    if not (inputs[0][0] < results[0][0] < preflight_request_at < preflight_response_at
+            < apply_at < ack_at < inputs[1][0] < results[1][0]):
+        raise Untriggered('effort preflight and update are not ordered between the two executions')
     evidence.update(initialEffort=initial, targetEffort=target,
                     creationOperation='claude --effort', runtimeOperation='apply_flag_settings',
-                    observedEffort=effective.get('effortLevel'),
-                    effectiveScope='creation argument; runtime settings readback after acknowledgement; '
-                                    'per-turn use not independently reported')
-    report.setdefault('receipts', []).append({'effort-observation': {
-        'initial': initial, 'target': target, 'source': 'get_settings',
-        'effective': effective.get('effortLevel')}})
+                    preflightEffort=preflight.get('effort'),
+                    preflightUltracode=current_ultracode,
+                    effectiveScope='creation argument and applied effort observed before the update; '
+                                    'runtime update acknowledged after native preflight; '
+                                    'post-update effort and per-turn use not independently reported')
+    report.setdefault('receipts', []).append({'effort-preflight': {
+        'initial': initial, 'target': target, 'source': 'get_settings.applied.ultracode',
+        'effort': preflight.get('effort'), 'ultracode': current_ultracode}})
 
 
 def _codex_response(frames, index, request):

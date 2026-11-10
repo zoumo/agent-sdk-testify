@@ -9,6 +9,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'common'))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'claude' / 'official'))
 from claude_driver.adapter import claude
+from record_user_story.adapters.common import effort_keeps_ultracode
 
 
 class ClaudeAdapterTests(unittest.TestCase):
@@ -114,7 +115,7 @@ class ClaudeAdapterTests(unittest.TestCase):
             {'Which synthetic colors?': 'Blue, Green'},
         )
 
-    def test_effort_change_uses_apply_flag_settings_and_reads_settings(self):
+    def test_effort_change_preflights_ultracode_then_applies_target(self):
         class Query:
             def __init__(self):
                 self.requests = []
@@ -122,7 +123,7 @@ class ClaudeAdapterTests(unittest.TestCase):
             async def _send_control_request(self, request):
                 self.requests.append(request)
                 if request['subtype'] == 'get_settings':
-                    return {'effective': {'effortLevel': 'high'}}
+                    return {'applied': {'effort': 'low', 'ultracode': True}}
                 return {}
 
         queries = []
@@ -176,9 +177,23 @@ class ClaudeAdapterTests(unittest.TestCase):
         with patch.dict(sys.modules, {'claude_agent_sdk': sdk}):
             asyncio.run(claude(plan, report, flow))
         self.assertEqual(queries[0].requests, [
-            {'subtype': 'apply_flag_settings', 'settings': {'effortLevel': 'high'}},
             {'subtype': 'get_settings'},
+            {'subtype': 'apply_flag_settings',
+             'settings': {'effortLevel': 'high', 'ultracode': False}},
         ])
         variant = next(item['variant-configuration'] for item in report['receipts']
                        if 'variant-configuration' in item)
-        self.assertEqual(variant['observed'], {'effective': {'effortLevel': 'high'}})
+        self.assertEqual(variant['preflight'], {'applied': {'effort': 'low', 'ultracode': True}})
+
+    def test_effort_ultracode_merge_matches_sdk_rules(self):
+        cases = [
+            ('high', True, False),
+            (' HIGH ', True, False),
+            ('xhigh', True, True),
+            ('xhigh', False, False),
+            ('ultracode', False, True),
+            (None, True, False),
+        ]
+        for level, current, expected in cases:
+            with self.subTest(level=level, current=current):
+                self.assertEqual(effort_keeps_ultracode(level, current), expected)

@@ -137,15 +137,17 @@ Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在
 | 024 | 当前执行仍活动时发送不同模型的配置请求；接受时记录可观察的生效范围，拒绝时记录原生原因；保留当前执行终态。 | 不保证正在执行的请求立即换模型，不自动中断、等待空闲、重建或重试。该 case 验证执行期配置处理；成功切换及后续输入使用新模型须由 022／023 证明。 |
 | 025 | 可选：创建时选择独立的原生思考模式，例如 Claude 的 enabled／adaptive／disabled；核对启动参数与对应原生配置证据。Claude enabled 携带预算时使用原生 --max-thinking-tokens 编码，须记录该映射。 | effort 或展示设置不替代模式；预算仅在原生明确将其作为模式编码时可作选择证据，不证明预算生效。没有独立模式的 agent type 报 unsupported；不要求会话创建后动态切换模式。 |
 | 026 | 可选：请求修改原生思考 token 预算，记录数值、回执及实际可观察的作用范围。只有范围得到证实时才能声明预算目标通过。 | 不将 effort 转换为 token 数，不把 ack、输出长度或耗时当作硬预算生效证明。原生已废弃预算不构成硬上限承诺。 |
-| 027 | 必需：创建时显式选择原生 effort A 并执行任务，首次结果后请求修改为不同 effort B，再提交第二次输入并观察结果；分阶段核对确切原生请求、接受与观察证据及生效范围。Claude 创建时使用 `--effort`，运行时使用 `apply_flag_settings.effortLevel`，并以 `get_settings` 的有效值作为配置观察；Codex 创建时使用 `thread/start` 的原生配置字段，运行时使用 `thread/settings/update`，并以后续 `thread/settings/updated` 作为观察证据。 | 不统一各 agent type 的档位，不映射为模式或预算，不保证增加思考 token、提高质量或固定耗时。ack 不冒充观察值；不保证当前执行立即切换，也不把后续文本自报或任务输出当作 effort 生效证明。 |
+| 027 | 必需：创建时显式选择原生 effort A 并执行任务，首次结果后请求修改为不同 effort B，再提交第二次输入并观察结果；分阶段核对确切原生请求、接受与观察证据及生效范围。Claude 创建时使用 `--effort`；运行时先以 `get_settings` 核对 `applied.effort` 与 `applied.ultracode`，再发送同时携带 `effortLevel` 和按 SDK 规则计算的 `ultracode` 的 `apply_flag_settings`，随后提交第二次输入。Codex 创建时使用 `thread/start` 的原生配置字段，运行时使用 `thread/settings/update`，并以后续 `thread/settings/updated` 作为观察证据。 | 不统一各 agent type 的档位，不映射为模式或预算，不保证增加思考 token、提高质量或固定耗时。Claude 的第二次 `get_settings` 不属于当前 SDK 顺序，更新回执不冒充更新后的观察值；不保证当前执行立即切换，也不把后续文本自报或任务输出当作 effort 生效证明。 |
 | 028 | 验证 Codex summary／Claude thinking_display 的原生字段和值透传、请求关联成功响应处理及后续执行完成；原生拒绝须按错误返回，不得伪装成接受。实际展示效果可作补充观察，不作为门禁条件。 | 隐藏展示不表示关闭推理，不保证节省推理成本；Codex summary 与 Claude display 不强行统一为相同内容。 |
 | 029 | 当前流程仅验证模型：根会话明确设置模型后委派子任务，比较根请求、根观察值及子创建／运行时的原生模型事实，并记录来源与作用范围。 | 不证明思考模式、effort、预算或展示继承，不预设父子模型必须相同。原生明确给出默认或覆盖值可作为观察结论；子配置未暴露时保持未知，不能从主结果或 ack 推断已继承。 |
 
 025 的独立模式与 027 的 effort 是不同目标。Codex 025 只有
 model_reasoning_effort 证据，不能作为独立模式通过；保留材料并更正验证状态。
-027 的创建时 effort 与运行时 effort 分阶段取证。运行时更新沿用单字段请求和
-完整状态回执边界；没有原生观察值时保持 unverified，不把创建参数当成动态能力，
-也不把 `set_max_thinking_tokens` 当作 effort。
+027 的创建时 effort 与运行时 effort 分阶段取证。Claude 的运行时更新沿用当前 SDK
+的预检顺序：先读取完整状态，再发送带 `effortLevel` 与 `ultracode` 的更新；预检值
+属于更新前状态，更新回执属于接受证据，二者都不能冒充更新后的目标值。更新后没有
+原生观察值时保持 unverified，不把创建参数当成动态能力，也不把
+`set_max_thinking_tokens` 当作 effort。
 
 ### 中断、关闭与独立查询
 

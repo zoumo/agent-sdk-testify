@@ -1,0 +1,44 @@
+{
+  "args": [
+    "--output-format",
+    "stream-json",
+    "--input-format",
+    "stream-json",
+    "--permission-prompt-tool",
+    "stdio",
+    "--verbose",
+    "--include-partial-messages",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--effort",
+    "low",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "theta/DeepSeek-V4.1-Flash-1017"
+  ],
+  "configurationSHA256": {
+    "settings.json": "efac7b5ebb25f0d1e17996f3be1681f3d0c105a960fa9f12c35fa989bd8c4a71"
+  },
+  "cwd": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/config",
+    "HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home",
+    "TMPDIR": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/tmp",
+    "XDG_CACHE_HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home/.cache",
+    "XDG_CONFIG_HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home/.config",
+    "XDG_DATA_HOME": "/private/tmp/ast-027-v2-claude.73Bpbt/fixture/runtime/executions/66079c8ba86e17edd18285adef366561/home/.local/share"
+  },
+  "executionId": "66079c8ba86e17edd18285adef366561",
+  "fixtureId": "0dc9543f5af47981677640b1981e2c22",
+  "method": "native-preparation",
+  "nativeSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "58d8d00825732b9bd2338c78f7c06e117c3b3547732cead2d8af9f71cf4a1e7c",
+  "schemaVersion": 1,
+  "toolSHA256": "2d50664c3f64129404e2861297704bb0c6382072f98f22204bb935d545b48484"
+}
