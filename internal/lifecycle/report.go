@@ -3,8 +3,6 @@ package lifecycle
 import (
 	"errors"
 	"fmt"
-	"math"
-	"os"
 	"path/filepath"
 	"reflect"
 
@@ -105,9 +103,6 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 	if err != nil {
 		return nil, err
 	}
-	if err := validateExecutionStatus(status, statuses); err != nil {
-		return nil, err
-	}
 	report := &ExecutionReport{
 		FixtureID:       execution.FixtureID,
 		ExecutionID:     execution.ExecutionID,
@@ -118,6 +113,8 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 		ExecutionPath:   descriptorPath,
 		Connections:     make([]ConnectionReport, 0, len(execution.Connections)),
 	}
+	hasResultFailure := false
+	hasExecutionFailure := false
 	for _, connection := range execution.Connections {
 		connectionStatus := ConnectionStatus(statuses[connection.ID])
 		item := ConnectionReport{
@@ -129,47 +126,38 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 			ResultPath:         filepath.Join(dir, "receipts", connection.ID+".result.json"),
 		}
 		if item.Status == ConnectionStatusPassed || item.Status == ConnectionStatusFailed {
-			receipt, err := readReportReceipt(
-				item.ReceiptPath,
-				item.Status,
-				item.Transport,
-				fixture.AgentType,
-				execution.Artifact,
-				connection,
-			)
+			facts, err := readMockConnectionEvidence(fixture.AgentType, execution, connection)
 			if err != nil {
 				return nil, err
 			}
-			item.FullConsumption = receipt["fullConsumption"] == true
-			item.ClientEOF = receipt["clientEOF"] == true
-			item.NativeLaunched = receipt["nativeLaunched"] == true
-			item.CleanupComplete = receipt["cleanupComplete"] == true
-			if class := tool.Str(receipt["failureClass"]); class != "" {
-				item.Failure = FailureClass(class)
-			}
-			item.Error = tool.Str(receipt["error"])
-			result, err := readReportResult(item.ResultPath, execution, connection, item.Transport)
-			if err != nil {
-				return nil, err
-			}
-			if item.Status == ConnectionStatusFailed && item.Failure == "" {
-				item.Failure = FailureClass(tool.Str(result["failureClass"]))
-			}
-			if item.Status == ConnectionStatusFailed && item.Error == "" {
-				item.Error = tool.Str(result["error"])
-			}
-			if connection.Transport == ConnectionTransportProcess {
-				if item.ProcessReceiptPath == "" {
-					return nil, errors.New("mock process receipt path is absent")
-				}
-				exitCode, err := readReportProcessReceipt(item.ProcessReceiptPath, execution, connection.ID, item.Status)
-				if err != nil {
+			if item.Status == ConnectionStatusPassed {
+				if err := facts.requirePassedReceipts(); err != nil {
 					return nil, err
 				}
-				item.ExitCode = exitCode
+			}
+			item.FullConsumption = facts.fullConsumption
+			item.ClientEOF = facts.clientEOF
+			item.NativeLaunched = facts.nativeLaunched
+			item.CleanupComplete = facts.cleanupComplete
+			item.Failure = facts.failure
+			item.Error = facts.message
+			item.ExitCode = facts.exitCode
+			resultFailed := facts.resultStatus == "failed"
+			hasResultFailure = hasResultFailure || resultFailed
+			hasExecutionFailure = hasExecutionFailure || facts.hasExecutionFailure()
+			// Finalize can fail after connection settlement. Preserve successful
+			// replay/process facts while exposing the action's durable diagnostic.
+			if (item.Status == ConnectionStatusFailed || resultFailed) && item.Failure == "" {
+				item.Failure = facts.resultFailure
+			}
+			if (item.Status == ConnectionStatusFailed || resultFailed) && item.Error == "" {
+				item.Error = facts.resultMessage
 			}
 		}
 		report.Connections = append(report.Connections, item)
+	}
+	if err := validateExecutionStatus(status, statuses, hasResultFailure, hasExecutionFailure); err != nil {
+		return nil, err
 	}
 	return report, nil
 }
@@ -236,7 +224,7 @@ func reportConnectionStatuses(indexed IndexExecution, execution Execution) (map[
 	return statuses, nil
 }
 
-func validateExecutionStatus(status ExecutionStatus, statuses map[string]string) error {
+func validateExecutionStatus(status ExecutionStatus, statuses map[string]string, hasResultFailure, hasExecutionFailure bool) error {
 	hasIncomplete := false
 	hasFailed := false
 	for id, value := range statuses {
@@ -253,6 +241,9 @@ func validateExecutionStatus(status ExecutionStatus, statuses map[string]string)
 	}
 	switch status {
 	case ExecutionStatusPassed:
+		if hasResultFailure {
+			return errors.New("mock execution status is passed with a failed result")
+		}
 	case ExecutionStatusOpen:
 		if !hasIncomplete {
 			return errors.New("mock execution status is open but every connection is terminal")
@@ -261,183 +252,13 @@ func validateExecutionStatus(status ExecutionStatus, statuses map[string]string)
 		if hasIncomplete {
 			return errors.New("mock execution status is failed while a connection is still active")
 		}
-		if !hasFailed {
-			return errors.New("mock execution status is failed without a failed connection")
+		if !hasFailed && !hasExecutionFailure {
+			return errors.New("mock execution status is failed without a failed connection or validated failure result")
 		}
 	default:
 		return fmt.Errorf("mock execution status %q is invalid", status)
 	}
 	return nil
-}
-
-func readReportReceipt(path string, status ConnectionStatus, transport MockTransport, provider string, artifact corpus.Material, connection ExecutionConnection) (tool.Object, error) {
-	receipt, err := readEvidenceObject(path, "mock replay receipt")
-	if err != nil {
-		return nil, fmt.Errorf("mock replay receipt: %w", err)
-	}
-	if receipt["schemaVersion"] != float64(1) || receipt["version"] != float64(1) {
-		return nil, errors.New("mock replay receipt schema or version differs from the contract")
-	}
-	for _, field := range []string{"nativeLaunched", "fullConsumption", "clientEOF", "cleanupComplete"} {
-		if _, ok := receipt[field].(bool); !ok {
-			return nil, fmt.Errorf("mock replay receipt field %q is not boolean", field)
-		}
-	}
-	receiptStatus := tool.Str(receipt["status"])
-	if receiptStatus != "passed" && receiptStatus != "failed" {
-		return nil, fmt.Errorf("mock replay receipt status %q is invalid", receiptStatus)
-	}
-	if status == ConnectionStatusPassed && receiptStatus != "passed" {
-		return nil, fmt.Errorf("mock replay receipt status %q differs from connection status %q", receiptStatus, status)
-	}
-	if tool.Str(receipt["provider"]) != provider {
-		return nil, fmt.Errorf("mock replay receipt provider %q differs from fixture agent %q", tool.Str(receipt["provider"]), provider)
-	}
-	if filepath.Clean(tool.Str(receipt["recording"])) != artifact.Path {
-		return nil, errors.New("mock replay receipt recording path differs from execution material")
-	}
-	if tool.Str(receipt["planSHA256"]) != artifact.PlanSHA256 {
-		return nil, errors.New("mock replay receipt plan differs from execution material")
-	}
-	recordingPath, err := connectionRecordingPath(artifact.Path, connection.ID)
-	if err != nil {
-		return nil, err
-	}
-	recordingSHA256, err := tool.FileDigest(recordingPath)
-	if err != nil {
-		return nil, err
-	}
-	if connection.RecordingSHA256 == "" ||
-		connection.RecordingSHA256 != recordingSHA256 ||
-		tool.Str(receipt["recordingSHA256"]) != recordingSHA256 {
-		return nil, errors.New("mock replay receipt recording hash differs from execution connection")
-	}
-	frames, err := recordingFrameCount(recordingPath, provider)
-	if err != nil {
-		return nil, err
-	}
-	if receipt["frames"] != float64(frames) {
-		return nil, errors.New("mock replay receipt frame count differs from execution material")
-	}
-	if declaredTransport := tool.Str(receipt["transport"]); declaredTransport != "" && declaredTransport != string(transport) {
-		return nil, fmt.Errorf("mock replay receipt transport %q differs from connection transport %q", declaredTransport, transport)
-	}
-	if transport == MockTransportInProcess && tool.Str(receipt["transport"]) != string(transport) {
-		return nil, errors.New("mock replay receipt omits the in-process transport")
-	}
-	if transport == MockTransportInProcess {
-		for _, field := range []string{"processId", "processReceipt", "command", "argv", "pid", "executable", "launcher", "exitCode"} {
-			if _, present := receipt[field]; present {
-				return nil, fmt.Errorf("in-process mock replay receipt declares process fact %q", field)
-			}
-		}
-	}
-	if receipt["nativeLaunched"] != false {
-		return nil, errors.New("mock replay receipt does not prove an in-process mock")
-	}
-	if status == ConnectionStatusPassed &&
-		(receipt["fullConsumption"] != true || receipt["clientEOF"] != true || receipt["cleanupComplete"] != true) {
-		return nil, errors.New("mock replay receipt does not prove full consumption, client EOF and cleanup")
-	}
-	return receipt, nil
-}
-
-func readReportResult(path string, execution Execution, connection ExecutionConnection, transport MockTransport) (tool.Object, error) {
-	result, err := readEvidenceObject(path, "mock result")
-	if err != nil {
-		return nil, fmt.Errorf("mock result: %w", err)
-	}
-	if result["schemaVersion"] != float64(1) ||
-		result["fixtureId"] != execution.FixtureID ||
-		result["executionId"] != execution.ExecutionID {
-		return nil, errors.New("mock result execution identity differs from execution")
-	}
-	if result["connectionId"] != connection.ID {
-		return nil, errors.New("mock result connection identity differs from execution")
-	}
-	if resultStatus := tool.Str(result["status"]); resultStatus != "passed" && resultStatus != "failed" {
-		return nil, fmt.Errorf("mock result status %q is invalid", resultStatus)
-	}
-	expectedExecution := filepath.Join(filepath.Dir(filepath.Dir(path)), "execution.json")
-	if filepath.Clean(tool.Str(result["execution"])) != expectedExecution {
-		return nil, errors.New("mock result execution path differs from execution")
-	}
-	if filepath.Clean(tool.Str(result["result"])) != path {
-		return nil, errors.New("mock result path differs from execution")
-	}
-	if filepath.Clean(tool.Str(result["receipt"])) != connection.Receipt {
-		return nil, errors.New("mock result receipt path differs from execution")
-	}
-	if declaredTransport := tool.Str(result["transport"]); declaredTransport != "" && declaredTransport != string(transport) {
-		return nil, fmt.Errorf("mock result transport %q differs from connection transport %q", declaredTransport, transport)
-	}
-	if transport == MockTransportInProcess {
-		for _, field := range []string{"processId", "processReceipt", "command", "argv", "pid", "executable", "launcher", "exitCode", "nativeLaunched"} {
-			if _, present := result[field]; present {
-				return nil, fmt.Errorf("in-process mock result declares process fact %q", field)
-			}
-		}
-		if tool.Str(result["transport"]) != string(transport) {
-			return nil, errors.New("in-process mock result omits its transport")
-		}
-		processPath := filepath.Join(filepath.Dir(path), connection.ID+".process.json")
-		if _, err := os.Lstat(processPath); err == nil {
-			return nil, errors.New("in-process mock result has a process receipt file")
-		} else if !os.IsNotExist(err) {
-			return nil, err
-		}
-	} else {
-		if processID, ok := result["processId"].(float64); !ok || processID <= 0 {
-			return nil, errors.New("process mock result omits its process identity")
-		}
-		if tool.Str(result["command"]) != execution.Command {
-			return nil, errors.New("process mock result command differs from execution")
-		}
-		if connection.ProcessReceipt == "" || filepath.Clean(tool.Str(result["processReceipt"])) != connection.ProcessReceipt {
-			return nil, errors.New("process mock result receipt differs from execution")
-		}
-	}
-	material := tool.Obj(result["material"])
-	if material["id"] != execution.Artifact.ID ||
-		material["path"] != execution.Artifact.Path ||
-		material["provenance"] != execution.Artifact.Provenance ||
-		material["planSHA256"] != execution.Artifact.PlanSHA256 ||
-		material["manifestSHA256"] != execution.Artifact.ManifestSHA256 ||
-		material["recordingSHA256"] != execution.Artifact.RecordingSHA256 {
-		return nil, errors.New("mock result material identity differs from execution")
-	}
-	return result, nil
-}
-
-func readReportProcessReceipt(path string, execution Execution, connectionID string, status ConnectionStatus) (*int, error) {
-	process, err := readEvidenceObject(path, "mock process receipt")
-	if err != nil {
-		return nil, fmt.Errorf("mock process receipt: %w", err)
-	}
-	if process["schemaVersion"] != float64(1) ||
-		process["fixtureId"] != execution.FixtureID ||
-		process["executionId"] != execution.ExecutionID {
-		return nil, errors.New("mock process receipt execution identity differs from execution")
-	}
-	if process["connectionId"] != connectionID {
-		return nil, errors.New("mock process receipt connection identity differs from execution")
-	}
-	processStatus := tool.Str(process["status"])
-	if processStatus != "passed" && processStatus != "failed" {
-		return nil, fmt.Errorf("mock process receipt status %q is invalid", processStatus)
-	}
-	if status == ConnectionStatusPassed && processStatus != "passed" {
-		return nil, fmt.Errorf("mock process receipt status %q differs from connection status %q", processStatus, status)
-	}
-	code, ok := process["exitCode"].(float64)
-	if !ok || code != math.Trunc(code) {
-		return nil, errors.New("mock process receipt exit code is absent")
-	}
-	exitCode := int(code)
-	if status == ConnectionStatusPassed && exitCode != 0 {
-		return nil, fmt.Errorf("mock process receipt exit code %d is nonzero for a passed connection", exitCode)
-	}
-	return &exitCode, nil
 }
 
 func writeFailureEvidence(path string, err error) error {
