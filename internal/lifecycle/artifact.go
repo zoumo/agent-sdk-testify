@@ -9,11 +9,14 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func artifactForMaterial(root, provenance, action string, connections []string) (*corpus.Material, error) {
+func artifactForMaterial(root, provenance string, connections []string) (*corpus.Material, error) {
+	hasOfficialOrigin := false
 	if provenance == "builtin" {
-		if _, err := builtin.CheckRoot(root); err != nil {
+		selected, err := builtin.CheckRoot(root)
+		if err != nil {
 			return nil, err
 		}
+		hasOfficialOrigin = selected.Files["official-origin.json"] != nil
 	}
 	material, err := corpus.ReadMaterial(root, provenance)
 	if err != nil {
@@ -23,8 +26,18 @@ func artifactForMaterial(root, provenance, action string, connections []string) 
 	if err != nil {
 		return nil, err
 	}
-	material.ID, material.Action, material.CreatedAt = id, action, now()
+	material.ID, material.Action, material.CreatedAt = id, "initial", now()
 	material.Connections = append([]string(nil), connections...)
+	if hasOfficialOrigin {
+		var origin corpus.OfficialOrigin
+		if err := tool.ReadJSON(filepath.Join(root, "official-origin.json"), &origin); err != nil {
+			return nil, err
+		}
+		material.OfficialOrigin = &origin
+		if err := corpus.ValidateOfficialCapture(*material); err != nil {
+			return nil, err
+		}
+	}
 	return material, nil
 }
 

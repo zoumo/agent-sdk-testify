@@ -198,24 +198,28 @@ func TestExportNoCurrentAndCLISelection(t *testing.T) {
 
 func TestExportBuiltinRoundTrip(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
-		t.Run(provider, func(t *testing.T) {
-			root := t.TempDir()
-			_, _, env := isolatedCommands(t, root, provider)
-			fixtureDir := prepareFixture(t, env, "--agent", provider, "--case", "SDK-CASE-001")
-			material := obj(array(materialIndex(t, fixtureDir)["materials"])[0])
-			output := filepath.Join(root, "builtin-export")
-			before := readAllFiles(t, fixtureDir)
-			mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixtureDir, "--output", output)
-			require.Equal(t, before, readAllFiles(t, fixtureDir))
-			require.Equal(t, packageHashes(t, str(material["path"])), packageHashes(t, output))
-			imported := prepareFixture(t, env, "--recording", output)
-			metadata := obj(array(materialIndex(t, imported)["materials"])[0])
-			require.Equal(t, "builtin", metadata["provenance"])
-			require.Equal(t, material["id"], metadata["id"])
-			require.NoError(t, os.RemoveAll(fixtureDir))
-			require.NoError(t, os.RemoveAll(output))
-			mustRun(t, env, t.TempDir(), builtinInputs(t, provider, "SDK-CASE-001")["main"], "agent", "mock", "--fixture-dir", imported)
-		})
+		for _, caseID := range []string{"SDK-CASE-001", "SDK-CASE-037", "SDK-CASE-038"} {
+			t.Run(provider+"/"+caseID, func(t *testing.T) {
+				root := t.TempDir()
+				_, _, env := isolatedCommands(t, root, provider)
+				fixtureDir := prepareFixture(t, env, "--agent", provider, "--case", caseID)
+				material := obj(array(materialIndex(t, fixtureDir)["materials"])[0])
+				require.NotEmpty(t, material["officialOrigin"])
+				output := filepath.Join(root, "builtin-export")
+				before := readAllFiles(t, fixtureDir)
+				mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixtureDir, "--output", output)
+				require.Equal(t, before, readAllFiles(t, fixtureDir))
+				require.Equal(t, packageHashes(t, str(material["path"])), packageHashes(t, output))
+				imported := prepareFixture(t, env, "--recording", output)
+				metadata := obj(array(materialIndex(t, imported)["materials"])[0])
+				require.Equal(t, "builtin", metadata["provenance"])
+				require.Equal(t, material["id"], metadata["id"])
+				require.Equal(t, material["officialOrigin"], metadata["officialOrigin"])
+				require.NoError(t, os.RemoveAll(fixtureDir))
+				require.NoError(t, os.RemoveAll(output))
+				mustRun(t, env, t.TempDir(), builtinInputs(t, provider, caseID)["main"], "agent", "mock", "--fixture-dir", imported)
+			})
+		}
 	}
 }
 
