@@ -12,16 +12,6 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-type replayReceiptExpectation struct {
-	Provider        string
-	RecordingSHA256 string
-	PlanSHA256      string
-	Material        string
-	Frames          int
-	RequirePlan     bool
-	RequireExitCode bool
-}
-
 func validateExecutionID(id string) error {
 	if id == "" || filepath.Base(id) != id || !filepath.IsLocal(id) {
 		return errors.New("execution identity is not a local directory name")
@@ -106,46 +96,6 @@ func readEvidenceObject(path, label string) (tool.Object, error) {
 	return value, nil
 }
 
-func validateReplayReceipt(path string, expected replayReceiptExpectation) error {
-	receipt, err := readEvidenceObject(path, "replay receipt")
-	if err != nil {
-		return err
-	}
-	if receipt["version"] != float64(1) ||
-		receipt["status"] != "passed" ||
-		receipt["provider"] != expected.Provider ||
-		receipt["fullConsumption"] != true ||
-		receipt["clientEOF"] != true ||
-		receipt["cleanupComplete"] != true ||
-		receipt["nativeLaunched"] != false ||
-		receipt["error"] != nil {
-		return errors.New("replay receipt does not prove strict full consumption, EOF and cleanup")
-	}
-	if expected.RecordingSHA256 == "" || receipt["recordingSHA256"] != expected.RecordingSHA256 {
-		return errors.New("replay receipt recording differs from the selected material")
-	}
-	if expected.Frames > 0 && receipt["frames"] != float64(expected.Frames) {
-		return errors.New("replay receipt frame count differs from the selected recording")
-	}
-	planSHA256 := tool.Str(receipt["planSHA256"])
-	if expected.RequirePlan && planSHA256 != expected.PlanSHA256 {
-		return errors.New("replay receipt plan differs from the selected material")
-	}
-	if planSHA256 != "" && planSHA256 != expected.PlanSHA256 {
-		return errors.New("replay receipt plan differs from the selected material")
-	}
-	material := tool.Str(receipt["recording"])
-	if expected.Material != "" && material != expected.Material {
-		return errors.New("replay receipt material path differs from the execution")
-	}
-	if expected.RequireExitCode {
-		if code, ok := receipt["exitCode"].(float64); !ok || code != 0 {
-			return errors.New("replay receipt exit is absent or nonzero")
-		}
-	}
-	return nil
-}
-
 func validateCaptureTransport(path string, frames int) error {
 	transport, err := readEvidenceObject(path, "capture transport receipt")
 	if err != nil {
@@ -176,45 +126,23 @@ func validateCaptureTransport(path string, frames int) error {
 	return nil
 }
 
-func validateMockReceipts(receiptPath, processPath string, execution Execution, connection ExecutionConnection, expected replayReceiptExpectation) error {
-	replayErr := validateReplayReceipt(receiptPath, expected)
-	process, err := readEvidenceObject(processPath, "mock process receipt")
-	if err != nil {
-		return errors.Join(replayErr, err)
-	}
-	if process["schemaVersion"] != float64(1) ||
-		process["status"] != "passed" ||
-		process["fixtureId"] != execution.FixtureID ||
-		process["executionId"] != execution.ExecutionID ||
-		process["connectionId"] != connection.ID ||
-		process["error"] != nil {
-		return errors.Join(replayErr, errors.New("mock process receipt is absent or unsuccessful"))
-	}
-	if code, ok := process["exitCode"].(float64); !ok || code != 0 {
-		return errors.Join(replayErr, errors.New("mock process exit is absent or nonzero"))
-	}
-	return replayErr
-}
-
-// ValidateMockConnection checks the ordinary mock's durable protocol and process
-// facts against its exact material. Official orchestration never writes receipts.
+// ValidateMockConnection checks the ordinary mock's durable facts against its
+// exact material, then applies the official verifier's successful-process policy.
 func ValidateMockConnection(provider string, execution Execution, connection ExecutionConnection) error {
-	raw, err := connectionRecordingPath(execution.Artifact.Path, connection.ID)
+	facts, err := readMockConnectionEvidence(provider, execution, connection)
 	if err != nil {
 		return err
 	}
-	hash, err := tool.FileDigest(raw)
-	if err != nil {
+	if err := facts.requirePassedReceipts(); err != nil {
 		return err
 	}
-	frames, err := recordingFrameCount(raw, provider)
-	if err != nil {
-		return err
+	if connection.Transport != ConnectionTransportProcess || facts.resultStatus != "passed" {
+		return errors.New("official mock does not prove a successful process result")
 	}
-	return validateMockReceipts(connection.Receipt, connection.ProcessReceipt, execution, connection, replayReceiptExpectation{
-		Provider: provider, RecordingSHA256: hash, PlanSHA256: execution.Artifact.PlanSHA256,
-		Material: execution.Artifact.Path, Frames: frames, RequirePlan: true, RequireExitCode: true,
-	})
+	if facts.replayExitCode == nil || *facts.replayExitCode != 0 {
+		return errors.New("replay receipt exit is absent or nonzero")
+	}
+	return nil
 }
 
 // ValidateMockExecution requires the normal completed index and connection

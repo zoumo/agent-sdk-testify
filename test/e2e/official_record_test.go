@@ -150,7 +150,7 @@ func controlledOfficialDriver(args []string) int {
 		_ = os.WriteFile(filepath.Join(request.Output, "result.json"), []byte("{"), 0o600)
 		return 0
 	}
-	if mode == "wrong-hash" {
+	if mode == "wrong-hash" || mode == "replay-schema-missing" || mode == "process-passed-error" {
 		data, err := os.ReadFile(filepath.Join(request.Output, "peer-main.results.jsonl"))
 		if err != nil {
 			return 6
@@ -161,11 +161,21 @@ func controlledOfficialDriver(args []string) int {
 			return 6
 		}
 		path := str(finished["receipt"])
+		if mode == "process-passed-error" {
+			path = str(finished["processReceipt"])
+		}
 		var receipt object
 		if readJSONFile(path, &receipt) != nil {
 			return 6
 		}
-		receipt["recordingSHA256"] = "wrong"
+		switch mode {
+		case "wrong-hash":
+			receipt["recordingSHA256"] = "wrong"
+		case "replay-schema-missing":
+			delete(receipt, "schemaVersion")
+		case "process-passed-error":
+			receipt["error"] = "synthetic process receipt failure"
+		}
 		if writeJSONFile(path, receipt) != nil {
 			return 6
 		}
