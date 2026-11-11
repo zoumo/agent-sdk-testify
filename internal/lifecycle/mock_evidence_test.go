@@ -1,7 +1,6 @@
 package lifecycle
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,19 +8,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func TestMockEvidenceReadersRejectTampering(t *testing.T) {
-	dir := prepareMockTransactionFixture(t, "SDK-CASE-001")
-	result, err := RunMock(t.Context(), mockRequest(t, dir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error { return nil }))
-	require.NoError(t, err)
-	execution := readRecordExecution(t, dir, result.ExecutionID)
+	execution, resultPath := mockEvidenceFiles(t)
 	connection := execution.Connections[0]
-	var replay tool.Object
-	require.NoError(t, tool.ReadJSON(connection.Receipt, &replay))
-	replay["exitCode"] = 0
-	require.NoError(t, tool.WriteJSON(connection.Receipt, replay))
 	require.NoError(t, ValidateMockConnection("codex", execution, connection))
 	for _, tc := range []struct {
 		name, file string
@@ -87,7 +80,7 @@ func TestMockEvidenceReadersRejectTampering(t *testing.T) {
 			case "process":
 				path = connection.ProcessReceipt
 			case "result":
-				path = result.ResultPath
+				path = resultPath
 			}
 			original, err := os.ReadFile(path)
 			require.NoError(t, err)
@@ -100,8 +93,11 @@ func TestMockEvidenceReadersRejectTampering(t *testing.T) {
 			require.NoError(t, err)
 			officialErr := ValidateMockConnection("codex", execution, connection)
 			require.Error(t, officialErr, "official reader")
-			_, err = ReadMockExecutionReport(dir, result.ExecutionID)
-			require.EqualError(t, err, officialErr.Error(), "report reader must reject the same corrupt fact")
+			facts, err := readMockConnectionEvidence("codex", execution, connection)
+			if err == nil {
+				err = facts.requirePassedReceipts()
+			}
+			require.EqualError(t, err, officialErr.Error(), "shared reader must reject the same corrupt fact")
 			after, err := os.ReadFile(path)
 			require.NoError(t, err)
 			require.Equal(t, before, after)
@@ -110,10 +106,7 @@ func TestMockEvidenceReadersRejectTampering(t *testing.T) {
 }
 
 func TestMockEvidenceReadersPreserveProcessCompatibility(t *testing.T) {
-	dir := prepareMockTransactionFixture(t, "SDK-CASE-001")
-	result, err := RunMock(t.Context(), mockRequest(t, dir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error { return nil }))
-	require.NoError(t, err)
-	execution := readRecordExecution(t, dir, result.ExecutionID)
+	execution, _ := mockEvidenceFiles(t)
 	connection := execution.Connections[0]
 	var replay, process tool.Object
 	require.NoError(t, tool.ReadJSON(connection.Receipt, &replay))
@@ -126,47 +119,57 @@ func TestMockEvidenceReadersPreserveProcessCompatibility(t *testing.T) {
 	process["cwd"], process["workspace"] = "relative", 42
 	require.NoError(t, tool.WriteJSON(connection.ProcessReceipt, process))
 	require.NoError(t, ValidateMockConnection("codex", execution, connection))
-	_, err = ReadMockExecutionReport(dir, result.ExecutionID)
+	facts, err := readMockConnectionEvidence("codex", execution, connection)
 	require.NoError(t, err)
+	require.NoError(t, facts.requirePassedReceipts())
 	// Reports retain compatibility with an absent optional replay exit code;
 	// official verification still needs explicit successful process evidence.
 	delete(replay, "exitCode")
 	require.NoError(t, tool.WriteJSON(connection.Receipt, replay))
-	_, err = ReadMockExecutionReport(dir, result.ExecutionID)
+	facts, err = readMockConnectionEvidence("codex", execution, connection)
 	require.NoError(t, err)
+	require.NoError(t, facts.requirePassedReceipts())
+	require.Nil(t, facts.replayExitCode)
 	require.ErrorContains(t, ValidateMockConnection("codex", execution, connection), "exit")
 }
 
-func TestMockEvidenceReportPreservesFinalizeFailure(t *testing.T) {
-	dir := prepareMockTransactionFixture(t, "SDK-CASE-001")
-	result, err := RunMock(t.Context(), mockRequest(t, dir, "main", 0), mockPolicyFunc(func(_ context.Context, run MockContext) error {
-		return os.Mkdir(filepath.Join(run.ExecutionDir(), "mock-finalize.lock"), 0o700)
-	}))
-	require.Error(t, err)
-	report, err := ReadMockExecutionReport(dir, result.ExecutionID)
-	require.NoError(t, err)
-	require.Equal(t, ExecutionStatusFailed, report.Status)
-	require.True(t, report.Complete)
-	require.Equal(t, ConnectionStatusFailed, report.Connections[0].Status)
-	require.True(t, report.Connections[0].FullConsumption)
-	require.True(t, report.Connections[0].ClientEOF)
-	require.True(t, report.Connections[0].CleanupComplete)
-	require.Equal(t, 0, *report.Connections[0].ExitCode)
-	require.Contains(t, report.Connections[0].Error, "is a directory")
-	execution := readRecordExecution(t, dir, result.ExecutionID)
-	require.Error(t, ValidateMockConnection("codex", execution, execution.Connections[0]))
-	fixture, err := OpenFixture(dir)
-	require.NoError(t, err)
-	require.Error(t, ValidateMockExecution(dir, fixture, execution))
+func TestMockEvidenceExecutionFailureRequiresDiagnostic(t *testing.T) {
+	execution, resultPath := mockEvidenceFiles(t)
+	for _, tc := range []struct {
+		name, status string
+		diagnostic   any
+		wantFailure  bool
+	}{
+		{"passed", "passed", nil, false},
+		{"failed without error", "failed", nil, false},
+		{"failed empty error", "failed", "", false},
+		{"failed whitespace error", "failed", " \n\t", false},
+		{"failed finalize", "failed", "route restore failed", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var value tool.Object
+			require.NoError(t, tool.ReadJSON(resultPath, &value))
+			value["status"], value["error"] = tc.status, tc.diagnostic
+			require.NoError(t, tool.WriteJSON(resultPath, value))
+			facts, err := readMockConnectionEvidence("codex", execution, execution.Connections[0])
+			require.NoError(t, err)
+			require.NoError(t, facts.requirePassedReceipts())
+			require.Equal(t, tc.wantFailure, facts.hasResultFailure())
+			err = validateExecutionStatus(ExecutionStatusFailed, map[string]string{"main": "passed"}, facts.hasResultFailure())
+			if tc.wantFailure {
+				require.NoError(t, err)
+				require.Error(t, validateExecutionStatus(ExecutionStatusPassed, map[string]string{"main": "passed"}, true))
+			} else {
+				require.ErrorContains(t, err, "without a failed connection")
+			}
+		})
+	}
 }
 
 func TestMockEvidenceReadersRejectUnreadableFiles(t *testing.T) {
-	dir := prepareMockTransactionFixture(t, "SDK-CASE-001")
-	result, err := RunMock(t.Context(), mockRequest(t, dir, "main", 0), mockPolicyFunc(func(context.Context, MockContext) error { return nil }))
-	require.NoError(t, err)
-	execution := readRecordExecution(t, dir, result.ExecutionID)
+	execution, resultPath := mockEvidenceFiles(t)
 	connection := execution.Connections[0]
-	for _, path := range []string{connection.Receipt, connection.ProcessReceipt, result.ResultPath} {
+	for _, path := range []string{connection.Receipt, connection.ProcessReceipt, resultPath} {
 		for _, mode := range []string{"missing", "malformed", "symlink"} {
 			t.Run(filepath.Base(path)+"/"+mode, func(t *testing.T) {
 				original, err := os.ReadFile(path)
@@ -188,7 +191,7 @@ func TestMockEvidenceReadersRejectUnreadableFiles(t *testing.T) {
 				}
 				officialErr := ValidateMockConnection("codex", execution, connection)
 				require.Error(t, officialErr)
-				_, err = ReadMockExecutionReport(dir, result.ExecutionID)
+				_, err = readMockConnectionEvidence("codex", execution, connection)
 				require.EqualError(t, err, officialErr.Error())
 				switch mode {
 				case "missing":
@@ -208,4 +211,71 @@ func TestMockEvidenceReadersRejectUnreadableFiles(t *testing.T) {
 			})
 		}
 	}
+}
+
+// Only files consumed by the evidence reader are needed: no prepared fixture,
+// route templates, environment overlays or transaction run belongs in this unit.
+func mockEvidenceFiles(t *testing.T) (Execution, string) {
+	t.Helper()
+	root := t.TempDir()
+	materialRoot := filepath.Join(root, "material")
+	require.NoError(t, os.MkdirAll(filepath.Join(materialRoot, "raw"), 0o700))
+	planPath := filepath.Join(materialRoot, "plan.json")
+	rawPath := filepath.Join(materialRoot, "raw", "raw.jsonl")
+	require.NoError(t, os.WriteFile(planPath, []byte(`{"provider":"codex","provenance":"synthetic"}`), 0o600))
+	require.NoError(t, os.WriteFile(rawPath, []byte(`{"ordinal":1,"direction":"c2s","channel":"protocol","epoch":1,"wire":{"id":1,"method":"ping","params":{"unknown":9007199254740993}}}
+{"ordinal":2,"direction":"s2c","channel":"protocol","epoch":1,"wire":{"id":1,"result":{"unknown":9007199254740993}}}
+`), 0o600))
+	planHash, err := tool.FileDigest(planPath)
+	require.NoError(t, err)
+	rawHash, err := tool.FileDigest(rawPath)
+	require.NoError(t, err)
+	manifestPath := filepath.Join(materialRoot, "manifest.json")
+	require.NoError(t, tool.WriteJSON(manifestPath, tool.Object{
+		"provenance": "synthetic", "captureStatus": "complete", "planSHA256": planHash,
+		"files": tool.Object{"raw.jsonl": rawHash},
+	}))
+	manifestHash, err := tool.FileDigest(manifestPath)
+	require.NoError(t, err)
+	dir := filepath.Join(root, "executions", "execution")
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "receipts"), 0o700))
+	connection := ExecutionConnection{
+		ID: "main", Transport: ConnectionTransportProcess, RecordingSHA256: rawHash,
+		Receipt:        filepath.Join(dir, "receipts", "main.json"),
+		ProcessReceipt: filepath.Join(dir, "receipts", "main.process.json"),
+	}
+	execution := Execution{
+		SchemaVersion: SchemaVersion, FixtureID: "fixture", ExecutionID: "execution", Command: "mock", ArtifactRoot: filepath.Join(dir, "mock"),
+		Connections: []ExecutionConnection{connection},
+		Artifact: corpus.Material{
+			ID: "material", Path: materialRoot, Provenance: "synthetic", Connections: []string{"main"},
+			PlanSHA256: planHash, ManifestSHA256: manifestHash, RecordingSHA256: rawHash,
+		},
+	}
+	descriptorPath := filepath.Join(dir, "execution.json")
+	require.NoError(t, tool.WriteJSON(descriptorPath, execution))
+	descriptorHash, err := tool.FileDigest(descriptorPath)
+	require.NoError(t, err)
+	require.NoError(t, tool.WriteJSON(connection.Receipt, tool.Object{
+		"schemaVersion": 1, "version": 1, "status": "passed", "provider": "codex", "exitCode": 0,
+		"recording": materialRoot, "recordingSHA256": rawHash, "planSHA256": planHash, "frames": 2,
+		"nativeLaunched": false, "fullConsumption": true, "clientEOF": true, "cleanupComplete": true,
+		"unknown": tool.Object{"retained": true},
+	}))
+	require.NoError(t, tool.WriteJSON(connection.ProcessReceipt, tool.Object{
+		"schemaVersion": 1, "fixtureId": "fixture", "executionId": "execution", "connectionId": "main",
+		"status": "passed", "exitCode": 0, "unknown": "retained",
+	}))
+	resultPath := filepath.Join(dir, "receipts", "main.result.json")
+	require.NoError(t, tool.WriteJSON(resultPath, tool.Object{
+		"schemaVersion": 1, "fixtureId": "fixture", "executionId": "execution", "connectionId": "main", "status": "passed",
+		"execution": descriptorPath, "executionSHA256": descriptorHash, "result": resultPath,
+		"receipt": connection.Receipt, "processReceipt": connection.ProcessReceipt, "processId": 42, "command": "mock",
+		"unknown": []string{"retained"},
+		"material": tool.Object{
+			"id": "material", "path": materialRoot, "provenance": "synthetic",
+			"planSHA256": planHash, "manifestSHA256": manifestHash, "recordingSHA256": rawHash,
+		},
+	}))
+	return execution, resultPath
 }

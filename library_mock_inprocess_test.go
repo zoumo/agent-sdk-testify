@@ -129,6 +129,41 @@ func TestLibraryStartMockAgentFullConsumptionAndReport(t *testing.T) {
 	require.Equal(t, environment, after)
 }
 
+func TestLibraryStartMockAgentPostSettleFailureReport(t *testing.T) {
+	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
+	input := newControlledInput(libraryMockInput)
+	var stderr bytes.Buffer
+	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+	}, agenttestify.StartMockAgentStreams{
+		Reader: input, Writer: &testWriteCloser{}, Stderr: &stderr,
+	})
+	require.NoError(t, err)
+	awaitFullConsumption(t, run)
+	route := prepared.Routes["mock"].Workspace
+	require.NoError(t, os.Remove(route))
+	require.NoError(t, os.Mkdir(route, 0o700))
+	require.NoError(t, input.CloseEOF())
+	result, err := run.Wait(testContext(t))
+	require.ErrorContains(t, err, "rename")
+	require.NotNil(t, result)
+	require.Equal(t, agenttestify.ExecutionStatusFailed, result.ExecutionStatus)
+	require.True(t, result.ExecutionComplete)
+	require.Equal(t, agenttestify.ConnectionStatusPassed, result.ConnectionStatus)
+	require.NotNil(t, result.Execution)
+	connection := result.Execution.Connections[0]
+	require.True(t, connection.FullConsumption)
+	require.True(t, connection.ClientEOF)
+	require.True(t, connection.CleanupComplete)
+	require.Nil(t, connection.ExitCode)
+	require.Empty(t, connection.ProcessReceiptPath)
+	require.Contains(t, connection.Error, "rename")
+	require.Equal(t, agenttestify.FailureClassCleanup, connection.Failure)
+	report, err := prepared.ExecutionReport(result.ExecutionID)
+	require.NoError(t, err)
+	require.Equal(t, result.Execution, report)
+}
+
 func TestLibraryStartMockAgentFullConsumptionOrdering(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
 	input, client := io.Pipe()
