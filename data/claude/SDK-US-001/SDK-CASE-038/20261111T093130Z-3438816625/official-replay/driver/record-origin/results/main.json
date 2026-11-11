@@ -1,0 +1,21 @@
+{
+  "command": "record",
+  "connectionId": "main",
+  "execution": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/executions/1898d9653baccd5683b218f4db55dff9/execution.json",
+  "executionId": "1898d9653baccd5683b218f4db55dff9",
+  "executionSHA256": "e12ee177a810fe3cb70dddfc288f61c9aabf952c814c1e09fe851dbd25bb106a",
+  "fixtureId": "b2b1bfb65c68c621ce6574e6308d5fd0",
+  "material": {
+    "id": "8c2e2cf9946b1850828dedc3fbff15b8",
+    "manifestSHA256": "56368a9f7ea4cd42b2f7154494d808542fa9bd5f62140984aa5e5d16c729cfd4",
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/materials/8c2e2cf9946b1850828dedc3fbff15b8",
+    "planSHA256": "df223bfd0b164463ed75b33a6292bc8ca44753f6dd6bdd0897b8097154aae540",
+    "provenance": "official",
+    "recordingSHA256": "484a10d305d5652fb86c8e80c47d1491b4583e474d75d5143e4caf312bfa15f8"
+  },
+  "processId": 20543,
+  "receipt": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/executions/1898d9653baccd5683b218f4db55dff9/record/raw/transport.json",
+  "result": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/executions/1898d9653baccd5683b218f4db55dff9/receipts/main.result.json",
+  "schemaVersion": 1,
+  "status": "passed"
+}

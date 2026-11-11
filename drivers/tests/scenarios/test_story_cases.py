@@ -29,7 +29,7 @@ class StoryCaseTests(unittest.TestCase):
     def test_provider_optional_requirements_only_override_target_provider(self):
         for provider in ('claude', 'codex'):
             cases = {case['caseId']: case for case in case_recipes(provider)}
-            self.assertEqual(sum(case['required'] for case in cases.values()), 31 if provider == 'claude' else 32)
+            self.assertEqual(sum(case['required'] for case in cases.values()), 32 if provider == 'claude' else 33)
             self.assertEqual(cases['SDK-CASE-012']['required'], provider == 'claude')
             self.assertEqual(cases['SDK-CASE-012']['mode'],
                              'live-selected-path' if provider == 'claude' else 'planned')
@@ -81,15 +81,15 @@ class StoryCaseTests(unittest.TestCase):
         stories = story_documents()
         self.assertEqual([item['id'] for item in stories], [f'SDK-US-{i:03}' for i in range(1, 9)])
         cases = [case for story in stories for case in story['cases']]
-        self.assertEqual(len(cases), 36)
-        self.assertEqual(sum(case['required'] for case in cases), 33)
+        self.assertEqual(len(cases), 38)
+        self.assertEqual(sum(case['required'] for case in cases), 34)
         self.assertEqual([case['id'] for case in cases if not case['required']],
-                         ['SDK-CASE-003', 'SDK-CASE-025', 'SDK-CASE-026'])
+                         ['SDK-CASE-003', 'SDK-CASE-038', 'SDK-CASE-025', 'SDK-CASE-026'])
         self.assertEqual(len({case['id'] for case in cases}), len(cases))
         self.assertTrue(all(len(story['cases']) > 1 for story in stories))
         for provider in ('codex', 'claude'):
             selected = case_recipes(provider, stories='SDK-US-001')
-            self.assertEqual([case['caseId'] for case in selected], ['SDK-CASE-001', 'SDK-CASE-002', 'SDK-CASE-003', 'SDK-CASE-004', 'SDK-CASE-005'])
+            self.assertEqual([case['caseId'] for case in selected], ['SDK-CASE-001', 'SDK-CASE-002', 'SDK-CASE-003', 'SDK-CASE-004', 'SDK-CASE-005', 'SDK-CASE-037', 'SDK-CASE-038'])
             self.assertEqual(selected[1]['mode'], 'live-selected-path')
             self.assertNotIn('offlineTest', selected[1])
             with self.assertRaises(ValueError):
@@ -99,7 +99,7 @@ class StoryCaseTests(unittest.TestCase):
         results = {'SDK-CASE-001': {'status': 'passed', 'evidenceLayer': 'protocol-replay'}}
         summary = summarize_story('claude', 'SDK-US-001', results, 'protocol-replay')
         self.assertEqual(summary['status'], 'partial')
-        self.assertEqual(summary['missingCases'], ['SDK-CASE-002', 'SDK-CASE-004', 'SDK-CASE-005'])
+        self.assertEqual(summary['missingCases'], ['SDK-CASE-002', 'SDK-CASE-004', 'SDK-CASE-005', 'SDK-CASE-037'])
         results.update({key: {'status': 'passed', 'evidenceLayer': 'go-sdk'} for key in summary['missingCases']})
         self.assertEqual(summarize_story('claude', 'SDK-US-001', results, 'protocol-replay')['status'], 'partial')
         for result in results.values():

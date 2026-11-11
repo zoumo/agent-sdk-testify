@@ -1,0 +1,9 @@
+{
+  "case": "SDK-CASE-038",
+  "materials": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/official-records/6c0ad34ba966353e738065a6d9139eb9/driver/materials",
+  "workspace": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/routes/record/workspace",
+  "peer": {
+    "command": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/official/6c0ad34ba966353e738065a6d9139eb9/peer-main"
+  },
+  "output": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/official-records/6c0ad34ba966353e738065a6d9139eb9/driver"
+}

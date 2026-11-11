@@ -18,7 +18,7 @@ class StoryEvidenceTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         cases, rows = gate.recording_mapping(root)
         by_id = {case['id']: case for case in cases}
-        self.assertEqual(["SDK-CASE-003", "SDK-CASE-025", "SDK-CASE-026"],
+        self.assertEqual(["SDK-CASE-003", "SDK-CASE-038", "SDK-CASE-025", "SDK-CASE-026"],
                          [case['id'] for case in cases if not case['required']])
         self.assertTrue(by_id['SDK-CASE-012']['required'])
         approval = next(row for row in rows if row.startswith('| SDK-CASE-012 |'))
@@ -31,7 +31,7 @@ class StoryEvidenceTests(unittest.TestCase):
     def test_current_simulation_catalog_passes_without_historical_corpus(self):
         result = subprocess.run([sys.executable, str(Path(__file__).with_name('check-story-evidence.py'))], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('8 stories, 36 cases', result.stdout)
+        self.assertIn('8 stories, 38 cases', result.stdout)
 
     def test_public_gate_rejects_synthetic_route_and_unexplained_unavailability(self):
         source = Path(__file__).resolve().parents[1]

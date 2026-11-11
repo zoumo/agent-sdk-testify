@@ -1,0 +1,40 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config"
+  ],
+  "configurationSHA256": {
+    "settings.json": "efac7b5ebb25f0d1e17996f3be1681f3d0c105a960fa9f12c35fa989bd8c4a71"
+  },
+  "cwd": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/config",
+    "HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/home",
+    "TMPDIR": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/tmp",
+    "XDG_CACHE_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/home/.cache",
+    "XDG_CONFIG_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/home/.config",
+    "XDG_DATA_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/home/.local/share"
+  },
+  "executionId": "201fee9167db12e143057c9784367ff9",
+  "fixtureId": "09fd7ff0a153e1da2eaf3085b0c4db27",
+  "method": "native-preparation",
+  "nativeSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "ebddd9818437f49e523b9fe0dcc6049899e9e472844e2a27f381c1591f41ef7e",
+  "schemaVersion": 1,
+  "toolSHA256": "3ee4f0f7976232abdbf06f87df964773d8443d7099408953e89315ea7dddc09f"
+}

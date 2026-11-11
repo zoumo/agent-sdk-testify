@@ -1,0 +1,48 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "manifest.json": "de96072de82381a5424b91d7c7160300168d6a35206b65347e02a8d2dd155d7d",
+    "raw.jsonl": "484a10d305d5652fb86c8e80c47d1491b4583e474d75d5143e4caf312bfa15f8",
+    "stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+    "transport.json": "53abb59153f71b08c4b12a9f56c17bc94442c622db7cdd7d4c80a28bb7a97cdb"
+  },
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/executions/1898d9653baccd5683b218f4db55dff9/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config"
+    ],
+    "cwd": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/executions/1898d9653baccd5683b218f4db55dff9/workspace",
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+    "version": "2.1.258 (Claude Code)"
+  },
+  "planSHA256": "df223bfd0b164463ed75b33a6292bc8ca44753f6dd6bdd0897b8097154aae540",
+  "provenance": "capture",
+  "proxyVersion": "v0.1.2",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "remotePhaseFiles": {},
+  "runSHA256": "53abb59153f71b08c4b12a9f56c17bc94442c622db7cdd7d4c80a28bb7a97cdb",
+  "savedFiles": {},
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "bd0c932363a9247b5d19c29a26d6c568d511cdd9140e60a99d29509f149aa87a",
+  "status": "captured"
+}

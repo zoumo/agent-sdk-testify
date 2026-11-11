@@ -410,7 +410,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			return nil, err
 		}
 		if material != nil {
-			artifact, err := artifactForMaterial(materialRoot, "builtin", "initial", ids)
+			artifact, err := artifactForMaterial(materialRoot, "builtin", ids)
 			if err != nil {
 				return nil, err
 			}
@@ -426,7 +426,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			imported.Path = materialRoot
 			materialArtifact = &imported
 		} else {
-			artifact, err := artifactForMaterial(materialRoot, fixture.Source.Provenance, "initial", ids)
+			artifact, err := artifactForMaterial(materialRoot, fixture.Source.Provenance, ids)
 			if err != nil {
 				return nil, err
 			}

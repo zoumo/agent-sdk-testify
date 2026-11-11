@@ -1,0 +1,75 @@
+{
+  "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2/workspace",
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-037",
+    "outOfScope": [
+      "运行中注入的消费时机",
+      "通用队列或调度器",
+      "其他 case 的使用流程"
+    ],
+    "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-037",
+  "cli": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2/config",
+  "driverProfile": "context-injection",
+  "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2/home",
+  "model": "group/smart-split",
+  "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply only Ready. Do not use tools.",
+    "What is the stored vault code? Reply only with its exact value. Do not use tools."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/executions/eca36b57db6985521adc7bdb721755e2/record/raw",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-037",
+      "outOfScope": [
+        "运行中注入的消费时机",
+        "通用队列或调度器",
+        "其他 case 的使用流程"
+      ],
+      "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-037",
+    "configuration": {},
+    "driverProfile": "context-injection",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "contextValue": "86607b6331d405f1703a8a4f726164fa",
+      "injectionTiming": "idle"
+    },
+    "prompts": [
+      "Reply only Ready. Do not use tools.",
+      "What is the stored vault code? Reply only with its exact value. Do not use tools."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "sourcePlanSHA256": "7fb16a31f92714f7f12e7a22c482407a807cb0bd9111f80f68ecac57d70d9f81",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

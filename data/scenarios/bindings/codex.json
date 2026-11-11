@@ -2,6 +2,14 @@
   "version": 3,
   "provider": "codex",
   "cases": {
+    "SDK-CASE-037": {
+      "files": {}, "requests": {}, "answers": {}, "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-038": {
+      "files": {}, "requests": {}, "answers": {}, "configuration": {},
+      "progressBarrier": "item/started with a non-user item type"
+    },
     "SDK-CASE-001": {
       "files": {
         "numbers.txt": "17\n25\n"

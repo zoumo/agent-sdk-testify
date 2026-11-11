@@ -40,8 +40,8 @@ class SimulationCatalogTests(unittest.TestCase):
         codex = json.loads(self.catalog('--provider', 'codex').stdout)
         claude = json.loads(self.catalog('--provider', 'claude').stdout)
         by_id = lambda cases: {case['caseId']: case for case in cases}
-        self.assertEqual(len(codex), 36)
-        self.assertEqual(len(claude), 36)
+        self.assertEqual(len(codex), 38)
+        self.assertEqual(len(claude), 38)
         c, a = by_id(codex), by_id(claude)
         self.assertEqual(c['SDK-CASE-003']['mode'], 'unsupported')
         self.assertEqual(a['SDK-CASE-017']['mode'], 'unsupported')

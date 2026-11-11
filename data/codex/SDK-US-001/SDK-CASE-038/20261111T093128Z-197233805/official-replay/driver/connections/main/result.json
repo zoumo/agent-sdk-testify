@@ -1,0 +1,22 @@
+{
+  "command": "mock",
+  "connectionId": "main",
+  "execution": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/executions/431019bccabe0405b0cd466d3e71a1a4/execution.json",
+  "executionId": "431019bccabe0405b0cd466d3e71a1a4",
+  "executionSHA256": "b667f0253ee7ce66635c1e40d3fd371cd8f94c268b459373f8695ae07d528401",
+  "fixtureId": "42ea0a4dc513da34073d72716a9f60dc",
+  "material": {
+    "id": "a5f3b5664d9e8da0cef16ab46644b542",
+    "manifestSHA256": "537fca7a2ef0382eff2f9a0347c7dadad5330dcc43c6e16dec35a7576d86a588",
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/materials/a5f3b5664d9e8da0cef16ab46644b542",
+    "planSHA256": "461905e856a6b91832963295901652a7f10f56a9d03856513a81f7d6ae6cbb96",
+    "provenance": "official",
+    "recordingSHA256": "e61c95b46bbbe3fd368b12f6e628445e4e40ba30be3b354e69146aee89f13449"
+  },
+  "processId": 32284,
+  "processReceipt": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/executions/431019bccabe0405b0cd466d3e71a1a4/mock/receipts/main.process.json",
+  "receipt": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/executions/431019bccabe0405b0cd466d3e71a1a4/mock/receipts/main.json",
+  "result": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/executions/431019bccabe0405b0cd466d3e71a1a4/receipts/main.result.json",
+  "schemaVersion": 1,
+  "status": "passed"
+}

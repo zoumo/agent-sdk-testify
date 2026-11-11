@@ -304,6 +304,77 @@
         "stderrBytes": 0
       },
       "driverProfile": "active-input"
+    },
+    {
+      "id": "SDK-CASE-037",
+      "storyId": "SDK-US-001",
+      "goal": "空闲时注入上下文，不启动执行，并在下次查询中使用",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-037",
+      "execution": {"mode": "live-selected-path", "reason": ""},
+      "setup": {"files": {}},
+      "inputs": {
+        "input-1": "Reply only Ready. Do not use tools.",
+        "input-2": "What is the stored vault code? Reply only with its exact value. Do not use tools."
+      },
+      "steps": [
+        {"op": "session.open"},
+        {"op": "input.submit", "input": "input-1"},
+        {"op": "event.wait", "event": "execution.result", "onMissing": "untriggered"},
+        {"op": "context.inject"},
+        {"op": "input.submit", "input": "input-2"},
+        {"op": "event.wait", "event": "execution.result", "onMissing": "untriggered"},
+        {"op": "session.close"}
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+        "outOfScope": ["运行中注入的消费时机", "通用队列或调度器", "其他 case 的使用流程"]
+      },
+      "limits": {"inputs": 2, "activitySeconds": 0, "transportSeconds": 0, "protocolBytes": 0, "stderrBytes": 0},
+      "driverProfile": "context-injection",
+      "parameters": {
+        "injectionTiming": "idle",
+        "contextValue": "86607b6331d405f1703a8a4f726164fa"
+      }
+    },
+    {
+      "id": "SDK-CASE-038",
+      "storyId": "SDK-US-001",
+      "goal": "执行中注入上下文，记录实际消费边界，并在后续查询中读取",
+      "required": false,
+      "implementation": "implemented",
+      "name": "simulation-038",
+      "execution": {"mode": "live-selected-path", "reason": ""},
+      "setup": {"files": {}},
+      "inputs": {
+        "input-1": "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+        "input-2": "What is the stored vault code? Reply only with its exact value. Do not use tools."
+      },
+      "steps": [
+        {"op": "session.open"},
+        {"op": "input.submit", "input": "input-1"},
+        {"op": "event.wait", "event": "execution.progress", "onMissing": "untriggered"},
+        {"op": "context.inject"},
+        {"op": "event.wait", "event": "execution.result", "onMissing": "untriggered"},
+        {"op": "input.submit", "input": "input-2"},
+        {"op": "event.wait", "event": "execution.result", "onMissing": "untriggered"},
+        {"op": "session.close"}
+      ],
+      "expect": {
+        "requests": [],
+        "missingEvidence": "untriggered",
+        "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+        "outOfScope": ["保证当前执行消费注入", "通用队列或调度器", "人工构造的精确竞态"]
+      },
+      "limits": {"inputs": 2, "activitySeconds": 0, "transportSeconds": 0, "protocolBytes": 0, "stderrBytes": 0},
+      "driverProfile": "context-injection",
+      "parameters": {
+        "injectionTiming": "during-execution",
+        "contextValue": "6e0b8164b401e3b2e4589ae22adbc263"
+      }
     }
   ]
 }

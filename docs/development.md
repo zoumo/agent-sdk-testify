@@ -123,7 +123,7 @@ go run -tags builtin_generate -ldflags="$ldflags" ./cmd/agent-sdk-testify --chec
 
 测试分为三层，按测试范围和目录归类。单元测试和集成测试应快速完成，适合开发时频繁运行；
 完整流程只在端到端测试中验证。
-[共同验收](cases.md)定义 8 个用户故事、36 个 case；agent binding 的
+[共同验收](cases.md)定义 8 个用户故事、38 个 case；agent binding 的
 required/optional、planned/unsupported 及原因必须保留。
 
 | 层级 | 位置 | 测什么 | 执行边界 |

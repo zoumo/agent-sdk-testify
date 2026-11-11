@@ -207,6 +207,7 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 		material["connections"] = []string{"main", "probe"}
 	}
 	material["kind"], material["action"], material["provenance"] = "capture", "record", "official"
+	delete(material, "officialOrigin")
 	files, err := corpus.Inventory(target, false)
 	require.NoError(t, err)
 	material["files"] = files

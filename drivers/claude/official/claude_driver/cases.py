@@ -37,4 +37,6 @@ CASES = {
     'SDK-CASE-034': 'history',
     'SDK-CASE-035': 'existing-children',
     'SDK-CASE-036': 'history',
+    'SDK-CASE-037': 'context-injection',
+    'SDK-CASE-038': 'context-injection',
 }

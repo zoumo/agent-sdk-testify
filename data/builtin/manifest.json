@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "toolVersion": "v0.1.2",
-  "sourceRevision": "13b1feb2cf904fb1347dd0f4818485066db22b5c",
+  "toolVersion": "v0.1.3-context-inject.0",
+  "sourceRevision": "e35e76fa066f160a37e18d0d487e87af96db9260",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "90731f3c4aa3a1e23e565d923e72e51728e49a4963fab74c7cf2158fa69c0739",
+  "indexSHA256": "265caec4ba6352c57dc29928480da62a4e2172b83ad7eec24f476653e135e858",
   "catalog": {
-    "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
+    "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
     "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
     "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
@@ -14,13 +14,13 @@
     "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
     "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
     "bindings.schema.json": "3aacaf0924c4508d4dd9274e4c5390bb64e96ce700179dcf1619748196f344a9",
-    "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651",
-    "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4",
+    "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
-    "scenario.schema.json": "11efd2ce5fd6ff68d85a559c83ffefeb3bd633396a47d0da2bb5f01dc4eb91e8"
+    "scenario.schema.json": "0fc8cea5b78acf7c4c58d0de80dfd4ad744bcfcf27d80258693403a22da3d1c1"
   },
-  "archiveSHA256": "38507c468ae2520fb5404ff369155c490ad67c5dbd9ad60269c4682008f1de25",
+  "archiveSHA256": "fd0010434b4fd105a5df87170c4625775299dbd799d34cd95fa80f85bc3a47cc",
   "coverage": [
     {
       "adoption": "admitted",
@@ -424,6 +424,28 @@
     },
     {
       "adoption": "admitted",
+      "adoptionSHA256": "597374b0f044d9483d70e8f08618f6e23a2e6224d6c2091c781846d0edf1c5a3",
+      "available": true,
+      "caseId": "SDK-CASE-037",
+      "materials": "claude/SDK-US-001/SDK-CASE-037/20261111T093119Z-1976265002",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "eaf41d65d6f98048b5aa2c39b1ed16f77a575d9e60ff02e8342c3c09730df1db",
+      "available": true,
+      "caseId": "SDK-CASE-038",
+      "materials": "claude/SDK-US-001/SDK-CASE-038/20261111T093130Z-3438816625",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
       "adoptionSHA256": "ef04372b897610864757a34e76a6de482b613fe1a94d6dcc7729eab3960defd0",
       "available": true,
       "caseId": "SDK-CASE-001",
@@ -819,6 +841,28 @@
       "requirement": "required",
       "storyId": "SDK-US-008",
       "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "18a3ccf838cca92f8be31fb67340b886e6151fb0ac4b5d10a7432facebf376a4",
+      "available": true,
+      "caseId": "SDK-CASE-037",
+      "materials": "codex/SDK-US-001/SDK-CASE-037/20261111T093116Z-4249798765",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e7b9a04c25bf5dbefb62445fbdcc76fe384ed3d4b4148c4d32fd27d023d36840",
+      "available": true,
+      "caseId": "SDK-CASE-038",
+      "materials": "codex/SDK-US-001/SDK-CASE-038/20261111T093128Z-197233805",
+      "provider": "codex",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
     }
   ],
   "materials": [
@@ -872,8 +916,8 @@
         "source-plan.json": "df699f18757aa91f0ec5d153174439f574ae3fb43262c9783a6cf196fc36932d"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -1015,8 +1059,8 @@
         "source-plan.json": "1f8dcd45a0ccd1413dcd4a89bc1d283ff003edeba0e48a4b56560ed71a490948"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -1155,8 +1199,8 @@
         "source-plan.json": "c2bcc464730729c50b23b9ee9b68f19b5011529099e7932a28cabd1f8b2cd2b2"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -1295,8 +1339,8 @@
         "source-plan.json": "40310e3dcc90573204eef8f6ecf38325e4eeb7626d4201ebe4d091ad01959dd3"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -1436,7 +1480,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -1579,7 +1623,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -1725,7 +1769,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -1870,7 +1914,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -2015,7 +2059,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -2160,7 +2204,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -2305,7 +2349,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -2449,7 +2493,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -2599,7 +2643,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -2746,7 +2790,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -2897,7 +2941,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -3041,7 +3085,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -3181,7 +3225,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -3328,7 +3372,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -3466,7 +3510,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -3607,7 +3651,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -3753,7 +3797,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -3897,7 +3941,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -4039,7 +4083,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -4182,7 +4226,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -4331,7 +4375,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -4477,7 +4521,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -4615,7 +4659,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -4753,7 +4797,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -4892,7 +4936,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -5034,7 +5078,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -5175,7 +5219,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -5338,7 +5382,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "ea1f4c88f0313c987f129f0d7a1d3af10b751514dc526d79016a799cb22d9651"
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
       },
       "officialSDK": {},
       "qualification": {
@@ -5429,6 +5473,288 @@
       }
     },
     {
+      "provider": "claude",
+      "caseId": "SDK-CASE-037",
+      "storyId": "SDK-US-001",
+      "attempt": "20261111T093119Z-1976265002",
+      "path": "claude/SDK-US-001/SDK-CASE-037/20261111T093119Z-1976265002",
+      "files": {
+        "adoption.json": "597374b0f044d9483d70e8f08618f6e23a2e6224d6c2091c781846d0edf1c5a3",
+        "manifest.json": "90ffe932c911418a2f8e14898740d4a29311ea7f9dc24fcab337bc532afc0014",
+        "official-origin.json": "83a1b30e1d16a47a1ecd8c47ef6a0edd0f8f295394402b00a7f0dc3a5ec3d011",
+        "official-replay/driver/connections/main/execution.json": "4c63611d37967f83c5131b82f516456a36b163e77a437010173acfdddbb45b84",
+        "official-replay/driver/connections/main/process.json": "2ae65b1cc819d3bf00a860ead8af27a88e60f1911ad477e929ae380c3b3e7f1d",
+        "official-replay/driver/connections/main/replay.json": "e93fc32f2ab848baf7fa0e5e6b577e38ed16874c479ba6da1457d8a7072047c9",
+        "official-replay/driver/connections/main/result.json": "faf7e6c96219244316d80ce638a1ecf52dd02919f8a1ac52565aace819ad00a8",
+        "official-replay/driver/materials/case.json": "45c3f4af5158588a463c35749d0f3c22359523fdb5447703947e30641749f166",
+        "official-replay/driver/peer-main.process.json": "890b8e55703c08da0f226912b2e9dfa1cdd30912aec4e91e86371f6095cc737f",
+        "official-replay/driver/peer-main.results.jsonl": "00d4ef2c6a258ccf2fc34c627369097078d67dc24f322a124e790cce3aff7556",
+        "official-replay/driver/record-origin/execution.json": "a870f9616287612c4def7ca56f0785e87e96882b3147a9a89714073f34d80368",
+        "official-replay/driver/record-origin/fixture.json": "1a0e0d50133a482ba5e0ef36d48d2d97b614048ceb35344c4863070b78581633",
+        "official-replay/driver/record-origin/isolation.json": "1618e19429d837faf90ed322456140d0467304296d1ac0614eaf4bce33fba9d5",
+        "official-replay/driver/record-origin/prepared-plan.json": "ebddd9818437f49e523b9fe0dcc6049899e9e472844e2a27f381c1591f41ef7e",
+        "official-replay/driver/record-origin/results/main.json": "4a1b6cad63901686d98a906cd4333511fae57ab5d4dd0f8c705a41541b59d712",
+        "official-replay/driver/record-origin/run/driver-files.json": "3e89c83d3b052fb9635630efdcc5616bb61bfc29e3d1b73fde5a37fdafcb4aeb",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "3fb334806ef046eef7d77789fac553afd830868a9fdf5b8716f2725b406e1dde",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "6c8070f89c129c4024d58c0ace25f7aead44674aa922932e7eaf45147edd8945",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "3f7ca77eaa5277cdedf8bf21730349e1e03f8764ede3e06dbb45b15effb3f80d",
+        "official-replay/driver/record-origin/run/driver/report.json": "1fda85cb7e15f98206ace5e904d6d2a1586ed4692fe7c0a756eed7b8a453294b",
+        "official-replay/driver/record-origin/run/driver/request.json": "90733577026c573f4122da01c2b76811ca970014d42ec760cd4d15ef30d0f2a2",
+        "official-replay/driver/record-origin/run/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+        "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/origin.json": "83a1b30e1d16a47a1ecd8c47ef6a0edd0f8f295394402b00a7f0dc3a5ec3d011",
+        "official-replay/driver/record-origin/run/result.json": "877d92a59cc9949434a7382e6db249a5fb8368b1d4dfe9867bd4198e2489927d",
+        "official-replay/driver/replay-report.json": "5aabcd35361083986e2a1077dc3953d8a97663feb2098800acc6de673b09fd0c",
+        "official-replay/driver/request.json": "47f9dd4dcdff8cac7fda7dc9a6307f9a8ac446f4bd1fb6f1a0da93f307394069",
+        "official-replay/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+        "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/verification.json": "159372fd9dfa1f67b8a5e666b5d52e0a67bb64cbba7d5394e64ed6ca6a2fc7ca",
+        "origin/main.json": "29bb1e1d69323edcc2b1fbf6a4a7c1c956433943484acf4cf74b355b39af8bd4",
+        "plan.json": "2993ea50c28b569b39e965b8155f4b665d4f85e0b7871bec177eee79e4d15304",
+        "raw/manifest.json": "6eed17bfe1a2eb2a675e586ae4ff40c52bf2ace95a43a3719f1da081ac69ed38",
+        "raw/raw.jsonl": "f24c5b867ce654fd8f362fea642f902fd60cb4da35af53c5dcff4d5291f8aa96",
+        "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+        "raw/transport.json": "7c93cd12afdd892af9761d04cd42c0079f6e0a5f6195ce9093db7fe0a66394e0",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "review.json": "9de81909ccb60fe207bbd67bab87de2bf7defff6c34522428b36f1af3d58be66",
+        "source-plan.json": "172270ea77c55d6b2c7202694b326d3e87bea7aaaf70f89b6637df61711cd5fa"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+      },
+      "officialSDK": {},
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-11T09:31:19.651468Z"
+      },
+      "plan": {
+        "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/workspace",
+        "args": [
+          "--input-format",
+          "stream-json",
+          "--output-format",
+          "stream-json",
+          "--verbose",
+          "--include-partial-messages",
+          "--permission-prompt-tool",
+          "stdio",
+          "--print",
+          "--system-prompt",
+          "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/workspace\". Use paths relative to this directory.",
+          "--no-session-persistence",
+          "--setting-sources",
+          "user",
+          "--disable-slash-commands",
+          "--strict-mcp-config"
+        ],
+        "case": {
+          "id": "SDK-CASE-037",
+          "outOfScope": [
+            "运行中注入的消费时机",
+            "通用队列或调度器",
+            "其他 case 的使用流程"
+          ],
+          "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-037",
+        "cli": "/Users/jim/bin/claude",
+        "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+        "cliVersion": "2.1.258 (Claude Code)",
+        "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/config",
+        "driverProfile": "context-injection",
+        "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9/home",
+        "model": "",
+        "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply only Ready. Do not use tools.",
+          "What is the stored vault code? Reply only with its exact value. Do not use tools."
+        ],
+        "provider": "claude",
+        "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/executions/201fee9167db12e143057c9784367ff9/record/raw",
+        "recordingIsolation": "personal-skills-v1",
+        "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/executions/201fee9167db12e143057c9784367ff9",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-037",
+            "outOfScope": [
+              "运行中注入的消费时机",
+              "通用队列或调度器",
+              "其他 case 的使用流程"
+            ],
+            "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-037",
+          "configuration": {},
+          "driverProfile": "context-injection",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "contextValue": "86607b6331d405f1703a8a4f726164fa",
+            "injectionTiming": "idle"
+          },
+          "prompts": [
+            "Reply only Ready. Do not use tools.",
+            "What is the stored vault code? Reply only with its exact value. Do not use tools."
+          ],
+          "provider": "claude",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "172270ea77c55d6b2c7202694b326d3e87bea7aaaf70f89b6637df61711cd5fa",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
+      }
+    },
+    {
+      "provider": "claude",
+      "caseId": "SDK-CASE-038",
+      "storyId": "SDK-US-001",
+      "attempt": "20261111T093130Z-3438816625",
+      "path": "claude/SDK-US-001/SDK-CASE-038/20261111T093130Z-3438816625",
+      "files": {
+        "adoption.json": "eaf41d65d6f98048b5aa2c39b1ed16f77a575d9e60ff02e8342c3c09730df1db",
+        "manifest.json": "56368a9f7ea4cd42b2f7154494d808542fa9bd5f62140984aa5e5d16c729cfd4",
+        "official-origin.json": "2294d7448ff34af788246bea32eb2f0e659e2889ca75e41f1aa6cc9599448f66",
+        "official-replay/driver/connections/main/execution.json": "35b054081af17327b60595e9c9fe6b07c51890c775875cf3c71bc6753e242dd7",
+        "official-replay/driver/connections/main/process.json": "f8ce149abe1069ff6e9b09bf21559d1062f013f785764d176b7ccdd0d8afd099",
+        "official-replay/driver/connections/main/replay.json": "45bbe9bc4a53f96f7e9c91720cb6f5005446e41c2644b82ed68ad6cc60a4cb5a",
+        "official-replay/driver/connections/main/result.json": "7b21b2737354cde22d198853f9634427d32fbe49ed72d73f2113d49469e33b07",
+        "official-replay/driver/materials/case.json": "0daa370bd2ffd983f1c54f1ee5fbf3e96958d1f735a7a02301e9c1121389ba02",
+        "official-replay/driver/peer-main.process.json": "7cd91b02c3556d10458bac8c0398c8079fe4586c678acc20451ed4c2f8c93e47",
+        "official-replay/driver/peer-main.results.jsonl": "a6be04d6bb4b11e87f0218b451b942c4d06bd8d0adf9f7cb82255ce125116001",
+        "official-replay/driver/record-origin/execution.json": "e12ee177a810fe3cb70dddfc288f61c9aabf952c814c1e09fe851dbd25bb106a",
+        "official-replay/driver/record-origin/fixture.json": "f715ec434a07a78e4328d20e6c78048b3167e1c75785c3c939c8112939c61411",
+        "official-replay/driver/record-origin/isolation.json": "29bcc65c4a612d2e92ee715e033aafed9406132512bbe89ab90c07d497232b04",
+        "official-replay/driver/record-origin/prepared-plan.json": "cebc81f67130046bd1c98b5f9570b5422f9918954daa63b120a400d3ce13b2b8",
+        "official-replay/driver/record-origin/results/main.json": "680146186c09120ba7027eea19c5174b6ab138e60e3dd22064a7b60462176006",
+        "official-replay/driver/record-origin/run/driver-files.json": "45c9c74416f76d0cbe49483a18a289317ba0946f8f4e318a67f820c24e8016cf",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "53000d46d0604ec3f34ff627446b65b9f5c832b13aab38adbbf92b40424562b0",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "ac84a674ff10ef40010cdcc85633d699cefbb8d9c22e5dde380591b713611348",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "36a029ca74318c57b960ad6d9b00f41383ba22cec7a9941588c32d9a10d94ae5",
+        "official-replay/driver/record-origin/run/driver/report.json": "f9b6d7d321459363779becf835228d35381d826bcc1bb8d14a1eabd47902a1a8",
+        "official-replay/driver/record-origin/run/driver/request.json": "605893aaaca20a6def802e9ba2b7b692765c81d41fc9dbf5e4deaa2a533cbf45",
+        "official-replay/driver/record-origin/run/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+        "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/origin.json": "2294d7448ff34af788246bea32eb2f0e659e2889ca75e41f1aa6cc9599448f66",
+        "official-replay/driver/record-origin/run/result.json": "83681ffa3bca90e0b309bef67acd8967af6f4cde960ab4d82e834a30f0039666",
+        "official-replay/driver/replay-report.json": "6103f9ab00a87a251009764d4fcf39baaa63bea3003217c8ceab907bf2410aa4",
+        "official-replay/driver/request.json": "b0bfea7ddfd234b2bb8d964135a4510523bc01abf9a1d458a28e6a8e0531636e",
+        "official-replay/driver/result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+        "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/verification.json": "6c9bb90547ac1943dea8bfda24810e709ad24e107d5e7d9709cc79f055cfd548",
+        "origin/main.json": "51969df68bcaafda925c7d87fde4796d874b1355cb447d951b69466814e5b75a",
+        "plan.json": "df223bfd0b164463ed75b33a6292bc8ca44753f6dd6bdd0897b8097154aae540",
+        "raw/manifest.json": "de96072de82381a5424b91d7c7160300168d6a35206b65347e02a8d2dd155d7d",
+        "raw/raw.jsonl": "484a10d305d5652fb86c8e80c47d1491b4583e474d75d5143e4caf312bfa15f8",
+        "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+        "raw/transport.json": "53abb59153f71b08c4b12a9f56c17bc94442c622db7cdd7d4c80a28bb7a97cdb",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "review.json": "c69b48d8ad08aca4d84e1e2c266d316ccccb21ccd5a8a89a5b8eb505ba26dea4",
+        "source-plan.json": "bd0c932363a9247b5d19c29a26d6c568d511cdd9140e60a99d29509f149aa87a"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+      },
+      "officialSDK": {},
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-11T09:31:30.541228Z"
+      },
+      "plan": {
+        "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/executions/1898d9653baccd5683b218f4db55dff9/workspace",
+        "args": [
+          "--input-format",
+          "stream-json",
+          "--output-format",
+          "stream-json",
+          "--verbose",
+          "--include-partial-messages",
+          "--permission-prompt-tool",
+          "stdio",
+          "--print",
+          "--system-prompt",
+          "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/executions/1898d9653baccd5683b218f4db55dff9/workspace\". Use paths relative to this directory.",
+          "--no-session-persistence",
+          "--setting-sources",
+          "user",
+          "--disable-slash-commands",
+          "--strict-mcp-config"
+        ],
+        "case": {
+          "id": "SDK-CASE-038",
+          "outOfScope": [
+            "保证当前执行消费注入",
+            "通用队列或调度器",
+            "人工构造的精确竞态"
+          ],
+          "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-038",
+        "cli": "/Users/jim/bin/claude",
+        "cliSHA256": "0d036f0b635d239844e6df6996bc05263fe305df505b073c71f79f83668ea35a",
+        "cliVersion": "2.1.258 (Claude Code)",
+        "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/executions/1898d9653baccd5683b218f4db55dff9/config",
+        "driverProfile": "context-injection",
+        "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/executions/1898d9653baccd5683b218f4db55dff9/home",
+        "model": "",
+        "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/routes/record/workspace",
+        "prompts": [
+          "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+          "What is the stored vault code? Reply only with its exact value. Do not use tools."
+        ],
+        "provider": "claude",
+        "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/executions/1898d9653baccd5683b218f4db55dff9/record/raw",
+        "recordingIsolation": "personal-skills-v1",
+        "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-running-1/runtime/executions/1898d9653baccd5683b218f4db55dff9",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-038",
+            "outOfScope": [
+              "保证当前执行消费注入",
+              "通用队列或调度器",
+              "人工构造的精确竞态"
+            ],
+            "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-038",
+          "configuration": {},
+          "driverProfile": "context-injection",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "contextValue": "6e0b8164b401e3b2e4589ae22adbc263",
+            "injectionTiming": "during-execution"
+          },
+          "prompts": [
+            "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+            "What is the stored vault code? Reply only with its exact value. Do not use tools."
+          ],
+          "provider": "claude",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "bd0c932363a9247b5d19c29a26d6c568d511cdd9140e60a99d29509f149aa87a",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
+      }
+    },
+    {
       "provider": "codex",
       "caseId": "SDK-CASE-001",
       "storyId": "SDK-US-001",
@@ -5478,8 +5804,8 @@
         "source-plan.json": "7aa26c2e5a823ec2170defe86aa445924f2bd258e9d70f73b2ee0da7eeabfdae"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -5611,8 +5937,8 @@
         "source-plan.json": "7b8641fa9e9be56d7fb6f57eb236f0f5fea15702e29819d47fbb33215ba322e5"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -5742,8 +6068,8 @@
         "source-plan.json": "e9a176e29ae4f2a58b1811a95d8cd200a17870bdd9beae3326e016a651220d35"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -5873,8 +6199,8 @@
         "source-plan.json": "74ffb1da51ddc5a295c158659e936d02bcc684d0ec8afc96f9dd2db2e6fad67e"
       },
       "contracts": {
-        "SDK-US-001.json": "b221114a0034f5a41d9de33ccd8979cf6944ca465b8fe4ccb17c33787947c624",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6005,7 +6331,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6137,7 +6463,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6270,7 +6596,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6409,7 +6735,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6548,7 +6874,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6684,7 +7010,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6820,7 +7146,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -6961,7 +7287,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -7099,7 +7425,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -7242,7 +7568,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -7391,7 +7717,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -7529,7 +7855,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -7667,7 +7993,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -7815,7 +8141,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -7949,7 +8275,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -8081,7 +8407,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -8220,7 +8546,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -8355,7 +8681,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -8488,7 +8814,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -8626,7 +8952,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -8762,7 +9088,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -8896,7 +9222,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -9025,7 +9351,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -9169,7 +9495,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -9299,7 +9625,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -9432,7 +9758,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -9569,7 +9895,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -9721,7 +10047,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "9aab437d881c1e5522bc0f0ccb1fa81350ff2ec6384a7ba643970bab726cc264"
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
       },
       "officialSDK": {},
       "qualification": {
@@ -9801,6 +10127,274 @@
         "stdinEOFAction": "close",
         "story": "SDK-US-008",
         "storyId": "SDK-US-008"
+      }
+    },
+    {
+      "provider": "codex",
+      "caseId": "SDK-CASE-037",
+      "storyId": "SDK-US-001",
+      "attempt": "20261111T093116Z-4249798765",
+      "path": "codex/SDK-US-001/SDK-CASE-037/20261111T093116Z-4249798765",
+      "files": {
+        "adoption.json": "18a3ccf838cca92f8be31fb67340b886e6151fb0ac4b5d10a7432facebf376a4",
+        "manifest.json": "75e70eb4cc0c38e5b49688bf65b8a6f0655801125adbd52357215ec4fb951433",
+        "official-origin.json": "84556d41a03dd024a0bd8fcc9f18f15485b104e558129dce70abcc87e3987287",
+        "official-replay/driver/connections/main/execution.json": "31050c5ee754567f00afaa66d898f185b7277467f8ffbde0c4f0daa97af66000",
+        "official-replay/driver/connections/main/process.json": "0e276f89d6276fa2c7bda771572a244f4092964a899a26248f5f38dc969dbae6",
+        "official-replay/driver/connections/main/replay.json": "8d1ecc526073cddc5d6fdb7ff542ae669f982561da66e25051a1323344002e94",
+        "official-replay/driver/connections/main/result.json": "0b7c87650ee8adacf3f06c1c2e14608b777fdc36d4748c02c016c27be0bd4642",
+        "official-replay/driver/materials/case.json": "18c21a3ca3566df32742fd1dbb263e015f4cc94130808c896aa60a18bbecd695",
+        "official-replay/driver/peer-main.process.json": "a22310fcad3327eadba186fab77eb63d8ec88f8f9f76f97ccf0ee9f106cb1967",
+        "official-replay/driver/peer-main.results.jsonl": "ac5fd6971290585db787f9426101695b19208ca276974c0f760355527c50f0be",
+        "official-replay/driver/record-origin/execution.json": "f1d1189b2684ec85042b3a7241e8e5d4085c7a5d4589034893c3c6811a35eeee",
+        "official-replay/driver/record-origin/fixture.json": "95fd360aef674993755b73c83afcc46e66085efd61d7919bdf8309083987c058",
+        "official-replay/driver/record-origin/isolation.json": "8b21563174100dba99a6e0a1c1dd67ee8b28d04b8f9e36237c57a2ecbcbcee74",
+        "official-replay/driver/record-origin/prepared-plan.json": "a439dba6e0e9c6cacf06568f5465430f1c8a5cf958bc3f72d4781da48387cf58",
+        "official-replay/driver/record-origin/results/main.json": "6fa1dd8c12ecf8f01a856a8b235e039683a98dff958188c6f528390b364cf735",
+        "official-replay/driver/record-origin/run/driver-files.json": "45f09ea6455b8e5aa948ab818ac3b95b3bd62f0bd10b5028d5a8ae971d7d2361",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "b09228baefb3ee61ffe046550d010c8f2dc85c94046533720b22526b8d9cf0cc",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "b9061d47095e228c71eee069b2d0a780090c93149ea157df1668a5948209b4b8",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "938b2453a0573ae8cc541f50f1c24f49d511159998188e93ec43a40909521c5b",
+        "official-replay/driver/record-origin/run/driver/report.json": "af81df780608dbba0753e75471ee8bc0c2ea650522497c85b0f58693cc638bf4",
+        "official-replay/driver/record-origin/run/driver/request.json": "ca4ed0fc781cfad4cc1b655c3fba5081554bc8febc3f4f7c0607b351c0ef8fdf",
+        "official-replay/driver/record-origin/run/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/origin.json": "84556d41a03dd024a0bd8fcc9f18f15485b104e558129dce70abcc87e3987287",
+        "official-replay/driver/record-origin/run/result.json": "f7eee2e02b5ec7601ab61e5dca822ea473dbd7645faa29e3d8a91927da9acfc6",
+        "official-replay/driver/replay-report.json": "9d3796768044fb47cd71aafeb29970023e8960ec7671766d9ede8fba29d42dd1",
+        "official-replay/driver/request.json": "a0750f8e96e5bd2de9605db23ff67d5ee07d75bcdf6b32b1df0e6bfe24da684a",
+        "official-replay/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/verification.json": "b6fc93f4519ec89d8d6523c9fd3e5007e29e17e89bb63a958e10a44fc752a2d6",
+        "origin/main.json": "5e565b0bad950e7b5aaf65c1e485f6515046bd37cffbd746652827fa20089b01",
+        "plan.json": "7958dfd63e5626e4e167c3bbba29a3243fe206b1c72ac23cee0e1e3a0960a178",
+        "raw/manifest.json": "816a24c450ab53e7c32a3c9a85564cc6ef0b876cbea2386f52915cce0b9aeaee",
+        "raw/raw.jsonl": "c0998ce0bca8c486171fc9ae2985a3ae4a7ba51e0ca0a4ddfa503a0bd80f771e",
+        "raw/stderr.raw": "4840905fd33b887375e5c63f99ed331537c31ffba3666acc4b7cc999583c5c93",
+        "raw/transport.json": "48ccc20f7b68ca8cb304a5e56c9fa0fb3bd3667a8d0f83c234f5c1505ef24f84",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "review.json": "47225f1247551ec00c6dd691f6b79e77ee9a7ddb4a05b7816ef3215f2964e56b",
+        "source-plan.json": "7fb16a31f92714f7f12e7a22c482407a807cb0bd9111f80f68ecac57d70d9f81"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+      },
+      "officialSDK": {},
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-11T09:31:16.387273Z"
+      },
+      "plan": {
+        "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2/workspace",
+        "args": [
+          "app-server",
+          "--listen",
+          "stdio://",
+          "-c",
+          "features.default_mode_request_user_input=true",
+          "-c",
+          "project_root_markers=[]",
+          "-c",
+          "project_doc_max_bytes=0"
+        ],
+        "case": {
+          "id": "SDK-CASE-037",
+          "outOfScope": [
+            "运行中注入的消费时机",
+            "通用队列或调度器",
+            "其他 case 的使用流程"
+          ],
+          "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-037",
+        "cli": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+        "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+        "cliVersion": "codex-cli 0.166.0",
+        "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2/config",
+        "driverProfile": "context-injection",
+        "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2/home",
+        "model": "group/smart-split",
+        "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply only Ready. Do not use tools.",
+          "What is the stored vault code? Reply only with its exact value. Do not use tools."
+        ],
+        "provider": "codex",
+        "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/executions/eca36b57db6985521adc7bdb721755e2/record/raw",
+        "recordingIsolation": "personal-skills-v1",
+        "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-037",
+            "outOfScope": [
+              "运行中注入的消费时机",
+              "通用队列或调度器",
+              "其他 case 的使用流程"
+            ],
+            "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-037",
+          "configuration": {},
+          "driverProfile": "context-injection",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "contextValue": "86607b6331d405f1703a8a4f726164fa",
+            "injectionTiming": "idle"
+          },
+          "prompts": [
+            "Reply only Ready. Do not use tools.",
+            "What is the stored vault code? Reply only with its exact value. Do not use tools."
+          ],
+          "provider": "codex",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "7fb16a31f92714f7f12e7a22c482407a807cb0bd9111f80f68ecac57d70d9f81",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
+      }
+    },
+    {
+      "provider": "codex",
+      "caseId": "SDK-CASE-038",
+      "storyId": "SDK-US-001",
+      "attempt": "20261111T093128Z-197233805",
+      "path": "codex/SDK-US-001/SDK-CASE-038/20261111T093128Z-197233805",
+      "files": {
+        "adoption.json": "e7b9a04c25bf5dbefb62445fbdcc76fe384ed3d4b4148c4d32fd27d023d36840",
+        "manifest.json": "537fca7a2ef0382eff2f9a0347c7dadad5330dcc43c6e16dec35a7576d86a588",
+        "official-origin.json": "b53b553fc7eea136e34caca5c5c4a7986ef75535021aabd1a7577a22dfdcf5f5",
+        "official-replay/driver/connections/main/execution.json": "b667f0253ee7ce66635c1e40d3fd371cd8f94c268b459373f8695ae07d528401",
+        "official-replay/driver/connections/main/process.json": "5f07dbb4b2b9512152f0aede4e7283ca526afa8e47018373ac3e867f82ac1375",
+        "official-replay/driver/connections/main/replay.json": "bdffb1c839b71842b44076e552708aa79306a3335f297d633a5559b8cdc22512",
+        "official-replay/driver/connections/main/result.json": "bab1a8ea4088c69220fbb2cc7309a7d1ba6276062967a4a25808d967936c9917",
+        "official-replay/driver/materials/case.json": "7c499f53611258d392ae6e57bb54ea6b33345a8fce27bb5784e8a096bef2ae1c",
+        "official-replay/driver/peer-main.process.json": "2cdfc4e1ac7a544a7d2ebc8720bf3f1eebdc070429a3e9494e5fdf214a876474",
+        "official-replay/driver/peer-main.results.jsonl": "e2f0d890334f39ee40df70e33429e6fadd0b32421ea58564ba2b41413d235ee5",
+        "official-replay/driver/record-origin/execution.json": "b7fe3f9da6844552585abb8e6a0ec35be504285aea6692b8826f0bd41eb6826f",
+        "official-replay/driver/record-origin/fixture.json": "80048d3451188442f26e937454031dc464fd7262aa5a4512e9541365094ebf7d",
+        "official-replay/driver/record-origin/isolation.json": "c84503f2d62ee23d4dcc4e4506e70b4957d6b89d4d75a3074153483fe007fab7",
+        "official-replay/driver/record-origin/prepared-plan.json": "b3d78f2d33df66e6e55475e1b7a4b1cf87482d63db925dda738f2bbeb86c4334",
+        "official-replay/driver/record-origin/results/main.json": "f6cd4d9f03ace639b5e257c675dbe4711b39cef83d70c64fca5a7c5ab130d74c",
+        "official-replay/driver/record-origin/run/driver-files.json": "eece6254318fc8f4d9025aaf2a80f32899b41d4f17d679fa540c26a7d5164b7e",
+        "official-replay/driver/record-origin/run/driver/materials/case.json": "49726d429adee3b90a79c89b16bece8d77ce7a70a6bfacc6effb1b702c9bd0a2",
+        "official-replay/driver/record-origin/run/driver/peer-main.process.json": "4ac3ebb39c9585d47cb4ef47dcba098730fd29091d9c2353b898e3fcefb9381c",
+        "official-replay/driver/record-origin/run/driver/peer-main.results.jsonl": "7836790de98fc6da4521ba5a5387ef0ae9f0a0f7962064b6159e897ef7ee0bff",
+        "official-replay/driver/record-origin/run/driver/report.json": "4c737b098d1457e8fcb2bf4d52a2f7daea340f2d432e4fd7e55792ee42bf85f4",
+        "official-replay/driver/record-origin/run/driver/request.json": "f170b91689cc43e86176841ffa0d0469ec9657f69304095d5815636d39ecf001",
+        "official-replay/driver/record-origin/run/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/record-origin/run/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/record-origin/run/origin.json": "b53b553fc7eea136e34caca5c5c4a7986ef75535021aabd1a7577a22dfdcf5f5",
+        "official-replay/driver/record-origin/run/result.json": "68fd266ab26855db5b895896f9d64480506c53cbb42a54d7c8fb177d2bb3e217",
+        "official-replay/driver/replay-report.json": "c87cc86ac7e1ea790d7226a25d912e472db65462b24469947f2b26777df7499d",
+        "official-replay/driver/request.json": "521cb2a1e2d1fb4a6725546bf5da49f7a69c6f9475cfb12117b5b91b5579d194",
+        "official-replay/driver/result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+        "official-replay/driver/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/driver/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "official-replay/verification.json": "d2a34e81df176657b6b14c64cb40d72f3cb6b6f7aae41194a41c0c664d860058",
+        "origin/main.json": "02124c0587c2173d4eeb0258042b35d80c73ab25d1b6362be0db2d4634049e94",
+        "plan.json": "461905e856a6b91832963295901652a7f10f56a9d03856513a81f7d6ae6cbb96",
+        "raw/manifest.json": "d696dfcb902c86537fa5cf81d50f1e571d781f504bdfa5491bd8ce12ffa2ff16",
+        "raw/raw.jsonl": "e61c95b46bbbe3fd368b12f6e628445e4e40ba30be3b354e69146aee89f13449",
+        "raw/stderr.raw": "1e9f4f60d34b3f1118bd305edc427ed9e118286c3f80861eee71c62bb1faedf0",
+        "raw/transport.json": "e1014cb6997d73a89f4a5d8a3487203fcb405ca502369f8f4a5ce736b2e9e4fb",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "review.json": "6c1006ebe4fa144cdbd0b3eafa1dd1dff468f550f883c90758ad485cd3de27ce",
+        "source-plan.json": "33ca407726cfee070f323d4dafcfa60993f3b56a605427be7d763af63fa31ffc"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+      },
+      "officialSDK": {},
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-11T09:31:28.07635Z"
+      },
+      "plan": {
+        "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/workspace",
+        "args": [
+          "app-server",
+          "--listen",
+          "stdio://",
+          "-c",
+          "features.default_mode_request_user_input=true",
+          "-c",
+          "project_root_markers=[]",
+          "-c",
+          "project_doc_max_bytes=0"
+        ],
+        "case": {
+          "id": "SDK-CASE-038",
+          "outOfScope": [
+            "保证当前执行消费注入",
+            "通用队列或调度器",
+            "人工构造的精确竞态"
+          ],
+          "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-038",
+        "cli": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+        "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+        "cliVersion": "codex-cli 0.166.0",
+        "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/config",
+        "driverProfile": "context-injection",
+        "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home",
+        "model": "group/smart-split",
+        "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/routes/record/workspace",
+        "prompts": [
+          "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+          "What is the stored vault code? Reply only with its exact value. Do not use tools."
+        ],
+        "provider": "codex",
+        "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/executions/cf49f35e08048351024c790787122535/record/raw",
+        "recordingIsolation": "personal-skills-v1",
+        "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-038",
+            "outOfScope": [
+              "保证当前执行消费注入",
+              "通用队列或调度器",
+              "人工构造的精确竞态"
+            ],
+            "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-038",
+          "configuration": {},
+          "driverProfile": "context-injection",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "contextValue": "6e0b8164b401e3b2e4589ae22adbc263",
+            "injectionTiming": "during-execution"
+          },
+          "prompts": [
+            "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+            "What is the stored vault code? Reply only with its exact value. Do not use tools."
+          ],
+          "provider": "codex",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "33ca407726cfee070f323d4dafcfa60993f3b56a605427be7d763af63fa31ffc",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
       }
     }
   ]

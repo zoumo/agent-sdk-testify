@@ -2,6 +2,46 @@
   "cases": [
     {
       "adoption": "admitted",
+      "adoptionSHA256": "597374b0f044d9483d70e8f08618f6e23a2e6224d6c2091c781846d0edf1c5a3",
+      "caseId": "SDK-CASE-037",
+      "materials": "claude/SDK-US-001/SDK-CASE-037/20261111T093119Z-1976265002",
+      "provider": "claude",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "eaf41d65d6f98048b5aa2c39b1ed16f77a575d9e60ff02e8342c3c09730df1db",
+      "caseId": "SDK-CASE-038",
+      "materials": "claude/SDK-US-001/SDK-CASE-038/20261111T093130Z-3438816625",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "18a3ccf838cca92f8be31fb67340b886e6151fb0ac4b5d10a7432facebf376a4",
+      "caseId": "SDK-CASE-037",
+      "materials": "codex/SDK-US-001/SDK-CASE-037/20261111T093116Z-4249798765",
+      "provider": "codex",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e7b9a04c25bf5dbefb62445fbdcc76fe384ed3d4b4148c4d32fd27d023d36840",
+      "caseId": "SDK-CASE-038",
+      "materials": "codex/SDK-US-001/SDK-CASE-038/20261111T093128Z-197233805",
+      "provider": "codex",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
       "adoptionSHA256": "b7f7ea3df9bf0b3947af541b5f8f1041abdbb568487abd983c8c2f86ada08aa0",
       "caseId": "SDK-CASE-001",
       "materials": "claude/SDK-US-001/SDK-CASE-001/20261104T190208Z-3215225210",

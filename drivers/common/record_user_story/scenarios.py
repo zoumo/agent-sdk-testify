@@ -173,6 +173,23 @@ def select_story_groups(selection, dataset=None):
 def _workflow(core):
     """Compile the supported declarative workflow forms, independently of IDs."""
     steps = core['steps']
+    if core['driverProfile'] == 'context-injection':
+        result = {'op': 'event.wait', 'event': 'execution.result', 'onMissing': 'untriggered'}
+        injection = [{'op': 'context.inject'}]
+        if core.get('parameters', {}).get('injectionTiming') == 'during-execution':
+            injection.insert(0, {'op': 'event.wait', 'event': 'execution.progress', 'onMissing': 'untriggered'})
+            middle = injection + [result]
+        elif core.get('parameters', {}).get('injectionTiming') == 'idle':
+            middle = [result] + injection
+        else:
+            raise ValueError('context injection requires an explicit native timing')
+        expected = [{'op': 'session.open'}, {'op': 'input.submit', 'input': 'input-1'}] + middle + [
+            {'op': 'input.submit', 'input': 'input-2'}, result, {'op': 'session.close'}]
+        if (steps != expected or set(core['inputs']) != {'input-1', 'input-2'}
+                or core['limits']['inputs'] != 2
+                or not re.fullmatch(r'[a-f0-9]{32}', core.get('parameters', {}).get('contextValue', ''))):
+            raise ValueError('invalid context injection workflow or random fact')
+        return ['input-1', 'input-2'], 'sequential-results', None
     if core['driverProfile'] == 'existing-children':
         if core['inputs'] or core['limits']['inputs'] != 0 or steps != [
                 {'op': 'session.open'}, {'op': 'history.discover'}, {'op': 'session.close'}]:

@@ -2,6 +2,14 @@
   "version": 3,
   "provider": "claude",
   "cases": {
+    "SDK-CASE-037": {
+      "files": {}, "requests": {}, "answers": {}, "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-038": {
+      "files": {}, "requests": {}, "answers": {}, "configuration": {},
+      "progressBarrier": "root stream_event before its terminal result"
+    },
     "SDK-CASE-001": {
       "files": {},
       "requests": {},
