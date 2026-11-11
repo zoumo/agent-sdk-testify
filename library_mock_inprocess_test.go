@@ -3,6 +3,8 @@ package agenttestify_test
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -204,6 +206,83 @@ func TestLibraryStartMockAgentFullConsumptionPrecedesExtraByteFailure(t *testing
 	require.False(t, result.Execution.Connections[0].ClientEOF)
 }
 
+func TestLibraryStartMockAgentHistoryDriftFailsConsistently(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		FixtureDir: filepath.Join(root, "fixture"),
+		Agent:      "claude",
+		Case:       "SDK-CASE-016",
+	})
+	require.NoError(t, err)
+
+	input := newControlledInput(clientFrames(t, filepath.Join(prepared.Current.Path, "raw", "raw.jsonl")))
+	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{}, agenttestify.StartMockAgentStreams{
+		Reader: input,
+		Writer: &testWriteCloser{},
+		Stderr: &bytes.Buffer{},
+	})
+	require.NoError(t, err)
+	select {
+	case <-run.FullConsumption():
+	case <-time.After(5 * time.Second):
+		t.Fatal("full consumption did not arrive before EOF")
+	}
+
+	source := readLibraryJSON(t, filepath.Join(prepared.Current.Path, "manifest.json"))["savedFiles"].(map[string]any)
+	name := ""
+	for candidate := range run.Start.HistoryFiles {
+		if _, ok := source[candidate]; !ok {
+			name = candidate
+			break
+		}
+	}
+	require.NotEmpty(t, name, "material has no derived history binding")
+	require.NoError(t, os.WriteFile(filepath.Join(filepath.Dir(run.Start.Workspace), name), []byte("changed\n"), 0o600))
+	require.NoError(t, input.CloseEOF())
+
+	result, err := run.Wait(t.Context())
+	require.ErrorContains(t, err, "history hash mismatch")
+	require.ErrorContains(t, err, "internal:")
+	require.NotNil(t, result)
+	require.Equal(t, agenttestify.ConnectionStatusFailed, result.ConnectionStatus)
+	require.Equal(t, agenttestify.ExecutionStatusFailed, result.ExecutionStatus)
+	require.True(t, result.ExecutionComplete)
+	requireFailureClass(t, result, agenttestify.FailureClassInternal)
+	require.Equal(t, agenttestify.MockTransportInProcess, result.Execution.Connections[0].Transport)
+	require.True(t, result.Execution.Connections[0].FullConsumption)
+	require.True(t, result.Execution.Connections[0].ClientEOF)
+	require.True(t, result.Execution.Connections[0].CleanupComplete)
+	require.Nil(t, result.Execution.Connections[0].ExitCode)
+	require.Empty(t, result.ProcessReceiptPath)
+	require.NoFileExists(t, filepath.Join(filepath.Dir(run.Start.ExecutionPath), "receipts", "main.process.json"))
+
+	receipt := readLibraryJSON(t, result.ReceiptPath)
+	require.Equal(t, "failed", receipt["status"])
+	require.Equal(t, true, receipt["fullConsumption"])
+	require.Equal(t, true, receipt["clientEOF"])
+	require.Equal(t, true, receipt["cleanupComplete"])
+	require.Equal(t, "internal", receipt["failureClass"])
+	require.Contains(t, receipt["error"], "history hash mismatch")
+	action := readLibraryJSON(t, result.ResultPath)
+	require.Equal(t, "failed", action["status"])
+	require.Equal(t, "internal", action["failureClass"])
+	require.Contains(t, action["error"], "history hash mismatch")
+
+	report, err := prepared.ExecutionReport(result.ExecutionID)
+	require.NoError(t, err)
+	require.Equal(t, agenttestify.ExecutionStatusFailed, report.Status)
+	require.True(t, report.Complete)
+	require.Len(t, report.Connections, 1)
+	require.Equal(t, agenttestify.ConnectionStatusFailed, report.Connections[0].Status)
+	require.Equal(t, agenttestify.FailureClassInternal, report.Connections[0].Failure)
+	require.Equal(t, agenttestify.MockTransportInProcess, report.Connections[0].Transport)
+	require.True(t, report.Connections[0].FullConsumption)
+	require.True(t, report.Connections[0].ClientEOF)
+	require.True(t, report.Connections[0].CleanupComplete)
+	require.Equal(t, result.Execution, report)
+}
+
 func TestLibraryStartMockAgentRejectsPreflightFailures(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
@@ -390,6 +469,62 @@ func TestLibraryStartMockAgentFailureClasses(t *testing.T) {
 		requireFailureClass(t, result, agenttestify.FailureClassTimeout)
 		requireFullConsumptionAbsent(t, run)
 	})
+}
+
+func TestLibraryStartMockAgentReplayDeadlineOutranksClosedTransport(t *testing.T) {
+	root := t.TempDir()
+	isolateLibraryTest(t, root)
+	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
+		FixtureDir: filepath.Join(root, "fixture"),
+		Recording:  writeLibraryDeadlineMaterial(t, root),
+	})
+	require.NoError(t, err)
+
+	input, sdkInput := io.Pipe()
+	defer sdkInput.Close()
+	outer, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+	defer cancel()
+	run, err := prepared.StartMockAgent(outer, agenttestify.MockAgentOptions{
+		Timeout: 0,
+	}, agenttestify.StartMockAgentStreams{
+		Reader: input,
+		Writer: &testWriteCloser{},
+		Stderr: &bytes.Buffer{},
+	})
+	require.NoError(t, err)
+
+	result, err := run.Wait(outer)
+	require.Error(t, err)
+	require.NoError(t, outer.Err())
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	require.ErrorIs(t, err, io.ErrClosedPipe)
+	require.True(t, strings.HasPrefix(err.Error(), "timeout:"), err.Error())
+	require.NotNil(t, result)
+	require.Equal(t, agenttestify.ConnectionStatusFailed, result.ConnectionStatus)
+	require.Equal(t, agenttestify.ExecutionStatusFailed, result.ExecutionStatus)
+	requireFailureClass(t, result, agenttestify.FailureClassTimeout)
+	require.Equal(t, agenttestify.MockTransportInProcess, result.Execution.Connections[0].Transport)
+	require.True(t, result.Execution.Connections[0].FullConsumption)
+	require.False(t, result.Execution.Connections[0].ClientEOF)
+	require.True(t, result.Execution.Connections[0].CleanupComplete)
+	require.Nil(t, result.Execution.Connections[0].ExitCode)
+	require.Empty(t, result.ProcessReceiptPath)
+
+	receipt := readLibraryJSON(t, result.ReceiptPath)
+	require.Equal(t, "failed", receipt["status"])
+	require.Equal(t, "timeout", receipt["failureClass"])
+	require.Equal(t, true, receipt["fullConsumption"])
+	require.Equal(t, false, receipt["clientEOF"])
+	require.Equal(t, true, receipt["cleanupComplete"])
+	require.NotContains(t, receipt, "exitCode")
+	action := readLibraryJSON(t, result.ResultPath)
+	require.Equal(t, "failed", action["status"])
+	require.Equal(t, "timeout", action["failureClass"])
+
+	report, err := prepared.ExecutionReport(result.ExecutionID)
+	require.NoError(t, err)
+	require.Equal(t, agenttestify.ExecutionStatusFailed, report.Status)
+	require.Equal(t, agenttestify.FailureClassTimeout, report.Connections[0].Failure)
 }
 
 func TestLibraryStartMockAgentAbortAndCancellation(t *testing.T) {
@@ -660,6 +795,30 @@ func prepareStartMockFixture(t *testing.T, caseID string) *agenttestify.Fixture 
 	})
 	require.NoError(t, err)
 	return prepared
+}
+
+func writeLibraryDeadlineMaterial(t *testing.T, root string) string {
+	t.Helper()
+	material := filepath.Join(root, "material")
+	require.NoError(t, os.MkdirAll(filepath.Join(material, "raw"), 0o700))
+	planPath := writeLibraryPlan(t, material)
+	raw := []byte(`{"version":1,"provenance":"synthetic","timeoutMs":40,"frames":[{"ordinal":1,"direction":"s2c","epoch":1,"channel":"protocol","wire":{}}]}`)
+	require.NoError(t, os.WriteFile(filepath.Join(material, "raw", "raw.jsonl"), raw, 0o600))
+
+	plan, err := os.ReadFile(planPath)
+	require.NoError(t, err)
+	digest := func(value []byte) string {
+		sum := sha256.Sum256(value)
+		return hex.EncodeToString(sum[:])
+	}
+	manifest, err := json.Marshal(map[string]any{
+		"provenance": "consumer",
+		"planSHA256": digest(plan),
+		"files":      map[string]string{"raw.jsonl": digest(raw)},
+	})
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(material, "manifest.json"), manifest, 0o600))
+	return material
 }
 
 func requireFailureClass(t *testing.T, result *agenttestify.MockAgentResult, want agenttestify.FailureClass) {

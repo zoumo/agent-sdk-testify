@@ -184,6 +184,10 @@ func TestAgentCancellationPersistsOwnedExecution(t *testing.T) {
 			require.NoError(t, json.Unmarshal(line, &completed))
 			require.Equal(t, started["executionId"], completed["executionId"])
 			require.Equal(t, "failed", completed["status"])
+			if action == "mock" {
+				require.Equal(t, "canceled", completed["failureClass"])
+				require.Equal(t, "canceled", readJSON(t, str(completed["receipt"]))["failureClass"])
+			}
 			require.Equal(t, completed, readJSON(t, str(completed["result"])))
 			require.FileExists(t, str(completed["receipt"]))
 			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
