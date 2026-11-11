@@ -11,7 +11,8 @@ var claudeNativeArguments = nativeArgumentSpec{
 		"--permission-prompt-tool": "stdio",
 	},
 	equalsValues: map[string]bool{
-		"--model":  true,
-		"--resume": true,
+		"--model":      true,
+		"--resume":     true,
+		"--session-id": true,
 	},
 }

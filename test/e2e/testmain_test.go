@@ -23,6 +23,8 @@ func TestMain(m *testing.M) {
 			os.Exit(controlledOfficialDriver(os.Args[2:]))
 		case "conformance-agent":
 			os.Exit(conformanceAgent())
+		case "synthetic-assigned-session":
+			os.Exit(syntheticAssignedSession(os.Args[2:]))
 		case "conformance-driver":
 			os.Exit(conformanceDriver(os.Args[2:]))
 		}
