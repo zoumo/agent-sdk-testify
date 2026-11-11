@@ -103,9 +103,6 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 	if err != nil {
 		return nil, err
 	}
-	if err := validateExecutionStatus(status, statuses); err != nil {
-		return nil, err
-	}
 	report := &ExecutionReport{
 		FixtureID:       execution.FixtureID,
 		ExecutionID:     execution.ExecutionID,
@@ -116,6 +113,7 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 		ExecutionPath:   descriptorPath,
 		Connections:     make([]ConnectionReport, 0, len(execution.Connections)),
 	}
+	hasResultFailure := false
 	for _, connection := range execution.Connections {
 		connectionStatus := ConnectionStatus(statuses[connection.ID])
 		item := ConnectionReport{
@@ -143,14 +141,21 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 			item.Failure = facts.failure
 			item.Error = facts.message
 			item.ExitCode = facts.exitCode
-			if item.Status == ConnectionStatusFailed && item.Failure == "" {
+			resultFailed := facts.hasResultFailure()
+			hasResultFailure = hasResultFailure || resultFailed
+			// Finalize can fail after connection settlement. Preserve successful
+			// replay/process facts while exposing the action's durable diagnostic.
+			if (item.Status == ConnectionStatusFailed || resultFailed) && item.Failure == "" {
 				item.Failure = facts.resultFailure
 			}
-			if item.Status == ConnectionStatusFailed && item.Error == "" {
+			if (item.Status == ConnectionStatusFailed || resultFailed) && item.Error == "" {
 				item.Error = facts.resultMessage
 			}
 		}
 		report.Connections = append(report.Connections, item)
+	}
+	if err := validateExecutionStatus(status, statuses, hasResultFailure); err != nil {
+		return nil, err
 	}
 	return report, nil
 }
@@ -217,7 +222,7 @@ func reportConnectionStatuses(indexed IndexExecution, execution Execution) (map[
 	return statuses, nil
 }
 
-func validateExecutionStatus(status ExecutionStatus, statuses map[string]string) error {
+func validateExecutionStatus(status ExecutionStatus, statuses map[string]string, hasResultFailure bool) error {
 	hasIncomplete := false
 	hasFailed := false
 	for id, value := range statuses {
@@ -234,6 +239,9 @@ func validateExecutionStatus(status ExecutionStatus, statuses map[string]string)
 	}
 	switch status {
 	case ExecutionStatusPassed:
+		if hasResultFailure {
+			return errors.New("mock execution status is passed with a failed result")
+		}
 	case ExecutionStatusOpen:
 		if !hasIncomplete {
 			return errors.New("mock execution status is open but every connection is terminal")
@@ -242,8 +250,8 @@ func validateExecutionStatus(status ExecutionStatus, statuses map[string]string)
 		if hasIncomplete {
 			return errors.New("mock execution status is failed while a connection is still active")
 		}
-		if !hasFailed {
-			return errors.New("mock execution status is failed without a failed connection")
+		if !hasFailed && !hasResultFailure {
+			return errors.New("mock execution status is failed without a failed connection or validated failure result")
 		}
 	default:
 		return fmt.Errorf("mock execution status %q is invalid", status)

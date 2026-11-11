@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -19,6 +20,12 @@ type mockConnectionEvidence struct {
 	failure, resultFailure                                      FailureClass
 	message, resultMessage                                      string
 	exitCode, replayExitCode                                    *int
+}
+
+func (f *mockConnectionEvidence) hasResultFailure() bool {
+	// A failed index alone cannot prove execution-level failure. The result has
+	// already been bound to this descriptor, connection and exact material.
+	return f.resultStatus == "failed" && strings.TrimSpace(f.resultMessage) != ""
 }
 
 func readMockConnectionEvidence(provider string, execution Execution, connection ExecutionConnection) (*mockConnectionEvidence, error) {
