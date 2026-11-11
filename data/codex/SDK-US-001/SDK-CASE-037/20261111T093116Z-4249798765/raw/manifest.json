@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "v0.1.2",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/executions/eca36b57db6985521adc7bdb721755e2/workspace",
+    "version": "codex-cli 0.166.0"
+  },
+  "files": {
+    "raw.jsonl": "c0998ce0bca8c486171fc9ae2985a3ae4a7ba51e0ca0a4ddfa503a0bd80f771e",
+    "stderr.raw": "4840905fd33b887375e5c63f99ed331537c31ffba3666acc4b7cc999583c5c93",
+    "transport.json": "48ccc20f7b68ca8cb304a5e56c9fa0fb3bd3667a8d0f83c234f5c1505ef24f84"
+  }
+}

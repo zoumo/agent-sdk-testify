@@ -1,0 +1,13 @@
+{
+  "connectionId": "main",
+  "executionId": "802afede991db38131fc927752a12bcb",
+  "exitCode": 0,
+  "fixtureId": "b2b1bfb65c68c621ce6574e6308d5fd0",
+  "schemaVersion": 1,
+  "status": "passed",
+  "tool": {
+    "command": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/agent-sdk-testify"
+  },
+  "toolSHA256": "3ee4f0f7976232abdbf06f87df964773d8443d7099408953e89315ea7dddc09f",
+  "toolVersion": "v0.1.2"
+}

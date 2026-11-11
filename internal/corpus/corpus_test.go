@@ -172,7 +172,7 @@ func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 	for _, value := range tool.Array(index["cases"]) {
 		counts[tool.Str(tool.Obj(value)["requirement"])]++
 	}
-	s.Equal(map[string]int{"required": 63, "optional": 9}, counts)
+	s.Equal(map[string]int{"required": 65, "optional": 11}, counts)
 	for _, change := range []string{"empty", "omit", "downgrade", "duplicate", "verification", "reason", "unbacked-pass"} {
 		s.Run(change, func() {
 			bad := s.read(filepath.Dir(s.c.Index), "index.json")
@@ -202,7 +202,7 @@ func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 			s.Require().Error(err)
 		})
 	}
-	s.Len(tool.Array(index["cases"]), 72)
+	s.Len(tool.Array(index["cases"]), 76)
 }
 
 func (s *corpusSuite) TestInventoryRetainsPrivateOriginalsAndRejectsSymlinks() {

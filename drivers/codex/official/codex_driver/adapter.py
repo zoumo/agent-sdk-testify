@@ -104,6 +104,10 @@ def codex(plan, report, flow):
         thread = client.thread_start(params)
         identity = thread.thread.id
         report['receipts'].append({'thread/start': serial(thread)})
+        if profile == 'context-injection':
+            from .injection import exercise
+            exercise(client, identity, plan, report, flow)
+            return
         def configure():
             requested_settings = [{'threadId': identity, 'model': plan['model'] or thread.model}]
             thinking = flow.definition['configuration'].get('thinking')

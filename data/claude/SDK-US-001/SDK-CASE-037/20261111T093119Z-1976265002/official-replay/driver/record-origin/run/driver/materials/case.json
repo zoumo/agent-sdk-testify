@@ -1,0 +1,72 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/official-records/3125946fcdc5f73e389c5fcc6b56f8bd/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/routes/record/workspace",
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio"
+  ],
+  "case": {
+    "id": "SDK-CASE-037",
+    "outOfScope": [
+      "运行中注入的消费时机",
+      "通用队列或调度器",
+      "其他 case 的使用流程"
+    ],
+    "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-037",
+  "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/routes/record/config",
+  "driverProfile": "context-injection",
+  "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/routes/record/home",
+  "model": "",
+  "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply only Ready. Do not use tools.",
+    "What is the stored vault code? Reply only with its exact value. Do not use tools."
+  ],
+  "provider": "claude",
+  "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/official-records/3125946fcdc5f73e389c5fcc6b56f8bd/driver/raw",
+  "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/official-records/3125946fcdc5f73e389c5fcc6b56f8bd/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-037",
+      "outOfScope": [
+        "运行中注入的消费时机",
+        "通用队列或调度器",
+        "其他 case 的使用流程"
+      ],
+      "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-037",
+    "configuration": {},
+    "driverProfile": "context-injection",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "contextValue": "86607b6331d405f1703a8a4f726164fa",
+      "injectionTiming": "idle"
+    },
+    "prompts": [
+      "Reply only Ready. Do not use tools.",
+      "What is the stored vault code? Reply only with its exact value. Do not use tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

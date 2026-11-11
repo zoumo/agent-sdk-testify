@@ -188,6 +188,10 @@ async def claude(plan, report, flow):
 
     transport = RawTransport()
     async with ClaudeSDKClient(options=options, transport=transport) as client:
+        if profile == 'context-injection':
+            from .injection import exercise
+            await exercise(client, plan, report, flow)
+            return
         if parameters.get('applicationTool'):
             ready = asyncio.create_task(mcp_ready.wait())
             exited = asyncio.create_task(transport.proc.wait())

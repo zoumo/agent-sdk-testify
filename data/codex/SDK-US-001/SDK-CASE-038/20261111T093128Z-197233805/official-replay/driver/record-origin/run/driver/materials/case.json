@@ -1,0 +1,67 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/official-records/cb0637533ba218e2eed04bc1503dedbc/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/routes/record/workspace",
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://"
+  ],
+  "case": {
+    "id": "SDK-CASE-038",
+    "outOfScope": [
+      "保证当前执行消费注入",
+      "通用队列或调度器",
+      "人工构造的精确竞态"
+    ],
+    "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-038",
+  "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/routes/record/config",
+  "driverProfile": "context-injection",
+  "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/routes/record/home",
+  "model": "group/smart-split",
+  "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/routes/record/workspace",
+  "prompts": [
+    "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+    "What is the stored vault code? Reply only with its exact value. Do not use tools."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/official-records/cb0637533ba218e2eed04bc1503dedbc/driver/raw",
+  "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/official-records/cb0637533ba218e2eed04bc1503dedbc/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-038",
+      "outOfScope": [
+        "保证当前执行消费注入",
+        "通用队列或调度器",
+        "人工构造的精确竞态"
+      ],
+      "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-038",
+    "configuration": {},
+    "driverProfile": "context-injection",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "contextValue": "6e0b8164b401e3b2e4589ae22adbc263",
+      "injectionTiming": "during-execution"
+    },
+    "prompts": [
+      "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+      "What is the stored vault code? Reply only with its exact value. Do not use tools."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

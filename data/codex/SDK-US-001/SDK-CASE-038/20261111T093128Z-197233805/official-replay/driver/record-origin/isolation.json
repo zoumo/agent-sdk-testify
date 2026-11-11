@@ -1,0 +1,33 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "configurationSHA256": {
+    "config.toml": "35060966151dd0ca3462b027c363fb5f32ec8bde68579594cb6637ed1b3e1f07"
+  },
+  "cwd": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/workspace",
+  "environment": {
+    "CODEX_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/config",
+    "HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home",
+    "TMPDIR": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/tmp",
+    "XDG_CACHE_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home/.cache",
+    "XDG_CONFIG_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home/.config",
+    "XDG_DATA_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home/.local/share"
+  },
+  "executionId": "cf49f35e08048351024c790787122535",
+  "fixtureId": "42ea0a4dc513da34073d72716a9f60dc",
+  "method": "native-preparation",
+  "nativeSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "policy": "personal-skills-v1",
+  "preparedPlanSHA256": "b3d78f2d33df66e6e55475e1b7a4b1cf87482d63db925dda738f2bbeb86c4334",
+  "schemaVersion": 1,
+  "toolSHA256": "3ee4f0f7976232abdbf06f87df964773d8443d7099408953e89315ea7dddc09f"
+}

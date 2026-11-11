@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 5,
+  "executionId": "cf49f35e08048351024c790787122535",
+  "fixtureId": "42ea0a4dc513da34073d72716a9f60dc",
+  "command": "record",
+  "args": [
+    "--fixture-dir",
+    "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1",
+    "--cmd",
+    "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "--",
+    "app-server",
+    "--listen",
+    "stdio://"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-038",
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/source/plan.json",
+    "sha256": "33ca407726cfee070f323d4dafcfa60993f3b56a605427be7d763af63fa31ffc",
+    "provenance": "official",
+    "driverProfile": "context-injection"
+  },
+  "executor": "external-sdk",
+  "target": "native-agent",
+  "provenance": "official",
+  "workspace": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/workspace",
+  "protocolCwd": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/workspace",
+  "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home",
+  "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/config",
+  "tmp": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/tmp",
+  "historySeed": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/history-seed",
+  "env": {
+    "CODEX_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/config",
+    "HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home",
+    "LANG": "C.UTF-8",
+    "PATH": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/official-env-py315/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/jim/.ssctl/bin:/Users/jim/.utoo-proxy:/Applications/golutra.app/Contents/MacOS:/Users/jim/.local/share/mise/installs/go/1.26.10/bin:/Users/jim/.local/share/mise/installs/java/17/bin:/Users/jim/.local/share/mise/installs/node/24.21.0/bin:/Users/jim/.cargo/bin:/Users/jim/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/podman/bin:/opt/zerobrew/opt/gnu-sed/libexec/gnubin:/opt/zerobrew/opt/findutils/libexec/gnubin:/opt/zerobrew/opt/coreutils/libexec/gnubin:/Users/jim/bin:/Users/jim/.dotfiles/bin:/opt/zerobrew/bin:/Users/jim/.codex/tmp/arg0-macos/codex-arg0ppULaU:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/jim/.kusion/kclvm/bin:/Users/jim/.kusion/bin:/opt/zerobrew/opt/mise/bin:/Users/jim/.zerobrew/bin:/Users/jim/.skills-manager/bin:/Users/jim/.bun/bin:/Applications/Obsidian.app/Contents/MacOS:/Users/jim/.pnpm:/Users/jim/.krew/bin:/Users/jim/.orbstack/bin:/Users/jim/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS",
+    "TEMP": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/tmp",
+    "TMP": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/tmp",
+    "TMPDIR": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/tmp",
+    "XDG_CACHE_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home/.cache",
+    "XDG_CONFIG_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home/.config",
+    "XDG_DATA_HOME": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/runtime/executions/cf49f35e08048351024c790787122535/home/.local/share"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "command": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/agent-sdk-testify",
+      "args": [
+        "agent",
+        "record",
+        "--fixture-dir",
+        "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1",
+        "--cmd"
+      ],
+      "material": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/materials/a5f3b5664d9e8da0cef16ab46644b542",
+      "planSHA256": "461905e856a6b91832963295901652a7f10f56a9d03856513a81f7d6ae6cbb96",
+      "manifestSHA256": "537fca7a2ef0382eff2f9a0347c7dadad5330dcc43c6e16dec35a7576d86a588",
+      "recordingSHA256": "e61c95b46bbbe3fd368b12f6e628445e4e40ba30be3b354e69146aee89f13449",
+      "receipt": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/executions/cf49f35e08048351024c790787122535/record/raw/transport.json"
+    }
+  ],
+  "artifactRoot": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/executions/cf49f35e08048351024c790787122535/record",
+  "artifact": {
+    "officialOrigin": {
+      "runId": "cb0637533ba218e2eed04bc1503dedbc",
+      "fixtureId": "42ea0a4dc513da34073d72716a9f60dc",
+      "caseId": "SDK-CASE-038",
+      "agentType": "codex",
+      "recordSourceSHA256": "33ca407726cfee070f323d4dafcfa60993f3b56a605427be7d763af63fa31ffc",
+      "sourceSHA256": "33ca407726cfee070f323d4dafcfa60993f3b56a605427be7d763af63fa31ffc",
+      "driverSHA256": "bc77bc5b5d3f8eaf755cec5e991e3bdfebf41552f52c0139d66fffe03527f8b7",
+      "connections": [
+        "main"
+      ]
+    },
+    "files": {
+      "manifest.json": "537fca7a2ef0382eff2f9a0347c7dadad5330dcc43c6e16dec35a7576d86a588",
+      "official-origin.json": "b53b553fc7eea136e34caca5c5c4a7986ef75535021aabd1a7577a22dfdcf5f5",
+      "origin/main.json": "02124c0587c2173d4eeb0258042b35d80c73ab25d1b6362be0db2d4634049e94",
+      "plan.json": "461905e856a6b91832963295901652a7f10f56a9d03856513a81f7d6ae6cbb96",
+      "raw/manifest.json": "d696dfcb902c86537fa5cf81d50f1e571d781f504bdfa5491bd8ce12ffa2ff16",
+      "raw/raw.jsonl": "e61c95b46bbbe3fd368b12f6e628445e4e40ba30be3b354e69146aee89f13449",
+      "raw/stderr.raw": "1e9f4f60d34b3f1118bd305edc427ed9e118286c3f80861eee71c62bb1faedf0",
+      "raw/transport.json": "e1014cb6997d73a89f4a5d8a3487203fcb405ca502369f8f4a5ce736b2e9e4fb",
+      "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+      "source-plan.json": "33ca407726cfee070f323d4dafcfa60993f3b56a605427be7d763af63fa31ffc"
+    },
+    "id": "a5f3b5664d9e8da0cef16ab46644b542",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-running-1/materials/a5f3b5664d9e8da0cef16ab46644b542",
+    "planSHA256": "461905e856a6b91832963295901652a7f10f56a9d03856513a81f7d6ae6cbb96",
+    "manifestSHA256": "537fca7a2ef0382eff2f9a0347c7dadad5330dcc43c6e16dec35a7576d86a588",
+    "recordingSHA256": "e61c95b46bbbe3fd368b12f6e628445e4e40ba30be3b354e69146aee89f13449",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-11T09:27:37.671901Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "startedAt": "2026-11-11T09:26:57.335746Z"
+}

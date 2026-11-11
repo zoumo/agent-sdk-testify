@@ -31,7 +31,7 @@ class StoryEvidenceTests(unittest.TestCase):
     def test_current_simulation_catalog_passes_without_historical_corpus(self):
         result = subprocess.run([sys.executable, str(Path(__file__).with_name('check-story-evidence.py'))], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('8 stories, 36 cases', result.stdout)
+        self.assertIn('8 stories, 38 cases', result.stdout)
 
     def test_public_gate_rejects_synthetic_route_and_unexplained_unavailability(self):
         source = Path(__file__).resolve().parents[1]

@@ -1,0 +1,21 @@
+{
+  "command": "record",
+  "connectionId": "main",
+  "execution": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/executions/201fee9167db12e143057c9784367ff9/execution.json",
+  "executionId": "201fee9167db12e143057c9784367ff9",
+  "executionSHA256": "a870f9616287612c4def7ca56f0785e87e96882b3147a9a89714073f34d80368",
+  "fixtureId": "09fd7ff0a153e1da2eaf3085b0c4db27",
+  "material": {
+    "id": "1cf2ab95f4bf9dca83babccf904654bf",
+    "manifestSHA256": "90ffe932c911418a2f8e14898740d4a29311ea7f9dc24fcab337bc532afc0014",
+    "path": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/materials/1cf2ab95f4bf9dca83babccf904654bf",
+    "planSHA256": "2993ea50c28b569b39e965b8155f4b665d4f85e0b7871bec177eee79e4d15304",
+    "provenance": "official",
+    "recordingSHA256": "f24c5b867ce654fd8f362fea642f902fd60cb4da35af53c5dcff4d5291f8aa96"
+  },
+  "processId": 16815,
+  "receipt": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/executions/201fee9167db12e143057c9784367ff9/record/raw/transport.json",
+  "result": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/executions/201fee9167db12e143057c9784367ff9/receipts/main.result.json",
+  "schemaVersion": 1,
+  "status": "passed"
+}

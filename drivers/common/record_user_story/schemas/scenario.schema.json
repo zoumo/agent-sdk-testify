@@ -73,6 +73,7 @@
                     "session.open",
                     "configuration.apply",
                     "input.submit",
+                    "context.inject",
                     "event.wait",
                     "execution.interrupt",
                     "session.close",
@@ -194,6 +195,13 @@
           "parameters": {
             "type": "object",
             "properties": {
+              "injectionTiming": {
+                "enum": ["idle", "during-execution"]
+              },
+              "contextValue": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
               "inputKind": {
                 "enum": [
                   "image",

@@ -76,7 +76,7 @@ if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
 | 工具边界、合同与材料链路 | [工具设计](docs/design.md) |
 | 可导入库 API 与 v1 边界 | [可导入 Go 库入口规格](docs/library-entry-spec.md) |
 | 模块、依赖、布局、编码与测试 | [开发规范](docs/development.md) |
-| 8 个用户故事与 36 个 case | [共同验收](docs/cases.md) |
+| 8 个用户故事与 38 个 case | [共同验收](docs/cases.md) |
 | 从 SDK 测试接入、运行与收尾 mock | [mock 使用指南](docs/using-mock.md) |
 | 外部消费者自己录制并用 mock 回放 | [消费者录制](docs/consumer-recording.md) |
 | 官方 driver、SDK 环境和已知限制 | [driver 说明](drivers/README.md#官方-sdk-环境) |

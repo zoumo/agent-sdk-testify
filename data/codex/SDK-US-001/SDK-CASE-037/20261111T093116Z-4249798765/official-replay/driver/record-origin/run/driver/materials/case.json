@@ -1,0 +1,67 @@
+{
+  "_agentResults": {
+    "main": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/official-records/93b294e27cc8e21898a381974d18e48a/driver/peer-main.results.jsonl"
+  },
+  "_fixtureProject": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/routes/record/workspace",
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://"
+  ],
+  "case": {
+    "id": "SDK-CASE-037",
+    "outOfScope": [
+      "运行中注入的消费时机",
+      "通用队列或调度器",
+      "其他 case 的使用流程"
+    ],
+    "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-037",
+  "config": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/routes/record/config",
+  "driverProfile": "context-injection",
+  "home": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/routes/record/home",
+  "model": "group/smart-split",
+  "project": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply only Ready. Do not use tools.",
+    "What is the stored vault code? Reply only with its exact value. Do not use tools."
+  ],
+  "provider": "codex",
+  "raw": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/official-records/93b294e27cc8e21898a381974d18e48a/driver/raw",
+  "root": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/codex-idle-1/official-records/93b294e27cc8e21898a381974d18e48a/driver",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-037",
+      "outOfScope": [
+        "运行中注入的消费时机",
+        "通用队列或调度器",
+        "其他 case 的使用流程"
+      ],
+      "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-037",
+    "configuration": {},
+    "driverProfile": "context-injection",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "contextValue": "86607b6331d405f1703a8a4f726164fa",
+      "injectionTiming": "idle"
+    },
+    "prompts": [
+      "Reply only Ready. Do not use tools.",
+      "What is the stored vault code? Reply only with its exact value. Do not use tools."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

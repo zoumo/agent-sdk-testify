@@ -8,7 +8,8 @@ DRIVER_PROFILES = frozenset((
     'continuation', 'structured-input', 'active-input', 'fixture-tools',
     'children', 'background-children', 'approval', 'deferred-approval',
     'questions', 'configuration-timing', 'interrupt', 'session-close',
-    'history', 'topology', 'existing-children', 'remote-close'))
+    'history', 'topology', 'existing-children', 'remote-close',
+    'context-injection'))
 
 
 def driver_profile(plan):

@@ -40,6 +40,20 @@ bash scripts/with-agent-sdk-testify.sh \
 `AGENT_SDK_TESTIFY_BUILD_DIR` 可指定另一个绝对目录。Python 3.11+ 需要
 `setuptools>=68`；构建和离线测试不启动 SDK、真实 Agent 或模型。
 
+上下文注入的独立流程是 `SDK-CASE-037`（空闲）和 `SDK-CASE-038`（执行中）。
+两个 driver 都通过官方 SDK 发送原生输入，并从原始录制核对注入与后续查询的边界；
+断言范围见[共同验收](../docs/cases.md)。Claude 录制显式指定可运行的本地 CLI：
+
+```sh
+agent-sdk-testify prepare --agent claude --case SDK-CASE-037 \
+  --fixture-dir /absolute/new-context-fixture
+agent-sdk-testify official record --fixture-dir /absolute/new-context-fixture \
+  --cmd "$HOME/bin/claude" -- \
+  --input-format stream-json --output-format stream-json --verbose \
+  --include-partial-messages --permission-prompt-tool stdio
+agent-sdk-testify official verify --fixture-dir /absolute/new-context-fixture
+```
+
 ## 官方 SDK 环境
 
 只有 official record/verify 需要 Python 官方 SDK；agent record/mock 只使用工具二进制。使用

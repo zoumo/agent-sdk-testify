@@ -110,6 +110,8 @@ def observe_wire(plan, report):
     from .adapters.common import observe_configuration
     path = capture_root(plan) / 'raw/raw.jsonl'
     if not path.exists():
+        if plan.get('driverProfile') == 'context-injection':
+            raise Untriggered('native context injection capture is absent')
         parameters = plan['scenario'].get('parameters', {})
         if parameters.get('childConfiguration') or parameters.get('childDetailPolicy'):
             raise Untriggered('native child configuration/detail capture is absent')
@@ -119,6 +121,9 @@ def observe_wire(plan, report):
             raise Untriggered('native interrupt lifecycle capture is absent')
         return
     frames = [json.loads(line) for line in path.read_bytes().splitlines()]
+    if plan.get('driverProfile') == 'context-injection':
+        from .context_injection import assess
+        assess(plan, frames, report)
     from .child_configuration import assess as assess_child_configuration
     assess_child_configuration(plan['provider'], frames, report, plan['scenario'].get('parameters', {}), plan.get('model'))
     if plan['provider'] == 'codex' and plan['scenario'].get('parameters', {}).get('requireSessionContinuation'):
