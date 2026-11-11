@@ -2,11 +2,9 @@ package mock
 
 import (
 	"context"
-	"errors"
 	"os"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
-	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 )
 
@@ -28,9 +26,7 @@ type mockReplayPolicy struct {
 }
 
 func (p mockReplayPolicy) Replay(ctx context.Context, run lifecycle.MockContext) error {
-	execution := run.Execution()
 	// Every replay and history path is rooted in the fixture or its execution
 	// overlay. Avoid process-wide chdir so concurrent library calls stay isolated.
-	err := replayConnection(ctx, p.prepared, p.input, p.output, run.Artifact().Path, run.Connection(), run.ConnectionReceipt())
-	return errors.Join(err, history.Check(run.OverlayRoot(), execution.HistoryFiles))
+	return replayConnection(ctx, p.prepared, run, p.input, p.output)
 }
