@@ -168,11 +168,9 @@ case "$task" in
     normal_tests
     ;;
   race)
-    check_environment
     race_tests
     ;;
   e2e)
-    check_environment
     build_race
     export AGENT_SDK_TESTIFY_RACE_BIN="$artifact_dir/agent-sdk-testify-race"
     e2e_tests
