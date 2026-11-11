@@ -22,9 +22,10 @@ type mockConnectionEvidence struct {
 	exitCode, replayExitCode                                    *int
 }
 
-func (f *mockConnectionEvidence) hasResultFailure() bool {
+func (f *mockConnectionEvidence) hasExecutionFailure() bool {
 	// A failed index alone cannot prove execution-level failure. The result has
-	// already been bound to this descriptor, connection and exact material.
+	// already been bound to this descriptor, connection and exact material. A
+	// failed declaration without a diagnostic still prevents execution success.
 	return f.resultStatus == "failed" && strings.TrimSpace(f.resultMessage) != ""
 }
 

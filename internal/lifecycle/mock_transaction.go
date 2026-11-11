@@ -370,7 +370,7 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if err != nil {
 			return nil, err
 		}
-		if err := validateExecutionStatus(ExecutionStatus(pending.Status), statuses, false); err != nil {
+		if err := validateExecutionStatus(ExecutionStatus(pending.Status), statuses, false, false); err != nil {
 			return nil, err
 		}
 		if connectionStarted(pending, request.Connection) {
