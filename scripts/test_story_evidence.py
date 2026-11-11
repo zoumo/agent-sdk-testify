@@ -18,7 +18,7 @@ class StoryEvidenceTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         cases, rows = gate.recording_mapping(root)
         by_id = {case['id']: case for case in cases}
-        self.assertEqual(["SDK-CASE-003", "SDK-CASE-025", "SDK-CASE-026"],
+        self.assertEqual(["SDK-CASE-003", "SDK-CASE-038", "SDK-CASE-025", "SDK-CASE-026"],
                          [case['id'] for case in cases if not case['required']])
         self.assertTrue(by_id['SDK-CASE-012']['required'])
         approval = next(row for row in rows if row.startswith('| SDK-CASE-012 |'))
