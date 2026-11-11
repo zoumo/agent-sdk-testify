@@ -150,15 +150,23 @@ func TestMockEvidenceExecutionFailureRequiresDiagnostic(t *testing.T) {
 			var value tool.Object
 			require.NoError(t, tool.ReadJSON(resultPath, &value))
 			value["status"], value["error"] = tc.status, tc.diagnostic
+			if tc.diagnostic == nil {
+				delete(value, "error")
+			}
 			require.NoError(t, tool.WriteJSON(resultPath, value))
 			facts, err := readMockConnectionEvidence("codex", execution, execution.Connections[0])
 			require.NoError(t, err)
 			require.NoError(t, facts.requirePassedReceipts())
-			require.Equal(t, tc.wantFailure, facts.hasResultFailure())
-			err = validateExecutionStatus(ExecutionStatusFailed, map[string]string{"main": "passed"}, facts.hasResultFailure())
+			require.Equal(t, tc.wantFailure, facts.hasExecutionFailure())
+			passedErr := validateExecutionStatus(ExecutionStatusPassed, map[string]string{"main": "passed"}, facts.resultStatus == "failed", facts.hasExecutionFailure())
+			if tc.status == "failed" {
+				require.ErrorContains(t, passedErr, "passed with a failed result")
+			} else {
+				require.NoError(t, passedErr)
+			}
+			err = validateExecutionStatus(ExecutionStatusFailed, map[string]string{"main": "passed"}, facts.resultStatus == "failed", facts.hasExecutionFailure())
 			if tc.wantFailure {
 				require.NoError(t, err)
-				require.Error(t, validateExecutionStatus(ExecutionStatusPassed, map[string]string{"main": "passed"}, true))
 			} else {
 				require.ErrorContains(t, err, "without a failed connection")
 			}

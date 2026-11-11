@@ -114,6 +114,7 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 		Connections:     make([]ConnectionReport, 0, len(execution.Connections)),
 	}
 	hasResultFailure := false
+	hasExecutionFailure := false
 	for _, connection := range execution.Connections {
 		connectionStatus := ConnectionStatus(statuses[connection.ID])
 		item := ConnectionReport{
@@ -141,8 +142,9 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 			item.Failure = facts.failure
 			item.Error = facts.message
 			item.ExitCode = facts.exitCode
-			resultFailed := facts.hasResultFailure()
+			resultFailed := facts.resultStatus == "failed"
 			hasResultFailure = hasResultFailure || resultFailed
+			hasExecutionFailure = hasExecutionFailure || facts.hasExecutionFailure()
 			// Finalize can fail after connection settlement. Preserve successful
 			// replay/process facts while exposing the action's durable diagnostic.
 			if (item.Status == ConnectionStatusFailed || resultFailed) && item.Failure == "" {
@@ -154,7 +156,7 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 		}
 		report.Connections = append(report.Connections, item)
 	}
-	if err := validateExecutionStatus(status, statuses, hasResultFailure); err != nil {
+	if err := validateExecutionStatus(status, statuses, hasResultFailure, hasExecutionFailure); err != nil {
 		return nil, err
 	}
 	return report, nil
@@ -222,7 +224,7 @@ func reportConnectionStatuses(indexed IndexExecution, execution Execution) (map[
 	return statuses, nil
 }
 
-func validateExecutionStatus(status ExecutionStatus, statuses map[string]string, hasResultFailure bool) error {
+func validateExecutionStatus(status ExecutionStatus, statuses map[string]string, hasResultFailure, hasExecutionFailure bool) error {
 	hasIncomplete := false
 	hasFailed := false
 	for id, value := range statuses {
@@ -250,7 +252,7 @@ func validateExecutionStatus(status ExecutionStatus, statuses map[string]string,
 		if hasIncomplete {
 			return errors.New("mock execution status is failed while a connection is still active")
 		}
-		if !hasFailed && !hasResultFailure {
+		if !hasFailed && !hasExecutionFailure {
 			return errors.New("mock execution status is failed without a failed connection or validated failure result")
 		}
 	default:
