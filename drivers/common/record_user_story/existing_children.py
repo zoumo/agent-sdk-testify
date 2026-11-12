@@ -39,7 +39,7 @@ def _verify_canonical_seed(plan, seed):
             raise ValueError('seed reference is outside frozen history')
         return _seed_path(root, reference if runtime['replay'] else reference[len(prefix):])
 
-    ref = seed['sourcePlan']
+    ref = seed['materialPlan']
     if not isinstance(ref, dict) or sha(source_path(ref.get('path'))) != ref.get('sha256'):
         raise ValueError('frozen seed source plan changed')
     source = source_path(ref['path']).parent
@@ -56,6 +56,9 @@ def _verify_canonical_seed(plan, seed):
     verify_recording(source)
     if runtime['replay']:
         verify_recording(root)
+        sealed = json.loads(read_regular(root / 'plan.json'))
+        if any(plan.get(k) != sealed.get(k) for k in ('historySeed', 'historyBindings', 'historyProject', 'provider')):
+            raise ValueError('replay seed facts differ from sealed material plan')
     else:
         inventory = seed.get('sourceFiles')
         if not isinstance(inventory, dict) or not inventory:
@@ -121,7 +124,7 @@ def _verify_canonical_seed(plan, seed):
 
 def verify_seed(plan, *, check_source=True):
     seed = plan.get('historySeed')
-    if isinstance(seed, dict) and 'sourcePlan' in seed:
+    if isinstance(seed, dict) and 'materialPlan' in seed:
         return _verify_canonical_seed(plan, seed)
     if not isinstance(seed, dict) or seed.get('provider') not in ('claude', 'codex') or not seed.get('files'):
         raise ValueError('frozen existing-child seed required')

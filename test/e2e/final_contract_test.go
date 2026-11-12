@@ -42,6 +42,11 @@ if 'CODEX_HOME' in os.environ:
         p.write_text(json.dumps({'type':'session_meta', 'payload':payload})+'\n')
 else:
     key = re.sub(r'[^a-zA-Z0-9]', '-', os.getcwd())
+    if '--resume' in sys.argv:
+        assert sys.argv[sys.argv.index('--resume')+1] == 'parent'
+        assert (config / 'projects' / key / 'parent.jsonl').is_file()
+        assert (config / 'projects' / key / 'parent/subagents/agent-child.jsonl').is_file()
+
     for name, data in [('parent.jsonl', {'sessionId':'parent', 'cwd':os.getcwd()}), ('parent/subagents/agent-child.jsonl', {'sessionId':'parent', 'agentId':'child', 'cwd':os.getcwd()})]:
         p = config / 'projects' / key / name
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -69,7 +74,7 @@ if plan['caseId'] == 'SDK-CASE-035':
         except ValueError: pass
         else: raise AssertionError('tampered seed identity accepted')
     broken = copy.deepcopy(plan)
-    broken['historySeed']['sourcePlan']['sha256'] = '0'*64
+    broken['historySeed']['materialPlan']['sha256'] = '0'*64
     try: verify_seed(broken)
     except ValueError: pass
     else: raise AssertionError('tampered seed hash accepted')
@@ -209,6 +214,8 @@ out = pathlib.Path(runtime['output'])
 	seededCore := fixtureMaterialRoot(t, seedFixture, latestCapture(t, seedFixture))
 	seededPlan := readJSON(t, filepath.Join(seededCore, "plan.json"))
 	require.Equal(t, "parent", obj(seededPlan["historySeed"])["sessionId"])
+	require.Equal(t, digestFile(t, filepath.Join(seedFixture, "source", "plan.json")), seededPlan["sourcePlanSHA256"])
+
 	require.Equal(t, []any{"child"}, obj(seededPlan["historySeed"])["agentIds"])
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", seedFixture)
 

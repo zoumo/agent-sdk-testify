@@ -230,7 +230,7 @@ func prepareHistorySeed(source, root string, plan tool.Object) error {
 		"provider": provider, "sourceRootRef": "history/seed", "sourceProject": project,
 		"sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles,
 		"projectFiles": projectFiles, "projectSnapshot": "history-seed/project",
-		"sourcePlan": tool.Object{"path": filepath.ToSlash(filepath.Join("history", "seed", sourcePrefix, "plan.json")), "sha256": manifest["planSHA256"]},
+		"materialPlan": tool.Object{"path": filepath.ToSlash(filepath.Join("history", "seed", sourcePrefix, "plan.json")), "sha256": manifest["planSHA256"]},
 	}
 	if canonical != nil {
 		plan["historyBindings"] = canonical

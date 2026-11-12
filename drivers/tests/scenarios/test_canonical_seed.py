@@ -49,7 +49,7 @@ class CanonicalSeedTests(unittest.TestCase):
             seed = {'provider': 'codex', 'sessionId': 'parent', 'agentIds': ['child'],
                     'sourceProject': '/original', 'projectFiles': {},
                     'sourceFiles': inventory(frozen),
-                    'sourcePlan': {'path': prefix + 'plan.json', 'sha256': digest(source / 'plan.json')},
+                    'materialPlan': {'path': prefix + 'plan.json', 'sha256': digest(source / 'plan.json')},
                     'files': {b['nativeTarget']: {'source': prefix + b['source'], 'sha256': b['sha256']}
                               for b in bindings}}
             plan = {'provider': 'codex', 'historyProject': '/original', 'historySeed': seed,
@@ -59,9 +59,9 @@ class CanonicalSeedTests(unittest.TestCase):
                 broken = copy.deepcopy(plan)
                 if failure == 'session': broken['historySeed']['sessionId'] = 'other'
                 if failure == 'project': broken['historyProject'] = '/other'
-                if failure == 'hash': broken['historySeed']['sourcePlan']['sha256'] = '0' * 64
+                if failure == 'hash': broken['historySeed']['materialPlan']['sha256'] = '0' * 64
                 if failure == 'binding': broken['historyBindings'][0]['sha256'] = '0' * 64
-                if failure == 'escape': broken['historySeed']['sourcePlan']['path'] = prefix + '../plan.json'
+                if failure == 'escape': broken['historySeed']['materialPlan']['path'] = prefix + '../plan.json'
                 with self.subTest(failure=failure), self.assertRaises(ValueError):
                     verify_seed(broken)
             material = root / 'material'
