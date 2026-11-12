@@ -24,11 +24,12 @@ const (
 	libraryModuleSum = "h1:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 )
 
-const libraryMockInput = `{"id":"4ef523ca-fb64-44f9-827e-7111bb9dda9e","method":"initialize","params":{"clientInfo":{"name":"official-python-story-recorder","title":"Protocol recording","version":"0.0.0.dev0"},"capabilities":{"experimentalApi":true}}}
+// Exact client frames from the builtin Codex SDK-CASE-001 recording.
+const libraryMockInput = `{"id":"bdda38b2-f26f-4634-a09e-0f5695b3637b","method":"initialize","params":{"clientInfo":{"name":"official-python-story-recorder","title":"Protocol recording","version":"0.0.0.dev0"},"capabilities":{"experimentalApi":true}}}
 {"method":"initialized"}
-{"id":"edd297bd-7d60-47c4-b087-3674310f01c3","method":"thread/start","params":{"cwd":"/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-1136140093/routes/record/workspace","sandbox":"workspace-write","approvalPolicy":"on-request","ephemeral":true,"baseInstructions":"Complete the supplied synthetic task in the working directory. Be concise.","developerInstructions":"Complete the supplied task in the synthetic project.","model":"theta/DeepSeek-V4.1-Flash-1017"}}
-{"id":"7b2dd7f7-fa40-48be-a5b2-536ec05fc74a","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Ready."}],"threadId":"01a1a7ec-721f-70f3-bf6e-8b6e80a76dcd"}}
-{"id":"66875618-03af-4a8f-be4c-5320ea64a5dd","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Done."}],"threadId":"01a1a7ec-721f-70f3-bf6e-8b6e80a76dcd"}}
+{"id":"d2ac3f7c-2823-443f-8605-0deae33d1aa9","method":"thread/start","params":{"cwd":"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-001/fixture/runtime/routes/record/workspace","sandbox":"workspace-write","approvalPolicy":"on-request","ephemeral":true,"baseInstructions":"Complete the supplied synthetic task in the working directory. Be concise.","developerInstructions":"Complete the supplied task in the synthetic project.","model":"auto/deepseek-v4.1-flash-1017"}}
+{"id":"802942e6-3ab1-447e-a74f-de993822063c","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Ready."}],"threadId":"01a1d151-90c5-7102-9289-223acaae6eee"}}
+{"id":"f64b316c-dcc2-4879-ac14-1a033f42b62b","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Done."}],"threadId":"01a1d151-90c5-7102-9289-223acaae6eee"}}
 `
 
 func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
