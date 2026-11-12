@@ -40,7 +40,7 @@ func TestExportCurrentRoundTrip(t *testing.T) {
 	require.NotEqual(t, old["id"], current["id"])
 	material := fixtureMaterialRoot(t, fixtureDir, current)
 	hashes := packageHashes(t, material)
-	require.Contains(t, hashes, "config/sessions/conformance-history.jsonl")
+	require.Contains(t, hashes, "history/runtime/config/sessions/conformance-history.jsonl")
 	require.Contains(t, hashes, "raw/raw.jsonl")
 	before := readAllFiles(t, fixtureDir)
 	output := filepath.Join(root, "export-first")
@@ -103,15 +103,12 @@ func TestExportOfficialCaptureRoundTrip(t *testing.T) {
 	require.Empty(t, array(fixtureIndex(t, imported)["executions"]))
 	// The exported original capture has no transferable verification evidence.
 	require.NoFileExists(t, filepath.Join(fixtureMaterialRoot(t, imported, metadata), "verification.json"))
-	// Removing metadata makes the same native capture an external input again.
+	// A format 3 core cannot lose its descriptor and masquerade as legacy input.
 	require.NoError(t, os.Remove(filepath.Join(output, "material.json")))
-	external := prepareFixture(t, env, "--recording", output)
-	require.Equal(t, "external", obj(array(materialIndex(t, external)["materials"])[0])["provenance"])
-	before = readAllFiles(t, external)
-	failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", external)
+	rejected := filepath.Join(root, "missing-descriptor")
+	failed := runTool(t, env, t.TempDir(), "", "prepare", "--fixture-dir", rejected, "--recording", output)
 	require.NotZero(t, failed.code)
-	require.Contains(t, failed.stderr, "no applicable official verifier")
-	require.Equal(t, before, readAllFiles(t, external))
+	require.NoFileExists(t, filepath.Join(rejected, "fixture.json"))
 	require.NoError(t, os.RemoveAll(output))
 	runPreparedMock(t, env, imported, "", conformanceRequest)
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", imported)
@@ -211,9 +208,15 @@ func TestExportBuiltinRoundTrip(t *testing.T) {
 				require.Equal(t, packageHashes(t, fixtureMaterialRoot(t, fixtureDir, material)), packageHashes(t, output))
 				imported := prepareFixture(t, env, "--recording", output)
 				metadata := obj(array(materialIndex(t, imported)["materials"])[0])
-				require.Equal(t, "builtin", metadata["provenance"])
-				require.Equal(t, material["id"], metadata["id"])
-				require.Equal(t, material["officialOrigin"], metadata["officialOrigin"])
+				if _, err := os.Stat(filepath.Join(output, "material.json")); os.IsNotExist(err) {
+					require.Equal(t, "external", metadata["provenance"])
+					require.NotEqual(t, material["id"], metadata["id"], "descriptorless legacy material receives a new local identity")
+					require.Empty(t, metadata["officialOrigin"])
+				} else {
+					require.NoError(t, err)
+					require.Equal(t, material, metadata)
+				}
+				require.Equal(t, packageHashes(t, output), packageHashes(t, fixtureMaterialRoot(t, imported, metadata)))
 				require.NoError(t, os.RemoveAll(fixtureDir))
 				require.NoError(t, os.RemoveAll(output))
 				mustRun(t, env, t.TempDir(), builtinInputs(t, provider, caseID)["main"], "agent", "mock", "--fixture-dir", imported)

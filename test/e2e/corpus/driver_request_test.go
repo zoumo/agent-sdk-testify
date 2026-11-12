@@ -14,8 +14,10 @@ type driverRequest struct {
 }
 
 type driverRuntime struct {
-	SchemaVersion float64    `json:"schemaVersion"`
-	Workspace     string     `json:"workspace"`
-	Output        string     `json:"output"`
-	Peer          driverPeer `json:"peer"`
+	FixtureDir    string            `json:"fixtureDir"`
+	AgentResults  map[string]string `json:"agentResults"`
+	SchemaVersion float64           `json:"schemaVersion"`
+	Workspace     string            `json:"workspace"`
+	Output        string            `json:"output"`
+	Peer          driverPeer        `json:"peer"`
 }

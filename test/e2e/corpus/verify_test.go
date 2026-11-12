@@ -17,6 +17,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
+	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
 )
 
 func TestVerifyOfficialOnlySelection(t *testing.T) {
@@ -79,7 +80,7 @@ func verifyDriverSubstitute(args []string) int {
 		var receipt tool.Object
 		var receiptPath string
 		var events []tool.Object
-		notifications, err := os.ReadFile(tool.Str(tool.Obj(plan["_agentResults"])["main"]))
+		notifications, err := os.ReadFile(runtime.AgentResults["main"])
 		if err != nil {
 			return 5
 		}
@@ -93,8 +94,8 @@ func verifyDriverSubstitute(args []string) int {
 		if len(events) != 2 {
 			return 5
 		}
-		fixtureRoot := filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output)))
-		receiptPath = filepath.Join(fixtureRoot, filepath.FromSlash(tool.Str(events[1]["receipt"])))
+		fixtureRoot := runtime.FixtureDir
+		receiptPath = filepath.Join(fixtureRoot, "packages", tool.Str(events[1]["materialId"]), filepath.FromSlash(tool.Str(events[1]["receipt"])))
 		path := receiptPath
 		if tool.ReadJSON(path, &receipt) != nil {
 			return 5
@@ -213,12 +214,23 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 	}
 	material["kind"], material["action"], material["provenance"] = "capture", "record", "official"
 	delete(material, "officialOrigin")
+	delete(material, "legacyInventorySHA256")
+	delete(registry, "descriptorless")
+	material["formatVersion"] = 2
 	files, err := corpus.Inventory(target, false)
 	require.NoError(t, err)
 	material["files"] = files
 	material["planSHA256"], material["manifestSHA256"], material["recordingSHA256"] = files["plan.json"], files["manifest.json"], files["raw/raw.jsonl"]
 	require.NoError(t, tool.WriteJSON(filepath.Join(target, "material.json"), material))
 	require.NoError(t, tool.WriteJSON(filepath.Join(fixtureDir, "packages", "index.json"), registry))
+	var current tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current))
+	current["materialSHA256"], err = corpus.Digest(filepath.Join(target, "material.json"))
+	require.NoError(t, err)
+	current["manifestSHA256"] = files["manifest.json"]
+	delete(current, "legacyFormat")
+	delete(current, "legacyInventorySHA256")
+	require.NoError(t, tool.WriteJSON(filepath.Join(fixtureDir, "current.json"), current))
 	t.Cleanup(func() {
 		var descriptor tool.Object
 		if tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor) == nil {
@@ -250,7 +262,7 @@ func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
 	var evidence, summary tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "verification.json"), &evidence))
 	require.Equal(t, "passed", evidence["status"])
-	require.Equal(t, "synthetic-test-only", tool.Obj(evidence["officialSDK"])["version"])
+	require.Equal(t, "synthetic-test-only", tool.Obj(readObject(t, filepath.Join(output, "replay-report.json"))["officialSDK"])["version"])
 	require.NotEmpty(t, tool.Obj(evidence["tool"])["sha256"])
 	require.NotEmpty(t, evidence["contracts"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "result.json"), &summary))
@@ -278,10 +290,12 @@ func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
 	for _, pair := range [][2]string{{"home", "home"}, {"config", "config"}, {"tmp", "tmp"}} {
 		require.Equal(t, filepath.Join(routeRoot, pair[1]), observed[pair[0]])
 	}
-	refs := tool.Array(evidence["connections"])
+	refs := tool.Array(evidence["executions"])
 	require.Len(t, refs, 1)
 	var execution tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "executions", tool.Str(tool.Obj(refs[0])["executionId"]), "execution.json"), &execution))
+	executionRoot, err := fixturetest.ExecutionRoot(fixtureDir, tool.Str(tool.Obj(refs[0])["executionId"]))
+	require.NoError(t, err)
+	require.NoError(t, tool.ReadJSON(filepath.Join(executionRoot, "execution.json"), &execution))
 	require.Equal(t, "mock", execution["command"])
 	workspace := filepath.Join(fixtureDir, "runtime", "executions", tool.Str(execution["executionId"]), "workspace")
 	require.True(t, strings.HasPrefix(workspace, filepath.Join(fixtureDir, "runtime", "executions")+string(filepath.Separator)))
@@ -294,7 +308,7 @@ func TestVerifyRequiresPeerExitAndCleanup(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	output := verifyOutput(t, fixtureDir)
 	var lifecycle tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "driver", "peer-main.process.json"), &lifecycle))
+	require.NoError(t, tool.ReadJSON(filepath.Join(output, "peers", "main.json"), &lifecycle))
 	require.InDelta(t, float64(0), lifecycle["exitCode"], 0)
 	require.Equal(t, true, lifecycle["reaped"])
 	require.Equal(t, true, lifecycle["cleanupComplete"])
@@ -316,7 +330,7 @@ func TestVerifyFailureEvidence(t *testing.T) {
 			after, err := corpus.Inventory(source, false)
 			require.NoError(t, err)
 			require.Equal(t, before, after)
-			require.FileExists(t, filepath.Join(output, "driver", "stderr.log"))
+			require.FileExists(t, filepath.Join(output, "stderr.log"))
 		})
 	}
 }
@@ -390,8 +404,8 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 			output := verifyOutput(t, fixtureDir)
 			if mode == "passed" {
 				require.NoError(t, err, "%s", data)
-				require.FileExists(t, filepath.Join(output, "driver", "connections", "probe", "replay.json"))
-				require.FileExists(t, filepath.Join(output, "driver", "peer-probe.process.json"))
+				require.FileExists(t, filepath.Join(filepath.Dir(filepath.Dir(output)), "executions", tool.Str(tool.Obj(tool.Array(readObject(t, filepath.Join(output, "verification.json"))["executions"])[0])["executionId"]), "receipts", "probe.json"))
+				require.FileExists(t, filepath.Join(output, "peers", "probe.json"))
 			} else {
 				require.Error(t, err, "%s", data)
 				require.Contains(t, string(data), "probe: protocol process not started or settled")
@@ -422,23 +436,23 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 	require.NoError(t, err, "%s", data)
 	output := verifyOutput(t, fixtureDir)
 	var admission tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "admission-summary.json"), &admission))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "runtime", "official", filepath.Base(output), "admission-summary.json"), &admission))
 	require.Equal(t, "admitted", admission["status"])
-	require.FileExists(t, filepath.Join(tool.Str(admission["materials"]), "official-replay", "verification.json"))
+	require.FileExists(t, filepath.Join(tool.Str(admission["materials"]), "verify", filepath.Base(output), "verification.json"))
 	var result, evidence tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "result.json"), &result))
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "verification.json"), &evidence))
-	persisted := tool.Obj(result["admission"])
-	require.Equal(t, persisted, tool.Obj(evidence["admission"]))
+	require.NotContains(t, result, "admission")
+	require.NotContains(t, evidence, "admission")
 	normalizedIndex, err := filepath.Abs(s.c.Index)
 	require.NoError(t, err)
 	normalizedScenarios, err := filepath.Abs(scenarios)
 	require.NoError(t, err)
 	normalizedArchive, err := corpus.Resolved(s.c.Archive)
 	require.NoError(t, err)
-	require.Equal(t, normalizedIndex, persisted["index"])
-	require.Equal(t, normalizedScenarios, persisted["scenarios"])
-	require.Equal(t, normalizedArchive, persisted["archive"])
+	require.Equal(t, normalizedIndex, admission["index"])
+	require.Equal(t, normalizedScenarios, admission["scenarios"])
+	require.Equal(t, normalizedArchive, admission["archive"])
 	_, err = s.c.VerifyAdopted(s.entry())
 	require.NoError(t, err)
 	after, err := corpus.Inventory(source, false)
@@ -501,7 +515,7 @@ func TestVerifyRejectsAdmissionAndPreservesPrevious(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, sourceBefore, sourceAfter)
 	var admission tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(output, "admission-summary.json"), &admission))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "runtime", "official", filepath.Base(output), "admission-summary.json"), &admission))
 	require.Equal(t, "rejected", admission["status"])
 }
 
@@ -568,4 +582,11 @@ func fixtureFiles(t *testing.T, fixture string) tool.Object {
 		return nil
 	}))
 	return files
+}
+
+func readObject(t *testing.T, path string) tool.Object {
+	t.Helper()
+	var value tool.Object
+	require.NoError(t, tool.ReadJSON(path, &value))
+	return value
 }

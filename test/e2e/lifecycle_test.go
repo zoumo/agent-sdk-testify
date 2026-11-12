@@ -18,7 +18,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	fixtureDir := prepareFixture(t, env, "--plan", plan)
 
 	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
-	require.EqualValues(t, 6, descriptor["schemaVersion"])
+	require.EqualValues(t, 7, descriptor["schemaVersion"])
 	require.Equal(t, "codex", descriptor["agentType"])
 	require.Equal(t, "plan", obj(descriptor["source"])["kind"])
 	sourceRoot := resolveFixtureReference(t, fixtureDir, str(obj(descriptor["source"])["path"]))
@@ -46,7 +46,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	firstExecution := firstRecord
 	firstWorkspace := executionOverlayPath(t, fixtureDir, firstExecution, "workspace")
 	require.DirExists(t, firstWorkspace)
-	firstConnection := obj(array(firstRecord["connections"])[0])
+	firstConnection := readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, firstRecord), str(obj(array(firstRecord["connections"])[0])["receipt"])))
 	agent, err := filepath.EvalSymlinks(agent)
 	require.NoError(t, err)
 	require.Equal(t, []string{"--cmd", agent, "--", "app-server", "--listen", "stdio://"}, stringsOf(firstExecution["args"]))
@@ -76,8 +76,8 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	require.Equal(t, "captured", manifest["status"])
 	require.Equal(t, "complete", manifest["captureStatus"])
 	require.Equal(t, "pass", manifest["credentialScan"])
-	const history = "config/sessions/conformance-history.jsonl"
-	require.Equal(t, digestBytes([]byte("{\"type\":\"conformance-history\"}\n")), obj(manifest["savedFiles"])[history])
+	const history = "history/runtime/config/sessions/conformance-history.jsonl"
+	require.Equal(t, digestBytes([]byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"conformance-history\",\"cwd\":\"/synthetic\"}}\n")), obj(manifest["files"])[history])
 
 	secondRecord := recordConsumer(t, env, fixtureDir, agent, requestTwo)
 	require.NotEqual(t, firstRecord["executionId"], secondRecord["executionId"])
@@ -125,7 +125,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	latestConfig := executionOverlayPath(t, fixtureDir, latestMockExecution, "config")
 	require.NoFileExists(t, filepath.Join(latestWorkspace, "only-first.txt"))
 	historyBytes := readFile(t, filepath.Join(latestConfig, "sessions", "conformance-history.jsonl"))
-	require.True(t, bytes.Equal([]byte("{\"type\":\"conformance-history\"}\n"), historyBytes), "unexpected history bytes: %q", historyBytes)
+	require.True(t, bytes.Equal([]byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"conformance-history\",\"cwd\":\"/synthetic\"}}\n"), historyBytes), "unexpected history bytes: %q", historyBytes)
 
 	rejectedOverride := runTool(t, env, t.TempDir(), requestOne,
 		"agent", "mock", "--fixture-dir", fixtureDir, "--recording", fixtureMaterialRoot(t, fixtureDir, firstCapture))
@@ -293,12 +293,15 @@ func TestPlanSeedHistoryConformance(t *testing.T) {
 	historyFiles := obj(execution["historyFiles"])
 	for name, value := range seedFiles {
 		digest := str(obj(value)["sha256"])
-		require.Equal(t, digest, historyFiles[name], name)
-		require.Equal(t, digest, digestFile(t, filepath.Join(executionOverlayRoot(t, fixtureDir, execution), filepath.FromSlash(name))), name)
+		require.Equal(t, digest, digestFile(t, filepath.Join(material, filepath.FromSlash(name))), name)
+		require.NotContains(t, historyFiles, name, "frozen seed closure is not a native startup target")
+		require.NoFileExists(t, filepath.Join(executionOverlayRoot(t, fixtureDir, execution), filepath.FromSlash(name)))
 		if declared := obj(manifest["savedFiles"])[name]; declared != nil {
-			require.Equal(t, digest, declared, "manifest and independent plan seed bindings must agree")
+			require.Equal(t, digest, declared)
 		}
 	}
+	require.NotEmpty(t, historyFiles)
+	assertFileHashes(t, executionOverlayRoot(t, fixtureDir, execution), historyFiles)
 }
 
 func TestMockJoinInputConformance(t *testing.T) {
@@ -488,7 +491,7 @@ func TestCurrentRejectsUnknownMaterialIdentity(t *testing.T) {
 	for _, action := range []string{"mock", "verify"} {
 		result := runTool(t, env, t.TempDir(), "", append(publicAction(action), "--fixture-dir", fixtureDir)...)
 		require.NotZero(t, result.code)
-		require.Contains(t, result.stderr, "current recording is absent from material index")
+		require.Contains(t, result.stderr, "current legacy inventory differs")
 		require.Equal(t, index, readFile(t, filepath.Join(fixtureDir, "executions", "index.json")))
 	}
 }

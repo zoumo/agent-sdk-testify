@@ -309,7 +309,16 @@ func executionArtifactRoot(t *testing.T, fixture string, execution object) strin
 	t.Helper()
 	require.NotEmpty(t, str(execution["executionId"]))
 	require.NotEmpty(t, str(execution["command"]))
-	return filepath.Join(fixture, "packages", str(obj(execution["artifact"])["id"]), "executions", str(execution["executionId"]), "capture")
+	packageRoot := executionPackageRoot(t, fixture, execution)
+	core := filepath.Join(packageRoot, "material")
+	capture := filepath.Join(packageRoot, "executions", str(execution["executionId"]), "capture")
+	// A failed publication can retain a sealed core; otherwise the writer's
+	// only capture remains in its execution. Both locations have this exact owner.
+	if _, err := os.Stat(filepath.Join(core, "raw", "raw.jsonl")); err == nil {
+		require.NoFileExists(t, filepath.Join(capture, "raw", "raw.jsonl"))
+		return core
+	}
+	return capture
 }
 
 func connectionStatus(t *testing.T, fixture string, execution object, id string) any {
