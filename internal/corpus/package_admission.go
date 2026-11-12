@@ -17,11 +17,13 @@ import (
 
 func packageSelection(root, verificationID string, material Material) (PackageSelection, error) {
 	selection := PackageSelection{SchemaVersion: 2, MaterialID: material.ID}
-	if err := ValidateCore(filepath.Join(root, "material"), material); err != nil {
+	if err := CheckMaterialInventory(filepath.Join(root, "material"), material); err != nil {
 		return selection, err
 	}
-	if err := validatePackageRecord(root, material); err != nil {
-		return selection, err
+	if material.FormatVersion == 3 {
+		if err := validatePackageRecord(root, material); err != nil {
+			return selection, err
+		}
 	}
 	if err := ValidateOfficialVerification(root, verificationID, material); err != nil {
 		return selection, err
@@ -35,22 +37,29 @@ func packageSelection(root, verificationID string, material Material) (PackageSe
 	if err != nil {
 		return selection, err
 	}
-	selection.Record, err = bind("record/" + material.OfficialOrigin.RunID + "/result.json")
-	if err != nil {
-		return selection, err
+	if material.FormatVersion == 3 {
+		selection.Record, err = bind("record/" + material.OfficialOrigin.RunID + "/result.json")
+		if err != nil {
+			return selection, err
+		}
 	}
 	selection.Verification, err = bind("verify/" + verificationID + "/verification.json")
 	if err != nil {
 		return selection, err
 	}
 	var record, verification tool.Object
-	if err := tool.ReadJSON(filepath.Join(root, selection.Record.Path), &record); err != nil {
-		return selection, err
+	if selection.Record.Path != "" {
+		if err := tool.ReadJSON(filepath.Join(root, selection.Record.Path), &record); err != nil {
+			return selection, err
+		}
 	}
 	if err := tool.ReadJSON(filepath.Join(root, selection.Verification.Path), &verification); err != nil {
 		return selection, err
 	}
-	ids := tool.Object{tool.Str(record["executionId"]): true}
+	ids := tool.Object{}
+	if id := tool.Str(record["executionId"]); id != "" {
+		ids[id] = true
+	}
 	for _, ref := range tool.Array(verification["executions"]) {
 		ids[tool.Str(tool.Obj(ref)["executionId"])] = true
 	}
@@ -75,8 +84,8 @@ func (c *Corpus) qualifyPackage(source, replay string, manual bool) (tool.Object
 	if err != nil {
 		return nil, err
 	}
-	if material == nil || material.FormatVersion != 3 {
-		return nil, errors.New("package qualification requires a format 3 material descriptor")
+	if material == nil {
+		return nil, errors.New("package qualification requires a material descriptor")
 	}
 	root := filepath.Dir(source)
 	if filepath.Dir(filepath.Dir(replay)) != root || filepath.Base(filepath.Dir(replay)) != "verify" {
@@ -105,8 +114,8 @@ func (c *Corpus) validatePackageAdmission(source, replay string, review tool.Obj
 	if err != nil {
 		return nil, err
 	}
-	if material == nil || material.FormatVersion != 3 {
-		return nil, errors.New("package qualification requires a format 3 material descriptor")
+	if material == nil {
+		return nil, errors.New("package qualification requires a material descriptor")
 	}
 	root := filepath.Dir(source)
 	if filepath.Dir(filepath.Dir(replay)) != root || filepath.Base(filepath.Dir(replay)) != "verify" {
@@ -134,6 +143,21 @@ func (c *Corpus) validatePackageAdmission(source, replay string, review tool.Obj
 	_, err = time.Parse(time.RFC3339Nano, tool.Str(qualification["qualifiedAt"]))
 	if review["origin"] != "real-agent" || qualification["method"] != "official-sdk" || err != nil {
 		return nil, errors.New("review must attest official qualification")
+	}
+	if material.FormatVersion != 3 {
+		// Reuse every legacy capture/business/native policy check. This view is
+		// transient: the persisted review only selects the sealed package domains.
+		v := &Validation{}
+		plan := v.Read(source, "plan.json")
+		legacyReview := tool.Object{
+			"version": float64(1), "origin": review["origin"], "qualification": qualification,
+			"officialSDK": qualificationSDK(v, source, replay), "captureFiles": v.Inventory(source, false),
+			"replayFiles": v.Inventory(replay, false), "publishFiles": Keys(v.Required(source, plan)),
+		}
+		if v.Err != nil {
+			return nil, v.Err
+		}
+		return c.ValidateAdmission(source, replay, legacyReview)
 	}
 	var plan, manifest tool.Object
 	if err := tool.ReadJSON(filepath.Join(source, "plan.json"), &plan); err != nil {
@@ -220,6 +244,9 @@ func copySelectedPackage(source, target string, selection PackageSelection) erro
 	}
 	refs := append([]PackageSelectionReference{selection.Record, selection.Verification}, selection.Executions...)
 	for _, ref := range refs {
+		if ref.Path == "" {
+			continue
+		}
 		dir := filepath.Dir(filepath.FromSlash(ref.Path))
 		if err := tool.CopyTree(filepath.Join(source, dir), filepath.Join(target, dir)); err != nil {
 			return err
@@ -305,8 +332,8 @@ func (c *Corpus) adoptPackage(source, replay, reviewPath string, replace func(st
 	if err != nil {
 		return "", err
 	}
-	if material == nil || material.FormatVersion != 3 {
-		return "", errors.New("selected package omits its format 3 material descriptor")
+	if material == nil {
+		return "", errors.New("selected package omits its material descriptor")
 	}
 	if err := ValidatePackage(stage, *material); err != nil {
 		return "", err

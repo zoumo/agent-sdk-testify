@@ -203,7 +203,8 @@ func ValidatePackageSelection(root string, material Material) error {
 			return nil, err
 		}
 		if kind == "material" {
-			if object["id"] != material.ID || object["formatVersion"] != float64(3) {
+			versionMatches := object["formatVersion"] == float64(material.FormatVersion) || material.FormatVersion == 0 && object["formatVersion"] == nil
+			if object["id"] != material.ID || !versionMatches {
 				return nil, errors.New("selected material identity differs")
 			}
 		} else if err := validatePackageDomain(root, kind, parts[1], material); err != nil {
@@ -214,15 +215,21 @@ func ValidatePackageSelection(root string, material Material) error {
 	if _, err := check(review.Material, "material"); err != nil {
 		return err
 	}
-	record, err := check(review.Record, "record")
-	if err != nil {
-		return err
+	var record tool.Object
+	if material.FormatVersion == 3 {
+		var err error
+		record, err = check(review.Record, "record")
+		if err != nil {
+			return err
+		}
+	} else if review.Record != (PackageSelectionReference{}) {
+		return errors.New("legacy capture cannot borrow a package record")
 	}
 	verification, err := check(review.Verification, "verify")
 	if err != nil {
 		return err
 	}
-	if record["status"] != "passed" || verification["status"] != "passed" {
+	if material.FormatVersion == 3 && record["status"] != "passed" || verification["status"] != "passed" {
 		return errors.New("selection refers to unsuccessful official evidence")
 	}
 	selected := map[string]bool{}
@@ -241,10 +248,12 @@ func ValidatePackageSelection(root string, material Material) error {
 		}
 	}
 	required := map[string]bool{}
-	if id := tool.Str(record["executionId"]); id != "" {
-		required[id] = true
-	} else {
-		return errors.New("selected record omits execution")
+	if material.FormatVersion == 3 {
+		if id := tool.Str(record["executionId"]); id != "" {
+			required[id] = true
+		} else {
+			return errors.New("selected record omits execution")
+		}
 	}
 	if len(tool.Array(verification["executions"])) == 0 {
 		return errors.New("selected verification omits executions")
@@ -256,7 +265,11 @@ func ValidatePackageSelection(root string, material Material) error {
 		}
 		required[id] = true
 	}
-	if len(required) < 2 || !reflect.DeepEqual(selected, required) {
+	minimum := 1
+	if material.FormatVersion == 3 {
+		minimum = 2
+	}
+	if len(required) < minimum || !reflect.DeepEqual(selected, required) {
 		return errors.New("selected execution closure differs from official evidence")
 	}
 	return nil

@@ -87,4 +87,24 @@ out = pathlib.Path(runtime['output'])
 	require.FileExists(t, filepath.Join(attempt, "verify", filepath.Base(verifyRoot), "verification.json"))
 	imported := prepareFixture(t, env, "--recording", attempt)
 	require.Equal(t, before, officialInventory(t, filepath.Join(imported, "packages", id, "material")))
+	indexBefore := readFile(t, corpus.index)
+	for _, status := range []string{"failed", "untriggered"} {
+		failedDriver := strings.Replace(driver, "'status':'passed','branchStatus':'passed'", "'status':'"+status+"','branchStatus':'"+status+"'", 1)
+		require.NoError(t, os.WriteFile(filepath.Join(drivers, "agent-sdk-testify-codex"), []byte(failedDriver), 0o700))
+		failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixture, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
+		require.Equal(t, 1, failed.code, failed.stderr)
+		require.Equal(t, indexBefore, readFile(t, corpus.index))
+		require.Equal(t, before, officialInventory(t, core))
+	}
+	for _, ref := range []string{"report.json", filepath.Join("verify", filepath.Base(verifyRoot), "replay-report.json")} {
+		path := filepath.Join(attempt, ref)
+		if ref == "report.json" {
+			path = filepath.Join(attempt, "material", ref)
+		}
+		original := readFile(t, path)
+		require.NoError(t, os.WriteFile(path, []byte("{}\n"), 0o600))
+		rejected := runTool(t, env, t.TempDir(), "", "prepare", "--recording", attempt, "--fixture-dir", filepath.Join(t.TempDir(), "tampered"))
+		require.Equal(t, 1, rejected.code)
+		require.NoError(t, os.WriteFile(path, original, 0o600))
+	}
 }

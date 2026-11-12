@@ -129,10 +129,10 @@ func TestPackageQualificationRejectsMissingMaterialDescriptor(t *testing.T) {
 	require.NoError(t, os.MkdirAll(material, 0o700))
 	c := &Corpus{}
 	_, err := c.qualifyPackage(material, replay, false)
-	require.ErrorContains(t, err, "format 3 material descriptor")
+	require.ErrorContains(t, err, "material descriptor")
 	_, err = c.ValidateAdmission(material, replay, tool.Object{"schemaVersion": float64(2)})
-	require.ErrorContains(t, err, "format 3 material descriptor")
+	require.ErrorContains(t, err, "material descriptor")
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "adoption.json"), tool.Object{"schemaVersion": 2}))
 	_, err = VerifyAdoptedFiles(root)
-	require.ErrorContains(t, err, "format 3 material descriptor")
+	require.ErrorContains(t, err, "material descriptor")
 }

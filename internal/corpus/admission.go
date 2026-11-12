@@ -37,6 +37,22 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 	v.Check(reflect.DeepEqual(v.Inventory(source, false), review["captureFiles"]), "capture inventory drifted or is incomplete")
 	v.Hashes(replay, tool.Obj(review["replayFiles"]))
 	plan := v.Read(source, "plan.json")
+	// A current verification can consume an immutable legacy capture. Its
+	// protocol facts belong to the package execution, not the old driver tree.
+	var verification tool.Object
+	packageVerification := tool.ReadJSON(filepath.Join(replay, "verification.json"), &verification) == nil && verification["schemaVersion"] == float64(3)
+	if packageVerification {
+		material, err := ReadMaterialDescriptor(source)
+		if err != nil {
+			return nil, err
+		}
+		if material == nil || filepath.Base(source) != "material" || filepath.Dir(filepath.Dir(replay)) != filepath.Dir(source) || filepath.Base(filepath.Dir(replay)) != "verify" {
+			return nil, errors.New("verification is outside selected package")
+		}
+		if err := ValidateOfficialVerification(filepath.Dir(source), filepath.Base(replay), *material); err != nil {
+			return nil, err
+		}
+	}
 	newCapture := publicCapture(source)
 	var captureBusiness tool.Object
 	if newCapture {
@@ -71,8 +87,7 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 		v.Check(report["status"] == "captured" && report["captureStatus"] == "complete" && report["provenance"] == "official", "sealed capture report is incomplete")
 	}
 	replayReport := "replay-report.json"
-	var verification tool.Object
-	if tool.ReadJSON(filepath.Join(replay, "verification.json"), &verification) == nil && verification["pipeline"] == "public-agent-mock" {
+	if !packageVerification && tool.ReadJSON(filepath.Join(replay, "verification.json"), &verification) == nil && verification["pipeline"] == "public-agent-mock" {
 		replayReport = "driver/replay-report.json"
 	}
 	for _, item := range [][2]string{{source, "report.json"}, {replay, replayReport}} {
@@ -151,7 +166,9 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 		s := v.Read(source, "remote-service.json")
 		v.Check(s["cleanupComplete"] == true && s["serverExitCode"] == float64(0) && s["forcedCleanup"] == false, "remote source cleanup incomplete")
 	}
-	v.Replay(source, replay, plan, "replay")
+	if !packageVerification {
+		v.Replay(source, replay, plan, "replay")
+	}
 	required := v.Required(source, plan)
 	names := tool.Strings(review["publishFiles"])
 	selected := corpusSet(names)
@@ -166,7 +183,11 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 		v.Check(corpusPublishable(name), "file is not publishable regression material: "+name)
 		v.Digest(source, name)
 	}
-	v.Check(reflect.DeepEqual(corpusSet(Keys(tool.Obj(review["replayFiles"]))), v.ReplayEvidence(replay, plan)), "review must select only official replay evidence files")
+	if packageVerification {
+		v.Check(reflect.DeepEqual(v.Inventory(replay, false), review["replayFiles"]), "review verification inventory differs")
+	} else {
+		v.Check(reflect.DeepEqual(corpusSet(Keys(tool.Obj(review["replayFiles"]))), v.ReplayEvidence(replay, plan)), "review must select only official replay evidence files")
+	}
 	return plan, v.Err
 }
 
@@ -179,6 +200,10 @@ func strictCorpusFrame(b []byte, row *tool.Object) error {
 }
 
 func (c *Corpus) Qualification(source, replay string, manual bool) (tool.Object, error) {
+	var verification tool.Object
+	if tool.ReadJSON(filepath.Join(replay, "verification.json"), &verification) == nil && verification["schemaVersion"] == float64(3) {
+		return c.qualifyPackage(source, replay, manual)
+	}
 	if material, err := ReadMaterialDescriptor(source); err == nil && material != nil && material.FormatVersion == 3 {
 		return c.qualifyPackage(source, replay, manual)
 	}
@@ -242,10 +267,10 @@ func VerifyAdoptedFiles(root string) (tool.Object, error) {
 		if err != nil {
 			return nil, err
 		}
-		if material == nil || material.FormatVersion != 3 {
-			return nil, errors.New("schema 2 adoption requires a format 3 material descriptor")
+		if material == nil {
+			return nil, errors.New("schema 2 adoption requires a material descriptor")
 		}
-		if err := ValidateCore(material.Path, *material); err != nil {
+		if err := CheckMaterialInventory(material.Path, *material); err != nil {
 			return nil, err
 		}
 		if err := ValidatePackage(root, *material); err != nil {
