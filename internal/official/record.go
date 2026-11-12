@@ -124,7 +124,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	}
 	seedRoot := ""
 	if plan["driverProfile"] == "existing-children" {
-		seedRoot = filepath.Dir(route.Workspace)
+		seedRoot = fixture.HistorySeed
 		if fixture.AgentType == "claude" {
 			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
 		}

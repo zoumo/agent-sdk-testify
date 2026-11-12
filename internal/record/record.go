@@ -174,7 +174,7 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	if old, ok := derived["historySeed"]; ok {
 		seed := tool.Obj(old)
 		clean := tool.Object{}
-		for _, key := range []string{"provider", "sourceProject", "sessionId", "agentIds"} {
+		for _, key := range []string{"provider", "sourceProject", "sessionId", "agentIds", "sourcePlan"} {
 			if v, ok := seed[key]; ok {
 				clean[key] = v
 			}

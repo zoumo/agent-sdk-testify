@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from .adapters.common import proxy_command, serial
-from .environment import capture_root, read_regular, recording_temp_root, verify_recording
+from .environment import capture_root, read_regular, recording_temp_root, verify_recording, recording_path as _seed_path
 from .runtime_config import execution_workspace
 from .scenarios import Untriggered
 
@@ -25,8 +25,92 @@ def project_files(project):
 
 
 
+
+def _verify_canonical_seed(plan, seed):
+    runtime = plan.get('_runtime', {})
+    root = Path(runtime.get('seedRoot', ''))
+    if not root.is_absolute() or not isinstance(runtime.get('replay'), bool):
+        raise ValueError('frozen seed requires runtime source root')
+
+    def source_path(reference):
+        # Material references retain their canonical prefix. Before capture,
+        # the same closure lives at the explicitly supplied fixture source root.
+        _seed_path(root, reference)
+        prefix = 'history/seed/'
+        if not reference.startswith(prefix):
+            raise ValueError('seed reference is outside frozen history')
+        return _seed_path(root, reference if runtime['replay'] else reference[len(prefix):])
+
+    ref = seed['sourcePlan']
+    if not isinstance(ref, dict) or sha(source_path(ref.get('path'))) != ref.get('sha256'):
+        raise ValueError('frozen seed source plan changed')
+    source = source_path(ref['path']).parent
+    previous = json.loads(read_regular(source / 'plan.json'))
+    if (seed.get('provider') != plan.get('provider') or previous.get('provider') != seed['provider']
+            or previous.get('driverProfile') != 'history'
+            or previous.get('scenario', {}).get('parameters', {}).get('historyTarget') != 'child-messages'):
+        raise ValueError('frozen seed provider or history case differs')
+    project = previous.get('_fixtureProject') if seed['provider'] == 'claude' else None
+    project = project or previous.get('project')
+    if (not isinstance(project, str) or not Path(project).is_absolute()
+            or seed.get('sourceProject') != project or plan.get('historyProject') != project):
+        raise ValueError('history scope differs from the frozen source project')
+    verify_recording(source)
+    if runtime['replay']:
+        verify_recording(root)
+    else:
+        inventory = seed.get('sourceFiles')
+        if not isinstance(inventory, dict) or not inventory:
+            raise ValueError('frozen seed closure inventory required')
+        for name, digest in inventory.items():
+            if sha(_seed_path(root, name)) != digest:
+                raise ValueError('source recording identity changed')
+        if project_files(root / 'project') != seed.get('projectFiles'):
+            raise ValueError('source project changed during read-only observation')
+
+    parent, children = seed.get('sessionId'), seed.get('agentIds')
+    if (not isinstance(parent, str) or not parent or not isinstance(children, list)
+            or not children or any(not isinstance(x, str) or not x or x == parent for x in children)
+            or len(set(children)) != len(children)):
+        raise ValueError('frozen parent and child identities required')
+    wanted = {parent, *children}
+    bindings = previous.get('historyBindings')
+    if not isinstance(bindings, list):
+        # Supported legacy captures retain their explicit native file map.
+        bindings = []
+        for name, value in seed.get('files', {}).items():
+            path = source_path(value['source'])
+            if sha(path) != value['sha256']:
+                raise ValueError('source recording saved data changed')
+            if seed['provider'] == 'codex':
+                rows = [json.loads(row) for row in read_regular(path).splitlines()]
+                identity = next((r['payload']['id'] for r in rows if r.get('type') == 'session_meta'), None)
+            else:
+                identity = Path(name).stem.removeprefix('agent-')
+            bindings.append({'sessionId': identity, 'sha256': value['sha256'], 'source': str(path.relative_to(source))})
+    selected = [b for b in bindings if b.get('sessionId') in wanted]
+    if len(selected) != len(wanted) or {b['sessionId'] for b in selected} != wanted:
+        raise ValueError('frozen seed identities differ from history bindings')
+    manifest = json.loads(read_regular(source / 'manifest.json'))
+    for binding in selected:
+        path = _seed_path(source, binding['source'])
+        if sha(path) != binding['sha256']:
+            raise ValueError('source recording saved data changed')
+        if manifest.get('materialFormatVersion') == 3 and manifest['files'].get(binding['source']) != binding['sha256']:
+            raise ValueError('frozen seed binding differs from source inventory')
+        if binding['sessionId'] in children and 'parentSessionId' in binding and binding['parentSessionId'] != parent:
+            raise ValueError('frozen seed child belongs to another parent')
+    if seed['provider'] == 'claude':
+        args = plan.get('args', [])
+        if '--resume' not in args or args[args.index('--resume') + 1:args.index('--resume') + 2] != [parent]:
+            raise ValueError('native resume must select the frozen seed parent')
+    return seed
+
+
 def verify_seed(plan, *, check_source=True):
     seed = plan.get('historySeed')
+    if isinstance(seed, dict) and 'sourcePlan' in seed:
+        return _verify_canonical_seed(plan, seed)
     if not isinstance(seed, dict) or seed.get('provider') not in ('claude', 'codex') or not seed.get('files'):
         raise ValueError('frozen existing-child seed required')
     if seed.get('projectSnapshot') not in (None, 'history-seed/project'):

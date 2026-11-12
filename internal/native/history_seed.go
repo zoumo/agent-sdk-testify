@@ -18,6 +18,16 @@ const isolatedRecording = "personal-skills-v1"
 // A completed capture supplies native saved records. Preparing a later case
 // does not execute an SDK, start a session, or require the replay stage first.
 func PrepareHistorySeed(source, root string, plan tool.Object) error {
+	return prepareHistorySeed(source, root, plan)
+}
+
+// ReadHistorySeed reconstructs preparation facts from the frozen source without
+// changing it or touching the writable native environment.
+func ReadHistorySeed(source string, plan tool.Object) error {
+	return prepareHistorySeed(source, "", plan)
+}
+
+func prepareHistorySeed(source, root string, plan tool.Object) error {
 	var err error
 	source, err = filepath.Abs(source)
 	if err != nil {
@@ -78,6 +88,7 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		digest string
 	}
 	selected := map[string]seedFile{}
+	var canonical []history.Binding
 	if manifest["materialFormatVersion"] == float64(3) {
 		bindings, err := history.CanonicalBindings(source, previous, manifest)
 		if err != nil {
@@ -85,6 +96,9 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		}
 		for _, binding := range bindings {
 			selected[binding.NativeTarget] = seedFile{source: binding.Source, digest: binding.SHA256}
+			binding.Role = "seed"
+			binding.Source = filepath.ToSlash(filepath.Join("history", "seed", sourcePrefix, binding.Source))
+			canonical = append(canonical, binding)
 		}
 	} else {
 		for name, digest := range tool.Obj(manifest["savedFiles"]) {
@@ -123,8 +137,10 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		if actual != file.digest {
 			return errors.New("seed content changed")
 		}
-		if err := tool.CopyFile(filepath.Join(source, filepath.FromSlash(file.source)), filepath.Join(root, name)); err != nil {
-			return err
+		if root != "" {
+			if err := tool.CopyFile(filepath.Join(source, filepath.FromSlash(file.source)), filepath.Join(root, name)); err != nil {
+				return err
+			}
 		}
 		files[name] = tool.Object{"source": filepath.ToSlash(filepath.Join("history", "seed", sourcePrefix, file.source)), "sha256": actual}
 		found[identity] = true
@@ -139,17 +155,20 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	if !filepath.IsAbs(project) {
 		return errors.New("seed project identity must be absolute")
 	}
-	if provider == "codex" && project == filepath.Join(source, "project") {
+	if root != "" && provider == "codex" && project == filepath.Join(source, "project") {
 		if err := prepareCodexIsolation(root, tool.Object{"project": project}); err != nil {
 			return err
 		}
 	}
-	snapshot := filepath.Join(root, "history-seed", "project")
-	if err := os.MkdirAll(snapshot, 0o700); err != nil {
-		return err
-	}
-	if err := tool.WriteFiles(snapshot, tool.Obj(tool.Obj(previous["scenario"])["files"])); err != nil {
-		return err
+	snapshot := filepath.Join(sourceSnapshot, "project")
+	if root != "" {
+		snapshot = filepath.Join(root, "history-seed", "project")
+		if err := os.MkdirAll(snapshot, 0o700); err != nil {
+			return err
+		}
+		if err := tool.WriteFiles(snapshot, tool.Obj(tool.Obj(previous["scenario"])["files"])); err != nil {
+			return err
+		}
 	}
 	projectFiles := tool.Object{}
 	if err := filepath.WalkDir(snapshot, func(p string, d os.DirEntry, e error) error {
@@ -211,6 +230,10 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		"provider": provider, "sourceRootRef": "history/seed", "sourceProject": project,
 		"sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles,
 		"projectFiles": projectFiles, "projectSnapshot": "history-seed/project",
+		"sourcePlan": tool.Object{"path": filepath.ToSlash(filepath.Join("history", "seed", sourcePrefix, "plan.json")), "sha256": manifest["planSHA256"]},
+	}
+	if canonical != nil {
+		plan["historyBindings"] = canonical
 	}
 	plan["historyProject"] = project
 	if tool.Str(plan["model"]) == "" {
