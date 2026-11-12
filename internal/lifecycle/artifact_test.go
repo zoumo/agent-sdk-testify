@@ -42,20 +42,26 @@ func TestBuiltinMaterialPreservesOfficialCaptureOrigin(t *testing.T) {
 				root, err := builtin.Extract(selected)
 				require.NoError(t, err)
 				t.Cleanup(func() { require.NoError(t, os.RemoveAll(root)) })
+				core, _, err := corpus.RecordingRoot(root)
+				require.NoError(t, err)
 				var sealed corpus.OfficialOrigin
-				require.NoError(t, tool.ReadJSON(filepath.Join(root, "official-origin.json"), &sealed))
-				material, err := artifactForMaterial(root, "builtin", []string{"main"})
+				require.NoError(t, tool.ReadJSON(filepath.Join(core, "official-origin.json"), &sealed))
+				material, err := initialBuiltin(&Fixture{
+					AgentType: provider, Source: Source{Kind: "case", ID: caseID},
+				}, t.TempDir(), "fallback", []string{"main"})
 				require.NoError(t, err)
 				require.Equal(t, &sealed, material.OfficialOrigin)
 				require.NoError(t, corpus.ValidateOfficialCapture(*material))
-				inventory, err := corpus.Inventory(root, false)
+				inventory, err := corpus.Inventory(material.Path, false)
 				require.NoError(t, err)
 				if caseID != "SDK-CASE-001" {
 					require.NotContains(t, inventory, "result.json")
 					require.NotContains(t, inventory, "summary.json")
 				}
 				require.NoError(t, corpus.ValidateVerificationSource(*material, inventory))
-				_, err = artifactForMaterial(root, "builtin", []string{"other"})
+				altered := *material
+				altered.Connections = []string{"other"}
+				err = corpus.ValidateOfficialCapture(altered)
 				require.ErrorContains(t, err, "sealed official capture origin differs")
 			})
 		}
