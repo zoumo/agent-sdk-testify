@@ -1,6 +1,7 @@
 package conformance
 
 import (
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -60,15 +61,37 @@ out = pathlib.Path(runtime['output'])
 	core := filepath.Join(packageRoot, "material")
 	require.Equal(t, "captured", readJSON(t, filepath.Join(core, "report.json"))["status"])
 	before := officialInventory(t, core)
+	plan := readJSON(t, filepath.Join(core, "plan.json"))
+	payload, err := json.Marshal(object{"id": 1, "method": "conformance", "params": object{"cwd": plan["project"]}})
+	require.NoError(t, err)
+	ordinary, notice := runAgentResult(t, env, producer, string(payload)+"\n", "mock", "--", "app-server", "--listen", "stdio://")
+	require.Zero(t, ordinary.code, ordinary.stderr)
+	ordinaryID := str(notice["executionId"])
+	ordinaryRoot := filepath.Join(packageRoot, "executions", ordinaryID)
+	ordinaryAggregate := readJSON(t, filepath.Join(ordinaryRoot, "result.json"))
+	for _, name := range []string{"isolation.json", "prepared-plan.json"} {
+		require.Contains(t, obj(ordinaryAggregate["files"]), "executions/"+ordinaryID+"/"+name)
+	}
+	require.NoDirExists(t, filepath.Join(packageRoot, "verify"))
+	assertFileHashes(t, packageRoot, obj(ordinaryAggregate["files"]))
 	corpus := newSyntheticCorpus(t)
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", producer, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
 	verifyRoot, verification := latestOfficialVerification(t, producer)
 	require.NoFileExists(t, filepath.Join(verifyRoot, "mock-isolation.json"))
 	mockID := str(obj(array(verification["executions"])[0])["executionId"])
+	require.NotEqual(t, ordinaryID, mockID, "verification must bind only its own actual execution")
 	mockRoot := filepath.Join(packageRoot, "executions", mockID)
 	aggregate := readJSON(t, filepath.Join(mockRoot, "result.json"))
 	for _, name := range []string{"isolation.json", "prepared-plan.json"} {
 		require.Contains(t, obj(aggregate["files"]), "executions/"+mockID+"/"+name)
+		// The same allocation writer creates both shapes; their identities and
+		// observed overlay values are specific to each execution.
+		require.Len(t, readJSON(t, filepath.Join(mockRoot, name)), len(readJSON(t, filepath.Join(ordinaryRoot, name))))
+		original := readFile(t, filepath.Join(mockRoot, name))
+		require.NoError(t, os.WriteFile(filepath.Join(mockRoot, name), []byte("{}\n"), 0o600))
+		rejected := runTool(t, env, t.TempDir(), "", "prepare", "--recording", packageRoot, "--fixture-dir", filepath.Join(t.TempDir(), "tampered-mock"))
+		require.Equal(t, 1, rejected.code)
+		require.NoError(t, os.WriteFile(filepath.Join(mockRoot, name), original, 0o600))
 	}
 	assertFileHashes(t, packageRoot, obj(aggregate["files"]))
 	require.Equal(t, before, officialInventory(t, core))
@@ -108,6 +131,6 @@ out = pathlib.Path(runtime['output'])
 	require.Equal(t, "parent", obj(seededPlan["historySeed"])["sessionId"])
 	require.Equal(t, []any{"child"}, obj(seededPlan["historySeed"])["agentIds"])
 	if target := os.Getenv("TESTIFY_FINAL_CONTRACT_INVENTORY"); target != "" {
-		require.NoError(t, writeJSONFile(target, object{"seedPackage": seedBefore, "mockExecution": aggregate, "seededCore": officialInventory(t, seededCore)}))
+		require.NoError(t, writeJSONFile(target, object{"seedPackage": seedBefore, "ordinaryMockExecution": ordinaryAggregate, "officialMockExecution": aggregate, "seededCore": officialInventory(t, seededCore)}))
 	}
 }

@@ -1,14 +1,15 @@
 package lifecycle
 
 import (
-	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"os"
 	"path/filepath"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // saveMockPreparation records the actual overlay prepared by the ordinary mock
 // allocation path. Both official and consumer mock use this same writer.
-func saveMockPreparation(fixtureDir string, fixture *Fixture, execution Execution) error {
+func saveMockPreparation(fixtureDir string, fixture *Fixture, execution Execution, plan tool.Object) error {
 	material := execution.Artifact
 	dir := PackageExecutionRoot(fixtureDir, material.ID, execution.ExecutionID)
 	executionReference := "executions/" + execution.ExecutionID + "/execution.json"
@@ -37,6 +38,11 @@ func saveMockPreparation(fixtureDir string, fixture *Fixture, execution Executio
 		connections = append(connections, tool.Object{"connectionId": connection.ID, "executionId": execution.ExecutionID, "executionSHA256": executionDigest})
 	}
 	prepared := tool.Object{"schemaVersion": 3, "fixtureId": fixture.FixtureID, "executionId": execution.ExecutionID, "materialId": material.ID, "sourcePlanSHA256": material.SourcePlanSHA256, "planSHA256": material.PlanSHA256, "manifestSHA256": material.ManifestSHA256, "provider": fixture.AgentType, "command": "mock", "project": execution.ProtocolCwd, "root": filepath.Dir(execution.Workspace), "home": execution.Home, "config": execution.Config, "tmp": execution.Tmp, "args": execution.NativeArgs, "limits": execution.Limits}
+	for _, name := range []string{"caseId", "storyId", "driverProfile", "model", "reasoningEffort"} {
+		if value, ok := plan[name]; ok {
+			prepared[name] = value
+		}
+	}
 	preparedPath := filepath.Join(dir, "prepared-plan.json")
 	if err := tool.WriteJSON(preparedPath, prepared); err != nil {
 		return err

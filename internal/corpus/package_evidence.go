@@ -214,6 +214,11 @@ func validatePackageMockIsolation(root, executionID string, material Material, d
 	if prepared["root"] != filepath.Dir(tool.Str(isolation["workspace"])) {
 		return errors.New("mock prepared-plan overlay differs")
 	}
+	for _, name := range []string{"caseId", "storyId", "driverProfile", "model", "reasoningEffort"} {
+		if !reflect.DeepEqual(prepared[name], plan[name]) {
+			return errors.New("mock prepared-plan selection differs")
+		}
+	}
 	ref := tool.Obj(isolation["execution"])
 	path := "executions/" + executionID + "/execution.json"
 	if isolation["schemaVersion"] != float64(3) || isolation["fixtureId"] != declaration["fixtureId"] || isolation["executionId"] != executionID || isolation["materialId"] != material.ID || isolation["command"] != "mock" || !reflect.DeepEqual(isolation["nativeArgs"], declaration["nativeArgs"]) || ref["path"] != path {

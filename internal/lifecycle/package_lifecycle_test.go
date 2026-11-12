@@ -228,15 +228,13 @@ func TestPackageRecordConnectionsCanCaptureConcurrently(t *testing.T) {
 	results := make(chan *RecordResult, 2)
 	failures := make(chan error, 2)
 	for _, connection := range []string{"main", "probe"} {
-		workers.Add(1)
-		go func() {
-			defer workers.Done()
+		workers.Go(func() {
 			request := recordTransactionRequest(fixtureDir, 0)
 			request.Connection = connection
 			result, err := RunRecord(ctx, request, policy)
 			results <- result
 			failures <- err
-		}()
+		})
 	}
 	seen := map[string]bool{}
 	for range 2 {
@@ -449,12 +447,10 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 		err    error
 	}
 	returned := make(chan outcome, 1)
-	workers.Add(1)
-	go func() {
-		defer workers.Done()
+	workers.Go(func() {
 		result, err := RunRecord(ctx, recordTransactionRequest(fixtureDir, 0), policy)
 		returned <- outcome{result, err}
-	}()
+	})
 	var overlay string
 	select {
 	case overlay = <-claimed:
@@ -465,9 +461,7 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 	require.NoError(t, err)
 	nextHostStarted := make(chan string, 1)
 	waiting := make(chan struct{})
-	workers.Add(1)
-	go func() {
-		defer workers.Done()
+	workers.Go(func() {
 		close(waiting)
 		usage.Lock()
 		defer usage.Unlock()
@@ -480,7 +474,7 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 			return
 		}
 		nextHostStarted <- tool.Str(snapshot["materialId"])
-	}()
+	})
 	select {
 	case <-waiting:
 	case <-time.After(5 * time.Second):

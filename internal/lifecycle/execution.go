@@ -504,7 +504,7 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 		return nil, err
 	}
 	if action == "mock" {
-		if err := saveMockPreparation(fixtureDir, fixture, execution); err != nil {
+		if err := saveMockPreparation(fixtureDir, fixture, execution, plan); err != nil {
 			return nil, err
 		}
 	}

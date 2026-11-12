@@ -14,7 +14,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func TestPrepareCanonicalHistorySeedCopiesOnlyNativeStartupAndProject(t *testing.T) {
+func TestCanonicalSeedRequiresPackageBusinessEvidence(t *testing.T) {
 	source, target := t.TempDir(), t.TempDir()
 	write := func(name string, data []byte) {
 		t.Helper()

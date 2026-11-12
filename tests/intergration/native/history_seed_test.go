@@ -94,7 +94,6 @@ func TestHistorySeedUsesCaptureWithoutReplay(t *testing.T) {
 			require.NoError(t, corpus.VerifyMaterials(frozenRoot, true))
 			require.NoError(t, os.WriteFile(filepath.Join(frozenRoot, "raw", "raw.jsonl"), []byte("{}\n{}\n"), 0o600))
 			require.ErrorContains(t, corpus.VerifyFile(material, "history/seed/raw/raw.jsonl", bindings["history/seed/raw/raw.jsonl"]), "source hash mismatch")
-
 		})
 	}
 }

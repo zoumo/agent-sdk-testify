@@ -5,11 +5,11 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -27,7 +27,7 @@ func TestPreparePublishesOnlyCompleteFixture(t *testing.T) {
 					require.FileExists(t, filepath.Join(stage, name))
 				}
 				for _, action := range []string{"record", "mock"} {
-					data, err := os.ReadFile(filepath.Join(stage, "runtime/routes", action+".json"))
+					data, err := os.ReadFile(filepath.Join(stage, "runtime", "routes", action+".json"))
 					require.NoError(t, err)
 					require.NotContains(t, string(data), stage)
 					for _, name := range routeEnvironmentEntries {
@@ -36,6 +36,10 @@ func TestPreparePublishesOnlyCompleteFixture(t *testing.T) {
 						require.Equal(t, filepath.Join(TemplateRoot(final, action), name), link)
 					}
 				}
+				launcher, err := os.ReadFile(LauncherPath(stage, "main"))
+				require.NoError(t, err)
+				require.NotContains(t, string(launcher), stage)
+				require.Contains(t, string(launcher), final)
 				if fault == "before-publish" {
 					return errors.New("injected publication failure")
 				}
@@ -59,7 +63,7 @@ func TestPreparePublishesOnlyCompleteFixture(t *testing.T) {
 			final, err := filepath.EvalSymlinks(target)
 			require.NoError(t, err)
 			require.Equal(t, final, fixture.dir)
-			require.False(t, strings.Contains(fixture.Workspace, stagePath))
+			require.NotContains(t, fixture.Workspace, stagePath)
 			_, err = OpenFixture(target)
 			require.NoError(t, err)
 			_, err = Prepare(PrepareOptions{FixtureDir: target, Agent: "codex", Case: "SDK-CASE-001"})

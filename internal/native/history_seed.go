@@ -126,7 +126,7 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		if err := tool.CopyFile(filepath.Join(source, filepath.FromSlash(file.source)), filepath.Join(root, name)); err != nil {
 			return err
 		}
-		files[name] = tool.Object{"source": filepath.ToSlash(filepath.Join("history/seed", sourcePrefix, file.source)), "sha256": actual}
+		files[name] = tool.Object{"source": filepath.ToSlash(filepath.Join("history", "seed", sourcePrefix, file.source)), "sha256": actual}
 		found[identity] = true
 	}
 	if !found[session] || len(found) != len(agents)+1 {
