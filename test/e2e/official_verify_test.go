@@ -1,6 +1,7 @@
 package conformance
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,11 +12,23 @@ import (
 
 func latestOfficialVerification(t *testing.T, fixtureDir string) (string, object) {
 	t.Helper()
-	var ids []string
-	require.NoError(t, readJSONFile(filepath.Join(fixtureDir, "verifications", "index.json"), &ids))
-	require.NotEmpty(t, ids)
-	root := filepath.Join(fixtureDir, "verifications", ids[len(ids)-1])
-	return root, readJSON(t, filepath.Join(root, "verification.json"))
+	paths, err := filepath.Glob(filepath.Join(fixtureDir, "packages", "*", "verify", "*", "verification.json"))
+	require.NoError(t, err)
+	require.NotEmpty(t, paths)
+	var latest object
+	var root string
+	for _, path := range paths {
+		evidence := readJSON(t, path)
+		if root == "" || str(evidence["completedAt"]) > str(latest["completedAt"]) {
+			root, latest = filepath.Dir(path), evidence
+		}
+	}
+	return root, latest
+}
+
+func admissionSummary(t *testing.T, fixture, root string) object {
+	t.Helper()
+	return readJSON(t, filepath.Join(fixture, "runtime", "official", filepath.Base(root), "admission-summary.json"))
 }
 
 func setControlledOfficialDriver(t *testing.T, drivers, mode string) {
@@ -43,10 +56,23 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 
 			if mode == "reuse-ref" {
 				mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
-				priorRoot, _ := latestOfficialVerification(t, fixtureDir)
+				priorRoot, prior := latestOfficialVerification(t, fixtureDir)
+				peer := readJSON(t, filepath.Join(priorRoot, "peers", "main.json"))
+				ref := obj(array(prior["executions"])[0])
+				executionRoot := filepath.Join(fixtureDir, "packages", str(material["id"]), "executions", str(ref["executionId"]))
+				started, err := json.Marshal(peer["running"])
+				require.NoError(t, err)
+				finished, err := json.Marshal(readJSON(t, filepath.Join(executionRoot, "receipts", "main.result.json")))
+				require.NoError(t, err)
+				notices := filepath.Join(t.TempDir(), "notices.jsonl")
+				require.NoError(t, os.WriteFile(notices, append(append(append(started, '\n'), finished...), '\n'), 0o600))
+				delete(peer, "running")
+				delete(peer, "result")
+				process := filepath.Join(t.TempDir(), "process.json")
+				writeJSON(t, process, peer)
 				writeJSON(t, filepath.Join(fixtureDir, "reuse-reference.json"), object{
-					"peer-main.results.jsonl": filepath.Join(priorRoot, "driver", "peer-main.results.jsonl"),
-					"peer-main.process.json":  filepath.Join(priorRoot, "driver", "peer-main.process.json"),
+					"peer-main.results.jsonl": notices,
+					"peer-main.process.json":  process,
 				})
 			}
 			setControlledOfficialDriver(t, drivers, mode)
@@ -63,51 +89,64 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 			} else {
 				command = runTool(t, env, t.TempDir(), "", args...)
 			}
+			if mode == "wrong-ref" {
+				require.Equal(t, 1, command.code, command.stderr)
+				journal := readJSON(t, filepath.Join(fixtureDir, "official.json"))
+				require.Equal(t, material["id"], journal["materialId"])
+				require.DirExists(t, filepath.Join(fixtureDir, filepath.FromSlash(str(journal["staging"]))))
+				require.NoDirExists(t, filepath.Join(fixtureDir, filepath.FromSlash(str(journal["target"]))))
+				require.Equal(t, before, readAllFiles(t, materialRoot))
+				require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
+				return
+			}
 			root, evidence := latestOfficialVerification(t, fixtureDir)
 			if mode == "local" || mode == "busy" {
 				require.Zero(t, command.code, command.stderr)
 				require.Equal(t, "passed", evidence["status"])
-				refs := array(evidence["connections"])
+				refs := array(evidence["executions"])
 				require.Len(t, refs, 1)
 				ref := obj(refs[0])
-				execution := readJSON(t, filepath.Join(fixtureDir, "executions", str(ref["executionId"]), "execution.json"))
+				packageRoot := filepath.Join(fixtureDir, "packages", str(material["id"]))
+				execution := readJSON(t, filepath.Join(packageRoot, "executions", str(ref["executionId"]), "execution.json"))
 				require.Equal(t, "mock", execution["command"])
 				require.Equal(t, material["id"], obj(execution["artifact"])["id"])
-				require.Equal(t, digestFile(t, filepath.Join(fixtureDir, "executions", str(ref["executionId"]), "execution.json")), ref["executionSHA256"])
-				assertFileHashes(t, root, obj(evidence["files"]))
-				require.NotEmpty(t, ref["receiptHashes"])
-				require.NotEmpty(t, ref["evidenceFiles"])
+				require.Equal(t, digestFile(t, filepath.Join(packageRoot, "executions", str(ref["executionId"]), "execution.json")), ref["executionSHA256"])
+				assertFileHashes(t, packageRoot, obj(evidence["files"]))
+				aggregate := readJSON(t, filepath.Join(packageRoot, str(ref["path"])))
+				assertFileHashes(t, packageRoot, obj(aggregate["files"]))
+				require.Equal(t, aggregate["connections"], ref["connections"])
 				require.NotEmpty(t, evidence["contracts"])
 				files := obj(evidence["files"])
-				for _, name := range []string{"driver/materials/case.json", "driver/replay-report.json", "driver/request.json", "driver/result.json", "driver/stderr.log", "driver/stdout.log"} {
-					require.Contains(t, files, name)
-				}
-				for name, digest := range obj(ref["evidenceFiles"]) {
-					require.Equal(t, digest, files[name])
+				for _, name := range []string{"replay-report.json", "result.json", "driver-result.json", "mock-isolation.json", "peers/main.json", "stderr.log", "stdout.log"} {
+					require.Contains(t, files, "verify/"+filepath.Base(root)+"/"+name)
 				}
 				resolvedFixture := resolvedPath(t, fixtureDir)
 				mockRoute := fixtureRouteRoot(resolvedFixture, "mock")
-				host := obj(obj(evidence["report"])["host"])
+				report := readJSON(t, filepath.Join(root, "replay-report.json"))
+				host := obj(report["host"])
 				require.Equal(t, filepath.Join(mockRoute, "home"), host["home"])
 				require.Equal(t, filepath.Join(mockRoute, "config"), host["config"])
 				require.Equal(t, filepath.Join(mockRoute, "workspace"), host["workspace"])
 
-				require.Equal(t, "synthetic-official-driver", obj(evidence["officialSDK"])["version"])
+				require.Equal(t, "synthetic-official-driver", obj(report["officialSDK"])["version"])
 				if mode == "busy" {
 					for _, field := range []string{"verifyBefore", "recordBefore", "officialRecordBefore"} {
-						require.EqualValues(t, 1, obj(evidence["report"])[field])
+						require.EqualValues(t, 1, report[field])
 					}
 					require.Len(t, array(fixtureIndex(t, fixtureDir)["executions"]), 2)
 				}
 			} else {
 				require.Equal(t, 1, command.code, command.stderr)
-				require.Equal(t, "failed", evidence["status"])
+				require.Equal(t, "failed", evidence["status"], command.stderr)
+				if mode == "reuse-ref" {
+					require.Contains(t, command.stderr, "mock does not belong to this verification")
+				}
 				require.NotEmpty(t, evidence["error"])
 			}
 			require.Equal(t, before, readAllFiles(t, materialRoot))
 			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 			require.Equal(t, descriptor, readFile(t, filepath.Join(fixtureDir, "fixture.json")))
-			require.NoFileExists(t, filepath.Join(fixtureDir, "official-active.json"))
+			require.NoFileExists(t, filepath.Join(fixtureDir, "official.json"))
 			for _, item := range array(fixtureIndex(t, fixtureDir)["executions"]) {
 				require.NotEqual(t, "verify", obj(item)["command"])
 			}
@@ -128,7 +167,7 @@ func TestOfficialVerifyExportAndConnections(t *testing.T) {
 			if caseID == "SDK-CASE-032" {
 				expected = 2
 			}
-			require.Len(t, array(first["connections"]), expected)
+			require.Len(t, array(obj(array(first["executions"])[0])["connections"]), expected)
 			exported := filepath.Join(t.TempDir(), "exported")
 			mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixtureDir, "--output", exported)
 			imported := prepareFixture(t, env, "--recording", exported)
@@ -138,12 +177,16 @@ func TestOfficialVerifyExportAndConnections(t *testing.T) {
 			mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", imported)
 			root, evidence := latestOfficialVerification(t, imported)
 			require.Equal(t, "passed", evidence["status"])
-			require.Len(t, array(evidence["connections"]), expected)
-			assertFileHashes(t, root, obj(evidence["files"]))
-			for _, item := range array(evidence["connections"]) {
-				ref := obj(item)
-				require.Equal(t, str(obj(evidence["material"])["id"]), str(obj(ref["material"])["id"]))
-				require.Equal(t, obj(ref["process"])["pid"], obj(ref["finished"])["processId"])
+			ref := obj(array(evidence["executions"])[0])
+			require.Len(t, array(ref["connections"]), expected)
+			packageRoot := filepath.Join(imported, "packages", str(evidence["materialId"]))
+			assertFileHashes(t, packageRoot, obj(evidence["files"]))
+			for _, item := range array(ref["connections"]) {
+				connectionID := str(obj(item)["id"])
+				peer := readJSON(t, filepath.Join(root, "peers", connectionID+".json"))
+				durable := readJSON(t, filepath.Join(packageRoot, str(obj(peer["result"])["path"])))
+				require.Equal(t, evidence["materialId"], durable["materialId"])
+				require.Equal(t, peer["pid"], durable["processId"])
 			}
 			corpus := newSyntheticCorpus(t)
 			oldIndex := readFile(t, corpus.index)
@@ -152,7 +195,7 @@ func TestOfficialVerifyExportAndConnections(t *testing.T) {
 			rejectedRoot, verified := latestOfficialVerification(t, imported)
 			require.Equal(t, "passed", verified["status"])
 			require.NotContains(t, verified, "error")
-			require.Equal(t, "rejected", readJSON(t, filepath.Join(rejectedRoot, "admission-summary.json"))["status"])
+			require.Equal(t, "rejected", admissionSummary(t, imported, rejectedRoot)["status"])
 			require.Equal(t, oldIndex, readFile(t, corpus.index))
 		})
 	}
@@ -166,10 +209,10 @@ func TestOfficialVerifyDoesNotTransferEvidence(t *testing.T) {
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
 	oldRoot, old := latestOfficialVerification(t, fixtureDir)
 	oldBytes := readAllFiles(t, oldRoot)
-	oldMaterial := obj(old["material"])
+	oldMaterial := old["materialId"]
 	recordControlledOfficial(t, env, fixtureDir, agent)
 	material := latestCapture(t, fixtureDir)
-	require.NotEqual(t, oldMaterial["id"], material["id"])
+	require.NotEqual(t, oldMaterial, material["id"])
 	require.NoFileExists(t, filepath.Join(fixtureMaterialRoot(t, fixtureDir, material), "verification.json"))
 	require.Equal(t, oldBytes, readAllFiles(t, oldRoot))
 	setControlledOfficialDriver(t, drivers, "no-trigger")
@@ -177,7 +220,7 @@ func TestOfficialVerifyDoesNotTransferEvidence(t *testing.T) {
 	require.Equal(t, 1, failed.code)
 	_, current := latestOfficialVerification(t, fixtureDir)
 	require.Equal(t, "failed", current["status"])
-	require.Equal(t, material["id"], obj(current["material"])["id"])
+	require.Equal(t, material["id"], current["materialId"])
 	require.Equal(t, oldBytes, readAllFiles(t, oldRoot))
 }
 
@@ -198,13 +241,13 @@ func TestOfficialVerifyLegacyAdmission(t *testing.T) {
 	require.Equal(t, 1, failed.code)
 	failedRoot, evidence := latestOfficialVerification(t, fixtureDir)
 	require.Equal(t, "passed", evidence["status"])
-	require.Equal(t, "rejected", readJSON(t, filepath.Join(failedRoot, "admission-summary.json"))["status"])
+	require.Equal(t, "rejected", admissionSummary(t, fixtureDir, failedRoot)["status"])
 	require.Equal(t, before, readFile(t, corpus.index))
 	failedBytes := readAllFiles(t, failedRoot)
 	require.NoError(t, os.Remove(lock))
 	mustRun(t, env, t.TempDir(), "", args...)
 	adoptedRoot, _ := latestOfficialVerification(t, fixtureDir)
-	admitted := readJSON(t, filepath.Join(adoptedRoot, "admission-summary.json"))
+	admitted := admissionSummary(t, fixtureDir, adoptedRoot)
 	require.Equal(t, "admitted", admitted["status"])
 	require.DirExists(t, str(admitted["materials"]))
 	require.Equal(t, failedBytes, readAllFiles(t, failedRoot))
@@ -267,10 +310,11 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 			require.NoFileExists(t, filepath.Join(materialRoot, "summary.json"))
 			require.NoFileExists(t, filepath.Join(materialRoot, "result.json"))
 			execution := latestExecution(t, fixtureDir, "record")
-			executionRoot := filepath.Join(fixtureDir, "executions", str(execution["executionId"]))
-			isolation := filepath.Join(executionRoot, "receipts", "isolation.json")
-			origin := obj(material["officialOrigin"])
-			recordRoot := filepath.Join(fixtureDir, "official-records", str(origin["runId"]))
+			packageRoot := filepath.Dir(materialRoot)
+			executionRoot := filepath.Join(packageRoot, "executions", str(execution["executionId"]))
+			isolation := filepath.Join(executionRoot, "isolation.json")
+			origin := readJSON(t, filepath.Join(materialRoot, "official-origin.json"))
+			recordRoot := filepath.Join(packageRoot, "record", str(origin["runId"]))
 			switch fault {
 			case "missing-isolation":
 				require.NoError(t, os.Remove(isolation))
@@ -279,21 +323,21 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 				obj(receipt["environment"])["HOME"] = "/external-personal-home"
 				writeJSON(t, isolation, receipt)
 			case "missing-preparation-binding":
-				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
-				delete(result, "recordPreparation")
-				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
+				receipt := readJSON(t, isolation)
+				delete(receipt, "preparedPlan")
+				writeJSON(t, isolation, receipt)
 			case "missing-parent-scan":
 				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
 				delete(result, "credentialScan")
 				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
 			case "missing-business":
-				require.NoError(t, os.Remove(filepath.Join(recordRoot, "driver", "report.json")))
+				require.NoError(t, os.Remove(filepath.Join(recordRoot, "report.json")))
 			case "wrong-record-reference":
 				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
-				obj(array(result["connections"])[0])["executionId"] = "unrelated-capture"
+				obj(array(result["executions"])[0])["executionId"] = "unrelated-capture"
 				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
 			case "changed-native-plan":
-				runtimePlan := filepath.Join(executionOverlayRoot(t, fixtureDir, execution), "record-plan.json")
+				runtimePlan := filepath.Join(executionRoot, "prepared-plan.json")
 				plan := readJSON(t, runtimePlan)
 				plan["args"] = []string{"app-server", "--profile", "personal"}
 				writeJSON(t, runtimePlan, plan)
@@ -306,22 +350,21 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 			root, verification := latestOfficialVerification(t, fixtureDir)
 			require.Equal(t, "passed", verification["status"])
 			require.NotContains(t, verification, "error")
-			admission := readJSON(t, filepath.Join(root, "admission-summary.json"))
+			admission := admissionSummary(t, fixtureDir, root)
 			if fault == "complete" {
 				require.Zero(t, result.code, result.stderr)
 				require.Equal(t, "admitted", admission["status"])
-				require.NotEmpty(t, verification["officialRecord"])
-				assertFileHashes(t, root, obj(verification["files"]))
+				assertFileHashes(t, packageRoot, obj(verification["files"]))
 				adopted := str(admission["materials"])
-				require.Equal(t, readFile(t, filepath.Join(materialRoot, "report.json")), readFile(t, filepath.Join(adopted, "report.json")))
-				require.Equal(t, readFile(t, filepath.Join(materialRoot, "source-plan.json")), readFile(t, filepath.Join(adopted, "source-plan.json")))
-				require.FileExists(t, filepath.Join(adopted, "official-replay", "driver", "record-origin", "isolation.json"))
+				require.Equal(t, readFile(t, filepath.Join(materialRoot, "report.json")), readFile(t, filepath.Join(adopted, "material", "report.json")))
+				require.Equal(t, readFile(t, filepath.Join(materialRoot, "source-plan.json")), readFile(t, filepath.Join(adopted, "material", "source-plan.json")))
+				require.FileExists(t, filepath.Join(adopted, "executions", str(execution["executionId"]), "isolation.json"))
 				require.NotEqual(t, oldIndex, readFile(t, corpus.index))
 				// Replacement revalidates the previous admitted view using only its
 				// portable original record, isolation and replay evidence.
 				mustRun(t, env, t.TempDir(), "", args...)
 				retriedRoot, _ := latestOfficialVerification(t, fixtureDir)
-				require.Equal(t, "admitted", readJSON(t, filepath.Join(retriedRoot, "admission-summary.json"))["status"])
+				require.Equal(t, "admitted", admissionSummary(t, fixtureDir, retriedRoot)["status"])
 			} else {
 				require.Equal(t, 1, result.code, result.stderr)
 				require.Equal(t, "rejected", admission["status"])
@@ -329,7 +372,7 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 				require.Equal(t, oldIndex, readFile(t, corpus.index))
 			}
 			require.Equal(t, original, readAllFiles(t, materialRoot))
-			require.Equal(t, material["id"], obj(verification["material"])["id"])
+			require.Equal(t, material["id"], verification["materialId"])
 		})
 	}
 }
@@ -347,7 +390,7 @@ func TestOfficialVerifyRemoteAdmissionRequiresNativeEvidence(t *testing.T) {
 	require.Equal(t, 1, result.code, result.stderr)
 	root, verification := latestOfficialVerification(t, fixtureDir)
 	require.Equal(t, "passed", verification["status"])
-	admission := readJSON(t, filepath.Join(root, "admission-summary.json"))
+	admission := admissionSummary(t, fixtureDir, root)
 	require.Equal(t, "rejected", admission["status"])
 	require.Contains(t, str(admission["error"]), "native preparation")
 	require.Equal(t, before, readFile(t, corpus.index))

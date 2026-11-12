@@ -66,6 +66,15 @@ func sealExecution(run *transactionContext) error {
 	if err := history.ValidateMaterialization(PackageRoot(run.fixtureDir, run.execution.Artifact.ID), run.dir); err != nil {
 		return err
 	}
+	if run.execution.Command == "record" {
+		if _, err := os.Stat(filepath.Join(run.dir, "isolation.json")); err == nil {
+			if err := RebindNativePreparationExecution(run.fixtureDir, run.execution); err != nil {
+				return err
+			}
+		} else if !os.IsNotExist(err) {
+			return err
+		}
+	}
 	files, err := history.HashTree(run.dir)
 	if err != nil {
 		return err

@@ -122,7 +122,9 @@ material，不回写不可变录制。职责和证据归属见[工具设计](../
 `official record` 提供的 `peer` 是现有进程监督器生成的 launcher。监督器为公开
 `agent record` 接出普通 `--result-fd`，保存开始与最终通知；SDK 不需要继承该 FD。
 `runtime.agentResults` 按连接给出通知文件；driver 的兼容运行视图映射为 `_agentResults`，仅存于内存，driver 读取本次实际 execution
-的采集证据，不查找最新目录。`main`、`probe` 共享一次 record execution，全部连接
+的采集证据，不查找最新目录。schema 3 的通知引用以 package 为根；runtime 的
+`fixtureDir` 显式提供当前 fixture，driver 核对 fixture/material/execution 身份、
+execution 哈希及持久 result 后解析引用，不从通知路径推测 fixture。`main`、`probe` 共享一次 record execution，全部连接
 完成后才发布材料。
 
 agent record 领取 execution 时创建 `packages/<materialId>/`；成功的 material core

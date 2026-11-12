@@ -19,6 +19,7 @@ import (
 // machine-local location.
 const MaterialFormatVersion = 3
 
+//nolint:recvcheck // encoding/json requires pointer unmarshaling and value marshaling.
 type Material struct {
 	FormatVersion         int               `json:"formatVersion,omitempty"`
 	LegacyInventorySHA256 string            `json:"legacyInventorySHA256,omitempty"`
@@ -81,15 +82,7 @@ func (m *Material) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
-	*m = Material{
-		LegacyInventorySHA256: wire.LegacyInventorySHA256, SourcePlanSHA256: wire.SourcePlanSHA256, OriginSHA256: wire.OriginSHA256,
-		FormatVersion: wire.FormatVersion, OfficialOrigin: wire.OfficialOrigin,
-		Files: wire.Files, ID: wire.ID, Kind: wire.Kind, Action: wire.Action,
-		Provenance: wire.Provenance, Path: wire.Path,
-		PlanSHA256: wire.PlanSHA256, ManifestSHA256: wire.ManifestSHA256,
-		RecordingSHA256: wire.RecordingSHA256, Connections: wire.Connections,
-		CreatedAt: wire.CreatedAt,
-	}
+	*m = Material(wire)
 	return nil
 }
 

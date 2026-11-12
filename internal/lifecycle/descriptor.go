@@ -42,6 +42,8 @@ type ToolSource string
 // ToolIdentity is executable or embedded identity. A machine-local executable
 // path is resolved from the running tool and verified against the recorded
 // SHA-256; it is never part of the persisted control plane.
+//
+//nolint:recvcheck // encoding/json requires pointer unmarshaling and value marshaling.
 type ToolIdentity struct {
 	Source         ToolSource `json:"source"`
 	Version        string     `json:"version"`
@@ -246,6 +248,7 @@ type Route struct {
 	Connections []ConnectionTemplate `json:"connections"`
 }
 
+//nolint:recvcheck // encoding/json requires pointer unmarshaling and value marshaling.
 type Fixture struct {
 	SchemaVersion    int               `json:"schemaVersion"`
 	FixtureID        string            `json:"fixtureId"`
@@ -461,6 +464,7 @@ type Admission struct {
 	Archive   string `json:"archive"`
 }
 
+//nolint:recvcheck // encoding/json requires pointer unmarshaling and value marshaling.
 type Execution struct {
 	SchemaVersion int                   `json:"schemaVersion"`
 	ExecutionID   string                `json:"executionId"`

@@ -15,6 +15,14 @@ func admitVerified(materials string, summary tool.Object, err error, c corpus.Co
 	}
 	root := tool.Str(summary["output"])
 	admission := tool.Object{"status": "rejected"}
+	var verification tool.Object
+	if e := tool.ReadJSON(filepath.Join(root, "verification.json"), &verification); e == nil && verification["schemaVersion"] == float64(3) {
+		return admitPackage(materials, root, err, c)
+	}
+	var descriptor corpus.Material
+	if e := tool.ReadJSON(filepath.Join(materials, "material.json"), &descriptor); e == nil && descriptor.FormatVersion == 3 {
+		return admitPackage(materials, root, err, c)
+	}
 	if err == nil {
 		var verification tool.Object
 		err = tool.ReadJSON(filepath.Join(root, "verification.json"), &verification)
@@ -46,4 +54,30 @@ func admitVerified(materials string, summary tool.Object, err error, c corpus.Co
 		admission["error"] = err.Error()
 	}
 	return errors.Join(err, tool.WriteJSON(filepath.Join(root, "admission-summary.json"), admission))
+}
+
+// Admission is a separate transaction after verification sealing. Its diagnostics
+// are runtime output and cannot mutate the already sealed verification domain.
+func admitPackage(materials, root string, err error, c corpus.Corpus) error {
+	private := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(materials))), "runtime", "official", filepath.Base(root))
+	summary := tool.Object{"status": "rejected"}
+	var review tool.Object
+	if err == nil {
+		review, err = c.Qualification(materials, root, false)
+	}
+	if err == nil {
+		path := filepath.Join(private, "qualification.json")
+		err = corpus.Write(path, review)
+		if err == nil {
+			var target string
+			target, err = c.Adopt(materials, root, path)
+			if err == nil {
+				summary["status"], summary["materials"] = "admitted", target
+			}
+		}
+	}
+	if err != nil {
+		summary["error"] = err.Error()
+	}
+	return errors.Join(err, tool.WriteJSON(filepath.Join(private, "admission-summary.json"), summary))
 }

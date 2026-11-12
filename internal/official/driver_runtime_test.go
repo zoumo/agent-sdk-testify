@@ -24,7 +24,7 @@ func TestDriverRuntimeSeparatesAttemptLocations(t *testing.T) {
 		true,
 	)
 	require.NoError(t, validateDriverRuntime(runtime))
-	require.Equal(t, float64(1), runtime["schemaVersion"])
+	require.EqualValues(t, 1, runtime["schemaVersion"])
 	require.Equal(t, filepath.Join(root, "driver"), runtime["output"])
 	require.Equal(t, filepath.Join(root, "seed"), runtime["seedRoot"])
 	for _, key := range []string{"caseId", "project", "historyProject", "args", "cliSHA256", "historySeed"} {

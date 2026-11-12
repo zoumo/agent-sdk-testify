@@ -436,6 +436,11 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 			return nil, err
 		}
 	}
+	if origin != nil {
+		if err := bindOfficialExecutionLocked(fixtureDir, origin.RunID, materialID, id); err != nil {
+			return nil, err
+		}
+	}
 	dir := PackageExecutionRoot(fixtureDir, materialID, id)
 	if err := os.MkdirAll(filepath.Join(dir, "receipts"), 0o700); err != nil {
 		return nil, err
@@ -537,6 +542,13 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 func beginActionLock(fixtureDir string) (*Lock, bool, error) {
 	lock, err := actionLock(fixtureDir, true)
 	if err == nil {
+		if journal, err := readOfficialJournal(fixtureDir); err == nil && journal["status"] == "settling" {
+			if err := checkOfficialIdle(fixtureDir); err != nil {
+				return nil, false, errors.Join(err, lock.Close())
+			}
+		} else if err != nil && !os.IsNotExist(err) {
+			return nil, false, errors.Join(err, lock.Close())
+		}
 		if err := recoverPublication(fixtureDir); err != nil {
 			return nil, false, errors.Join(err, lock.Close())
 		}

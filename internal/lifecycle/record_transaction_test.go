@@ -100,7 +100,7 @@ func prepareOfficialRecordTransactionFixture(t *testing.T) (fixtureDir, mockTemp
 	})
 	launch, err := activity.AuthorizeRecord(strings.Repeat("a", 64), []string{"main"})
 	require.NoError(t, err)
-	require.NoError(t, tool.WriteJSON(filepath.Join(activity.Dir, "driver", "peer-main.process.json"), tool.Object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(activity.Dir, "peer-main.process.json"), tool.Object{
 		"supervisorPid": os.Getppid(),
 	}))
 	for key, value := range launch {

@@ -60,23 +60,16 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		return err
 	}
 	var activity *lifecycle.OfficialRun
-	verificationSaved := false
-	evidence := tool.Object{"schemaVersion": 2, "fixtureId": fixture.FixtureID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
+	settled := false
+	evidence := tool.Object{"schemaVersion": 3, "fixtureId": fixture.FixtureID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
-		if activity == nil {
+		if activity == nil || settled {
 			return
 		}
-		if !verificationSaved {
-			evidence["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
-			if runErr == nil {
-				evidence["status"] = "passed"
-			} else {
-				evidence["error"] = runErr.Error()
-			}
-			runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(activity.Dir, "verification.json"), evidence))
-		}
-		if verificationSaved && runErr != nil {
-			evidence["status"] = "failed"
+		evidence["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
+		if runErr == nil {
+			evidence["status"] = "passed"
+		} else {
 			evidence["error"] = runErr.Error()
 		}
 		runErr = errors.Join(runErr, activity.Complete(evidence))
@@ -89,19 +82,23 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if material.Provenance != "official" && material.Provenance != "builtin" {
 		return errors.New("material has no applicable official verifier: provenance must be official or builtin")
 	}
-	evidence["material"] = material
+	evidence["materialId"] = material.ID
+	materialHash := material.LegacyInventorySHA256
+	if materialHash == "" {
+		materialHash, err = tool.FileDigest(filepath.Join(material.Path, "material.json"))
+		if err != nil {
+			return err
+		}
+	}
+	evidence["material"] = tool.Object{"path": "material/material.json", "sha256": materialHash}
+	evidence["manifestSHA256"] = material.ManifestSHA256
 	before, err := corpus.Inventory(material.Path, false)
 	if err != nil {
 		return err
 	}
-	evidence["sourceFiles"] = before
 	if err := corpus.ValidateVerificationSource(*material, before); err != nil {
 		return err
 	}
-	if c.Index != "" {
-		evidence["admission"] = &lifecycle.Admission{Index: c.Index, Scenarios: c.Scenarios, Archive: c.Archive}
-	}
-
 	var plan tool.Object
 	if err := tool.ReadJSON(filepath.Join(material.Path, "plan.json"), &plan); err != nil {
 		return err
@@ -171,8 +168,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	for _, execution := range index.Executions {
 		previous[execution.ID] = true
 	}
-	evidence["priorExecutions"] = previous
-	root := filepath.Join(activity.Dir, "driver")
+	root := activity.Dir
 	route := fixture.Routes["mock"]
 	env := route.Env
 	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(material.Path, "raw"), env["TMPDIR"], filepath.Dir(route.Workspace), true)
@@ -185,7 +181,6 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		}
 		peers[id] = tool.Command{Command: self, Args: args}
 	}
-	var recordEvidenceErr error
 	run, driverErr := runDriver(ctx, driverRunOptions{
 		Activity:   activity,
 		Driver:     driver,
@@ -201,27 +196,20 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 			var inspectErr error
 			inspectErr = errors.Join(inspectErr, validateBusinessEvidence(fixture.AgentType, plan, bound, outcome, report))
 			refs, refErr := mockReferences(o.FixtureDir, fixture, root, material.Connections, *material, previous)
-			evidence["connections"] = refs
+			if refErr == nil {
+				evidence["executions"], refErr = executionReferences(o.FixtureDir, material.ID, refs)
+			}
 			inspectErr = errors.Join(inspectErr, refErr)
 			after, err := corpus.Inventory(material.Path, false)
 			inspectErr = errors.Join(inspectErr, err)
 			if !reflect.DeepEqual(before, after) {
 				inspectErr = errors.Join(inspectErr, errors.New("material changed during verification"))
 			}
-			inspectErr = errors.Join(inspectErr, snapshotMocks(o.FixtureDir, activity.Dir, refs), activity.RestoreMockRoute())
+			inspectErr = errors.Join(inspectErr, activity.RestoreMockRoute())
 			if inspectErr == nil {
-				inspectErr = errors.Join(inspectErr, writeMockIsolation(o.FixtureDir, fixture, root, *material, refs))
-				evidence["mockIsolation"] = tool.Object{"path": "driver/mock-isolation.json"}
+				inspectErr = writeMockIsolation(o.FixtureDir, fixture, root, *material, refs)
 			}
-			if c.Index != "" && material.OfficialOrigin != nil && errors.Join(priorErr, inspectErr) == nil {
-				target := filepath.Join(root, "record-origin")
-				recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.FixtureDir, fixture, *material, target)
-				if recordEvidenceErr == nil {
-					files, hashErr := corpus.Inventory(target, false)
-					recordEvidenceErr = hashErr
-					evidence["officialRecord"] = tool.Object{"root": "driver/record-origin", "files": files}
-				}
-			}
+
 			return inspectErr
 		},
 	})
@@ -229,45 +217,26 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if run == nil {
 		return runErr
 	}
-	evidence["driverProcess"] = run.Process
 	if run.ProcessGroupFailed {
 		evidence["cleanupComplete"] = false
 	}
-	evidence["business"], evidence["report"], evidence["officialSDK"] = run.Outcome, run.Report, run.Report["officialSDK"]
-	evidence["driverFiles"] = run.Files
-	evidence["files"] = tool.Object{}
-	for name, hash := range run.Files {
-		tool.Obj(evidence["files"])["driver/"+name] = hash
-	}
-	if isolation := tool.Obj(evidence["mockIsolation"]); len(isolation) > 0 {
-		isolation["sha256"] = tool.Obj(evidence["files"])["driver/mock-isolation.json"]
-	}
-	// Preserve successful verification independently of an optional admission.
-	if runErr == nil {
-		evidence["status"] = "passed"
-	}
-	evidence["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
-	if runErr != nil {
-		evidence["error"] = runErr.Error()
-	}
-	if err := tool.WriteJSON(filepath.Join(activity.Dir, "verification.json"), evidence); err != nil {
+	processResult := tool.Object{"schemaVersion": 3, "id": activity.ID, "fixtureId": fixture.FixtureID, "materialId": material.ID, "driverProcess": run.Process}
+	if err := tool.WriteJSON(filepath.Join(activity.Dir, "result.json"), processResult); err != nil {
 		return errors.Join(runErr, err)
 	}
-	verificationSaved = true
-	if c.Index != "" {
-		admissionErr := runErr
-		if admissionErr == nil {
-			admissionErr = recordEvidenceErr
-		}
-		admissionErr = admitVerified(material.Path, tool.Object{"output": activity.Dir}, admissionErr, c)
-		if admissionErr != nil {
-			evidence["admissionError"] = admissionErr.Error()
-		}
-		// Admission failure must not overwrite the protocol/business conclusion.
-		if admissionErr != nil {
-			return admissionErr
-		}
+	evidence["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
+	if runErr == nil {
+		evidence["status"] = "passed"
+	} else {
+		evidence["error"] = runErr.Error()
 	}
+	settleErr := activity.Complete(evidence)
+	settled = true
+	runErr = errors.Join(runErr, settleErr)
+	if c.Index != "" && settleErr == nil {
+		return admitVerified(material.Path, tool.Object{"output": activity.Dir}, runErr, c)
+	}
+
 	return runErr
 }
 

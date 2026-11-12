@@ -38,7 +38,7 @@ func mockReference(fixtureDir string, fixture *lifecycle.Fixture, root, id strin
 			return ref, errors.New("mock notification material differs")
 		}
 	}
-	processReceiptReference, err := lifecycle.FixtureReference(fixtureDir, connection.ProcessReceipt)
+	processReceiptReference, err := lifecycle.PackageReference(fixtureDir, pinned.ID, connection.ProcessReceipt)
 	if err != nil {
 		return ref, err
 	}
@@ -48,10 +48,10 @@ func mockReference(fixtureDir string, fixture *lifecycle.Fixture, root, id strin
 	if err := lifecycle.ValidateMockConnection(fixture.AgentType, *execution, *connection); err != nil {
 		return ref, err
 	}
-	dir := filepath.Join(fixtureDir, "executions", execution.ExecutionID)
+	dir := lifecycle.PackageExecutionRoot(fixtureDir, pinned.ID, execution.ExecutionID)
 	hashes := tool.Object{}
 	for _, path := range []string{connection.Receipt, connection.ProcessReceipt, filepath.Join(dir, "receipts", id+".result.json")} {
-		reference, err := lifecycle.FixtureReference(fixtureDir, path)
+		reference, err := lifecycle.PackageReference(fixtureDir, pinned.ID, path)
 		if err != nil {
 			return ref, err
 		}
@@ -65,54 +65,6 @@ func mockReference(fixtureDir string, fixture *lifecycle.Fixture, root, id strin
 	return ref, nil
 }
 
-// Snapshot exact durable evidence for archive revalidation, without rewriting
-// receipts or requiring access to the original fixture after export/archive.
-func snapshotMocks(fixtureDir, root string, refs []tool.Object) error {
-	for _, ref := range refs {
-		connection, ok := ref["connection"].(lifecycle.ExecutionConnection)
-		if !ok {
-			continue
-		}
-		finished := tool.Obj(ref["finished"])
-		executionPath, err := lifecycle.ResolveFixtureReference(fixtureDir, tool.Str(finished["execution"]))
-		if err != nil {
-			return err
-		}
-		resultPath, err := lifecycle.ResolveFixtureReference(fixtureDir, tool.Str(finished["result"]))
-		if err != nil {
-			return err
-		}
-		replayPath, err := lifecycle.ResolveFixtureReference(fixtureDir, connection.Receipt)
-		if err != nil {
-			return err
-		}
-		processPath, err := lifecycle.ResolveFixtureReference(fixtureDir, connection.ProcessReceipt)
-		if err != nil {
-			return err
-		}
-		names := map[string]string{
-			"execution.json": executionPath,
-			"result.json":    resultPath,
-			"replay.json":    replayPath,
-			"process.json":   processPath,
-		}
-		files := tool.Object{}
-		for name, source := range names {
-			relative := filepath.Join("driver", "connections", connection.ID, name)
-			if err := tool.CopyFile(source, filepath.Join(root, relative)); err != nil {
-				return err
-			}
-			hash, err := tool.FileDigest(filepath.Join(root, relative))
-			if err != nil {
-				return err
-			}
-			files[filepath.ToSlash(relative)] = hash
-		}
-		ref["evidenceFiles"] = files
-	}
-	return nil
-}
-
 // writeMockIsolation records the current verification's actual mock execution.
 // Recording-time isolation remains in the sealed material record and is never
 // substituted by these verification-time facts.
@@ -124,15 +76,15 @@ func writeMockIsolation(fixtureDir string, fixture *lifecycle.Fixture, root stri
 	if executionID == "" {
 		return errors.New("verification mock execution has no identity")
 	}
-	execution, err := lifecycle.ReadExecution(fixtureDir, fixture, filepath.Join(fixtureDir, "executions", executionID, "execution.json"))
+	execution, err := lifecycle.ReadExecution(fixtureDir, fixture, filepath.Join(lifecycle.PackageExecutionRoot(fixtureDir, material.ID, executionID), "execution.json"))
 	if err != nil {
 		return err
 	}
 	if execution.Command != "mock" || !reflect.DeepEqual(execution.Artifact, material) {
 		return errors.New("verification isolation belongs to another execution or material")
 	}
-	executionPath := filepath.Join(fixtureDir, "executions", executionID, "execution.json")
-	executionReference, err := lifecycle.FixtureReference(fixtureDir, executionPath)
+	executionPath := filepath.Join(lifecycle.PackageExecutionRoot(fixtureDir, material.ID, executionID), "execution.json")
+	executionReference, err := lifecycle.PackageReference(fixtureDir, material.ID, executionPath)
 	if err != nil {
 		return err
 	}
@@ -158,7 +110,7 @@ func writeMockIsolation(fixtureDir string, fixture *lifecycle.Fixture, root stri
 	connections := []any{}
 	for _, ref := range refs {
 		connection := tool.Object{}
-		for _, name := range []string{"connectionId", "executionId", "executionSHA256", "receiptHashes", "process"} {
+		for _, name := range []string{"connectionId", "executionId", "executionSHA256"} {
 			if value, ok := ref[name]; ok {
 				connection[name] = value
 			}
@@ -166,11 +118,11 @@ func writeMockIsolation(fixtureDir string, fixture *lifecycle.Fixture, root stri
 		connections = append(connections, connection)
 	}
 	isolation := tool.Object{
-		"schemaVersion": 2,
+		"schemaVersion": 3,
 		"fixtureId":     fixture.FixtureID,
 		"executionId":   executionID,
 		"execution":     tool.Object{"path": executionReference, "sha256": executionDigest},
-		"material":      material,
+		"materialId":    material.ID,
 		"command":       execution.Command,
 		"nativeArgs":    execution.NativeArgs,
 		"workspace":     execution.Workspace,

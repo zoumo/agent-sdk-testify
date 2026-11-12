@@ -244,7 +244,7 @@ func ValidateMockExecution(fixtureDir string, fixture *Fixture, execution Execut
 	if err := execution.Validate(*fixture); err != nil {
 		return err
 	}
-	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(fixtureDir, "executions", execution.ExecutionID, "mock") {
+	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(PackageExecutionRoot(fixtureDir, execution.Artifact.ID, execution.ExecutionID), "mock") {
 		return errors.New("unexpected mock execution layout")
 	}
 	if err := validateConnectionInventory(fixtureDir, execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
@@ -254,7 +254,7 @@ func ValidateMockExecution(fixtureDir string, fixture *Fixture, execution Execut
 	if err != nil {
 		return err
 	}
-	digest, err := tool.FileDigest(filepath.Join(fixtureDir, "executions", execution.ExecutionID, "execution.json"))
+	digest, err := tool.FileDigest(filepath.Join(PackageExecutionRoot(fixtureDir, execution.Artifact.ID, execution.ExecutionID), "execution.json"))
 	if err != nil {
 		return err
 	}

@@ -37,7 +37,7 @@ func (r *OfficialRun) AuthorizeRecord(driverHash string, ids []string) (map[stri
 	}
 	claim := recordClaim{Origin: origin, Token: token, Receipts: map[string]string{}}
 	for _, id := range ids {
-		claim.Receipts[id] = filepath.Join(r.Dir, "driver", "peer-"+id+".process.json")
+		claim.Receipts[id] = filepath.Join(r.Dir, "peer-"+id+".process.json")
 	}
 	path := filepath.Join(r.Fixture.ResourceRoot, "official", r.ID, "claim.private.json")
 	if err := writeExclusive(path, claim); err != nil {
@@ -90,7 +90,7 @@ func validateOfficialOrigin(fixtureDir string, fixture *Fixture, origin *corpus.
 		return errors.New("official capture origin differs from fixture")
 	}
 	var registered corpus.OfficialOrigin
-	if err := tool.ReadJSON(filepath.Join(fixtureDir, "official-records", origin.RunID, "origin.json"), &registered); err != nil {
+	if err := tool.ReadJSON(filepath.Join(ResourceRoot(fixtureDir), "official", origin.RunID, "staging", "origin.json"), &registered); err != nil {
 		return err
 	}
 	if !reflect.DeepEqual(*origin, registered) {
