@@ -2,6 +2,7 @@
 import asyncio
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from .adapters.common import proxy_command, serial
@@ -22,6 +23,68 @@ def project_files(project):
             raise ValueError('seed project contains an unsupported filesystem entry')
         result[str(path.relative_to(project))] = 'directory' if path.is_dir() else sha(path)
     return result
+
+
+def _legacy_identity(target, data, provider, project):
+    """Read native identities without rewriting the frozen legacy bytes."""
+    prefix = 'config/sessions/' if provider == 'codex' else 'config/projects/'
+    if not target.startswith(prefix):
+        raise ValueError('seed native target differs from provider')
+    if provider == 'codex':
+        row = json.loads(data.split(b'\n', 1)[0])
+        payload = row.get('payload', {})
+        identity = payload.get('id')
+        if (row.get('type') != 'session_meta' or not isinstance(identity, str) or not identity
+                or not Path(target).name.endswith(identity + '.jsonl')):
+            raise ValueError('seed native filename differs from session identity')
+        origin = payload.get('source')
+        origin = origin if isinstance(origin, dict) else {}
+        parent = (payload.get('parentThreadId') or payload.get('parent_thread_id')
+                  or origin.get('subagent', {}).get('thread_spawn', {}).get('parent_thread_id', ''))
+        return {'sessionId': identity, 'parentSessionId': parent, 'childSessionId': identity if parent else '',
+                'project': payload.get('cwd') or project}
+    rows = [json.loads(line) for line in data.splitlines() if line.strip()]
+    path = Path(target)
+    parent = path.parent.parent.name if path.parent.name == 'subagents' else ''
+    identity = path.name.removesuffix('.meta.json').removesuffix('.jsonl')
+    if parent:
+        identity = identity.removeprefix('agent-')
+    elif not target.endswith('.jsonl'):
+        raise ValueError('unsupported seed native file')
+    projects = {r['cwd'] for r in rows if r.get('cwd')}
+    if len(projects) > 1:
+        raise ValueError('seed native project identity differs')
+    project = next(iter(projects), project)
+    if not target.startswith('config/projects/' + re.sub(r'[^a-zA-Z0-9]', '-', project) + '/'):
+        raise ValueError('seed native target differs from project identity')
+    for row in rows:
+        if (row.get('sessionId', parent or identity) != (parent or identity)
+                or (parent and row.get('agentId', identity) != identity)):
+            raise ValueError('seed native filename differs from parent or child identity')
+    return {'sessionId': identity, 'parentSessionId': parent, 'childSessionId': identity if parent else '',
+            'project': project}
+
+
+def _legacy_seed_bindings(source, manifest, provider, project):
+    saved = manifest.get('savedFiles')
+    if not isinstance(saved, dict) or not saved:
+        raise ValueError('frozen legacy saved file inventory required')
+    bindings = []
+    for target, digest in saved.items():
+        path = _seed_path(source, target)
+        data = read_regular(path)
+        if hashlib.sha256(data).hexdigest() != digest:
+            raise ValueError('source recording saved data changed')
+        native_project = project
+        if target.endswith('.meta.json'):
+            sibling = target.removesuffix('.meta.json') + '.jsonl'
+            if sibling not in saved:
+                raise ValueError('seed sidecar lacks saved native history')
+            native_project = _legacy_identity(sibling, read_regular(_seed_path(source, sibling)),
+                                              provider, project)['project']
+        identity = _legacy_identity(target, data, provider, native_project)
+        bindings.append(dict(identity, nativeTarget=target, source=target, sha256=digest))
+    return bindings
 
 
 def _verify_canonical_seed(plan, seed):
@@ -75,23 +138,52 @@ def _verify_canonical_seed(plan, seed):
             or len(set(children)) != len(children)):
         raise ValueError('frozen parent and child identities required')
     wanted = {parent, *children}
-    bindings = previous.get('historyBindings')
+    manifest = json.loads(read_regular(source / 'manifest.json'))
+    legacy = manifest.get('materialFormatVersion') != 3
+    bindings = (_legacy_seed_bindings(source, manifest, seed['provider'], project) if legacy
+                else previous.get('historyBindings'))
     if not isinstance(bindings, list):
-        # Supported legacy captures retain their explicit native file map.
-        bindings = []
-        for name, value in seed.get('files', {}).items():
-            path = source_path(value['source'])
-            if sha(path) != value['sha256']:
-                raise ValueError('source recording saved data changed')
-            if seed['provider'] == 'codex':
-                rows = [json.loads(row) for row in read_regular(path).splitlines()]
-                identity = next((r['payload']['id'] for r in rows if r.get('type') == 'session_meta'), None)
-            else:
-                identity = Path(name).stem.removeprefix('agent-')
-            bindings.append({'sessionId': identity, 'sha256': value['sha256'], 'source': str(path.relative_to(source))})
+        raise ValueError('frozen seed history bindings required')
     selected = [b for b in bindings if b.get('sessionId') in wanted]
-    if len(selected) != len(wanted) or {b['sessionId'] for b in selected} != wanted:
+    primary = [b for b in selected if b.get('nativeTarget', '').endswith('.jsonl')]
+    if len(primary) != len(wanted) or {b['sessionId'] for b in primary} != wanted:
         raise ValueError('frozen seed identities differ from history bindings')
+    prefix = ref['path'].rsplit('/', 1)[0] + '/'
+    if legacy:
+        for original in selected:
+            if not runtime['replay']:
+                # Preparation carries a transient file view; it selects primary
+                # JSONL records only. Sidecars remain in the complete closure.
+                if original not in primary:
+                    continue
+                pinned = seed.get('files', {}).get(original['nativeTarget'], {})
+                if pinned != {'source': prefix + original['source'], 'sha256': original['sha256']}:
+                    raise ValueError('parent seed file binding differs from frozen source')
+                continue
+            matches = [b for b in plan.get('historyBindings', [])
+                       if b.get('nativeTarget') == original['nativeTarget']]
+            if len(matches) != 1:
+                raise ValueError('frozen seed identities differ from history bindings')
+            binding = matches[0]
+            keys = ('sessionId', 'parentSessionId', 'childSessionId', 'project')
+            if any(binding.get(k, '') != original.get(k, '') for k in keys):
+                raise ValueError('seed binding differs from frozen native identity')
+            if binding.get('role') == 'seed':
+                if (binding.get('source') != prefix + original['source']
+                        or binding.get('sha256') != original['sha256']):
+                    raise ValueError('seed binding differs from frozen source')
+            elif binding.get('role') == 'runtime':
+                if binding.get('source') != 'history/runtime/' + original['nativeTarget']:
+                    raise ValueError('seed runtime binding differs from native target')
+            else:
+                raise ValueError('unsupported seed binding role')
+            path = _seed_path(root, binding['source'])
+            if sha(path) != binding.get('sha256'):
+                raise ValueError('seed binding saved data changed')
+            native_project = original['project']
+            actual = _legacy_identity(binding['nativeTarget'], read_regular(path), seed['provider'], native_project)
+            if any(actual.get(k, '') != original.get(k, '') for k in keys):
+                raise ValueError('seed binding differs from native file identity')
     if not runtime['replay'] and isinstance(previous.get('historyBindings'), list):
         actual = [b for b in plan.get('historyBindings', []) if b.get('sessionId') in wanted]
         if len(actual) != len(selected):
@@ -99,27 +191,33 @@ def _verify_canonical_seed(plan, seed):
         prefix = ref['path'].rsplit('/', 1)[0] + '/'
         for original in selected:
             expected = dict(original, role='seed', source=prefix + original['source'])
-            match = [b for b in actual if b.get('sessionId') == original['sessionId']]
+            match = [b for b in actual if b.get('nativeTarget') == original['nativeTarget']]
             keys = ('role', 'sessionId', 'parentSessionId', 'childSessionId', 'project', 'nativeTarget', 'source', 'sha256')
             if len(match) != 1 or any(match[0].get(k, '') != expected.get(k, '') for k in keys):
                 raise ValueError('parent seed bindings differ from frozen source')
             pinned = seed.get('files', {}).get(original['nativeTarget'], {})
-            if pinned.get('source') != expected['source'] or pinned.get('sha256') != original['sha256']:
+            if original in primary and (pinned.get('source') != expected['source']
+                                        or pinned.get('sha256') != original['sha256']):
                 raise ValueError('parent seed file binding differs from frozen source')
-    manifest = json.loads(read_regular(source / 'manifest.json'))
     for binding in selected:
         path = _seed_path(source, binding['source'])
         if sha(path) != binding['sha256']:
             raise ValueError('source recording saved data changed')
         if manifest.get('materialFormatVersion') == 3 and manifest['files'].get(binding['source']) != binding['sha256']:
             raise ValueError('frozen seed binding differs from source inventory')
-        if binding['sessionId'] in children and 'parentSessionId' in binding and binding['parentSessionId'] != parent:
+        if (binding['sessionId'] in children and binding.get('parentSessionId') != parent
+                or binding['sessionId'] == parent and binding.get('parentSessionId')):
             raise ValueError('frozen seed child belongs to another parent')
     if seed['provider'] == 'claude':
         args = plan.get('args', [])
         if '--resume' not in args or args[args.index('--resume') + 1:args.index('--resume') + 2] != [parent]:
             raise ValueError('native resume must select the frozen seed parent')
-    return seed
+    if 'files' in seed:
+        return seed
+    # Receipts consume a validated transient view; the sealed core keeps the
+    # binding map as its only owner of native file references.
+    return dict(seed, files={b['nativeTarget']: {'source': prefix + b['source'], 'sha256': b['sha256']}
+                             for b in primary})
 
 
 def verify_seed(plan, *, check_source=True):
