@@ -31,6 +31,6 @@ func (p mockReplayPolicy) Replay(ctx context.Context, run lifecycle.MockContext)
 	execution := run.Execution()
 	// Every replay and history path is rooted in the fixture or its execution
 	// overlay. Avoid process-wide chdir so concurrent library calls stay isolated.
-	err := replayConnection(ctx, p.prepared, p.input, p.output, run.Artifact().Path, run.Connection(), run.ConnectionReceipt())
+	err := replayConnection(ctx, p.prepared, p.input, p.output, run.Artifact().Path, run.MaterialReference(), run.Connection(), run.ConnectionReceipt())
 	return errors.Join(err, history.Check(run.OverlayRoot(), execution.HistoryFiles))
 }

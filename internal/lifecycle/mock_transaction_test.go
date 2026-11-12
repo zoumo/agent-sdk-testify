@@ -55,7 +55,7 @@ func writeMockPolicyReceipt(run MockContext, replayErr error) error {
 		"peer":            "test mock policy",
 		"transport":       transport,
 		"provider":        run.Fixture().AgentType,
-		"recording":       artifact.Path,
+		"recording":       run.MaterialReference(),
 		"planSHA256":      artifact.PlanSHA256,
 		"recordingSHA256": recordingSHA256,
 		"frames":          frames,

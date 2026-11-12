@@ -47,7 +47,7 @@ func Run(ctx context.Context, prepared Prepared, input, output *os.File) (*Resul
 	}, mockReplayPolicy{prepared: prepared, input: input, output: output})
 }
 
-func replayConnection(ctx context.Context, prepared Prepared, input, output *os.File, sourceRoot, phase, reportPath string) (err error) {
+func replayConnection(ctx context.Context, prepared Prepared, input, output *os.File, sourceRoot, recordingReference, phase, reportPath string) (err error) {
 	var notification *os.File
 	if prepared.ProgressFD >= 3 {
 		fd, e := syscall.Dup(prepared.ProgressFD)
@@ -64,7 +64,7 @@ func replayConnection(ctx context.Context, prepared Prepared, input, output *os.
 	}
 	receipt := tool.Object{
 		"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
-		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": sourceRoot, "toolVersion": version.String(),
+		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": recordingReference, "toolVersion": version.String(),
 	}
 	defer func() {
 		receipt["exitCode"] = 0

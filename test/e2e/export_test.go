@@ -38,7 +38,7 @@ func TestExportCurrentRoundTrip(t *testing.T) {
 	recordConsumer(t, env, fixtureDir, agent, requestTwo)
 	current := latestCapture(t, fixtureDir)
 	require.NotEqual(t, old["id"], current["id"])
-	material := str(current["path"])
+	material := fixtureMaterialRoot(t, fixtureDir, current)
 	hashes := packageHashes(t, material)
 	require.Contains(t, hashes, "config/sessions/conformance-history.jsonl")
 	require.Contains(t, hashes, "raw/raw.jsonl")
@@ -63,9 +63,8 @@ func TestExportCurrentRoundTrip(t *testing.T) {
 	require.NoError(t, os.RemoveAll(fixtureDir))
 	imported := prepareFixture(t, env, "--recording", output)
 	importedMetadata := obj(array(materialIndex(t, imported)["materials"])[0])
-	importedPath := str(importedMetadata["path"])
-	importedMetadata["path"] = metadata["path"]
 	require.Equal(t, metadata, importedMetadata)
+	importedPath := fixtureMaterialRoot(t, imported, importedMetadata)
 	importedHashes := packageHashes(t, importedPath)
 	delete(importedHashes, "material.json")
 	delete(hashes, "material.json")
@@ -93,7 +92,7 @@ func TestExportOfficialCaptureRoundTrip(t *testing.T) {
 	before := readAllFiles(t, fixtureDir)
 	mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixtureDir, "--output", output)
 	require.Equal(t, before, readAllFiles(t, fixtureDir))
-	require.Equal(t, packageHashes(t, str(material["path"])), packageHashes(t, output))
+	require.Equal(t, packageHashes(t, fixtureMaterialRoot(t, fixtureDir, material)), packageHashes(t, output))
 	require.NoError(t, os.RemoveAll(fixtureDir))
 	imported := prepareFixture(t, env, "--recording", output)
 	metadata := obj(array(materialIndex(t, imported)["materials"])[0])
@@ -103,7 +102,7 @@ func TestExportOfficialCaptureRoundTrip(t *testing.T) {
 	require.Equal(t, "record", metadata["action"])
 	require.Empty(t, array(fixtureIndex(t, imported)["executions"]))
 	// The exported original capture has no transferable verification evidence.
-	require.NoFileExists(t, filepath.Join(str(metadata["path"]), "verification.json"))
+	require.NoFileExists(t, filepath.Join(fixtureMaterialRoot(t, imported, metadata), "verification.json"))
 	// Removing metadata makes the same native capture an external input again.
 	require.NoError(t, os.Remove(filepath.Join(output, "material.json")))
 	external := prepareFixture(t, env, "--recording", output)
@@ -143,7 +142,7 @@ func TestExportRejectsTargetsAndTampering(t *testing.T) {
 	entries, err := os.ReadDir(existing)
 	require.NoError(t, err)
 	require.Empty(t, entries)
-	material := str(obj(array(materialIndex(t, fixtureDir)["materials"])[0])["path"])
+	material := fixtureMaterialRoot(t, fixtureDir, obj(array(materialIndex(t, fixtureDir)["materials"])[0]))
 	for _, name := range []string{"raw/raw.jsonl", "material.json", "unbound.txt"} {
 		t.Run(name, func(t *testing.T) {
 			path := filepath.Join(material, filepath.FromSlash(name))
@@ -209,7 +208,7 @@ func TestExportBuiltinRoundTrip(t *testing.T) {
 				before := readAllFiles(t, fixtureDir)
 				mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixtureDir, "--output", output)
 				require.Equal(t, before, readAllFiles(t, fixtureDir))
-				require.Equal(t, packageHashes(t, str(material["path"])), packageHashes(t, output))
+				require.Equal(t, packageHashes(t, fixtureMaterialRoot(t, fixtureDir, material)), packageHashes(t, output))
 				imported := prepareFixture(t, env, "--recording", output)
 				metadata := obj(array(materialIndex(t, imported)["materials"])[0])
 				require.Equal(t, "builtin", metadata["provenance"])

@@ -222,6 +222,7 @@ func (r *recordTransaction) publish(artifact corpus.Material) error {
 	delete(files, "material.json")
 	artifact.Path = materialRoot
 	artifact.Files = files
+	artifact.FormatVersion = corpus.MaterialFormatVersion
 	if err := writeExclusive(filepath.Join(stage, "material.json"), artifact); err != nil {
 		return err
 	}
@@ -234,7 +235,7 @@ func (r *recordTransaction) publish(artifact corpus.Material) error {
 	if _, err := inspectMaterial(r.fixture, artifact); err != nil {
 		return err
 	}
-	execution, descriptorSHA256, err := bindRecordCapture(r.fixture, r.execution, r.artifactRoot, artifact)
+	execution, descriptorSHA256, err := bindRecordCapture(r.fixture, r.execution, artifact)
 	if err != nil {
 		return err
 	}
@@ -271,21 +272,30 @@ func (r *recordTransaction) publish(artifact corpus.Material) error {
 	return nil
 }
 
-func bindRecordCapture(fixture *Fixture, execution Execution, artifactRoot string, artifact corpus.Material) (Execution, string, error) {
+func bindRecordCapture(fixture *Fixture, execution Execution, artifact corpus.Material) (Execution, string, error) {
 	ids := make([]string, 0, len(execution.Connections))
 	for _, connection := range execution.Connections {
 		ids = append(ids, connection.ID)
 	}
-	connections, err := executionConnections(artifactRoot, "record", ids, &artifact, fixture.Routes["record"])
+	connections, err := executionConnections(fixture.dir, execution.ExecutionID, "record", ids, &artifact, fixture.Routes["record"])
 	if err != nil {
 		return Execution{}, "", err
 	}
 	execution.Connections = connections
 	execution.Artifact = artifact
+	execution.dir = fixture.dir
+	sourceReference, err := FixtureReference(fixture.dir, execution.Source.Path)
+	if err != nil {
+		return Execution{}, "", err
+	}
+	execution.Source.Path = sourceReference
+	if err := execution.Resolve(fixture, fixture.dir); err != nil {
+		return Execution{}, "", err
+	}
 	if err := execution.Validate(*fixture); err != nil {
 		return Execution{}, "", err
 	}
-	path := filepath.Join(filepath.Dir(artifactRoot), "execution.json")
+	path := filepath.Join(ExecutionDir(fixture.dir, execution.ExecutionID), "execution.json")
 	if err := writeAtomic(path, execution); err != nil {
 		return Execution{}, "", err
 	}
@@ -356,6 +366,7 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	if err != nil {
 		return nil, err
 	}
+	request.Args = normalizeFixtureArgs(fixtureDir, request.Args)
 	allocation, err := lockFile(filepath.Join(fixtureDir, "locks", "record-start.lock"), true, true)
 	if err != nil {
 		return nil, err
@@ -416,11 +427,8 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 			return nil, ErrBusy
 		}
 		dir := ExecutionDir(fixtureDir, pending.ID)
-		var execution Execution
-		if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
-			return nil, err
-		}
-		if err := execution.Validate(*fixture); err != nil {
+		execution, err := ReadExecution(fixtureDir, fixture, filepath.Join(dir, "execution.json"))
+		if err != nil {
 			return nil, err
 		}
 		if hash, err := tool.FileDigest(filepath.Join(dir, "execution.json")); err != nil || hash != pending.DescriptorSHA256 {
@@ -433,7 +441,7 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		if err != nil {
 			return nil, err
 		}
-		run = newTransactionContext(fixture, plan, execution, fixtureDir)
+		run = newTransactionContext(fixture, plan, *execution, fixtureDir)
 	} else {
 		if !exclusive {
 			return nil, ErrBusy

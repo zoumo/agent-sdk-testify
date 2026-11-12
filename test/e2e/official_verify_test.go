@@ -36,7 +36,8 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 			fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
 			recordControlledOfficial(t, env, fixtureDir, agent)
 			material := latestCapture(t, fixtureDir)
-			before := readAllFiles(t, str(material["path"]))
+			materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
+			before := readAllFiles(t, materialRoot)
 			current := readFile(t, filepath.Join(fixtureDir, "current.json"))
 			descriptor := readFile(t, filepath.Join(fixtureDir, "fixture.json"))
 
@@ -84,11 +85,12 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 				for name, digest := range obj(ref["evidenceFiles"]) {
 					require.Equal(t, digest, files[name])
 				}
-				mockRoute := obj(obj(readJSON(t, filepath.Join(fixtureDir, "fixture.json"))["routes"])["mock"])
+				resolvedFixture := resolvedPath(t, fixtureDir)
+				mockRoute := fixtureRouteRoot(resolvedFixture, "mock")
 				host := obj(obj(evidence["report"])["host"])
-				require.Equal(t, obj(mockRoute["env"])["HOME"], host["home"])
-				require.Equal(t, obj(mockRoute["env"])["CODEX_HOME"], host["config"])
-				require.Equal(t, mockRoute["workspace"], host["workspace"])
+				require.Equal(t, filepath.Join(mockRoute, "home"), host["home"])
+				require.Equal(t, filepath.Join(mockRoute, "config"), host["config"])
+				require.Equal(t, filepath.Join(mockRoute, "workspace"), host["workspace"])
 
 				require.Equal(t, "synthetic-official-driver", obj(evidence["officialSDK"])["version"])
 				if mode == "busy" {
@@ -102,7 +104,7 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 				require.Equal(t, "failed", evidence["status"])
 				require.NotEmpty(t, evidence["error"])
 			}
-			require.Equal(t, before, readAllFiles(t, str(material["path"])))
+			require.Equal(t, before, readAllFiles(t, materialRoot))
 			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 			require.Equal(t, descriptor, readFile(t, filepath.Join(fixtureDir, "fixture.json")))
 			require.NoFileExists(t, filepath.Join(fixtureDir, "official-active.json"))
@@ -168,7 +170,7 @@ func TestOfficialVerifyDoesNotTransferEvidence(t *testing.T) {
 	recordControlledOfficial(t, env, fixtureDir, agent)
 	material := latestCapture(t, fixtureDir)
 	require.NotEqual(t, oldMaterial["id"], material["id"])
-	require.NoFileExists(t, filepath.Join(str(material["path"]), "verification.json"))
+	require.NoFileExists(t, filepath.Join(fixtureMaterialRoot(t, fixtureDir, material), "verification.json"))
 	require.Equal(t, oldBytes, readAllFiles(t, oldRoot))
 	setControlledOfficialDriver(t, drivers, "no-trigger")
 	failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
@@ -258,7 +260,7 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 				require.Zero(t, recorded.code, recorded.stderr)
 			}
 			material := latestCapture(t, fixtureDir)
-			materialRoot := str(material["path"])
+			materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
 			original := readAllFiles(t, materialRoot)
 			sourceReport := readJSON(t, filepath.Join(materialRoot, "report.json"))
 			require.Equal(t, "captured", sourceReport["status"])
@@ -291,7 +293,7 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 				obj(array(result["connections"])[0])["executionId"] = "unrelated-capture"
 				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
 			case "changed-native-plan":
-				runtimePlan := filepath.Join(filepath.Dir(str(execution["home"])), "record-plan.json")
+				runtimePlan := filepath.Join(executionOverlayRoot(t, fixtureDir, execution), "record-plan.json")
 				plan := readJSON(t, runtimePlan)
 				plan["args"] = []string{"app-server", "--profile", "personal"}
 				writeJSON(t, runtimePlan, plan)
@@ -362,7 +364,7 @@ func TestOfficialDriverFailureMatrixRetainsEvidence(t *testing.T) {
 			fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
 			recordControlledOfficial(t, env, fixtureDir, agent)
 			material := latestCapture(t, fixtureDir)
-			original := readAllFiles(t, str(material["path"]))
+			original := readAllFiles(t, fixtureMaterialRoot(t, fixtureDir, material))
 			setControlledOfficialDriver(t, drivers, mode)
 			failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
 			require.Equal(t, 1, failed.code)
@@ -376,7 +378,7 @@ func TestOfficialDriverFailureMatrixRetainsEvidence(t *testing.T) {
 			require.NotEqual(t, failedRoot, successRoot)
 			require.Equal(t, "passed", success["status"])
 			require.Equal(t, before, readAllFiles(t, failedRoot))
-			require.Equal(t, original, readAllFiles(t, str(material["path"])))
+			require.Equal(t, original, readAllFiles(t, fixtureMaterialRoot(t, fixtureDir, material)))
 		})
 	}
 }

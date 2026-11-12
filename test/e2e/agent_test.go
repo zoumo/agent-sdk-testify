@@ -36,9 +36,11 @@ func runAgentResult(t *testing.T, env []string, fixtureDir, input, action string
 	require.Equal(t, "running", started["status"])
 	require.Equal(t, started["executionId"], completed["executionId"])
 	require.Equal(t, started["connectionId"], completed["connectionId"])
-	require.Equal(t, completed, readJSON(t, str(completed["result"])))
-	require.Equal(t, digestFile(t, str(completed["execution"])), completed["executionSHA256"])
-	require.Equal(t, completed["executionId"], readJSON(t, str(completed["execution"]))["executionId"])
+	resultPath := resolveFixtureReference(t, fixtureDir, str(completed["result"]))
+	executionPath := resolveFixtureReference(t, fixtureDir, str(completed["execution"]))
+	require.Equal(t, completed, readJSON(t, resultPath))
+	require.Equal(t, digestFile(t, executionPath), completed["executionSHA256"])
+	require.Equal(t, completed["executionId"], readJSON(t, executionPath)["executionId"])
 	return result, completed
 }
 
@@ -58,14 +60,14 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 			case "recording":
 				producer := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
 				material := artifactByID(t, producer, currentMaterialID(t, producer))
-				fixtureDir = prepareFixture(t, env, "--recording", str(material["path"]))
+				fixtureDir = prepareFixture(t, env, "--recording", fixtureMaterialRoot(t, producer, material))
 				require.NoError(t, os.RemoveAll(producer))
 			}
 			descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
 			for _, action := range []string{"record", "mock"} {
 				route := obj(obj(descriptor["routes"])[action])
 				require.Equal(t, "external-sdk", route["executor"])
-				require.Equal(t, []string{"agent", action}, stringsOf(obj(array(route["connections"])[0])["args"])[:2])
+				require.Len(t, array(route["connections"]), 1)
 			}
 			initial := currentMaterialID(t, fixtureDir)
 			var previousID, previousWorkspace string
@@ -74,12 +76,16 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				require.Zero(t, result.code, result.stderr)
 				require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, result.stdout)
 				require.Equal(t, "passed", reference["status"])
-				execution := readJSON(t, str(reference["execution"]))
+				execution := readJSON(t, resolveFixtureReference(t, fixtureDir, str(reference["execution"])))
+				executionArgs := stringsOf(execution["args"])
+				require.Equal(t, "--cmd", executionArgs[0])
+				require.NotContains(t, executionArgs, "--fixture-dir")
+				workspace := executionOverlayPath(t, fixtureDir, execution, "workspace")
 				require.NotEqual(t, previousID, reference["executionId"])
-				require.NotEqual(t, previousWorkspace, execution["workspace"])
-				require.NoFileExists(t, filepath.Join(str(execution["workspace"]), "previous-execution"))
-				require.NoError(t, os.WriteFile(filepath.Join(str(execution["workspace"]), "previous-execution"), []byte("isolated"), 0o600))
-				previousID, previousWorkspace = str(reference["executionId"]), str(execution["workspace"])
+				require.NotEqual(t, previousWorkspace, workspace)
+				require.NoFileExists(t, filepath.Join(workspace, "previous-execution"))
+				require.NoError(t, os.WriteFile(filepath.Join(workspace, "previous-execution"), []byte("isolated"), 0o600))
+				previousID, previousWorkspace = str(reference["executionId"]), workspace
 				material := obj(reference["material"])
 				require.NotEqual(t, initial, material["id"])
 				require.Equal(t, currentMaterialID(t, fixtureDir), material["id"])
@@ -92,9 +98,10 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 					provenance = "consumer"
 				}
 				require.Equal(t, provenance, material["provenance"])
-				assertFileHashes(t, str(material["path"]), obj(artifact["files"]))
-				require.NoFileExists(t, filepath.Join(str(material["path"]), "result.json"))
-				sealed := readAllFiles(t, str(material["path"]))
+				materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
+				assertFileHashes(t, materialRoot, obj(artifact["files"]))
+				require.NoFileExists(t, filepath.Join(materialRoot, "result.json"))
+				sealed := readAllFiles(t, materialRoot)
 				// A parent business report written after capture cannot enter the material.
 				writeJSON(t, filepath.Join(root, "parent-report.json"), object{"status": "failed"})
 				replay, mockReference := runAgentResult(t, env, fixtureDir, requestOne, "mock", "--", "app-server", "--listen", "stdio://")
@@ -102,8 +109,8 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				require.Equal(t, "passed", mockReference["status"])
 				require.Equal(t, material, mockReference["material"])
 				require.NotEqual(t, reference["executionId"], mockReference["executionId"])
-				require.Equal(t, "passed", readJSON(t, str(mockReference["receipt"]))["status"])
-				require.Equal(t, sealed, readAllFiles(t, str(material["path"])))
+				require.Equal(t, "passed", readJSON(t, resolveFixtureReference(t, fixtureDir, str(mockReference["receipt"])))["status"])
+				require.Equal(t, sealed, readAllFiles(t, materialRoot))
 			}
 			require.NoFileExists(t, marker)
 		})
@@ -122,14 +129,15 @@ func TestAgentFailureResultsKeepCurrent(t *testing.T) {
 	require.Equal(t, 1, failed.code)
 	require.Equal(t, "failed", reference["status"])
 	require.NotContains(t, reference, "material")
-	require.FileExists(t, str(reference["receipt"]))
-	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(str(reference["receipt"])), "stderr.raw"))), "native-failure")
+	receiptPath := resolveFixtureReference(t, fixtureDir, str(reference["receipt"]))
+	require.FileExists(t, receiptPath)
+	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(receiptPath), "stderr.raw"))), "native-failure")
 	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 	bad, mockReference := runAgentResult(t, env, fixtureDir, `{"id":1,"method":"wrong"}`+"\n", "mock")
 	require.Equal(t, 1, bad.code)
 	require.Equal(t, "failed", mockReference["status"])
-	require.Equal(t, "failed", readJSON(t, str(mockReference["receipt"]))["status"])
-	require.Equal(t, "failed", readJSON(t, str(mockReference["processReceipt"]))["status"])
+	require.Equal(t, "failed", readJSON(t, resolveFixtureReference(t, fixtureDir, str(mockReference["receipt"])))["status"])
+	require.Equal(t, "failed", readJSON(t, resolveFixtureReference(t, fixtureDir, str(mockReference["processReceipt"])))["status"])
 	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 }
 
@@ -184,8 +192,8 @@ func TestAgentCancellationPersistsOwnedExecution(t *testing.T) {
 			require.NoError(t, json.Unmarshal(line, &completed))
 			require.Equal(t, started["executionId"], completed["executionId"])
 			require.Equal(t, "failed", completed["status"])
-			require.Equal(t, completed, readJSON(t, str(completed["result"])))
-			require.FileExists(t, str(completed["receipt"]))
+			require.Equal(t, completed, readJSON(t, resolveFixtureReference(t, fixtureDir, str(completed["result"]))))
+			require.FileExists(t, resolveFixtureReference(t, fixtureDir, str(completed["receipt"])))
 			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 		})
 	}

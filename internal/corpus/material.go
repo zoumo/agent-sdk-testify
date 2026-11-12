@@ -1,6 +1,7 @@
 package corpus
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,19 +14,71 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
+// MaterialFormatVersion is the portable material descriptor version. It stores
+// identity, provenance, hashes and material-root-relative bindings without a
+// machine-local location.
+const MaterialFormatVersion = 2
+
 type Material struct {
+	FormatVersion   int               `json:"formatVersion,omitempty"`
 	OfficialOrigin  *OfficialOrigin   `json:"officialOrigin,omitempty"`
 	Files           map[string]string `json:"files,omitempty"`
 	ID              string            `json:"id"`
 	Kind            string            `json:"kind"`
 	Action          string            `json:"action"`
 	Provenance      string            `json:"provenance"`
-	Path            string            `json:"path"`
+	Path            string            `json:"-"`
 	PlanSHA256      string            `json:"planSHA256"`
 	ManifestSHA256  string            `json:"manifestSHA256"`
 	RecordingSHA256 string            `json:"recordingSHA256"`
 	Connections     []string          `json:"connections"`
 	CreatedAt       string            `json:"createdAt"`
+}
+
+type materialWire struct {
+	FormatVersion   int               `json:"formatVersion,omitempty"`
+	OfficialOrigin  *OfficialOrigin   `json:"officialOrigin,omitempty"`
+	Files           map[string]string `json:"files,omitempty"`
+	ID              string            `json:"id"`
+	Kind            string            `json:"kind"`
+	Action          string            `json:"action"`
+	Provenance      string            `json:"provenance"`
+	Path            string            `json:"path,omitempty"`
+	PlanSHA256      string            `json:"planSHA256"`
+	ManifestSHA256  string            `json:"manifestSHA256"`
+	RecordingSHA256 string            `json:"recordingSHA256"`
+	Connections     []string          `json:"connections"`
+	CreatedAt       string            `json:"createdAt"`
+}
+
+func (m *Material) UnmarshalJSON(data []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var wire materialWire
+	if err := decoder.Decode(&wire); err != nil {
+		return err
+	}
+	if wire.FormatVersion != 0 && wire.FormatVersion != MaterialFormatVersion {
+		return fmt.Errorf("unsupported material formatVersion %d; format %d is required", wire.FormatVersion, MaterialFormatVersion)
+	}
+	if wire.FormatVersion == MaterialFormatVersion && wire.Path != "" {
+		return errors.New("format 2 material declares a machine-local path")
+	}
+	*m = Material{
+		FormatVersion: wire.FormatVersion, OfficialOrigin: wire.OfficialOrigin,
+		Files: wire.Files, ID: wire.ID, Kind: wire.Kind, Action: wire.Action,
+		Provenance: wire.Provenance, Path: wire.Path,
+		PlanSHA256: wire.PlanSHA256, ManifestSHA256: wire.ManifestSHA256,
+		RecordingSHA256: wire.RecordingSHA256, Connections: wire.Connections,
+		CreatedAt: wire.CreatedAt,
+	}
+	return nil
+}
+
+// MarshalJSON never persists a machine-local material location.
+func (m Material) MarshalJSON() ([]byte, error) {
+	type materialOutput Material
+	return json.Marshal(materialOutput(m))
 }
 
 // OfficialOrigin identifies capture ownership, not a business pass. It is sealed
@@ -220,7 +273,7 @@ func CheckMaterialInventory(root string, artifact Material) error {
 	if err := tool.ReadJSON(filepath.Join(root, "material.json"), &descriptor); err != nil {
 		return err
 	}
-	if !reflect.DeepEqual(descriptor, artifact) {
+	if !artifact.SameDescriptor(descriptor) {
 		return errors.New("material descriptor differs from its index")
 	}
 	actual, err := history.HashTree(root)
@@ -232,6 +285,14 @@ func CheckMaterialInventory(root string, artifact Material) error {
 		return errors.New("material closure hash mismatch")
 	}
 	return nil
+}
+
+// SameDescriptor compares persisted material identity without treating the
+// caller-resolved root as part of the descriptor.
+func (m Material) SameDescriptor(other Material) bool {
+	a, b := m, other
+	a.Path, b.Path = "", ""
+	return reflect.DeepEqual(a, b)
 }
 
 func checkMaterialProvenance(artifact Material, plan, manifest tool.Object, selected string) error {

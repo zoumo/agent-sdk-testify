@@ -23,6 +23,14 @@ func TestLibraryProcessMockReportAndAdapterBoundaries(t *testing.T) {
 	executableFixture, err := agenttestify.Open(cliFixtureDir)
 	require.NoError(t, err)
 	require.Equal(t, agenttestify.ToolSourceExecutable, executableFixture.Tool.Source)
+	require.Equal(t, filepath.Join(executableFixture.FixtureDir, "runtime", "baseline", "workspace"), executableFixture.Workspace)
+	var fixtureMetadata map[string]any
+	require.NoError(t, readJSON(filepath.Join(executableFixture.FixtureDir, "fixture.json"), &fixtureMetadata))
+	for _, key := range []string{"resourceRoot", "workspace", "home", "config", "tmp"} {
+		require.NotContains(t, fixtureMetadata, key)
+	}
+	require.NotContains(t, fixtureMetadata["tool"].(map[string]any), "command")
+	require.NotContains(t, fixtureMetadata["tool"].(map[string]any), "args")
 
 	cliIndexPath := filepath.Join(cliFixtureDir, "executions", "index.json")
 	cliIndexBefore := mustRead(t, cliIndexPath)
@@ -49,6 +57,17 @@ func TestLibraryProcessMockReportAndAdapterBoundaries(t *testing.T) {
 	require.True(t, processResult.ExecutionComplete)
 	require.NotEmpty(t, processResult.ProcessReceiptPath)
 	require.Len(t, processResult.Execution.Connections, 1)
+	var executionMetadata map[string]any
+	require.NoError(t, readJSON(processResult.ExecutionPath, &executionMetadata))
+	for _, key := range []string{"workspace", "home", "config", "tmp", "artifactRoot"} {
+		require.NotContains(t, executionMetadata, key)
+	}
+	require.NotContains(t, executionMetadata["source"].(map[string]any)["path"], executableFixture.FixtureDir)
+	persistedConnection := executionMetadata["connections"].([]any)[0].(map[string]any)
+	require.NotContains(t, persistedConnection, "command")
+	require.NotContains(t, persistedConnection, "args")
+	require.NotContains(t, persistedConnection, "launcher")
+	require.NotContains(t, executionMetadata["artifact"].(map[string]any), "path")
 
 	report, err := executableFixture.ExecutionReport(processResult.ExecutionID)
 	require.NoError(t, err)
@@ -69,12 +88,22 @@ func TestLibraryProcessMockReportAndAdapterBoundaries(t *testing.T) {
 	require.NoError(t, readJSON(connection.ProcessReceiptPath, &processReceipt))
 	require.EqualValues(t, 0, processReceipt["exitCode"])
 	require.Equal(t, "passed", processReceipt["status"])
+	var durableResult map[string]any
+	require.NoError(t, readJSON(processResult.ResultPath, &durableResult))
+	require.EqualValues(t, 2, durableResult["schemaVersion"])
+	require.Equal(t, "executions/"+processResult.ExecutionID+"/execution.json", durableResult["execution"])
+	require.NotContains(t, durableResult["material"].(map[string]any), "path")
 	mutateBuildJSON(t, connection.ProcessReceiptPath, func(value map[string]any) {
 		value["exitCode"] = float64(7)
 	})
 	forged, err := executableFixture.ExecutionReport(processResult.ExecutionID)
 	require.ErrorContains(t, err, "nonzero for a passed connection")
 	require.Nil(t, forged)
+}
+
+func TestLibraryEmbeddedProcessMockRejectsExecutableOnlyActions(t *testing.T) {
+	binary := buildCLI(t, false)
+	root := t.TempDir()
 
 	libraryFixtureDir := filepath.Join(root, "library-fixture")
 	libraryFixture, err := agenttestify.Prepare(agenttestify.PrepareOptions{

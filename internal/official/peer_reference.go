@@ -25,6 +25,11 @@ func readPeerReference(
 	root, connectionID, command string,
 	validate func(lifecycle.Execution) error,
 ) (tool.Object, *lifecycle.Execution, *lifecycle.ExecutionConnection, error) {
+	canonicalFixtureDir, err := lifecycle.CanonicalFixtureDir(fixtureDir)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	fixtureDir = canonicalFixtureDir
 	var process tool.Object
 	processPath := filepath.Join(root, "peer-"+connectionID+".process.json")
 	if err := tool.ReadJSON(processPath, &process); err != nil {
@@ -50,13 +55,21 @@ func readPeerReference(
 	executionDir := filepath.Join(fixtureDir, "executions", executionID)
 	executionPath := filepath.Join(executionDir, "execution.json")
 	resultPath := filepath.Join(executionDir, "receipts", connectionID+".result.json")
+	executionReference, err := lifecycle.FixtureReference(fixtureDir, executionPath)
+	if err != nil {
+		return ref, nil, nil, err
+	}
+	resultReference, err := lifecycle.FixtureReference(fixtureDir, resultPath)
+	if err != nil {
+		return ref, nil, nil, err
+	}
 	pid, ok := process["pid"].(float64)
 	if !ok || pid <= 0 {
 		return ref, nil, nil, errors.New("protocol process omitted its process ID")
 	}
 	binding := peerNotificationBinding{
 		fixtureID: fixture.FixtureID, processID: pid, connectionID: connectionID,
-		command: command, executionID: executionID, executionPath: executionPath, resultPath: resultPath,
+		command: command, executionID: executionID, executionPath: executionReference, resultPath: resultReference,
 		process: process,
 	}
 	if err := validatePeerNotifications(started, finished, binding); err != nil {
@@ -71,7 +84,11 @@ func readPeerReference(
 		return ref, nil, nil, errors.New("notification differs from durable result")
 	}
 
-	execution, digest, err := loadPeerExecution(executionPath)
+	execution, err := lifecycle.ReadExecution(fixtureDir, fixture, executionPath)
+	if err != nil {
+		return ref, nil, nil, err
+	}
+	digest, err := tool.FileDigest(executionPath)
 	if err != nil {
 		return ref, nil, nil, err
 	}
@@ -98,7 +115,7 @@ func readPeerReference(
 	} else if finishedDigest != digest || (startedDigest != digest && !publishedRecord) {
 		return ref, nil, nil, errors.New("execution descriptor digest mismatch")
 	}
-	if err := validate(execution); err != nil {
+	if err := validate(*execution); err != nil {
 		return ref, nil, nil, err
 	}
 
@@ -115,13 +132,26 @@ func readPeerReference(
 	if connection == nil {
 		return ref, nil, nil, fmt.Errorf("connection %s is absent from the execution", connectionID)
 	}
+	receiptReference, err := lifecycle.FixtureReference(fixtureDir, connection.Receipt)
+	if err != nil {
+		return ref, nil, nil, err
+	}
 	for _, notification := range []tool.Object{started, finished} {
-		if notification["receipt"] != connection.Receipt {
+		if notification["receipt"] != receiptReference {
 			return ref, nil, nil, errors.New("connection receipt reference mismatch")
 		}
 	}
-	ref["executionSHA256"], ref["connection"] = digest, *connection
-	return ref, &execution, connection, nil
+	persisted := *connection
+	persisted.Command, persisted.Args, persisted.Launcher, persisted.Material = "", nil, "", ""
+	persisted.Receipt = receiptReference
+	if connection.ProcessReceipt != "" {
+		persisted.ProcessReceipt, err = lifecycle.FixtureReference(fixtureDir, connection.ProcessReceipt)
+		if err != nil {
+			return ref, nil, nil, err
+		}
+	}
+	ref["executionSHA256"], ref["connection"] = digest, persisted
+	return ref, execution, connection, nil
 }
 
 func readPeerNotifications(path string) (tool.Object, tool.Object, error) {
@@ -206,25 +236,6 @@ func validDigest(value string) bool {
 	}
 	_, err := hex.DecodeString(value)
 	return err == nil
-}
-
-func loadPeerExecution(path string) (lifecycle.Execution, string, error) {
-	var execution lifecycle.Execution
-	info, err := os.Lstat(path)
-	if err != nil {
-		return execution, "", err
-	}
-	if !info.Mode().IsRegular() {
-		return execution, "", fmt.Errorf("execution descriptor is not a regular file: %s", path)
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return execution, "", err
-	}
-	if err := json.Unmarshal(data, &execution); err != nil {
-		return execution, "", err
-	}
-	return execution, tool.DigestBytes(data), nil
 }
 
 func collectPeerReferences(ids []string, read func(string) (tool.Object, error)) ([]tool.Object, error) {

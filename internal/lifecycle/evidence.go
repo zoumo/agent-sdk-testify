@@ -52,7 +52,10 @@ func validateIndexedConnections(indexed IndexExecution, execution Execution) err
 	return nil
 }
 
-func validateConnectionInventory(execution Execution, artifact *corpus.Material, route Route) error {
+func validateConnectionInventory(fixtureDir string, execution Execution, artifact *corpus.Material, route Route) error {
+	if canonical, err := CanonicalFixtureDir(fixtureDir); err == nil {
+		fixtureDir = canonical
+	}
 	var ids []string
 	if execution.Command == "record" {
 		for _, connection := range route.Connections {
@@ -61,11 +64,28 @@ func validateConnectionInventory(execution Execution, artifact *corpus.Material,
 	} else if artifact != nil {
 		ids = append([]string(nil), artifact.Connections...)
 	}
-	connections, err := executionConnections(execution.ArtifactRoot, execution.Command, ids, artifact, route)
+	connections, err := executionConnections(fixtureDir, execution.ExecutionID, execution.Command, ids, artifact, route)
 	if err != nil {
 		return err
 	}
-	if !reflect.DeepEqual(connections, execution.Connections) {
+	actual := make([]ExecutionConnection, len(execution.Connections))
+	for i, connection := range execution.Connections {
+		connection.Command, connection.Args, connection.Launcher, connection.Material = "", nil, "", ""
+		reference, err := FixtureReference(fixtureDir, connection.Receipt)
+		if err != nil {
+			return err
+		}
+		connection.Receipt = reference
+		if connection.ProcessReceipt != "" {
+			processReference, err := FixtureReference(fixtureDir, connection.ProcessReceipt)
+			if err != nil {
+				return err
+			}
+			connection.ProcessReceipt = processReference
+		}
+		actual[i] = connection
+	}
+	if !reflect.DeepEqual(connections, actual) {
 		return errors.New("execution connections differ from their route or material")
 	}
 	return nil
@@ -213,7 +233,7 @@ func ValidateMockConnection(provider string, execution Execution, connection Exe
 	}
 	return validateMockReceipts(connection.Receipt, connection.ProcessReceipt, execution, connection, replayReceiptExpectation{
 		Provider: provider, RecordingSHA256: hash, PlanSHA256: execution.Artifact.PlanSHA256,
-		Material: execution.Artifact.Path, Frames: frames, RequirePlan: true, RequireExitCode: true,
+		Material: MaterialReference(execution.Artifact.ID), Frames: frames, RequirePlan: true, RequireExitCode: true,
 	})
 }
 
@@ -226,7 +246,7 @@ func ValidateMockExecution(fixtureDir string, fixture *Fixture, execution Execut
 	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(fixtureDir, "executions", execution.ExecutionID, "mock") {
 		return errors.New("unexpected mock execution layout")
 	}
-	if err := validateConnectionInventory(execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
+	if err := validateConnectionInventory(fixtureDir, execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
 		return err
 	}
 	index, err := readIndex(IndexPath(fixtureDir))

@@ -212,7 +212,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 			if !reflect.DeepEqual(before, after) {
 				inspectErr = errors.Join(inspectErr, errors.New("material changed during verification"))
 			}
-			inspectErr = errors.Join(inspectErr, snapshotMocks(activity.Dir, refs), activity.RestoreMockRoute())
+			inspectErr = errors.Join(inspectErr, snapshotMocks(o.FixtureDir, activity.Dir, refs), activity.RestoreMockRoute())
 			if c.Index != "" && material.OfficialOrigin != nil && errors.Join(priorErr, inspectErr) == nil {
 				target := filepath.Join(root, "record-origin")
 				recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.FixtureDir, fixture, *material, target)

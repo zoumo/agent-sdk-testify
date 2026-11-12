@@ -232,6 +232,66 @@ func executionByID(t *testing.T, fixture, id string) object {
 	return readJSON(t, filepath.Join(fixture, "executions", id, "execution.json"))
 }
 
+// resolveFixtureReference resolves a persisted fixture-root-relative reference.
+// Absolute values and non-clean references are rejected so tests cannot silently
+// accept the machine-local fields schema 6 removed.
+func resolveFixtureReference(t *testing.T, fixture, reference string) string {
+	t.Helper()
+	require.NotEmpty(t, reference)
+	require.False(t, filepath.IsAbs(reference), "reference must be fixture-relative: %s", reference)
+	require.True(t, filepath.IsLocal(filepath.FromSlash(reference)), "reference must stay inside the fixture: %s", reference)
+	require.Equal(t, filepath.ToSlash(filepath.Clean(filepath.FromSlash(reference))), reference)
+	return filepath.Join(fixture, filepath.FromSlash(reference))
+}
+
+func fixtureRuntimeRoot(fixture string) string {
+	return filepath.Join(fixture, "runtime")
+}
+
+func fixtureRouteRoot(fixture, action string) string {
+	return filepath.Join(fixtureRuntimeRoot(fixture), "routes", action)
+}
+
+func fixtureRouteWorkspace(fixture, action string) string {
+	return filepath.Join(fixtureRouteRoot(fixture, action), "workspace")
+}
+
+func fixtureLauncher(fixture, connection string) string {
+	return filepath.Join(fixtureRuntimeRoot(fixture), "launchers", "peer-"+connection)
+}
+
+func fixtureMaterialRoot(t *testing.T, fixture string, material object) string {
+	t.Helper()
+	id := str(material["id"])
+	require.NotEmpty(t, id)
+	return filepath.Join(fixture, "materials", id)
+}
+
+func fixtureMaterialRootByID(t *testing.T, fixture, id string) string {
+	t.Helper()
+	require.NotEmpty(t, id)
+	return filepath.Join(fixture, "materials", id)
+}
+
+func executionOverlayRoot(t *testing.T, fixture string, execution object) string {
+	t.Helper()
+	id := str(execution["executionId"])
+	require.NotEmpty(t, id)
+	return filepath.Join(fixtureRuntimeRoot(fixture), "executions", id)
+}
+
+func executionOverlayPath(t *testing.T, fixture string, execution object, name string) string {
+	t.Helper()
+	return filepath.Join(executionOverlayRoot(t, fixture, execution), name)
+}
+
+func executionArtifactRoot(t *testing.T, fixture string, execution object) string {
+	t.Helper()
+	require.NotEmpty(t, str(execution["executionId"]))
+	require.NotEmpty(t, str(execution["command"]))
+	return filepath.Join(fixture, "executions", str(execution["executionId"]), str(execution["command"]))
+}
+
 func connectionStatus(t *testing.T, fixture string, execution object, id string) any {
 	t.Helper()
 	for _, value := range array(fixtureIndex(t, fixture)["executions"]) {
@@ -364,7 +424,7 @@ func runPreparedMock(t *testing.T, env []string, fixture, connection, request st
 func builtinInputs(t *testing.T, provider, caseID string) map[string]string {
 	t.Helper()
 	fixture := prepareFixture(t, os.Environ(), "--agent", provider, "--case", caseID)
-	material := str(obj(array(materialIndex(t, fixture)["materials"])[0])["path"])
+	material := fixtureMaterialRoot(t, fixture, obj(array(materialIndex(t, fixture)["materials"])[0]))
 	inputs := map[string]string{}
 	for _, phase := range []struct{ id, path string }{{"main", "raw/raw.jsonl"}, {"probe", "remote-probe/raw/raw.jsonl"}} {
 		data, err := os.ReadFile(filepath.Join(material, phase.path))

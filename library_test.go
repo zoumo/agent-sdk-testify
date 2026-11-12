@@ -60,7 +60,7 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.FileExists(t, filepath.Join(fixtureDir, "fixture.json"))
 	require.FileExists(t, filepath.Join(fixtureDir, "current.json"))
 	fixtureDescriptor := readLibraryJSON(t, filepath.Join(fixtureDir, "fixture.json"))
-	require.EqualValues(t, 5, fixtureDescriptor["schemaVersion"])
+	require.EqualValues(t, 6, fixtureDescriptor["schemaVersion"])
 	tool := fixtureDescriptor["tool"].(map[string]any)
 	require.Equal(t, "embedded", tool["source"])
 	require.Equal(t, libraryModule, tool["module"])
@@ -304,9 +304,11 @@ func TestLibraryMockOmitsProcessEvidenceAndPreservesCallerCWD(t *testing.T) {
 	require.False(t, mockResult.Execution.Connections[0].NativeLaunched)
 
 	execution := readLibraryJSON(t, mockResult.ExecutionPath)
-	workspace, ok := execution["workspace"].(string)
-	require.True(t, ok)
-	require.True(t, filepath.IsAbs(workspace))
+	for _, key := range []string{"workspace", "home", "config", "tmp", "artifactRoot"} {
+		require.NotContains(t, execution, key)
+	}
+	overlay := filepath.Join(prepared.FixtureDir, "runtime", "executions", mockResult.ExecutionID)
+	require.DirExists(t, filepath.Join(overlay, "workspace"))
 	protocolCwd, ok := execution["protocolCwd"].(string)
 	require.True(t, ok)
 	require.True(t, filepath.IsAbs(protocolCwd))

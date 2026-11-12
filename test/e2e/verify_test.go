@@ -18,12 +18,13 @@ func TestVerifyCurrentEvidenceAndAdmissionRetry(t *testing.T) {
 	mustRun(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixtureDir, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	material := latestCapture(t, fixtureDir)
 	current := readFile(t, filepath.Join(fixtureDir, "current.json"))
-	materialBytes := readAllFiles(t, str(material["path"]))
+	materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
+	materialBytes := readAllFiles(t, materialRoot)
 	corpus := newSyntheticCorpus(t)
 	index := readFile(t, corpus.index)
 	installDriver(t, drivers, "codex", "verify")
 	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
-	sourcePlan := str(obj(descriptor["source"])["path"])
+	sourcePlan := resolveFixtureReference(t, fixtureDir, str(obj(descriptor["source"])["path"]))
 	sourceBytes := readFile(t, sourcePlan)
 	require.NoError(t, os.Remove(sourcePlan))
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
@@ -43,7 +44,7 @@ func TestVerifyCurrentEvidenceAndAdmissionRetry(t *testing.T) {
 	files := obj(evidence["sourceFiles"])
 	require.Contains(t, files, "material.json")
 	require.Contains(t, files, "config/sessions/conformance-history.jsonl")
-	assertFileHashes(t, str(material["path"]), files)
+	assertFileHashes(t, materialRoot, files)
 	assertFileHashes(t, evidenceRoot, obj(evidence["files"]))
 	require.NotEmpty(t, obj(evidence["tool"])["sha256"])
 	require.NotEmpty(t, obj(evidence["driver"])["sha256"])
@@ -61,7 +62,7 @@ func TestVerifyCurrentEvidenceAndAdmissionRetry(t *testing.T) {
 	failedBytes := readAllFiles(t, failedRoot)
 	require.Equal(t, index, readFile(t, corpus.index))
 	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
-	require.Equal(t, materialBytes, readAllFiles(t, str(material["path"])))
+	require.Equal(t, materialBytes, readAllFiles(t, materialRoot))
 	require.NoError(t, os.Remove(lock))
 	mustRun(t, env, t.TempDir(), "", args...)
 	admitted := readJSON(t, filepath.Join(latestVerificationRoot(t, fixtureDir), "admission-summary.json"))
@@ -81,7 +82,7 @@ func TestVerifyCurrentEvidenceAndAdmissionRetry(t *testing.T) {
 	require.DirExists(t, str(retried["materials"]))
 	require.Equal(t, failedBytes, readAllFiles(t, failedRoot))
 	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
-	require.Equal(t, materialBytes, readAllFiles(t, str(material["path"])))
+	require.Equal(t, materialBytes, readAllFiles(t, materialRoot))
 }
 
 func TestVerifyPrerequisitesBeforeExecution(t *testing.T) {
@@ -92,7 +93,7 @@ func TestVerifyPrerequisitesBeforeExecution(t *testing.T) {
 			producer := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
 			installDriver(t, drivers, "codex", "record")
 			mustRun(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", producer, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
-			material := str(latestCapture(t, producer)["path"])
+			material := fixtureMaterialRoot(t, producer, latestCapture(t, producer))
 			require.NoError(t, os.Remove(filepath.Join(material, "material.json")))
 			planPath, manifestPath := filepath.Join(material, "plan.json"), filepath.Join(material, "manifest.json")
 			plan, manifest := readJSON(t, planPath), readJSON(t, manifestPath)
@@ -109,7 +110,7 @@ func TestVerifyPrerequisitesBeforeExecution(t *testing.T) {
 			case "unsupported":
 				source := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-003")
 				descriptor := readJSON(t, filepath.Join(source, "fixture.json"))
-				bound := readJSON(t, str(obj(descriptor["source"])["path"]))
+				bound := readJSON(t, resolveFixtureReference(t, source, str(obj(descriptor["source"])["path"])))
 				maps.Copy(plan, bound)
 			}
 			writeJSON(t, planPath, plan)
@@ -154,6 +155,5 @@ func TestVerifyCleanupFailureCannotBeAdopted(t *testing.T) {
 	require.Equal(t, index, readFile(t, corpus.index))
 	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 	require.NoFileExists(t, filepath.Join(evidenceRoot, "qualification.json"))
-	descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
-	require.NoError(t, os.Remove(filepath.Join(str(descriptor["resourceRoot"]), "routes", "mock", "workspace")))
+	require.NoError(t, os.Remove(filepath.Join(fixtureRouteRoot(fixtureDir, "mock"), "workspace")))
 }

@@ -64,6 +64,12 @@ func (c transactionContext) Artifact() corpus.Material {
 	return cloneTransactionMaterial(c.execution.Artifact)
 }
 
+// MaterialReference is the fixture-root-relative identity of the execution
+// material. Durable connection evidence uses this spelling.
+func (c transactionContext) MaterialReference() string {
+	return MaterialReference(c.execution.Artifact.ID)
+}
+
 func (c transactionContext) Connection() string {
 	return c.connection
 }

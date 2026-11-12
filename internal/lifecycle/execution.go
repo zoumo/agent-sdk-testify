@@ -40,7 +40,7 @@ func readFixtureUnlocked(fixtureDir string) (*Fixture, error) {
 	if err != nil {
 		return nil, err
 	}
-	fixture, err := readFixture(FixturePath(dir))
+	fixture, err := readFixture(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func setConnectionStarted(execution *IndexExecution, id, status string) {
 	}
 }
 
-func executionConnections(dir, action string, ids []string, material *corpus.Material, route Route) ([]ExecutionConnection, error) {
+func executionConnections(fixtureDir, executionID, action string, ids []string, material *corpus.Material, route Route) ([]ExecutionConnection, error) {
 	var connections []ExecutionConnection
 	for _, id := range ids {
 		template, ok := connectionTemplate(route, id)
@@ -147,27 +147,38 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 		connection := ExecutionConnection{
 			ID:        id,
 			Transport: template.Transport,
-			Command:   template.Command,
-			Args:      append([]string(nil), template.Args...),
-			Launcher:  template.Launcher,
 		}
+		dir := ExecutionDir(fixtureDir, executionID)
 		switch action {
 		case "record":
-			base := dir
+			base := ExecutionArtifactRoot(fixtureDir, executionID, "record")
 			if id == "probe" {
-				base = filepath.Join(dir, "remote-probe")
+				base = filepath.Join(base, "remote-probe")
 			}
-			connection.Receipt = filepath.Join(base, "raw", "transport.json")
+			receipt := filepath.Join(base, "raw", "transport.json")
+			reference, err := FixtureReference(fixtureDir, receipt)
+			if err != nil {
+				return nil, err
+			}
+			connection.Receipt = reference
 		case "mock":
-			connection.Receipt = filepath.Join(dir, "receipts", id+".json")
-			if template.Transport == ConnectionTransportProcess {
-				connection.ProcessReceipt = filepath.Join(dir, "receipts", id+".process.json")
+			receipt := filepath.Join(dir, "receipts", id+".json")
+			reference, err := FixtureReference(fixtureDir, receipt)
+			if err != nil {
+				return nil, err
 			}
-		}
-		if action == "record" {
-			connection.Material = dir
+			connection.Receipt = reference
+			if template.Transport == ConnectionTransportProcess {
+				process := filepath.Join(dir, "receipts", id+".process.json")
+				processReference, err := FixtureReference(fixtureDir, process)
+				if err != nil {
+					return nil, err
+				}
+				connection.ProcessReceipt = processReference
+			}
 		}
 		if material != nil {
+			connection.MaterialID = material.ID
 			recording := filepath.Join(material.Path, "raw", "raw.jsonl")
 			if id == "probe" {
 				recording = filepath.Join(material.Path, "remote-probe", "raw", "raw.jsonl")
@@ -176,7 +187,6 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 			if err != nil {
 				return nil, err
 			}
-			connection.Material = material.Path
 			connection.PlanSHA256 = material.PlanSHA256
 			connection.ManifestSHA256 = material.ManifestSHA256
 			connection.RecordingSHA256 = recordingHash
@@ -186,12 +196,13 @@ func executionConnections(dir, action string, ids []string, material *corpus.Mat
 	return connections, nil
 }
 
-func createExecutionOverlay(fixture *Fixture, action, dir string, plan tool.Object, material *corpus.Material) (string, map[string]string, error) {
+func createExecutionOverlay(fixture *Fixture, action, executionID string, plan tool.Object, material *corpus.Material) (string, map[string]string, error) {
 	route, ok := fixture.Routes[action]
 	if !ok || !route.Enabled {
 		return "", nil, fmt.Errorf("%s is not available for this fixture", action)
 	}
-	overlayRoot := filepath.Join(fixture.ResourceRoot, "executions", filepath.Base(dir))
+	fixtureDir := fixture.dir
+	overlayRoot := ExecutionOverlayRoot(fixtureDir, executionID)
 	success := false
 	slotsTouched := false
 	defer func() {
@@ -202,7 +213,7 @@ func createExecutionOverlay(fixture *Fixture, action, dir string, plan tool.Obje
 			_ = os.RemoveAll(overlayRoot)
 		}
 	}()
-	if err := tool.CopyTree(filepath.Join(fixture.ResourceRoot, "baseline"), overlayRoot); err != nil {
+	if err := tool.CopyTree(BaselineRoot(fixtureDir), overlayRoot); err != nil {
 		return "", nil, err
 	}
 	if err := prepareExecutionAuthentication(fixture, action, overlayRoot); err != nil {
@@ -233,7 +244,7 @@ func createExecutionOverlay(fixture *Fixture, action, dir string, plan tool.Obje
 		}
 	}
 	slotsTouched = true
-	if err := bindRouteSlots(filepath.Join(fixture.ResourceRoot, "routes", action), overlayRoot); err != nil {
+	if err := bindRouteSlots(RouteRoot(fixtureDir, action), overlayRoot); err != nil {
 		return "", nil, err
 	}
 	success = true
@@ -247,7 +258,7 @@ func executionProtocolCwd(action string, plan tool.Object, workspace string) str
 	return planProtocolCwd(plan, workspace)
 }
 
-func newExecution(fixture *Fixture, action, id, overlayRoot, artifactRoot string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
+func newExecution(fixture *Fixture, action, id, overlayRoot string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
 	workspace := filepath.Join(overlayRoot, "workspace")
 	limits := fixture.Limits
 	if timeout > 0 {
@@ -258,10 +269,16 @@ func newExecution(fixture *Fixture, action, id, overlayRoot, artifactRoot string
 	if err != nil {
 		return Execution{}, err
 	}
-	connections, err := executionConnections(artifactRoot, action, ids, material, route)
+	connections, err := executionConnections(fixture.dir, id, action, ids, material, route)
 	if err != nil {
 		return Execution{}, err
 	}
+	source := fixture.Source
+	sourceReference, err := FixtureReference(fixture.dir, source.Path)
+	if err != nil {
+		return Execution{}, err
+	}
+	source.Path = sourceReference
 	execution := Execution{
 		SchemaVersion: SchemaVersion,
 		ExecutionID:   id,
@@ -269,29 +286,18 @@ func newExecution(fixture *Fixture, action, id, overlayRoot, artifactRoot string
 		Command:       action,
 		Args:          append([]string(nil), commandArgs...),
 		NativeArgs:    append([]string(nil), nativeArgs...),
-		Source:        fixture.Source,
+		Source:        source,
 		Executor:      route.Executor,
 		Target:        route.Target,
 		Provenance:    provenance,
-		Workspace:     workspace,
 		ProtocolCwd:   executionProtocolCwd(action, plan, workspace),
-		Home:          filepath.Join(overlayRoot, "home"),
-		Config:        filepath.Join(overlayRoot, "config"),
-		Tmp:           filepath.Join(overlayRoot, "tmp"),
-		HistorySeed:   filepath.Join(overlayRoot, "history-seed"),
 		HistoryFiles:  historyFiles,
 		Env:           baseEnvironment(fixture.AgentType, overlayRoot),
 		Connections:   connections,
-		ArtifactRoot:  artifactRoot,
 		Admission:     admission,
 		Limits:        limits,
 		StartedAt:     now(),
 	}
-	runtimeEnv, err := executionRuntimeEnvironment(fixture, action, overlayRoot)
-	if err != nil {
-		return Execution{}, err
-	}
-	execution.RuntimeEnv = runtimeEnv
 	if action == "record" {
 		artifactID, err := randomID()
 		if err != nil {
@@ -302,7 +308,6 @@ func newExecution(fixture *Fixture, action, id, overlayRoot, artifactRoot string
 			Kind:        "capture",
 			Action:      "record",
 			Provenance:  provenance,
-			Path:        artifactRoot,
 			Connections: append([]string(nil), ids...),
 			CreatedAt:   now(),
 		}
@@ -311,6 +316,10 @@ func newExecution(fixture *Fixture, action, id, overlayRoot, artifactRoot string
 	}
 	if action == "mock" {
 		execution.ProgressFD = progressFD
+	}
+	execution.dir = fixture.dir
+	if err := execution.Resolve(fixture, fixture.dir); err != nil {
+		return Execution{}, err
 	}
 	return execution, nil
 }
@@ -399,8 +408,10 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 			return nil, err
 		}
 		plan = inspection.Plan
-		if _, err := executionConnections(fixtureDir, action, current.Connections, current, route); err != nil {
-			return nil, err
+		for _, id := range current.Connections {
+			if _, ok := connectionTemplate(route, id); !ok {
+				return nil, fmt.Errorf("route does not declare connection %s", id)
+			}
 		}
 	}
 	id, err := randomID()
@@ -415,7 +426,7 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
-	overlayRoot, historyFiles, err := createExecutionOverlay(fixture, action, dir, plan, material)
+	overlayRoot, historyFiles, err := createExecutionOverlay(fixture, action, id, plan, material)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +437,7 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 			ids = append([]string(nil), material.Connections...)
 		}
 	}
-	execution, err := newExecution(fixture, action, id, overlayRoot, artifactRoot, commandArgs, nativeArgs, timeout, progressFD, ids, material, admission, plan, historyFiles)
+	execution, err := newExecution(fixture, action, id, overlayRoot, commandArgs, nativeArgs, timeout, progressFD, ids, material, admission, plan, historyFiles)
 	if err != nil {
 		return nil, err
 	}

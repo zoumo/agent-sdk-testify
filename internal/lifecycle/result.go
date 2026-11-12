@@ -135,20 +135,28 @@ func ResultStream(fd int) (*os.File, error) {
 	return os.NewFile(uintptr(duplicate), "execution-result"), nil
 }
 
-func actionResult(run *transactionContext, status string, actionErr error) (string, tool.Object) {
+func actionResult(run *transactionContext, status string, actionErr error) (string, tool.Object, error) {
 	id := run.connection
 	if id == "" {
 		id = "main"
 	}
 	path := filepath.Join(run.dir, "receipts", id+".result.json")
+	executionReference, err := FixtureReference(run.fixtureDir, filepath.Join(run.dir, "execution.json"))
+	if err != nil {
+		return "", nil, err
+	}
+	resultReference, err := FixtureReference(run.fixtureDir, path)
+	if err != nil {
+		return "", nil, err
+	}
 	value := tool.Object{
-		"schemaVersion": 1,
+		"schemaVersion": 2,
 		"fixtureId":     run.fixture.FixtureID,
 		"executionId":   run.execution.ExecutionID,
 		"connectionId":  id,
 		"status":        status,
-		"execution":     filepath.Join(run.dir, "execution.json"),
-		"result":        path,
+		"execution":     executionReference,
+		"result":        resultReference,
 	}
 	if run.connectionTransport() == ConnectionTransportInProcess {
 		value["transport"] = ConnectionTransportInProcess
@@ -158,16 +166,24 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 	}
 	for _, connection := range run.execution.Connections {
 		if connection.ID == id {
-			value["receipt"] = connection.Receipt
+			receipt, err := FixtureReference(run.fixtureDir, connection.Receipt)
+			if err != nil {
+				return "", nil, err
+			}
+			value["receipt"] = receipt
 			if connection.ProcessReceipt != "" {
-				value["processReceipt"] = connection.ProcessReceipt
+				process, err := FixtureReference(run.fixtureDir, connection.ProcessReceipt)
+				if err != nil {
+					return "", nil, err
+				}
+				value["processReceipt"] = process
 			}
 		}
 	}
 	if run.execution.Command == "mock" || (status == "passed" && run.execution.Artifact.ManifestSHA256 != "") {
 		material := run.execution.Artifact
 		value["material"] = tool.Object{
-			"id": material.ID, "path": material.Path, "provenance": material.Provenance,
+			"id": material.ID, "provenance": material.Provenance,
 			"planSHA256": material.PlanSHA256, "manifestSHA256": material.ManifestSHA256,
 			"recordingSHA256": material.RecordingSHA256,
 		}
@@ -178,13 +194,16 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 			value["failureClass"] = string(class)
 		}
 	}
-	return path, value
+	return path, value, nil
 }
 
 // notifyActionStarted gives the caller the exact identity before protocol I/O.
 // Each notification references durable state; stdout remains native protocol only.
 func notifyActionStarted(ctx context.Context, run *transactionContext, stream *os.File) error {
-	path, value := actionResult(run, "running", nil)
+	path, value, err := actionResult(run, "running", nil)
+	if err != nil {
+		return err
+	}
 	hash, err := tool.FileDigest(filepath.Join(run.dir, "execution.json"))
 	if err != nil {
 		return err
@@ -206,7 +225,10 @@ func writeActionResult(ctx context.Context, run *transactionContext, stream *os.
 	if actionErr != nil {
 		status = "failed"
 	}
-	path, value := actionResult(run, status, actionErr)
+	path, value, err := actionResult(run, status, actionErr)
+	if err != nil {
+		return err
+	}
 	hash, err := tool.FileDigest(filepath.Join(run.dir, "execution.json"))
 	if err != nil {
 		return err

@@ -274,8 +274,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 			inspectErr = errors.Join(inspectErr, refErr)
 			if refErr == nil && len(refs) > 0 && (o.URL == "" || service != nil) {
 				executionID := tool.Str(refs[0]["executionId"])
-				var execution lifecycle.Execution
-				preparationErr := tool.ReadJSON(filepath.Join(o.FixtureDir, "executions", executionID, "execution.json"), &execution)
+				execution, preparationErr := lifecycle.ReadExecution(o.FixtureDir, fixture, filepath.Join(o.FixtureDir, "executions", executionID, "execution.json"))
 				if preparationErr == nil {
 					isolationHash, isolationErr := tool.FileDigest(filepath.Join(o.FixtureDir, "executions", executionID, "receipts", "isolation.json"))
 					planHash, planErr := tool.FileDigest(filepath.Join(filepath.Dir(execution.Home), "record-plan.json"))
@@ -349,7 +348,7 @@ func recordReference(fixtureDir string, fixture *lifecycle.Fixture, root, id str
 	if err := tool.ReadJSON(filepath.Join(material.Path, "material.json"), &descriptor); err != nil {
 		return ref, err
 	}
-	if !reflect.DeepEqual(material, descriptor) {
+	if !material.SameDescriptor(descriptor) {
 		return ref, errors.New("material differs from execution")
 	}
 	actualFiles, err := history.HashTree(material.Path)

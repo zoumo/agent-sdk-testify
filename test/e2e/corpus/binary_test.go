@@ -32,12 +32,12 @@ func TestBinaryUsesItselfOutsideCheckout(t *testing.T) {
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(prepared, "fixture.json"), &descriptor))
 	require.Equal(t, "SDK-CASE-001", tool.Obj(descriptor["source"])["id"])
-	t.Cleanup(func() { _ = os.RemoveAll(tool.Str(descriptor["resourceRoot"])) })
+	t.Cleanup(func() { _ = os.RemoveAll(filepath.Join(prepared, "runtime")) })
 }
 
 func peerRequestRoot(t *testing.T, fixtureDir, verification string) string {
 	t.Helper()
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
-	return filepath.Join(tool.Str(descriptor["resourceRoot"]), "official", filepath.Base(verification))
+	return filepath.Join(fixtureDir, "runtime", "official", filepath.Base(verification))
 }

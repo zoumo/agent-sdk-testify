@@ -90,7 +90,7 @@ func replayInProcessConnection(ctx context.Context, policy inProcessReplayPolicy
 		"fullConsumption": false,
 		"clientEOF":       false,
 		"cleanupComplete": true,
-		"recording":       run.Artifact().Path,
+		"recording":       run.MaterialReference(),
 		"toolVersion":     version.String(),
 	}
 	var replayErr, historyErr, closeErr, reportErr error
