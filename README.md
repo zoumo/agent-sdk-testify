@@ -141,7 +141,7 @@ case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `-
 
 外部消费者可以 `prepare --plan`，再用 record 让自身 SDK 驱动真实 Agent。工具准备
 隔离环境、workspace、配置和历史种子，消费者只提供真实 Agent 启动命令/参数并在 SDK
-宿主应用 route descriptor；record 产物可在同一 fixture 中直接 mock。该路径不经过官方
+宿主应用公开 Go 运行时 route 或 CLI runtime route 快照；record 产物可在同一 fixture 中直接 mock。该路径不经过官方
 driver，也不进入官方 case、验证、采用或内置快照；合同和用法见
 [消费者录制](docs/consumer-recording.md)。
 
@@ -172,7 +172,7 @@ agent-sdk-testify official verify --fixture-dir /private/fixture --timeout 2m
 agent type/case 从录制身份确定，只选择本工具的官方 driver；不接受 `--driver`、
 `--driver-arg`、`--peer` 或 SDK 仿真 driver。不会启动真实 Agent 或自动安装依赖。
 原件与已有 replay 证据保持不变；official verify 驱动官方 driver，由 driver 启动公开 agent mock。
-业务报告、driver 退出与失败诊断保存在 `verifications/<verificationId>/`，协议与
+业务报告、driver 退出与失败诊断保存在 `packages/<materialId>/verify/<verificationId>/`，协议与
 连接退出回执由 mock execution 保存，`verification.json` 引用实际参与的 execution。
 验证证据绑定原件、合同、工具及 driver 哈希，
 记录实际安装的官方 SDK 包和版本；版本不兼容须报告失败。

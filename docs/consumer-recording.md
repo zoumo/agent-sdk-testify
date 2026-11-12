@@ -40,7 +40,8 @@ agent-sdk-testify prepare --agent codex \
 - 从 agent type 标准原生配置位置发现并筛选的原生配置和认证副本；
 - plan 的 `model` 配置和 `scenario.files`；
 - 可选 `--history-seed` 历史种子；
-- fixture 目录内的 `fixture.json`、record/mock route 的环境槽和连接模板。
+- fixture 目录内的 schema 7 `fixture.json`、record/mock route 的环境槽和连接模板；
+- 唯一的 `source/history-seed/` 冻结副本和 `packages/` recording package 根。
 
 `--plan` 来源不接受配置目录参数。record 的 `--cmd` 必须是绝对路径；`--` 后逐项
 提供 Agent 启动参数，不经过 shell，仍须通过回放白名单校验。
@@ -50,7 +51,7 @@ CLI 和原生参数属于本次 record execution，不改变已准备的 source�
 ### 配置发现
 
 配置来源、允许文件、认证变量和隔离路径由[工具设计](design.md#环境与隔离)统一维护。
-消费者不能通过 flag 覆盖这些路径，只使用 prepare 返回的 descriptor；认证值不进入
+消费者不能通过 flag 覆盖这些路径，只使用 Go prepare/Open 返回的运行时对象，或 CLI 的 runtime route 快照；认证值不进入
 `fixture.json`，调用进程只需保留 record route `runtimeEnv` 列出的变量。
 持久定位字段与运行时绝对路径的区别见[框架路径与录制身份](design.md#框架路径与录制身份)；
 prepare 返回的运行信息不能作为 `fixture.json` 的字段布局假设。
@@ -63,7 +64,8 @@ agent-sdk-testify agent record --fixture-dir /absolute/fixture \
   --cmd /absolute/codex -- app-server --listen stdio://
 ```
 
-消费者必须先应用 record route 的 `env`，把 SDK 宿主 cwd 设为 `workspace`，然后执行
+消费者先通过[SDK 宿主的运行时入口](design.md#sdk-宿主的运行时入口)
+取得当前 record route，应用其 `env`，把 SDK 宿主 cwd 设为 `workspace`，然后执行
 下文的 `agent record` 命令；Agent executable 和原生参数属于这次显式调用。record route 的
 `connection.command`/`args` 是稳定调用前缀，其 `args` 已包含 `--cmd`，调用方在其后
 追加 `/absolute/agent -- ARG...`。route 的 `runtimeEnv` 只列出来自调用进程或私有
@@ -72,9 +74,15 @@ agent-sdk-testify agent record --fixture-dir /absolute/fixture \
 一次；失败也保留原始证据。
 
 record 成功后发布不可变 material 并原子替换 current recording；随后可以直接在同一
-fixture 执行 `agent mock`，不需要重新 prepare。失败保留 execution，current 不变。record source
+fixture 执行 `agent mock`，不需要重新 prepare。提交前失败保留 execution，current 不变；提交后交付失败保留提交事实，见
+[封存、发布与恢复](design.md#封存发布与恢复)。record source
 保持 prepare 固化的 plan 和 executor，不从 current 推导。consumer material 没有适用
 官方 verifier，verify 在启动 driver 前失败。
+
+record 通过前置检查时即领取 materialId（不是成功后才分配），并创建 `packages/<materialId>/`。
+材料核心位于 package 的 `material/`，execution 直接位于同一 package 的
+`executions/<executionId>/`。提交前失败 attempt 可以保留部分 package 和 execution，
+但不切换 current；提交后的交付失败遵循工具设计的发布合同。多次成功 record 产生独立 package。
 
 ### agent mock
 
@@ -84,7 +92,9 @@ agent-sdk-testify agent mock --fixture-dir /absolute/fixture \
 ```
 
 mock 只消费 fixture 中的 current recording，使用新的 execution overlay 和预先刷新的回放
-环境。消费者按 mock route 应用 `env`、cwd 和 `connection`，执行结果由 mock 自身保存。
+环境。消费者按 mock route 应用 `env`、cwd 和 `connection`，执行结果由 mock 自身
+写入 current package 的 `executions/<executionId>/`。consumer mock 不创建官方
+`verify/` 证据。
 
 ### 释放 fixture
 
@@ -95,7 +105,8 @@ material 时先 export。运行环境和私有配置都位于 fixture/runtime；
 ## 多次使用
 
 - record 成功后，mock 使用新的 current；可在同一 fixture 直接执行。
-- 多次 record 产生多个不可变 material，旧材料和旧验证证据保留；action 不接受材料覆盖。
+- 多次 record 产生多个独立 recording package，旧 material 和旧执行证据保留；
+  action 不接受材料覆盖。
 - 需要在另一 fixture 使用材料时，先 export，再 prepare --recording；导出不提升可信等级。
 - 每次 record 或 mock 使用独立 execution overlay，前一次 SDK 的历史和写入不会污染后一次。
 - 同一 fixture 的 record/mock execution 串行执行；上一个 execution 完成后才可以开始下一个。
@@ -106,8 +117,9 @@ plan、真实 Agent executable/args、自己的 SDK 宿主和业务断言。
 
 ## Consumer plan
 
-`plan.json` 是消费者提供的运行合同，原字节复制到材料，并由 manifest 的
-`planSHA256` 绑定。v1 使用以下字段：
+`--plan` 输入是消费者提供的 source plan，version 1 使用以下字段。其原字节保存为
+material/source-plan.json；material/plan.json 是唯一派生材料 plan。两者的哈希关系与
+historyBindings 由[材料计划与运行配置](design.md#材料计划与运行配置)定义。
 
 | 字段 | 要求 | 用途 |
 | --- | --- | --- |
@@ -148,13 +160,20 @@ consumer plan；需要历史的消费者使用 `--history-seed`。
 [工具设计](design.md#fixture-生命周期)。plan source 的 `protocolCwd` 保持
 plan 声明的原始项目身份；消费者仍使用 execution 返回的 overlay `workspace`。
 
-每次 record 或 mock 另在 `executions/<executionId>/execution.json` 写入本次
-execution 的只读合同，字段见[工具设计](design.md#fixture-生命周期)。
+每次 record 或 mock 另在
+`packages/<materialId>/executions/<executionId>/execution.json` 写入本次
+execution 的只读合同，字段见
+[工具设计](design.md#fixture-生命周期)。fixture control 的包选择使用 fixture 根
+上下文并由 canonical material ID 推导固定 `packages/<materialId>/`；execution、
+receipt、result 和 CLI 通知使用 package 根相对引用；material 内部引用使用 material
+根相对引用。消费者不需要也不允许重写 source、control 或 package；CLI 宿主读取的 route
+快照只在 runtime 内，不能把它当作持久 descriptor。
 消费者不得 source、eval 或改写 `fixture.json` 或 `execution.json`。当前 route 的
 `env` 必须应用到自己的 SDK 宿主，不能只设置录制或 mock 子进程。execution 创建后
 不得重新生成或覆盖。
 
-删除 runtime 后运行路径失效，材料仍可 export；删除整个 fixture 会同时删除材料和执行证据。
+完成结算后删除 runtime，运行路径与 route 快照失效，material 仍可 export；删除整个 fixture 会同时删除
+package、材料和执行证据。
 
 mock route 的 `connection.launcher` 用于只接受 executable 的 SDK；launcher 把受支持
 的追加参数转发给回放连接，并拒绝重复或白名单外的参数。record 使用上文的显式
@@ -177,52 +196,63 @@ v1 复用 `agent mock` 的原生启动参数白名单，避免录出一份无法
 record 的尝试与失败证据保存在 execution；成功材料发布到独立 material 目录：
 
 ```text
-<fixture>/materials/<materialId>/
-  material.json
-  plan.json
-  manifest.json
-  report.json
-  raw/raw.jsonl
-  raw/manifest.json
-  raw/transport.json
-  raw/stderr.raw
-  config/projects/...      # record 完成时存在
-  config/sessions/...      # record 完成时存在
-  history-seed/...         # record 完成时存在
+<fixture>/packages/<materialId>/
+  material/
+    material.json
+    source-plan.json
+    plan.json
+    manifest.json
+    report.json
+    raw/
+      raw.jsonl
+      manifest.json
+      transport.json
+      stderr.raw
+    history/
+      seed/...
+      runtime/...
+  executions/<executionId>/
+    execution.json
+    result.json
+    materialization.json
+    history/derived/...
+    isolation.json
+    prepared-plan.json
+    receipts/...
 ```
 
-- `materials/<materialId>/` 是不可变材料根；`current.json` 选择当前材料。
-- `executions/<executionId>/execution.json` 和其 `record/` 保留本次尝试与失败证据。
+- `packages/<materialId>/material/` 是封闭 material 根；package 只以 canonical
+  material id 命名，`current.json` 选择当前 package。
+- `material/` 在成功 record 后不可改写；失败 attempt 的部分 package 和
+  `executions/<executionId>/` 保留本次尝试与诊断。
 - `raw/raw.jsonl` 使用 v1 stdio 帧格式，保留 ordinal、direction、channel、epoch、
   elapsedMs 和原始 wire JSON。
-- `manifest.json` 至少包含 `planSHA256`、`runSHA256`、`files["raw.jsonl"]`、
-  `recordingFormat`、`proxyVersion`、`native`、`captureStatus` 和
-  `provenance: "consumer"`。`files` 中的路径相对 `raw/`，与既有材料布局一致。
-- `raw/manifest.json` 是采集层 manifest；`raw/transport.json` 保留传输报告；
-  `raw/stderr.raw` 是原生 stderr。
-- `report.json` 记录采集状态、客户端 EOF、原生启动、清理和失败原因。
-- `manifest.savedFiles` 绑定 record 完成时的历史文件及 SHA-256，在材料加载和复制时核验。
+- core 的 manifest、plan/source plan、history 绑定、capture report 和完整文件库存统一遵循
+  [文件 owner 与校验闭包](design.md#文件-owner-与校验闭包)；不维护第二套 consumer 库存合同。
+- `raw/manifest.json`、`raw/transport.json` 与 `raw/stderr.raw` 保留原生采集格式和原字节。
 - 不生成 `adoption.json`、`review.json`、`qualification.json` 或
   `official-replay/`。
 
 ## 状态与历史
 
 `--history-seed` 是可选的完整历史种子，由工具校验后复制到隔离环境。record 完成时只快照
-隔离环境中的以下子树：
+隔离环境中回放所需的原生历史，并发布为 material 内的规范布局：
 
 ```text
-config/projects/...
-config/sessions/...
-history-seed/...
+material/history/
+  seed/...       # prepare 冻结 seed 在 material 生命周期内的副本
+  runtime/...    # record 完成时的原生 projects/sessions 等历史
 ```
 
-工具只写入普通文件，拒绝符号链接、目录穿越和其他路径。快照完成后，每个文件的
-SHA-256 写入 `manifest.savedFiles`。`plan.json` 不被改写，`planSHA256` 仍绑定
-消费者原始 plan。
+fixture source 与 material 的完整闭包、history/seed 与 history/runtime 的唯一副本、
+historyBindings 及 Claude 派生规则统一遵循
+[材料计划与运行配置](design.md#材料计划与运行配置)。consumer format 3 同样使用
+source-plan 原件与派生 material plan，不再声称 planSHA256 同时绑定两者。
 
-回放时，mock route 从材料复制这些文件到本次 execution overlay；mock 返回前校验已绑定历史文件
-未被改写。SDK 在回放期间可以创建新的会话或历史文件，但不能修改已绑定的种子文件。
-没有历史种子的录制从空状态开始，只覆盖本次协议交互。
+回放时，mock route 按绑定从 `material/history/` 把文件 materialize 到本次完整
+可写 execution overlay；mock 返回前校验已绑定历史文件未被改写。SDK 在回放期间
+可以创建新的会话或历史文件，但不能修改已绑定的种子文件。没有历史种子的录制从
+空状态开始，只覆盖本次协议交互。
 
 ## 协议执行结果
 
@@ -237,19 +267,23 @@ agent-sdk-testify agent record --fixture-dir /absolute/fixture \
 ```
 
 领取 execution 后，命令先写入一条 `status: running` JSONL 通知，结束时再写入
-`passed` 或 `failed` 通知。领取前失败不会通知或创建 execution。每条通知包含
-`fixtureId`、`executionId`、`connectionId`、`command`、`execution` descriptor 路径、
-`receipt` 和持久 `result` 路径；mock 还包含 `processReceipt`。最终通知包含
-`executionSHA256`；成功 record 和所有 mock 通知中的 `material` 包含精确材料 ID、
-plan、manifest、raw 哈希，不包含本机 material 路径。record 失败不把未发布材料当成
-成功材料引用。
+`passed` 或 `failed` 通知。领取前失败不会通知或创建 execution。schema 3 的每条通知包含
+`fixtureId`、`materialId`、`executionId`、`connectionId`、`command`、
+`execution` descriptor 路径、`receipt` 和持久 `result` 路径；mock 还包含
+`processReceipt`。通知包含不可变 descriptor 的 `executionSHA256`；成功 record 的最终通知和所有 mock
+通知中的 `material` 包含精确 material ID、plan、manifest、raw 哈希，
+不包含本机 material 路径。record 提交前失败不把未发布材料当成成功引用；publicationCommitted 区分提交前失败
+与已提交后的通知/清理失败，不能把后者解释为 current 仍是旧材料。
 
 即使不传 `--result-fd`，同一结果仍保存在
-`executions/<executionId>/receipts/<connectionId>.result.json`。
+`packages/<materialId>/executions/<executionId>/receipts/<connectionId>.result.json`。
 结果版本及路径基准遵循[路径相关证据](design.md#路径相关证据)和
 [schema 版本与兼容](design.md#schema-版本与兼容)。通知与落盘结果完全一致；
-消费者使用本次传入的 fixture 根目录解析文件引用，不能将通知中的相对路径直接
-交给依赖宿主 cwd 的文件读取操作。
+消费者用本次传入的 fixture 根和通知中的 material ID 定位
+`<fixture>/packages/<materialId>/`，再把通知中的 package 相对路径拼到该包根。
+不得把 package 相对引用改成 fixture 根引用，也不得将相对路径直接交给依赖宿主
+cwd 的文件读取操作。running 通知已经包含 material ID，因此 execution 尚未派完
+所有连接时也能定位当前 package。
 结果通知通过本次进程明确关联身份，调用方不得扫描最新目录来猜测归属。
 单个 connection 的 `passed` 不代表同一 execution 的其他 connection 已完成；
 完整状态以 execution index 和各 receipt 为准。多连接调用分别使用独立结果描述符。
@@ -326,6 +360,6 @@ source 互斥、绝对路径、plan/agentType 不一致、原生参数白名单�
 - 不模拟录制中的 shell、文件编辑、hooks 或模型调用及其副作用。
 - 不安装真实 Agent、不执行登录或认证流程；只读取 agent type 标准配置位置和当前进程
   中已存在的允许项。
-- 不启动消费者自己的 SDK 宿主；消费者应用 descriptor 后自行启动。
+- 不启动消费者自己的 SDK 宿主；消费者应用运行时 route 后自行启动。
 - 不把 consumer material 变成官方 case、官方验证结果或发布材料。
 - v1 不实现 `probe` 或其他多连接录制。

@@ -48,15 +48,15 @@ fixture。它是唯一提供 source 选择的命令，不启动客户端、SDK�
 
 **Tool source（工具来源）**:
 prepare 记录的工具入口身份：`executable` 表示 installed CLI，`embedded` 表示可导入
-Go 库。两者使用判别式身份：executable 记录绝对路径与哈希，embedded 记录模块路径、
+Go 库。两者使用判别式身份：executable 持久化版本与哈希、运行时解析当前可执行路径，embedded 记录模块路径、
 版本/修订、可用时的提交时间和 Go 版本，不把 module path 当作 command，也不伪造
 launcher。非 main 测试二进制缺少 module dependency 时，库调用方可用 exact pin 的
 显式 `EmbeddedIdentity` 补充；能自证的 build info 始终优先。
 
 **agent record**:
 在 fixture 中显式启动真实 Agent，按 case 或 consumer plan 采集新的原生交互尝试。
-成功后生成新 material 并原子替换 current recording；失败保留 execution 证据但不
-替换 current。
+成功后生成新 material 并原子替换 current recording；提交前失败保留 execution 证据但不
+替换 current；提交后交付失败保留已提交事实，发布边界见工具设计。
 
 **Official driver（官方驱动）**:
 使用本仓库指定的官方 SDK 执行 case 的程序；负责业务操作、断言和 SDK 收尾。
@@ -75,7 +75,7 @@ launcher。非 main 测试二进制缺少 module dependency 时，库调用方�
 对端。mock 不要求 current 已经 verify，也不提供 Agent 版本或元命令。
 
 **export**:
-把 current recording 的完整材料包复制到 fixture 外。export 不改变 fixture，不导出
+把 current recording 中封闭的 material core 原字节复制到 fixture 外；导出根就是 material 根。export 不改变 fixture，不导出
 全部 execution 或 receipt，也不产生 verified 或入仓结论。
 
 **Consumer（消费者）**:
@@ -88,7 +88,7 @@ launcher。非 main 测试二进制缺少 module dependency 时，库调用方�
 
 **Action execution（action 执行）**:
 fixture 中的一次 record 或 mock 执行，由
-`executions/<executionId>/execution.json` 描述；每个 execution 使用独立可写 overlay。
+`packages/<materialId>/executions/<executionId>/execution.json` 描述；每个 execution 使用独立可写 overlay。
 它不是额外的 CLI 步骤。
 
 **Connection status（连接状态）**:
@@ -130,16 +130,20 @@ prepare 固化的 plan、协议项目和来源身份。每次 agent record 使�
 current recording 的切换改变。
 
 **Current recording（当前录制）**:
-fixture 当前选中的唯一 material。verify、mock 和 export 都以它为输入；record
-成功时原子替换，失败时保持不变。
+fixture 当前选中的唯一 materialId 及封存 core 哈希；由它定位 recording package。verify、mock 和 export 都以它为输入；record
+成功提交时原子替换；提交前失败保持不变，提交后交付错误不撤销已提交事实。
 
 ## 材料与发布
 
 **Capture attempt（采集尝试）**:
 某个 agent type 对一个 case 的一次实际录制，包含 plan、raw、业务报告和收尾证据。
 
-**Material（材料）**:
-完整、不可变的录制包，包含 plan、manifest、raw、绑定历史和来源哈希。Material 可以
+**Recording package（录制证据包）**:
+以唯一 materialId 标识、由 fixture 与最终 case 共用布局的持久包，包含 material core
+及独立 execution、record、verify 证据域；没有同值 recordingId 或 packageId 别名。
+
+**Material（材料 / material core）**:
+录制证据包内完整、不可变的回放输入，包含唯一派生 plan、原始 source plan、manifest、raw、绑定历史和来源闭包。Material 可以
 直接作为 mock 或 export 的输入，不要求先通过 verify。
 
 **Consumer material（消费者材料）**:
