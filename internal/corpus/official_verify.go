@@ -17,6 +17,8 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 	if tool.ReadJSON(filepath.Join(root, "verification.json"), &evidence) != nil || evidence["pipeline"] != "public-agent-mock" {
 		return false
 	}
+	schemaVersion := evidence["schemaVersion"]
+	v.Check(schemaVersion == float64(1) || schemaVersion == float64(2), "unsupported official verification schemaVersion")
 	v.Check(evidence["status"] == "passed" && evidence["error"] == nil && evidence["cleanupComplete"] == true, "official verification failed or incomplete")
 	v.Check(evidence["case"] == plan["caseId"] && evidence["provider"] == plan["provider"], "official verification binding differs")
 	actualSource := v.Inventory(source, false)
@@ -32,7 +34,11 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 	}
 	v.Check(reflect.DeepEqual(actualSource, expectedSource), "verification source inventory differs")
 	v.Hashes(root, tool.Obj(evidence["files"]))
-	for _, name := range []string{"driver/replay-report.json", "driver/result.json", "driver/request.json", "driver/materials/case.json"} {
+	requiredDriverEvidence := []string{"driver/replay-report.json", "driver/result.json", "driver/request.json", "driver/materials/case.json"}
+	if schemaVersion == float64(2) {
+		requiredDriverEvidence = append(requiredDriverEvidence, "driver/runtime.json", "driver/mock-isolation.json")
+	}
+	for _, name := range requiredDriverEvidence {
 		v.Check(tool.Str(tool.Obj(evidence["files"])[name]) != "", "verification omits driver evidence hash")
 	}
 
@@ -44,6 +50,7 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 	v.Check(len(refs) == len(Phases(plan)), "verification connection inventory differs")
 	seen := map[string]bool{}
 	executionID := ""
+	executions := map[string]tool.Object{}
 	for _, item := range refs {
 		ref := tool.Obj(item)
 		id := tool.Str(ref["connectionId"])
@@ -59,6 +66,7 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 		}
 		v.Hashes(root, files)
 		execution := v.Read(root, prefix+"execution.json")
+		executions[tool.Str(execution["executionId"])] = execution
 		result := v.Read(root, prefix+"result.json")
 		process := v.Read(root, prefix+"process.json")
 		receipt := v.Read(root, prefix+"replay.json")
@@ -89,5 +97,35 @@ func (v *Validation) publicVerification(source, root string, plan tool.Object) b
 		}
 		v.Check(receipt["recordingSHA256"] == v.Digest(source, raw) && receipt["planSHA256"] == v.Digest(source, "plan.json") && receipt["provider"] == plan["provider"] && receipt["status"] == "passed" && receipt["fullConsumption"] == true && receipt["clientEOF"] == true && receipt["cleanupComplete"] == true && receipt["nativeLaunched"] == false && receipt["exitCode"] == float64(0) && receipt["error"] == nil, "mock receipt does not prove exact complete replay")
 	}
+	if schemaVersion == float64(2) {
+		v.validateMockIsolation(root, plan, evidence, executions)
+	}
 	return true
+}
+
+func (v *Validation) validateMockIsolation(root string, plan, evidence tool.Object, executions map[string]tool.Object) {
+	isolation := v.Read(root, "driver/mock-isolation.json")
+	reference := tool.Obj(evidence["mockIsolation"])
+	executionID := tool.Str(isolation["executionId"])
+	execution := executions[executionID]
+	v.Check(isolation["schemaVersion"] == float64(2) && isolation["fixtureId"] == evidence["fixtureId"] && executionID != "" && len(execution) > 0, "current mock isolation identity is missing or differs")
+	v.Check(reference["path"] == "driver/mock-isolation.json" && reference["sha256"] == tool.Obj(evidence["files"])["driver/mock-isolation.json"], "current mock isolation reference differs")
+	v.Check(isolation["command"] == "mock" && reflect.DeepEqual(isolation["material"], evidence["material"]), "current mock isolation belongs to another material or action")
+	v.Check(reflect.DeepEqual(isolation["nativeArgs"], execution["nativeArgs"]), "current mock isolation argv differs from its execution")
+	executionReference := tool.Obj(isolation["execution"])
+	v.Check(executionReference["path"] == "executions/"+executionID+"/execution.json" && executionReference["sha256"] == tool.Obj(evidence["files"])["driver/connections/main/execution.json"], "current mock isolation execution reference differs")
+	workspace := tool.Str(isolation["workspace"])
+	overlay := filepath.Dir(workspace)
+	v.Check(filepath.IsAbs(workspace) && filepath.Clean(workspace) == workspace && filepath.Base(workspace) == "workspace" && filepath.Base(overlay) == executionID && filepath.Base(filepath.Dir(overlay)) == "executions", "current mock workspace is outside its execution overlay")
+	v.Check(isolation["protocolCwd"] != nil, "current mock protocol cwd is missing")
+	if plan["provider"] == "codex" {
+		v.Check(isolation["protocolCwd"] == plan["project"], "codex mock protocol identity was replaced")
+	}
+	env := tool.Obj(isolation["environment"])
+	for key, relative := range map[string]string{"HOME": "home", "TMPDIR": "tmp", "XDG_CONFIG_HOME": "home/.config", "XDG_CACHE_HOME": "home/.cache", "XDG_DATA_HOME": "home/.local/share"} {
+		v.Check(env[key] == filepath.Join(overlay, relative), "current mock environment escapes isolation: "+key)
+	}
+	configKey := map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[tool.Str(plan["provider"])]
+	v.Check(configKey != "" && env[configKey] == filepath.Join(overlay, "config"), "current mock native config escapes isolation")
+	v.Check(isolation["home"] == filepath.Join(overlay, "home") && isolation["config"] == filepath.Join(overlay, "config") && isolation["tmp"] == filepath.Join(overlay, "tmp"), "current mock directory relationships differ")
 }

@@ -231,13 +231,29 @@ func runPreparationFixture(ctx context.Context, o preparationOptions) error {
 	if err != nil {
 		return err
 	}
-	request := official.Request{Case: tool.Str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Workspace: workspace, Output: o.Output, Peer: official.DriverPeer{Command: tool.Command{Command: self, Args: []string{"preparation-kernel", string(encoded)}}}}
+	runtimePath := filepath.Join(o.Output, "runtime.json")
+	runtime := tool.Object{
+		"schemaVersion": float64(1),
+		"root":          o.Output,
+		"workspace":     workspace,
+		"home":          filepath.Join(o.Output, "home"),
+		"config":        filepath.Join(o.Output, "config"),
+		"raw":           filepath.Join(o.Output, "raw"),
+		"tmp":           filepath.Join(o.Output, "tmp"),
+		"output":        o.Output,
+		"replay":        o.Mode != "record",
+		"peer":          tool.Object{"command": self, "args": []string{"preparation-kernel", string(encoded)}},
+	}
+	if err := tool.WriteJSON(runtimePath, runtime); err != nil {
+		return err
+	}
+	request := official.Request{Case: tool.Str(plan["caseId"]), Materials: filepath.Join(o.Output, "materials"), Runtime: runtimePath}
 	path := filepath.Join(o.Output, "request.json")
 	if err := tool.WriteJSON(path, request); err != nil {
 		return err
 	}
 	cmd := exec.CommandContext(ctx, o.Driver, append(o.DriverArgs, "--request", path)...)
-	cmd.Dir, cmd.Stdout, cmd.Stderr = request.Workspace, os.Stdout, os.Stderr
+	cmd.Dir, cmd.Stdout, cmd.Stderr = workspace, os.Stdout, os.Stderr
 	// The driver is an external test double. Give it the prepared native
 	// inputs explicitly; CLI environment filtering is covered by E2E.
 	cmd.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + filepath.Join(o.Output, "home"), "TMPDIR=" + filepath.Join(o.Output, "tmp"), "GORACE=" + os.Getenv("GORACE")}

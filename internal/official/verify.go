@@ -61,7 +61,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	}
 	var activity *lifecycle.OfficialRun
 	verificationSaved := false
-	evidence := tool.Object{"schemaVersion": 1, "fixtureId": fixture.FixtureID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
+	evidence := tool.Object{"schemaVersion": 2, "fixtureId": fixture.FixtureID, "mode": "verify", "pipeline": "public-agent-mock", "status": "failed", "cleanupComplete": true, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
 		if activity == nil {
 			return
@@ -89,7 +89,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if material.Provenance != "official" && material.Provenance != "builtin" {
 		return errors.New("material has no applicable official verifier: provenance must be official or builtin")
 	}
-	evidence["recording"], evidence["material"] = material.Path, material
+	evidence["material"] = material
 	before, err := corpus.Inventory(material.Path, false)
 	if err != nil {
 		return err
@@ -148,7 +148,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		return err
 	}
 	o.FixtureDir, fixture = activity.FixtureDir, activity.Fixture
-	evidence["id"], evidence["output"] = activity.ID, activity.Dir
+	evidence["id"] = activity.ID
 	pinned, err := lifecycle.LatestArtifact(o.FixtureDir, fixture)
 	if err != nil {
 		return err
@@ -175,12 +175,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	root := filepath.Join(activity.Dir, "driver")
 	route := fixture.Routes["mock"]
 	env := route.Env
-	plan["root"], plan["home"], plan["config"], plan["raw"] = root, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(material.Path, "raw")
-	plan["_seedRoot"] = filepath.Dir(route.Workspace)
-	plan["_recordedWorkspace"] = plan["_fixtureProject"]
-	plan["_fixtureProject"], plan["_replay"] = route.Workspace, true
-	// project/historyProject retain the original native protocol cwd. Only the
-	// fixture and SDK host use the ordinary mock route slots.
+	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(material.Path, "raw"), env["TMPDIR"], filepath.Dir(route.Workspace), true)
 	private := filepath.Join(fixture.ResourceRoot, "official", activity.ID)
 	peers := make(map[string]tool.Command, len(material.Connections))
 	for _, id := range material.Connections {
@@ -198,7 +193,8 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		Workspace:  route.Workspace,
 		Root:       root,
 		PrivateDir: private,
-		Plan:       plan,
+		Material:   plan,
+		Runtime:    runtime,
 		Peers:      peers,
 		ReportFile: "replay-report.json",
 		Inspect: func(outcome, report tool.Object, priorErr error) error {
@@ -213,6 +209,10 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 				inspectErr = errors.Join(inspectErr, errors.New("material changed during verification"))
 			}
 			inspectErr = errors.Join(inspectErr, snapshotMocks(o.FixtureDir, activity.Dir, refs), activity.RestoreMockRoute())
+			if inspectErr == nil {
+				inspectErr = errors.Join(inspectErr, writeMockIsolation(o.FixtureDir, fixture, root, *material, refs))
+				evidence["mockIsolation"] = tool.Object{"path": "driver/mock-isolation.json"}
+			}
 			if c.Index != "" && material.OfficialOrigin != nil && errors.Join(priorErr, inspectErr) == nil {
 				target := filepath.Join(root, "record-origin")
 				recordEvidenceErr = lifecycle.SnapshotOfficialRecord(o.FixtureDir, fixture, *material, target)
@@ -238,6 +238,9 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	evidence["files"] = tool.Object{}
 	for name, hash := range run.Files {
 		tool.Obj(evidence["files"])["driver/"+name] = hash
+	}
+	if isolation := tool.Obj(evidence["mockIsolation"]); len(isolation) > 0 {
+		isolation["sha256"] = tool.Obj(evidence["files"])["driver/mock-isolation.json"]
 	}
 	// Preserve successful verification independently of an optional admission.
 	if runErr == nil {

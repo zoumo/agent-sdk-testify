@@ -96,7 +96,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		return err
 	}
 	o.FixtureDir, fixture = activity.FixtureDir, activity.Fixture
-	result := tool.Object{"schemaVersion": 1, "id": activity.ID, "fixtureId": fixture.FixtureID, "mode": "record", "status": "failed", "cleanupComplete": true, "case": plan["caseId"], "agentType": fixture.AgentType, "source": fixture.Source, "driver": tool.Object{"path": driver, "sha256": driverHash}, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
+	result := tool.Object{"schemaVersion": 2, "id": activity.ID, "fixtureId": fixture.FixtureID, "mode": "record", "status": "failed", "cleanupComplete": true, "case": plan["caseId"], "agentType": fixture.AgentType, "source": fixture.Source, "driver": tool.Object{"sha256": driverHash}, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
 		result["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
 		if runErr != nil {
@@ -117,20 +117,20 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	route := fixture.Routes["record"]
 	// These are the normal stable route slots, rebound by agent record. There
 	// is no second protocol workspace or SDK-specific transport implementation.
-	plan["root"], plan["project"], plan["home"], plan["config"] = root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]]
-	plan["_fixtureProject"] = route.Workspace
+	plan["project"] = route.Workspace
 	plan["args"] = o.NativeArgs
 	plan["stdinEOFAction"] = "close"
 	if fixture.AgentType == "claude" && plan["driverProfile"] == "interrupt" {
 		plan["stdinEOFAction"] = "interrupt"
 	}
-	plan["raw"] = filepath.Join(root, "raw")
+	seedRoot := ""
 	if plan["driverProfile"] == "existing-children" {
-		plan["_seedRoot"] = filepath.Dir(route.Workspace)
+		seedRoot = filepath.Dir(route.Workspace)
 		if fixture.AgentType == "claude" {
 			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
 		}
 	}
+	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(root, "raw"), filepath.Join(root, "tmp"), seedRoot, false)
 	private := filepath.Join(fixture.ResourceRoot, "official", activity.ID)
 	var service interface {
 		URL() string
@@ -231,7 +231,12 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 				return
 			}
 			execution.RuntimeEnv = runtimeEnv
-			if err := lifecycle.SaveNativePreparation(o.FixtureDir, fixture, *execution, runtimePlan, runtimePlanPath); err != nil {
+			materialPlanPath := filepath.Join(filepath.Dir(runtimePlanPath), "material-plan.json")
+			if err := tool.WriteJSON(materialPlanPath, corpus.MaterialPlanFromRuntime(runtimePlan)); err != nil {
+				serviceDone <- err
+				return
+			}
+			if err := lifecycle.SaveNativePreparation(o.FixtureDir, fixture, *execution, runtimePlan, runtimePlanPath, materialPlanPath); err != nil {
 				serviceDone <- err
 				return
 			}
@@ -264,7 +269,8 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		Workspace:  route.Workspace,
 		Root:       root,
 		PrivateDir: private,
-		Plan:       plan,
+		Material:   corpus.MaterialPlanFromRuntime(plan),
+		Runtime:    runtime,
 		Peers:      peers,
 		ReportFile: "report.json",
 		Inspect: func(outcome, report tool.Object, _ error) error {
@@ -276,11 +282,28 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 				executionID := tool.Str(refs[0]["executionId"])
 				execution, preparationErr := lifecycle.ReadExecution(o.FixtureDir, fixture, filepath.Join(o.FixtureDir, "executions", executionID, "execution.json"))
 				if preparationErr == nil {
-					isolationHash, isolationErr := tool.FileDigest(filepath.Join(o.FixtureDir, "executions", executionID, "receipts", "isolation.json"))
-					planHash, planErr := tool.FileDigest(filepath.Join(filepath.Dir(execution.Home), "record-plan.json"))
-					preparationErr = errors.Join(isolationErr, planErr)
+					preparationErr = lifecycle.RebindNativePreparationExecution(o.FixtureDir, *execution)
+				}
+				if preparationErr == nil {
+					paths := map[string]string{
+						"execution":    filepath.Join(o.FixtureDir, "executions", executionID, "execution.json"),
+						"isolation":    filepath.Join(o.FixtureDir, "executions", executionID, "receipts", "isolation.json"),
+						"preparedPlan": filepath.Join(filepath.Dir(execution.Home), "record-plan.json"),
+						"materialPlan": filepath.Join(filepath.Dir(execution.Home), "material-plan.json"),
+					}
+					references := tool.Object{}
+					for name, path := range paths {
+						reference, referenceErr := lifecycle.FixtureReference(o.FixtureDir, path)
+						hash, hashErr := tool.FileDigest(path)
+						preparationErr = errors.Join(preparationErr, referenceErr, hashErr)
+						references[name] = tool.Object{"path": reference, "sha256": hash}
+					}
 					if preparationErr == nil {
-						result["recordPreparation"] = tool.Object{"executionId": executionID, "isolationSHA256": isolationHash, "preparedPlanSHA256": planHash}
+						preparation := tool.Object{"schemaVersion": 2, "executionId": executionID, "material": execution.Artifact}
+						for name, reference := range references {
+							preparation[name] = reference
+						}
+						result["recordPreparation"] = preparation
 					}
 				}
 				inspectErr = errors.Join(inspectErr, preparationErr)

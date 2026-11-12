@@ -41,6 +41,15 @@ func Bindings(root string) (map[string]string, error) {
 		return nil, err
 	}
 	seed := tool.Obj(plan["historySeed"])
+	if source := tool.Str(seed["sourceRootRef"]); source != "" {
+		sourceBindings := tool.Object{}
+		for name, digest := range tool.Obj(seed["sourceFiles"]) {
+			sourceBindings[path.Join(source, name)] = digest
+		}
+		if err := addBindings(root, bindings, "plan.historySeed.sourceFiles", sourceBindings, tool.Str); err != nil {
+			return nil, err
+		}
+	}
 	if seed["projectSnapshot"] == "history-seed/project" {
 		projectBindings := tool.Object{}
 		for name, value := range tool.Obj(seed["projectFiles"]) {

@@ -20,7 +20,8 @@ type driverRunOptions struct {
 	Workspace  string
 	Root       string
 	PrivateDir string
-	Plan       tool.Object
+	Material   tool.Object
+	Runtime    tool.Object
 	Peers      map[string]tool.Command
 	ReportFile string
 	// Inspect may add policy-owned evidence after the process and reports are
@@ -38,6 +39,9 @@ type driverRunResult struct {
 }
 
 func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error) {
+	if err := validateDriverRuntime(o.Runtime); err != nil {
+		return nil, err
+	}
 	if err := os.MkdirAll(o.Root, 0o700); err != nil {
 		return nil, err
 	}
@@ -75,16 +79,21 @@ func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error
 			return nil, fmt.Errorf("unsupported driver connection %s", id)
 		}
 	}
-	o.Plan["_agentResults"] = results
+	o.Runtime["agentResults"] = results
+	o.Runtime["peer"] = peer
+	runtimePath := filepath.Join(o.Root, "runtime.json")
+	if err := tool.WriteJSON(runtimePath, o.Runtime); err != nil {
+		return nil, err
+	}
 	materials := filepath.Join(o.Root, "materials")
 	if err := os.MkdirAll(materials, 0o700); err != nil {
 		return nil, err
 	}
-	if err := tool.WriteJSON(filepath.Join(materials, "case.json"), o.Plan); err != nil {
+	if err := tool.WriteJSON(filepath.Join(materials, "case.json"), o.Material); err != nil {
 		return nil, err
 	}
 	requestPath := filepath.Join(o.Root, "request.json")
-	if err := tool.WriteJSON(requestPath, Request{Case: tool.Str(o.Plan["caseId"]), Materials: materials, Workspace: o.Workspace, Peer: peer, Output: o.Root}); err != nil {
+	if err := tool.WriteJSON(requestPath, Request{Case: tool.Str(o.Material["caseId"]), Materials: materials, Runtime: runtimePath}); err != nil {
 		return nil, err
 	}
 	stdout, err := os.OpenFile(filepath.Join(o.Root, "stdout.log"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)

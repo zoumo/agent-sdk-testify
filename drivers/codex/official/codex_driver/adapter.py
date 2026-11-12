@@ -5,6 +5,7 @@ from pathlib import Path
 from record_user_story.policy import SYSTEM, driver_profile
 from record_user_story.scenarios import Untriggered
 from record_user_story.stimuli import content
+from record_user_story.runtime_config import execution_workspace
 
 
 from record_user_story.adapters.common import serial, proxy_command, configuration_acknowledged
@@ -26,7 +27,7 @@ def codex(plan, report, flow):
         params = params or {}
         if method == 'item/tool/call':
             name, args = params.get('tool'), params.get('arguments') or {}
-            project = Path(plan.get('_fixtureProject', plan['project'])).resolve()
+            project = execution_workspace(plan).resolve()
             path = Path(args.get('path', ''))
             if path.is_absolute():
                 try:
@@ -72,7 +73,7 @@ def codex(plan, report, flow):
             return {'decision': 'accept'}
         raise NotImplementedError('unsupported native request: ' + method)
 
-    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=plan.get('_fixtureProject', plan['project']),
+    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=str(execution_workspace(plan)),
                          client_name='official-python-story-recorder', client_title='Protocol recording')
     with CodexClient(config=config, approval_handler=answer) as client:
         report['receipts'].append({'initialize': serial(client.initialize())})

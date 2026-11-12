@@ -38,6 +38,18 @@ func recordDriverSubstitute(args []string) int {
 	if len(args) != 3 || args[1] != "--request" || tool.ReadJSON(args[2], &req) != nil {
 		return 2
 	}
+	var runtime struct {
+		SchemaVersion float64 `json:"schemaVersion"`
+		Workspace     string  `json:"workspace"`
+		Output        string  `json:"output"`
+		Peer          struct {
+			tool.Command
+			Probe *tool.Command `json:"probe"`
+		} `json:"peer"`
+	}
+	if tool.ReadJSON(req.Runtime, &runtime) != nil || runtime.SchemaVersion != 1 {
+		return 2
+	}
 	var plan tool.Object
 	if tool.ReadJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
 		return 2
@@ -47,14 +59,14 @@ func recordDriverSubstitute(args []string) int {
 	if provider == "claude" {
 		configKey = "CLAUDE_CONFIG_DIR"
 	}
-	if _, err := os.Stat(filepath.Join(req.Workspace, "numbers.txt")); err != nil {
+	if _, err := os.Stat(filepath.Join(runtime.Workspace, "numbers.txt")); err != nil {
 		return 4
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		return 5
 	}
-	cmd := exec.CommandContext(context.Background(), req.Peer.Command.Command, req.Peer.Command.Args...)
+	cmd := exec.CommandContext(context.Background(), runtime.Peer.Command.Command, runtime.Peer.Command.Args...)
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return 5
@@ -80,15 +92,15 @@ func recordDriverSubstitute(args []string) int {
 	}
 	observed := tool.Object{
 		"cwd":       cwd,
-		"workspace": req.Workspace,
+		"workspace": runtime.Workspace,
 		"home":      os.Getenv("HOME"),
 		"config":    os.Getenv(configKey),
 		"tmp":       os.Getenv("TMPDIR"),
 	}
-	if tool.WriteJSON(filepath.Join(req.Output, "report.json"), tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": tool.Object{"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider], "version": "synthetic-only"}, "observed": observed}) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "report.json"), tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": tool.Object{"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider], "version": "synthetic-only"}, "observed": observed}) != nil {
 		return 6
 	}
-	if tool.WriteJSON(filepath.Join(req.Output, "result.json"), tool.Result{Status: status, Message: "synthetic-only"}) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Result{Status: status, Message: "synthetic-only"}) != nil {
 		return 6
 	}
 	return 0
@@ -183,11 +195,19 @@ func recordVerifyDriverSubstitute(args []string) int {
 	if len(args) != 3 || args[1] != "--request" || tool.ReadJSON(args[2], &req) != nil {
 		return 2
 	}
+	var runtime struct {
+		SchemaVersion float64      `json:"schemaVersion"`
+		Output        string       `json:"output"`
+		Peer          tool.Command `json:"peer"`
+	}
+	if tool.ReadJSON(req.Runtime, &runtime) != nil || runtime.SchemaVersion != 1 {
+		return 2
+	}
 	var plan tool.Object
 	if tool.ReadJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
 		return 2
 	}
-	cmd := exec.CommandContext(context.Background(), req.Peer.Command.Command, req.Peer.Command.Args...)
+	cmd := exec.CommandContext(context.Background(), runtime.Peer.Command, runtime.Peer.Args...)
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return 3
@@ -206,7 +226,7 @@ func recordVerifyDriverSubstitute(args []string) int {
 	if cmd.Wait() != nil {
 		status = "failed"
 	}
-	if tool.WriteJSON(filepath.Join(req.Output, "replay-report.json"), tool.Object{
+	if tool.WriteJSON(filepath.Join(runtime.Output, "replay-report.json"), tool.Object{
 		"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
 		"status": status, "branchStatus": status, "captureStatus": "complete",
 		"officialSDK": tool.Object{
@@ -216,7 +236,7 @@ func recordVerifyDriverSubstitute(args []string) int {
 	}) != nil {
 		return 4
 	}
-	if tool.WriteJSON(filepath.Join(req.Output, "result.json"), tool.Object{"status": status}) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Object{"status": status}) != nil {
 		return 4
 	}
 	return 0

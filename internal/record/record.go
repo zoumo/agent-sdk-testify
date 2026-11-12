@@ -134,7 +134,7 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 			return nil, err
 		}
 		var derived tool.Object
-		if err := tool.ReadJSON(filepath.Join(run.OverlayRoot(), "record-plan.json"), &derived); err != nil {
+		if err := tool.ReadJSON(filepath.Join(run.OverlayRoot(), "material-plan.json"), &derived); err != nil {
 			return nil, err
 		}
 		derived["sourcePlanSHA256"] = tool.DigestBytes(planBytes)

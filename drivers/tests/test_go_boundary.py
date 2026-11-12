@@ -137,7 +137,9 @@ for line in sys.stdin:
                 self.assertEqual(json.loads(replay_report.read_bytes())['status'], 'passed')
                 index = json.loads((fixture/'executions/index.json').read_text())
                 execution = json.loads((fixture/'executions'/index['executions'][-1]['id']/'execution.json').read_text())
-                completion = json.loads(Path(execution['connections'][0]['receipt']).read_text())
+                receipt = Path(execution['connections'][0]['receipt'])
+                receipt = receipt if receipt.is_absolute() else fixture / receipt
+                completion = json.loads(receipt.read_text())
                 self.assertTrue(completion['fullConsumption'])
                 self.assertTrue(completion['clientEOF'])
                 self.assertFalse(completion['nativeLaunched'])

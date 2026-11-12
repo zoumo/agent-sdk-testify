@@ -12,11 +12,9 @@ type DriverPeer struct {
 }
 
 type Request struct {
-	Case      string     `json:"case"`
-	Materials string     `json:"materials"`
-	Workspace string     `json:"workspace"`
-	Peer      DriverPeer `json:"peer"`
-	Output    string     `json:"output"`
+	Case      string `json:"case"`
+	Materials string `json:"materials"`
+	Runtime   string `json:"runtime"`
 }
 
 // Resolve only the console scripts shipped by the official-driver wheel.

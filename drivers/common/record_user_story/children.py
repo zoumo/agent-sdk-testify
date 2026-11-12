@@ -10,6 +10,7 @@ from .child_policy import CHILD_FILE, CHILD_ROLE, CHILD_TEXT, child_task, role_f
 from .adapters.common import proxy_command, serial
 from .environment import read_regular
 from .policy import driver_profile
+from .runtime_config import execution_workspace, protocol_project
 
 
 def limitation(report, message):
@@ -78,7 +79,7 @@ def codex(plan, report):
             return {'contentItems': [{'type': 'inputText', 'text': 'Fixture read is not authorized.'}], 'success': False}
         # The callback reads only the newly generated synthetic file. Native
         # membership evidence is recorded separately, never inferred from this ID.
-        content = read_regular(Path(plan.get('_fixtureProject', plan['project'])) / CHILD_FILE).decode()
+        content = read_regular(execution_workspace(plan) / CHILD_FILE).decode()
         if strict and background:
             # Subscribe before answering the read: completion may arrive before
             # thread/read returns. Registering after a snapshot loses that event.
@@ -89,7 +90,7 @@ def codex(plan, report):
         read_done.set()
         return {'contentItems': [{'type': 'inputText', 'text': content}], 'success': True}
 
-    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=plan['project'],
+    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=str(execution_workspace(plan)),
                          client_name='official-python-child-case', client_title='Synthetic child read case')
     with codex_child_environment(plan, strict, background) as marker, CodexClient(config=config, approval_handler=answer) as client:
         report['receipts'].append({'initialize': serial(client.initialize())})
@@ -257,11 +258,11 @@ async def claude(plan, report):
                              and values.get('subagent_type') == CHILD_ROLE and values.get('run_in_background') is True
                              and values.get('prompt') == child_task('claude', strict=True))
             path = values.get('file_path')
-            protocol_project = Path(plan.get('_recordedWorkspace') or plan['project'])
+            recorded_project = protocol_project(plan)
             allowed_read = (tool == 'Read' and getattr(context, 'agent_id', None)
                             and getattr(context, 'tool_use_id', None) and agent_tool_id
                             and isinstance(path, str)
-                            and (protocol_project / path).resolve() == (protocol_project / CHILD_FILE).resolve()
+                            and (recorded_project / path).resolve() == (recorded_project / CHILD_FILE).resolve()
                             and not read_requests and not read_pending)
             if not allowed_agent and not allowed_read:
                 report['gaps'].append('unauthorized or repeated child tool request: ' + tool)
@@ -309,7 +310,7 @@ async def claude(plan, report):
     definition = AgentDefinition(description='Read the synthetic child-fixture.txt and return its token.',
                  prompt=child_task('claude', strict=strict), background=background, model='inherit',
                  **({'tools': ['Read']} if strict else {}))
-    options = ClaudeAgentOptions(cwd=plan['project'], can_use_tool=permission,
+    options = ClaudeAgentOptions(cwd=str(execution_workspace(plan)), can_use_tool=permission,
                agents={CHILD_ROLE: definition}, include_partial_messages=True)
     async with ClaudeSDKClient(options=options, transport=RawTransport()) as client:
         try:
