@@ -206,9 +206,6 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 				inspectErr = errors.Join(inspectErr, errors.New("material changed during verification"))
 			}
 			inspectErr = errors.Join(inspectErr, activity.RestoreMockRoute())
-			if inspectErr == nil {
-				inspectErr = writeMockIsolation(o.FixtureDir, fixture, root, *material, refs)
-			}
 
 			return inspectErr
 		},

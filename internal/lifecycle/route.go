@@ -38,6 +38,10 @@ func ResolveRoute(fixture *Fixture, action string) (Route, error) {
 // RefreshRoutes writes disposable, non-secret startup views. Persistent evidence
 // never references these files, and no snapshot field supplies mutual exclusion.
 func RefreshRoutes(fixture *Fixture) error {
+	return refreshPreparedRoutes(fixture, fixture.dir)
+}
+
+func refreshPreparedRoutes(fixture *Fixture, publishedDir string) error {
 	current, err := readCurrent(fixture.dir, fixture.FixtureID)
 	if err != nil {
 		return err
@@ -71,6 +75,21 @@ func RefreshRoutes(fixture *Fixture) error {
 				return err
 			}
 			historyFiles, err = history.MaterializeStartup(source, template)
+			if err != nil {
+				return err
+			}
+		}
+
+		if publishedDir != fixture.dir {
+			published := *fixture
+			published.dir = publishedDir
+			// A default protocol cwd follows its workspace. Recorded protocol
+			// identities remain untouched, including absolute original projects.
+			if route.ProtocolCwd == route.Workspace {
+				route.ProtocolCwd = RouteWorkspace(publishedDir, action)
+			}
+			published.Routes = map[string]Route{action: route}
+			route, err = ResolveRoute(&published, action)
 			if err != nil {
 				return err
 			}

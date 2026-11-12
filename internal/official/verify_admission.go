@@ -61,6 +61,9 @@ func admitVerified(materials string, summary tool.Object, err error, c corpus.Co
 func admitPackage(materials, root string, err error, c corpus.Corpus) error {
 	private := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(materials))), "runtime", "official", filepath.Base(root))
 	summary := tool.Object{"status": "rejected"}
+	for name, value := range map[string]string{"index": c.Index, "scenarios": c.Scenarios, "archive": c.Archive} {
+		summary[name] = value
+	}
 	var review tool.Object
 	if err == nil {
 		review, err = c.Qualification(materials, root, false)

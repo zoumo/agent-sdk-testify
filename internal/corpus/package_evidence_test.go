@@ -24,10 +24,16 @@ func TestPackageMockIsolationValidatesItsOwnExecution(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, os.MkdirAll(filepath.Join(root, "material"), 0o700))
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "material", "plan.json"), plan))
-	domain := filepath.Join(root, "verify", "verification")
+	domain := filepath.Join(root, "executions", executionID)
 	require.NoError(t, os.MkdirAll(domain, 0o700))
+	preparedPath := filepath.Join(domain, "prepared-plan.json")
+	prepared := tool.Object{"schemaVersion": 3, "fixtureId": "fixture", "executionId": executionID, "materialId": material.ID, "command": "mock", "provider": "codex", "sourcePlanSHA256": "", "planSHA256": "", "manifestSHA256": "", "args": declaration["nativeArgs"], "root": overlay, "project": plan["project"], "home": filepath.Join(overlay, "home"), "config": filepath.Join(overlay, "config"), "tmp": filepath.Join(overlay, "tmp")}
+	require.NoError(t, tool.WriteJSON(preparedPath, prepared))
+	preparedHash, err := tool.FileDigest(preparedPath)
+	require.NoError(t, err)
 	valid := func() tool.Object {
 		return tool.Object{
+			"method": "mock-preparation", "preparedPlan": tool.Object{"path": "executions/replay/prepared-plan.json", "sha256": preparedHash},
 			"schemaVersion": 3, "fixtureId": "fixture", "executionId": executionID, "materialId": material.ID,
 			"execution": tool.Object{"path": "executions/replay/execution.json", "sha256": hash},
 			"command":   "mock", "nativeArgs": declaration["nativeArgs"],
@@ -53,6 +59,7 @@ func TestPackageMockIsolationValidatesItsOwnExecution(t *testing.T) {
 		{"other execution", func(o tool.Object) { o["executionId"] = "other" }},
 		{"other material", func(o tool.Object) { o["materialId"] = "other" }},
 		{"wrong argv", func(o tool.Object) { o["nativeArgs"] = []any{"other"} }},
+		{"wrong prepared plan hash", func(o tool.Object) { tool.Obj(o["preparedPlan"])["sha256"] = "wrong" }},
 		{"wrong declaration hash", func(o tool.Object) { tool.Obj(o["execution"])["sha256"] = "wrong" }},
 		{"escaping reference", func(o tool.Object) { tool.Obj(o["execution"])["path"] = "../execution.json" }},
 		{"external workspace", func(o tool.Object) { o["workspace"] = "/external/workspace" }},
@@ -67,8 +74,8 @@ func TestPackageMockIsolationValidatesItsOwnExecution(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isolation := valid()
 			tc.mutate(isolation)
-			require.NoError(t, tool.WriteJSON(filepath.Join(domain, "mock-isolation.json"), isolation))
-			err := validatePackageMockIsolation(root, "verification", executionID, material, declaration)
+			require.NoError(t, tool.WriteJSON(filepath.Join(domain, "isolation.json"), isolation))
+			err := validatePackageMockIsolation(root, executionID, material, declaration)
 			if tc.name == "valid" {
 				require.NoError(t, err)
 			} else {
@@ -122,10 +129,10 @@ func TestPackageQualificationRejectsMissingMaterialDescriptor(t *testing.T) {
 	require.NoError(t, os.MkdirAll(material, 0o700))
 	c := &Corpus{}
 	_, err := c.qualifyPackage(material, replay, false)
-	require.ErrorContains(t, err, "format 3 material descriptor")
+	require.ErrorContains(t, err, "material descriptor")
 	_, err = c.ValidateAdmission(material, replay, tool.Object{"schemaVersion": float64(2)})
-	require.ErrorContains(t, err, "format 3 material descriptor")
+	require.ErrorContains(t, err, "material descriptor")
 	require.NoError(t, tool.WriteJSON(filepath.Join(root, "adoption.json"), tool.Object{"schemaVersion": 2}))
 	_, err = VerifyAdoptedFiles(root)
-	require.ErrorContains(t, err, "format 3 material descriptor")
+	require.ErrorContains(t, err, "material descriptor")
 }

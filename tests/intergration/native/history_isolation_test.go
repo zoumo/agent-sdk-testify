@@ -244,10 +244,10 @@ func TestRecordingHistorySeedPreservesEvidenceAndSourceProject(t *testing.T) {
 				require.NoError(t, corpus.VerifyFile(source, name, digest))
 			}
 			for name, value := range tool.Obj(seed["files"]) {
-				sourceName := strings.TrimPrefix(tool.Str(tool.Obj(value)["source"]), "history-seed/source/")
+				sourceName := strings.TrimPrefix(tool.Str(tool.Obj(value)["source"]), "history/seed/")
 				assert.Equal(t, before[sourceName], tool.Obj(value)["sha256"])
 				require.NoError(t, corpus.VerifyFile(out, name, tool.Str(tool.Obj(value)["sha256"])))
-				require.NoError(t, corpus.VerifyFile(out, tool.Str(tool.Obj(value)["source"]), tool.Str(tool.Obj(value)["sha256"])))
+				require.NoError(t, corpus.VerifyFile(source, sourceName, tool.Str(tool.Obj(value)["sha256"])))
 			}
 		})
 	}
