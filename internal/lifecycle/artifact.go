@@ -8,6 +8,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
+	"github.com/zoumo/agent-sdk-testify/internal/native"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -62,6 +63,17 @@ func LoadPlan(fixture *Fixture) (tool.Object, error) {
 	var plan tool.Object
 	if err := tool.ReadJSON(path, &plan); err != nil {
 		return nil, err
+	}
+	if plan["driverProfile"] == "existing-children" && fixture.HistorySeed != "" {
+		if err := VerifyHistorySeed(fixture); err != nil {
+			return nil, err
+		}
+		if err := native.ReadHistorySeed(fixture.HistorySeed, plan); err != nil {
+			return nil, err
+		}
+		if err := VerifyHistorySeed(fixture); err != nil {
+			return nil, err
+		}
 	}
 	return plan, nil
 }

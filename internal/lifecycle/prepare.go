@@ -302,6 +302,9 @@ func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (
 		if err := tool.ReadJSON(filepath.Join(history.SeedSource(historySeed), "plan.json"), &seedPlan); err != nil {
 			return nil, err
 		}
+		if err := os.MkdirAll(filepath.Join(historySeed, "project"), 0o700); err != nil {
+			return nil, err
+		}
 		if err := tool.WriteFiles(filepath.Join(historySeed, "project"), tool.Obj(tool.Obj(seedPlan["scenario"])["files"])); err != nil {
 			return nil, err
 		}

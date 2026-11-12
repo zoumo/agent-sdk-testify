@@ -138,8 +138,41 @@ def capture_root(plan):
     return Path(execution['artifactRoot'])
 
 
+def recording_path(root, reference):
+    if (not isinstance(reference, str) or not reference or "\\" in reference
+            or "\x00" in reference or str(Path(reference)) != reference
+            or Path(reference).is_absolute() or any(x in ('.', '..') for x in reference.split('/'))):
+        raise ValueError('invalid frozen seed reference')
+    current = root
+    for part in reference.split('/'):
+        current = current / part
+        if current.is_symlink():
+            raise ValueError('frozen seed reference traverses symlink')
+    return current
+
+
 def verify_recording(root):
-    item = json.loads((root / 'manifest.json').read_text())
+    item = json.loads(read_regular(root / 'manifest.json'))
+    if item.get('materialFormatVersion') == 3:
+        files = item.get('files')
+        if not isinstance(files, dict) or not files:
+            raise ValueError('material inventory required')
+        actual = {}
+        for path in root.rglob('*'):
+            if path.is_symlink():
+                raise ValueError('material inventory traverses symlink')
+            if path.is_dir():
+                continue
+            if not path.is_file():
+                raise ValueError('material inventory has an unsupported entry')
+            name = path.relative_to(root).as_posix()
+            if name not in ('manifest.json', 'material.json'):
+                actual[name] = hashlib.sha256(read_regular(recording_path(root, name), None)).hexdigest()
+        if actual != files:
+            raise ValueError('material inventory changed')
+        if hashlib.sha256(read_regular(root / 'plan.json')).hexdigest() != item.get('planSHA256'):
+            raise ValueError('recording plan changed')
+        return
     if item.get('remotePhaseFiles'):
         from codex_driver.remote import verify_phase_files
         verify_phase_files(root, item['remotePhaseFiles'])

@@ -466,8 +466,12 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 			return nil, err
 		}
 		sourceReference = "executions/" + id + "/capture/history-source"
-		if history.SeedSource(recordSeed) != recordSeed {
-			sourceReference += "/source"
+		selected, err := filepath.Rel(recordSeed, history.SeedSource(recordSeed))
+		if err != nil || !filepath.IsLocal(selected) {
+			return nil, errors.New("history seed source escapes its frozen closure")
+		}
+		if selected != "." {
+			sourceReference += "/" + filepath.ToSlash(selected)
 		}
 	}
 	overlayRoot, historyFiles, err := createExecutionOverlay(fixture, action, id, plan, material, recordSeed)
