@@ -11,8 +11,32 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/stretchr/testify/require"
 
+	"github.com/zoumo/agent-sdk-testify/internal/builtin"
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
+
+func TestPrepareImportsBuiltinPackageWithoutChangingRecordingIdentity(t *testing.T) {
+	selected, _, err := builtin.Select("codex", "SDK-CASE-001")
+	require.NoError(t, err)
+	source, err := builtin.Extract(selected)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, os.RemoveAll(source)) })
+	original, err := corpus.ReadMaterialDescriptor(filepath.Join(source, "material"))
+	require.NoError(t, err)
+	require.NotNil(t, original)
+	require.Equal(t, 3, original.FormatVersion)
+
+	target := filepath.Join(t.TempDir(), "fixture")
+	fixture, err := Prepare(PrepareOptions{FixtureDir: target, Agent: "codex", Case: "SDK-CASE-001"})
+	require.NoError(t, err)
+	current, present, err := CurrentArtifact(target, fixture)
+	require.NoError(t, err)
+	require.True(t, present)
+	require.Equal(t, original.ID, current.ID)
+	require.Equal(t, original.FormatVersion, current.FormatVersion)
+	require.NoError(t, builtin.CheckMaterial(PackageRoot(target, current.ID), selected))
+}
 
 func TestPreparePublishesOnlyCompleteFixture(t *testing.T) {
 	for _, fault := range []string{"before-publish", "concurrent-target", "success"} {

@@ -165,7 +165,7 @@ func writePlanSnapshot(fixtureDir string, raw []byte) (string, error) {
 	return path, nil
 }
 
-func initialBuiltin(fixture *Fixture, materialRoot string) (*builtin.Material, error) {
+func initialBuiltin(fixture *Fixture, fixtureDir, materialID string, ids []string) (*corpus.Material, error) {
 	if fixture.Source.Kind != "case" {
 		return nil, nil
 	}
@@ -181,10 +181,38 @@ func initialBuiltin(fixture *Fixture, materialRoot string) (*builtin.Material, e
 	if err := builtin.CheckMaterial(extracted, material); err != nil {
 		return nil, err
 	}
-	if err := copyMaterial(extracted, materialRoot); err != nil {
+	core, completePackage, err := corpus.RecordingRoot(extracted)
+	if err != nil {
 		return nil, err
 	}
-	return material, nil
+	descriptor, err := corpus.ReadMaterialDescriptor(core)
+	if err != nil {
+		return nil, err
+	}
+	if descriptor != nil {
+		if err := validateExecutionID(descriptor.ID); err != nil {
+			return nil, err
+		}
+		materialID = descriptor.ID
+	}
+	materialRoot := MaterialRoot(fixtureDir, materialID)
+	target := materialRoot
+	if completePackage {
+		target = PackageRoot(fixtureDir, materialID)
+	}
+	if err := copyMaterial(extracted, target); err != nil {
+		return nil, err
+	}
+	if descriptor != nil {
+		descriptor.Path = materialRoot
+		return descriptor, nil
+	}
+	artifact, err := artifactForMaterial(materialRoot, "builtin", ids)
+	if err != nil {
+		return nil, err
+	}
+	artifact.ID = materialID
+	return artifact, nil
 }
 
 // Prepare creates a caller-owned fixture directory containing its runtime
@@ -438,16 +466,17 @@ func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (
 	descriptorlessImport := fixture.Source.Kind == "recording" && spec.material == nil
 	switch fixture.Source.Kind {
 	case "case":
-		material, err := initialBuiltin(fixture, materialRoot)
+		artifact, err := initialBuiltin(fixture, fixtureDir, materialID, ids)
 		if err != nil {
 			return nil, err
 		}
-		if material != nil {
+		if artifact != nil {
+			materialID = artifact.ID
+			materialRoot = MaterialRoot(fixtureDir, materialID)
 			_, statErr := os.Lstat(filepath.Join(materialRoot, "material.json"))
 			descriptorlessImport = os.IsNotExist(statErr)
-			artifact, err := artifactForMaterial(materialRoot, "builtin", ids)
-			if err != nil {
-				return nil, err
+			if !descriptorlessImport {
+				spec.material = artifact
 			}
 			materialArtifact = artifact
 		}
