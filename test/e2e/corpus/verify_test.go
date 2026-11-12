@@ -203,9 +203,9 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 	// Install a controlled official capture at the process boundary. Production
 	// prepare --recording must not elevate an external capture to official.
 	var registry tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &registry))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "packages", "index.json"), &registry))
 	material := tool.Obj(tool.Array(registry["materials"])[0])
-	target := filepath.Join(fixtureDir, "materials", tool.Str(material["id"]))
+	target := filepath.Join(fixtureDir, "packages", tool.Str(material["id"]), "material")
 	require.NoError(t, os.RemoveAll(target))
 	require.NoError(t, tool.CopyTree(source, target))
 	if plan["driverProfile"] == "remote-close" {
@@ -218,7 +218,7 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 	material["files"] = files
 	material["planSHA256"], material["manifestSHA256"], material["recordingSHA256"] = files["plan.json"], files["manifest.json"], files["raw/raw.jsonl"]
 	require.NoError(t, tool.WriteJSON(filepath.Join(target, "material.json"), material))
-	require.NoError(t, tool.WriteJSON(filepath.Join(fixtureDir, "materials", "index.json"), registry))
+	require.NoError(t, tool.WriteJSON(filepath.Join(fixtureDir, "packages", "index.json"), registry))
 	t.Cleanup(func() {
 		var descriptor tool.Object
 		if tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor) == nil {
@@ -231,10 +231,10 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 
 func verifyOutput(t *testing.T, fixtureDir string) string {
 	t.Helper()
-	var ids []string
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "verifications", "index.json"), &ids))
-	require.NotEmpty(t, ids)
-	return filepath.Join(fixtureDir, "verifications", ids[len(ids)-1])
+	paths, err := filepath.Glob(filepath.Join(fixtureDir, "packages", "*", "verify", "*", "verification.json"))
+	require.NoError(t, err)
+	require.Len(t, paths, 1)
+	return filepath.Dir(paths[0])
 }
 
 func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
@@ -264,7 +264,7 @@ func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
 	root := verifyOutput(t, fixtureDir)
 	var evidence, report, descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "verification.json"), &evidence))
-	require.NoError(t, tool.ReadJSON(filepath.Join(root, "driver", "replay-report.json"), &report))
+	require.NoError(t, tool.ReadJSON(filepath.Join(root, "replay-report.json"), &report))
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 	resolvedFixture, err := filepath.EvalSymlinks(fixtureDir)
 	require.NoError(t, err)
@@ -330,11 +330,11 @@ func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
 				require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
 				var current, registry tool.Object
 				require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current))
-				require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &registry))
+				require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "packages", "index.json"), &registry))
 				for _, value := range tool.Array(registry["materials"]) {
 					material := tool.Obj(value)
 					if material["id"] == current["materialId"] {
-						source = filepath.Join(fixtureDir, "materials", tool.Str(material["id"]))
+						source = filepath.Join(fixtureDir, "packages", tool.Str(material["id"]), "material")
 					}
 				}
 			}

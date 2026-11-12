@@ -169,8 +169,8 @@ func recordRemote(t *testing.T, env []string, fixtureDir string, remote *control
 	}
 	completed := readResult()
 	require.Equal(t, started["executionId"], completed["executionId"])
-	require.Equal(t, completed, readJSON(t, resolveFixtureReference(t, fixtureDir, str(completed["result"]))))
-	require.Equal(t, digestFile(t, resolveFixtureReference(t, fixtureDir, str(completed["execution"]))), completed["executionSHA256"])
+	require.Equal(t, completed, readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, completed), str(completed["result"]))))
+	require.Equal(t, digestFile(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, completed), str(completed["execution"]))), completed["executionSHA256"])
 	select {
 	case <-remote.disconnected:
 	case <-ctx.Done():
@@ -200,7 +200,7 @@ func TestAgentRemoteRecordLifecycle(t *testing.T) {
 	result, reference := recordRemote(t, env, fixtureDir, remote, "success")
 	require.Zero(t, result.code, result.stderr)
 	require.Equal(t, "passed", reference["status"])
-	receipt := readJSON(t, resolveFixtureReference(t, fixtureDir, str(reference["receipt"])))
+	receipt := readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, reference), str(reference["receipt"])))
 	require.Equal(t, "complete", receipt["captureStatus"])
 	require.Equal(t, "remote-websocket", receipt["target"])
 	for _, field := range []string{"remoteConnected", "remoteClosed", "clientEOF", "cleanupComplete"} {
@@ -254,7 +254,7 @@ func TestAgentRemoteFailureKeepsCurrentAndService(t *testing.T) {
 			require.Equal(t, "failed", reference["status"])
 			require.NotContains(t, reference, "material")
 			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
-			receiptPath := resolveFixtureReference(t, fixtureDir, str(reference["receipt"]))
+			receiptPath := resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, reference), str(reference["receipt"]))
 			receipt := readJSON(t, receiptPath)
 			require.Equal(t, "failed", receipt["captureStatus"])
 			require.Equal(t, true, receipt["remoteConnected"])
@@ -321,7 +321,7 @@ func TestAgentRemotePreflightAndAuthentication(t *testing.T) {
 	failed, reference := runAgentResult(t, env, fixtureDir, "", "record", remote.args("/")...)
 	require.Equal(t, 1, failed.code)
 	require.Equal(t, "failed", reference["status"])
-	receipt := readJSON(t, resolveFixtureReference(t, fixtureDir, str(reference["receipt"])))
+	receipt := readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, reference), str(reference["receipt"])))
 	require.NotEqual(t, true, receipt["remoteConnected"])
 	require.Equal(t, true, receipt["cleanupComplete"])
 	require.Equal(t, false, receipt["nativeLaunched"])
@@ -402,7 +402,7 @@ func TestAgentRemoteEarlyCloseBoundsBackpressuredDrain(t *testing.T) {
 	var reference object
 	require.NoError(t, json.Unmarshal([]byte(lines[1]), &reference))
 	require.Equal(t, "failed", reference["status"])
-	receiptPath := resolveFixtureReference(t, fixtureDir, str(reference["receipt"]))
+	receiptPath := resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, reference), str(reference["receipt"]))
 	receipt := readJSON(t, receiptPath)
 	require.Contains(t, str(receipt["error"]), "drain exceeded cleanup deadline")
 	require.Equal(t, true, receipt["cleanupComplete"])

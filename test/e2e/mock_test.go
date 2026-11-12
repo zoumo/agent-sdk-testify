@@ -49,7 +49,7 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(workspace, "previous-execution"), []byte("isolated"), 0o600))
 		previousWorkspace = workspace
 		connection := obj(array(execution["connections"])[0])
-		receiptPath := resolveFixtureReference(t, fixtureDir, str(connection["receipt"]))
+		receiptPath := resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["receipt"]))
 		receipt := readJSON(t, receiptPath)
 		require.Equal(t, "passed", receipt["status"])
 		require.EqualValues(t, 1, receipt["version"])
@@ -70,7 +70,7 @@ func TestMockUnverifiedConsumerCurrent(t *testing.T) {
 		require.Equal(t, true, receipt["clientEOF"])
 		require.Equal(t, true, receipt["cleanupComplete"])
 		require.Equal(t, false, receipt["nativeLaunched"])
-		process := readJSON(t, resolveFixtureReference(t, fixtureDir, str(connection["processReceipt"])))
+		process := readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["processReceipt"])))
 		require.Equal(t, "passed", process["status"])
 		require.Zero(t, process["exitCode"])
 	}
@@ -201,7 +201,7 @@ func TestMockTimeoutPolicyAndSourceBytes(t *testing.T) {
 				result := runTool(t, env, root, "", args...)
 				require.Equal(t, tc.code, result.code, result.stderr)
 				execution := latestExecution(t, fixtureDir, "mock")
-				receipt := readJSON(t, resolveFixtureReference(t, fixtureDir, str(obj(array(execution["connections"])[0])["receipt"])))
+				receipt := readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(obj(array(execution["connections"])[0])["receipt"])))
 				require.Equal(t, digestBytes([]byte(raw)), receipt["recordingSHA256"])
 				if tc.code == 0 {
 					require.Equal(t, tc.wire+"\n", result.stdout)
@@ -258,7 +258,7 @@ func TestMockProgressReceiptWaitsForEOF(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, "{}\n", line)
 			execution := latestExecution(t, fixtureDir, "mock")
-			receiptPath := resolveFixtureReference(t, fixtureDir, str(obj(array(execution["connections"])[0])["receipt"]))
+			receiptPath := resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(obj(array(execution["connections"])[0])["receipt"]))
 			// Publication may reserve the path, but must not claim success yet.
 			require.Empty(t, readFile(t, receiptPath))
 			switch ending {

@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
+	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
 )
 
 // Synthetic material tests the installed CLI, not a real capture or SDK result.
@@ -300,10 +301,14 @@ func readMockReceipt(fixtureDir string, receipt *tool.Object) error {
 			Receipt string `json:"receipt"`
 		} `json:"connections"`
 	}
-	if err := tool.ReadJSON(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution); err != nil {
+	executionRoot, err := fixturetest.ExecutionRoot(fixtureDir, id)
+	if err != nil {
 		return err
 	}
-	return tool.ReadJSON(filepath.Join(fixtureDir, filepath.FromSlash(execution.Connections[0].Receipt)), receipt)
+	if err := tool.ReadJSON(filepath.Join(executionRoot, "execution.json"), &execution); err != nil {
+		return err
+	}
+	return tool.ReadJSON(filepath.Join(filepath.Dir(filepath.Dir(executionRoot)), filepath.FromSlash(execution.Connections[0].Receipt)), receipt)
 }
 
 func mockReceipt(t *testing.T, fixtureDir string) tool.Object {

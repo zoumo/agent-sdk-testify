@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 
@@ -327,15 +326,6 @@ func payloadHashes(t *testing.T, root string) map[string]string {
 		hashes[name] = fmt.Sprintf("%x", sha256.Sum256(value))
 	}
 	return hashes
-}
-
-func sortedKeys[V any](values map[string]V) []string {
-	keys := make([]string, 0, len(values))
-	for key := range values {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	return keys
 }
 
 func readJSON(path string, value any) error {

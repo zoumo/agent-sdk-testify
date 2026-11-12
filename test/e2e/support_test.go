@@ -279,6 +279,20 @@ func fixtureMaterialRootByID(t *testing.T, fixture, id string) string {
 	return filepath.Join(fixture, "packages", id, "material")
 }
 
+func executionPackageRoot(t *testing.T, fixture string, execution object) string {
+	t.Helper()
+	id := str(obj(execution["artifact"])["id"])
+	require.NotEmpty(t, id)
+	return filepath.Join(fixture, "packages", id)
+}
+
+func resultPackageRoot(t *testing.T, fixture string, result object) string {
+	t.Helper()
+	id := str(result["materialId"])
+	require.NotEmpty(t, id)
+	return filepath.Join(fixture, "packages", id)
+}
+
 func executionOverlayRoot(t *testing.T, fixture string, execution object) string {
 	t.Helper()
 	id := str(execution["executionId"])
@@ -295,7 +309,7 @@ func executionArtifactRoot(t *testing.T, fixture string, execution object) strin
 	t.Helper()
 	require.NotEmpty(t, str(execution["executionId"]))
 	require.NotEmpty(t, str(execution["command"]))
-	return filepath.Join(fixture, "executions", str(execution["executionId"]), str(execution["command"]))
+	return filepath.Join(fixture, "packages", str(obj(execution["artifact"])["id"]), "executions", str(execution["executionId"]), "capture")
 }
 
 func connectionStatus(t *testing.T, fixture string, execution object, id string) any {
@@ -570,7 +584,7 @@ func cancelOfficialDuringProtocol(t *testing.T, env []string, fixture string, ar
 func readFixtureEvidence(t *testing.T, fixture string) []byte {
 	t.Helper()
 	var contents []byte
-	for _, name := range []string{"fixture.json", "source", "materials", "executions"} {
+	for _, name := range []string{"fixture.json", "current.json", "source", "packages", "executions"} {
 		path := filepath.Join(fixture, name)
 		info, err := os.Stat(path)
 		require.NoError(t, err)

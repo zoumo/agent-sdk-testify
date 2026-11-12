@@ -68,7 +68,7 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 			recordConsumer(t, env, fixtureDir, agent, requestOne)
 			t.Cleanup(func() { _ = os.Chmod(fixtureDir, 0o700) })
 			current := readFile(t, filepath.Join(fixtureDir, "current.json"))
-			registry := readFile(t, filepath.Join(fixtureDir, "materials", "index.json"))
+			registry := readFile(t, filepath.Join(fixtureDir, "packages", "index.json"))
 			old := latestCapture(t, fixtureDir)
 			oldBytes := readAllFiles(t, fixtureMaterialRoot(t, fixtureDir, old))
 			faultAgent := filepath.Join(root, "fault-agent")
@@ -84,7 +84,7 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 				require.NotEqual(t, unpublished["id"], currentMaterialID(t, fixtureDir))
 				assertFileHashes(t, fixtureMaterialRoot(t, fixtureDir, unpublished), obj(unpublished["files"]))
 			} else {
-				require.Equal(t, registry, readFile(t, filepath.Join(fixtureDir, "materials", "index.json")))
+				require.Equal(t, registry, readFile(t, filepath.Join(fixtureDir, "packages", "index.json")))
 			}
 			require.Equal(t, oldBytes, readAllFiles(t, fixtureMaterialRoot(t, fixtureDir, old)))
 			execution := latestExecution(t, fixtureDir, "record")
@@ -96,7 +96,7 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 			rows := array(fixtureIndex(t, fixtureDir)["executions"])
 			require.Len(t, rows, 2)
 			require.Equal(t, "failed", obj(rows[1])["status"])
-			failure := readJSON(t, filepath.Join(fixtureDir, "executions", str(execution["executionId"]), "receipts", "main.failure.json"))
+			failure := readJSON(t, filepath.Join(fixtureDir, "packages", str(obj(execution["artifact"])["id"]), "executions", str(execution["executionId"]), "receipts", "main.failure.json"))
 			require.Equal(t, "failed", failure["status"])
 			require.NotEmpty(t, failure["error"])
 			if fault == "cleanup" {

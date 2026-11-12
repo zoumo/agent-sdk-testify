@@ -278,7 +278,7 @@ func (p *preparedRecord) recordRoot(t *testing.T) string {
 	require.NotEmpty(t, rows)
 	last := tool.Obj(rows[len(rows)-1])
 	require.Equal(t, "record", last["command"])
-	return filepath.Join(p.fixtureDir, "executions", tool.Str(last["id"]), "record")
+	return filepath.Join(p.fixtureDir, "packages", tool.Str(last["materialId"]), "material")
 }
 
 func TestRecordUsesInstalledOfficialDriverOutsideCheckout(t *testing.T) {
@@ -307,7 +307,7 @@ func checkRecordCapture(t *testing.T, provider string) {
 	require.Equal(t, "complete", manifest["captureStatus"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "raw", "transport.json"), &transport))
 	require.Equal(t, true, transport["cleanupComplete"])
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "driver", "report.json"), &report))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "report.json"), &report))
 	require.Equal(t, "synthetic-only", tool.Obj(report["officialSDK"])["version"])
 	raw, err := os.ReadFile(filepath.Join(output, "raw", "raw.jsonl"))
 	require.NoError(t, err)
@@ -339,8 +339,8 @@ func checkRecordExecutionPaths(t *testing.T, fixture *preparedRecord) {
 	require.Equal(t, "record", row["command"])
 	id := tool.Str(row["id"])
 	var execution, report tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "executions", id, "execution.json"), &execution))
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "driver", "report.json"), &report))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "packages", tool.Str(row["materialId"]), "executions", id, "execution.json"), &execution))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "report.json"), &report))
 
 	observed := tool.Obj(report["observed"])
 	workspace := filepath.Join(fixture.fixtureDir, "runtime", "executions", id, "workspace")
@@ -370,7 +370,7 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	require.Equal(t, tool.DigestBytes([]byte("{\"type\":\"official-history\"}\n")), tool.Obj(manifest["savedFiles"])[history])
 
 	var before tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "materials", "index.json"), &before))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "packages", "index.json"), &before))
 	var current tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "current.json"), &current))
 	var capture tool.Object
@@ -399,7 +399,7 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	require.Equal(t, tool.Str(artifact["recordingSHA256"]), connection["recordingSHA256"])
 
 	var after tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "materials", "index.json"), &after))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "packages", "index.json"), &after))
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "current.json"), &current))
 	require.Equal(t, tool.Str(capture["id"]), tool.Str(current["materialId"]))
 	require.Len(t, tool.Array(after["materials"]), len(tool.Array(before["materials"])))
@@ -432,7 +432,7 @@ func latestExecution(t *testing.T, fixtureDir, command string) tool.Object {
 			continue
 		}
 		var execution tool.Object
-		require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "executions", tool.Str(row["id"]), "execution.json"), &execution))
+		require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "packages", tool.Str(row["materialId"]), "executions", tool.Str(row["id"]), "execution.json"), &execution))
 		return execution
 	}
 	t.Fatalf("fixture has no %s execution", command)
@@ -457,8 +457,8 @@ func TestRecordPreservesFailedAttempts(t *testing.T) {
 			require.NoError(t, tool.ReadJSON(filepath.Join(officialRoot, "result.json"), &result))
 			require.Equal(t, "failed", result["status"])
 			require.Equal(t, test.status, tool.Str(tool.Obj(result["business"])["status"]))
-			require.FileExists(t, filepath.Join(officialRoot, "driver", "stderr.log"))
-			require.FileExists(t, filepath.Join(officialRoot, "driver", "materials", "case.json"))
+			require.FileExists(t, filepath.Join(officialRoot, "stderr.log"))
+			require.FileExists(t, filepath.Join(fixture.fixtureDir, "runtime", "official", filepath.Base(officialRoot), "driver", "materials", "case.json"))
 			if test.driver != "crash" {
 				output := fixture.recordRoot(t)
 				require.FileExists(t, filepath.Join(output, "raw", "raw.jsonl"))
@@ -560,8 +560,11 @@ func TestRecordRequiresInstalledOfficialDriver(t *testing.T) {
 
 func (p *preparedRecord) officialRoot(t *testing.T) string {
 	t.Helper()
-	var ids []string
-	require.NoError(t, tool.ReadJSON(filepath.Join(p.fixtureDir, "official-records", "index.json"), &ids))
-	require.NotEmpty(t, ids)
-	return filepath.Join(p.fixtureDir, "official-records", ids[len(ids)-1])
+	paths, err := filepath.Glob(filepath.Join(p.fixtureDir, "packages", "*", "record", "*", "result.json"))
+	require.NoError(t, err)
+	failures, err := filepath.Glob(filepath.Join(p.fixtureDir, "failures", "official-record", "*", "result.json"))
+	require.NoError(t, err)
+	paths = append(paths, failures...)
+	require.Len(t, paths, 1)
+	return filepath.Dir(paths[0])
 }

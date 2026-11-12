@@ -79,7 +79,7 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				require.Zero(t, result.code, result.stderr)
 				require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, result.stdout)
 				require.Equal(t, "passed", reference["status"])
-				execution := readJSON(t, resolveFixtureReference(t, fixtureDir, str(reference["execution"])))
+				execution := readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, reference), str(reference["execution"])))
 				executionArgs := stringsOf(execution["args"])
 				require.Equal(t, "--cmd", executionArgs[0])
 				require.NotContains(t, executionArgs, "--fixture-dir")
@@ -112,7 +112,7 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				require.Equal(t, "passed", mockReference["status"])
 				require.Equal(t, material, mockReference["material"])
 				require.NotEqual(t, reference["executionId"], mockReference["executionId"])
-				require.Equal(t, "passed", readJSON(t, resolveFixtureReference(t, fixtureDir, str(mockReference["receipt"])))["status"])
+				require.Equal(t, "passed", readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, mockReference), str(mockReference["receipt"])))["status"])
 				require.Equal(t, sealed, readAllFiles(t, materialRoot))
 			}
 			require.NoFileExists(t, marker)

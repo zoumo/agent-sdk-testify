@@ -234,7 +234,7 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 
 	mainRun, mainResult := runAgentResult(t, env, fixtureDir, inputs["main"], "mock", "--connection", "main")
 	require.Zero(t, mainRun.code, mainRun.stderr)
-	execution := readJSON(t, resolveFixtureReference(t, fixtureDir, str(mainResult["execution"])))
+	execution := readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, mainResult), str(mainResult["execution"])))
 	connections := array(execution["connections"])
 	require.Len(t, connections, 2)
 	receipts := map[string]object{}
@@ -248,10 +248,10 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 	require.NotNil(t, probeReceipt)
 	require.Equal(t, "main", mainReceipt["id"])
 	require.Equal(t, "probe", probeReceipt["id"])
-	require.FileExists(t, resolveFixtureReference(t, fixtureDir, str(mainReceipt["receipt"])))
-	require.FileExists(t, resolveFixtureReference(t, fixtureDir, str(mainReceipt["processReceipt"])))
-	require.NoFileExists(t, resolveFixtureReference(t, fixtureDir, str(probeReceipt["receipt"])))
-	require.NoFileExists(t, resolveFixtureReference(t, fixtureDir, str(probeReceipt["processReceipt"])))
+	require.FileExists(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(mainReceipt["receipt"])))
+	require.FileExists(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(mainReceipt["processReceipt"])))
+	require.NoFileExists(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(probeReceipt["receipt"])))
+	require.NoFileExists(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(probeReceipt["processReceipt"])))
 
 	openIndex := fixtureIndex(t, fixtureDir)
 	require.Len(t, array(openIndex["executions"]), 1)
@@ -263,8 +263,8 @@ func TestMultiConnectionBuiltinConformance(t *testing.T) {
 	require.Equal(t, "main", mainResult["connectionId"])
 	require.Equal(t, "probe", probeResult["connectionId"])
 	require.NotEqual(t, mainResult["result"], probeResult["result"])
-	require.FileExists(t, resolveFixtureReference(t, fixtureDir, str(probeReceipt["receipt"])))
-	require.FileExists(t, resolveFixtureReference(t, fixtureDir, str(probeReceipt["processReceipt"])))
+	require.FileExists(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(probeReceipt["receipt"])))
+	require.FileExists(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(probeReceipt["processReceipt"])))
 	closedIndex := fixtureIndex(t, fixtureDir)
 	require.Equal(t, "passed", obj(array(closedIndex["executions"])[0])["status"])
 
@@ -360,8 +360,8 @@ func TestStrictReplayFailureRetainsEvidence(t *testing.T) {
 		require.NotZero(t, mock.code)
 		execution := latestExecution(t, fixtureDir, "mock")
 		connection := obj(array(execution["connections"])[0])
-		receipt := resolveFixtureReference(t, fixtureDir, str(connection["receipt"]))
-		processReceipt := resolveFixtureReference(t, fixtureDir, str(connection["processReceipt"]))
+		receipt := resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["receipt"]))
+		processReceipt := resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["processReceipt"]))
 		require.FileExists(t, receipt)
 		require.FileExists(t, processReceipt)
 		require.Equal(t, "failed", connectionStatus(t, fixtureDir, execution, "main"))
@@ -383,7 +383,7 @@ func TestConformanceDescriptorsAreStableJSON(t *testing.T) {
 	require.Len(t, array(index["executions"]), 2)
 	for _, value := range array(index["executions"]) {
 		row := obj(value)
-		require.Equal(t, row["descriptorSHA256"], digestFile(t, filepath.Join(fixtureDir, "executions", str(row["id"]), "execution.json")))
+		require.Equal(t, row["descriptorSHA256"], digestFile(t, filepath.Join(fixtureDir, "packages", str(row["materialId"]), "executions", str(row["id"]), "execution.json")))
 	}
 }
 
@@ -413,7 +413,7 @@ func TestPreparedDescriptorsExcludeRuntimeAuthentication(t *testing.T) {
 	observed := readFile(t, filepath.Join(recordHome, "runtime-secret-observed"))
 	require.Equal(t, "matched\n", string(observed))
 	require.NoFileExists(t, filepath.Join(recordConfig, "auth.json"))
-	require.NotContains(t, readFile(t, filepath.Join(fixtureDir, "executions", str(record["executionId"]), "execution.json")), secret)
+	require.NotContains(t, readFile(t, filepath.Join(fixtureDir, "packages", str(obj(record["artifact"])["id"]), "executions", str(record["executionId"]), "execution.json")), secret)
 	require.NotContains(t, string(readFixtureEvidence(t, fixtureDir)), secret)
 	require.NotContains(t, string(readFixtureEvidence(t, fixtureDir)), fileSecret)
 
