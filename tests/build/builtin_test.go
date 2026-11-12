@@ -50,11 +50,11 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	require.NoError(t, os.Remove(raw))
 	data, err = invoke()
 	require.Error(t, err)
-	assert.Contains(t, string(data), "inventory drift")
+	assert.Contains(t, string(data), "material core inventory is incomplete or contains extra files")
 	require.NoError(t, os.WriteFile(raw, append(original, 10), 0o600))
 	data, err = invoke()
 	require.Error(t, err)
-	assert.Contains(t, string(data), "inventory drift")
+	assert.Contains(t, string(data), "material core inventory hash mismatch: raw/raw.jsonl")
 	require.NoError(t, os.WriteFile(raw, original, 0o600))
 	// Changes in the authoritative contract invalidate the generated snapshot.
 	contract := filepath.Join(root, "data", "scenarios", "SDK-US-001.json")
