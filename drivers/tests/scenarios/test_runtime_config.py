@@ -64,6 +64,7 @@ class RuntimeConfigTests(unittest.TestCase):
             ('bad peer args', runtime(root, peer={'command': '/peer', 'args': ['x', 1]}), 'args are invalid'),
             ('bad peer env', runtime(root, peer={'command': '/peer', 'env': {'A': 1}}), 'env is invalid'),
             ('relative fixture', runtime(root, fixtureDir='fixture'), 'fixtureDir must be absolute'),
+            ('relative recorded workspace', runtime(root, recordedWorkspace='workspace'), 'recordedWorkspace must be absolute'),
             ('relative agent result', runtime(root, agentResults={'main': 'result.json'}), 'agentResults is invalid'),
         ]:
             with self.subTest(name=name):

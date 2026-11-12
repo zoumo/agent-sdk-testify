@@ -54,6 +54,9 @@ def apply_runtime(plan, request):
     if 'fixtureDir' in runtime and (not isinstance(runtime['fixtureDir'], str)
                                     or not Path(runtime['fixtureDir']).is_absolute()):
         raise ValueError('official driver runtime fixtureDir must be absolute')
+    if 'recordedWorkspace' in runtime and (not isinstance(runtime['recordedWorkspace'], str)
+                                          or not Path(runtime['recordedWorkspace']).is_absolute()):
+        raise ValueError('official driver runtime recordedWorkspace must be absolute')
     peer = _peer(runtime.get('peer'))
     results = runtime.get('agentResults', {})
     if (not isinstance(results, dict)
@@ -67,6 +70,7 @@ def apply_runtime(plan, request):
     plan['raw'] = runtime['raw']
     plan['tmp'] = runtime['tmp']
     plan['_executionWorkspace'] = runtime['workspace']
+    plan['_recordedWorkspace'] = runtime.get('recordedWorkspace')
     plan['_seedRoot'] = runtime.get('seedRoot')
     plan['_fixtureDir'] = runtime.get('fixtureDir')
     plan['_agentResults'] = results

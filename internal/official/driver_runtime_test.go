@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -56,6 +57,7 @@ func TestDriverRuntimeRejectsUnknownOrIncompleteConfiguration(t *testing.T) {
 		{"relative workspace", func(runtime tool.Object) { runtime["workspace"] = "workspace" }},
 		{"missing replay", func(runtime tool.Object) { delete(runtime, "replay") }},
 		{"non boolean replay", func(runtime tool.Object) { runtime["replay"] = "true" }},
+		{"relative recorded workspace", func(runtime tool.Object) { runtime["recordedWorkspace"] = "workspace" }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			runtime := valid()
@@ -64,6 +66,27 @@ func TestDriverRuntimeRejectsUnknownOrIncompleteConfiguration(t *testing.T) {
 		})
 	}
 	require.NoError(t, validateDriverRuntime(valid()))
+}
+
+func TestRecordedWorkspaceUsesSealedIdentityWithoutOpeningOldOverlay(t *testing.T) {
+	core := t.TempDir()
+	material := corpus.Material{Path: core, FormatVersion: 3}
+	workspace := filepath.Join(t.TempDir(), "deleted", "executions", "original", "workspace")
+	require.NoError(t, tool.WriteJSON(filepath.Join(core, "manifest.json"), tool.Object{
+		"native": tool.Object{"cwd": workspace},
+	}))
+	runtime := tool.Object{"workspace": filepath.Join(t.TempDir(), "current", "workspace")}
+	require.NoError(t, bindRecordedWorkspace(runtime, material, "claude"))
+	require.Equal(t, workspace, runtime["recordedWorkspace"])
+	for _, invalid := range []any{nil, "", "relative/workspace", "/old/../workspace"} {
+		require.NoError(t, tool.WriteJSON(filepath.Join(core, "manifest.json"), tool.Object{
+			"native": tool.Object{"cwd": invalid},
+		}))
+		require.Error(t, bindRecordedWorkspace(runtime, material, "claude"))
+	}
+	require.NoError(t, bindRecordedWorkspace(runtime, material, "codex"))
+	material.FormatVersion = 2
+	require.NoError(t, bindRecordedWorkspace(runtime, material, "claude"))
 }
 
 func TestRunDriverRejectsRuntimeBeforeCreatingAttemptRoot(t *testing.T) {

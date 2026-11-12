@@ -13,6 +13,8 @@ from support import BOOTSTRAP
 from record_user_story import children
 from record_user_story.child_policy import CHILD_FILE, CHILD_TEXT, child_task
 from record_user_story.scenarios import case_recipes
+from record_user_story.runtime_config import apply_runtime
+from test_runtime_config import runtime
 from test_scenarios import Value
 
 
@@ -156,12 +158,14 @@ class ClaudeChildTests(unittest.TestCase):
             task_id: str = 'child-task'
             session_id: str = 'root'
             status: str = 'completed'
-        for mode in ('success', 'replay-workspace', 'early-completion', 'wrong-root', 'root-error', 'cancel',
+        for mode in ('success', 'replay-workspace', 'replay-wrong-path', 'early-completion', 'wrong-root', 'root-error', 'cancel',
                      'wrong-path', 'root-read', 'other-tool', 'duplicate', 'child-error'):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
                 current, result, test, answers = plan('claude', tmp), report(), self, []
-                if mode == 'replay-workspace':
-                    current['_recordedWorkspace'] = '/recorded/native-workspace'
+                if mode in ('replay-workspace', 'replay-wrong-path'):
+                    config = Path(tmp) / 'runtime.json'
+                    config.write_text(json.dumps(runtime(Path(tmp), recordedWorkspace='/recorded/native-workspace')))
+                    apply_runtime(current, {'runtime': str(config)})
                 class Client:
                     def __init__(self, options, **_):
                         self.permission = options.can_use_tool
@@ -175,12 +179,17 @@ class ClaudeChildTests(unittest.TestCase):
                                               Value(tool_use_id='agent-call', agent_id=None))
                     async def receive_response(self):
                         yield TaskStartedMessage()
+                        if mode == 'replay-wrong-path':
+                            invalid = await self.permission('Read',
+                                {'file_path': '/unrelated/native-workspace/' + CHILD_FILE},
+                                Value(tool_use_id='invalid-read', agent_id='child-agent'))
+                            test.assertEqual(invalid['behavior'], 'deny')
                         if mode in ('wrong-path', 'root-read', 'other-tool'):
                             invalid = await self.permission('Bash' if mode == 'other-tool' else 'Read',
                                 {'file_path': '../other' if mode == 'wrong-path' else CHILD_FILE},
                                 Value(tool_use_id='invalid-read', agent_id=None if mode == 'root-read' else 'child-agent'))
                             test.assertEqual(invalid['behavior'], 'deny')
-                        path = '/recorded/native-workspace/' + CHILD_FILE if mode == 'replay-workspace' else CHILD_FILE
+                        path = '/recorded/native-workspace/' + CHILD_FILE if mode.startswith('replay-') else CHILD_FILE
                         self.pending = asyncio.create_task(self.permission('Read', {'file_path': path},
                                                Value(tool_use_id='child-read', agent_id='child-agent')))
                         await asyncio.sleep(0)

@@ -176,6 +176,9 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 		seedRoot = material.Path
 	}
 	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(material.Path, "raw"), env["TMPDIR"], seedRoot, true)
+	if err := bindRecordedWorkspace(runtime, *material, fixture.AgentType); err != nil {
+		return err
+	}
 	private := filepath.Join(fixture.ResourceRoot, "official", activity.ID)
 	peers := make(map[string]tool.Command, len(material.Connections))
 	for _, id := range material.Connections {
