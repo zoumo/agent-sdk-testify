@@ -88,7 +88,22 @@ func (v *Validation) publicCaptureBusiness(source, replay string, plan tool.Obje
 		v.Check(found, "original recording omits required connection")
 	}
 	preparation := tool.Obj(run["recordPreparation"])
-	v.Check(preparation["executionId"] == execution["executionId"] && preparation["isolationSHA256"] == v.Digest(replay, prefix+"isolation.json") && preparation["preparedPlanSHA256"] == v.Digest(replay, prefix+"prepared-plan.json"), "original native preparation hash binding differs")
+	switch preparation["schemaVersion"] {
+	case float64(1):
+		v.Check(preparation["executionId"] == execution["executionId"] && preparation["isolationSHA256"] == v.Digest(replay, prefix+"isolation.json") && preparation["preparedPlanSHA256"] == v.Digest(replay, prefix+"prepared-plan.json"), "original native preparation hash binding differs")
+	case float64(2):
+		v.Check(preparation["executionId"] == execution["executionId"] && reflect.DeepEqual(preparation["material"], material), "original native preparation identity differs")
+		for name, file := range map[string]string{
+			"execution": "execution.json", "isolation": "isolation.json",
+			"preparedPlan": "prepared-plan.json", "materialPlan": "material-plan.json",
+		} {
+			reference := tool.Obj(preparation[name])
+			v.Check(reference["path"] != nil && reference["sha256"] == v.Digest(replay, prefix+file), "original native preparation reference differs: "+name)
+		}
+		v.Check(tool.Obj(preparation["materialPlan"])["sha256"] == v.Digest(source, "plan.json"), "original native material plan differs from sealed plan")
+	default:
+		v.Check(false, "unsupported official record preparation schemaVersion")
+	}
 	v.captureIsolation(replay, prefix, plan, fixture, execution)
 	return business, execution
 }
@@ -96,15 +111,34 @@ func (v *Validation) publicCaptureBusiness(source, replay string, plan tool.Obje
 func (v *Validation) captureIsolation(replay, prefix string, plan, fixture, execution tool.Object) {
 	receipt := v.Read(replay, prefix+"isolation.json")
 	prepared := v.Read(replay, prefix+"prepared-plan.json")
-	v.Check(receipt["schemaVersion"] == float64(1) && receipt["method"] == "native-preparation" && receipt["policy"] == "personal-skills-v1" && evidenceFixtureID(receipt) == evidenceFixtureID(fixture) && receipt["executionId"] == execution["executionId"] && receipt["toolSHA256"] == fixtureToolSHA256(fixture), "recording-time native isolation evidence is missing or differs")
-	v.Check(receipt["preparedPlanSHA256"] == v.Digest(replay, prefix+"prepared-plan.json"), "prepared isolation plan hash differs")
-	derived := tool.Object{}
-	for key, value := range plan {
-		if key != "sourcePlanSHA256" {
-			derived[key] = value
+	switch receipt["schemaVersion"] {
+	case float64(1):
+		v.Check(receipt["method"] == "native-preparation" && receipt["policy"] == "personal-skills-v1" && evidenceFixtureID(receipt) == evidenceFixtureID(fixture) && receipt["executionId"] == execution["executionId"] && receipt["toolSHA256"] == fixtureToolSHA256(fixture), "recording-time native isolation evidence is missing or differs")
+		v.Check(receipt["preparedPlanSHA256"] == v.Digest(replay, prefix+"prepared-plan.json"), "prepared isolation plan hash differs")
+		derived := tool.Object{}
+		for key, value := range plan {
+			if key != "sourcePlanSHA256" {
+				derived[key] = value
+			}
 		}
+		v.Check(reflect.DeepEqual(prepared, derived), "sealed plan differs from actual isolated preparation")
+		v.Check(receipt["nativeSHA256"] == plan["cliSHA256"] && reflect.DeepEqual(receipt["args"], plan["args"]), "native isolation invocation differs from sealed plan")
+	case float64(2):
+		materialPlan := v.Read(replay, prefix+"material-plan.json")
+		executionID := tool.Str(execution["executionId"])
+		executionReference := tool.Obj(receipt["execution"])
+		preparedReference := tool.Obj(receipt["preparedPlan"])
+		materialReference := tool.Obj(receipt["materialPlan"])
+		native := tool.Obj(receipt["native"])
+		v.Check(receipt["method"] == "native-preparation" && receipt["policy"] == "personal-skills-v1" && evidenceFixtureID(receipt) == evidenceFixtureID(fixture) && receipt["executionId"] == executionID, "recording-time native isolation evidence is missing or differs")
+		v.Check(executionReference["path"] == "executions/"+executionID+"/execution.json" && executionReference["sha256"] == v.Digest(replay, prefix+"execution.json"), "recording isolation execution reference differs")
+		v.Check(preparedReference["path"] == "runtime/executions/"+executionID+"/record-plan.json" && preparedReference["sha256"] == v.Digest(replay, prefix+"prepared-plan.json"), "recording isolation prepared-plan reference differs")
+		v.Check(materialReference["path"] == "runtime/executions/"+executionID+"/material-plan.json" && materialReference["sha256"] == v.Digest(replay, prefix+"material-plan.json"), "recording isolation material-plan reference differs")
+		v.Check(reflect.DeepEqual(materialPlan, plan) && reflect.DeepEqual(MaterialPlanFromRuntime(prepared), materialPlan), "sealed plan differs from its isolated runtime plan")
+		v.Check(native["sha256"] == plan["cliSHA256"] && reflect.DeepEqual(native["args"], plan["args"]), "native isolation invocation differs from sealed plan")
+	default:
+		v.Check(false, "unsupported recording isolation schemaVersion")
 	}
-	v.Check(reflect.DeepEqual(prepared, derived), "sealed plan differs from actual isolated preparation")
 	// The recorded execution descriptor no longer persists machine-local paths.
 	// Bind the observed preparation to the fixed overlay layout instead.
 	overlay := tool.Str(prepared["root"])
@@ -140,7 +174,6 @@ func (v *Validation) captureIsolation(replay, prefix string, plan, fixture, exec
 	} else {
 		v.Check(prepared["project"] == tool.Obj(tool.Obj(fixture["routes"])["record"])["workspace"], "recording project binding differs from its route")
 	}
-	v.Check(receipt["nativeSHA256"] == plan["cliSHA256"] && reflect.DeepEqual(receipt["args"], plan["args"]), "native isolation invocation differs from sealed plan")
 }
 
 func fixtureToolSHA256(fixture tool.Object) any {

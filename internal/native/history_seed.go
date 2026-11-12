@@ -63,6 +63,21 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	if err != nil {
 		return err
 	}
+	sourceSnapshot := filepath.Join(root, "history-seed", "source")
+	if err := os.RemoveAll(sourceSnapshot); err != nil {
+		return err
+	}
+	if err := tool.CopyTree(source, sourceSnapshot); err != nil {
+		return err
+	}
+	if err := corpus.VerifyMaterials(sourceSnapshot, true); err != nil {
+		return err
+	}
+	if report["status"] == "captured" {
+		if _, err := corpus.VerifyAdoptedFiles(sourceSnapshot); err != nil {
+			return err
+		}
+	}
 	if session == "" || len(agents) == 0 || agents[""] {
 		return errors.New("seed has no saved parent and child identities")
 	}
@@ -107,7 +122,8 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		if err := tool.CopyFile(filepath.Join(source, name), filepath.Join(root, destination)); err != nil {
 			return err
 		}
-		files[destination] = tool.Object{"source": name, "sha256": actual}
+		frozenSource := filepath.ToSlash(filepath.Join("history-seed", "source", name))
+		files[destination] = tool.Object{"source": frozenSource, "sha256": actual}
 		found[identity] = true
 	}
 	if !found[session] || len(found) != len(agents)+1 {
@@ -159,14 +175,39 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	}
 
 	sourceFiles := tool.Object{}
-	for _, name := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl"} {
-		digest, e := tool.FileDigest(filepath.Join(source, name))
-		if e != nil {
-			return e
+	if err := filepath.WalkDir(sourceSnapshot, func(current string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
-		sourceFiles[name] = digest
+		if entry.IsDir() {
+			return nil
+		}
+		if !entry.Type().IsRegular() {
+			return fmt.Errorf("unsupported seed source entry: %s", current)
+		}
+		name, err := filepath.Rel(sourceSnapshot, current)
+		if err != nil {
+			return err
+		}
+		digest, err := tool.FileDigest(current)
+		if err != nil {
+			return err
+		}
+		sourceFiles[filepath.ToSlash(name)] = digest
+		return nil
+	}); err != nil {
+		return err
 	}
-	plan["historySeed"] = tool.Object{"provider": provider, "sourceRoot": source, "sourceProject": project, "sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles, "projectFiles": projectFiles, "projectSnapshot": "history-seed/project"}
+	for _, name := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl"} {
+		if sourceFiles[name] == nil {
+			return fmt.Errorf("seed source closure omits %s", name)
+		}
+	}
+	plan["historySeed"] = tool.Object{
+		"provider": provider, "sourceRootRef": "history-seed/source", "sourceProject": project,
+		"sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles,
+		"projectFiles": projectFiles, "projectSnapshot": "history-seed/project",
+	}
 	plan["historyProject"] = project
 	if tool.Str(plan["model"]) == "" {
 		plan["model"] = previous["model"]

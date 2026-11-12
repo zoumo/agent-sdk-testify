@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .adapters.common import proxy_command, serial
 from .environment import capture_root, read_regular, recording_temp_root, verify_recording
+from .runtime_config import execution_workspace
 from .scenarios import Untriggered
 
 
@@ -33,27 +34,35 @@ def verify_seed(plan, *, check_source=True):
     root = Path(plan.get('_seedRoot') or plan['root'])
     project = Path(seed.get('sourceProject', ''))
     temp_root = Path(plan['tempRoot']) if 'tempRoot' in plan else recording_temp_root()
+    legacy_source = 'sourceRoot' in seed
+    source_reference = seed.get('sourceRootRef')
+    if not legacy_source and (not isinstance(source_reference, str) or Path(source_reference).is_absolute()
+                              or '..' in Path(source_reference).parts):
+        raise ValueError('frozen seed source reference is missing or invalid')
     if (plan.get('historyProject') != str(project) or not project.is_absolute()
-            or (not seed.get('projectSnapshot') and project != Path(seed.get('sourceRoot', '')) / 'project')
-            or (not plan.get('_nativeCase') and not project.is_relative_to(temp_root))):
+            or (legacy_source and not seed.get('projectSnapshot')
+                and project != Path(seed.get('sourceRoot', '')) / 'project')
+            or (legacy_source and not plan.get('_nativeCase') and not project.is_relative_to(temp_root))):
         raise ValueError('history scope differs from the frozen source project')
     for name, value in seed['files'].items():
         path = Path(name)
         prefixes = ('history-seed/config/sessions',) if seed['provider'] == 'codex' else ('config/projects', 'history-seed/config/projects')
         if not any(path.is_relative_to(prefix) for prefix in prefixes) or '..' in path.parts or sha(root / path) != value['sha256']:
             raise ValueError('existing-child seed copy changed')
-    if check_source:
-        snapshot = root / seed['projectSnapshot'] if seed.get('projectSnapshot') else project
-        if ((not seed.get('projectSnapshot') and project.resolve(strict=True) != project)
-                or project_files(snapshot) != seed.get('projectFiles')):
-            raise ValueError('source project changed during read-only observation')
-        source = Path(seed['sourceRoot'])
+    snapshot = root / seed['projectSnapshot'] if seed.get('projectSnapshot') else project
+    if seed.get('projectSnapshot') and project_files(snapshot) != seed.get('projectFiles'):
+        raise ValueError('source project changed during read-only observation')
+    if legacy_source and check_source and not seed.get('projectSnapshot') and project.resolve(strict=True) != project:
+        raise ValueError('source project changed during read-only observation')
+    if not legacy_source or check_source:
+        source = root / source_reference if not legacy_source else Path(seed['sourceRoot'])
         verify_recording(source)
         for name, digest in seed['sourceFiles'].items():
             if sha(source / name) != digest:
                 raise ValueError('source recording identity changed')
         for value in seed['files'].values():
-            if sha(source / value['source']) != value['sha256']:
+            source_path = root / value['source'] if not legacy_source else source / value['source']
+            if sha(source_path) != value['sha256']:
                 raise ValueError('source recording saved data changed')
     return seed
 
@@ -89,7 +98,7 @@ async def observe_claude(plan, report):
             if self.proc and self.proc.returncode:
                 raise RuntimeError('existing-child observation transport failed')
 
-    execution_project = plan.get('_fixtureProject', plan['historyProject']) if not check_source else plan['historyProject']
+    execution_project = execution_workspace(plan)
     options = ClaudeAgentOptions(cwd=execution_project, resume=seed['sessionId'], forward_subagent_text=True)
     async with ClaudeSDKClient(options=options, transport=RawTransport()) as client:
         async def wait_observed():

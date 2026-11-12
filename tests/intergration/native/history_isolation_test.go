@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -47,9 +48,10 @@ sys.stdin.read()
 `), 0o700))
 	require.NoError(t, os.WriteFile(driver, []byte("#!"+python+"\n"+`import json, pathlib, subprocess, sys
 r = json.loads(pathlib.Path(sys.argv[2]).read_text())
-root = pathlib.Path(r['output'])
+runtime = json.loads(pathlib.Path(r['runtime']).read_text())
+root = pathlib.Path(runtime['output'])
 plan = json.loads((pathlib.Path(r['materials']) / 'case.json').read_text())
-p = r['peer']
+p = runtime['peer']
 child = subprocess.run([p['command']] + p.get('args', []), input='{"id":1,"method":"ping"}\n', text=True, capture_output=True, timeout=10)
 sys.stderr.write(child.stderr)
 receipts = [{'history-query': {'method': 'thread/list', 'params': {'parentThreadId': 'parent'}, 'response': {'data': [{'id': 'child', 'parentThreadId': 'parent'}]}}}] if plan['provider'] == 'codex' else [{'list_subagents': {'sessionId': 'parent', 'agentIds': ['child']}}]
@@ -242,7 +244,8 @@ func TestRecordingHistorySeedPreservesEvidenceAndSourceProject(t *testing.T) {
 				require.NoError(t, corpus.VerifyFile(source, name, digest))
 			}
 			for name, value := range tool.Obj(seed["files"]) {
-				assert.Equal(t, before[tool.Str(tool.Obj(value)["source"])], tool.Obj(value)["sha256"])
+				sourceName := strings.TrimPrefix(tool.Str(tool.Obj(value)["source"]), "history-seed/source/")
+				assert.Equal(t, before[sourceName], tool.Obj(value)["sha256"])
 				require.NoError(t, corpus.VerifyFile(out, name, tool.Str(tool.Obj(value)["sha256"])))
 				require.NoError(t, corpus.VerifyFile(out, tool.Str(tool.Obj(value)["source"]), tool.Str(tool.Obj(value)["sha256"])))
 			}

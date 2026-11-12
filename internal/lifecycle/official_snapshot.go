@@ -94,26 +94,52 @@ func SnapshotOfficialRecord(fixtureDir string, fixture *Fixture, material corpus
 	if preparation["executionId"] != executionID {
 		return errors.New("original native preparation binding is missing")
 	}
-	for name, path := range map[string]string{
-		"isolationSHA256":    filepath.Join(dir, "receipts", "isolation.json"),
-		"preparedPlanSHA256": filepath.Join(fixture.ResourceRoot, "executions", executionID, "record-plan.json"),
-	} {
-		digest, err := tool.FileDigest(path)
-		if err != nil {
-			return err
+	switch preparation["schemaVersion"] {
+	case float64(1):
+		for name, path := range map[string]string{
+			"isolationSHA256":    filepath.Join(dir, "receipts", "isolation.json"),
+			"preparedPlanSHA256": filepath.Join(fixture.ResourceRoot, "executions", executionID, "record-plan.json"),
+		} {
+			digest, err := tool.FileDigest(path)
+			if err != nil {
+				return err
+			}
+			if digest != preparation[name] {
+				return errors.New("original native preparation evidence changed")
+			}
 		}
-		if digest != preparation[name] {
-			return errors.New("original native preparation evidence changed")
+		for name, source := range map[string]string{
+			"execution.json":     filepath.Join(dir, "execution.json"),
+			"isolation.json":     filepath.Join(dir, "receipts", "isolation.json"),
+			"prepared-plan.json": filepath.Join(fixture.ResourceRoot, "executions", executionID, "record-plan.json"),
+		} {
+			if err := tool.CopyFile(source, filepath.Join(target, name)); err != nil {
+				return err
+			}
 		}
-	}
-	for name, source := range map[string]string{
-		"execution.json":     filepath.Join(dir, "execution.json"),
-		"isolation.json":     filepath.Join(dir, "receipts", "isolation.json"),
-		"prepared-plan.json": filepath.Join(fixture.ResourceRoot, "executions", executionID, "record-plan.json"),
-	} {
-		if err := tool.CopyFile(source, filepath.Join(target, name)); err != nil {
-			return err
+	case float64(2):
+		for name, file := range map[string]string{
+			"execution": "execution.json", "isolation": "isolation.json",
+			"preparedPlan": "prepared-plan.json", "materialPlan": "material-plan.json",
+		} {
+			reference := tool.Obj(preparation[name])
+			path, err := ResolveFixtureReference(fixtureDir, tool.Str(reference["path"]))
+			if err != nil {
+				return err
+			}
+			digest, err := tool.FileDigest(path)
+			if err != nil {
+				return err
+			}
+			if digest != reference["sha256"] {
+				return errors.New("original native preparation evidence changed")
+			}
+			if err := tool.CopyFile(path, filepath.Join(target, file)); err != nil {
+				return err
+			}
 		}
+	default:
+		return errors.New("unsupported original native preparation schemaVersion")
 	}
 	return nil
 }

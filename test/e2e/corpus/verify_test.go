@@ -43,6 +43,10 @@ func verifyDriverSubstitute(args []string) int {
 	if tool.ReadJSON(args[2], &req) != nil {
 		return 2
 	}
+	var runtime driverRuntime
+	if tool.ReadJSON(req.Runtime, &runtime) != nil || runtime.SchemaVersion != 1 {
+		return 2
+	}
 	var plan tool.Object
 	if tool.ReadJSON(filepath.Join(req.Materials, "case.json"), &plan) != nil {
 		return 2
@@ -50,9 +54,9 @@ func verifyDriverSubstitute(args []string) int {
 	if mode == "crash" {
 		return 9
 	}
-	entries := []tool.Command{req.Peer.Command}
-	if req.Peer.Probe != nil && mode != "omit-probe" {
-		entries = append(entries, *req.Peer.Probe)
+	entries := []tool.Command{runtime.Peer.Command}
+	if runtime.Peer.Probe != nil && mode != "omit-probe" {
+		entries = append(entries, *runtime.Peer.Probe)
 	}
 	for _, entry := range entries {
 		cmd := exec.CommandContext(context.Background(), entry.Command, entry.Args...)
@@ -89,7 +93,7 @@ func verifyDriverSubstitute(args []string) int {
 		if len(events) != 2 {
 			return 5
 		}
-		fixtureRoot := filepath.Dir(filepath.Dir(filepath.Dir(req.Output)))
+		fixtureRoot := filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output)))
 		receiptPath = filepath.Join(fixtureRoot, filepath.FromSlash(tool.Str(events[1]["receipt"])))
 		path := receiptPath
 		if tool.ReadJSON(path, &receipt) != nil {
@@ -108,16 +112,16 @@ func verifyDriverSubstitute(args []string) int {
 	sdk := tool.Object{"package": "openai-codex", "version": "synthetic-test-only"}
 	observed := tool.Object{
 		"cwd":       cwd,
-		"workspace": req.Workspace,
+		"workspace": runtime.Workspace,
 		"home":      os.Getenv("HOME"),
 		"config":    os.Getenv("CODEX_HOME"),
 		"tmp":       os.Getenv("TMPDIR"),
 	}
 	report := tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": sdk, "observed": observed}
-	if tool.WriteJSON(filepath.Join(req.Output, "replay-report.json"), report) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "replay-report.json"), report) != nil {
 		return 4
 	}
-	if tool.WriteJSON(filepath.Join(req.Output, "result.json"), tool.Result{Status: status}) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Result{Status: status}) != nil {
 		return 4
 	}
 	return 0

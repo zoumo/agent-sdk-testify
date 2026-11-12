@@ -28,17 +28,15 @@ func controlledOfficialDriver(args []string) int {
 		return 2
 	}
 	mode := args[0]
-	var request struct {
-		conformanceDriverRequest
-		Peer struct {
-			conformanceCommand
-			Probe *conformanceCommand `json:"probe"`
-		} `json:"peer"`
-	}
+	var request conformanceDriverRequest
 	if readJSONFile(args[3], &request) != nil {
 		return 2
 	}
-	fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(request.Output)))
+	var runtime conformanceRuntime
+	if readJSONFile(request.Runtime, &runtime) != nil || runtime.SchemaVersion != 1 {
+		return 2
+	}
+	fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output)))
 	var plan object
 	if readJSONFile(filepath.Join(request.Materials, "case.json"), &plan) != nil {
 		return 2
@@ -47,7 +45,7 @@ func controlledOfficialDriver(args []string) int {
 		return 9
 	}
 	if mode == "hold-before" {
-		driverCheckpoint(request.Output, mode)
+		driverCheckpoint(runtime.Output, mode)
 		waitDriverCancellation()
 		return 0
 	}
@@ -56,21 +54,21 @@ func controlledOfficialDriver(args []string) int {
 		return 0
 	}
 	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "captureStatus": "complete", "officialSDK": object{"package": "openai-codex", "version": "synthetic-official-driver"}}
-	if mode == "busy" && plan["_replay"] == true {
-		report["verifyBefore"] = driverAction(request.Output, args[1], "official", "verify")
-		report["recordBefore"] = driverAction(request.Output, args[1], "agent", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
-		report["officialRecordBefore"] = driverAction(request.Output, args[1], "official", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
+	if mode == "busy" && runtime.Replay {
+		report["verifyBefore"] = driverAction(runtime.Output, args[1], "official", "verify")
+		report["recordBefore"] = driverAction(runtime.Output, args[1], "agent", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
+		report["officialRecordBefore"] = driverAction(runtime.Output, args[1], "official", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
 	}
-	report["host"] = object{"home": os.Getenv("HOME"), "config": os.Getenv("CODEX_HOME"), "workspace": request.Workspace}
+	report["host"] = object{"home": os.Getenv("HOME"), "config": os.Getenv("CODEX_HOME"), "workspace": runtime.Workspace}
 
 	if mode != "no-trigger" && mode != "reuse-ref" {
-		peers := []conformanceCommand{request.Peer.conformanceCommand}
-		if request.Peer.Probe != nil {
-			peers = append(peers, *request.Peer.Probe)
+		peers := []conformanceCommand{runtime.Peer.conformanceCommand}
+		if runtime.Peer.Probe != nil {
+			peers = append(peers, *runtime.Peer.Probe)
 		}
 		for i, peer := range peers {
 			cmd := exec.CommandContext(context.Background(), peer.Command, peer.Args...)
-			cmd.Dir = request.Workspace
+			cmd.Dir = runtime.Workspace
 			cmd.Stderr = os.Stderr
 			in, err := cmd.StdinPipe()
 			if err != nil {
@@ -100,7 +98,7 @@ func controlledOfficialDriver(args []string) int {
 				return 4
 			}
 			if mode == "cancel-during" || mode == "hold-during" {
-				driverCheckpoint(request.Output, mode)
+				driverCheckpoint(runtime.Output, mode)
 				waitDriverCancellation()
 				_ = in.Close()
 				_ = cmd.Wait()
@@ -112,11 +110,11 @@ func controlledOfficialDriver(args []string) int {
 			}
 			if i == 0 && len(peers) > 1 {
 				var finished object
-				if readJSONFile(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(request.Output))), "current.json"), &finished) != nil {
+				if readJSONFile(filepath.Join(fixtureDir, "current.json"), &finished) != nil {
 					return 5
 				}
 				report["currentAfterMain"] = finished["materialId"]
-				notices, err := os.ReadFile(filepath.Join(request.Output, "peer-main.results.jsonl"))
+				notices, err := os.ReadFile(filepath.Join(runtime.Output, "peer-main.results.jsonl"))
 				if err != nil {
 					return 5
 				}
@@ -130,11 +128,11 @@ func controlledOfficialDriver(args []string) int {
 	}
 
 	if mode == "hold-after" {
-		driverCheckpoint(request.Output, mode)
+		driverCheckpoint(runtime.Output, mode)
 		waitDriverCancellation()
 	}
 	if mode == "local" {
-		data, err := os.ReadFile(filepath.Join(request.Output, "peer-main.results.jsonl"))
+		data, err := os.ReadFile(filepath.Join(runtime.Output, "peer-main.results.jsonl"))
 		var finished, execution object
 		rows := strings.Split(strings.TrimSpace(string(data)), "\n")
 		if err != nil || len(rows) != 2 || json.Unmarshal([]byte(rows[1]), &finished) != nil || readJSONFile(filepath.Join(fixtureDir, filepath.FromSlash(str(finished["execution"]))), &execution) != nil {
@@ -148,11 +146,11 @@ func controlledOfficialDriver(args []string) int {
 		report["hostRetainedExecution"] = true
 	}
 	if mode == "bad-result" {
-		_ = os.WriteFile(filepath.Join(request.Output, "result.json"), []byte("{"), 0o600)
+		_ = os.WriteFile(filepath.Join(runtime.Output, "result.json"), []byte("{"), 0o600)
 		return 0
 	}
 	if mode == "wrong-hash" {
-		data, err := os.ReadFile(filepath.Join(request.Output, "peer-main.results.jsonl"))
+		data, err := os.ReadFile(filepath.Join(runtime.Output, "peer-main.results.jsonl"))
 		if err != nil {
 			return 6
 		}
@@ -172,7 +170,7 @@ func controlledOfficialDriver(args []string) int {
 		}
 	}
 	if mode == "process-not-started" {
-		path := filepath.Join(request.Output, "peer-main.process.json")
+		path := filepath.Join(runtime.Output, "peer-main.process.json")
 		var process object
 		if readJSONFile(path, &process) != nil {
 			return 6
@@ -190,7 +188,7 @@ func controlledOfficialDriver(args []string) int {
 		}
 		for name, source := range paths {
 			data, err := os.ReadFile(source)
-			if err != nil || os.WriteFile(filepath.Join(request.Output, name), data, 0o600) != nil {
+			if err != nil || os.WriteFile(filepath.Join(runtime.Output, name), data, 0o600) != nil {
 				return 6
 			}
 		}
@@ -202,7 +200,7 @@ func controlledOfficialDriver(args []string) int {
 		report["captureStatus"] = "partial"
 	}
 	if mode == "wrong-ref" {
-		path := filepath.Join(request.Output, "peer-main.results.jsonl")
+		path := filepath.Join(runtime.Output, "peer-main.results.jsonl")
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return 6
@@ -225,13 +223,13 @@ func controlledOfficialDriver(args []string) int {
 		report["selectedCredential"] = os.Getenv("OPENAI_API_KEY")
 	}
 	reportName := "report.json"
-	if plan["_replay"] == true {
+	if runtime.Replay {
 		reportName = "replay-report.json"
 	}
-	if writeJSONFile(filepath.Join(request.Output, reportName), report) != nil {
+	if writeJSONFile(filepath.Join(runtime.Output, reportName), report) != nil {
 		return 7
 	}
-	if writeJSONFile(filepath.Join(request.Output, "result.json"), object{"status": report["status"], "sdk": report["officialSDK"]}) != nil {
+	if writeJSONFile(filepath.Join(runtime.Output, "result.json"), object{"status": report["status"], "sdk": report["officialSDK"]}) != nil {
 		return 7
 	}
 	return 0

@@ -57,10 +57,11 @@ sys.stdin.read()
 	driver := filepath.Join(bin, "driver")
 	require.NoError(t, os.WriteFile(driver, []byte("#!"+python+"\n"+`import json, pathlib, subprocess, sys
 r = json.loads(pathlib.Path(sys.argv[2]).read_text())
-p = r['peer']
+runtime = json.loads(pathlib.Path(r['runtime']).read_text())
+p = runtime['peer']
 child = subprocess.run([p['command']] + p.get('args', []), input='{"type":"user"}\n', text=True, capture_output=True, timeout=10)
 sys.stderr.write(child.stderr)
-pathlib.Path(r['output'], 'result.json').write_text(json.dumps({'status': 'passed' if child.returncode == 0 else 'failed'}))
+pathlib.Path(runtime['output'], 'result.json').write_text(json.dumps({'status': 'passed' if child.returncode == 0 else 'failed'}))
 sys.exit(child.returncode)
 `), 0o700))
 	materials := t.TempDir()

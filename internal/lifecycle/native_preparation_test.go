@@ -13,18 +13,22 @@ import (
 func TestNativePreparationBindsActualEnvironmentAndPlan(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "record-plan.json")
+	materialPath := filepath.Join(root, "material-plan.json")
 	plan := tool.Object{"recordingIsolation": "personal-skills-v1", "cliSHA256": "native", "args": []string{"app-server"}}
 	require.NoError(t, tool.WriteJSON(path, plan))
+	require.NoError(t, tool.WriteJSON(materialPath, plan))
 	execution := Execution{ExecutionID: "execution", Config: filepath.Join(root, "config"), Workspace: filepath.Join(root, "workspace"), RuntimeEnv: map[string]string{"HOME": filepath.Join(root, "home"), "CODEX_HOME": filepath.Join(root, "config"), "OPENAI_API_KEY": "private-credential"}}
 	require.NoError(t, os.MkdirAll(filepath.Join(ExecutionDir(root, "execution"), "receipts"), 0o700))
+	require.NoError(t, tool.WriteJSON(filepath.Join(ExecutionDir(root, "execution"), "execution.json"), tool.Object{"executionId": "execution"}))
 	fixture := &Fixture{FixtureID: "fixture", Tool: ToolIdentity{Source: ToolSourceExecutable, SHA256: "tool"}}
-	require.NoError(t, SaveNativePreparation(root, fixture, execution, plan, path))
+	require.NoError(t, SaveNativePreparation(root, fixture, execution, plan, path, materialPath))
 	var receipt tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(root, "execution"), "receipts", "isolation.json"), &receipt))
+	require.EqualValues(t, 2, receipt["schemaVersion"])
 	require.Equal(t, execution.RuntimeEnv["HOME"], tool.Obj(receipt["environment"])["HOME"])
 	require.NotContains(t, tool.Obj(receipt["environment"]), "OPENAI_API_KEY")
 	digest, err := tool.FileDigest(path)
 	require.NoError(t, err)
-	require.Equal(t, digest, receipt["preparedPlanSHA256"])
+	require.Equal(t, digest, tool.Obj(receipt["preparedPlan"])["sha256"])
 	require.Equal(t, "execution", receipt["executionId"])
 }

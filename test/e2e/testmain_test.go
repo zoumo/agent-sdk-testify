@@ -96,11 +96,20 @@ type conformanceCommand struct {
 }
 
 type conformanceDriverRequest struct {
-	Case      string             `json:"case"`
-	Materials string             `json:"materials"`
-	Workspace string             `json:"workspace"`
-	Peer      conformanceCommand `json:"peer"`
-	Output    string             `json:"output"`
+	Case      string `json:"case"`
+	Materials string `json:"materials"`
+	Runtime   string `json:"runtime"`
+}
+
+type conformanceRuntime struct {
+	SchemaVersion float64 `json:"schemaVersion"`
+	Workspace     string  `json:"workspace"`
+	Output        string  `json:"output"`
+	Replay        bool    `json:"replay"`
+	Peer          struct {
+		conformanceCommand
+		Probe *conformanceCommand `json:"probe"`
+	} `json:"peer"`
 }
 
 func conformanceDriver(args []string) int {
@@ -112,11 +121,15 @@ func conformanceDriver(args []string) int {
 	if readJSONFile(args[2], &req) != nil {
 		return 2
 	}
+	var runtime conformanceRuntime
+	if readJSONFile(req.Runtime, &runtime) != nil || runtime.SchemaVersion != 1 {
+		return 2
+	}
 	var plan map[string]any
 	if readJSONFile(filepath.Join(req.Materials, "case.json"), &plan) != nil {
 		return 2
 	}
-	cmd := exec.CommandContext(context.Background(), req.Peer.Command, req.Peer.Args...)
+	cmd := exec.CommandContext(context.Background(), runtime.Peer.Command, runtime.Peer.Args...)
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return 4
@@ -155,7 +168,7 @@ func conformanceDriver(args []string) int {
 		"officialSDK":   map[string]any{"package": sdkPackage, "version": "conformance-test-only"},
 		"observed": map[string]any{
 			"cwd":       cwd,
-			"workspace": req.Workspace,
+			"workspace": runtime.Workspace,
 			"home":      os.Getenv("HOME"),
 			"config":    os.Getenv("CODEX_HOME"),
 			"tmp":       os.Getenv("TMPDIR"),
@@ -165,14 +178,14 @@ func conformanceDriver(args []string) int {
 	if mode == "verify" || mode == "verify-cleanup-failure" {
 		name = "replay-report.json"
 	}
-	if writeJSONFile(filepath.Join(req.Output, name), report) != nil {
+	if writeJSONFile(filepath.Join(runtime.Output, name), report) != nil {
 		return 6
 	}
-	if writeJSONFile(filepath.Join(req.Output, "result.json"), map[string]any{"status": "passed"}) != nil {
+	if writeJSONFile(filepath.Join(runtime.Output, "result.json"), map[string]any{"status": "passed"}) != nil {
 		return 6
 	}
 	if mode == "verify-cleanup-failure" {
-		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(req.Output))), "fixture.json")
+		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output))), "fixture.json")
 		if _, err := os.Stat(slot); err != nil {
 			return 7
 		}

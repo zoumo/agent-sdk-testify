@@ -8,9 +8,14 @@ type driverPeer struct {
 }
 
 type driverRequest struct {
-	Case      string     `json:"case"`
-	Materials string     `json:"materials"`
-	Workspace string     `json:"workspace"`
-	Peer      driverPeer `json:"peer"`
-	Output    string     `json:"output"`
+	Case      string `json:"case"`
+	Materials string `json:"materials"`
+	Runtime   string `json:"runtime"`
+}
+
+type driverRuntime struct {
+	SchemaVersion float64    `json:"schemaVersion"`
+	Workspace     string     `json:"workspace"`
+	Output        string     `json:"output"`
+	Peer          driverPeer `json:"peer"`
 }

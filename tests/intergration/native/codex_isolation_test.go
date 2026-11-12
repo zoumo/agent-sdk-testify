@@ -37,9 +37,10 @@ for line in sys.stdin:
 
 const codexIsolationDriver = `import json, pathlib, subprocess, sys
 request = json.loads(pathlib.Path(sys.argv[2]).read_text())
-peer = request['peer']
+runtime = json.loads(pathlib.Path(request['runtime']).read_text())
+peer = runtime['peer']
 subprocess.run([peer['command'], *peer.get('args', [])], input='{"id":1,"method":"ping"}\n', text=True, check=True)
-pathlib.Path(request['output'], 'result.json').write_text('{"status":"passed"}')
+pathlib.Path(runtime['output'], 'result.json').write_text('{"status":"passed"}')
 `
 
 func codexIsolationCommand(t *testing.T, args []string, configured bool) (*exec.Cmd, string, string) {
