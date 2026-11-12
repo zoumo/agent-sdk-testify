@@ -51,6 +51,8 @@ else:
         p = config / 'projects' / key / name
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(data)+'\n')
+        if '/subagents/' in name:
+            p.with_suffix('.meta.json').write_text('{"agentType":"synthetic"}\n')
 for line in sys.stdin:
     request = json.loads(line)
     print(json.dumps({'id':request['id'], 'result':{'synthetic':True}}), flush=True)
