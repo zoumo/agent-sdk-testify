@@ -105,23 +105,47 @@ func (v *Validation) captureIsolation(replay, prefix string, plan, fixture, exec
 		}
 	}
 	v.Check(reflect.DeepEqual(prepared, derived), "sealed plan differs from actual isolated preparation")
-	overlay := filepath.Join(tool.Str(fixture["resourceRoot"]), "executions", tool.Str(execution["executionId"]))
+	// The recorded execution descriptor no longer persists machine-local paths.
+	// Bind the observed preparation to the fixed overlay layout instead.
+	overlay := tool.Str(prepared["root"])
+	v.Check(filepath.IsAbs(overlay) && filepath.Clean(overlay) == overlay, "record isolation root is not an absolute clean path")
+	v.Check(filepath.Base(overlay) == tool.Str(execution["executionId"]) && filepath.Base(filepath.Dir(overlay)) == "executions", "record isolation root is not the fixed execution overlay")
+	workspace := filepath.Join(overlay, "workspace")
+	v.recordWorkspace = workspace
 	for key, relative := range map[string]string{"workspace": "workspace", "home": "home", "config": "config", "tmp": "tmp", "historySeed": "history-seed"} {
-		v.Check(execution[key] == filepath.Join(overlay, relative), "record execution isolation path differs: "+key)
+		if value, ok := execution[key]; ok {
+			v.Check(value == filepath.Join(overlay, relative), "record execution isolation path differs: "+key)
+		}
 	}
 	env := tool.Obj(receipt["environment"])
 	for key, relative := range map[string]string{"HOME": "home", "TMPDIR": "tmp", "XDG_CONFIG_HOME": "home/.config", "XDG_CACHE_HOME": "home/.cache", "XDG_DATA_HOME": "home/.local/share"} {
-		v.Check(env[key] == filepath.Join(overlay, relative) && env[key] == tool.Obj(execution["env"])[key], "actual record environment escapes isolation: "+key)
+		v.Check(env[key] == filepath.Join(overlay, relative), "actual record environment escapes isolation: "+key)
 	}
 	configKey := map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[tool.Str(plan["provider"])]
-	v.Check(configKey != "" && env[configKey] == execution["config"] && env[configKey] == tool.Obj(execution["env"])[configKey], "actual native config escapes isolation")
-	v.Check(receipt["cwd"] == execution["workspace"] && execution["protocolCwd"] == execution["workspace"] && prepared["root"] == overlay && prepared["home"] == execution["home"] && prepared["config"] == execution["config"] && prepared["project"] == tool.Obj(tool.Obj(fixture["routes"])["record"])["workspace"], "recording cwd and normal route binding differ")
+	v.Check(configKey != "" && env[configKey] == filepath.Join(overlay, "config"), "actual native config escapes isolation")
+	if recorded, ok := execution["env"]; ok {
+		executionEnv := tool.Obj(recorded)
+		for key := range env {
+			v.Check(env[key] == executionEnv[key], "actual record environment differs from its execution: "+key)
+		}
+	}
+	if protocolCwd, ok := execution["protocolCwd"]; ok {
+		v.Check(protocolCwd == workspace, "record protocol cwd differs from its workspace")
+	}
+	v.Check(receipt["cwd"] == workspace && prepared["home"] == filepath.Join(overlay, "home") && prepared["config"] == filepath.Join(overlay, "config"), "recording cwd and isolation root differ")
+	if fixture["schemaVersion"] == float64(6) {
+		runtimeRoot := filepath.Dir(filepath.Dir(overlay))
+		project := filepath.Join(runtimeRoot, "routes", "record", "workspace")
+		v.Check(prepared["project"] == project && prepared["_fixtureProject"] == workspace, "recording project binding differs from its fixed route")
+	} else {
+		v.Check(prepared["project"] == tool.Obj(tool.Obj(fixture["routes"])["record"])["workspace"], "recording project binding differs from its route")
+	}
 	v.Check(receipt["nativeSHA256"] == plan["cliSHA256"] && reflect.DeepEqual(receipt["args"], plan["args"]), "native isolation invocation differs from sealed plan")
 }
 
 func fixtureToolSHA256(fixture tool.Object) any {
 	switch fixture["schemaVersion"] {
-	case float64(5):
+	case float64(5), float64(6):
 		return tool.Obj(fixture["tool"])["sha256"]
 	case float64(1), float64(2), float64(3):
 		return fixture["toolSHA256"]

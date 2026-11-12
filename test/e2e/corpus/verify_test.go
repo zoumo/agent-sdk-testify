@@ -89,7 +89,8 @@ func verifyDriverSubstitute(args []string) int {
 		if len(events) != 2 {
 			return 5
 		}
-		receiptPath = tool.Str(events[1]["receipt"])
+		fixtureRoot := filepath.Dir(filepath.Dir(filepath.Dir(req.Output)))
+		receiptPath = filepath.Join(fixtureRoot, filepath.FromSlash(tool.Str(events[1]["receipt"])))
 		path := receiptPath
 		if tool.ReadJSON(path, &receipt) != nil {
 			return 5
@@ -200,7 +201,7 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 	var registry tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &registry))
 	material := tool.Obj(tool.Array(registry["materials"])[0])
-	target := tool.Str(material["path"])
+	target := filepath.Join(fixtureDir, "materials", tool.Str(material["id"]))
 	require.NoError(t, os.RemoveAll(target))
 	require.NoError(t, tool.CopyTree(source, target))
 	if plan["driverProfile"] == "remote-close" {
@@ -217,7 +218,7 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 	t.Cleanup(func() {
 		var descriptor tool.Object
 		if tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor) == nil {
-			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
+			_ = os.RemoveAll(filepath.Join(fixtureDir, "runtime"))
 		}
 		_ = os.RemoveAll(fixtureDir)
 	})
@@ -261,22 +262,26 @@ func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "verification.json"), &evidence))
 	require.NoError(t, tool.ReadJSON(filepath.Join(root, "driver", "replay-report.json"), &report))
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
-	route := tool.Obj(tool.Obj(descriptor["routes"])["mock"])
+	resolvedFixture, err := filepath.EvalSymlinks(fixtureDir)
+	require.NoError(t, err)
+	routeRoot := filepath.Join(resolvedFixture, "runtime", "routes", "mock")
+	routeWorkspace := filepath.Join(routeRoot, "workspace")
 	observed := tool.Obj(report["observed"])
-	hostCwd, err := filepath.EvalSymlinks(tool.Str(route["workspace"]))
+	hostCwd, err := filepath.EvalSymlinks(routeWorkspace)
 	require.NoError(t, err)
 	require.Equal(t, hostCwd, observed["cwd"])
-	require.Equal(t, route["workspace"], observed["workspace"])
-	for _, pair := range [][2]string{{"home", "HOME"}, {"config", "CODEX_HOME"}, {"tmp", "TMPDIR"}} {
-		require.Equal(t, tool.Obj(route["env"])[pair[1]], observed[pair[0]])
+	require.Equal(t, routeWorkspace, observed["workspace"])
+	for _, pair := range [][2]string{{"home", "home"}, {"config", "config"}, {"tmp", "tmp"}} {
+		require.Equal(t, filepath.Join(routeRoot, pair[1]), observed[pair[0]])
 	}
 	refs := tool.Array(evidence["connections"])
 	require.Len(t, refs, 1)
 	var execution tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "executions", tool.Str(tool.Obj(refs[0])["executionId"]), "execution.json"), &execution))
 	require.Equal(t, "mock", execution["command"])
-	require.True(t, strings.HasPrefix(tool.Str(execution["workspace"]), filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions")+string(filepath.Separator)))
-	require.NotEqual(t, execution["workspace"], route["workspace"])
+	workspace := filepath.Join(fixtureDir, "runtime", "executions", tool.Str(execution["executionId"]), "workspace")
+	require.True(t, strings.HasPrefix(workspace, filepath.Join(fixtureDir, "runtime", "executions")+string(filepath.Separator)))
+	require.NotEqual(t, workspace, routeWorkspace)
 }
 
 func TestVerifyRequiresPeerExitAndCleanup(t *testing.T) {
@@ -325,7 +330,7 @@ func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
 				for _, value := range tool.Array(registry["materials"]) {
 					material := tool.Obj(value)
 					if material["id"] == current["materialId"] {
-						source = tool.Str(material["path"])
+						source = filepath.Join(fixtureDir, "materials", tool.Str(material["id"]))
 					}
 				}
 			}
@@ -517,8 +522,8 @@ func canonicalVerifyFixture(t *testing.T, source, caseID string) {
 	require.NoError(t, err, "%s", output)
 	var descriptor, plan tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
-	t.Cleanup(func() { _ = os.RemoveAll(tool.Str(descriptor["resourceRoot"])) })
-	require.NoError(t, tool.ReadJSON(tool.Str(tool.Obj(descriptor["source"])["path"]), &plan))
+	t.Cleanup(func() { _ = os.RemoveAll(filepath.Join(fixtureDir, "runtime")) })
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, filepath.FromSlash(tool.Str(tool.Obj(descriptor["source"])["path"]))), &plan))
 	maps.Copy(previous, plan)
 	require.NoError(t, tool.WriteJSON(filepath.Join(source, "plan.json"), previous))
 	var manifest tool.Object

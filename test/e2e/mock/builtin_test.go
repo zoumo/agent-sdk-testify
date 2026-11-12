@@ -75,12 +75,14 @@ func TestPreparedMaterialsPreserveNativeBytes(t *testing.T) {
 			// The registry owns the immutable current material.
 			var index struct {
 				Materials []struct {
+					ID   string `json:"id"`
 					Path string `json:"path"`
 				} `json:"materials"`
 			}
 			require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &index))
 			require.Len(t, index.Materials, 1)
-			material := index.Materials[0].Path
+			require.Empty(t, index.Materials[0].Path)
+			material := filepath.Join(fixtureDir, "materials", index.Materials[0].ID)
 			for _, name := range []string{"plan.json", "report.json", "raw/raw.jsonl"} {
 				original, err := os.ReadFile(filepath.Join(source, name))
 				require.NoError(t, err)
@@ -103,7 +105,7 @@ func TestPreparedMaterialsPreserveNativeBytes(t *testing.T) {
 	fixtureDir, _ := preparedFixtureWithArgs(t, "prepare", "--recording", root)
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
-	material := tool.Str(tool.Obj(descriptor["source"])["path"])
+	material := filepath.Join(fixtureDir, filepath.FromSlash(tool.Str(tool.Obj(descriptor["source"])["path"])))
 	copied, err := os.ReadFile(filepath.Join(material, "report.json"))
 	require.NoError(t, err)
 	assert.Equal(t, report, copied)

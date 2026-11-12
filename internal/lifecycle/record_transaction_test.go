@@ -301,9 +301,11 @@ func bindRecordMockRoute(t *testing.T, fixtureDir string) string {
 
 func readRecordExecution(t *testing.T, fixtureDir, executionID string) Execution {
 	t.Helper()
-	var execution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, executionID), "execution.json"), &execution))
-	return execution
+	fixture, err := OpenFixture(fixtureDir)
+	require.NoError(t, err)
+	execution, err := ReadExecution(fixtureDir, fixture, filepath.Join(ExecutionDir(fixtureDir, executionID), "execution.json"))
+	require.NoError(t, err)
+	return *execution
 }
 
 func TestRecordTransactionKeepsOfficialRecordRouteAndRestoresMockRoute(t *testing.T) {
@@ -389,6 +391,18 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	require.Equal(t, "passed", results[1]["status"])
 	require.Equal(t, results[0]["executionId"], results[1]["executionId"])
 	require.NotNil(t, results[1]["material"])
+	for _, value := range results {
+		require.EqualValues(t, 2, value["schemaVersion"])
+		for _, reference := range []string{"execution", "result", "receipt", "processReceipt"} {
+			if item, ok := value[reference]; ok {
+				require.False(t, filepath.IsAbs(tool.Str(item)), reference)
+			}
+		}
+	}
+	require.NotContains(t, tool.Obj(results[1]["material"]), "path")
+	durable := tool.Object{}
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, filepath.FromSlash(tool.Str(results[1]["result"]))), &durable))
+	require.Equal(t, results[1], durable)
 
 	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
@@ -407,8 +421,7 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
-	execution := Execution{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[0].ID), "execution.json"), &execution))
+	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	require.Equal(t, material, execution.Artifact)
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
 	assertRecordLockAvailable(t, fixtureDir)
@@ -817,8 +830,7 @@ func TestRecordTransactionNonFinalFailureWaitsForFinalConnection(t *testing.T) {
 	require.Equal(t, "pending", openIndex.Executions[0].Connections[1].Status)
 	require.Len(t, openIndex.Artifacts, 1)
 	stateBefore.requireUnchanged(t, fixtureDir)
-	var openExecution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, openIndex.Executions[0].ID), "execution.json"), &openExecution))
+	openExecution := readRecordExecution(t, fixtureDir, openIndex.Executions[0].ID)
 	require.FileExists(t, filepath.Join(openExecution.Config, "auth.json"))
 
 	var packages int

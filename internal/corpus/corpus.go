@@ -142,7 +142,13 @@ func Write(p string, value any) error {
 
 // Validation keeps the first error. Subsequent reads/checks cannot turn a
 // missing or malformed artifact into a successful qualification.
-type Validation struct{ Err error }
+type Validation struct {
+	Err error
+
+	// recordWorkspace is the fixed-layout workspace observed in recording-time
+	// isolation evidence. It is available only for public captures.
+	recordWorkspace string
+}
 
 func (v *Validation) Check(ok bool, message string) {
 	if v.Err == nil && !ok {

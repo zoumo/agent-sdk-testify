@@ -18,7 +18,7 @@ func TestClaudeHistoryMockCompletesWithoutNativeSessionFinalization(t *testing.T
 		t.Run(caseID, func(t *testing.T) {
 			_, _, env := isolatedCommands(t, t.TempDir(), "claude")
 			fixtureDir := prepareFixture(t, env, "--agent", "claude", "--case", caseID)
-			material := str(obj(array(materialIndex(t, fixtureDir)["materials"])[0])["path"])
+			material := fixtureMaterialRoot(t, fixtureDir, obj(array(materialIndex(t, fixtureDir)["materials"])[0]))
 			original := readAllFiles(t, material)
 			input := builtinInputs(t, "claude", caseID)["main"]
 			mustRun(t, env, t.TempDir(), input, "agent", "mock", "--fixture-dir", fixtureDir)
@@ -29,12 +29,12 @@ func TestClaudeHistoryMockCompletesWithoutNativeSessionFinalization(t *testing.T
 			for name, digest := range source {
 				require.Equal(t, digest, bindings[name])
 			}
-			assertFileHashes(t, filepath.Dir(str(execution["workspace"])), bindings)
+			assertFileHashes(t, executionOverlayRoot(t, fixtureDir, execution), bindings)
 			require.Equal(t, "passed", connectionStatus(t, fixtureDir, execution, "main"))
 			require.Equal(t, original, readAllFiles(t, material))
 			require.NoFileExists(t, filepath.Join(fixtureDir, "finish.json"))
-			runtime := str(readJSON(t, filepath.Join(fixtureDir, "fixture.json"))["resourceRoot"])
-			require.Equal(t, filepath.Join(resolvedPath(t, fixtureDir), "runtime"), runtime)
+			runtime := fixtureRuntimeRoot(fixtureDir)
+			require.Equal(t, filepath.Join(resolvedPath(t, fixtureDir), "runtime"), resolvedPath(t, runtime))
 			require.NoError(t, os.RemoveAll(fixtureDir))
 			require.NoDirExists(t, runtime)
 		})
@@ -85,13 +85,13 @@ func TestMockRejectsHistoryDriftBeforePublishingActionSuccess(t *testing.T) {
 				}
 				require.NotEmpty(t, name)
 			}
-			require.NoError(t, os.WriteFile(filepath.Join(filepath.Dir(str(execution["workspace"])), name), []byte("changed\n"), 0o600))
+			require.NoError(t, os.WriteFile(filepath.Join(executionOverlayRoot(t, fixtureDir, execution), name), []byte("changed\n"), 0o600))
 			require.NoError(t, stdin.Close())
 			require.Error(t, cmd.Wait())
 			require.Contains(t, stderr.String(), "history hash mismatch")
 			require.Equal(t, "failed", connectionStatus(t, fixtureDir, execution, "main"))
 			connection := obj(array(execution["connections"])[0])
-			require.Equal(t, "failed", readJSON(t, str(connection["processReceipt"]))["status"])
+			require.Equal(t, "failed", readJSON(t, resolveFixtureReference(t, fixtureDir, str(connection["processReceipt"])))["status"])
 			require.Equal(t, content, readFile(t, filepath.Join(material, history)))
 		})
 	}

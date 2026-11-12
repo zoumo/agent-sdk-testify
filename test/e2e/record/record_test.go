@@ -172,7 +172,7 @@ func recordProcess(t *testing.T, provider, status, native string) *preparedRecor
 		if tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor) != nil {
 			return
 		}
-		_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
+		_ = os.RemoveAll(filepath.Join(fixtureDir, "runtime"))
 	})
 	return fixture
 }
@@ -323,22 +323,20 @@ func checkRecordExecutionPaths(t *testing.T, fixture *preparedRecord) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "driver", "report.json"), &report))
 
 	observed := tool.Obj(report["observed"])
-	workspace := tool.Str(execution["workspace"])
+	workspace := filepath.Join(fixture.fixtureDir, "runtime", "executions", id, "workspace")
+	overlay := filepath.Join(fixture.fixtureDir, "runtime", "executions", id)
 	resolvedHost, resolveErr := filepath.EvalSymlinks(tool.Str(observed["workspace"]))
 	require.NoError(t, resolveErr)
 	require.Equal(t, resolvedHost, observed["cwd"])
 	require.Contains(t, tool.Str(observed["workspace"]), filepath.Join("routes", "record"))
-	var fixtureDescriptor tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(resolvedFixture, "fixture.json"), &fixtureDescriptor))
-	require.True(t, strings.HasPrefix(workspace, filepath.Join(tool.Str(fixtureDescriptor["resourceRoot"]), "executions", id)+string(filepath.Separator)))
-	require.True(t, strings.HasPrefix(workspace, resolvedFixture+string(filepath.Separator)))
-	require.Equal(t, workspace, execution["protocolCwd"])
-	require.NotEqual(t, observed["home"], execution["home"])
-	require.NotEqual(t, observed["config"], execution["config"])
-	require.NotEqual(t, observed["tmp"], execution["tmp"])
-	require.Equal(t, execution["home"], tool.Obj(execution["env"])["HOME"])
-	require.Equal(t, execution["config"], tool.Obj(execution["env"])["CODEX_HOME"])
-	require.Equal(t, execution["tmp"], tool.Obj(execution["env"])["TMPDIR"])
+	require.True(t, strings.HasPrefix(workspace, filepath.Join(fixture.fixtureDir, "runtime", "executions", id)+string(filepath.Separator)))
+	resolvedWorkspace, resolveWorkspaceErr := filepath.EvalSymlinks(workspace)
+	require.NoError(t, resolveWorkspaceErr)
+	require.True(t, strings.HasPrefix(resolvedWorkspace, resolvedFixture+string(filepath.Separator)))
+	require.NotContains(t, execution, "protocolCwd")
+	require.NotEqual(t, observed["home"], filepath.Join(overlay, "home"))
+	require.NotEqual(t, observed["config"], filepath.Join(overlay, "config"))
+	require.NotEqual(t, observed["tmp"], filepath.Join(overlay, "tmp"))
 }
 
 func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
@@ -372,10 +370,10 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	verifyExecution := latestExecution(t, fixture.fixtureDir, "mock")
 	execution := verifyExecution
 	artifact := tool.Obj(execution["artifact"])
-	require.Equal(t, tool.Str(capture["path"]), artifact["path"])
+	require.Equal(t, tool.Str(capture["id"]), artifact["id"])
 	require.Equal(t, "official", execution["provenance"])
 	connection := tool.Obj(tool.Array(execution["connections"])[0])
-	require.Equal(t, tool.Str(artifact["path"]), connection["material"])
+	require.Equal(t, tool.Str(artifact["id"]), connection["materialId"])
 	require.Equal(t, tool.Str(artifact["planSHA256"]), connection["planSHA256"])
 	require.Equal(t, tool.Str(artifact["manifestSHA256"]), connection["manifestSHA256"])
 	require.Equal(t, tool.Str(artifact["recordingSHA256"]), connection["recordingSHA256"])
@@ -396,7 +394,7 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 
 	for _, execution := range []tool.Object{verifyExecution, mockExecution} {
 		assert.Equal(t, "official", execution["provenance"])
-		path := filepath.Join(tool.Str(execution["config"]), "sessions", "synthetic-history.jsonl")
+		path := filepath.Join(fixture.fixtureDir, "runtime", "executions", tool.Str(execution["executionId"]), "config", "sessions", "synthetic-history.jsonl")
 		content, err := os.ReadFile(path)
 		require.NoError(t, err)
 		assert.True(t, bytes.Equal([]byte("{\"type\":\"official-history\"}\n"), content), "unexpected history bytes: %q", content)

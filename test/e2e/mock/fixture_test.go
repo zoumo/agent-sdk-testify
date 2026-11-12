@@ -96,10 +96,23 @@ func latestFixtureExecution(t *testing.T, fixture, command string) (tool.Object,
 	return nil, ""
 }
 
-func routeHostEnvironment(route tool.Object, extra map[string]string) []string {
-	values := map[string]string{"PATH": os.Getenv("PATH"), "GORACE": os.Getenv("GORACE")}
-	for key, value := range tool.Obj(route["env"]) {
-		values[key] = tool.Str(value)
+func fixtureRouteRoot(fixture, action string) string {
+	return filepath.Join(fixture, "runtime", "routes", action)
+}
+
+func routeHostEnvironment(fixture, action string, extra map[string]string) []string {
+	root := fixtureRouteRoot(fixture, action)
+	values := map[string]string{
+		"PATH":            os.Getenv("PATH"),
+		"GORACE":          os.Getenv("GORACE"),
+		"HOME":            filepath.Join(root, "home"),
+		"TMPDIR":          filepath.Join(root, "tmp"),
+		"TMP":             filepath.Join(root, "tmp"),
+		"TEMP":            filepath.Join(root, "tmp"),
+		"XDG_CONFIG_HOME": filepath.Join(root, "home", ".config"),
+		"XDG_CACHE_HOME":  filepath.Join(root, "home", ".cache"),
+		"XDG_DATA_HOME":   filepath.Join(root, "home", ".local", "share"),
+		"CODEX_HOME":      filepath.Join(root, "config"),
 	}
 	maps.Copy(values, extra)
 	env := make([]string, 0, len(values))
@@ -167,7 +180,7 @@ func consumerFixture(t *testing.T) (string, []string) {
 	t.Cleanup(func() {
 		var descriptor tool.Object
 		if tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor) == nil {
-			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
+			_ = os.RemoveAll(filepath.Join(fixture, "runtime"))
 		}
 	})
 	return fixture, env
@@ -218,18 +231,18 @@ func TestPreparedHalfOpenMockRetainsPendingConnection(t *testing.T) {
 	}
 	require.NotEmpty(t, mainConnection)
 	require.NotEmpty(t, probeConnection)
-	require.FileExists(t, tool.Str(mainConnection["receipt"]))
-	require.NoFileExists(t, tool.Str(probeConnection["receipt"]))
+	require.FileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(mainConnection["receipt"]))))
+	require.NoFileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(probeConnection["receipt"]))))
 
 	var index tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", "index.json"), &index))
 	require.Equal(t, "open", tool.Obj(tool.Array(index["executions"])[0])["status"])
 
 	require.FileExists(t, filepath.Join(fixture, "executions", executionID, "execution.json"))
-	require.FileExists(t, tool.Str(mainConnection["receipt"]))
-	require.FileExists(t, tool.Str(mainConnection["processReceipt"]))
-	require.NoFileExists(t, tool.Str(probeConnection["receipt"]))
-	require.NoFileExists(t, tool.Str(probeConnection["processReceipt"]))
+	require.FileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(mainConnection["receipt"]))))
+	require.FileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(mainConnection["processReceipt"]))))
+	require.NoFileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(probeConnection["receipt"]))))
+	require.NoFileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(probeConnection["processReceipt"]))))
 }
 
 func TestPreparedMockUsesCurrentWithoutRecordSource(t *testing.T) {
@@ -237,7 +250,7 @@ func TestPreparedMockUsesCurrentWithoutRecordSource(t *testing.T) {
 	recordConsumerCapture(t, fixture, env)
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor))
-	sourcePath := tool.Str(tool.Obj(descriptor["source"])["path"])
+	sourcePath := filepath.Join(fixture, filepath.FromSlash(tool.Str(tool.Obj(descriptor["source"])["path"])))
 	require.NoError(t, os.Remove(sourcePath))
 	cmd := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture)
 	cmd.Stdin = strings.NewReader(`{"id":1,"method":"ping"}` + "\n")
@@ -269,7 +282,7 @@ func TestPreparedSchemaFourFixtureRejected(t *testing.T) {
 	require.NoError(t, tool.WriteJSON(path, descriptor))
 	data, err := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture).CombinedOutput()
 	require.Error(t, err, "%s", data)
-	assert.Contains(t, string(data), "unsupported fixture schemaVersion 4; schema 5 is required")
+	assert.Contains(t, string(data), "unsupported fixture schemaVersion 4; schema 6 is required")
 }
 
 func TestPreparedMockLauncherUsesIsolatedExecutionOverlays(t *testing.T) {
@@ -279,12 +292,14 @@ func TestPreparedMockLauncherUsesIsolatedExecutionOverlays(t *testing.T) {
 	require.NoError(t, err)
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor))
-	route := tool.Obj(tool.Obj(descriptor["routes"])["mock"])
-	routeWorkspace := tool.Str(route["workspace"])
-	launcher := tool.Str(tool.Obj(tool.Array(route["connections"])[0])["launcher"])
+	for _, key := range []string{"resourceRoot", "workspace", "home", "config", "tmp"} {
+		require.NotContains(t, descriptor, key)
+	}
+	routeWorkspace := filepath.Join(fixtureRouteRoot(fixture, "mock"), "workspace")
+	launcher := filepath.Join(fixture, "runtime", "launchers", "peer-main")
 	require.FileExists(t, launcher)
-	routeRoot := filepath.Join(tool.Str(descriptor["resourceRoot"]), "routes", "mock")
-	templateRoot := filepath.Join(tool.Str(descriptor["resourceRoot"]), "templates", "mock")
+	routeRoot := fixtureRouteRoot(fixture, "mock")
+	templateRoot := filepath.Join(resolvedFixture, "runtime", "templates", "mock")
 	assertRouteSlotsAtTemplate := func() {
 		for _, name := range []string{"workspace", "home", "config", "tmp", "history-seed"} {
 			require.Equal(t, filepath.Join(templateRoot, name), resolvedSymlink(t, filepath.Join(routeRoot, name)))
@@ -305,7 +320,7 @@ exec '%s' "$@"
 	require.NoError(t, os.WriteFile(wrapper, []byte(script), 0o700))
 
 	run := func(label string) (tool.Object, string, map[string]string) {
-		cmd := fixtureExecutable(t, routeHostEnvironment(route, map[string]string{
+		cmd := fixtureExecutable(t, routeHostEnvironment(fixture, "mock", map[string]string{
 			"RUN_LABEL": label,
 		}), wrapper, "app-server", "--listen", "stdio://")
 		cmd.Dir = routeWorkspace
@@ -330,60 +345,63 @@ exec '%s' "$@"
 	}
 
 	first, firstID, firstObserved := run("first")
-	firstWorkspace := tool.Str(first["workspace"])
-	firstRoot := filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions", firstID)
+	firstWorkspace := filepath.Join(fixture, "runtime", "executions", firstID, "workspace")
+	firstHome := filepath.Join(fixture, "runtime", "executions", firstID, "home")
+	firstConfig := filepath.Join(fixture, "runtime", "executions", firstID, "config")
+	firstRoot := filepath.Join(fixture, "runtime", "executions", firstID)
 	require.NotEqual(t, routeWorkspace, firstWorkspace)
-	require.True(t, strings.HasPrefix(firstWorkspace, resolvedFixture+string(filepath.Separator)))
+	resolvedWorkspace, err := filepath.EvalSymlinks(firstWorkspace)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(resolvedWorkspace, resolvedFixture+string(filepath.Separator)))
 	require.True(t, strings.HasPrefix(firstWorkspace, firstRoot+string(filepath.Separator)))
-	require.Equal(t, tool.Str(first["home"]), tool.Str(tool.Obj(first["env"])["HOME"]))
-	require.Equal(t, tool.Str(first["config"]), tool.Str(tool.Obj(first["env"])["CODEX_HOME"]))
-	require.Equal(t, tool.Str(first["tmp"]), tool.Str(tool.Obj(first["env"])["TMPDIR"]))
-	assertObservedHostEnvironment(t, route, firstObserved)
+	assertObservedHostEnvironment(t, fixture, firstObserved)
 	assertRouteSlotsAtTemplate()
 	firstConnection := tool.Obj(tool.Array(first["connections"])[0])
 	var firstProcess tool.Object
-	require.NoError(t, tool.ReadJSON(tool.Str(firstConnection["processReceipt"]), &firstProcess))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, filepath.FromSlash(tool.Str(firstConnection["processReceipt"]))), &firstProcess))
 	require.EqualValues(t, 1, firstProcess["schemaVersion"])
 	require.NotContains(t, firstProcess, "cwd")
 	require.NotContains(t, firstProcess, "workspace")
 	require.NoError(t, os.WriteFile(filepath.Join(firstWorkspace, "run-first.txt"), []byte("first\n"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tool.Str(first["home"]), "run-first.txt"), []byte("first\n"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(tool.Str(first["config"]), "run-first.txt"), []byte("first\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(firstHome, "run-first.txt"), []byte("first\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(firstConfig, "run-first.txt"), []byte("first\n"), 0o600))
 	firstHashes := workspaceHashes(t, firstWorkspace)
 	require.NoFileExists(t, filepath.Join(templateRoot, "workspace", "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(templateRoot, "home", "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(templateRoot, "config", "run-first.txt"))
 
 	second, secondID, secondObserved := run("second")
-	secondWorkspace := tool.Str(second["workspace"])
-	secondRoot := filepath.Join(tool.Str(descriptor["resourceRoot"]), "executions", secondID)
+	secondWorkspace := filepath.Join(fixture, "runtime", "executions", secondID, "workspace")
+	secondHome := filepath.Join(fixture, "runtime", "executions", secondID, "home")
+	secondConfig := filepath.Join(fixture, "runtime", "executions", secondID, "config")
+	secondRoot := filepath.Join(fixture, "runtime", "executions", secondID)
 	require.NotEqual(t, firstID, secondID)
 	require.NotEqual(t, firstWorkspace, secondWorkspace)
 	require.True(t, strings.HasPrefix(secondWorkspace, secondRoot+string(filepath.Separator)))
-	assertObservedHostEnvironment(t, route, secondObserved)
+	assertObservedHostEnvironment(t, fixture, secondObserved)
 	assertRouteSlotsAtTemplate()
 	secondConnection := tool.Obj(tool.Array(second["connections"])[0])
 	var secondProcess tool.Object
-	require.NoError(t, tool.ReadJSON(tool.Str(secondConnection["processReceipt"]), &secondProcess))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, filepath.FromSlash(tool.Str(secondConnection["processReceipt"]))), &secondProcess))
 	require.EqualValues(t, 1, secondProcess["schemaVersion"])
 	require.NotContains(t, secondProcess, "cwd")
 	require.NotContains(t, secondProcess, "workspace")
 	require.FileExists(t, filepath.Join(secondWorkspace, "fixture.txt"))
 	require.NoFileExists(t, filepath.Join(secondWorkspace, "run-first.txt"))
-	require.NoFileExists(t, filepath.Join(tool.Str(second["home"]), "run-first.txt"))
-	require.NoFileExists(t, filepath.Join(tool.Str(second["config"]), "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(secondHome, "run-first.txt"))
+	require.NoFileExists(t, filepath.Join(secondConfig, "run-first.txt"))
 	require.NoFileExists(t, filepath.Join(firstWorkspace, "run-second.txt"))
 	require.Equal(t, firstHashes, workspaceHashes(t, firstWorkspace))
 }
 
-func assertObservedHostEnvironment(t *testing.T, route tool.Object, observed map[string]string) {
+func assertObservedHostEnvironment(t *testing.T, fixture string, observed map[string]string) {
 	t.Helper()
-	env := tool.Obj(route["env"])
+	root := fixtureRouteRoot(fixture, "mock")
 	require.Equal(t, map[string]string{
-		"cwd":    resolvedSymlink(t, tool.Str(route["workspace"])),
-		"home":   resolvedSymlink(t, tool.Str(env["HOME"])),
-		"config": resolvedSymlink(t, tool.Str(env["CODEX_HOME"])),
-		"tmp":    resolvedSymlink(t, tool.Str(env["TMPDIR"])),
+		"cwd":    resolvedSymlink(t, filepath.Join(root, "workspace")),
+		"home":   resolvedSymlink(t, filepath.Join(root, "home")),
+		"config": resolvedSymlink(t, filepath.Join(root, "config")),
+		"tmp":    resolvedSymlink(t, filepath.Join(root, "tmp")),
 	}, observed)
 }
 
@@ -516,7 +534,7 @@ func TestPreparedMockUsesSelectedArtifactProvenance(t *testing.T) {
 	execution, _ := latestFixtureExecution(t, fixture, "mock")
 	assert.Equal(t, "consumer", execution["provenance"])
 	assert.Equal(t, "mock", tool.Obj(execution["artifact"])["action"])
-	data, err = os.ReadFile(filepath.Join(tool.Str(execution["config"]), "sessions", "history.jsonl"))
+	data, err = os.ReadFile(filepath.Join(fixture, "runtime", "executions", tool.Str(execution["executionId"]), "config", "sessions", "history.jsonl"))
 	require.NoError(t, err)
 	assert.Equal(t, "consumer\n", string(data))
 }
@@ -569,7 +587,7 @@ func preparedFixtureWithArgs(t *testing.T, args ...string) (string, []string) {
 	t.Cleanup(func() {
 		var descriptor tool.Object
 		if tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &descriptor) == nil {
-			_ = os.RemoveAll(tool.Str(descriptor["resourceRoot"]))
+			_ = os.RemoveAll(filepath.Join(fixture, "runtime"))
 		}
 	})
 	return fixture, env

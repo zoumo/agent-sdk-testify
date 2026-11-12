@@ -1,6 +1,7 @@
 package corpus
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,6 +11,48 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
+
+func TestMaterialFormatTwoOmitsAndRejectsMachineLocalPath(t *testing.T) {
+	material := Material{FormatVersion: MaterialFormatVersion, ID: "material", Kind: "capture", Action: "record", Provenance: "consumer", PlanSHA256: "plan", Connections: []string{"main"}}
+	material.Path = "/machine/local/material"
+	encoded, err := json.Marshal(material)
+	require.NoError(t, err)
+	require.NotContains(t, string(encoded), `"path"`)
+
+	var decoded Material
+	require.NoError(t, json.Unmarshal(encoded, &decoded))
+	require.Equal(t, MaterialFormatVersion, decoded.FormatVersion)
+	require.Empty(t, decoded.Path)
+
+	for _, tc := range []struct {
+		name    string
+		value   string
+		message string
+	}{
+		{"format two path", `{"formatVersion":2,"id":"material","path":"/machine/local/material"}`, "machine-local path"},
+		{"unknown format", `{"formatVersion":3,"id":"material"}`, "unsupported material formatVersion 3"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var value Material
+			require.ErrorContains(t, json.Unmarshal([]byte(tc.value), &value), tc.message)
+		})
+	}
+
+	var legacy Material
+	require.NoError(t, json.Unmarshal([]byte(`{"id":"material","path":"/machine/local/material"}`), &legacy))
+	require.Zero(t, legacy.FormatVersion)
+	require.Equal(t, "/machine/local/material", legacy.Path)
+}
+
+func TestMaterialSameDescriptorIgnoresLocatedPath(t *testing.T) {
+	base := Material{FormatVersion: MaterialFormatVersion, ID: "material", Kind: "capture", Action: "record", Provenance: "consumer", PlanSHA256: "plan", ManifestSHA256: "manifest", RecordingSHA256: "recording", Connections: []string{"main"}}
+	located := base
+	located.Path = "/another/root/materials/material"
+	require.True(t, base.SameDescriptor(located))
+	changed := located
+	changed.RecordingSHA256 = "changed"
+	require.False(t, base.SameDescriptor(changed))
+}
 
 func TestRecordingIdentityUsesManifestAndRejectsConflict(t *testing.T) {
 	manifest := tool.Object{"agentType": "claude"}

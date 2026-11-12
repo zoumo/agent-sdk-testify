@@ -14,10 +14,10 @@ import (
 )
 
 func TestFixtureValidateRejectsPriorSchemas(t *testing.T) {
-	for _, schemaVersion := range []int{1, 2, 3, 4} {
+	for _, schemaVersion := range []int{1, 2, 3, 4, 5} {
 		t.Run(strconv.Itoa(schemaVersion), func(t *testing.T) {
 			err := (Fixture{SchemaVersion: schemaVersion}).Validate()
-			require.EqualError(t, err, "unsupported fixture schemaVersion "+strconv.Itoa(schemaVersion)+"; schema 5 is required")
+			require.EqualError(t, err, "unsupported fixture schemaVersion "+strconv.Itoa(schemaVersion)+"; schema 6 is required")
 		})
 	}
 }
@@ -209,8 +209,13 @@ func TestConnectionDecodeRejectsMixedSchemaFiveFields(t *testing.T) {
 		},
 		{
 			name: "connection SHA",
-			data: `{"id":"main","transport":"process","command":"/private/tool","sha256":"digest"}`,
+			data: `{"id":"main","transport":"process","sha256":"digest"}`,
 			want: `unsupported connection field "sha256"`,
+		},
+		{
+			name: "process command",
+			data: `{"id":"main","transport":"process","command":"/private/tool"}`,
+			want: `unsupported connection field "command"`,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -228,7 +233,7 @@ func TestConnectionDecodeRejectsMixedSchemaFiveFields(t *testing.T) {
 func TestDescriptorReadersRejectPriorSchemas(t *testing.T) {
 	t.Run("execution", func(t *testing.T) {
 		err := (Execution{SchemaVersion: 4}).Validate(Fixture{})
-		require.EqualError(t, err, "unsupported execution schemaVersion 4; schema 5 is required")
+		require.EqualError(t, err, "unsupported execution schemaVersion 4; schema 6 is required")
 	})
 
 	t.Run("execution index", func(t *testing.T) {
@@ -237,7 +242,7 @@ func TestDescriptorReadersRejectPriorSchemas(t *testing.T) {
 		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
 		require.NoError(t, tool.WriteJSON(path, Index{SchemaVersion: 4}))
 		_, err := readIndex(path)
-		require.EqualError(t, err, "unsupported execution index schemaVersion 4; schema 5 is required")
+		require.EqualError(t, err, "unsupported execution index schemaVersion 4; schema 6 is required")
 	})
 
 	t.Run("material index", func(t *testing.T) {
@@ -245,10 +250,10 @@ func TestDescriptorReadersRejectPriorSchemas(t *testing.T) {
 		path := IndexPath(root)
 		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
 		require.NoError(t, os.MkdirAll(filepath.Dir(MaterialIndexPath(root)), 0o700))
-		require.NoError(t, tool.WriteJSON(path, Index{SchemaVersion: 5, FixtureID: "fixture", FixtureSHA256: "digest"}))
+		require.NoError(t, tool.WriteJSON(path, Index{SchemaVersion: 6, FixtureID: "fixture", FixtureSHA256: "digest"}))
 		require.NoError(t, tool.WriteJSON(MaterialIndexPath(root), MaterialIndex{SchemaVersion: 4, FixtureID: "fixture"}))
 		_, err := readIndex(path)
-		require.EqualError(t, err, "unsupported material index schemaVersion 4; schema 5 is required")
+		require.EqualError(t, err, "unsupported material index schemaVersion 4; schema 6 is required")
 	})
 
 	t.Run("current recording", func(t *testing.T) {
@@ -256,7 +261,7 @@ func TestDescriptorReadersRejectPriorSchemas(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(root, "current.json"), []byte(`{"schemaVersion":4,"fixtureId":"fixture"}`), 0o600))
 		fixture := &Fixture{FixtureID: "fixture"}
 		_, _, err := CurrentArtifact(root, fixture)
-		require.EqualError(t, err, "unsupported current recording schemaVersion 4; schema 5 is required")
+		require.EqualError(t, err, "unsupported current recording schemaVersion 4; schema 6 is required")
 	})
 
 	t.Run("open fixture with prior current recording", func(t *testing.T) {
@@ -267,6 +272,6 @@ func TestDescriptorReadersRejectPriorSchemas(t *testing.T) {
 		current.SchemaVersion = 4
 		require.NoError(t, tool.WriteJSON(path, current))
 		_, err := OpenFixture(fixtureDir)
-		require.EqualError(t, err, "unsupported current recording schemaVersion 4; schema 5 is required")
+		require.EqualError(t, err, "unsupported current recording schemaVersion 4; schema 6 is required")
 	})
 }

@@ -48,17 +48,14 @@ func SnapshotOfficialRecord(fixtureDir string, fixture *Fixture, material corpus
 		}
 		executionID = id
 		dir := ExecutionDir(fixtureDir, id)
-		var execution Execution
-		if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
-			return err
-		}
-		if err := execution.Validate(*fixture); err != nil {
+		execution, err := ReadExecution(fixtureDir, fixture, filepath.Join(dir, "execution.json"))
+		if err != nil {
 			return err
 		}
 		if execution.Command != "record" || !reflect.DeepEqual(execution.Artifact, material) {
 			return errors.New("official capture execution differs from material")
 		}
-		if err := validateConnectionInventory(execution, &material, fixture.Routes["record"]); err != nil {
+		if err := validateConnectionInventory(fixtureDir, *execution, &material, fixture.Routes["record"]); err != nil {
 			return err
 		}
 		found := false
@@ -74,7 +71,7 @@ func SnapshotOfficialRecord(fixtureDir string, fixture *Fixture, material corpus
 			if indexed.Status != "passed" || indexed.Command != "record" || indexed.DescriptorSHA256 != digest {
 				return errors.New("official capture execution is not settled")
 			}
-			if err := validateIndexedConnections(indexed, execution); err != nil {
+			if err := validateIndexedConnections(indexed, *execution); err != nil {
 				return err
 			}
 		}

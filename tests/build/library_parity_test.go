@@ -237,15 +237,15 @@ func assertDescriptorSchemas(t *testing.T, cliFixture, libraryFixture string) {
 		var cliValue, libraryValue any
 		require.NoError(t, readJSON(filepath.Join(cliFixture, relative), &cliValue))
 		require.NoError(t, readJSON(filepath.Join(libraryFixture, relative), &libraryValue))
-		require.EqualValues(t, 5, cliValue.(map[string]any)["schemaVersion"], relative)
-		require.EqualValues(t, 5, libraryValue.(map[string]any)["schemaVersion"], relative)
+		require.EqualValues(t, 6, cliValue.(map[string]any)["schemaVersion"], relative)
+		require.EqualValues(t, 6, libraryValue.(map[string]any)["schemaVersion"], relative)
 		require.Equal(t, descriptorShape(cliValue), descriptorShape(libraryValue), relative)
 	}
 	var cliFixtureValue, libraryFixtureValue any
 	require.NoError(t, readJSON(filepath.Join(cliFixture, "fixture.json"), &cliFixtureValue))
 	require.NoError(t, readJSON(filepath.Join(libraryFixture, "fixture.json"), &libraryFixtureValue))
-	require.EqualValues(t, 5, cliFixtureValue.(map[string]any)["schemaVersion"])
-	require.EqualValues(t, 5, libraryFixtureValue.(map[string]any)["schemaVersion"])
+	require.EqualValues(t, 6, cliFixtureValue.(map[string]any)["schemaVersion"])
+	require.EqualValues(t, 6, libraryFixtureValue.(map[string]any)["schemaVersion"])
 	require.Equal(t, descriptorShape(cliFixtureValue, fixtureIdentityKeys...), descriptorShape(libraryFixtureValue, fixtureIdentityKeys...), "fixture.json")
 }
 

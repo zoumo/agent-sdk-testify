@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
@@ -124,15 +125,14 @@ func cleanMockConfig(root string, plan tool.Object, provider string) error {
 	return profile.writeConfig(root, plan)
 }
 
-func writeConnectionLauncher(root, id, self, fixtureDir string) (string, error) {
+func writeConnectionLauncher(path, id, self, fixtureDir string) error {
 	quote := func(value string) string { return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'" }
 	invocation := strings.Join([]string{quote(self), quote("agent"), quote("mock"), quote("--fixture-dir"), quote(fixtureDir), quote("--connection"), quote(id)}, " ")
-	path := filepath.Join(root, "peer-"+id)
 	script := "#!/bin/sh\nexec " + invocation + " -- \"$@\"\n"
-	if err := os.MkdirAll(root, 0o700); err != nil {
-		return "", err
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return err
 	}
-	return path, os.WriteFile(path, []byte(script), 0o700)
+	return os.WriteFile(path, []byte(script), 0o700)
 }
 
 func ConnectionIDs(source Source, plan tool.Object) []string {
@@ -220,6 +220,14 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err := os.Mkdir(root, 0o700); err != nil {
 		return nil, err
 	}
+	if toolIdentity.Source == ToolSourceExecutable {
+		if err := tool.WriteJSON(ToolBindingPath(fixtureDir), Command{
+			Command: toolIdentity.Command,
+			Args:    slices.Clone(toolIdentity.Args),
+		}); err != nil {
+			return nil, err
+		}
+	}
 	baseline := filepath.Join(root, "baseline")
 	for _, name := range []string{"workspace", "home", "config", "tmp", "history-seed"} {
 		if err := os.MkdirAll(filepath.Join(baseline, name), 0o700); err != nil {
@@ -270,7 +278,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		if err != nil || filepath.IsLocal(rel) {
 			return nil, errors.New("--fixture-dir must be outside the history seed")
 		}
-		historySeed = filepath.Join(fixtureDir, "source", "history-seed")
+		historySeed = SourceSeedPath(fixtureDir)
 		if err := copyMaterial(sourceSeed, historySeed); err != nil {
 			return nil, err
 		}
@@ -280,7 +288,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		}
 		historySeedFiles = make(map[string]string, len(files))
 		for name, digest := range files {
-			historySeedFiles["history-seed/"+name] = digest
+			historySeedFiles[fixtureSourceSeed+"/"+name] = digest
 		}
 		if spec.source.Kind == "case" && spec.plan["driverProfile"] == "existing-children" {
 			if err := native.PrepareHistorySeed(historySeed, baseline, spec.plan); err != nil {
@@ -323,6 +331,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			MaxFrameBytes: o.MaxFrameBytes,
 		},
 	}
+	fixture.dir = fixtureDir
 	if err := writePrivateEnvironment(root, privateEnv); err != nil {
 		return nil, err
 	}
@@ -339,11 +348,11 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			fixture.Routes[action] = Route{Enabled: false}
 			continue
 		}
-		routeRoot := filepath.Join(root, "routes", action)
+		routeRoot := RouteRoot(fixtureDir, action)
 		if err := os.MkdirAll(routeRoot, 0o700); err != nil {
 			return nil, err
 		}
-		templateRoot := filepath.Join(root, "templates", action)
+		templateRoot := TemplateRoot(fixtureDir, action)
 		if err := tool.CopyTree(baseline, templateRoot); err != nil {
 			return nil, err
 		}
@@ -360,8 +369,8 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			Executor:    map[string]string{"record": "external-sdk", "mock": "external-sdk"}[action],
 			Target:      map[string]string{"record": "native-agent", "mock": "replay"}[action],
 			Provenance:  fixture.Source.Provenance,
-			Workspace:   filepath.Join(routeRoot, "workspace"),
-			ProtocolCwd: planProtocolCwd(spec.plan, filepath.Join(routeRoot, "workspace")),
+			Workspace:   RouteWorkspace(fixtureDir, action),
+			ProtocolCwd: planProtocolCwd(spec.plan, RouteWorkspace(fixtureDir, action)),
 			Env:         baseEnvironment(agentType, routeRoot),
 		}
 		if action == "record" {
@@ -378,11 +387,11 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 				template.Command = toolIdentity.Command
 				switch action {
 				case "record":
-					template.Args = []string{"agent", "record", "--fixture-dir", fixtureDir, "--cmd"}
+					template.Args = []string{"agent", "record", "--cmd"}
 				case "mock":
-					template.Args = []string{"agent", "mock", "--fixture-dir", fixtureDir, "--connection", id}
-					template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, toolIdentity.Command, fixtureDir)
-					if err != nil {
+					template.Args = []string{"agent", "mock", "--connection", id}
+					template.Launcher = LauncherPath(fixtureDir, id)
+					if err := writeConnectionLauncher(template.Launcher, id, toolIdentity.Command, fixtureDir); err != nil {
 						return nil, err
 					}
 				}
@@ -401,7 +410,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		}
 		materialID = spec.material.ID
 	}
-	materialRoot := filepath.Join(fixtureDir, "materials", materialID)
+	materialRoot := MaterialRoot(fixtureDir, materialID)
 	var materialArtifact *corpus.Material
 	switch fixture.Source.Kind {
 	case "case":
@@ -437,15 +446,22 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		if spec.material == nil {
 			materialArtifact.ID = materialID
 			materialArtifact.Action = "mock"
+			materialArtifact.FormatVersion = corpus.MaterialFormatVersion
 		}
 		files, err := history.HashTree(materialRoot)
 		if err != nil {
 			return nil, err
 		}
 		delete(files, "material.json")
-		materialArtifact.Files = files
-		if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
-			return nil, err
+		if len(materialArtifact.Files) == 0 {
+			materialArtifact.Files = files
+		} else if !reflect.DeepEqual(materialArtifact.Files, files) {
+			return nil, errors.New("imported material closure differs from its descriptor")
+		}
+		if spec.material == nil {
+			if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
+				return nil, err
+			}
 		}
 		if _, err := inspectMaterial(fixture, *materialArtifact); err != nil {
 			return nil, err

@@ -35,9 +35,9 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 	v.Hashes(replay, tool.Obj(review["replayFiles"]))
 	plan := v.Read(source, "plan.json")
 	newCapture := publicCapture(source)
-	var captureBusiness, recordExecution tool.Object
+	var captureBusiness tool.Object
 	if newCapture {
-		captureBusiness, recordExecution = v.publicCaptureBusiness(source, replay, plan)
+		captureBusiness, _ = v.publicCaptureBusiness(source, replay, plan)
 	}
 	if automatic && !newCapture {
 		v.Check(plan["recordingIsolation"] == "personal-skills-v1", "automatic qualification requires a recording-time isolated capture")
@@ -101,13 +101,13 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 			cwd = plan["historyProject"]
 		}
 		if newCapture && len(remote) == 0 {
-			cwd = recordExecution["workspace"]
+			cwd = v.recordWorkspace
 			v.Check(native["sha256"] == plan["cliSHA256"] && reflect.DeepEqual(native["args"], plan["args"]), "observed native launch differs from isolated preparation")
 			v.Check(transport["nativeExitCode"] == float64(0), "native capture exit was not successful")
 		}
 		if len(remote) > 0 {
 			native = tool.Obj(remote["native"])
-			cwd = recordExecution["workspace"]
+			cwd = v.recordWorkspace
 			expectedArgs := []string{}
 			args := tool.Strings(plan["args"])
 			for i := 0; i < len(args); i++ {

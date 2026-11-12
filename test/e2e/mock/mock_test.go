@@ -303,7 +303,7 @@ func readMockReceipt(fixtureDir string, receipt *tool.Object) error {
 	if err := tool.ReadJSON(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution); err != nil {
 		return err
 	}
-	return tool.ReadJSON(execution.Connections[0].Receipt, receipt)
+	return tool.ReadJSON(filepath.Join(fixtureDir, filepath.FromSlash(execution.Connections[0].Receipt)), receipt)
 }
 
 func mockReceipt(t *testing.T, fixtureDir string) tool.Object {

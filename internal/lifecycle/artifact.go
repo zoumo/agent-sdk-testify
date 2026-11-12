@@ -27,6 +27,7 @@ func artifactForMaterial(root, provenance string, connections []string) (*corpus
 		return nil, err
 	}
 	material.ID, material.Action, material.CreatedAt = id, "initial", now()
+	material.FormatVersion = corpus.MaterialFormatVersion
 	material.Connections = append([]string(nil), connections...)
 	if hasOfficialOrigin {
 		var origin corpus.OfficialOrigin
@@ -81,6 +82,11 @@ func LoadPlan(fixture *Fixture) (tool.Object, error) {
 // CurrentArtifact resolves the single current recording. A fixture without a
 // current recording is a valid prepared state and returns present=false.
 func CurrentArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, bool, error) {
+	dir, err := CanonicalFixtureDir(fixtureDir)
+	if err != nil {
+		return nil, false, err
+	}
+	fixtureDir = dir
 	current, err := readCurrent(fixtureDir, fixture.FixtureID)
 	if err != nil {
 		return nil, false, err
@@ -105,11 +111,12 @@ func CurrentArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, boo
 }
 
 func readCurrent(fixtureDir, fixtureID string) (Current, error) {
-	var current Current
-	if err := tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current); err != nil {
+	path := filepath.Join(fixtureDir, "current.json")
+	if err := persistedSchema(path, "current recording"); err != nil {
 		return Current{}, err
 	}
-	if err := requireSchema("current recording", current.SchemaVersion); err != nil {
+	var current Current
+	if err := tool.ReadJSON(path, &current); err != nil {
 		return Current{}, err
 	}
 	if current.FixtureID != fixtureID {

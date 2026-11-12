@@ -173,11 +173,10 @@ func conformanceDriver(args []string) int {
 	}
 	if mode == "verify-cleanup-failure" {
 		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(req.Output))), "fixture.json")
-		var descriptor object
-		if readJSONFile(slot, &descriptor) != nil {
+		if _, err := os.Stat(slot); err != nil {
 			return 7
 		}
-		slot = str(obj(obj(descriptor["routes"])["mock"])["workspace"])
+		slot = filepath.Join(filepath.Dir(slot), "runtime", "routes", "mock", "workspace")
 		if os.Remove(slot) != nil || os.Mkdir(slot, 0o700) != nil {
 			return 7
 		}
@@ -229,12 +228,6 @@ func conformanceRecordFault() int {
 		if readJSONFile(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution) != nil {
 			return 7
 		}
-		var descriptor struct {
-			ResourceRoot string `json:"resourceRoot"`
-		}
-		if readJSONFile(filepath.Join(fixtureDir, "fixture.json"), &descriptor) != nil {
-			return 7
-		}
 		switch mode {
 		case "publication":
 			if os.Mkdir(filepath.Join(fixtureDir, "materials", execution.Artifact.ID), 0o700) != nil {
@@ -245,7 +238,7 @@ func conformanceRecordFault() int {
 				return 7
 			}
 		case "cleanup":
-			slot := filepath.Join(descriptor.ResourceRoot, "routes", "record", "workspace")
+			slot := filepath.Join(fixtureDir, "runtime", "routes", "record", "workspace")
 			if os.Remove(slot) != nil || os.Mkdir(slot, 0o700) != nil {
 				return 7
 			}

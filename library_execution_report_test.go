@@ -538,7 +538,7 @@ func repinLibraryManifest(t *testing.T, fixture *agenttestify.Fixture, execution
 	mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "materials", "index.json"), func(value map[string]any) {
 		for _, raw := range value["materials"].([]any) {
 			material := raw.(map[string]any)
-			if material["path"] != fixture.Current.Path {
+			if material["id"] != fixture.Current.ID {
 				continue
 			}
 			repinMaterialManifest(material)
