@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -51,7 +50,9 @@ func TestInstalledCLIAndLibraryShareFixtureAndMaterialContract(t *testing.T) {
 	require.NoError(t, err)
 	assertPublicFixtureIdentity(t, cliOpened, agenttestify.ToolSourceExecutable)
 	assertPublicFixtureIdentity(t, prepared, agenttestify.ToolSourceEmbedded)
-	require.Equal(t, sharedLayout(t, cliFixture), sharedLayout(t, prepared.FixtureDir))
+	require.FileExists(t, filepath.Join(cliFixture, "runtime", "tool.json"))
+	require.NoFileExists(t, filepath.Join(prepared.FixtureDir, "runtime", "tool.json"))
+	require.Equal(t, sharedLayout(t, cliFixture, cliOpened.Current.ID), sharedLayout(t, prepared.FixtureDir, prepared.Current.ID))
 	require.Equal(t, normalizedFixture(t, cliFixture), normalizedFixture(t, prepared.FixtureDir))
 	assertDescriptorSchemas(t, cliFixture, prepared.FixtureDir)
 
@@ -105,7 +106,7 @@ func runCLI(t *testing.T, binary string, args ...string) {
 	require.NoError(t, err, "%s", out)
 }
 
-func sharedLayout(t *testing.T, root string) []string {
+func sharedLayout(t *testing.T, root, materialID string) []string {
 	t.Helper()
 	var paths []string
 	require.NoError(t, filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
@@ -117,10 +118,14 @@ func sharedLayout(t *testing.T, root string) []string {
 			return err
 		}
 		rel = filepath.ToSlash(rel)
-		if rel == "." || rel == "runtime/launchers" || strings.HasPrefix(rel, "runtime/launchers/") {
+		if rel == "." || rel == "runtime/tool.json" || rel == "runtime/launchers" || strings.HasPrefix(rel, "runtime/launchers/") {
 			return nil
 		}
-		rel = normalizedLayoutPath(rel)
+		// Compare the location of the explicitly selected package, without
+		// normalizing any material file bytes or protocol identities.
+		if rel == "packages/"+materialID || strings.HasPrefix(rel, "packages/"+materialID+"/") {
+			rel = "packages/<material>" + strings.TrimPrefix(rel, "packages/"+materialID)
+		}
 		info, err := os.Lstat(path)
 		if err != nil {
 			return err
@@ -138,13 +143,7 @@ func sharedLayout(t *testing.T, root string) []string {
 	return paths
 }
 
-var materialDirectory = regexp.MustCompile(`^materials/[0-9a-f]{32}(/|$)`)
-
 var fixtureIdentityKeys = []string{"fixtureId", "tool", "transport", "command", "args", "launcher"}
-
-func normalizedLayoutPath(relative string) string {
-	return materialDirectory.ReplaceAllString(relative, "materials/<material>$1")
-}
 
 func normalizedFixture(t *testing.T, fixtureDir string) map[string]any {
 	t.Helper()
@@ -231,21 +230,21 @@ func assertDescriptorSchemas(t *testing.T, cliFixture, libraryFixture string) {
 	t.Helper()
 	for _, relative := range []string{
 		"executions/index.json",
-		"materials/index.json",
+		"packages/index.json",
 		"current.json",
 	} {
 		var cliValue, libraryValue any
 		require.NoError(t, readJSON(filepath.Join(cliFixture, relative), &cliValue))
 		require.NoError(t, readJSON(filepath.Join(libraryFixture, relative), &libraryValue))
-		require.EqualValues(t, 6, cliValue.(map[string]any)["schemaVersion"], relative)
-		require.EqualValues(t, 6, libraryValue.(map[string]any)["schemaVersion"], relative)
+		require.EqualValues(t, 7, cliValue.(map[string]any)["schemaVersion"], relative)
+		require.EqualValues(t, 7, libraryValue.(map[string]any)["schemaVersion"], relative)
 		require.Equal(t, descriptorShape(cliValue), descriptorShape(libraryValue), relative)
 	}
 	var cliFixtureValue, libraryFixtureValue any
 	require.NoError(t, readJSON(filepath.Join(cliFixture, "fixture.json"), &cliFixtureValue))
 	require.NoError(t, readJSON(filepath.Join(libraryFixture, "fixture.json"), &libraryFixtureValue))
-	require.EqualValues(t, 6, cliFixtureValue.(map[string]any)["schemaVersion"])
-	require.EqualValues(t, 6, libraryFixtureValue.(map[string]any)["schemaVersion"])
+	require.EqualValues(t, 7, cliFixtureValue.(map[string]any)["schemaVersion"])
+	require.EqualValues(t, 7, libraryFixtureValue.(map[string]any)["schemaVersion"])
 	require.Equal(t, descriptorShape(cliFixtureValue, fixtureIdentityKeys...), descriptorShape(libraryFixtureValue, fixtureIdentityKeys...), "fixture.json")
 }
 
@@ -289,20 +288,8 @@ func descriptorShape(value any, ignoredKeys ...string) any {
 
 func assertEquivalentMaterials(t *testing.T, cliExport, libraryExport string) {
 	t.Helper()
-	cliHashes, libraryHashes := payloadHashes(t, cliExport), payloadHashes(t, libraryExport)
-	delete(cliHashes, "material.json")
-	delete(libraryHashes, "material.json")
-	require.Equal(t, cliHashes, libraryHashes)
-	cliFiles, libraryFiles := treeBytes(t, cliExport), treeBytes(t, libraryExport)
-	require.Equal(t, sortedKeys(cliFiles), sortedKeys(libraryFiles))
-	for name, cliBytes := range cliFiles {
-		libraryBytes := libraryFiles[name]
-		if name == "material.json" {
-			assertEquivalentMaterialMetadata(t, cliBytes, libraryBytes)
-			continue
-		}
-		require.Equal(t, cliBytes, libraryBytes, name)
-	}
+	require.Equal(t, payloadHashes(t, cliExport), payloadHashes(t, libraryExport))
+	require.Equal(t, treeBytes(t, cliExport), treeBytes(t, libraryExport))
 }
 
 func assertMaterialHashes(t *testing.T, material *agenttestify.Material, root string) {
@@ -311,18 +298,6 @@ func assertMaterialHashes(t *testing.T, material *agenttestify.Material, root st
 	require.Equal(t, material.PlanSHA256, hashes["plan.json"])
 	require.Equal(t, material.ManifestSHA256, hashes["manifest.json"])
 	require.Equal(t, material.RecordingSHA256, hashes[filepath.ToSlash(filepath.Join("raw", "raw.jsonl"))])
-}
-
-func assertEquivalentMaterialMetadata(t *testing.T, cliBytes, libraryBytes []byte) {
-	t.Helper()
-	var cliValue, libraryValue map[string]any
-	require.NoError(t, json.Unmarshal(cliBytes, &cliValue))
-	require.NoError(t, json.Unmarshal(libraryBytes, &libraryValue))
-	for _, key := range []string{"id", "path", "createdAt"} {
-		delete(cliValue, key)
-		delete(libraryValue, key)
-	}
-	require.Equal(t, cliValue, libraryValue)
 }
 
 func treeBytes(t *testing.T, root string) map[string][]byte {

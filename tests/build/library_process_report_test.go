@@ -90,8 +90,12 @@ func TestLibraryProcessMockReportAndAdapterBoundaries(t *testing.T) {
 	require.Equal(t, "passed", processReceipt["status"])
 	var durableResult map[string]any
 	require.NoError(t, readJSON(processResult.ResultPath, &durableResult))
-	require.EqualValues(t, 2, durableResult["schemaVersion"])
+	require.EqualValues(t, 3, durableResult["schemaVersion"])
+	require.Equal(t, executableFixture.Current.ID, durableResult["materialId"])
+	packageRoot := filepath.Dir(executableFixture.Current.Path)
 	require.Equal(t, "executions/"+processResult.ExecutionID+"/execution.json", durableResult["execution"])
+	require.Equal(t, processResult.ExecutionPath, filepath.Join(packageRoot, filepath.FromSlash(durableResult["execution"].(string))))
+	require.Equal(t, processResult.ReceiptPath, filepath.Join(packageRoot, filepath.FromSlash(durableResult["receipt"].(string))))
 	require.NotContains(t, durableResult["material"].(map[string]any), "path")
 	mutateBuildJSON(t, connection.ProcessReceiptPath, func(value map[string]any) {
 		value["exitCode"] = float64(7)

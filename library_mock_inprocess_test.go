@@ -492,6 +492,7 @@ func TestLibraryStartMockAgentAbortDuringFinalizeFails(t *testing.T) {
 	require.NoError(t, err)
 
 	executionDir := filepath.Dir(run.Start.ExecutionPath)
+	cleanupMockRun(t, run)
 	finalizeLock, err := os.OpenFile(filepath.Join(executionDir, "mock-finalize.lock"), os.O_CREATE|os.O_RDWR, 0o600)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = finalizeLock.Close() })
@@ -507,7 +508,7 @@ func TestLibraryStartMockAgentAbortDuringFinalizeFails(t *testing.T) {
 	var execution map[string]any
 	require.NoError(t, json.Unmarshal(readFile(t, run.Start.ExecutionPath), &execution))
 	connections := execution["connections"].([]any)
-	receiptPath := connections[0].(map[string]any)["receipt"].(string)
+	receiptPath := filepath.Join(filepath.Dir(prepared.Current.Path), filepath.FromSlash(connections[0].(map[string]any)["receipt"].(string)))
 	require.Eventually(t, func() bool {
 		data, readErr := os.ReadFile(receiptPath)
 		if readErr != nil {
@@ -625,13 +626,17 @@ func TestLibraryStartMockAgentExecutionStartIsDefensiveCopy(t *testing.T) {
 		Stderr: &bytes.Buffer{},
 	})
 	require.NoError(t, err)
+	cleanupMockRun(t, run)
+	config := run.Start.Config
 	run.Start.Env["CODEX_HOME"] = "mutated"
 	run.Start.NativeArgs[0] = "mutated"
 	run.Start.Material.Connections[0] = "mutated"
 	var execution map[string]any
 	require.NoError(t, json.Unmarshal(readFile(t, run.Start.ExecutionPath), &execution))
-	env := execution["env"].(map[string]any)
-	require.NotEqual(t, "mutated", env["CODEX_HOME"])
+	// Environment is runtime-only in schema 7. The finalized report must still
+	// come from the untouched internal start snapshot after caller mutation.
+	require.NotContains(t, execution, "env")
+	require.DirExists(t, config)
 	nativeArgs := execution["nativeArgs"].([]any)
 	require.Equal(t, "app-server", nativeArgs[0])
 	connections := execution["artifact"].(map[string]any)["connections"].([]any)
@@ -643,8 +648,9 @@ func TestLibraryStartMockAgentExecutionStartIsDefensiveCopy(t *testing.T) {
 		t.Fatal("full consumption did not arrive")
 	}
 	require.NoError(t, input.CloseEOF())
-	_, err = run.Wait(t.Context())
+	result, err := run.Wait(t.Context())
 	require.NoError(t, err)
+	require.Equal(t, "main", result.Material.Connections[0])
 	require.Equal(t, "main", run.Start.ConnectionID)
 	require.NotEmpty(t, run.Start.Env)
 }
