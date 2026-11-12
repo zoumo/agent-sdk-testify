@@ -1,0 +1,80 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-023/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-023",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-023",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "structured-input",
+  "historyBindings": [],
+  "initialModel": "auto/deepseek-v4.1-flash-1017[1m]",
+  "model": "theta/GLM-5.3",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-023/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply Ready.",
+    "Reply Done."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-023",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-023",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "between-inputs",
+      "setting": "model"
+    },
+    "prompts": [
+      "Reply Ready.",
+      "Reply Done."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "sourcePlanSHA256": "69104e76cf6cc83159a2ecf5a997fd21b7130263b0ed7dba1c025038b44fddd8",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

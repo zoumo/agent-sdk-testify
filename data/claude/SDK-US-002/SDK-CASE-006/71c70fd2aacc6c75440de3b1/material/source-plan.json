@@ -1,0 +1,50 @@
+{
+  "case": {
+    "id": "SDK-CASE-006",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察文件工具的执行与任务完成。",
+    "storyId": "SDK-US-002"
+  },
+  "caseId": "SDK-CASE-006",
+  "driverProfile": "fixture-tools",
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "prompts": [
+    "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-006",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察文件工具的执行与任务完成。",
+      "storyId": "SDK-US-002"
+    },
+    "caseId": "SDK-CASE-006",
+    "configuration": {},
+    "driverProfile": "fixture-tools",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "Read",
+      "Write"
+    ],
+    "storyId": "SDK-US-002"
+  },
+  "story": "SDK-US-002",
+  "storyId": "SDK-US-002"
+}

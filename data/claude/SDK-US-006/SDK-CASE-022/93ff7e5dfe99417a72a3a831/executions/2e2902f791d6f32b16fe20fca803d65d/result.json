@@ -1,0 +1,32 @@
+{
+  "connections": [
+    {
+      "id": "main",
+      "status": "passed"
+    }
+  ],
+  "execution": "executions/2e2902f791d6f32b16fe20fca803d65d/execution.json",
+  "executionId": "2e2902f791d6f32b16fe20fca803d65d",
+  "executionSHA256": "20ebfe6bef20a4ecbb9df6a27fb379e6834c4fc8619a35ee66a5c90a38a47309",
+  "files": {
+    "executions/2e2902f791d6f32b16fe20fca803d65d/execution.json": "20ebfe6bef20a4ecbb9df6a27fb379e6834c4fc8619a35ee66a5c90a38a47309",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/isolation.json": "3ddf2e15eeb36314fb36429127b09ac7c0711347cc937065b16ec038d68023f9",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/materialization.json": "f276c7c901cf95db6732dd312b624fa157b2dc27f7bd86f585111ea62564d44e",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/prepared-plan.json": "7b3cf042094805bd2f9bc9b1d9dc3a57575d18397dfb77ab8b5ab5789d8cbcf3",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/receipts/main.native-process.json": "3bd1b56bed83595f0332223de3995a4d937379d52b5dd5a3de046751f32eca85",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/receipts/main.origin.json": "b6c6799a287d50b6393d21216cccd58fdca404e03923955072bb586e97fad8e8",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/receipts/main.probe.native-process.json": "cc3880956ac2d676b5be0e5c17f462df0710d104c96563139153928b970b639c",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/receipts/main.result.json": "59bfe9e0ec18b0fb3a9b9c164a272f74490586cc2bb60ef7b614f603a2159875",
+    "executions/2e2902f791d6f32b16fe20fca803d65d/receipts/main.transport.json": "93e3c55f69b7086a428ecbdf9c8ea4d3d774c5aac0fb20be170a79a62779a4f6"
+  },
+  "fixtureId": "86e26ba324928a19a03bce814a2edea9",
+  "manifestSHA256": "beb8bd17178e7311b4da8aae5ff1aa0a7c7de85a1900909dad18868303a88342",
+  "material": "material/material.json",
+  "materialId": "695a66c62482ef24ae78985e98a9c2fd",
+  "materialSHA256": "ff4232bf55f874639e55357a50112788edd617d0192a347a77e607dd19cd67fb",
+  "planSHA256": "31806693fb72cfed397c910270e4cd32966f4512eda5b31cbf6e5fef40674b10",
+  "publicationCommitted": true,
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "a40eb56511ba3ed4831421c362db6d6dabf090169d3a25b0ad6bceae747148b9",
+  "status": "passed"
+}

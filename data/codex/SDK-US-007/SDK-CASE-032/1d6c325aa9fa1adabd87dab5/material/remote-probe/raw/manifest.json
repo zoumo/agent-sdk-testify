@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "transport": "websocket",
+    "executable": "",
+    "sha256": "",
+    "args": null,
+    "cwd": "",
+    "version": "codex-cli 0.166.0"
+  },
+  "files": {
+    "raw.jsonl": "02bb2dd3296374405d54eb12e08f0917df7006ba521ad212da974baabad5da43",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "dc4d32b40a0071be45fbe5482e7ab57541fa503ab1514eabc8308f5834b46779"
+  }
+}

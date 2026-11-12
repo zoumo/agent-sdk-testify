@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 7,
+  "executionId": "aa60ecce8cf7b270a5258dd0ec9817f4",
+  "fixtureId": "11b80a847303e2c15d2eb32e72bef1ca",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-018",
+    "path": "source/plan.json",
+    "sha256": "cf105dd803bc95332597d1328cfe2409cc6000250c160b2eb43608691d6176b0",
+    "provenance": "official",
+    "driverProfile": "topology"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "historyFiles": {
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-a9d35775156cba96a.meta.json": "eae00a2e0245483ff18bb3733f4f8ef4a0f72c67ac97b3ed7c06f126caa24691",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-af8451e48526c39af.meta.json": "65a6706f9def8c8fb4febca5a351863f7838ca2b8c81424b4420bd34d56555de",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-aa60ecce8cf7b270a5258dd0ec9817f4-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-a9d35775156cba96a.meta.json": "eae00a2e0245483ff18bb3733f4f8ef4a0f72c67ac97b3ed7c06f126caa24691",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-aa60ecce8cf7b270a5258dd0ec9817f4-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-af8451e48526c39af.meta.json": "65a6706f9def8c8fb4febca5a351863f7838ca2b8c81424b4420bd34d56555de"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "3e2d37446f00cc959d08926d19923889",
+      "planSHA256": "c2d742c6d362cfa1d83f3ffa02524106b4e6b771c809c918d6fcc68291bc2055",
+      "manifestSHA256": "c0c8edbe19ad9b54e0bc51af5390f9d78335291214b247bc6880bfdb0e687135",
+      "recordingSHA256": "49942d9d351c17d7becfb3a8014af3518a578dd00d568a7b44c999ffd4fc9974",
+      "receipt": "executions/aa60ecce8cf7b270a5258dd0ec9817f4/receipts/main.json",
+      "processReceipt": "executions/aa60ecce8cf7b270a5258dd0ec9817f4/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "cf105dd803bc95332597d1328cfe2409cc6000250c160b2eb43608691d6176b0",
+    "originSHA256": "1b04014f396e06d433aee6ee55d7e15821cb0d7c27fa771ea7fb9ee61f06a45d",
+    "id": "3e2d37446f00cc959d08926d19923889",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "c2d742c6d362cfa1d83f3ffa02524106b4e6b771c809c918d6fcc68291bc2055",
+    "manifestSHA256": "c0c8edbe19ad9b54e0bc51af5390f9d78335291214b247bc6880bfdb0e687135",
+    "recordingSHA256": "49942d9d351c17d7becfb3a8014af3518a578dd00d568a7b44c999ffd4fc9974",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T20:30:50.076469Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T20:30:52.214796Z"
+}

@@ -1,0 +1,24 @@
+{
+  "args": null,
+  "caseId": "SDK-CASE-016",
+  "command": "mock",
+  "config": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/50bf5d919536722261838113ed70bfd6/config",
+  "driverProfile": "children",
+  "executionId": "50bf5d919536722261838113ed70bfd6",
+  "fixtureId": "8272a5163fdcfe0d54c12ae15bf5dace",
+  "home": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/50bf5d919536722261838113ed70bfd6/home",
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "manifestSHA256": "c6c0682969fff8b57818ae56459a6b7db64cd177f72970f5e01af4395a332e3c",
+  "materialId": "87aa80ee57e55757146075a429daea03",
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "planSHA256": "a5a02e63b82a51193b2d92020fd60c0fb4fa71b84bbf6d43987d82a64bbf772b",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/50bf5d919536722261838113ed70bfd6/workspace",
+  "provider": "claude",
+  "root": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/50bf5d919536722261838113ed70bfd6",
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "e409b4393c6f1100d0438ede1b27a0137df79b1672f933804ca676970a975384",
+  "storyId": "SDK-US-005",
+  "tmp": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/50bf5d919536722261838113ed70bfd6/tmp"
+}

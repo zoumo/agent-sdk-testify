@@ -1,0 +1,52 @@
+{
+  "case": {
+    "id": "SDK-CASE-001",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "连续提交文本输入并在结果后继续观察。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-001",
+  "driverProfile": "continuation",
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "prompts": [
+    "Reply with the word Ready.",
+    "Reply with the word Done."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-001",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "连续提交文本输入并在结果后继续观察。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-001",
+    "configuration": {},
+    "driverProfile": "continuation",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "requirePostResultEvent": true,
+      "requireSessionContinuation": true
+    },
+    "prompts": [
+      "Reply with the word Ready.",
+      "Reply with the word Done."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

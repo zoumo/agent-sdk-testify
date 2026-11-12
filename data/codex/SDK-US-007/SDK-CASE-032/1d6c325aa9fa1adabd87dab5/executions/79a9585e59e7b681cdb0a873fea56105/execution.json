@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 7,
+  "executionId": "79a9585e59e7b681cdb0a873fea56105",
+  "fixtureId": "b89ec8427aaed415815924722989c92e",
+  "command": "record",
+  "args": [
+    "--url",
+    "\u003cprivate\u003e",
+    "--token-file",
+    "\u003cprivate\u003e"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-032",
+    "path": "source/plan.json",
+    "sha256": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3",
+    "provenance": "official",
+    "driverProfile": "remote-close"
+  },
+  "executor": "external-sdk",
+  "target": "native-agent",
+  "provenance": "official",
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "b2b044a7471347e77a8c2469d380d3e7",
+      "receipt": "executions/79a9585e59e7b681cdb0a873fea56105/capture/raw/transport.json"
+    },
+    {
+      "id": "probe",
+      "transport": "process",
+      "materialId": "b2b044a7471347e77a8c2469d380d3e7",
+      "receipt": "executions/79a9585e59e7b681cdb0a873fea56105/capture/remote-probe/raw/transport.json"
+    }
+  ],
+  "artifact": {
+    "officialOrigin": {
+      "runId": "35a055ab6d4184c1c7dc53115fa6eb3b",
+      "fixtureId": "b89ec8427aaed415815924722989c92e",
+      "caseId": "SDK-CASE-032",
+      "agentType": "codex",
+      "recordSourceSHA256": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3",
+      "sourceSHA256": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3",
+      "driverSHA256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de",
+      "connections": [
+        "main",
+        "probe"
+      ]
+    },
+    "id": "b2b044a7471347e77a8c2469d380d3e7",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "",
+    "manifestSHA256": "",
+    "recordingSHA256": "",
+    "connections": [
+      "main",
+      "probe"
+    ],
+    "createdAt": "2026-11-12T19:54:11.071814Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "startedAt": "2026-11-12T19:54:11.071809Z"
+}

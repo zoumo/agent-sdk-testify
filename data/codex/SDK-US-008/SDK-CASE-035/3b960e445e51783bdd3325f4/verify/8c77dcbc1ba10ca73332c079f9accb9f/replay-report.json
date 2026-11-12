@@ -1,0 +1,299 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-008",
+  "status": "passed",
+  "inputs": 0,
+  "results": 0,
+  "events": 0,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "existing-query": {
+        "method": "thread/resume",
+        "params": {
+          "threadId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace"
+        },
+        "response": {
+          "thread": {
+            "id": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace",
+                "runtimeWorkspaceRoots": [
+                  "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
+            "forkedFromId": null,
+            "parentThreadId": null,
+            "preview": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network.",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "openai",
+            "model": "auto/deepseek-v4.1-flash-1017",
+            "reasoningEffort": "high",
+            "createdAt": 1794515096,
+            "updatedAt": 1794515169,
+            "recencyAt": 1794515168,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/executions/6a8672394ef851570edd7e1e0f8d44cd/config/sessions/2026/11/13/rollout-2026-11-13T04-24-56-01a1d16f-540c-7f70-8cef-b56a7b6cc4d1.jsonl",
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/templates/record/workspace",
+            "cliVersion": "0.166.0",
+            "originator": "official-python-story-recorder",
+            "source": "vscode",
+            "canAcceptDirectInput": true,
+            "threadSource": null,
+            "agentNickname": null,
+            "agentRole": null,
+            "gitInfo": {
+              "sha": "bab565414422d2c4600f51423ace2bcd8241003d",
+              "branch": "codex-portable-framework-paths",
+              "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+            },
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": [
+              {
+                "id": "01a1d16f-55ff-7341-b43b-722866d5c4fe",
+                "rootTurnId": "01a1d16f-55ff-7341-b43b-722866d5c4fe",
+                "items": [
+                  {
+                    "type": "userMessage",
+                    "id": "01a1d16f-67a1-7720-b62f-d17bb13afd97",
+                    "clientId": null,
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network.",
+                        "text_elements": []
+                      }
+                    ],
+                    "startedAtMs": 1794515101603,
+                    "completedAtMs": 1794515101603
+                  },
+                  {
+                    "type": "reasoning",
+                    "id": "rs_0b23264817945151017424639e761a_0",
+                    "summary": [
+                      "The user asks to use spawn_agent exactly once, ask child to reply \"SYNTHETIC_SAVED_CHILD\" without tools, wait for it to finish, report output and finish. No other tools. But multi_agent_mode says don't spawn unless user explicitly asks \u2014 user explicitly asks. So spawn once.\n\nSpawn with fork_turns none probably. Then wait."
+                    ],
+                    "content": [],
+                    "startedAtMs": 1794515102257,
+                    "completedAtMs": 1794515102991
+                  },
+                  {
+                    "type": "subAgentActivity",
+                    "model": "auto/deepseek-v4.1-flash-1017",
+                    "reasoningEffort": "high",
+                    "id": "call_ec1309337ad746b8bfdb7f90",
+                    "kind": "started",
+                    "agentThreadId": "01a1d16f-6edb-7ad1-9afc-9c9867c0c040",
+                    "agentPath": "/root/synthetic_child",
+                    "startedAtMs": 1794515103543,
+                    "completedAtMs": 1794515103543
+                  },
+                  {
+                    "type": "subAgentActivity",
+                    "model": null,
+                    "reasoningEffort": null,
+                    "id": "subagent-completed-01a1d16f-6f37-7fb1-8f41-2ad032f96725",
+                    "kind": "completed",
+                    "agentThreadId": "01a1d16f-6edb-7ad1-9afc-9c9867c0c040",
+                    "agentPath": "/root/synthetic_child",
+                    "startedAtMs": 1794515105424,
+                    "completedAtMs": 1794515105424
+                  },
+                  {
+                    "type": "collabAgentToolCall",
+                    "id": "call_95e413d085464b72a83f332f",
+                    "tool": "wait",
+                    "status": "completed",
+                    "senderThreadId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
+                    "receiverThreadIds": [],
+                    "prompt": null,
+                    "model": null,
+                    "reasoningEffort": null,
+                    "agentsStates": {},
+                    "startedAtMs": 1794515104671,
+                    "completedAtMs": 1794515105425
+                  },
+                  {
+                    "type": "agentMessage",
+                    "id": "msg_18e765fb35951f5000004a7a",
+                    "text": "Child output: SYNTHETIC_SAVED_CHILD",
+                    "phase": "final_answer",
+                    "memoryCitation": null,
+                    "delivery": null,
+                    "questions": null,
+                    "startedAtMs": 1794515106142,
+                    "completedAtMs": 1794515106143
+                  }
+                ],
+                "itemsView": "full",
+                "status": "completed",
+                "error": null,
+                "startedAt": 1794515097,
+                "completedAt": 1794515106,
+                "durationMs": 9177
+              }
+            ]
+          },
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "modelProvider": "openai",
+          "disabledPluginIds": [],
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace",
+          "runtimeWorkspaceRoots": [
+            "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace"
+          ],
+          "instructionSources": [],
+          "approvalPolicy": "on-request",
+          "approvalsReviewer": "user",
+          "sandbox": {
+            "type": "readOnly",
+            "networkAccess": false
+          },
+          "activePermissionProfile": {
+            "id": ":read-only",
+            "extends": null
+          },
+          "reasoningEffort": "high",
+          "collaborationMode": {
+            "mode": "default",
+            "settings": {
+              "model": "auto/deepseek-v4.1-flash-1017",
+              "reasoning_effort": "high",
+              "developer_instructions": null
+            }
+          },
+          "multiAgentMode": "explicitRequestOnly",
+          "turnsBackwardsCursor": "{\"requestedThreadId\":\"01a1d16f-540c-7f70-8cef-b56a7b6cc4d1\",\"rolloutOrdinal\":1,\"includeAnchor\":true,\"scope\":{\"kind\":\"turns\"}}",
+          "itemsBackwardsCursor": "{\"requestedThreadId\":\"01a1d16f-540c-7f70-8cef-b56a7b6cc4d1\",\"rolloutOrdinal\":27,\"includeAnchor\":true,\"scope\":{\"kind\":\"itemsByCreatedAtOrdinal\"}}"
+        }
+      }
+    },
+    {
+      "existing-query": {
+        "method": "thread/list",
+        "params": {
+          "ancestorThreadId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
+          "sourceKinds": [
+            "subAgentThreadSpawn"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1d16f-6edb-7ad1-9afc-9c9867c0c040",
+              "environments": null,
+              "extra": null,
+              "sessionId": "01a1d16f-6edb-7ad1-9afc-9c9867c0c040",
+              "forkedFromId": null,
+              "parentThreadId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
+              "preview": "",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "openai",
+              "model": "auto/deepseek-v4.1-flash-1017",
+              "reasoningEffort": "high",
+              "createdAt": 1794515103,
+              "updatedAt": 1794515168,
+              "recencyAt": 1794515168,
+              "status": {
+                "type": "notLoaded"
+              },
+              "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/executions/6a8672394ef851570edd7e1e0f8d44cd/config/sessions/2026/11/13/rollout-2026-11-13T04-25-03-01a1d16f-6edb-7ad1-9afc-9c9867c0c040.jsonl",
+              "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/templates/record/workspace",
+              "cliVersion": "0.166.0",
+              "originator": "official-python-story-recorder",
+              "source": {
+                "subAgent": {
+                  "thread_spawn": {
+                    "parent_thread_id": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
+                    "depth": 1,
+                    "agent_path": "/root/synthetic_child",
+                    "agent_nickname": "Mill",
+                    "agent_role": null
+                  }
+                }
+              },
+              "canAcceptDirectInput": null,
+              "threadSource": null,
+              "agentNickname": "Mill",
+              "agentRole": null,
+              "gitInfo": {
+                "sha": "bab565414422d2c4600f51423ace2bcd8241003d",
+                "branch": "codex-portable-framework-paths",
+                "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+              },
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {},
+          "backwardsCursor": "2026-11-12T20:25:02.999Z"
+        }
+      }
+    },
+    {
+      "existing-query": {
+        "method": "thread/unsubscribe",
+        "params": {
+          "threadId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1"
+        },
+        "response": {
+          "status": "unsubscribed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-035",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u53d1\u73b0\u5f53\u524d\u89c2\u5bdf\u5165\u53e3\u5efa\u7acb\u524d\u5df2\u7ecf\u5b58\u5728\u7684\u5b50 Agent \u53ca\u5df2\u8bc1\u5b9e\u5173\u7cfb\uff1b\u4e0d\u56de\u8865\u5386\u53f2\u5b9e\u65f6\u4e8b\u4ef6\u3002",
+    "storyId": "SDK-US-008"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.166.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-008",
+  "caseId": "SDK-CASE-035",
+  "flowTrace": [
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "branchStatus": "passed"
+}

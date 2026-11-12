@@ -1,0 +1,83 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-014/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-014",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "提供自由文本答案并继续任务。",
+    "storyId": "SDK-US-004"
+  },
+  "caseId": "SDK-CASE-014",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "questions",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-014/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Use the native question tool exactly once with 1 question(s). Ask for a short free text project note; accept an Other answer. Report the answers and finish. Do not use other tools."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {
+      "choice": "SYNTHETIC_FREE_TEXT",
+      "options": [],
+      "question": "Which synthetic color?"
+    },
+    "case": {
+      "id": "SDK-CASE-014",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "提供自由文本答案并继续任务。",
+      "storyId": "SDK-US-004"
+    },
+    "caseId": "SDK-CASE-014",
+    "configuration": {},
+    "driverProfile": "questions",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "freeText": true,
+      "questionCount": 1
+    },
+    "prompts": [
+      "Use the native question tool exactly once with 1 question(s). Ask for a short free text project note; accept an Other answer. Report the answers and finish. Do not use other tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "question"
+    ],
+    "storyId": "SDK-US-004"
+  },
+  "sourcePlanSHA256": "0e8a63cc6fdb5b9575a1a61304b6e172aeea1f613e5a8e0dca94e72bfd1b4299",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-004",
+  "storyId": "SDK-US-004"
+}

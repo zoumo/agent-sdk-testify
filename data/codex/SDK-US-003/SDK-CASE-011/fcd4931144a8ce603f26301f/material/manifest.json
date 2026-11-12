@@ -1,0 +1,47 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "f999313fe6562445c769675246a0578ba37f9544a07eb07a3b91f81719a4865c",
+    "origin/main.json": "4774bbf251ec12009ef499627272a41931811ed5efc105b6b1ca21fe1c048ba8",
+    "plan.json": "e965e18c3a54b7717fc05885059bddbbda84978af975875f9ae1b654bc579094",
+    "raw/manifest.json": "31b40f313913afcaa8eb6a4e2248e2788579d691ec1dd4df53fb16717e0447b0",
+    "raw/raw.jsonl": "e5bf04985b13b2e4514e48c1eea63aff7df70850c913d8381dbe8e98375878e6",
+    "raw/stderr.raw": "407f8302defe4aa48a03462333386c21c1f6967751af3828421425a27ae1d301",
+    "raw/transport.json": "960e02e6cb346e76532dcb787e0d6f2e605662b2ae0e1e7723ba4ade4f329bc3",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "fc69ade2f3233cf2d39f7c55f2762602353b9744b68cb986b796790fba68c3c4"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "sandbox_mode=\"read-only\"",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-011/fixture/runtime/executions/b6a849b88aca438ece52199c484992bd/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "e965e18c3a54b7717fc05885059bddbbda84978af975875f9ae1b654bc579094",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "960e02e6cb346e76532dcb787e0d6f2e605662b2ae0e1e7723ba4ade4f329bc3",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "fc69ade2f3233cf2d39f7c55f2762602353b9744b68cb986b796790fba68c3c4",
+  "status": "captured"
+}

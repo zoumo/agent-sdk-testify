@@ -1,0 +1,106 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-009",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "批准文件写入审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-009",
+    "driverProfile": "approval",
+    "model": "auto/deepseek-v4.1-flash-1017",
+    "prompts": [
+      "Use apply_patch exactly once to add approved.txt with content SYNTHETIC_APPROVED followed by a newline in the working directory. The native file change approval will be allowed. Report the decision without retrying or using shell or another tool."
+    ],
+    "provider": "codex",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-009",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "批准文件写入审批并观察后续结果。",
+        "storyId": "SDK-US-003"
+      },
+      "caseId": "SDK-CASE-009",
+      "configuration": {},
+      "driverProfile": "approval",
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "approvalDecision": "allow",
+        "approvalKind": "file",
+        "nativeFileTool": "apply_patch"
+      },
+      "prompts": [
+        "Use apply_patch exactly once to add approved.txt with content SYNTHETIC_APPROVED followed by a newline in the working directory. The native file change approval will be allowed. Report the decision without retrying or using shell or another tool."
+      ],
+      "provider": "codex",
+      "reason": "",
+      "requiredRequests": [
+        "approval_answer"
+      ],
+      "storyId": "SDK-US-003"
+    },
+    "story": "SDK-US-003",
+    "storyId": "SDK-US-003"
+  },
+  "case": "SDK-CASE-009",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:53:00.930527Z",
+  "contracts": {
+    "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
+    "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-codex",
+    "sha256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "58f6ceb51f3f8c110f93bf012be26896",
+      "executionSHA256": "73c70c64b336ffcceda3430642d17130b3622f81a4bc4d70e6e592c3dc1a7b81",
+      "path": "executions/58f6ceb51f3f8c110f93bf012be26896/result.json",
+      "sha256": "3ad15ab885e6a0fe3502c51c9a1c9c9a082a104b894959bbdc30c0b74d33dfb3"
+    }
+  ],
+  "files": {
+    "verify/3a3193af978eef6faf5c7bb8b7c6ffb8/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "verify/3a3193af978eef6faf5c7bb8b7c6ffb8/peers/main.json": "3822789cae0127a681a34c826e48f01a8b55647dfae4492e8cec89b4415c6e62",
+    "verify/3a3193af978eef6faf5c7bb8b7c6ffb8/replay-report.json": "94d54d7b26a3abb4b09bb04a325e98063d5e2d2c16cb781da3fd6fddcbf4b482",
+    "verify/3a3193af978eef6faf5c7bb8b7c6ffb8/result.json": "d35eaf98c86918cadbf9d53398c68576f342af400adc1ca9b7612c515727247d",
+    "verify/3a3193af978eef6faf5c7bb8b7c6ffb8/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/3a3193af978eef6faf5c7bb8b7c6ffb8/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "9ce9ac3e4f79654baa6e7c246dc5c28f",
+  "id": "3a3193af978eef6faf5c7bb8b7c6ffb8",
+  "manifestSHA256": "1d2284493ce4d85978b659852df5cb560740b1ab7f352be9a9f8ed8121f8f73e",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "61c06df641d6714bddf6b08a9fc26560796f0245be73a773d6e0d18ce72d0385"
+  },
+  "materialId": "8004bc9652dd39c3715fec26cd7217c1",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "codex",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:52:58.546422Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

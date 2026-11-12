@@ -1,0 +1,179 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-001",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 156,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 1965,
+        "duration_api_ms": 1452,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "375e4468-5a73-4b76-a1e9-c426fee22c9a",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.0661,
+        "usage": {
+          "input_tokens": 12475,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 149,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "1. one\n2. two\n3. three\n4. four\n5. five\n6. six\n7. seven\n8. eight\n9. nine\n10. ten\n11. eleven\n12. twelve\n13. thirteen\n14. fourteen\n15. fifteen\n16. sixteen\n17. seventeen\n18. eighteen\n19. nineteen\n20. twenty",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12475,
+            "outputTokens": 149,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.0661,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "cee97709-9141-456c-ab2f-763e2cbe9a18",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 1987,
+        "duration_api_ms": 3111,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "375e4468-5a73-4b76-a1e9-c426fee22c9a",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.07892400000000001,
+        "usage": {
+          "input_tokens": 361,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 12288,
+          "output_tokens": 195,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "1. sample one\n2. sample two\n3. sample three\n4. sample four\n5. sample five\n6. sample six\n7. sample seven\n8. sample eight\n9. sample nine\n10. sample ten\n11. sample eleven\n12. sample twelve\n13. sample thirteen\n14. sample fourteen\n15. sample fifteen\n16. sample sixteen\n17. sample seventeen\n18. sample eighteen\n19. sample nineteen\n20. sample twenty",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12836,
+            "outputTokens": 344,
+            "cacheReadInputTokens": 12288,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.07892400000000001,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "ff5f8e93-e5d8-4ffc-83db-f15ae542c552",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-005",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u6267\u884c\u4e2d\u8ffd\u52a0\u8f93\u5165\u5e76\u4fdd\u7559\u539f\u751f\u8c03\u5ea6\u7ed3\u679c\u3002",
+    "storyId": "SDK-US-001"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-001",
+  "caseId": "SDK-CASE-005",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "progress-barrier",
+      "action": "submit-supplement"
+    },
+    {
+      "step": "submit-supplement",
+      "outcome": "written"
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

@@ -1,0 +1,112 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 234,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 6377,
+        "duration_api_ms": 4799,
+        "is_error": false,
+        "num_turns": 4,
+        "session_id": "f4054c2f-3389-45e1-b7bc-7ef5e1074335",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.091506,
+        "usage": {
+          "input_tokens": 13353,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 24832,
+          "output_tokens": 493,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "Addition combines two or more quantities into a single total, so that adding 7 and 11 counts all their units together. The result is their sum: 7 + 11 = 18.",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 13353,
+            "outputTokens": 493,
+            "cacheReadInputTokens": 24832,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.091506,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "5cc1f77d-5848-41a2-bf12-9e3d53d87474",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-021",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u521b\u5efa\u4f1a\u8bdd\u65f6\u9009\u62e9\u6a21\u578b\u5e76\u6267\u884c\u4efb\u52a1\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-021",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "branchStatus": "passed"
+}

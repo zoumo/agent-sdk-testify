@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 7,
+  "executionId": "d8d2383d8d9248b47566ec3b685fdd7e",
+  "fixtureId": "b95325ca13ac088514807d1e9a49eada",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-013",
+    "path": "source/plan.json",
+    "sha256": "027390e0a68b67eeb3ef041461dc3d093a692034688fc9d45623e60e604c42bc",
+    "provenance": "official",
+    "driverProfile": "questions"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "protocolCwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-013/fixture/runtime/routes/record/workspace",
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "39857370bc6f2dae95940a7eb6b5e748",
+      "planSHA256": "2994a9af265191d46d8d2303a96242f99d1c6742e8bdf104f858a6cba0e22493",
+      "manifestSHA256": "6436dfebaeec9a2605ef713c5a22cf0addde6e39e1b441268ac27658795f3781",
+      "recordingSHA256": "80e3203c8515398f2745decfbd76e5e319cb2c5e6caa9424a791dd03246e8f49",
+      "receipt": "executions/d8d2383d8d9248b47566ec3b685fdd7e/receipts/main.json",
+      "processReceipt": "executions/d8d2383d8d9248b47566ec3b685fdd7e/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "027390e0a68b67eeb3ef041461dc3d093a692034688fc9d45623e60e604c42bc",
+    "originSHA256": "d0fe287aece72be5e0d9cfb0cb4905fc749a5b9c638f54b69c045034e42cccc1",
+    "id": "39857370bc6f2dae95940a7eb6b5e748",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "2994a9af265191d46d8d2303a96242f99d1c6742e8bdf104f858a6cba0e22493",
+    "manifestSHA256": "6436dfebaeec9a2605ef713c5a22cf0addde6e39e1b441268ac27658795f3781",
+    "recordingSHA256": "80e3203c8515398f2745decfbd76e5e319cb2c5e6caa9424a791dd03246e8f49",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T19:53:08.356705Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T19:53:12.195401Z"
+}

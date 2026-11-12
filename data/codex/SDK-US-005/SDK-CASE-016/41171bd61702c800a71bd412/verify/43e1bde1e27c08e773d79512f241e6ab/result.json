@@ -1,0 +1,13 @@
+{
+  "driverProcess": {
+    "cleanupComplete": true,
+    "exitCode": 0,
+    "pid": 22819,
+    "reaped": true,
+    "started": true
+  },
+  "fixtureId": "57be95bafe5b9a100eaae1bd8a33643f",
+  "id": "43e1bde1e27c08e773d79512f241e6ab",
+  "materialId": "2a4458c03f915b0dd75608a580678ee0",
+  "schemaVersion": 3
+}

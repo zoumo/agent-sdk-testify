@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 7,
+  "executionId": "458e6f2cf19e94cc7272de3a0a196229",
+  "fixtureId": "a9fc4537eeae481bcfeb48247dff2e69",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-038",
+    "path": "source/plan.json",
+    "sha256": "c8fea183e829ba5ced45d16b48048fcdf62c70fc12e07b1c5a5cac405e11c23f",
+    "provenance": "official",
+    "driverProfile": "context-injection"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "1f8b983c443997a21826739082f80bfe",
+      "planSHA256": "c1247e5aeda8c48e647f3c171a84de24ce20cffc96657a71061f0e4e76d0a73a",
+      "manifestSHA256": "008c26d424e19b7924ce849e3ee3074973f873aac440f66c0a7a2faaa2bcf718",
+      "recordingSHA256": "c36653c9adc9a996c775a4e78d5ea8339c10b5a57f7bcd7457fd9be6af4f7c4a",
+      "receipt": "executions/458e6f2cf19e94cc7272de3a0a196229/receipts/main.json",
+      "processReceipt": "executions/458e6f2cf19e94cc7272de3a0a196229/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "c8fea183e829ba5ced45d16b48048fcdf62c70fc12e07b1c5a5cac405e11c23f",
+    "originSHA256": "ed0b1071c4e159738fc23416530c8450d40aa36aee9dbf4e3a3d8799143a6a6d",
+    "id": "1f8b983c443997a21826739082f80bfe",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "c1247e5aeda8c48e647f3c171a84de24ce20cffc96657a71061f0e4e76d0a73a",
+    "manifestSHA256": "008c26d424e19b7924ce849e3ee3074973f873aac440f66c0a7a2faaa2bcf718",
+    "recordingSHA256": "c36653c9adc9a996c775a4e78d5ea8339c10b5a57f7bcd7457fd9be6af4f7c4a",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T19:56:58.46521Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T19:57:02.642698Z"
+}

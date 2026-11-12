@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 7,
+  "executionId": "a886f2ea34e52d14b1b6ba526100cb65",
+  "fixtureId": "f46931bc3fc54c1531654fc89672d62e",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-019",
+    "path": "source/plan.json",
+    "sha256": "b9de37e2a3c8ee7e7d4c9bb76291c9d6616d8ed28fbd1648186e098723e57f06",
+    "provenance": "official",
+    "driverProfile": "background-children"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "historyFiles": {
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r5-claude-SDK-CASE-019-fixture-runtime-executions-a886f2ea34e52d14b1b6ba526100cb65-workspace/39a4085b-a750-4bc2-8870-27b444dcff9e/subagents/agent-ab20413d2b305b824.meta.json": "bf52fe8dc345615d8fddb4aa0dcf7d86ad6744d6f0bdef5357d456e95d222592",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r5-claude-SDK-CASE-019-fixture-runtime-executions-cf56f2237e1ffaaa4eff3b925b5920f0-workspace/39a4085b-a750-4bc2-8870-27b444dcff9e/subagents/agent-ab20413d2b305b824.meta.json": "bf52fe8dc345615d8fddb4aa0dcf7d86ad6744d6f0bdef5357d456e95d222592"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "95e24fc2031ed9dd73a6bbeb49752971",
+      "planSHA256": "7ee1daa9fb85d4471046cd0b097910891fde555a92fa1fc43d8f30cce6efbef9",
+      "manifestSHA256": "8105fce282df7b4e6aa7513d345ca8b77f85971fda0a723fdaaf4f76349115fe",
+      "recordingSHA256": "40058880e8817db53bfb442520defbb5fc92e94ce00c0391629a260c0afb1e93",
+      "receipt": "executions/a886f2ea34e52d14b1b6ba526100cb65/receipts/main.json",
+      "processReceipt": "executions/a886f2ea34e52d14b1b6ba526100cb65/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "b9de37e2a3c8ee7e7d4c9bb76291c9d6616d8ed28fbd1648186e098723e57f06",
+    "originSHA256": "f54ae7f31e7efaf8b1950507bb6add711f9509728ebc3bd34b8f52d536078efd",
+    "id": "95e24fc2031ed9dd73a6bbeb49752971",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "7ee1daa9fb85d4471046cd0b097910891fde555a92fa1fc43d8f30cce6efbef9",
+    "manifestSHA256": "8105fce282df7b4e6aa7513d345ca8b77f85971fda0a723fdaaf4f76349115fe",
+    "recordingSHA256": "40058880e8817db53bfb442520defbb5fc92e94ce00c0391629a260c0afb1e93",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T20:40:53.461629Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T20:40:55.540092Z"
+}

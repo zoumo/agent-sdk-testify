@@ -1,0 +1,102 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-005",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "执行中追加输入并保留原生调度结果。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-005",
+    "driverProfile": "active-input",
+    "model": "auto/deepseek-v4.1-flash-1017",
+    "prompts": [
+      "Produce a numbered list from one to twenty.",
+      "Also include the word sample."
+    ],
+    "provider": "codex",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-005",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "执行中追加输入并保留原生调度结果。",
+        "storyId": "SDK-US-001"
+      },
+      "caseId": "SDK-CASE-005",
+      "configuration": {},
+      "driverProfile": "active-input",
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {},
+      "prompts": [
+        "Produce a numbered list from one to twenty.",
+        "Also include the word sample."
+      ],
+      "provider": "codex",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-001"
+    },
+    "story": "SDK-US-001",
+    "storyId": "SDK-US-001"
+  },
+  "case": "SDK-CASE-005",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:52:39.072837Z",
+  "contracts": {
+    "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+    "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-codex",
+    "sha256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "ed381d1a4c385a8616f161b880c057b4",
+      "executionSHA256": "6ef4adf4c201d994e28cb385cb88887d3963bee9857099c1b4551a35998ce7ed",
+      "path": "executions/ed381d1a4c385a8616f161b880c057b4/result.json",
+      "sha256": "640dc5e70891e25eb32876c817c87e4babd6e368849d6d4adad077a6d2f4d9d8"
+    }
+  ],
+  "files": {
+    "verify/6585f6633d3a8bff26859bfe8fed0658/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "verify/6585f6633d3a8bff26859bfe8fed0658/peers/main.json": "181de2e8e6c01f784647682985d96883d9ca53df199731e5111aca125b2b77d9",
+    "verify/6585f6633d3a8bff26859bfe8fed0658/replay-report.json": "b6acc50a114637598d6923ab4642e45ce2f95c19c08e4e9d43d8f35e715ab5be",
+    "verify/6585f6633d3a8bff26859bfe8fed0658/result.json": "21d11abfdab18783545315e6fd481bbe66571a13d7c7cc65e20ae0390e0725c9",
+    "verify/6585f6633d3a8bff26859bfe8fed0658/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/6585f6633d3a8bff26859bfe8fed0658/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "612329101eb078834e28766b1af939d6",
+  "id": "6585f6633d3a8bff26859bfe8fed0658",
+  "manifestSHA256": "efdde1afce20d506978631161e07ccd4e5bd9a98f5106501fe1daaf7a45ee79a",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "283783008e62a7cf8acb2165abb27e068ad99675d5e009ddc21c6f3d639115e9"
+  },
+  "materialId": "5e28b987f217b819b4b23d070a06f111",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "codex",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:52:35.828013Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

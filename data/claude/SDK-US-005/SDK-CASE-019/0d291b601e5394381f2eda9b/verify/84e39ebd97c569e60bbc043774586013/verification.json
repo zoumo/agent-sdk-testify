@@ -1,0 +1,103 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-019",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "根任务结束后继续观察后台子 Agent。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-019",
+    "driverProfile": "background-children",
+    "model": "auto/deepseek-v4.1-flash-1017[1m]",
+    "prompts": [
+      "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-019",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "根任务结束后继续观察后台子 Agent。",
+        "storyId": "SDK-US-005"
+      },
+      "caseId": "SDK-CASE-019",
+      "configuration": {},
+      "driverProfile": "background-children",
+      "files": {
+        "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n",
+        "numbers.txt": "7\n11\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "backgroundReadBarrier": true
+      },
+      "prompts": [
+        "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-005"
+    },
+    "story": "SDK-US-005",
+    "storyId": "SDK-US-005"
+  },
+  "case": "SDK-CASE-019",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T20:40:55.742275Z",
+  "contracts": {
+    "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "a886f2ea34e52d14b1b6ba526100cb65",
+      "executionSHA256": "08f578c4cb5c196b90afaff9eeb988dcfb004aa485d5fedb769a35c82643d255",
+      "path": "executions/a886f2ea34e52d14b1b6ba526100cb65/result.json",
+      "sha256": "540fb4b6126f5c70fd19f1d64c9d67da2d6a3d6946326a3a9c53e27ff43b9627"
+    }
+  ],
+  "files": {
+    "verify/84e39ebd97c569e60bbc043774586013/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/84e39ebd97c569e60bbc043774586013/peers/main.json": "d624702946d5771212ed87a600efa11b4ebc9949922faaad97c9ec88b4b4d330",
+    "verify/84e39ebd97c569e60bbc043774586013/replay-report.json": "d9999b82eebcadb1a83f5dfb2e87294fe8e9963e57899282e2f43d70c713a905",
+    "verify/84e39ebd97c569e60bbc043774586013/result.json": "b314749f84549962184f3ea59f42bc0a976c0e086bab4e06a87de1cd1da646df",
+    "verify/84e39ebd97c569e60bbc043774586013/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/84e39ebd97c569e60bbc043774586013/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "f46931bc3fc54c1531654fc89672d62e",
+  "id": "84e39ebd97c569e60bbc043774586013",
+  "manifestSHA256": "8105fce282df7b4e6aa7513d345ca8b77f85971fda0a723fdaaf4f76349115fe",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "1f719a9ca075a6be7c21f5db74985e79ee7ca7912dfef246c81238741b7de1d2"
+  },
+  "materialId": "95e24fc2031ed9dd73a6bbeb49752971",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T20:40:53.749196Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "13aeca2d1d6b6afdf90b6a92e5002702c2362ff8dddad6a0fca9a3a20327282d",
+    "version": "devel"
+  }
+}

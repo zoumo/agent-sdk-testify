@@ -1,0 +1,55 @@
+{
+  "case": {
+    "id": "SDK-CASE-022",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-022",
+  "driverProfile": "configuration-timing",
+  "initialModel": "auto/deepseek-v4.1-flash-1017[1m]",
+  "model": "theta/GLM-5.3",
+  "prompts": [
+    "Reply with the word Ready.",
+    "Reply with the word Done."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-022",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-022",
+    "configuration": {
+      "effectiveValue": "unknown-unless-observed",
+      "modelSource": "prepared-or-default",
+      "thinking": null,
+      "timing": "before-first-input"
+    },
+    "driverProfile": "configuration-timing",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Reply with the word Ready.",
+      "Reply with the word Done."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

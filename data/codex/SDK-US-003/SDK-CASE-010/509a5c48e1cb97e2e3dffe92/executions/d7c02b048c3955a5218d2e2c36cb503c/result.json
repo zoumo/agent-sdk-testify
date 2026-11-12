@@ -1,0 +1,32 @@
+{
+  "connections": [
+    {
+      "id": "main",
+      "status": "passed"
+    }
+  ],
+  "execution": "executions/d7c02b048c3955a5218d2e2c36cb503c/execution.json",
+  "executionId": "d7c02b048c3955a5218d2e2c36cb503c",
+  "executionSHA256": "940455d2b64439606c3c19ab2f1abcce62245989471f5710dcd71faf2ce290b8",
+  "files": {
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/execution.json": "940455d2b64439606c3c19ab2f1abcce62245989471f5710dcd71faf2ce290b8",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/isolation.json": "0eec0e06bb0ff21aa5f5e25f15b84d3b677f6835da8a9ea76155c278ca714bf7",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/materialization.json": "f276c7c901cf95db6732dd312b624fa157b2dc27f7bd86f585111ea62564d44e",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/prepared-plan.json": "f5eb850a9249121d77670207caffde7c399005f822ce5ab13e47aa981ff393d3",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/receipts/main.native-process.json": "738cb8b6cbd0ae81b5e97e4a1aefbd892bff77a1eaf56e59187a29f294e3b197",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/receipts/main.origin.json": "424a488299b44af9d5ed13c5fd1171fd79da09ee3d68b2813c7d2c1fac927234",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/receipts/main.probe.native-process.json": "d2364865363a398ae39489cee38c36d22a9e5d9504ebd075af685bfe9f3a213b",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/receipts/main.result.json": "c727173ca08bb51a83ad0e9858c59498e1a3d935ee96b8d8402ce6fe021162c8",
+    "executions/d7c02b048c3955a5218d2e2c36cb503c/receipts/main.transport.json": "bb7f15d50e03633f32a839e069ea19bf5fdfbc3cf92ebb93736680e01994bc42"
+  },
+  "fixtureId": "d166eb5b4169ed178e2331b22a41d438",
+  "manifestSHA256": "ddd89f6123fbe172e0a32ce0a9f6e1588fc023adc3bb057772413311136d5efc",
+  "material": "material/material.json",
+  "materialId": "bb7a2bd74d51a4a4bf72cc1e645ff9b0",
+  "materialSHA256": "e5fbc3761f4e0116234a12864c209b6e3b6f6852167d90f89315222e1588c5c2",
+  "planSHA256": "2e9a84766f70781861496507a0bbfb7af965edcf5541bfa5e06b574ea9fc80b5",
+  "publicationCommitted": true,
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "d7bdb99462aae1bc4e82b95c364d570d74f4ae7a4cdde4e810503923d2d9ee80",
+  "status": "passed"
+}

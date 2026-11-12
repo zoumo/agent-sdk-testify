@@ -1,0 +1,460 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 53,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "auto/deepseek-v4.1-flash-1017",
+        "modelProvider": "openai",
+        "reasoningEffort": "high",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1794513245,
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "modelProvider": "openai",
+          "originator": "official-python-story-recorder",
+          "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/config/sessions/2026/11/13/rollout-2026-11-13T03-54-05-01a1d153-14f6-78d1-b7a6-311d78c422d0.jsonl",
+          "preview": "",
+          "reasoningEffort": "high",
+          "recencyAt": 1794513245,
+          "sessionId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1794513245
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d153-1632-7740-a5f4-24550e18a526",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+        "turn": {
+          "completedAt": 1794513258,
+          "durationMs": 12974,
+          "id": "01a1d153-1632-7740-a5f4-24550e18a526",
+          "items": [
+            {
+              "id": "msg_18e7644d000e5658000047f2",
+              "phase": "final_answer",
+              "text": "Child agent `/root/child` finished. Its output:\n\n```\nSYNTHETIC_SAVED_CHILD\n```\n\nTask complete \u2014 one spawn, one wait, no other tools used.",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513245,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "history-setup-ended": {
+        "threadId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+        "response": {
+          "status": "unsubscribed"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/list",
+        "params": {
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+          "sourceKinds": [
+            "cli",
+            "vscode",
+            "exec",
+            "appServer"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+              "environments": [
+                {
+                  "environmentId": "local",
+                  "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+                  "runtimeWorkspaceRoots": [
+                    "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace"
+                  ]
+                }
+              ],
+              "extra": null,
+              "sessionId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+              "forkedFromId": null,
+              "parentThreadId": null,
+              "preview": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network.",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "openai",
+              "model": "auto/deepseek-v4.1-flash-1017",
+              "reasoningEffort": "high",
+              "createdAt": 1794513245,
+              "updatedAt": 1794513258,
+              "recencyAt": 1794513245,
+              "status": {
+                "type": "idle"
+              },
+              "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/config/sessions/2026/11/13/rollout-2026-11-13T03-54-05-01a1d153-14f6-78d1-b7a6-311d78c422d0.jsonl",
+              "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+              "cliVersion": "0.166.0",
+              "originator": "official-python-story-recorder",
+              "source": "vscode",
+              "canAcceptDirectInput": null,
+              "threadSource": null,
+              "agentNickname": null,
+              "agentRole": null,
+              "gitInfo": {
+                "sha": "a39eaefc322728003a5714e05a417ce9b27cb705",
+                "branch": "codex-portable-framework-paths",
+                "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+              },
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {
+            "01a1d153-14f6-78d1-b7a6-311d78c422d0": {
+              "firstUnread": {
+                "type": "turn",
+                "turnId": "01a1d153-1632-7740-a5f4-24550e18a526"
+              },
+              "revision": "d7d75ec7-c0da-41ab-ba13-feeed47f9eb9"
+            }
+          },
+          "backwardsCursor": "2026-11-12T19:54:05.710Z"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/list",
+        "params": {
+          "parentThreadId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+          "sourceKinds": [
+            "subAgentThreadSpawn"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1d153-34d6-7b61-9487-b70268330c62",
+              "environments": [
+                {
+                  "environmentId": "local",
+                  "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+                  "runtimeWorkspaceRoots": [
+                    "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace"
+                  ]
+                }
+              ],
+              "extra": null,
+              "sessionId": "01a1d153-34d6-7b61-9487-b70268330c62",
+              "forkedFromId": null,
+              "parentThreadId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+              "preview": "",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "openai",
+              "model": "auto/deepseek-v4.1-flash-1017",
+              "reasoningEffort": "high",
+              "createdAt": 1794513253,
+              "updatedAt": 1794513257,
+              "recencyAt": 1794513253,
+              "status": {
+                "type": "idle"
+              },
+              "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/config/sessions/2026/11/13/rollout-2026-11-13T03-54-13-01a1d153-34d6-7b61-9487-b70268330c62.jsonl",
+              "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/workspace",
+              "cliVersion": "0.166.0",
+              "originator": "official-python-story-recorder",
+              "source": {
+                "subAgent": {
+                  "thread_spawn": {
+                    "parent_thread_id": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+                    "depth": 1,
+                    "agent_path": "/root/child",
+                    "agent_nickname": "Leibniz",
+                    "agent_role": null
+                  }
+                }
+              },
+              "canAcceptDirectInput": false,
+              "threadSource": null,
+              "agentNickname": "Leibniz",
+              "agentRole": null,
+              "gitInfo": {
+                "sha": "a39eaefc322728003a5714e05a417ce9b27cb705",
+                "branch": "codex-portable-framework-paths",
+                "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+              },
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {},
+          "backwardsCursor": "2026-11-12T19:54:12.999Z"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/read",
+        "params": {
+          "threadId": "01a1d153-34d6-7b61-9487-b70268330c62",
+          "includeTurns": false
+        },
+        "response": {
+          "thread": {
+            "id": "01a1d153-34d6-7b61-9487-b70268330c62",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+                "runtimeWorkspaceRoots": [
+                  "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+            "forkedFromId": null,
+            "parentThreadId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+            "preview": "",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "openai",
+            "model": "auto/deepseek-v4.1-flash-1017",
+            "reasoningEffort": "high",
+            "createdAt": 1794513253,
+            "updatedAt": 1794513257,
+            "recencyAt": 1794513253,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/config/sessions/2026/11/13/rollout-2026-11-13T03-54-13-01a1d153-34d6-7b61-9487-b70268330c62.jsonl",
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/workspace",
+            "cliVersion": "0.166.0",
+            "originator": "official-python-story-recorder",
+            "source": {
+              "subAgent": {
+                "thread_spawn": {
+                  "parent_thread_id": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+                  "depth": 1,
+                  "agent_path": "/root/child",
+                  "agent_nickname": "Leibniz",
+                  "agent_role": null
+                }
+              }
+            },
+            "canAcceptDirectInput": false,
+            "threadSource": "subagent",
+            "agentNickname": "Leibniz",
+            "agentRole": null,
+            "gitInfo": {
+              "sha": "a39eaefc322728003a5714e05a417ce9b27cb705",
+              "branch": "codex-portable-framework-paths",
+              "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+            },
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": []
+          }
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/read",
+        "params": {
+          "threadId": "01a1d153-34d6-7b61-9487-b70268330c62",
+          "includeTurns": true
+        },
+        "response": {
+          "thread": {
+            "id": "01a1d153-34d6-7b61-9487-b70268330c62",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+                "runtimeWorkspaceRoots": [
+                  "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+            "forkedFromId": null,
+            "parentThreadId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+            "preview": "",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "openai",
+            "model": "auto/deepseek-v4.1-flash-1017",
+            "reasoningEffort": "high",
+            "createdAt": 1794513253,
+            "updatedAt": 1794513257,
+            "recencyAt": 1794513253,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/config/sessions/2026/11/13/rollout-2026-11-13T03-54-13-01a1d153-34d6-7b61-9487-b70268330c62.jsonl",
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/executions/99329f339e9c8303a96c3625ef06fbf9/workspace",
+            "cliVersion": "0.166.0",
+            "originator": "official-python-story-recorder",
+            "source": {
+              "subAgent": {
+                "thread_spawn": {
+                  "parent_thread_id": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+                  "depth": 1,
+                  "agent_path": "/root/child",
+                  "agent_nickname": "Leibniz",
+                  "agent_role": null
+                }
+              }
+            },
+            "canAcceptDirectInput": false,
+            "threadSource": "subagent",
+            "agentNickname": "Leibniz",
+            "agentRole": null,
+            "gitInfo": {
+              "sha": "a39eaefc322728003a5714e05a417ce9b27cb705",
+              "branch": "codex-portable-framework-paths",
+              "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+            },
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": [
+              {
+                "id": "01a1d153-3518-7012-862b-804a2decb259",
+                "rootTurnId": "01a1d153-1632-7740-a5f4-24550e18a526",
+                "items": [
+                  {
+                    "type": "agentMessage",
+                    "id": "msg_18e7644c8e515920000047ef",
+                    "text": "SYNTHETIC_SAVED_CHILD",
+                    "phase": "final_answer",
+                    "memoryCitation": null,
+                    "delivery": null,
+                    "questions": null,
+                    "startedAtMs": 1794513256499,
+                    "completedAtMs": 1794513256506
+                  }
+                ],
+                "itemsView": "full",
+                "status": "completed",
+                "error": null,
+                "startedAt": 1794513253,
+                "completedAt": 1794513257,
+                "durationMs": 4088
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "child-model-inheritance": {
+        "requested": "auto/deepseek-v4.1-flash-1017",
+        "rootId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+        "rootObservedModel": "auto/deepseek-v4.1-flash-1017",
+        "childObservedModels": {
+          "01a1d153-34d6-7b61-9487-b70268330c62": "auto/deepseek-v4.1-flash-1017"
+        },
+        "scope": "model only; no reasoning inheritance claim"
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-029",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u4ec5\u89c2\u5bdf\u6839\u4f1a\u8bdd\u6a21\u578b\u914d\u7f6e\u4e0e\u5b50 Agent \u539f\u751f\u6a21\u578b\u4e8b\u5b9e\u4e4b\u95f4\u7684\u7ee7\u627f\u3001\u9ed8\u8ba4\u6216\u8986\u76d6\u5173\u7cfb\uff1b\u4e0d\u63a8\u65ad\u601d\u8003\u914d\u7f6e\u7ee7\u627f\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-029",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "branchStatus": "passed"
+}

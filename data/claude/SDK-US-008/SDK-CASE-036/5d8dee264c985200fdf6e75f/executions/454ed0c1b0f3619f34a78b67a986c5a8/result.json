@@ -1,0 +1,31 @@
+{
+  "connections": [
+    {
+      "id": "main",
+      "status": "passed"
+    }
+  ],
+  "execution": "executions/454ed0c1b0f3619f34a78b67a986c5a8/execution.json",
+  "executionId": "454ed0c1b0f3619f34a78b67a986c5a8",
+  "executionSHA256": "2adeb12be2d531f2697d6dbf10ab5d121a1788d8cfa0a19fc3482334ce6fb20f",
+  "files": {
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/execution.json": "2adeb12be2d531f2697d6dbf10ab5d121a1788d8cfa0a19fc3482334ce6fb20f",
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-036-fixture-runtime-executions-454ed0c1b0f3619f34a78b67a986c5a8-workspace/99e46568-53b1-4c3b-bf12-92224a1ed6ac.jsonl": "419f16969db2e90058c8cd2aa3271c15c0c392288056368abfde605037ff4fa8",
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/isolation.json": "cf2a084caba725886176e15c963738dcac3c74662302ee821797d6e28d3575a1",
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/materialization.json": "76eaca1e8a9bb0ce9dc7b8c3fad96ed056ec359bc87bbe553ada325ce99f3ecb",
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/prepared-plan.json": "5e1bf71b6f3488cdeae99830a9c69a151a82fff639424aec82f46cd8ea8d1678",
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/receipts/main.json": "09aa434414489fc60a7fc3f4fd7573469cee4aedf8bea7cca4cba4de7eda1eed",
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/receipts/main.process.json": "5230ff3eb6fb5ba67683f949cf0f3bc17fe6b2437b6c8f28b9c6b29571acac37",
+    "executions/454ed0c1b0f3619f34a78b67a986c5a8/receipts/main.result.json": "ed30c6f1c13ef4c63c41c53b627da6303cc4532df0915a309c27caef613c212f"
+  },
+  "fixtureId": "fe1cf61a0942d706dcbf9221b22cfbf1",
+  "manifestSHA256": "a94a2eb2b454c274fe66a64d6441bfea7153c1fb1357684d9265cce1c60d2c62",
+  "material": "material/material.json",
+  "materialId": "b36c5139b6cedcc118639e59028b2558",
+  "materialSHA256": "92c99e5290f716be5f4c9a2afcf7344e72e0ff6533b4d472328edbd1bb9f7107",
+  "planSHA256": "2299678585ac45b6c077882db1e49130cee8a25a756d7d71b5a3fc5991027777",
+  "publicationCommitted": false,
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "ff14cabd91a0821fd879cc0e36e0c961a1eeced32cc5a1412236ebc9401c216f",
+  "status": "passed"
+}

@@ -1,0 +1,35 @@
+{
+  "transformations": [
+    {
+      "derived": "executions/dadd6351d83ec5b539a2f1c3cd111184/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl",
+      "derivedSHA256": "4e91c759cdac8815a46e529633f9800ecd38c61e5999dbaf7ac718d19c4657ea",
+      "executionCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-035/fixture/runtime/executions/dadd6351d83ec5b539a2f1c3cd111184/workspace",
+      "kind": "claude-project-cwd-copy",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl",
+      "source": "material/history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl",
+      "sourceCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/executions/2ac4d5f83def74f9f2e4c5892557d93d/workspace",
+      "sourceSHA256": "59403e1606c37753ad1bbe4775d09296925807869e132d154be72e887a05865c"
+    },
+    {
+      "derived": "executions/dadd6351d83ec5b539a2f1c3cd111184/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl",
+      "derivedSHA256": "f60a338382611a4c1cbb7ddac3a7537efea0de989cba22ee4660a7c382c6fb79",
+      "executionCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-035/fixture/runtime/executions/dadd6351d83ec5b539a2f1c3cd111184/workspace",
+      "kind": "claude-project-cwd-copy",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl",
+      "source": "material/history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl",
+      "sourceCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/executions/2ac4d5f83def74f9f2e4c5892557d93d/workspace",
+      "sourceSHA256": "5c0edbd4b1b895311c3317dbb0b9051d8585c0f3821ecbb21c6a706f049d2dd6"
+    },
+    {
+      "derived": "executions/dadd6351d83ec5b539a2f1c3cd111184/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json",
+      "derivedSHA256": "835c89e699ff9efaac28f5ee1f20fda8239f3a5b9b00dad5fb382575cc58fb63",
+      "executionCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-035/fixture/runtime/executions/dadd6351d83ec5b539a2f1c3cd111184/workspace",
+      "kind": "claude-project-cwd-copy",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json",
+      "source": "material/history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json",
+      "sourceCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/executions/2ac4d5f83def74f9f2e4c5892557d93d/workspace",
+      "sourceSHA256": "835c89e699ff9efaac28f5ee1f20fda8239f3a5b9b00dad5fb382575cc58fb63"
+    }
+  ],
+  "version": 2
+}

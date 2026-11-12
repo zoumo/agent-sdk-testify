@@ -1,0 +1,15 @@
+{
+  "transformations": [
+    {
+      "derived": "executions/a886f2ea34e52d14b1b6ba526100cb65/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r5-claude-SDK-CASE-019-fixture-runtime-executions-a886f2ea34e52d14b1b6ba526100cb65-workspace/39a4085b-a750-4bc2-8870-27b444dcff9e/subagents/agent-ab20413d2b305b824.meta.json",
+      "derivedSHA256": "bf52fe8dc345615d8fddb4aa0dcf7d86ad6744d6f0bdef5357d456e95d222592",
+      "executionCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r5/claude/SDK-CASE-019/fixture/runtime/executions/a886f2ea34e52d14b1b6ba526100cb65/workspace",
+      "kind": "claude-project-cwd-copy",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r5-claude-SDK-CASE-019-fixture-runtime-executions-a886f2ea34e52d14b1b6ba526100cb65-workspace/39a4085b-a750-4bc2-8870-27b444dcff9e/subagents/agent-ab20413d2b305b824.meta.json",
+      "source": "material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r5-claude-SDK-CASE-019-fixture-runtime-executions-cf56f2237e1ffaaa4eff3b925b5920f0-workspace/39a4085b-a750-4bc2-8870-27b444dcff9e/subagents/agent-ab20413d2b305b824.meta.json",
+      "sourceCWD": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r5/claude/SDK-CASE-019/fixture/runtime/executions/cf56f2237e1ffaaa4eff3b925b5920f0/workspace",
+      "sourceSHA256": "bf52fe8dc345615d8fddb4aa0dcf7d86ad6744d6f0bdef5357d456e95d222592"
+    }
+  ],
+  "version": 2
+}

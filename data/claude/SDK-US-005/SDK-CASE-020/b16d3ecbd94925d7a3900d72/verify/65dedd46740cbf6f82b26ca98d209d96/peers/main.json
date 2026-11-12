@@ -1,0 +1,40 @@
+{
+  "cleanupComplete": true,
+  "exitCode": 0,
+  "pid": 74079,
+  "reaped": true,
+  "result": {
+    "path": "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.result.json",
+    "sha256": "21266b00340445a2e97dde60f67d85b22db07d01d4f0989f6cde12a2a6addd90"
+  },
+  "running": {
+    "command": "mock",
+    "connectionId": "main",
+    "connectionStatus": "running",
+    "execution": "executions/cebe89e0b39fe570c48c87544709def7/execution.json",
+    "executionComplete": false,
+    "executionId": "cebe89e0b39fe570c48c87544709def7",
+    "executionSHA256": "ca38d923489795626a21cb3fc548ca504e173f7b2104093fa2875bd82c19beb9",
+    "executionStatus": "open",
+    "fixtureId": "24e8c9e0bb88016ccd3dd724cf62ba6c",
+    "material": {
+      "id": "e3e0954df535096bed60a6ae1dfdcf5e",
+      "manifestSHA256": "6985ce6cf850597e302d5223276ebe73e9804c60fda432cddafb148c5243c20d",
+      "planSHA256": "caf462ebb859d0bf9fb78ae9458d86915eee0189595bedef77da63535f19b91e",
+      "provenance": "official",
+      "recordingSHA256": "d49a7e7d927e3641cccd02f90d2ca982f744b53edde1e7973bc44522f5c5a5e6",
+      "sourcePlanSHA256": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195"
+    },
+    "materialId": "e3e0954df535096bed60a6ae1dfdcf5e",
+    "processId": 74079,
+    "processReceipt": "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.process.json",
+    "publicationCommitted": false,
+    "receipt": "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.json",
+    "result": "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.result.json",
+    "schemaVersion": 3,
+    "status": "running"
+  },
+  "schemaVersion": 1,
+  "started": true,
+  "supervisorPid": 74043
+}

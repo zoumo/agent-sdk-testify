@@ -1,0 +1,51 @@
+{
+  "agentType": "claude",
+  "case": "SDK-CASE-038",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:56:58.626009Z",
+  "credentialScan": "pass",
+  "driver": {
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "driverProcess": {
+    "cleanupComplete": true,
+    "exitCode": 0,
+    "reaped": true,
+    "started": true
+  },
+  "executionId": "a37248a9b618f620bb1ad5fb71b7d227",
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "a37248a9b618f620bb1ad5fb71b7d227",
+      "executionSHA256": "51d94a11e359116cb5179ccecee000d700a9e3924d4bc8858c742a92509db554",
+      "path": "executions/a37248a9b618f620bb1ad5fb71b7d227/result.json",
+      "sha256": "8c44c8082c9ecf24d1c853967efa74804d6ebbfbf68460559d0e1ef5efe76065"
+    }
+  ],
+  "files": {
+    "record/3089b83388d8502a59a881abb3f9bd8c/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "record/3089b83388d8502a59a881abb3f9bd8c/peers/main.json": "489bd22ef493e1315e38f8da53d2c090569cbb5c37f87f74732f0e671ef24b15",
+    "record/3089b83388d8502a59a881abb3f9bd8c/report.json": "4d0fb7e12f36279348f3534b88be1dd88a023292490692d162b22e612f4592db",
+    "record/3089b83388d8502a59a881abb3f9bd8c/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "record/3089b83388d8502a59a881abb3f9bd8c/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "a9fc4537eeae481bcfeb48247dff2e69",
+  "id": "3089b83388d8502a59a881abb3f9bd8c",
+  "manifestSHA256": "008c26d424e19b7924ce849e3ee3074973f873aac440f66c0a7a2faaa2bcf718",
+  "material": "material/material.json",
+  "materialId": "1f8b983c443997a21826739082f80bfe",
+  "materialSHA256": "2df0081afc4df39ed86491d5f82feb661f09dc3de15ac36d7139c17f0043e186",
+  "mode": "record",
+  "planSHA256": "c1247e5aeda8c48e647f3c171a84de24ce20cffc96657a71061f0e4e76d0a73a",
+  "publicationCommitted": true,
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "c8fea183e829ba5ced45d16b48048fcdf62c70fc12e07b1c5a5cac405e11c23f",
+  "startedAt": "2026-11-12T19:56:51.209915Z",
+  "status": "passed"
+}

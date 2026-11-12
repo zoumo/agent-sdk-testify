@@ -1,0 +1,27 @@
+{
+  "command": "mock",
+  "connectionId": "main",
+  "connectionStatus": "passed",
+  "execution": "executions/cf450bcc20ba54bb9ddd8da0a63d4f89/execution.json",
+  "executionComplete": true,
+  "executionId": "cf450bcc20ba54bb9ddd8da0a63d4f89",
+  "executionSHA256": "334cc4319cd87628d5956407e6f9c5a12c7eec1b9f8a05e22df356bb2c7a3d4c",
+  "executionStatus": "passed",
+  "fixtureId": "af5022719c4ea9ae4925b4b60d140381",
+  "material": {
+    "id": "f4bd9d02f5ba8b2390372eacbacbf535",
+    "manifestSHA256": "bbc538bb636f0cbbb41afe222a3a1b8e0e5b12ee6168d91e697784140c728a7a",
+    "planSHA256": "c072bb90991bbcad3bf090b44f0cbad31f24637682a4c1ca73ee65bf62f9e6dd",
+    "provenance": "official",
+    "recordingSHA256": "370b110b508d87074e27ca1732ac2faa32154dccbab874f10abfba21cab16cf7",
+    "sourcePlanSHA256": "855171984e2a0b083fa50b80b4b59381c234cf5bf27a5994b5f2c4cbaf8007ee"
+  },
+  "materialId": "f4bd9d02f5ba8b2390372eacbacbf535",
+  "processId": 74267,
+  "processReceipt": "executions/cf450bcc20ba54bb9ddd8da0a63d4f89/receipts/main.process.json",
+  "publicationCommitted": false,
+  "receipt": "executions/cf450bcc20ba54bb9ddd8da0a63d4f89/receipts/main.json",
+  "result": "executions/cf450bcc20ba54bb9ddd8da0a63d4f89/receipts/main.result.json",
+  "schemaVersion": 3,
+  "status": "passed"
+}

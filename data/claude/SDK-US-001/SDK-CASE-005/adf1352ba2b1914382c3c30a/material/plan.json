@@ -1,0 +1,76 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-005/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-005",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "执行中追加输入并保留原生调度结果。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-005",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "active-input",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-005/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Produce a numbered list from one to twenty.",
+    "Also include the word sample."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-005",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "执行中追加输入并保留原生调度结果。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-005",
+    "configuration": {},
+    "driverProfile": "active-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Produce a numbered list from one to twenty.",
+      "Also include the word sample."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "sourcePlanSHA256": "276949621463ddf9477262a0ce185826299d622504295ec2d3220e00845ad2ee",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

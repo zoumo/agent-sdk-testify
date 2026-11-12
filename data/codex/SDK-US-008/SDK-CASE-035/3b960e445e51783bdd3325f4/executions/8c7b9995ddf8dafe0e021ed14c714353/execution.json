@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 7,
+  "executionId": "8c7b9995ddf8dafe0e021ed14c714353",
+  "fixtureId": "0b0ac004a7f3c5b5460d3667218e0140",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-035",
+    "path": "source/plan.json",
+    "sha256": "61e196fe077196f6a7f7e98d4cf19adafbfee5dcdcbd97eb34579075018d1577",
+    "provenance": "official",
+    "driverProfile": "existing-children"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "protocolCwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/routes/record/workspace",
+  "historyFiles": {
+    "config/sessions/2026/11/13/rollout-2026-11-13T04-24-56-01a1d16f-540c-7f70-8cef-b56a7b6cc4d1.jsonl": "3c3e40c3d96b552622109f7752ac020fa26930030bab83183bcaba8db493b077",
+    "config/sessions/2026/11/13/rollout-2026-11-13T04-25-03-01a1d16f-6edb-7ad1-9afc-9c9867c0c040.jsonl": "cc07681a94ceebdba3c9a007252571bcbe5f6b39582a6440ed28fb441b3b5c76"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "ce3871dd55a1e3418e42db0bdfc68d54",
+      "planSHA256": "3c33cd48b863e05728469ab7cd9b6f4bbe5dea5abc73b9e6b8983d0f01909214",
+      "manifestSHA256": "34efa74ffc572e686fecd2a6997608d658a040ed42de04df69e8dc4e12f358f0",
+      "recordingSHA256": "9b0d4f6dbb3964fcfab73a16178d71ede760961fbab3bf2bb63e14280e0d2cef",
+      "receipt": "executions/8c7b9995ddf8dafe0e021ed14c714353/receipts/main.json",
+      "processReceipt": "executions/8c7b9995ddf8dafe0e021ed14c714353/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "61e196fe077196f6a7f7e98d4cf19adafbfee5dcdcbd97eb34579075018d1577",
+    "originSHA256": "fe09f9b8622f860d116fba46d60647c24de18d6d99e8c6190b6ed20084923e3c",
+    "id": "ce3871dd55a1e3418e42db0bdfc68d54",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "3c33cd48b863e05728469ab7cd9b6f4bbe5dea5abc73b9e6b8983d0f01909214",
+    "manifestSHA256": "34efa74ffc572e686fecd2a6997608d658a040ed42de04df69e8dc4e12f358f0",
+    "recordingSHA256": "9b0d4f6dbb3964fcfab73a16178d71ede760961fbab3bf2bb63e14280e0d2cef",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T20:26:10.017858Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T20:26:12.373849Z"
+}

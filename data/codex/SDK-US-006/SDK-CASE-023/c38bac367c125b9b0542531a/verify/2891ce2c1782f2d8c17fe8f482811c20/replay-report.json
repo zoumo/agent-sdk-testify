@@ -1,0 +1,241 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 80,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-023/fixture/runtime/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "auto/deepseek-v4.1-flash-1017",
+        "modelProvider": "openai",
+        "reasoningEffort": "high",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1794513228,
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-023/fixture/runtime/routes/record/workspace",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "modelProvider": "openai",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "reasoningEffort": "high",
+          "recencyAt": 1794513228,
+          "sessionId": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1794513228
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d152-d29a-7f72-94d6-371e5dbe8a68",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+        "turn": {
+          "completedAt": 1794513236,
+          "durationMs": 7934,
+          "id": "01a1d152-d29a-7f72-94d6-371e5dbe8a68",
+          "items": [
+            {
+              "id": "msg_18e76447c0e15b10000047ba",
+              "phase": "final_answer",
+              "text": "Ready.",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513228,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "variant-configuration": {
+        "timing": "between-inputs",
+        "requested": {
+          "threadId": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+          "model": "auto/glm-5.3"
+        },
+        "response": {},
+        "observed": null
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d152-f1b7-7c10-9685-5326d3e37c19",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+        "turn": {
+          "completedAt": 1794513238,
+          "durationMs": 1959,
+          "id": "01a1d152-f1b7-7c10-9685-5326d3e37c19",
+          "items": [
+            {
+              "id": "msg_18e76448300d02f0000047c1",
+              "phase": "final_answer",
+              "text": "Done.",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513236,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-023",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u4e24\u6b21\u6267\u884c\u4e4b\u95f4\u4ece\u6a21\u578b A \u4fee\u6539\u4e3a\u4e0d\u540c\u6a21\u578b B\uff0c\u89c2\u5bdf\u7b2c\u4e8c\u6b21\u8f93\u5165\u7684\u6267\u884c\u53ca\u53ef\u53d6\u5f97\u7684\u539f\u751f\u914d\u7f6e\u8bc1\u636e\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.166.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-023",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "configuration-acknowledged",
+      "timing": "between-inputs",
+      "completedInputs": 1,
+      "requested": {
+        "threadId": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+        "model": "auto/glm-5.3"
+      }
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "threadId": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+          "model": "auto/glm-5.3"
+        },
+        "acknowledged": true,
+        "timing": "between-inputs",
+        "completedInputs": 1
+      }
+    ],
+    "observed": [
+      {
+        "source": "thread/settings/updated",
+        "scope": "thread-settings",
+        "native": {
+          "threadId": "01a1d152-d24f-7d02-bc97-93b7251adfaa",
+          "threadSettings": {
+            "disabledPluginIds": [],
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-023/fixture/runtime/routes/record/workspace",
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "sandboxPolicy": {
+              "type": "workspaceWrite",
+              "writableRoots": [],
+              "networkAccess": false,
+              "excludeTmpdirEnvVar": false,
+              "excludeSlashTmp": false
+            },
+            "activePermissionProfile": null,
+            "model": "auto/glm-5.3",
+            "modelProvider": "openai",
+            "serviceTier": null,
+            "effort": "high",
+            "summary": null,
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "model": "auto/glm-5.3",
+                "reasoning_effort": "high",
+                "developer_instructions": null
+              }
+            },
+            "multiAgentMode": "explicitRequestOnly",
+            "personality": null
+          }
+        }
+      }
+    ],
+    "effectiveScope": "thread-settings model; execution model not independently reported",
+    "initialModel": "auto/deepseek-v4.1-flash-1017",
+    "targetModel": "auto/glm-5.3",
+    "observedModels": [
+      "auto/glm-5.3"
+    ]
+  },
+  "branchStatus": "passed"
+}

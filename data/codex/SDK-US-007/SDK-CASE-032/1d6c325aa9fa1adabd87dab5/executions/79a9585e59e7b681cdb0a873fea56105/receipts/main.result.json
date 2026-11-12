@@ -1,0 +1,18 @@
+{
+  "command": "record",
+  "connectionId": "main",
+  "connectionStatus": "passed",
+  "execution": "executions/79a9585e59e7b681cdb0a873fea56105/execution.json",
+  "executionComplete": false,
+  "executionId": "79a9585e59e7b681cdb0a873fea56105",
+  "executionSHA256": "af261bf0b1a48ec1be9aa937d96fb193c56a5378298d51fac5c0dc2796280cd7",
+  "executionStatus": "open",
+  "fixtureId": "b89ec8427aaed415815924722989c92e",
+  "materialId": "b2b044a7471347e77a8c2469d380d3e7",
+  "processId": 63955,
+  "publicationCommitted": false,
+  "receipt": "executions/79a9585e59e7b681cdb0a873fea56105/receipts/main.transport.json",
+  "result": "executions/79a9585e59e7b681cdb0a873fea56105/receipts/main.result.json",
+  "schemaVersion": 3,
+  "status": "passed"
+}

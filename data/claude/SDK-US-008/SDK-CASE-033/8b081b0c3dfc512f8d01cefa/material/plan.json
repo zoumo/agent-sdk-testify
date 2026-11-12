@@ -1,0 +1,84 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-033/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-033",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "独立发现会话、读取元数据和主会话内容。",
+    "storyId": "SDK-US-008"
+  },
+  "caseId": "SDK-CASE-033",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "history",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "d67ee926-dfbd-4f3b-b1b7-9069ddd99229",
+      "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-033/fixture/runtime/executions/e471b1b699ab090cf8919668016f4aef/workspace",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-033-fixture-runtime-executions-e471b1b699ab090cf8919668016f4aef-workspace/d67ee926-dfbd-4f3b-b1b7-9069ddd99229.jsonl",
+      "source": "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-033-fixture-runtime-executions-e471b1b699ab090cf8919668016f4aef-workspace/d67ee926-dfbd-4f3b-b1b7-9069ddd99229.jsonl",
+      "sha256": "bd836956ec77deb448d8cf6ad26781b5c610013dab024e00449e3f8dd105567b"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-033/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply with the word SYNTHETIC_SAVED."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-033",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "独立发现会话、读取元数据和主会话内容。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-033",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "historyTarget": "messages"
+    },
+    "prompts": [
+      "Reply with the word SYNTHETIC_SAVED."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-008"
+  },
+  "sourcePlanSHA256": "41d1815515809b2be6a51b0d5267877af3155033bf2cc6dcdc4c095c5be60736",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-008",
+  "storyId": "SDK-US-008"
+}

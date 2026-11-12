@@ -1,0 +1,10 @@
+{
+  "adoption": "admitted",
+  "attemptId": "3ff8eb2dd39fb344d25d87ee",
+  "caseId": "SDK-CASE-005",
+  "materialId": "5e28b987f217b819b4b23d070a06f111",
+  "provider": "codex",
+  "reviewSHA256": "3ff8eb2dd39fb344d25d87ee7d4155afe43080ed3bbbb6b564969aad87f6ca09",
+  "schemaVersion": 2,
+  "storyId": "SDK-US-001"
+}

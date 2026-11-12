@@ -1,0 +1,103 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-024",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-024",
+    "driverProfile": "structured-input",
+    "model": "theta/GLM-5.3",
+    "prompts": [
+      "Explain in two sentences how addition works."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-024",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+        "storyId": "SDK-US-006"
+      },
+      "caseId": "SDK-CASE-024",
+      "configuration": {},
+      "driverProfile": "structured-input",
+      "files": {
+        "numbers.txt": "7\n11\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "configurationTiming": "during-execution",
+        "setting": "model"
+      },
+      "prompts": [
+        "Explain in two sentences how addition works."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-006"
+    },
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "case": "SDK-CASE-024",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:56:19.669323Z",
+  "contracts": {
+    "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "3e4a85f05b9c9fd46e232bce08d4b013",
+      "executionSHA256": "5e5ce54ccae9d90c80023b6e7069a2d84c6831f99c84ae39773adbd87c3aca9e",
+      "path": "executions/3e4a85f05b9c9fd46e232bce08d4b013/result.json",
+      "sha256": "bdbf75ab9ab24fcb2923191096b1a9da60dd53bbab9da0c817103a039a39dfb0"
+    }
+  ],
+  "files": {
+    "verify/7a48f4d81bb1729a17762bd766bab895/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/7a48f4d81bb1729a17762bd766bab895/peers/main.json": "c88fc620cbd701d3def045e6e88b32aa2945af50433ed28545f954e1000ec19e",
+    "verify/7a48f4d81bb1729a17762bd766bab895/replay-report.json": "3f3914d7cd133b5767d79421496dd53a9c6b1839b39bd967535f6f20b3fa422f",
+    "verify/7a48f4d81bb1729a17762bd766bab895/result.json": "ce72b673753ea8972e84d3b8b59fc1692cbbbd55bae54782396b1341069073f0",
+    "verify/7a48f4d81bb1729a17762bd766bab895/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/7a48f4d81bb1729a17762bd766bab895/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "dba4557b550198eb37c3484835ee9235",
+  "id": "7a48f4d81bb1729a17762bd766bab895",
+  "manifestSHA256": "5953d0702cc2ae9f56a265f5f99ba3f64506e0c4a3ebe0c87a150167ac83399c",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "642c3b04fca2994ebcfe6f4f82ec8cd6c75bd83f758178207059500a5c473867"
+  },
+  "materialId": "c9f0ab46743a1e9d2d4d44371659eef0",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:56:17.345338Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

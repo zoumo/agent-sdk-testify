@@ -1,0 +1,33 @@
+{
+  "connections": [
+    {
+      "id": "main",
+      "status": "passed"
+    }
+  ],
+  "execution": "executions/cebe89e0b39fe570c48c87544709def7/execution.json",
+  "executionId": "cebe89e0b39fe570c48c87544709def7",
+  "executionSHA256": "ca38d923489795626a21cb3fc548ca504e173f7b2104093fa2875bd82c19beb9",
+  "files": {
+    "executions/cebe89e0b39fe570c48c87544709def7/execution.json": "ca38d923489795626a21cb3fc548ca504e173f7b2104093fa2875bd82c19beb9",
+    "executions/cebe89e0b39fe570c48c87544709def7/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-cebe89e0b39fe570c48c87544709def7-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5.jsonl": "d8de055a2f5def893dc225839a1f380727f738394b1e0e308196a97eafe403e9",
+    "executions/cebe89e0b39fe570c48c87544709def7/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-cebe89e0b39fe570c48c87544709def7-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5/subagents/agent-a8520487384578636.jsonl": "89941c32b32484de8c5e1b65cb5ae150ab036a0cd90950b590f445995b913d56",
+    "executions/cebe89e0b39fe570c48c87544709def7/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-cebe89e0b39fe570c48c87544709def7-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5/subagents/agent-a8520487384578636.meta.json": "18d1cd2a177cf7638e3ca3a733e5142d49dec7b638de8f85fcc105f8c1bdf70f",
+    "executions/cebe89e0b39fe570c48c87544709def7/isolation.json": "ee99c6c52f40d2eada5cd0c5d3689cd47331fab969c8e37e26c6e09e1f789ce3",
+    "executions/cebe89e0b39fe570c48c87544709def7/materialization.json": "973063f18cdcd473c943a8ad4d040b8f6620246d418013d7256940fd0bf960bd",
+    "executions/cebe89e0b39fe570c48c87544709def7/prepared-plan.json": "b57e7caef86ca526e55f8f4c7521d27e915ccf5929a5e5c98a58c9e4cd1ebea5",
+    "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.json": "c64e6fcb0c1cefd6ccddd7e83b350090dd71716a38fa9177a3335c9c3dd278be",
+    "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.process.json": "0afa99f6ff2fad1174b67747426ba706baa8e54404b30bf35ccde08261359679",
+    "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.result.json": "21266b00340445a2e97dde60f67d85b22db07d01d4f0989f6cde12a2a6addd90"
+  },
+  "fixtureId": "24e8c9e0bb88016ccd3dd724cf62ba6c",
+  "manifestSHA256": "6985ce6cf850597e302d5223276ebe73e9804c60fda432cddafb148c5243c20d",
+  "material": "material/material.json",
+  "materialId": "e3e0954df535096bed60a6ae1dfdcf5e",
+  "materialSHA256": "fc6df6f3e83869e28cdeb1df02810d6df263ae705c94b92d9487708e8446c52f",
+  "planSHA256": "caf462ebb859d0bf9fb78ae9458d86915eee0189595bedef77da63535f19b91e",
+  "publicationCommitted": false,
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195",
+  "status": "passed"
+}

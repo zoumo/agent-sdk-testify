@@ -1,0 +1,268 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 26,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-022/fixture/runtime/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "auto/deepseek-v4.1-flash-1017",
+        "modelProvider": "openai",
+        "reasoningEffort": "high",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1794513223,
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-022/fixture/runtime/routes/record/workspace",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "modelProvider": "openai",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "reasoningEffort": "high",
+          "recencyAt": 1794513223,
+          "sessionId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1794513223
+        }
+      }
+    },
+    {
+      "thread/settings/update": {
+        "requested": {
+          "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+          "model": "auto/glm-5.3"
+        },
+        "accepted": true,
+        "response": {}
+      }
+    },
+    {
+      "thread/settings/update": {
+        "requested": {
+          "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+          "effort": "low"
+        },
+        "accepted": true,
+        "response": {}
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d152-c02b-73c2-ae6c-3345d53f09d1",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+        "turn": {
+          "completedAt": 1794513228,
+          "durationMs": 4781,
+          "id": "01a1d152-c02b-73c2-ae6c-3345d53f09d1",
+          "items": [
+            {
+              "id": "msg_18e76445f8c180c0000047a7",
+              "phase": "final_answer",
+              "text": "Ready",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513223,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d152-d2f4-7c03-ba36-f3f83058d914",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+        "turn": {
+          "completedAt": 1794513230,
+          "durationMs": 1698,
+          "id": "01a1d152-d2f4-7c03-ba36-f3f83058d914",
+          "items": [
+            {
+              "id": "msg_18e7644666ae5388000047a9",
+              "phase": "final_answer",
+              "text": "Done",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513228,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-022",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u9996\u6b21\u8f93\u5165\u524d\u4ece\u5df2\u77e5\u6a21\u578b A \u8bf7\u6c42\u4fee\u6539\u4e3a\u4e0d\u540c\u6a21\u578b B\uff1b\u5206\u522b\u8bb0\u5f55\u8bf7\u6c42\u3001\u786e\u8ba4\u3001\u8f93\u5165\u987a\u5e8f\u4e0e\u539f\u751f\u89c2\u5bdf\u7684\u751f\u6548\u8303\u56f4\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.166.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-022",
+  "flowTrace": [
+    {
+      "step": "configuration-acknowledged",
+      "timing": "before-first-input",
+      "completedInputs": 0,
+      "requested": {
+        "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+        "model": "auto/glm-5.3"
+      }
+    },
+    {
+      "step": "configuration-acknowledged",
+      "timing": "before-first-input",
+      "completedInputs": 0,
+      "requested": {
+        "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+        "effort": "low"
+      }
+    },
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+          "model": "auto/glm-5.3"
+        },
+        "acknowledged": true,
+        "timing": "before-first-input",
+        "completedInputs": 0
+      },
+      {
+        "requested": {
+          "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+          "effort": "low"
+        },
+        "acknowledged": true,
+        "timing": "before-first-input",
+        "completedInputs": 0
+      }
+    ],
+    "observed": [
+      {
+        "source": "thread/settings/updated",
+        "scope": "thread-settings",
+        "native": {
+          "threadId": "01a1d152-c003-7dd2-9aab-ff63b26962fa",
+          "threadSettings": {
+            "disabledPluginIds": [],
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-022/fixture/runtime/routes/record/workspace",
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "sandboxPolicy": {
+              "type": "workspaceWrite",
+              "writableRoots": [],
+              "networkAccess": false,
+              "excludeTmpdirEnvVar": false,
+              "excludeSlashTmp": false
+            },
+            "activePermissionProfile": null,
+            "model": "auto/glm-5.3",
+            "modelProvider": "openai",
+            "serviceTier": null,
+            "effort": "low",
+            "summary": null,
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "model": "auto/glm-5.3",
+                "reasoning_effort": "low",
+                "developer_instructions": null
+              }
+            },
+            "multiAgentMode": "explicitRequestOnly",
+            "personality": null
+          }
+        }
+      }
+    ],
+    "effectiveScope": "thread-settings model; execution model not independently reported",
+    "initialModel": "auto/deepseek-v4.1-flash-1017",
+    "targetModel": "auto/glm-5.3",
+    "observedModels": [
+      "auto/glm-5.3"
+    ]
+  },
+  "branchStatus": "passed"
+}

@@ -1,0 +1,46 @@
+{
+  "configuration": {
+    "config.toml": "a249c64988afb910bea1aadbdf46b031147b13263b9c59568e89b06d307d31e8"
+  },
+  "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-007/fixture/runtime/executions/b1233660099a9311752ac6b9ef1a2626/workspace",
+  "environment": {
+    "CODEX_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-007/fixture/runtime/executions/b1233660099a9311752ac6b9ef1a2626/config",
+    "HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-007/fixture/runtime/executions/b1233660099a9311752ac6b9ef1a2626/home",
+    "TMPDIR": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-007/fixture/runtime/executions/b1233660099a9311752ac6b9ef1a2626/tmp",
+    "XDG_CACHE_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-007/fixture/runtime/executions/b1233660099a9311752ac6b9ef1a2626/home/.cache",
+    "XDG_CONFIG_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-007/fixture/runtime/executions/b1233660099a9311752ac6b9ef1a2626/home/.config",
+    "XDG_DATA_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-007/fixture/runtime/executions/b1233660099a9311752ac6b9ef1a2626/home/.local/share"
+  },
+  "execution": {
+    "path": "executions/b1233660099a9311752ac6b9ef1a2626/execution.json",
+    "sha256": "994d9dc9719ac2ac325865155fe20429f716db7d4e1c0e3f49c8ed65bf3add72"
+  },
+  "executionId": "b1233660099a9311752ac6b9ef1a2626",
+  "fixtureId": "00f83c1bf004a0e9515a973009c9f358",
+  "manifestSHA256": "5fc09ace894472400ce666425571440ff21469c7b9950584abd8726fc22ee2e2",
+  "materialId": "a0ecc8cadd7c21b1f33f77b531b09e8f",
+  "method": "native-preparation",
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af"
+  },
+  "planSHA256": "109c2a1de6ac967eb726fb1ad7fc17d1e686df6c31e76c205e5881ce77a0d57f",
+  "policy": "personal-skills-v1",
+  "preparedPlan": {
+    "path": "executions/b1233660099a9311752ac6b9ef1a2626/prepared-plan.json",
+    "sha256": "4d6e5bf0bed4d30ac733bb06e7ef0beaa72aacfa2830d69b4dcf14660a534d97"
+  },
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "7da069321007748625ecc71a79dd489c3972a042b3a682fc9cd243d156cf5584",
+  "toolSHA256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9"
+}

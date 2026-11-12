@@ -1,0 +1,103 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-025",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "创建时选择独立原生思考模式，不用 effort 替代；原生 enabled 的预算编码不证明预算效果。不要求动态模式切换。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-025",
+    "driverProfile": "structured-input",
+    "model": "auto/deepseek-v4.1-flash-1017[1m]",
+    "prompts": [
+      "Explain in two sentences how addition works."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-025",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "创建时选择独立原生思考模式，不用 effort 替代；原生 enabled 的预算编码不证明预算效果。不要求动态模式切换。",
+        "storyId": "SDK-US-006"
+      },
+      "caseId": "SDK-CASE-025",
+      "configuration": {},
+      "driverProfile": "structured-input",
+      "files": {
+        "numbers.txt": "7\n11\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "configurationTiming": "creation",
+        "setting": "thinking"
+      },
+      "prompts": [
+        "Explain in two sentences how addition works."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-006"
+    },
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "case": "SDK-CASE-025",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:56:22.262789Z",
+  "contracts": {
+    "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "a874c657a2bd7b1cb4c56d7426c283fc",
+      "executionSHA256": "ad2f7c0d1e0444ba7eb79344ff39f7f6928df906e7035338ec21baa453e044b9",
+      "path": "executions/a874c657a2bd7b1cb4c56d7426c283fc/result.json",
+      "sha256": "a5eaf5175520343b6ed44ab64fde6a819f73f873a986f1d206467df7cdef9cb1"
+    }
+  ],
+  "files": {
+    "verify/ce70287dac39aea4156c54127fb40360/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/ce70287dac39aea4156c54127fb40360/peers/main.json": "1df44c3d0045b089059a98f0e8ba546bc3f52930117d9f397faa61eab7d3f9d9",
+    "verify/ce70287dac39aea4156c54127fb40360/replay-report.json": "b1641779c2aadb2d65f646a8c53b7c729240806acc6e7b35d46ac1b09230f8e7",
+    "verify/ce70287dac39aea4156c54127fb40360/result.json": "db4ec2158bb9ccc21eaacd603ccea588904b1ecd3df3916d0668539d75b4c9b3",
+    "verify/ce70287dac39aea4156c54127fb40360/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/ce70287dac39aea4156c54127fb40360/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "41bb7e7ac688849d2900d26e1c063857",
+  "id": "ce70287dac39aea4156c54127fb40360",
+  "manifestSHA256": "bc16976180b8a4fddf3d6ddfa2297c8b877c7704827c87b37267550467fd0a31",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "396af14d4b80b985b6b290e5491c2b63b987aa73f5fda83f526fa2eab5f2eacd"
+  },
+  "materialId": "de4c99bb8dfd585bdcfd339bf677badc",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:56:20.024211Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

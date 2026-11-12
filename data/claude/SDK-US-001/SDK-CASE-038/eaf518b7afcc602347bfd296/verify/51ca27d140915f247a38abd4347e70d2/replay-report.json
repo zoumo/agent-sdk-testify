@@ -1,0 +1,267 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-001",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 70,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "shouldQuery": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "context-injected": {
+        "timing": "during-execution",
+        "shouldQuery": false,
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 1872,
+        "duration_api_ms": 1374,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "a3265ba8-59a8-4cab-8402-61903962b890",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.06618,
+        "usage": {
+          "input_tokens": 12501,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 147,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\nUNKNOWN",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12501,
+            "outputTokens": 147,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.06618,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "6e89a96f-fd40-4f10-b63c-2f31418697fb",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "input-submitted": {
+        "written": true,
+        "shouldQuery": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "injection-result": {
+        "subtype": "success",
+        "duration_ms": 4,
+        "duration_api_ms": 0,
+        "is_error": false,
+        "num_turns": 0,
+        "session_id": "a3265ba8-59a8-4cab-8402-61903962b890",
+        "stop_reason": null,
+        "total_cost_usd": 0.06618,
+        "usage": {
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "input_tokens": 0,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 0,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12501,
+            "outputTokens": 147,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.06618,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "7e71fd03-aa82-4016-bc5b-5b0522ccf059",
+        "terminal_reason": null,
+        "origin": null
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 1022,
+        "duration_api_ms": 2180,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "a3265ba8-59a8-4cab-8402-61903962b890",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.07499900000000001,
+        "usage": {
+          "input_tokens": 425,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 12288,
+          "output_tokens": 22,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "6e0b8164b401e3b2e4589ae22adbc263",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12926,
+            "outputTokens": 169,
+            "cacheReadInputTokens": 12288,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.07499900000000001,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "925913df-dcbf-441b-a2e0-b8c40ec82fc6",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-038",
+    "outOfScope": [
+      "\u4fdd\u8bc1\u5f53\u524d\u6267\u884c\u6d88\u8d39\u6ce8\u5165",
+      "\u901a\u7528\u961f\u5217\u6216\u8c03\u5ea6\u5668",
+      "\u4eba\u5de5\u6784\u9020\u7684\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u5728\u539f\u751f\u6267\u884c\u8fdb\u5ea6\u540e\u6ce8\u5165\uff0c\u4fdd\u7559\u63a5\u53d7\u6216\u9519\u8bef\u4e8b\u5b9e\uff1b\u540e\u7eed\u67e5\u8be2\u8bfb\u53d6\u968f\u673a\u4e8b\u5b9e\uff0c\u5e76\u8bb0\u5f55\u5f53\u524d\u6267\u884c\u662f\u5426\u5df2\u6d88\u8d39\u3002",
+    "storyId": "SDK-US-001"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-001",
+  "caseId": "SDK-CASE-038",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "contextInjection": {
+    "timing": "during-execution",
+    "nativeInputOrdinal": 13,
+    "explicitQueries": 2,
+    "extraTurnObserved": false,
+    "currentQueryUsedFact": false,
+    "subsequentQueryUsedFact": true,
+    "outputs": [
+      "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\nUNKNOWN",
+      "6e0b8164b401e3b2e4589ae22adbc263"
+    ]
+  },
+  "branchStatus": "passed"
+}

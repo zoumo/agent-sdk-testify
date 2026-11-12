@@ -1,0 +1,56 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-029-fixture-runtime-executions-e0990852f40ee77256bc7e54efc7958a-workspace/d5a88312-713d-4a82-b689-42ed3d7975f2.jsonl": "749576801487ad1176ec92350aea0de06a8780eb520de0fbfddf576c0bb0c514",
+    "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-029-fixture-runtime-executions-e0990852f40ee77256bc7e54efc7958a-workspace/d5a88312-713d-4a82-b689-42ed3d7975f2/subagents/agent-a4fb490b2e9c643c1.jsonl": "d691ff31ef712038da523021e21916dd255871bcbfe1133698fde3731415e62e",
+    "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-029-fixture-runtime-executions-e0990852f40ee77256bc7e54efc7958a-workspace/d5a88312-713d-4a82-b689-42ed3d7975f2/subagents/agent-a4fb490b2e9c643c1.meta.json": "d9b45df04859b3e7ede251907aa57c791f767045dfc2e09ca7616725947f914e",
+    "official-origin.json": "8f20384421eacfe4aab38b245c99b6f637d8dcb7cd6c04ad07362383042e1c82",
+    "origin/main.json": "42d04fe0e457c4e095296877b348dbf66ec20cc8ba9ce8a5653c70d2f5f20191",
+    "plan.json": "c97a3e729a6c20cc0d051c477314d3f0f1899ba9890f1960c99fa0bbd637afc1",
+    "raw/manifest.json": "26aef7c1e6ce46b2b1485a73d01a70f77a5c94c0757846adc0d434145c7797e7",
+    "raw/raw.jsonl": "d9fe7227b91f9e080e44275ae6a864f53e5c2304730abae8914f5e1baa2b445c",
+    "raw/stderr.raw": "87adb7e2a99d597ca97ba3b110ff5ed98caef5cf68faef79e6d51e10131c8104",
+    "raw/transport.json": "aff4a167ae9dc393dd5d980b6f521a0e0e5080c3988d8881a6f37df4173e5fb2",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "ae7020aeffec2cac25c02bdd004bdc6501e466e14881111e513e888685bfb71a"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-029/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-029/fixture/runtime/executions/e0990852f40ee77256bc7e54efc7958a/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "c97a3e729a6c20cc0d051c477314d3f0f1899ba9890f1960c99fa0bbd637afc1",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "aff4a167ae9dc393dd5d980b6f521a0e0e5080c3988d8881a6f37df4173e5fb2",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "ae7020aeffec2cac25c02bdd004bdc6501e466e14881111e513e888685bfb71a",
+  "status": "captured"
+}

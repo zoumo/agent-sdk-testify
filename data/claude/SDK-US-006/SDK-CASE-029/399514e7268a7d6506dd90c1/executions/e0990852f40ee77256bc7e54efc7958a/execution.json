@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 7,
+  "executionId": "e0990852f40ee77256bc7e54efc7958a",
+  "fixtureId": "58849f188360000f47835f5fd5d92f06",
+  "command": "record",
+  "args": [
+    "--cmd",
+    "/Users/jim/.local/share/claude/versions/2.1.223",
+    "--",
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-029",
+    "path": "source/plan.json",
+    "sha256": "ae7020aeffec2cac25c02bdd004bdc6501e466e14881111e513e888685bfb71a",
+    "provenance": "official",
+    "driverProfile": "history"
+  },
+  "executor": "external-sdk",
+  "target": "native-agent",
+  "provenance": "official",
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "92b04cdb987b86c46cababe022ee373b",
+      "receipt": "executions/e0990852f40ee77256bc7e54efc7958a/capture/raw/transport.json"
+    }
+  ],
+  "artifact": {
+    "officialOrigin": {
+      "runId": "0f4aadef5dd7f19dd1a125c3f11c74fd",
+      "fixtureId": "58849f188360000f47835f5fd5d92f06",
+      "caseId": "SDK-CASE-029",
+      "agentType": "claude",
+      "recordSourceSHA256": "ae7020aeffec2cac25c02bdd004bdc6501e466e14881111e513e888685bfb71a",
+      "sourceSHA256": "ae7020aeffec2cac25c02bdd004bdc6501e466e14881111e513e888685bfb71a",
+      "driverSHA256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1",
+      "connections": [
+        "main"
+      ]
+    },
+    "id": "92b04cdb987b86c46cababe022ee373b",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "",
+    "manifestSHA256": "",
+    "recordingSHA256": "",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T19:56:25.158943Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "startedAt": "2026-11-12T19:56:25.158939Z"
+}

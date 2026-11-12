@@ -1,0 +1,199 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-001",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 184,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-038/fixture/runtime/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "auto/deepseek-v4.1-flash-1017",
+        "modelProvider": "openai",
+        "reasoningEffort": "high",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1794513271,
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-038/fixture/runtime/routes/record/workspace",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a1d153-79fd-7c10-b032-52acbb6f26dd",
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "modelProvider": "openai",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "reasoningEffort": "high",
+          "recencyAt": 1794513271,
+          "sessionId": "01a1d153-79fd-7c10-b032-52acbb6f26dd",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1794513271
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d153-7a19-7fa0-ba69-741168cf1602",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "context-injected": {
+        "timing": "during-execution",
+        "activeTurnId": "01a1d153-7a19-7fa0-ba69-741168cf1602",
+        "requested": {
+          "threadId": "01a1d153-79fd-7c10-b032-52acbb6f26dd",
+          "items": [
+            {
+              "type": "message",
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_text",
+                  "text": "The stored vault code is 6e0b8164b401e3b2e4589ae22adbc263."
+                }
+              ]
+            }
+          ]
+        },
+        "response": {}
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d153-79fd-7c10-b032-52acbb6f26dd",
+        "turn": {
+          "completedAt": 1794513279,
+          "durationMs": 8045,
+          "id": "01a1d153-7a19-7fa0-ba69-741168cf1602",
+          "items": [
+            {
+              "id": "msg_18e76451a6223bf00000481d",
+              "phase": "final_answer",
+              "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50 \u2014 6e0b8164b401e3b2e4589ae22adbc263",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513271,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d153-99a9-7bf1-810b-74aa01a1a7a2",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d153-79fd-7c10-b032-52acbb6f26dd",
+        "turn": {
+          "completedAt": 1794513281,
+          "durationMs": 1790,
+          "id": "01a1d153-99a9-7bf1-810b-74aa01a1a7a2",
+          "items": [
+            {
+              "id": "msg_18e76452462450e80000481e",
+              "phase": "final_answer",
+              "text": "6e0b8164b401e3b2e4589ae22adbc263",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513279,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-038",
+    "outOfScope": [
+      "\u4fdd\u8bc1\u5f53\u524d\u6267\u884c\u6d88\u8d39\u6ce8\u5165",
+      "\u901a\u7528\u961f\u5217\u6216\u8c03\u5ea6\u5668",
+      "\u4eba\u5de5\u6784\u9020\u7684\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u5728\u539f\u751f\u6267\u884c\u8fdb\u5ea6\u540e\u6ce8\u5165\uff0c\u4fdd\u7559\u63a5\u53d7\u6216\u9519\u8bef\u4e8b\u5b9e\uff1b\u540e\u7eed\u67e5\u8be2\u8bfb\u53d6\u968f\u673a\u4e8b\u5b9e\uff0c\u5e76\u8bb0\u5f55\u5f53\u524d\u6267\u884c\u662f\u5426\u5df2\u6d88\u8d39\u3002",
+    "storyId": "SDK-US-001"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-001",
+  "caseId": "SDK-CASE-038",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "contextInjection": {
+    "timing": "during-execution",
+    "nativeInputOrdinal": 25,
+    "explicitQueries": 2,
+    "extraTurnObserved": false,
+    "currentQueryUsedFact": true,
+    "subsequentQueryUsedFact": true,
+    "outputs": [
+      "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\nUNKNOWN1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50 \u2014 6e0b8164b401e3b2e4589ae22adbc263",
+      "6e0b8164b401e3b2e4589ae22adbc263"
+    ]
+  },
+  "branchStatus": "passed"
+}

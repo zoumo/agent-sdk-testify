@@ -1,0 +1,57 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-a9d35775156cba96a.meta.json": "eae00a2e0245483ff18bb3733f4f8ef4a0f72c67ac97b3ed7c06f126caa24691",
+    "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-af8451e48526c39af.meta.json": "65a6706f9def8c8fb4febca5a351863f7838ca2b8c81424b4420bd34d56555de",
+    "official-origin.json": "1b04014f396e06d433aee6ee55d7e15821cb0d7c27fa771ea7fb9ee61f06a45d",
+    "origin/main.json": "abfa4d1eae51c4426f7ef8e18d0da5efb283ed05c832a51955b1c16e106127e3",
+    "plan.json": "c2d742c6d362cfa1d83f3ffa02524106b4e6b771c809c918d6fcc68291bc2055",
+    "raw/manifest.json": "09b6263295c54db10aae366c9d007eae649dc2fffb2057fe01b94eba541ab56f",
+    "raw/raw.jsonl": "49942d9d351c17d7becfb3a8014af3518a578dd00d568a7b44c999ffd4fc9974",
+    "raw/stderr.raw": "87adb7e2a99d597ca97ba3b110ff5ed98caef5cf68faef79e6d51e10131c8104",
+    "raw/transport.json": "15a75e84712e7f8837754dfc30e2b2d682f872d51c3239c915ad249cd3f28ae9",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "cf105dd803bc95332597d1328cfe2409cc6000250c160b2eb43608691d6176b0"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-018/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--forward-subagent-text",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-018/fixture/runtime/executions/1b43cae5d1df03701116d36cb661ae90/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "c2d742c6d362cfa1d83f3ffa02524106b4e6b771c809c918d6fcc68291bc2055",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "15a75e84712e7f8837754dfc30e2b2d682f872d51c3239c915ad249cd3f28ae9",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "cf105dd803bc95332597d1328cfe2409cc6000250c160b2eb43608691d6176b0",
+  "status": "captured"
+}

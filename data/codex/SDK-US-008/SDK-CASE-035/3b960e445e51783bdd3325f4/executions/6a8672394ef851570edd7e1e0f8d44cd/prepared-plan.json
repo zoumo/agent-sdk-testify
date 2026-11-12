@@ -1,0 +1,30 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "caseId": "SDK-CASE-035",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "config": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/executions/6a8672394ef851570edd7e1e0f8d44cd/config",
+  "driverProfile": "existing-children",
+  "executionId": "6a8672394ef851570edd7e1e0f8d44cd",
+  "fixtureId": "0b0ac004a7f3c5b5460d3667218e0140",
+  "home": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/executions/6a8672394ef851570edd7e1e0f8d44cd/home",
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/routes/record/workspace",
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/executions/6a8672394ef851570edd7e1e0f8d44cd",
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "61e196fe077196f6a7f7e98d4cf19adafbfee5dcdcbd97eb34579075018d1577",
+  "stdinEOFAction": "close",
+  "storyId": "SDK-US-008",
+  "tmp": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/executions/6a8672394ef851570edd7e1e0f8d44cd/tmp"
+}

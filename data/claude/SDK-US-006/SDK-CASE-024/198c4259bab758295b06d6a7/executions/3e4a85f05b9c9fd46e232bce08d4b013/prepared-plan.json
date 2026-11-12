@@ -1,0 +1,24 @@
+{
+  "args": null,
+  "caseId": "SDK-CASE-024",
+  "command": "mock",
+  "config": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-024/fixture/runtime/executions/3e4a85f05b9c9fd46e232bce08d4b013/config",
+  "driverProfile": "structured-input",
+  "executionId": "3e4a85f05b9c9fd46e232bce08d4b013",
+  "fixtureId": "dba4557b550198eb37c3484835ee9235",
+  "home": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-024/fixture/runtime/executions/3e4a85f05b9c9fd46e232bce08d4b013/home",
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "manifestSHA256": "5953d0702cc2ae9f56a265f5f99ba3f64506e0c4a3ebe0c87a150167ac83399c",
+  "materialId": "c9f0ab46743a1e9d2d4d44371659eef0",
+  "model": "theta/GLM-5.3",
+  "planSHA256": "a9c091a3a486c0a7f7a9707950827b07e0daef1050d2e3a948e36552a3a4549e",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-024/fixture/runtime/executions/3e4a85f05b9c9fd46e232bce08d4b013/workspace",
+  "provider": "claude",
+  "root": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-024/fixture/runtime/executions/3e4a85f05b9c9fd46e232bce08d4b013",
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "e59a62b46de27005f712fa02c9724fec8c9f145b9cd506a5ed84975982739c6e",
+  "storyId": "SDK-US-006",
+  "tmp": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-024/fixture/runtime/executions/3e4a85f05b9c9fd46e232bce08d4b013/tmp"
+}

@@ -1,0 +1,31 @@
+{
+  "cleanupComplete": true,
+  "exitCode": 0,
+  "pid": 73819,
+  "reaped": true,
+  "result": {
+    "path": "executions/bfef0286864fd0929dc78dd785ba1b5d/receipts/main.result.json",
+    "sha256": "0850d1c7bb053d7ab72fc95acd3fff898da9773c6a047ac83b3f14f80e8e3f15"
+  },
+  "running": {
+    "command": "record",
+    "connectionId": "main",
+    "connectionStatus": "running",
+    "execution": "executions/bfef0286864fd0929dc78dd785ba1b5d/execution.json",
+    "executionComplete": false,
+    "executionId": "bfef0286864fd0929dc78dd785ba1b5d",
+    "executionSHA256": "1e049816669abd150d49c8a8d50f911f091a97f62e4b0d66b3c08cc5dcd3d6bf",
+    "executionStatus": "open",
+    "fixtureId": "41bb7e7ac688849d2900d26e1c063857",
+    "materialId": "de4c99bb8dfd585bdcfd339bf677badc",
+    "processId": 73819,
+    "publicationCommitted": false,
+    "receipt": "executions/bfef0286864fd0929dc78dd785ba1b5d/capture/raw/transport.json",
+    "result": "executions/bfef0286864fd0929dc78dd785ba1b5d/receipts/main.result.json",
+    "schemaVersion": 3,
+    "status": "running"
+  },
+  "schemaVersion": 1,
+  "started": true,
+  "supervisorPid": 73782
+}

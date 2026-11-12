@@ -1,0 +1,103 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-006",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察文件工具的执行与任务完成。",
+      "storyId": "SDK-US-002"
+    },
+    "caseId": "SDK-CASE-006",
+    "driverProfile": "fixture-tools",
+    "model": "auto/deepseek-v4.1-flash-1017[1m]",
+    "prompts": [
+      "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-006",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "观察文件工具的执行与任务完成。",
+        "storyId": "SDK-US-002"
+      },
+      "caseId": "SDK-CASE-006",
+      "configuration": {},
+      "driverProfile": "fixture-tools",
+      "files": {
+        "numbers.txt": "7\n11\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {},
+      "prompts": [
+        "Use Read once on numbers.txt (7 and 11), then Write once on summary.txt with exactly total=18 followed by a newline. Use no other tools."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [
+        "Read",
+        "Write"
+      ],
+      "storyId": "SDK-US-002"
+    },
+    "story": "SDK-US-002",
+    "storyId": "SDK-US-002"
+  },
+  "case": "SDK-CASE-006",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:54:59.248275Z",
+  "contracts": {
+    "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "14c7319f0bc67d68b1cf23b504431f93",
+      "executionSHA256": "be997d16d75d111cb432034fb3a3b89a770f10c61e77067c4e384bedf32a3109",
+      "path": "executions/14c7319f0bc67d68b1cf23b504431f93/result.json",
+      "sha256": "3e7e974d0f0a80b0b5cea297d376bdd199a77409193ee03e2f7b74a7c2d4d8a2"
+    }
+  ],
+  "files": {
+    "verify/0dbbe70cde5b0d1795bd0fe3891ec499/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/0dbbe70cde5b0d1795bd0fe3891ec499/peers/main.json": "711e8b3b81f8c0e517be742a3d135d5494d254f0d19b591ff09a0acd3d94dae4",
+    "verify/0dbbe70cde5b0d1795bd0fe3891ec499/replay-report.json": "4df53d6a5f7b1840bf236edd832a1c4f092f7e53ea0904fd79241408e67a2b22",
+    "verify/0dbbe70cde5b0d1795bd0fe3891ec499/result.json": "dc5327a2db99c05a2ddf63e32640a2e08f5e0bdd0d60a799678af06d3aa95fc0",
+    "verify/0dbbe70cde5b0d1795bd0fe3891ec499/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/0dbbe70cde5b0d1795bd0fe3891ec499/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "f4710bb69ec33e0659b32225f56aabc3",
+  "id": "0dbbe70cde5b0d1795bd0fe3891ec499",
+  "manifestSHA256": "53ed2738087ccc72c4e9b48af2995be6560e9dc537ae8ad6650626febf84b507",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "3d17e525bd489842a7c34c290e25396e616d90c92b9474ac59f9c3ce63cf5ab9"
+  },
+  "materialId": "848f160036efb1d11d97e4c196ec59b0",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:54:57.142256Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "configuration": {
+    "settings.json": "efac7b5ebb25f0d1e17996f3be1681f3d0c105a960fa9f12c35fa989bd8c4a71"
+  },
+  "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/executions/a37248a9b618f620bb1ad5fb71b7d227/workspace",
+  "environment": {
+    "CLAUDE_CONFIG_DIR": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/executions/a37248a9b618f620bb1ad5fb71b7d227/config",
+    "HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/executions/a37248a9b618f620bb1ad5fb71b7d227/home",
+    "TMPDIR": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/executions/a37248a9b618f620bb1ad5fb71b7d227/tmp",
+    "XDG_CACHE_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/executions/a37248a9b618f620bb1ad5fb71b7d227/home/.cache",
+    "XDG_CONFIG_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/executions/a37248a9b618f620bb1ad5fb71b7d227/home/.config",
+    "XDG_DATA_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/executions/a37248a9b618f620bb1ad5fb71b7d227/home/.local/share"
+  },
+  "execution": {
+    "path": "executions/a37248a9b618f620bb1ad5fb71b7d227/execution.json",
+    "sha256": "51d94a11e359116cb5179ccecee000d700a9e3924d4bc8858c742a92509db554"
+  },
+  "executionId": "a37248a9b618f620bb1ad5fb71b7d227",
+  "fixtureId": "a9fc4537eeae481bcfeb48247dff2e69",
+  "manifestSHA256": "008c26d424e19b7924ce849e3ee3074973f873aac440f66c0a7a2faaa2bcf718",
+  "materialId": "1f8b983c443997a21826739082f80bfe",
+  "method": "native-preparation",
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-038/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0"
+  },
+  "planSHA256": "c1247e5aeda8c48e647f3c171a84de24ce20cffc96657a71061f0e4e76d0a73a",
+  "policy": "personal-skills-v1",
+  "preparedPlan": {
+    "path": "executions/a37248a9b618f620bb1ad5fb71b7d227/prepared-plan.json",
+    "sha256": "b49d1f9d858ceda2d1c55e59d8915c60e96ac8875d47d8177f62adbd6251b41d"
+  },
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "c8fea183e829ba5ced45d16b48048fcdf62c70fc12e07b1c5a5cac405e11c23f",
+  "toolSHA256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9"
+}

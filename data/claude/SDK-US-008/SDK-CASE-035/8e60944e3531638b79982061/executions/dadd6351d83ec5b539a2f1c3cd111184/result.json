@@ -1,0 +1,35 @@
+{
+  "connections": [
+    {
+      "id": "main",
+      "status": "passed"
+    }
+  ],
+  "execution": "executions/dadd6351d83ec5b539a2f1c3cd111184/execution.json",
+  "executionId": "dadd6351d83ec5b539a2f1c3cd111184",
+  "executionSHA256": "9a859c89790c19e2bf5b400fcb65a9cf06a6aff9bb314de286ba6c9e76e795d5",
+  "files": {
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/execution.json": "9a859c89790c19e2bf5b400fcb65a9cf06a6aff9bb314de286ba6c9e76e795d5",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl": "4e91c759cdac8815a46e529633f9800ecd38c61e5999dbaf7ac718d19c4657ea",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl": "f60a338382611a4c1cbb7ddac3a7537efea0de989cba22ee4660a7c382c6fb79",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json": "835c89e699ff9efaac28f5ee1f20fda8239f3a5b9b00dad5fb382575cc58fb63",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/isolation.json": "39a1a9ff91c8b2d612b96eb96f41704f4b44f0d44afed90b173e47801c2f3c2b",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/materialization.json": "265768f9336a9d933b6363d22e06760872ca10d54ac3695a25961e143eb13a18",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/prepared-plan.json": "5aced96ec5e72a6cd7b24b00f1b9895a11851d3d9a0831bfa9e510bcbf480dab",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/receipts/main.native-process.json": "7e235124a63b5b145aadb337d82a3e77e980e3398fd1a251bddc4094b31d133f",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/receipts/main.origin.json": "83784b85389f2d1f4b9e1373d021dd9dcd8153d50a5fe505c9acdc35cbeec9e1",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/receipts/main.probe.native-process.json": "a20a887bc8298038f0d73436172881d5d83bcaa6bb3b6d670452c5b4cc89383e",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/receipts/main.result.json": "1a3ab654db7635f9b26777b7330cd43b2348e9417cbc4ab1560e0bda0bf02cf3",
+    "executions/dadd6351d83ec5b539a2f1c3cd111184/receipts/main.transport.json": "067bf75e3b07a851ee54900ca265f7739d654f31ed5c2f3c054c32de452c39ac"
+  },
+  "fixtureId": "73f23fc22270922808d9ccbedb1754b7",
+  "manifestSHA256": "05646b4f5706b8db0edd8f2583f6949739fbbc6c7701e000ec50dbb3a60e2647",
+  "material": "material/material.json",
+  "materialId": "f40bb3bab5a6c3fe1ab51862db897a35",
+  "materialSHA256": "a6a8e9ef72269d3d7d4caa36b36b150842ed7f6735178d3c376fbd4d415a8b2e",
+  "planSHA256": "22e1b2f6b6018e0be8b6e285b278ff1c58986d0eb51799372d53b0be9ec725ec",
+  "publicationCommitted": true,
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "7bbd8e60d6cd28ae48a1100cfe35331e510110a5e1aa38307f88f237d9d2ec37",
+  "status": "passed"
+}

@@ -1,0 +1,85 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-027/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--effort",
+    "low",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-027",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态",
+      "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
+    ],
+    "scope": "创建时显式选择原生 effort A，首次结果后先读取原生 applied 状态，再请求修改为不同 effort B 并提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-027",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "structured-input",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-027/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply with the word Ready.",
+    "Reply with the word Done."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-027",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态",
+        "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
+      ],
+      "scope": "创建时显式选择原生 effort A，首次结果后先读取原生 applied 状态，再请求修改为不同 effort B 并提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-027",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "between-inputs",
+      "effort": "low",
+      "setting": "effort",
+      "targetEffort": "high"
+    },
+    "prompts": [
+      "Reply with the word Ready.",
+      "Reply with the word Done."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "sourcePlanSHA256": "d856e4b0b7605c7cc41aa0761fd6bac6b50b05e3f970c5c0a498d69c43125e07",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

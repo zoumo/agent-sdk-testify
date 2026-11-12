@@ -1,0 +1,91 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r5/claude/SDK-CASE-019/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--forward-subagent-text",
+    "--settings",
+    "{\"permissions\":{\"ask\":[\"Agent\",\"Read\"]}}",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-019",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "根任务结束后继续观察后台子 Agent。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-019",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "background-children",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "ab20413d2b305b824",
+      "parentSessionId": "39a4085b-a750-4bc2-8870-27b444dcff9e",
+      "childSessionId": "ab20413d2b305b824",
+      "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r5/claude/SDK-CASE-019/fixture/runtime/executions/cf56f2237e1ffaaa4eff3b925b5920f0/workspace",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r5-claude-SDK-CASE-019-fixture-runtime-executions-cf56f2237e1ffaaa4eff3b925b5920f0-workspace/39a4085b-a750-4bc2-8870-27b444dcff9e/subagents/agent-ab20413d2b305b824.meta.json",
+      "source": "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r5-claude-SDK-CASE-019-fixture-runtime-executions-cf56f2237e1ffaaa4eff3b925b5920f0-workspace/39a4085b-a750-4bc2-8870-27b444dcff9e/subagents/agent-ab20413d2b305b824.meta.json",
+      "sha256": "bf52fe8dc345615d8fddb4aa0dcf7d86ad6744d6f0bdef5357d456e95d222592"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r5/claude/SDK-CASE-019/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-019",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "根任务结束后继续观察后台子 Agent。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-019",
+    "configuration": {},
+    "driverProfile": "background-children",
+    "files": {
+      "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n",
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "backgroundReadBarrier": true
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly the text returned by that read. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=true. Return ROOT_RETURNED immediately after launch; do not wait or use TaskOutput. The root must not read files, use shell/network/other tools, or create another child."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "sourcePlanSHA256": "b9de37e2a3c8ee7e7d4c9bb76291c9d6616d8ed28fbd1648186e098723e57f06",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

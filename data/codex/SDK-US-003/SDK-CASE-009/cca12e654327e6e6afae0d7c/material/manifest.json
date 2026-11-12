@@ -1,0 +1,49 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "bfd1799c6fb9197a4145510e40e01f3bba506d70b92a564c5e1c695b28437201",
+    "origin/main.json": "b5e6edbd3349dc14e184105aca9d43a16be5d7447105acacdb59fdcaa00e6fe3",
+    "plan.json": "7385197ae6cfea52db1a8e348b325b8563be1e39c9528aaafe4073fd38d149e1",
+    "raw/manifest.json": "0c8d4e6162aba1f789b3fc14efe80e6b41656b60498d97246fa0aeb2da9d2aed",
+    "raw/raw.jsonl": "ae83d41fe610ae6cb9fe8b5014015afa6d821b56fcbaaaad97121e0fc62390e8",
+    "raw/stderr.raw": "494fc2902f640ce1cc7a38dca15327e2c4ce38c32b6db2d17059db20e5063577",
+    "raw/transport.json": "726debea8502270a26f1e9d62f013517177585c9c6716ecf258b5666a9e7d566",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "d99afdcce1fee1e6ce14bbe6a9663f7d19adb43500d6855cd821f8401fb030bd"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "features.shell_tool=false",
+      "-c",
+      "model_catalog_json=\"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-009/fixture/runtime/executions/9e332741905db79b58bd3eb7748b3f38/config/file-tool-model.json\"",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-009/fixture/runtime/executions/9e332741905db79b58bd3eb7748b3f38/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "7385197ae6cfea52db1a8e348b325b8563be1e39c9528aaafe4073fd38d149e1",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "726debea8502270a26f1e9d62f013517177585c9c6716ecf258b5666a9e7d566",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "d99afdcce1fee1e6ce14bbe6a9663f7d19adb43500d6855cd821f8401fb030bd",
+  "status": "captured"
+}

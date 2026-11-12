@@ -1,0 +1,70 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-037",
+    "outOfScope": [
+      "运行中注入的消费时机",
+      "通用队列或调度器",
+      "其他 case 的使用流程"
+    ],
+    "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-037",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "context-injection",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-037/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply only Ready. Do not use tools.",
+    "What is the stored vault code? Reply only with its exact value. Do not use tools."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-037",
+      "outOfScope": [
+        "运行中注入的消费时机",
+        "通用队列或调度器",
+        "其他 case 的使用流程"
+      ],
+      "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-037",
+    "configuration": {},
+    "driverProfile": "context-injection",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "contextValue": "86607b6331d405f1703a8a4f726164fa",
+      "injectionTiming": "idle"
+    },
+    "prompts": [
+      "Reply only Ready. Do not use tools.",
+      "What is the stored vault code? Reply only with its exact value. Do not use tools."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "sourcePlanSHA256": "f48426ba68fd6922e2703f6776cc5a5274daf7be8d1f4e8e1f0c506fca3098ca",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

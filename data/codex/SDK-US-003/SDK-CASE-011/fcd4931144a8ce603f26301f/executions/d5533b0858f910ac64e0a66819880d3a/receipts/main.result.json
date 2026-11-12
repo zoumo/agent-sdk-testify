@@ -1,0 +1,27 @@
+{
+  "command": "mock",
+  "connectionId": "main",
+  "connectionStatus": "passed",
+  "execution": "executions/d5533b0858f910ac64e0a66819880d3a/execution.json",
+  "executionComplete": true,
+  "executionId": "d5533b0858f910ac64e0a66819880d3a",
+  "executionSHA256": "9a0d76320d58c5e40812af84db5d3484322db0b1f23424e04ea4ded7ab67aa65",
+  "executionStatus": "passed",
+  "fixtureId": "08d14685ff75453ebe4fd5d50d3da4c2",
+  "material": {
+    "id": "2f89b0395c8f4e7eaee84b49d2bbe797",
+    "manifestSHA256": "7e68fbc4a92207a18b6e5a39d18f984e3c0d0964c838416ffaf644cdc1caf752",
+    "planSHA256": "e965e18c3a54b7717fc05885059bddbbda84978af975875f9ae1b654bc579094",
+    "provenance": "official",
+    "recordingSHA256": "e5bf04985b13b2e4514e48c1eea63aff7df70850c913d8381dbe8e98375878e6",
+    "sourcePlanSHA256": "fc69ade2f3233cf2d39f7c55f2762602353b9744b68cb986b796790fba68c3c4"
+  },
+  "materialId": "2f89b0395c8f4e7eaee84b49d2bbe797",
+  "processId": 57183,
+  "processReceipt": "executions/d5533b0858f910ac64e0a66819880d3a/receipts/main.process.json",
+  "publicationCommitted": false,
+  "receipt": "executions/d5533b0858f910ac64e0a66819880d3a/receipts/main.json",
+  "result": "executions/d5533b0858f910ac64e0a66819880d3a/receipts/main.result.json",
+  "schemaVersion": 3,
+  "status": "passed"
+}

@@ -1,0 +1,2307 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-005",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 103,
+  "requests": 2,
+  "receipts": [
+    {
+      "native-child/event": {
+        "kind": "HookEventMessage",
+        "native": {
+          "subtype": "hook_started",
+          "data": {
+            "type": "system",
+            "subtype": "hook_started",
+            "hook_id": "61d6a7d1-34cc-4eef-a0bf-498e399c0c44",
+            "hook_name": "SessionStart:startup",
+            "hook_event": "SessionStart",
+            "uuid": "fd0f648a-9bba-4b43-b0b3-b4e1e9bcfe81",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          },
+          "hook_event_name": "SessionStart",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "fd0f648a-9bba-4b43-b0b3-b4e1e9bcfe81"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "HookEventMessage",
+        "native": {
+          "subtype": "hook_response",
+          "data": {
+            "type": "system",
+            "subtype": "hook_response",
+            "hook_id": "61d6a7d1-34cc-4eef-a0bf-498e399c0c44",
+            "hook_name": "SessionStart:startup",
+            "hook_event": "SessionStart",
+            "output": "",
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "outcome": "success",
+            "uuid": "82c09f39-e7ef-4a63-a91a-c401cd560d04",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          },
+          "hook_event_name": "SessionStart",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "82c09f39-e7ef-4a63-a91a-c401cd560d04"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "2af901ae-6d26-4861-93d4-a3c7a1ae07c7",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "init",
+          "data": {
+            "type": "system",
+            "subtype": "init",
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/15fc6a3a6398e1cf2c3e0db7033d6348/workspace",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "tools": [
+              "Task",
+              "AskUserQuestion",
+              "Bash",
+              "CronCreate",
+              "CronDelete",
+              "CronList",
+              "DesignSync",
+              "Edit",
+              "EnterPlanMode",
+              "EnterWorktree",
+              "ExitPlanMode",
+              "ExitWorktree",
+              "ListAgents",
+              "NotebookEdit",
+              "Read",
+              "ReportFindings",
+              "ScheduleWakeup",
+              "SendMessage",
+              "TaskStop",
+              "ToolSearch",
+              "WebFetch",
+              "WebSearch",
+              "Workflow",
+              "Write"
+            ],
+            "mcp_servers": [],
+            "model": "auto/deepseek-v4.1-flash-1017[1m]",
+            "permissionMode": "auto",
+            "slash_commands": [],
+            "apiKeySource": "none",
+            "claude_code_version": "2.1.293",
+            "output_style": "default",
+            "agents": [
+              "claude",
+              "Explore",
+              "fixture_reader",
+              "general-purpose",
+              "Plan",
+              "statusline-setup"
+            ],
+            "skills": [],
+            "plugins": [
+              {
+                "name": "cc-plugin-sec-default",
+                "path": "builtin",
+                "source": "cc-plugin-sec-default@builtin"
+              },
+              {
+                "name": "cc-plugin-agents-md",
+                "path": "builtin",
+                "source": "cc-plugin-agents-md@builtin"
+              },
+              {
+                "name": "cc-plugin-telemetry",
+                "path": "builtin",
+                "source": "cc-plugin-telemetry@builtin"
+              },
+              {
+                "name": "cc-plugin-plugin-authoring",
+                "path": "builtin",
+                "source": "cc-plugin-plugin-authoring@builtin"
+              }
+            ],
+            "capabilities": [
+              "interrupt_receipt_v1",
+              "interrupt_cancel_queued_v1",
+              "interrupt_send_now_v1",
+              "msg_lifecycle_v1",
+              "request_marker_lists_v1",
+              "sdk_mcp_tools_list_changed",
+              "sdk_mcp_manifests",
+              "mcp_read_resource_v1",
+              "mcp_tool_ui_meta_v1",
+              "ui_surface_v1"
+            ],
+            "analytics_disabled": false,
+            "product_feedback_disabled": false,
+            "uuid": "0ff6c4e6-d6b3-45b5-8cf1-67abc447f8cd",
+            "memory_paths": {
+              "auto": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/15fc6a3a6398e1cf2c3e0db7033d6348/config/projects/-Users-jim-code-zoumo-agent-sdk-testify/memory/"
+            },
+            "messaging_socket_path": "/tmp/cc-socks/22126.sock",
+            "fast_mode_state": "off",
+            "fast_mode_disabled_reason": "sdk_opt_in_required",
+            "per_turn_effort_active": false,
+            "view_mode": "default"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "status",
+          "data": {
+            "type": "system",
+            "subtype": "status",
+            "status": "requesting",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "70300c15-e93b-4881-88c3-bcc945c0f249"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "c5b07a78-1022-4fb0-9621-88dcc60cc086",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "message_start",
+            "message": {
+              "id": "21d5a9bc17945153919188456e83e3",
+              "type": "message",
+              "role": "assistant",
+              "content": [],
+              "model": "group/auto-deepseek-v4-1-flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9a69e8bd-5004-4327-9043-bcb810eb188a",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_start",
+            "index": 0,
+            "content_block": {
+              "type": "text",
+              "text": ""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "c23854bb-0d98-4efe-8c57-82a260395fab",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "I'll delegate to the fixture_reader exactly once as instructed.",
+              "type": "text_delta"
+            },
+            "index": 0,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "I'll delegate to the fixture_reader exactly once as instructed."
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945153919188456e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "e19d1e4d-f1a6-4e2a-9a04-33e4c4cb1235"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "770fca62-81b2-477e-bc65-2b8f6151f379",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_stop",
+            "index": 0
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "5b2193c5-32bc-43fc-a3c8-20cfe4faecd7",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_start",
+            "index": 1,
+            "content_block": {
+              "input": {},
+              "type": "tool_use",
+              "id": "call_0c957bc724d2493e9c7f61f6",
+              "name": "Agent"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "4cc0889e-1a38-4dfe-a29f-4a2ab646f9ba",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "{"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "00062066-4215-4a0d-b70c-fdf4f29b49e4",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "\"description\": \"Read child"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "8900706b-89eb-4b54-b062-8167a617566f",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " fixture\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "fa637b78-516e-4a86-8058-c3e9e1ee317e",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"prompt\": \"Use Read"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "1d5f59a8-0dc2-48a3-a384-e21ebb87229b",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " exactly once to read only"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "edf47c00-2507-49dc-82ef-f59dcd373ae1",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " child-fixture.txt in th"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "839a72d8-b39c-4a5a-9d0c-85fb6987a881",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "e inherited working directory. Return exactly"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "678ef1a9-a1b6-4e48-9795-1487d3d032bf",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " SYNTHETIC_CH"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "a361e5ef-0498-4c48-87dd-58d4a2000233",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "ILD_TOKEN. Do not c"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "0771f2c5-c85b-4163-99c2-a41fa5aca319",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "reate agents o"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "e57484c6-0641-4642-8eee-86f3196d8696",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "r descendants. Do not use shell"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "8a057040-13e9-483a-92ee-40465d7d2489",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", network, search"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "c0bf3675-e709-4a9d-bee5-e0070b1cf963",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", writes, or any"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "ade222d2-e36b-4e92-b3ec-8dc7ddb0a036",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": " other file or tool.\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "aa43d538-165d-4ed1-b94b-651f8e9ee1b6",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"subagent_type\": \"fixture_"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "653291a1-8944-4c53-b16e-f74a8d281730",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": "reader\""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "70a5b733-3aba-44a5-862e-8a006d1ec11b",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_delta",
+            "index": 1,
+            "delta": {
+              "type": "input_json_delta",
+              "partial_json": ", \"run_in_background\": false}"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "id": "call_0c957bc724d2493e9c7f61f6",
+              "name": "Agent",
+              "input": {
+                "description": "Read child fixture",
+                "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+                "subagent_type": "fixture_reader",
+                "run_in_background": false
+              }
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945153919188456e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "4c7aff08-e0d9-4552-b6ce-7af0545310ba"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "7904e543-4fec-48f9-b0a6-a80b28538bc9",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "content_block_stop",
+            "index": 1
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "7d0860a5-c7bc-4dde-a694-dc46e68d6f9d",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "tool_use",
+              "stop_sequence": null
+            },
+            "usage": {
+              "input_tokens": 12583,
+              "output_tokens": 159,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 0
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "430a6140-8cfb-4891-b128-366e7d78bfcb",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945153919188456e83e3",
+            "type": "message_stop"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "requires_action",
+            "uuid": "a3fb022e-8cf3-4b24-8ae4-4e22d9bd03b6",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          }
+        }
+      }
+    },
+    {
+      "allow-Agent": {
+        "toolUseId": "call_0c957bc724d2493e9c7f61f6"
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "cb099199-ebc3-468e-94fe-3fe6fb214fe8",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskStartedMessage",
+        "native": {
+          "subtype": "task_started",
+          "data": {
+            "type": "system",
+            "subtype": "task_started",
+            "task_id": "aaa612eebb3c82480",
+            "run_id": "0mwe04rah-52da2a46",
+            "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+            "description": "Read child fixture",
+            "subagent_type": "fixture_reader",
+            "is_backgrounded": false,
+            "spawn_depth": 1,
+            "task_type": "local_agent",
+            "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+            "uuid": "fdff1baf-01c6-49ac-8405-9ff40eafe47d",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          },
+          "task_id": "aaa612eebb3c82480",
+          "description": "Read child fixture",
+          "uuid": "fdff1baf-01c6-49ac-8405-9ff40eafe47d",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "task_type": "local_agent"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "text": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool."
+            }
+          ],
+          "uuid": "ec6ce449-ba0d-4bc1-8564-636c34a0c9fa",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "tool_use_result": null,
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "thinking": "The task: Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Also send the read result in an assistant text message before completing. Then SubagentHandback with the report.\n\nThe working directory is given. Let me read the file.",
+              "signature": "sig-theta"
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945153939078534e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "d453c841-b559-4393-ae22-a686c9d829af"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskProgressMessage",
+        "native": {
+          "subtype": "task_progress",
+          "data": {
+            "type": "system",
+            "subtype": "task_progress",
+            "task_id": "aaa612eebb3c82480",
+            "run_id": "0mwe04rah-52da2a46",
+            "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+            "description": "Reading child-fixture.txt",
+            "subagent_type": "fixture_reader",
+            "usage": {
+              "total_tokens": 84,
+              "tool_uses": 1,
+              "duration_ms": 2035
+            },
+            "last_tool_name": "Read",
+            "uuid": "dd7cce97-7449-4779-854c-bc3396967ea4",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          },
+          "task_id": "aaa612eebb3c82480",
+          "description": "Reading child-fixture.txt",
+          "usage": {
+            "total_tokens": 84,
+            "tool_uses": 1,
+            "duration_ms": 2035
+          },
+          "uuid": "dd7cce97-7449-4779-854c-bc3396967ea4",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "last_tool_name": "Read"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "id": "call_20640cf0ae7744b5be26133a",
+              "name": "Read",
+              "input": {
+                "file_path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/15fc6a3a6398e1cf2c3e0db7033d6348/workspace/child-fixture.txt"
+              }
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945153939078534e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "c4ebdd98-46e7-42f6-8dcb-269833d4a4d9"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "requires_action",
+            "uuid": "64ad28c9-ad8b-4dac-9f25-c0d72433d41e",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          }
+        }
+      }
+    },
+    {
+      "allow-child-Read": {
+        "toolUseId": "call_20640cf0ae7744b5be26133a",
+        "nativeAgentId": "aaa612eebb3c82480"
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "session_state_changed",
+          "data": {
+            "type": "system",
+            "subtype": "session_state_changed",
+            "state": "running",
+            "uuid": "fe30abee-5f33-429a-bdc5-1f5b378212d0",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "tool_use_id": "call_20640cf0ae7744b5be26133a",
+              "content": "1\tSYNTHETIC_CHILD_TOKEN\n2\t",
+              "is_error": null
+            }
+          ],
+          "uuid": "9c1287da-4e67-4c08-9a3e-cb67280d104b",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "tool_use_result": null,
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "SYNTHETIC_CHILD_TOKEN"
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945153964768653e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "b33d5e51-9042-4567-83a8-312085adb1ec"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "text": "[handback-send-enforce] Your report has not been delivered. Call SubagentHandback({message: <your full report>}) now; the call ends your run."
+            }
+          ],
+          "uuid": "c7788ea7-9cd5-4dfa-be47-6f2ed24f9ba6",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "tool_use_result": null,
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskProgressMessage",
+        "native": {
+          "subtype": "task_progress",
+          "data": {
+            "type": "system",
+            "subtype": "task_progress",
+            "task_id": "aaa612eebb3c82480",
+            "run_id": "0mwe04rah-52da2a46",
+            "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+            "description": "Read child fixture",
+            "subagent_type": "fixture_reader",
+            "usage": {
+              "total_tokens": 5,
+              "tool_uses": 2,
+              "duration_ms": 4441
+            },
+            "last_tool_name": "SubagentHandback",
+            "uuid": "a578dd77-1d47-4052-ba1c-ceb8e6f18df8",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          },
+          "task_id": "aaa612eebb3c82480",
+          "description": "Read child fixture",
+          "usage": {
+            "total_tokens": 5,
+            "tool_uses": 2,
+            "duration_ms": 4441
+          },
+          "uuid": "a578dd77-1d47-4052-ba1c-ceb8e6f18df8",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "last_tool_name": "SubagentHandback"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "id": "call_6788b8e0128e41378d868f40",
+              "name": "SubagentHandback",
+              "input": {
+                "message": "SYNTHETIC_CHILD_TOKEN"
+              }
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945153972028683e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "02816585-a0ba-405d-9af3-2c92d80cdfa8"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "permission_check_status",
+          "data": {
+            "type": "system",
+            "subtype": "permission_check_status",
+            "tool_use_id": "call_6788b8e0128e41378d868f40",
+            "agent_id": "aaa612eebb3c82480",
+            "status": "checking",
+            "uuid": "32ac5768-d9b5-4798-a163-383333d555d8",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "permission_check_status",
+          "data": {
+            "type": "system",
+            "subtype": "permission_check_status",
+            "tool_use_id": "call_6788b8e0128e41378d868f40",
+            "agent_id": "aaa612eebb3c82480",
+            "status": "done",
+            "uuid": "b3ce2e31-2304-4ea2-9d42-835ccc913ddb",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "tool_use_id": "call_6788b8e0128e41378d868f40",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"success\":true,\"message\":\"Report delivered to your caller.\"}"
+                }
+              ],
+              "is_error": null
+            }
+          ],
+          "uuid": "85f7b74d-533a-43f8-b24c-f7de7188a581",
+          "parent_tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "tool_use_result": null,
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskUpdatedMessage",
+        "native": {
+          "subtype": "task_updated",
+          "data": {
+            "type": "system",
+            "subtype": "task_updated",
+            "task_id": "aaa612eebb3c82480",
+            "run_id": "0mwe04rah-52da2a46",
+            "patch": {
+              "status": "completed",
+              "end_time": 1794515459418
+            },
+            "uuid": "40764b90-cdfd-4638-b0fe-17d0d9397526",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          },
+          "task_id": "aaa612eebb3c82480",
+          "patch": {
+            "status": "completed",
+            "end_time": 1794515459418
+          },
+          "status": "completed",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "40764b90-cdfd-4638-b0fe-17d0d9397526"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "TaskNotificationMessage",
+        "native": {
+          "subtype": "task_notification",
+          "data": {
+            "type": "system",
+            "subtype": "task_notification",
+            "task_id": "aaa612eebb3c82480",
+            "run_id": "0mwe04rah-52da2a46",
+            "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+            "status": "completed",
+            "output_file": "/private/tmp/claude-502/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-016-fixture-runtime-executions-15fc6a3a6398e1cf2c3e0db7033d6348-workspace/808efb54-bcb5-4985-8b55-314bb0fd7c6f/tasks/aaa612eebb3c82480.output",
+            "summary": "This agent's report was delivered to you as a message from \"aaa612eebb3c82480\" (its SubagentHandback call). Read it there; it is not repeated here.\n",
+            "usage": {
+              "total_tokens": 6016,
+              "tool_uses": 2,
+              "duration_ms": 66101
+            },
+            "handback": "send",
+            "handback_report": {
+              "text": "SYNTHETIC_CHILD_TOKEN"
+            },
+            "uuid": "6d7e9a9f-6ea5-4d89-a020-4d7cd63e48c6",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f"
+          },
+          "task_id": "aaa612eebb3c82480",
+          "status": "completed",
+          "output_file": "/private/tmp/claude-502/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-016-fixture-runtime-executions-15fc6a3a6398e1cf2c3e0db7033d6348-workspace/808efb54-bcb5-4985-8b55-314bb0fd7c6f/tasks/aaa612eebb3c82480.output",
+          "summary": "This agent's report was delivered to you as a message from \"aaa612eebb3c82480\" (its SubagentHandback call). Read it there; it is not repeated here.\n",
+          "uuid": "6d7e9a9f-6ea5-4d89-a020-4d7cd63e48c6",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+          "usage": {
+            "total_tokens": 6016,
+            "tool_uses": 2,
+            "duration_ms": 66101
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "UserMessage",
+        "native": {
+          "content": [
+            {
+              "tool_use_id": "call_0c957bc724d2493e9c7f61f6",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "  This agent's report was delivered to you as a message from \"aaa612eebb3c82480\" (its SubagentHandback call). Read it there; it is not repeated here.\n  \nagentId: aaa612eebb3c82480 (use SendMessage with to: 'aaa612eebb3c82480', summary: '<5-10 word recap>' to continue this agent)\n<usage>subagent_tokens: 6016\ntool_uses: 2\nduration_ms: 66102</usage>"
+                }
+              ],
+              "is_error": null
+            }
+          ],
+          "uuid": "e4646412-b4c9-49ca-8a7f-4ff60255eb52",
+          "parent_tool_use_id": null,
+          "tool_use_result": {
+            "status": "completed",
+            "prompt": "Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.",
+            "agentId": "aaa612eebb3c82480",
+            "agentType": "fixture_reader",
+            "handback": "send",
+            "handbackReport": {
+              "text": "SYNTHETIC_CHILD_TOKEN"
+            },
+            "harnessNoteCount": 1,
+            "harnessTailCount": 0,
+            "harnessSectionHash": "ec9bd5b1cde2e72c",
+            "content": [
+              {
+                "type": "text",
+                "text": "This agent's report was delivered to you as a message from \"aaa612eebb3c82480\" (its SubagentHandback call). Read it there; it is not repeated here.\n"
+              }
+            ],
+            "resolvedModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "totalDurationMs": 66102,
+            "totalTokens": 6016,
+            "totalToolUseCount": 2,
+            "usage": {
+              "output_tokens_details": {
+                "thinking_tokens": 0
+              },
+              "input_tokens": 80,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 5888,
+              "output_tokens": 48,
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard",
+              "fallback_credit": null
+            },
+            "toolStats": {
+              "readCount": 1,
+              "searchCount": 0,
+              "bashCount": 0,
+              "editFileCount": 0,
+              "linesAdded": 0,
+              "linesRemoved": 0,
+              "otherToolCount": 1
+            },
+            "canContinueAgent": true
+          },
+          "origin": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "status",
+          "data": {
+            "type": "system",
+            "subtype": "status",
+            "status": "requesting",
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "7accbee7-68be-45ba-be83-1a4949315f03"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "e9ea83a2-2888-4252-90e5-8b7ab48729fa",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "message_start",
+            "message": {
+              "id": "21d5a9bc17945154597783281e83e3",
+              "type": "message",
+              "role": "assistant",
+              "content": [],
+              "model": "group/auto-deepseek-v4-1-flash-1017",
+              "usage": {
+                "input_tokens": 0,
+                "output_tokens": 0
+              }
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "42ecef14-2a45-4dd5-9ddd-dfc84bfb4f43",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "content_block": {
+              "signature": "",
+              "thinking": "",
+              "type": "thinking"
+            },
+            "index": 0,
+            "type": "content_block_start"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 1,
+            "estimated_tokens_delta": 1,
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "dacae516-ce02-4b1e-a2ae-ce9f7a681b3b"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "00a9bd68-65b7-400e-81fc-9230c8b5bb98",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "The"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 7,
+            "estimated_tokens_delta": 6,
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "c51fb11c-4ec3-420b-8f54-09a6311d32e7"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d59090fc-e8a1-42ea-939f-4b29827390af",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " child returned SYNTHET"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 13,
+            "estimated_tokens_delta": 6,
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "70914f63-dddb-412c-9842-5e9ab360d5d6"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "ca22ea44-33c6-449d-8fdf-7d3e6f565ebf",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "IC_CHILD_TOKEN. Report"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 15,
+            "estimated_tokens_delta": 2,
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "6971b27d-24e8-4d03-b8b5-7345fffbd851"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "55bea878-7e7b-4da5-b047-61cb56bbea61",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " it. No"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 19,
+            "estimated_tokens_delta": 4,
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "4db516c6-957a-427b-b121-308b9d35f071"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d9878292-8354-4144-ba97-e98315e13ae8",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": " further tools"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "SystemMessage",
+        "native": {
+          "subtype": "thinking_tokens",
+          "data": {
+            "type": "system",
+            "subtype": "thinking_tokens",
+            "estimated_tokens": 20,
+            "estimated_tokens_delta": 1,
+            "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+            "uuid": "51bd9748-42d9-4fa8-a2f7-e1a88b9dc8de"
+          }
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "7f1196c2-6e69-423a-ac0a-bc79472e1e5f",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "thinking_delta",
+              "thinking": "."
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "60b6f437-2f25-4083-93fe-a7827f34ad05",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_delta",
+            "index": 0,
+            "delta": {
+              "type": "signature_delta",
+              "signature": "sig-theta"
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "thinking": "The child returned SYNTHETIC_CHILD_TOKEN. Report it. No further tools.",
+              "signature": "sig-theta"
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945154597783281e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "0a5881c7-5baf-4f8c-9f2f-914bdd22fc49"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "e3027f4d-fa43-4020-81c4-2484e4b29c6f",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_stop",
+            "index": 0
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d1c76409-1987-4920-b575-3857ad316023",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_start",
+            "index": 1,
+            "content_block": {
+              "type": "text",
+              "text": ""
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "6ab33524-32c7-4ef7-a8fa-a0647ff7b346",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "The child agent",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "9b0f297c-4b10-461f-b2d1-3be49bc14654",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " (`",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "eacdc6f9-3867-45cf-851e-e2832b7fbb0c",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "fixture_reader",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "45f13ae8-4448-43dc-a0bf-d8ff964e740e",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "`,",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "47ba854b-4828-4ba2-8f2a-22aca47b6451",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " id `aaa612eebb",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d50ae328-cc56-4357-96a3-6d2b90160510",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "3c82480`) reported",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "096fdb1d-7063-4bb6-8dad-3595b912ddc2",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " back",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "48bd2f7a-6775-4801-b401-4aea6479eec7",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": ":\n\n**SYNTHET",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "57857374-5e22-43a1-a199-617bd43e86ad",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "IC_CHILD_TOKEN**\n\n",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "6d0a2b42-db3b-4ffb-84cc-980122f6d753",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "It",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "8a5c10f1-7dce-4618-ac7a-f71fc1c1dd0c",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " used",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d4282c50-693f-40cf-8a09-c21dd5415f98",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " ",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "7ef590a6-dbae-4009-9d8b-c2cea6bc977d",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "2 tool calls (one",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "ac11c587-88af-4c9f-b107-835585b8c0ea",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " Read of `",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "10ed8e08-e710-4447-9a95-1a6627b473b2",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "child-fixture.txt`)",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "da7aee4b-b7bd-48ca-af72-c8b8b6851b0a",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " and created",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "d2848abb-3f3c-4688-8561-5ec1db3dd841",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " no descendants. I made",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "079092b4-42a7-440b-b916-3ecfee5e0b93",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " exactly",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "e3bf3b25-ffdb-4578-854d-22f2b560ddda",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " one Agent call,",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "08a587cb-a1b8-468d-8b45-e7d5a0672a8d",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " and",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "52563bd1-8c96-48c2-9937-594688f9b2cd",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " did",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "53e6f369-f627-4e51-8d4f-e324435462b7",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " not read files, use",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "442af3aa-743b-420b-9bab-b9e123d21002",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " shell",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "f9d6ef24-fe6f-4ed9-b2f7-548a8ab74698",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "/",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "5dcbf7dd-ad54-487b-820c-4c6b2636c0a1",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": "network, or spawn",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "3d663909-572b-40d9-a02d-67080f97225f",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": " any other child",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "2dd6b75a-70e5-47c5-9479-eb74d9b58fcf",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "delta": {
+              "text": ".",
+              "type": "text_delta"
+            },
+            "index": 1,
+            "type": "content_block_delta"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "AssistantMessage",
+        "native": {
+          "content": [
+            {
+              "text": "The child agent (`fixture_reader`, id `aaa612eebb3c82480`) reported back:\n\n**SYNTHETIC_CHILD_TOKEN**\n\nIt used 2 tool calls (one Read of `child-fixture.txt`) and created no descendants. I made exactly one Agent call, and did not read files, use shell/network, or spawn any other child."
+            }
+          ],
+          "model": "group/auto-deepseek-v4-1-flash-1017",
+          "parent_tool_use_id": null,
+          "error": null,
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "message_id": "21d5a9bc17945154597783281e83e3",
+          "stop_reason": null,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "uuid": "b58bf64e-46f6-4de2-8df8-8f6831e72b07"
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "a2ac0a4a-faee-497f-9218-5ca83b476b0a",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "content_block_stop",
+            "index": 1
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "241450db-30ba-4af7-a097-b15a95bdd0fb",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "message_delta",
+            "delta": {
+              "stop_reason": "end_turn",
+              "stop_sequence": null
+            },
+            "usage": {
+              "input_tokens": 634,
+              "output_tokens": 98,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 12544
+            }
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "StreamEvent",
+        "native": {
+          "uuid": "32a9bdae-acdd-4676-87ee-31e99e2c10b0",
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "event": {
+            "id": "21d5a9bc17945154597783281e83e3",
+            "type": "message_stop"
+          },
+          "parent_tool_use_id": null
+        }
+      }
+    },
+    {
+      "native-child/event": {
+        "kind": "ResultMessage",
+        "native": {
+          "subtype": "success",
+          "duration_ms": 69509,
+          "duration_api_ms": 5274,
+          "is_error": false,
+          "num_turns": 2,
+          "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+          "stop_reason": "end_turn",
+          "total_cost_usd": 0.12124100000000002,
+          "usage": {
+            "input_tokens": 13217,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 12544,
+            "output_tokens": 257,
+            "output_tokens_details": {
+              "thinking_tokens": 0
+            },
+            "server_tool_use": {
+              "web_search_requests": 0,
+              "web_fetch_requests": 0
+            },
+            "service_tier": "standard",
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 0,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "inference_geo": "",
+            "iterations": [],
+            "speed": "standard",
+            "fallback_credit": null
+          },
+          "result": "The child agent (`fixture_reader`, id `aaa612eebb3c82480`) reported back:\n\n**SYNTHETIC_CHILD_TOKEN**\n\nIt used 2 tool calls (one Read of `child-fixture.txt`) and created no descendants. I made exactly one Agent call, and did not read files, use shell/network, or spawn any other child.",
+          "structured_output": null,
+          "model_usage": {
+            "auto/deepseek-v4.1-flash-1017[1m]": {
+              "inputTokens": 19428,
+              "outputTokens": 493,
+              "cacheReadInputTokens": 23552,
+              "cacheCreationInputTokens": 0,
+              "webSearchRequests": 0,
+              "costUSD": 0.12124100000000002,
+              "contextWindow": 1000000,
+              "maxOutputTokens": 32000,
+              "thinkingTokens": 0,
+              "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+              "provider": "firstParty",
+              "costBasis": "unknown"
+            }
+          },
+          "permission_denials": [],
+          "deferred_tool_use": null,
+          "errors": null,
+          "api_error_status": null,
+          "uuid": "a7a46364-c403-4a7d-93f7-eac2bdeda476",
+          "terminal_reason": "completed",
+          "origin": null
+        }
+      }
+    },
+    {
+      "root/result": {
+        "subtype": "success",
+        "duration_ms": 69509,
+        "duration_api_ms": 5274,
+        "is_error": false,
+        "num_turns": 2,
+        "session_id": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.12124100000000002,
+        "usage": {
+          "input_tokens": 13217,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 12544,
+          "output_tokens": 257,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "The child agent (`fixture_reader`, id `aaa612eebb3c82480`) reported back:\n\n**SYNTHETIC_CHILD_TOKEN**\n\nIt used 2 tool calls (one Read of `child-fixture.txt`) and created no descendants. I made exactly one Agent call, and did not read files, use shell/network, or spawn any other child.",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 19428,
+            "outputTokens": 493,
+            "cacheReadInputTokens": 23552,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.12124100000000002,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "a7a46364-c403-4a7d-93f7-eac2bdeda476",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "official SDK child flow; native relationship evidence required",
+    "synthetic child task selected; native hook and tool activity retained",
+    "case evidence is assessed independently of capture completion"
+  ],
+  "gaps": [],
+  "limitations": [
+    "parent/child and background facts require actual native source records"
+  ],
+  "case": {
+    "id": "SDK-CASE-016",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u89c2\u5bdf\u76f4\u63a5\u5b50 Agent \u7684\u8eab\u4efd\u3001\u8f93\u51fa\u4e0e\u7ed3\u679c\u3002",
+    "storyId": "SDK-US-005"
+  },
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "storyId": "SDK-US-005",
+  "caseId": "SDK-CASE-016",
+  "scenarioSHA256": null,
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "childEvidence": {
+    "sessionId": "808efb54-bcb5-4985-8b55-314bb0fd7c6f",
+    "parentToolUseId": "call_0c957bc724d2493e9c7f61f6",
+    "taskId": "aaa612eebb3c82480",
+    "agentIds": [
+      "aaa612eebb3c82480"
+    ],
+    "outputObserved": true,
+    "completed": true
+  },
+  "branchStatus": "passed"
+}

@@ -1,0 +1,105 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-010",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "批准命令审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-010",
+    "driverProfile": "approval",
+    "model": "auto/deepseek-v4.1-flash-1017",
+    "prompts": [
+      "Run the shell command printf SYNTHETIC_COMMAND exactly once. Request execution outside the sandbox so the application can approve it. Do not retry if permission is denied."
+    ],
+    "provider": "codex",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-010",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "批准命令审批并观察后续结果。",
+        "storyId": "SDK-US-003"
+      },
+      "caseId": "SDK-CASE-010",
+      "configuration": {},
+      "driverProfile": "approval",
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "approvalDecision": "allow",
+        "approvalKind": "command"
+      },
+      "prompts": [
+        "Run the shell command printf SYNTHETIC_COMMAND exactly once. Request execution outside the sandbox so the application can approve it. Do not retry if permission is denied."
+      ],
+      "provider": "codex",
+      "reason": "",
+      "requiredRequests": [
+        "approval_answer"
+      ],
+      "storyId": "SDK-US-003"
+    },
+    "story": "SDK-US-003",
+    "storyId": "SDK-US-003"
+  },
+  "case": "SDK-CASE-010",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:53:04.455624Z",
+  "contracts": {
+    "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
+    "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-codex",
+    "sha256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "e8fa1e4bdd8bcf263708323bf5d60793",
+      "executionSHA256": "22e84a90765ad78c11082c9f395f1624b31dc88687a345a2cc83437895dcedee",
+      "path": "executions/e8fa1e4bdd8bcf263708323bf5d60793/result.json",
+      "sha256": "3c0782c51ee9e3efe18c2edd4ad407643ccda6f0b1ca5d85e2f16ec96455d527"
+    }
+  ],
+  "files": {
+    "verify/2e233ce487ae9635869b067dfc5da22f/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "verify/2e233ce487ae9635869b067dfc5da22f/peers/main.json": "c5c2ef8e0c42f94a7d92ad61f8ebb11064f725182068e9f1fb970d4326b5a984",
+    "verify/2e233ce487ae9635869b067dfc5da22f/replay-report.json": "165e11e044be35e89a2f7d0bf9383bab7c385c7c8dfc02281d478ebd31cfcb6a",
+    "verify/2e233ce487ae9635869b067dfc5da22f/result.json": "c4255245e55c2773e089d8bf30e35c5b21a43e3d8e0e2eb7034c15a2f25c5e48",
+    "verify/2e233ce487ae9635869b067dfc5da22f/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/2e233ce487ae9635869b067dfc5da22f/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "d166eb5b4169ed178e2331b22a41d438",
+  "id": "2e233ce487ae9635869b067dfc5da22f",
+  "manifestSHA256": "ddd89f6123fbe172e0a32ce0a9f6e1588fc023adc3bb057772413311136d5efc",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "e5fbc3761f4e0116234a12864c209b6e3b6f6852167d90f89315222e1588c5c2"
+  },
+  "materialId": "bb7a2bd74d51a4a4bf72cc1e645ff9b0",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "codex",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:53:01.441027Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

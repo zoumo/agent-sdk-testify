@@ -1,0 +1,164 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 59,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "variant-configuration": {
+        "timing": "during-execution",
+        "requested": {
+          "subtype": "set_model",
+          "model": "theta/GLM-5.3"
+        },
+        "acknowledged": true,
+        "observed": null
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 1586,
+        "duration_api_ms": 1249,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "0b163a4b-f525-43d3-adca-4ba5a590cad2",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.06505999999999999,
+        "usage": {
+          "input_tokens": 12472,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 108,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "Addition combines two or more numbers into a single total, called the sum, by starting with one quantity and increasing it by the value of each additional quantity. For example, 3 + 4 means starting at 3 and counting up 4 more to reach 7.",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12472,
+            "outputTokens": 108,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.06505999999999999,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "e7f79e17-e492-4e8d-8497-6d1ef62fc3f3",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-024",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u6267\u884c\u671f\u95f4\u8bf7\u6c42\u4e0d\u540c\u6a21\u578b\uff0c\u4fdd\u7559\u63a5\u53d7\u6216\u62d2\u7edd\u53ca\u5f53\u524d\u6267\u884c\u7ec8\u6001\uff0c\u8bb0\u5f55\u53ef\u89c2\u5bdf\u7684\u751f\u6548\u8303\u56f4\uff1b\u4e0d\u627f\u8bfa\u5f53\u524d\u6267\u884c\u7acb\u5373\u6362\u6a21\u578b\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-024",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "configuration-acknowledged",
+      "timing": "during-execution",
+      "completedInputs": 0,
+      "requested": {
+        "subtype": "set_model",
+        "model": "theta/GLM-5.3"
+      }
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "subtype": "set_model",
+          "model": "theta/GLM-5.3"
+        },
+        "acknowledged": true,
+        "timing": "during-execution",
+        "completedInputs": 0
+      }
+    ],
+    "observed": [
+      {
+        "source": "assistant",
+        "scope": "assistant-message",
+        "model": "group/auto-deepseek-v4-1-flash-1017"
+      },
+      {
+        "source": "assistant",
+        "scope": "assistant-message",
+        "model": "group/auto-deepseek-v4-1-flash-1017"
+      }
+    ],
+    "effectiveScope": "current execution not guaranteed; observed models only",
+    "initialModel": "auto/deepseek-v4.1-flash-1017[1m]",
+    "targetModel": "theta/GLM-5.3",
+    "observedModels": [
+      "group/auto-deepseek-v4-1-flash-1017",
+      "group/auto-deepseek-v4-1-flash-1017"
+    ]
+  },
+  "branchStatus": "passed"
+}

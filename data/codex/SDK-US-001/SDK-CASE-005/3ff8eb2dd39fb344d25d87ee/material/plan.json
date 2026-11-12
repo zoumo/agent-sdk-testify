@@ -1,0 +1,67 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-005",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "执行中追加输入并保留原生调度结果。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-005",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "active-input",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-005/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Produce a numbered list from one to twenty.",
+    "Also include the word sample."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-005",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "执行中追加输入并保留原生调度结果。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-005",
+    "configuration": {},
+    "driverProfile": "active-input",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Produce a numbered list from one to twenty.",
+      "Also include the word sample."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "sourcePlanSHA256": "9d9e2975137215743dc150688f8efe67d3ae753494d515f6794b945a525b9a5f",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

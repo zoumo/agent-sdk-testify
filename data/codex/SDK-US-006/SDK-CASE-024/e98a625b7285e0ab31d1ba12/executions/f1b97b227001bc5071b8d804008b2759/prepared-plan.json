@@ -1,0 +1,30 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "caseId": "SDK-CASE-024",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "config": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-024/fixture/runtime/executions/f1b97b227001bc5071b8d804008b2759/config",
+  "driverProfile": "structured-input",
+  "executionId": "f1b97b227001bc5071b8d804008b2759",
+  "fixtureId": "8e1f9c073a9fe71628a60de8c9b39c0c",
+  "home": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-024/fixture/runtime/executions/f1b97b227001bc5071b8d804008b2759/home",
+  "model": "auto/glm-5.3",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-024/fixture/runtime/routes/record/workspace",
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "root": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-024/fixture/runtime/executions/f1b97b227001bc5071b8d804008b2759",
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "368d738d1132494b271ebd84cb3a2a20e7e03a2f9156740c3eb4eb1159153e9a",
+  "stdinEOFAction": "close",
+  "storyId": "SDK-US-006",
+  "tmp": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-024/fixture/runtime/executions/f1b97b227001bc5071b8d804008b2759/tmp"
+}

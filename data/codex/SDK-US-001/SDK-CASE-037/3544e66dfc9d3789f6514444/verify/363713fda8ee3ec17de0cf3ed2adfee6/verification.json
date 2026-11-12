@@ -1,0 +1,105 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-037",
+      "outOfScope": [
+        "运行中注入的消费时机",
+        "通用队列或调度器",
+        "其他 case 的使用流程"
+      ],
+      "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-037",
+    "driverProfile": "context-injection",
+    "model": "auto/deepseek-v4.1-flash-1017",
+    "prompts": [
+      "Reply only Ready. Do not use tools.",
+      "What is the stored vault code? Reply only with its exact value. Do not use tools."
+    ],
+    "provider": "codex",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-037",
+        "outOfScope": [
+          "运行中注入的消费时机",
+          "通用队列或调度器",
+          "其他 case 的使用流程"
+        ],
+        "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+        "storyId": "SDK-US-001"
+      },
+      "caseId": "SDK-CASE-037",
+      "configuration": {},
+      "driverProfile": "context-injection",
+      "files": {},
+      "mode": "live-selected-path",
+      "parameters": {
+        "contextValue": "86607b6331d405f1703a8a4f726164fa",
+        "injectionTiming": "idle"
+      },
+      "prompts": [
+        "Reply only Ready. Do not use tools.",
+        "What is the stored vault code? Reply only with its exact value. Do not use tools."
+      ],
+      "provider": "codex",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-001"
+    },
+    "story": "SDK-US-001",
+    "storyId": "SDK-US-001"
+  },
+  "case": "SDK-CASE-037",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:54:37.941172Z",
+  "contracts": {
+    "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+    "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-codex",
+    "sha256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "f55e858594701a6c3d423f58d8d76f5c",
+      "executionSHA256": "b07f2e58c3c0a8c69beaa115807388a808d05b79cbe06cfc2c68d1bb9db49597",
+      "path": "executions/f55e858594701a6c3d423f58d8d76f5c/result.json",
+      "sha256": "8c3ac02d9c48e23cb53dfd758566a676bba16d4b300428184ff57a0cf5d142bd"
+    }
+  ],
+  "files": {
+    "verify/363713fda8ee3ec17de0cf3ed2adfee6/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "verify/363713fda8ee3ec17de0cf3ed2adfee6/peers/main.json": "750556d47f36cd13c922fc2eff13867fb5759b5b714af9c32ee236d43e4d8f16",
+    "verify/363713fda8ee3ec17de0cf3ed2adfee6/replay-report.json": "a90f6b9758e242a48344cfd0b49e91184bee344c45c179a77f03d46fba40c913",
+    "verify/363713fda8ee3ec17de0cf3ed2adfee6/result.json": "2dc72ab006a4ec4c33540b2aa2d4d52668553cf81746a2c1d81dca24e2136f24",
+    "verify/363713fda8ee3ec17de0cf3ed2adfee6/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/363713fda8ee3ec17de0cf3ed2adfee6/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "ec0cbd79c1cf3ce59693ca936959fefb",
+  "id": "363713fda8ee3ec17de0cf3ed2adfee6",
+  "manifestSHA256": "7cabd7fb7e4f45414c11ccfc92c4d6432d9344df1a5dd3d91a53f04b780cc1a3",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "ea8df84ad460cf08780a0bc3df9137d279d351992d34de240b32604893f6af25"
+  },
+  "materialId": "aac10ff1756eb1b3dd5e207df41f4f3d",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "codex",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:54:35.848948Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

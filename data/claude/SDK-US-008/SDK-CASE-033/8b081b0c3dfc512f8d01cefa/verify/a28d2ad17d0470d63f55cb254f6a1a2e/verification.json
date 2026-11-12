@@ -1,0 +1,102 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-033",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "独立发现会话、读取元数据和主会话内容。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-033",
+    "driverProfile": "history",
+    "model": "auto/deepseek-v4.1-flash-1017[1m]",
+    "prompts": [
+      "Reply with the word SYNTHETIC_SAVED."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-033",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "独立发现会话、读取元数据和主会话内容。",
+        "storyId": "SDK-US-008"
+      },
+      "caseId": "SDK-CASE-033",
+      "configuration": {},
+      "driverProfile": "history",
+      "files": {
+        "numbers.txt": "7\n11\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "historyTarget": "messages"
+      },
+      "prompts": [
+        "Reply with the word SYNTHETIC_SAVED."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-008"
+    },
+    "story": "SDK-US-008",
+    "storyId": "SDK-US-008"
+  },
+  "case": "SDK-CASE-033",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:56:41.160385Z",
+  "contracts": {
+    "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "a52577e1e8a614fb78548ad5a7f58b65",
+      "executionSHA256": "41e00b0d851febacc12c9bb9349154df80b56ad5b5406b14f2ae88aff9789750",
+      "path": "executions/a52577e1e8a614fb78548ad5a7f58b65/result.json",
+      "sha256": "981d1e3cab19b6e682071e40f3aaedecf8975d844de53fb21ecee27822966e9f"
+    }
+  ],
+  "files": {
+    "verify/a28d2ad17d0470d63f55cb254f6a1a2e/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/a28d2ad17d0470d63f55cb254f6a1a2e/peers/main.json": "f3187603fe9c1d015c265884b4ececfc284547896dc4ac2d3a37aa00692da00c",
+    "verify/a28d2ad17d0470d63f55cb254f6a1a2e/replay-report.json": "adea6ed6da28b9d34438fa9446b642297647b1d97f5afaf6bb138fef088dc4c1",
+    "verify/a28d2ad17d0470d63f55cb254f6a1a2e/result.json": "70057dc3201a9785cc223fc411f7737342887e8ce677fd27a0d1284c72f557aa",
+    "verify/a28d2ad17d0470d63f55cb254f6a1a2e/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/a28d2ad17d0470d63f55cb254f6a1a2e/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "70b3b6ba0fbbba696f7d787bd18183cb",
+  "id": "a28d2ad17d0470d63f55cb254f6a1a2e",
+  "manifestSHA256": "9019c6122d9ad60d50867869388213c619e559842e33a1023c2b361cc4d7421c",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "2686276798b22188800d38a9dcee67959c650af3744c0f0bb4547088c84e8e9d"
+  },
+  "materialId": "fecf4eeb3334d293eccc6b2d40d9ece6",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:56:38.376301Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

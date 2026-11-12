@@ -1,0 +1,13 @@
+{
+  "connectionId": "main",
+  "executionId": "b888b07c1d7d382bca3be1eba913c9aa",
+  "exitCode": 0,
+  "fixtureId": "9296646de1a4bd6db2c2972e7b6b8143",
+  "schemaVersion": 1,
+  "status": "passed",
+  "tool": {
+    "command": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-build/agent-sdk-testify"
+  },
+  "toolSHA256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+  "toolVersion": "devel"
+}

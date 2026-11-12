@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 7,
+  "executionId": "2105c65bebe3a6f235910735e24ced54",
+  "fixtureId": "eb8f6368270ddc499013080adafd1980",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-034",
+    "path": "source/plan.json",
+    "sha256": "4951224e7a95bb859407d5dbc8cb5db3126219a7c94ae27b48639eaafdd66d08",
+    "provenance": "official",
+    "driverProfile": "history"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "protocolCwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace",
+  "historyFiles": {
+    "config/sessions/2026/11/13/rollout-2026-11-13T04-24-56-01a1d16f-540c-7f70-8cef-b56a7b6cc4d1.jsonl": "6f3565d51e6ee170f0e95fcca172d48b5e44e34e2d41bfb252df3d7fa2c920fb",
+    "config/sessions/2026/11/13/rollout-2026-11-13T04-25-03-01a1d16f-6edb-7ad1-9afc-9c9867c0c040.jsonl": "cc07681a94ceebdba3c9a007252571bcbe5f6b39582a6440ed28fb441b3b5c76"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "275eeb775ef2cacba024a377fa760b50",
+      "planSHA256": "c96b63797ccb08748ae0d8748efee7e28915dccd77382b3da2d14971e296486b",
+      "manifestSHA256": "9a080b78dbba3022ce2f8d8cff0de9b577d3d4ace20b1c86f81c609729c51b89",
+      "recordingSHA256": "4d248f0446f0289335c991db6ae985d312dd9ccfef420d90ab2caa8aec820a0c",
+      "receipt": "executions/2105c65bebe3a6f235910735e24ced54/receipts/main.json",
+      "processReceipt": "executions/2105c65bebe3a6f235910735e24ced54/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "4951224e7a95bb859407d5dbc8cb5db3126219a7c94ae27b48639eaafdd66d08",
+    "originSHA256": "49ab3efe7f9f3915070fa391a77993b3be876b2fdab301149ef4a447c06f5bb3",
+    "id": "275eeb775ef2cacba024a377fa760b50",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "c96b63797ccb08748ae0d8748efee7e28915dccd77382b3da2d14971e296486b",
+    "manifestSHA256": "9a080b78dbba3022ce2f8d8cff0de9b577d3d4ace20b1c86f81c609729c51b89",
+    "recordingSHA256": "4d248f0446f0289335c991db6ae985d312dd9ccfef420d90ab2caa8aec820a0c",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T20:25:06.353476Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T20:25:08.344207Z"
+}

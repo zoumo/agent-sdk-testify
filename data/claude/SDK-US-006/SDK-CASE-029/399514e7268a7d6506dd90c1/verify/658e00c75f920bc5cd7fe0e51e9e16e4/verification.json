@@ -1,0 +1,101 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-029",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-029",
+    "driverProfile": "history",
+    "model": "auto/deepseek-v4.1-flash-1017[1m]",
+    "prompts": [
+      "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-029",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+        "storyId": "SDK-US-006"
+      },
+      "caseId": "SDK-CASE-029",
+      "configuration": {},
+      "driverProfile": "history",
+      "files": {},
+      "mode": "live-selected-path",
+      "parameters": {
+        "childConfiguration": "model",
+        "historyTarget": "child-messages"
+      },
+      "prompts": [
+        "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-006"
+    },
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "case": "SDK-CASE-029",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:57:00.342402Z",
+  "contracts": {
+    "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "babbe5d452d7ad70bb6f8801a14a8b84",
+      "executionSHA256": "b9a3d96bf9210887bf3f2b176fc10f56fed954102f139165933a5404da8ecd3e",
+      "path": "executions/babbe5d452d7ad70bb6f8801a14a8b84/result.json",
+      "sha256": "5d2e89d0deeb849e783b89015a31e57efe608ed8b59089a499e6990a05caed4c"
+    }
+  ],
+  "files": {
+    "verify/658e00c75f920bc5cd7fe0e51e9e16e4/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/658e00c75f920bc5cd7fe0e51e9e16e4/peers/main.json": "53a42e2e8bbc08706307717696ce7e80216fb0872227e0b3fb9f8608870d124d",
+    "verify/658e00c75f920bc5cd7fe0e51e9e16e4/replay-report.json": "97b428a507bca6bc2113a045ede5328845bef3b7199cbfc585a60b2ea035374c",
+    "verify/658e00c75f920bc5cd7fe0e51e9e16e4/result.json": "444caa1b84f9da08e22b3d7b0269cb78ea0f3b175834d25bba99f0bad6683afc",
+    "verify/658e00c75f920bc5cd7fe0e51e9e16e4/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/658e00c75f920bc5cd7fe0e51e9e16e4/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "58849f188360000f47835f5fd5d92f06",
+  "id": "658e00c75f920bc5cd7fe0e51e9e16e4",
+  "manifestSHA256": "b2fe22ef96f20041d7344dc5ed990d3080212c54159767e6ff3cb52b7ab60b3e",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "e3d3d2b5d9bb2e16e2cf7db6897b1e8961423e74abbc37c06614882fa8dcb95a"
+  },
+  "materialId": "92b04cdb987b86c46cababe022ee373b",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:56:58.184394Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

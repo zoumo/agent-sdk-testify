@@ -1,0 +1,82 @@
+{
+  "agentType": "codex",
+  "case": "SDK-CASE-032",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:54:19.075224Z",
+  "credentialScan": "pass",
+  "driver": {
+    "sha256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de"
+  },
+  "driverProcess": {
+    "cleanupComplete": true,
+    "exitCode": 0,
+    "reaped": true,
+    "started": true
+  },
+  "executionId": "79a9585e59e7b681cdb0a873fea56105",
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        },
+        {
+          "id": "probe",
+          "status": "passed"
+        }
+      ],
+      "executionId": "79a9585e59e7b681cdb0a873fea56105",
+      "executionSHA256": "af261bf0b1a48ec1be9aa937d96fb193c56a5378298d51fac5c0dc2796280cd7",
+      "path": "executions/79a9585e59e7b681cdb0a873fea56105/result.json",
+      "sha256": "08f4ea3959f88beaf607286fe28d157daee66ad3ed5139dd6f2362d7b285978f"
+    }
+  ],
+  "files": {
+    "record/35a055ab6d4184c1c7dc53115fa6eb3b/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "record/35a055ab6d4184c1c7dc53115fa6eb3b/peers/main.json": "e884d29c887b345bde740f9e535e42c24417806cf6a1020c3f14a86b06d77739",
+    "record/35a055ab6d4184c1c7dc53115fa6eb3b/peers/probe.json": "0469ba7f0b8c48981cc25d04d3b5cba100415546261b0cd1fb4355bb20216a7f",
+    "record/35a055ab6d4184c1c7dc53115fa6eb3b/report.json": "40b76176e3a63ee39f9bd8564415e61256b6d36084d1c0f1ca744f18031630a2",
+    "record/35a055ab6d4184c1c7dc53115fa6eb3b/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "record/35a055ab6d4184c1c7dc53115fa6eb3b/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "b89ec8427aaed415815924722989c92e",
+  "id": "35a055ab6d4184c1c7dc53115fa6eb3b",
+  "manifestSHA256": "c4eed92951ca32e00bcf85994035464bb63acf5607fcbc75a6db02b514db7b0b",
+  "material": "material/material.json",
+  "materialId": "b2b044a7471347e77a8c2469d380d3e7",
+  "materialSHA256": "54e62db18c899b193db93da399023d039206893da011a1b9afc0c3521cd62922",
+  "mode": "record",
+  "planSHA256": "54bc7402aebae87197a0c18e474b4f8938322b74ccaa1fba332e81a6da693de0",
+  "publicationCommitted": true,
+  "remoteService": {
+    "cleanup": {
+      "cleanupComplete": true,
+      "forcedCleanup": false,
+      "serverExitCode": 0
+    },
+    "cleanupComplete": true,
+    "native": {
+      "args": [
+        "app-server",
+        "-c",
+        "features.default_mode_request_user_input=true",
+        "-c",
+        "project_root_markers=[]",
+        "-c",
+        "project_doc_max_bytes=0"
+      ],
+      "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-032/fixture/runtime/executions/79a9585e59e7b681cdb0a873fea56105/workspace",
+      "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+      "pid": 63963,
+      "privateArgumentsSHA256": "ee84ae413f7b9cb1cda085f6e0b8e64c26469df5da19b270da583509177d8c64",
+      "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+      "transport": "websocket"
+    },
+    "owned": true
+  },
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3",
+  "startedAt": "2026-11-12T19:54:09.425896Z",
+  "status": "passed"
+}

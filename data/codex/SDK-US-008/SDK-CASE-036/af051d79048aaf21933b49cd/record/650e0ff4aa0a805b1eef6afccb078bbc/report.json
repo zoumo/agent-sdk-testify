@@ -1,0 +1,534 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-008",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 44,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "auto/deepseek-v4.1-flash-1017",
+        "modelProvider": "openai",
+        "reasoningEffort": "high",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1794513267,
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace",
+          "ephemeral": false,
+          "historyMode": "paginated",
+          "id": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "modelProvider": "openai",
+          "originator": "official-python-story-recorder",
+          "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/executions/43370f2796bf1543c78b51b8759b0d0d/config/sessions/2026/11/13/rollout-2026-11-13T03-54-27-01a1d153-6a8c-7c62-a04a-76ff66367515.jsonl",
+          "preview": "",
+          "reasoningEffort": "high",
+          "recencyAt": 1794513267,
+          "sessionId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1794513267
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+        "turn": {
+          "completedAt": 1794513271,
+          "durationMs": 4325,
+          "id": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c",
+          "items": [
+            {
+              "id": "msg_18e764501c4ee5f000004813",
+              "phase": "final_answer",
+              "text": "SYNTHETIC_SAVED",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513267,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d153-7c98-7a13-88be-aa8dce6605bb",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+        "turn": {
+          "completedAt": 1794513272,
+          "durationMs": 985,
+          "id": "01a1d153-7c98-7a13-88be-aa8dce6605bb",
+          "items": [
+            {
+              "id": "msg_18e76450493f52c000004814",
+              "phase": "final_answer",
+              "text": "SYNTHETIC_SECOND_SAVED",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513271,
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "history-setup-ended": {
+        "threadId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+        "response": {
+          "status": "unsubscribed"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/list",
+        "params": {
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace",
+          "sourceKinds": [
+            "cli",
+            "vscode",
+            "exec",
+            "appServer"
+          ],
+          "limit": 10
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+              "environments": [
+                {
+                  "environmentId": "local",
+                  "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace",
+                  "runtimeWorkspaceRoots": [
+                    "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace"
+                  ]
+                }
+              ],
+              "extra": null,
+              "sessionId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+              "forkedFromId": null,
+              "parentThreadId": null,
+              "preview": "Reply with the word SYNTHETIC_SAVED.",
+              "ephemeral": false,
+              "section": null,
+              "sectionEnteredAt": null,
+              "projectId": null,
+              "historyMode": "paginated",
+              "modelProvider": "openai",
+              "model": "auto/deepseek-v4.1-flash-1017",
+              "reasoningEffort": "high",
+              "createdAt": 1794513267,
+              "updatedAt": 1794513272,
+              "recencyAt": 1794513271,
+              "status": {
+                "type": "idle"
+              },
+              "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/executions/43370f2796bf1543c78b51b8759b0d0d/config/sessions/2026/11/13/rollout-2026-11-13T03-54-27-01a1d153-6a8c-7c62-a04a-76ff66367515.jsonl",
+              "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace",
+              "cliVersion": "0.166.0",
+              "originator": "official-python-story-recorder",
+              "source": "vscode",
+              "canAcceptDirectInput": null,
+              "threadSource": null,
+              "agentNickname": null,
+              "agentRole": null,
+              "gitInfo": {
+                "sha": "a39eaefc322728003a5714e05a417ce9b27cb705",
+                "branch": "codex-portable-framework-paths",
+                "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+              },
+              "name": null,
+              "daybreakEnabled": null,
+              "turns": []
+            }
+          ],
+          "readStates": {
+            "01a1d153-6a8c-7c62-a04a-76ff66367515": {
+              "firstUnread": {
+                "type": "turn",
+                "turnId": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c"
+              },
+              "revision": "58ad787e-9c6d-484f-aadb-345a20359d29"
+            }
+          },
+          "backwardsCursor": "2026-11-12T19:54:27.574Z"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/read",
+        "params": {
+          "threadId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+          "includeTurns": false
+        },
+        "response": {
+          "thread": {
+            "id": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+            "environments": [
+              {
+                "environmentId": "local",
+                "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace",
+                "runtimeWorkspaceRoots": [
+                  "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace"
+                ]
+              }
+            ],
+            "extra": null,
+            "sessionId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+            "forkedFromId": null,
+            "parentThreadId": null,
+            "preview": "Reply with the word SYNTHETIC_SAVED.",
+            "ephemeral": false,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "openai",
+            "model": "auto/deepseek-v4.1-flash-1017",
+            "reasoningEffort": "high",
+            "createdAt": 1794513267,
+            "updatedAt": 1794513272,
+            "recencyAt": 1794513271,
+            "status": {
+              "type": "idle"
+            },
+            "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/executions/43370f2796bf1543c78b51b8759b0d0d/config/sessions/2026/11/13/rollout-2026-11-13T03-54-27-01a1d153-6a8c-7c62-a04a-76ff66367515.jsonl",
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/executions/43370f2796bf1543c78b51b8759b0d0d/workspace",
+            "cliVersion": "0.166.0",
+            "originator": "official-python-story-recorder",
+            "source": "vscode",
+            "canAcceptDirectInput": true,
+            "threadSource": null,
+            "agentNickname": null,
+            "agentRole": null,
+            "gitInfo": {
+              "sha": "a39eaefc322728003a5714e05a417ce9b27cb705",
+              "branch": "codex-portable-framework-paths",
+              "originUrl": "https://github.com/zoumo/agent-sdk-testify.git"
+            },
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": []
+          },
+          "readState": {
+            "firstUnread": {
+              "type": "turn",
+              "turnId": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c"
+            },
+            "revision": "58ad787e-9c6d-484f-aadb-345a20359d29"
+          }
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/turns/list",
+        "params": {
+          "threadId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+          "limit": 1,
+          "sortDirection": "asc",
+          "itemsView": "full"
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c",
+              "rootTurnId": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c",
+              "items": [
+                {
+                  "type": "userMessage",
+                  "id": "01a1d153-77aa-7971-a9a3-673079d2250a",
+                  "clientId": null,
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Reply with the word SYNTHETIC_SAVED.",
+                      "text_elements": []
+                    }
+                  ],
+                  "startedAtMs": 1794513270703,
+                  "completedAtMs": 1794513270703
+                },
+                {
+                  "type": "reasoning",
+                  "id": "rs_0b2320f417945132708167409e0ab7_0",
+                  "summary": [
+                    "The user just wants me to reply with the word SYNTHETIC_SAVED. The task says \"Complete the supplied synthetic task in the working directory\" but the explicit instruction is \"Reply with the word SYNTHETIC_SAVED.\"\n\nJust reply."
+                  ],
+                  "content": [],
+                  "startedAtMs": 1794513271457,
+                  "completedAtMs": 1794513271765
+                },
+                {
+                  "type": "agentMessage",
+                  "id": "msg_18e764501c4ee5f000004813",
+                  "text": "SYNTHETIC_SAVED",
+                  "phase": "final_answer",
+                  "memoryCitation": null,
+                  "delivery": null,
+                  "questions": null,
+                  "startedAtMs": 1794513271767,
+                  "completedAtMs": 1794513271821
+                }
+              ],
+              "itemsView": "full",
+              "status": "completed",
+              "error": null,
+              "startedAt": 1794513267,
+              "completedAt": 1794513271,
+              "durationMs": 4325
+            }
+          ],
+          "nextCursor": "{\"requestedThreadId\":\"01a1d153-6a8c-7c62-a04a-76ff66367515\",\"rolloutOrdinal\":1,\"includeAnchor\":false,\"scope\":{\"kind\":\"turns\"}}",
+          "backwardsCursor": "{\"requestedThreadId\":\"01a1d153-6a8c-7c62-a04a-76ff66367515\",\"rolloutOrdinal\":1,\"includeAnchor\":true,\"scope\":{\"kind\":\"turns\"}}"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/turns/list",
+        "params": {
+          "threadId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+          "limit": 1,
+          "sortDirection": "asc",
+          "itemsView": "full",
+          "cursor": "{\"requestedThreadId\":\"01a1d153-6a8c-7c62-a04a-76ff66367515\",\"rolloutOrdinal\":1,\"includeAnchor\":false,\"scope\":{\"kind\":\"turns\"}}"
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1d153-7c98-7a13-88be-aa8dce6605bb",
+              "rootTurnId": "01a1d153-7c98-7a13-88be-aa8dce6605bb",
+              "items": [
+                {
+                  "type": "userMessage",
+                  "id": "01a1d153-7d24-7151-922d-8f0bc0ee6f68",
+                  "clientId": null,
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Reply with the word SYNTHETIC_SECOND_SAVED.",
+                      "text_elements": []
+                    }
+                  ],
+                  "startedAtMs": 1794513272102,
+                  "completedAtMs": 1794513272102
+                },
+                {
+                  "type": "agentMessage",
+                  "id": "msg_18e76450493f52c000004814",
+                  "text": "SYNTHETIC_SECOND_SAVED",
+                  "phase": "final_answer",
+                  "memoryCitation": null,
+                  "delivery": null,
+                  "questions": null,
+                  "startedAtMs": 1794513272520,
+                  "completedAtMs": 1794513272523
+                }
+              ],
+              "itemsView": "full",
+              "status": "completed",
+              "error": null,
+              "startedAt": 1794513271,
+              "completedAt": 1794513272,
+              "durationMs": 985
+            }
+          ],
+          "backwardsCursor": "{\"requestedThreadId\":\"01a1d153-6a8c-7c62-a04a-76ff66367515\",\"rolloutOrdinal\":18,\"includeAnchor\":true,\"scope\":{\"kind\":\"turns\"}}"
+        }
+      }
+    },
+    {
+      "history-query": {
+        "method": "thread/turns/list",
+        "params": {
+          "threadId": "01a1d153-6a8c-7c62-a04a-76ff66367515",
+          "limit": 100,
+          "sortDirection": "asc",
+          "itemsView": "full"
+        },
+        "response": {
+          "data": [
+            {
+              "id": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c",
+              "rootTurnId": "01a1d153-6b9e-7e73-90f4-7adba9d82b9c",
+              "items": [
+                {
+                  "type": "userMessage",
+                  "id": "01a1d153-77aa-7971-a9a3-673079d2250a",
+                  "clientId": null,
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Reply with the word SYNTHETIC_SAVED.",
+                      "text_elements": []
+                    }
+                  ],
+                  "startedAtMs": 1794513270703,
+                  "completedAtMs": 1794513270703
+                },
+                {
+                  "type": "reasoning",
+                  "id": "rs_0b2320f417945132708167409e0ab7_0",
+                  "summary": [
+                    "The user just wants me to reply with the word SYNTHETIC_SAVED. The task says \"Complete the supplied synthetic task in the working directory\" but the explicit instruction is \"Reply with the word SYNTHETIC_SAVED.\"\n\nJust reply."
+                  ],
+                  "content": [],
+                  "startedAtMs": 1794513271457,
+                  "completedAtMs": 1794513271765
+                },
+                {
+                  "type": "agentMessage",
+                  "id": "msg_18e764501c4ee5f000004813",
+                  "text": "SYNTHETIC_SAVED",
+                  "phase": "final_answer",
+                  "memoryCitation": null,
+                  "delivery": null,
+                  "questions": null,
+                  "startedAtMs": 1794513271767,
+                  "completedAtMs": 1794513271821
+                }
+              ],
+              "itemsView": "full",
+              "status": "completed",
+              "error": null,
+              "startedAt": 1794513267,
+              "completedAt": 1794513271,
+              "durationMs": 4325
+            },
+            {
+              "id": "01a1d153-7c98-7a13-88be-aa8dce6605bb",
+              "rootTurnId": "01a1d153-7c98-7a13-88be-aa8dce6605bb",
+              "items": [
+                {
+                  "type": "userMessage",
+                  "id": "01a1d153-7d24-7151-922d-8f0bc0ee6f68",
+                  "clientId": null,
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Reply with the word SYNTHETIC_SECOND_SAVED.",
+                      "text_elements": []
+                    }
+                  ],
+                  "startedAtMs": 1794513272102,
+                  "completedAtMs": 1794513272102
+                },
+                {
+                  "type": "agentMessage",
+                  "id": "msg_18e76450493f52c000004814",
+                  "text": "SYNTHETIC_SECOND_SAVED",
+                  "phase": "final_answer",
+                  "memoryCitation": null,
+                  "delivery": null,
+                  "questions": null,
+                  "startedAtMs": 1794513272520,
+                  "completedAtMs": 1794513272523
+                }
+              ],
+              "itemsView": "full",
+              "status": "completed",
+              "error": null,
+              "startedAt": 1794513271,
+              "completedAt": 1794513272,
+              "durationMs": 985
+            }
+          ],
+          "backwardsCursor": "{\"requestedThreadId\":\"01a1d153-6a8c-7c62-a04a-76ff66367515\",\"rolloutOrdinal\":1,\"includeAnchor\":true,\"scope\":{\"kind\":\"turns\"}}"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-036",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001"
+    ],
+    "scope": "\u4f7f\u7528\u539f\u751f\u5206\u9875\u6216\u5207\u7247\u8fde\u7eed\u8bfb\u53d6\u81f3\u5c11\u4e24\u4e2a\u7a97\u53e3\uff0c\u6838\u5bf9\u987a\u5e8f\u548c\u8fb9\u754c\uff1b\u4e0d\u4f2a\u9020 cursor\u3001total \u6216\u539f\u5b50\u5feb\u7167\u3002",
+    "storyId": "SDK-US-008"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": null,
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-008",
+  "caseId": "SDK-CASE-036",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "branchStatus": "passed"
+}

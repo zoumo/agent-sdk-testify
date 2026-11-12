@@ -1,0 +1,109 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-027",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态",
+        "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
+      ],
+      "scope": "创建时显式选择原生 effort A，首次结果后先读取原生 applied 状态，再请求修改为不同 effort B 并提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-027",
+    "driverProfile": "structured-input",
+    "model": "auto/deepseek-v4.1-flash-1017[1m]",
+    "prompts": [
+      "Reply with the word Ready.",
+      "Reply with the word Done."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-027",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态",
+          "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
+        ],
+        "scope": "创建时显式选择原生 effort A，首次结果后先读取原生 applied 状态，再请求修改为不同 effort B 并提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+        "storyId": "SDK-US-006"
+      },
+      "caseId": "SDK-CASE-027",
+      "configuration": {},
+      "driverProfile": "structured-input",
+      "files": {
+        "numbers.txt": "7\n11\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "configurationTiming": "between-inputs",
+        "effort": "low",
+        "setting": "effort",
+        "targetEffort": "high"
+      },
+      "prompts": [
+        "Reply with the word Ready.",
+        "Reply with the word Done."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-006"
+    },
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "case": "SDK-CASE-027",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:56:29.617557Z",
+  "contracts": {
+    "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "7d2491ea5fe02c7db15c54774c4bc41e",
+      "executionSHA256": "796882a43e12c81b3c98268ac691df39ccfb75637109aab8a1b69f8096ae2868",
+      "path": "executions/7d2491ea5fe02c7db15c54774c4bc41e/result.json",
+      "sha256": "32753cca018750a936f45ebca1f418ffd4b7b4b30c465792843c13a524a90b52"
+    }
+  ],
+  "files": {
+    "verify/9122ca59178907a7c035c1905632a081/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/9122ca59178907a7c035c1905632a081/peers/main.json": "d44e2e15af096cddca42070bac679ca474591fe94ea6fb8650384fb05b3713c4",
+    "verify/9122ca59178907a7c035c1905632a081/replay-report.json": "fc7aa79b6f594540789d67abae27b09d7dc628e57d832a4b56c474c900cf2c76",
+    "verify/9122ca59178907a7c035c1905632a081/result.json": "ece8213a93db0a5258b2c9fa51d62f6ab8ad30262585008700479f16953f418d",
+    "verify/9122ca59178907a7c035c1905632a081/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/9122ca59178907a7c035c1905632a081/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "237a55bd75e1582a0378b1e104452f65",
+  "id": "9122ca59178907a7c035c1905632a081",
+  "manifestSHA256": "eed9b748bb2bed6c5bef5c0779c73bb874c9acfb7154317ad7e2e1a65432f992",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "05010ce2402ac3f0fce4e42aae9fe2315d76a54f83d6219bcc20462fb025de31"
+  },
+  "materialId": "8471d122883a10f945c4ce7c2c1d35a6",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:56:26.770091Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

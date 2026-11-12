@@ -1,0 +1,51 @@
+{
+  "case": {
+    "id": "SDK-CASE-024",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-024",
+  "driverProfile": "structured-input",
+  "initialModel": "auto/deepseek-v4.1-flash-1017[1m]",
+  "model": "theta/GLM-5.3",
+  "prompts": [
+    "Explain in two sentences how addition works."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-024",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-024",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "during-execution",
+      "setting": "model"
+    },
+    "prompts": [
+      "Explain in two sentences how addition works."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

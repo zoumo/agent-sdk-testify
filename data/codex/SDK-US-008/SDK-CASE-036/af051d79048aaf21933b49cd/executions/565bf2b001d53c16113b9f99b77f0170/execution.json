@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 7,
+  "executionId": "565bf2b001d53c16113b9f99b77f0170",
+  "fixtureId": "10d6fbe47ef514eacee91a7692d5f76d",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-036",
+    "path": "source/plan.json",
+    "sha256": "88882b92a3e2a4e6a321dbb1281909a205e13752fa732037468b86e4cb0bb08c",
+    "provenance": "official",
+    "driverProfile": "history"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "protocolCwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/routes/record/workspace",
+  "historyFiles": {
+    "config/sessions/2026/11/13/rollout-2026-11-13T03-54-27-01a1d153-6a8c-7c62-a04a-76ff66367515.jsonl": "28fa37320e17130746bce5c43f76da610a683bf87ebb59bb933c458cd5f1d1f6"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "3815843add5766a22b0a5e9764069e2e",
+      "planSHA256": "e427d50e00631e13c676bdbb4b93e6dea291724e0eb9fc251fe41d6330313526",
+      "manifestSHA256": "89d6b7ad8e536f9eecce56664146ed2c5b822c7d5a6179f66e32ff30c8ee4bc4",
+      "recordingSHA256": "3277221e506dc1e95191e7feae2c33ea88f54620fedacdc03a0c5e465829baf0",
+      "receipt": "executions/565bf2b001d53c16113b9f99b77f0170/receipts/main.json",
+      "processReceipt": "executions/565bf2b001d53c16113b9f99b77f0170/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "88882b92a3e2a4e6a321dbb1281909a205e13752fa732037468b86e4cb0bb08c",
+    "originSHA256": "854c020be2a8a3e7676d7d6c809b0b2dcc35189f310ff23ffa1768e57040c6d5",
+    "id": "3815843add5766a22b0a5e9764069e2e",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "e427d50e00631e13c676bdbb4b93e6dea291724e0eb9fc251fe41d6330313526",
+    "manifestSHA256": "89d6b7ad8e536f9eecce56664146ed2c5b822c7d5a6179f66e32ff30c8ee4bc4",
+    "recordingSHA256": "3277221e506dc1e95191e7feae2c33ea88f54620fedacdc03a0c5e465829baf0",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T19:54:33.010563Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T19:54:35.459108Z"
+}

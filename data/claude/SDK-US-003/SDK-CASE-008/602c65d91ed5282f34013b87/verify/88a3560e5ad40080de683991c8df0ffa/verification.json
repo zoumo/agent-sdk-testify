@@ -1,0 +1,105 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-008",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "拒绝文件写入审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-008",
+    "driverProfile": "approval",
+    "model": "auto/deepseek-v4.1-flash-1017[1m]",
+    "prompts": [
+      "Use Write exactly once to create denied.txt containing exactly denied followed by a newline. If denied, finish without retrying."
+    ],
+    "provider": "claude",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-008",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "拒绝文件写入审批并观察后续结果。",
+        "storyId": "SDK-US-003"
+      },
+      "caseId": "SDK-CASE-008",
+      "configuration": {},
+      "driverProfile": "approval",
+      "files": {
+        "numbers.txt": "7\n11\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {
+        "approvalDecision": "deny",
+        "approvalKind": "file"
+      },
+      "prompts": [
+        "Use Write exactly once to create denied.txt containing exactly denied followed by a newline. If denied, finish without retrying."
+      ],
+      "provider": "claude",
+      "reason": "",
+      "requiredRequests": [
+        "approval_answer"
+      ],
+      "storyId": "SDK-US-003"
+    },
+    "story": "SDK-US-003",
+    "storyId": "SDK-US-003"
+  },
+  "case": "SDK-CASE-008",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:55:10.541882Z",
+  "contracts": {
+    "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
+    "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-claude",
+    "sha256": "77c91b72572e87748a1e4b8d8618be3bed4fa8dc34cc1c8e36fd2b0aacb3d4d1"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "7ff23581e50adb62e7d30aed152ddd6d",
+      "executionSHA256": "e0fdd72723a12b7b2233ef38a1311fdc816ab49599b4c751043cc7fc51aff5da",
+      "path": "executions/7ff23581e50adb62e7d30aed152ddd6d/result.json",
+      "sha256": "3afa700bbfc26305608389ba5d42c5edfae9aae3d496b2ed6837b9e872ca4a3a"
+    }
+  ],
+  "files": {
+    "verify/88a3560e5ad40080de683991c8df0ffa/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
+    "verify/88a3560e5ad40080de683991c8df0ffa/peers/main.json": "381d0bd88b789b5ca14f50dfadfabc27021cf86452b8bccaea76eeaa6d830ee6",
+    "verify/88a3560e5ad40080de683991c8df0ffa/replay-report.json": "5b18a14d13d0bfcb2fb753bd91df07871cdb10ef7b5429409e7a38edfe720805",
+    "verify/88a3560e5ad40080de683991c8df0ffa/result.json": "7b23ee6bdc0f115426ebf636c618c034ccce71f5bcf5f740638cab25303b27ec",
+    "verify/88a3560e5ad40080de683991c8df0ffa/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/88a3560e5ad40080de683991c8df0ffa/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "e22b6b3effb1f86c67efa756951d4140",
+  "id": "88a3560e5ad40080de683991c8df0ffa",
+  "manifestSHA256": "bbbeac8c6c17e4f758fdffca5a30957d566a028facd06e21957da42ee2a5a48a",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "06f39dae5a5e1a12aca56e92279176e4844d251bcf0b69d35f2bdfb6d4d5c9fa"
+  },
+  "materialId": "0e7c23e041b98ffd2322d8059c0d2fbc",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "claude",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:55:08.496629Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

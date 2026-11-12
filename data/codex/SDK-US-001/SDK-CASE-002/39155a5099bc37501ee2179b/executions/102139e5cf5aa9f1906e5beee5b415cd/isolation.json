@@ -1,0 +1,40 @@
+{
+  "command": "mock",
+  "config": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/config",
+  "configuration": {
+    "config.toml": "aa5de8cfa3887f17768a3f3ebdefac7744106278bc941aa3937bfc5fc47143f2"
+  },
+  "connections": [
+    {
+      "connectionId": "main",
+      "executionId": "102139e5cf5aa9f1906e5beee5b415cd",
+      "executionSHA256": "38144547d8510a2d0af946e3fed3a73f6951f2c408ee42d601c31eeef68c8c15"
+    }
+  ],
+  "environment": {
+    "CODEX_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/config",
+    "HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/home",
+    "TMPDIR": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/tmp",
+    "XDG_CACHE_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/home/.cache",
+    "XDG_CONFIG_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/home/.config",
+    "XDG_DATA_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/home/.local/share"
+  },
+  "execution": {
+    "path": "executions/102139e5cf5aa9f1906e5beee5b415cd/execution.json",
+    "sha256": "38144547d8510a2d0af946e3fed3a73f6951f2c408ee42d601c31eeef68c8c15"
+  },
+  "executionId": "102139e5cf5aa9f1906e5beee5b415cd",
+  "fixtureId": "31f48efccc66793cde425e35107d91d2",
+  "home": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/home",
+  "materialId": "6272f5aab686b260fd8a51bbae7e9080",
+  "method": "mock-preparation",
+  "nativeArgs": null,
+  "preparedPlan": {
+    "path": "executions/102139e5cf5aa9f1906e5beee5b415cd/prepared-plan.json",
+    "sha256": "8264901de292da57f5eed7f919c922cc4f3a948b88898efb16247ba232366cb8"
+  },
+  "protocolCwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/routes/record/workspace",
+  "schemaVersion": 3,
+  "tmp": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/tmp",
+  "workspace": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-002/fixture/runtime/executions/102139e5cf5aa9f1906e5beee5b415cd/workspace"
+}

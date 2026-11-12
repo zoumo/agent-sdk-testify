@@ -1,0 +1,31 @@
+{
+  "executions": [
+    {
+      "path": "executions/9d9799e5e6c5cb35c647ee1dd9175003/result.json",
+      "sha256": "a2a52321ede9776870590992e4ecfd0a1a3997374a0282c3598ba1ab59816769"
+    },
+    {
+      "path": "executions/b26a782b16eefa17a92ff97ed1da6492/result.json",
+      "sha256": "f61a01951ae12391148881a64d7f3a1d063fb99f1db629ec25c603995724df89"
+    }
+  ],
+  "material": {
+    "path": "material/material.json",
+    "sha256": "529c149dac0513f24aa2196aef365330c4b6d9a544a0a12d7c453e470a9c8c29"
+  },
+  "materialId": "a8e1a966afb1572cb59c1d101cb3d328",
+  "origin": "real-agent",
+  "qualification": {
+    "method": "official-sdk",
+    "qualifiedAt": "2026-11-12T19:55:21.607513Z"
+  },
+  "record": {
+    "path": "record/c5de8809b66a1d0f0f006d27591ad453/result.json",
+    "sha256": "f16b494a6923144679b072813c120392d0c6ea5746c577a5558a2000b50ae1ec"
+  },
+  "schemaVersion": 2,
+  "verification": {
+    "path": "verify/2070bbb474aad4c80cb6db1b6f408e31/verification.json",
+    "sha256": "cd9d7ee53727904d892ed6d22217d847fe6bb95249fbbb7820434874d9552cc5"
+  }
+}

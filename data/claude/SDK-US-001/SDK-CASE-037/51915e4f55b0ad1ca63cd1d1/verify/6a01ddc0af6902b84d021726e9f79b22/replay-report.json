@@ -1,0 +1,273 @@
+{
+  "provider": "claude",
+  "story": "SDK-US-001",
+  "status": "passed",
+  "inputs": 2,
+  "results": 2,
+  "events": 29,
+  "requests": 0,
+  "receipts": [
+    {
+      "input-submitted": {
+        "written": true,
+        "shouldQuery": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 832,
+        "duration_api_ms": 606,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "cb0afc62-cdbe-4ef3-a016-6abe4f8df4d7",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.062490000000000004,
+        "usage": {
+          "input_tokens": 12478,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 4,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "Ready.",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12478,
+            "outputTokens": 4,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.062490000000000004,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "f91d5bd3-3b37-4c9d-9acf-7fe4df51efd1",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    },
+    {
+      "context-injected": {
+        "timing": "idle",
+        "shouldQuery": false,
+        "written": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "injection-barrier": {
+        "subtype": "get_settings",
+        "acknowledged": true
+      }
+    },
+    {
+      "input-submitted": {
+        "written": true,
+        "shouldQuery": true,
+        "completionObserved": false
+      }
+    },
+    {
+      "injection-result": {
+        "subtype": "success",
+        "duration_ms": 4,
+        "duration_api_ms": 0,
+        "is_error": false,
+        "num_turns": 0,
+        "session_id": "cb0afc62-cdbe-4ef3-a016-6abe4f8df4d7",
+        "stop_reason": null,
+        "total_cost_usd": 0.062490000000000004,
+        "usage": {
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "input_tokens": 0,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "output_tokens": 0,
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12478,
+            "outputTokens": 4,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.062490000000000004,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "096d376a-23c1-4d14-b6bc-90d9eb0e45e3",
+        "terminal_reason": null,
+        "origin": null
+      }
+    },
+    {
+      "result": {
+        "subtype": "success",
+        "duration_ms": 700,
+        "duration_api_ms": 1115,
+        "is_error": false,
+        "num_turns": 1,
+        "session_id": "cb0afc62-cdbe-4ef3-a016-6abe4f8df4d7",
+        "stop_reason": "end_turn",
+        "total_cost_usd": 0.07041900000000001,
+        "usage": {
+          "input_tokens": 257,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 12288,
+          "output_tokens": 20,
+          "output_tokens_details": {
+            "thinking_tokens": 0
+          },
+          "server_tool_use": {
+            "web_search_requests": 0,
+            "web_fetch_requests": 0
+          },
+          "service_tier": "standard",
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "inference_geo": "",
+          "iterations": [],
+          "speed": "standard",
+          "fallback_credit": null
+        },
+        "result": "86607b6331d405f1703a8a4f726164fa",
+        "structured_output": null,
+        "model_usage": {
+          "auto/deepseek-v4.1-flash-1017[1m]": {
+            "inputTokens": 12735,
+            "outputTokens": 24,
+            "cacheReadInputTokens": 12288,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.07041900000000001,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 32000,
+            "thinkingTokens": 0,
+            "canonicalModel": "auto/deepseek-v4.1-flash-1017[1m]",
+            "provider": "firstParty",
+            "costBasis": "unknown"
+          }
+        },
+        "permission_denials": [],
+        "deferred_tool_use": null,
+        "errors": null,
+        "api_error_status": null,
+        "uuid": "68c25df1-fcfc-438a-99b4-4c58c9a94e4d",
+        "terminal_reason": "completed",
+        "origin": null
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-037",
+    "outOfScope": [
+      "\u8fd0\u884c\u4e2d\u6ce8\u5165\u7684\u6d88\u8d39\u65f6\u673a",
+      "\u901a\u7528\u961f\u5217\u6216\u8c03\u5ea6\u5668",
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b"
+    ],
+    "scope": "\u539f\u751f\u7a7a\u95f2\u6ce8\u5165\u4e0d\u542f\u52a8\u65b0\u6267\u884c\u6216 assistant \u8f93\u51fa\uff1b\u72ec\u7acb\u67e5\u8be2\u8bfb\u53d6\u53ea\u7ecf\u6ce8\u5165\u53d1\u9001\u7684\u968f\u673a\u4e8b\u5b9e\u3002",
+    "storyId": "SDK-US-001"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-001",
+  "caseId": "SDK-CASE-037",
+  "flowTrace": [
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "submit",
+      "input": 1
+    },
+    {
+      "step": "result",
+      "input": 1
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "claude-agent-sdk",
+    "version": "0.2.174"
+  },
+  "contextInjection": {
+    "timing": "idle",
+    "nativeInputOrdinal": 17,
+    "explicitQueries": 2,
+    "extraTurnObserved": false,
+    "currentQueryUsedFact": false,
+    "subsequentQueryUsedFact": true,
+    "outputs": [
+      "Ready.",
+      "86607b6331d405f1703a8a4f726164fa"
+    ]
+  },
+  "branchStatus": "passed"
+}

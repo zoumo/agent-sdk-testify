@@ -1,0 +1,50 @@
+{
+  "case": {
+    "id": "SDK-CASE-006",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察文件工具的执行与任务完成。",
+    "storyId": "SDK-US-002"
+  },
+  "caseId": "SDK-CASE-006",
+  "driverProfile": "fixture-tools",
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "prompts": [
+    "Use fixture_read exactly once on numbers.txt, add the two integers, then use fixture_write exactly once on summary.txt with text exactly sum=42 followed by a newline. Use no other tools."
+  ],
+  "provider": "codex",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-006",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察文件工具的执行与任务完成。",
+      "storyId": "SDK-US-002"
+    },
+    "caseId": "SDK-CASE-006",
+    "configuration": {},
+    "driverProfile": "fixture-tools",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Use fixture_read exactly once on numbers.txt, add the two integers, then use fixture_write exactly once on summary.txt with text exactly sum=42 followed by a newline. Use no other tools."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "fixture_read",
+      "fixture_write"
+    ],
+    "storyId": "SDK-US-002"
+  },
+  "story": "SDK-US-002",
+  "storyId": "SDK-US-002"
+}

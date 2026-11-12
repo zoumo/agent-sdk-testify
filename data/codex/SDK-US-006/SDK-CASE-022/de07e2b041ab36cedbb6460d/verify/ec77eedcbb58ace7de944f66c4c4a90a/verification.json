@@ -1,0 +1,109 @@
+{
+  "binding": {
+    "case": {
+      "id": "SDK-CASE-022",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-022",
+    "driverProfile": "configuration-timing",
+    "model": "auto/glm-5.3",
+    "prompts": [
+      "Reply with the word Ready.",
+      "Reply with the word Done."
+    ],
+    "provider": "codex",
+    "scenario": {
+      "answers": {},
+      "case": {
+        "id": "SDK-CASE-022",
+        "outOfScope": [
+          "其他 case 的使用流程",
+          "人工构造的协议错误和精确竞态"
+        ],
+        "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+        "storyId": "SDK-US-006"
+      },
+      "caseId": "SDK-CASE-022",
+      "configuration": {
+        "effectiveValue": "unknown-unless-observed",
+        "modelSource": "session",
+        "thinking": {
+          "effort": "low"
+        },
+        "timing": "before-first-input"
+      },
+      "driverProfile": "configuration-timing",
+      "files": {
+        "numbers.txt": "17\n25\n"
+      },
+      "mode": "live-selected-path",
+      "parameters": {},
+      "prompts": [
+        "Reply with the word Ready.",
+        "Reply with the word Done."
+      ],
+      "provider": "codex",
+      "reason": "",
+      "requiredRequests": [],
+      "storyId": "SDK-US-006"
+    },
+    "story": "SDK-US-006",
+    "storyId": "SDK-US-006"
+  },
+  "case": "SDK-CASE-022",
+  "cleanupComplete": true,
+  "completedAt": "2026-11-12T19:53:53.540711Z",
+  "contracts": {
+    "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+    "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+  },
+  "driver": {
+    "path": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/recording-env/bin/agent-sdk-testify-codex",
+    "sha256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de"
+  },
+  "executions": [
+    {
+      "connections": [
+        {
+          "id": "main",
+          "status": "passed"
+        }
+      ],
+      "executionId": "7135d5dc9c0eedd0612657867fd2e081",
+      "executionSHA256": "d80d596909378471f72833c8ab044e94fe5a51f656a9452fcf4d5b0cedf474b4",
+      "path": "executions/7135d5dc9c0eedd0612657867fd2e081/result.json",
+      "sha256": "16af5b043315df797022ca8e7bdfe483b52056ee0e2cdc7bf2eccb09c3da4060"
+    }
+  ],
+  "files": {
+    "verify/ec77eedcbb58ace7de944f66c4c4a90a/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
+    "verify/ec77eedcbb58ace7de944f66c4c4a90a/peers/main.json": "97d749a95d014d6ab9d5bf27181c5c371316353ed0f39b78018cc8595a031b65",
+    "verify/ec77eedcbb58ace7de944f66c4c4a90a/replay-report.json": "82ff69d95cda2cc3a285306ebc2100349ce5e9672174bd47ede85a1f638be5d9",
+    "verify/ec77eedcbb58ace7de944f66c4c4a90a/result.json": "ad7bdf7cdc4bc16379881b082d02e59bc56a963153a79547d801f59585669eaf",
+    "verify/ec77eedcbb58ace7de944f66c4c4a90a/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify/ec77eedcbb58ace7de944f66c4c4a90a/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixtureId": "6c9b2027ca9236c5b870f516a8725d1e",
+  "id": "ec77eedcbb58ace7de944f66c4c4a90a",
+  "manifestSHA256": "5e40e34a4eb2d023e9693426dafe131246c2d1839ba6d0ab8d138d5aeca393a1",
+  "material": {
+    "path": "material/material.json",
+    "sha256": "734a59c66f2aef3fce6b51b7cf244e72a1ecd2705c67fe0ed113f92ae99fdafd"
+  },
+  "materialId": "6955056e5db72531e0d0ba511b17b3f5",
+  "mode": "verify",
+  "pipeline": "public-agent-mock",
+  "provider": "codex",
+  "schemaVersion": 3,
+  "startedAt": "2026-11-12T19:53:50.794891Z",
+  "status": "passed",
+  "tool": {
+    "sha256": "5197b4d33a030e18f6355572254f7764f508e37b0d1f1008cd4d88b24bbf57b9",
+    "version": "devel"
+  }
+}

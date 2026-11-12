@@ -1,0 +1,198 @@
+{
+  "provider": "codex",
+  "story": "SDK-US-006",
+  "status": "passed",
+  "inputs": 1,
+  "results": 1,
+  "events": 94,
+  "requests": 0,
+  "receipts": [
+    {
+      "initialize": {
+        "userAgent": "official-python-story-recorder/0.166.0 (Mac OS 26.2.0; arm64) unknown (official-python-story-recorder; 0.0.0.dev0)",
+        "platformFamily": "unix",
+        "platformOs": "macos"
+      }
+    },
+    {
+      "thread/start": {
+        "approvalPolicy": "on-request",
+        "approvalsReviewer": "user",
+        "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-028/fixture/runtime/routes/record/workspace",
+        "disabledPluginIds": [],
+        "instructionSources": [],
+        "model": "auto/deepseek-v4.1-flash-1017",
+        "modelProvider": "openai",
+        "reasoningEffort": "high",
+        "sandbox": {
+          "excludeSlashTmp": false,
+          "excludeTmpdirEnvVar": false,
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": []
+        },
+        "thread": {
+          "cliVersion": "0.166.0",
+          "createdAt": 1794513236,
+          "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-028/fixture/runtime/routes/record/workspace",
+          "ephemeral": true,
+          "historyMode": "paginated",
+          "id": "01a1d152-f34f-7172-8ddc-468b2b80a6c2",
+          "model": "auto/deepseek-v4.1-flash-1017",
+          "modelProvider": "openai",
+          "originator": "official-python-story-recorder",
+          "preview": "",
+          "reasoningEffort": "high",
+          "recencyAt": 1794513236,
+          "sessionId": "01a1d152-f34f-7172-8ddc-468b2b80a6c2",
+          "source": "vscode",
+          "status": {
+            "type": "idle"
+          },
+          "turns": [],
+          "updatedAt": 1794513236
+        }
+      }
+    },
+    {
+      "variant-configuration": {
+        "timing": "before-first-input",
+        "requested": {
+          "threadId": "01a1d152-f34f-7172-8ddc-468b2b80a6c2",
+          "summary": "none"
+        },
+        "response": {},
+        "observed": null
+      }
+    },
+    {
+      "input-submitted": {
+        "turn": {
+          "id": "01a1d152-f36f-7a60-b9e9-e2c7a0e6d875",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress"
+        }
+      }
+    },
+    {
+      "turn/completed": {
+        "threadId": "01a1d152-f34f-7172-8ddc-468b2b80a6c2",
+        "turn": {
+          "completedAt": 1794513244,
+          "durationMs": 7676,
+          "id": "01a1d152-f36f-7a60-b9e9-e2c7a0e6d875",
+          "items": [
+            {
+              "id": "msg_18e764499ed9c0c8000047d6",
+              "phase": "final_answer",
+              "text": "Addition combines two or more quantities into a single total, called the sum, by counting all the units together. For example, adding 3 and 4 gives 7, and the operation is commutative (3 + 4 = 4 + 3) and associative ((a + b) + c = a + (b + c)).",
+              "type": "agentMessage"
+            }
+          ],
+          "itemsView": "summary",
+          "startedAt": 1794513236,
+          "status": "completed"
+        }
+      }
+    }
+  ],
+  "facts": [
+    "driver uses official Python SDK; raw bytes captured at native process boundary"
+  ],
+  "case": {
+    "id": "SDK-CASE-028",
+    "outOfScope": [
+      "\u5176\u4ed6 case \u7684\u4f7f\u7528\u6d41\u7a0b",
+      "\u4eba\u5de5\u6784\u9020\u7684\u534f\u8bae\u9519\u8bef\u548c\u7cbe\u786e\u7ade\u6001",
+      "\u5b9e\u9645\u601d\u8003\u5c55\u793a\u6548\u679c\u3001\u63a8\u7406\u662f\u5426\u5173\u95ed\u53ca\u63a8\u7406\u6210\u672c\u53d8\u5316"
+    ],
+    "scope": "\u9a8c\u8bc1\u539f\u751f\u601d\u8003\u5c55\u793a\u914d\u7f6e\u5b57\u6bb5\u548c\u503c\u7684\u900f\u4f20\u3001\u5173\u8054\u6210\u529f\u54cd\u5e94\u7684\u5904\u7406\u53ca\u540e\u7eed\u6267\u884c\u5b8c\u6210\uff1b\u5b9e\u9645\u5c55\u793a\u6548\u679c\u4e0d\u4f5c\u4e3a\u95e8\u7981\u6761\u4ef6\u3002",
+    "storyId": "SDK-US-006"
+  },
+  "gaps": [],
+  "captureStatus": "complete",
+  "cliVersion": "codex-cli 0.166.0",
+  "scenarioSHA256": null,
+  "storyId": "SDK-US-006",
+  "caseId": "SDK-CASE-028",
+  "flowTrace": [
+    {
+      "step": "configuration-acknowledged",
+      "timing": "before-first-input",
+      "completedInputs": 0,
+      "requested": {
+        "threadId": "01a1d152-f34f-7172-8ddc-468b2b80a6c2",
+        "summary": "none"
+      }
+    },
+    {
+      "step": "submit",
+      "input": 0
+    },
+    {
+      "step": "result",
+      "input": 0
+    },
+    {
+      "step": "close-drain"
+    }
+  ],
+  "officialSDK": {
+    "package": "openai-codex",
+    "version": "0.0.0.dev0"
+  },
+  "configurationEvidence": {
+    "requests": [
+      {
+        "requested": {
+          "threadId": "01a1d152-f34f-7172-8ddc-468b2b80a6c2",
+          "summary": "none"
+        },
+        "acknowledged": true,
+        "timing": "before-first-input",
+        "completedInputs": 0
+      }
+    ],
+    "observed": [
+      {
+        "source": "thread/settings/updated",
+        "scope": "thread-settings",
+        "native": {
+          "threadId": "01a1d152-f34f-7172-8ddc-468b2b80a6c2",
+          "threadSettings": {
+            "disabledPluginIds": [],
+            "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-028/fixture/runtime/routes/record/workspace",
+            "approvalPolicy": "on-request",
+            "approvalsReviewer": "user",
+            "sandboxPolicy": {
+              "type": "workspaceWrite",
+              "writableRoots": [],
+              "networkAccess": false,
+              "excludeTmpdirEnvVar": false,
+              "excludeSlashTmp": false
+            },
+            "activePermissionProfile": null,
+            "model": "auto/deepseek-v4.1-flash-1017",
+            "modelProvider": "openai",
+            "serviceTier": null,
+            "effort": "high",
+            "summary": "none",
+            "collaborationMode": {
+              "mode": "default",
+              "settings": {
+                "model": "auto/deepseek-v4.1-flash-1017",
+                "reasoning_effort": "high",
+                "developer_instructions": null
+              }
+            },
+            "multiAgentMode": "explicitRequestOnly",
+            "personality": null
+          }
+        }
+      }
+    ],
+    "effectiveScope": "native display configuration forwarded and success response handled; visual effect not asserted"
+  },
+  "branchStatus": "passed"
+}

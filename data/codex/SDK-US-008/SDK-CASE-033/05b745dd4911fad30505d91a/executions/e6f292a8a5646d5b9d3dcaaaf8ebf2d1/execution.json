@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 7,
+  "executionId": "e6f292a8a5646d5b9d3dcaaaf8ebf2d1",
+  "fixtureId": "19eaa3f3c3ecedd4bed4ac8735ff8326",
+  "command": "record",
+  "args": [
+    "--cmd",
+    "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "--",
+    "app-server",
+    "--listen",
+    "stdio://"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-033",
+    "path": "source/plan.json",
+    "sha256": "0e21ffcc9354d9171e32f07d106a960eebc72c674937127667bd680d4362105f",
+    "provenance": "official",
+    "driverProfile": "history"
+  },
+  "executor": "external-sdk",
+  "target": "native-agent",
+  "provenance": "official",
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "6ab6c2d92323219f9a11761c8a4ff4ff",
+      "receipt": "executions/e6f292a8a5646d5b9d3dcaaaf8ebf2d1/capture/raw/transport.json"
+    }
+  ],
+  "artifact": {
+    "officialOrigin": {
+      "runId": "aa0e11b375b4d3ed65f02195abca99e9",
+      "fixtureId": "19eaa3f3c3ecedd4bed4ac8735ff8326",
+      "caseId": "SDK-CASE-033",
+      "agentType": "codex",
+      "recordSourceSHA256": "0e21ffcc9354d9171e32f07d106a960eebc72c674937127667bd680d4362105f",
+      "sourceSHA256": "0e21ffcc9354d9171e32f07d106a960eebc72c674937127667bd680d4362105f",
+      "driverSHA256": "0992ee66809ac1f826f9d940100ca4661d739dda4c69f0f0ea7b4f4dfbaba9de",
+      "connections": [
+        "main"
+      ]
+    },
+    "id": "6ab6c2d92323219f9a11761c8a4ff4ff",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "",
+    "manifestSHA256": "",
+    "recordingSHA256": "",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T19:54:16.58773Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "startedAt": "2026-11-12T19:54:16.587726Z"
+}

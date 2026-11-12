@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 7,
+  "executionId": "cebe89e0b39fe570c48c87544709def7",
+  "fixtureId": "24e8c9e0bb88016ccd3dd724cf62ba6c",
+  "command": "mock",
+  "args": [
+    "--connection",
+    "main"
+  ],
+  "source": {
+    "kind": "case",
+    "id": "SDK-CASE-020",
+    "path": "source/plan.json",
+    "sha256": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195",
+    "provenance": "official",
+    "driverProfile": "history"
+  },
+  "executor": "external-sdk",
+  "target": "replay",
+  "provenance": "official",
+  "historyFiles": {
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-04cca1bfe1383a3b2c0170666617a36b-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5.jsonl": "59b8e3ee6ba4507c6e078230921d8b6935d7946660557c3c3624b68c8fb186f3",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-04cca1bfe1383a3b2c0170666617a36b-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5/subagents/agent-a8520487384578636.jsonl": "a671cb116b15f314dae7ca01ca9bfc2da4214130ae7934a73168fd56484c7982",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-04cca1bfe1383a3b2c0170666617a36b-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5/subagents/agent-a8520487384578636.meta.json": "18d1cd2a177cf7638e3ca3a733e5142d49dec7b638de8f85fcc105f8c1bdf70f",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-cebe89e0b39fe570c48c87544709def7-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5.jsonl": "d8de055a2f5def893dc225839a1f380727f738394b1e0e308196a97eafe403e9",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-cebe89e0b39fe570c48c87544709def7-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5/subagents/agent-a8520487384578636.jsonl": "89941c32b32484de8c5e1b65cb5ae150ab036a0cd90950b590f445995b913d56",
+    "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-full-rerecord-20261113-claude-SDK-CASE-020-fixture-runtime-executions-cebe89e0b39fe570c48c87544709def7-workspace/2215df16-e1b2-4c3d-a9c0-8a742f710bf5/subagents/agent-a8520487384578636.meta.json": "18d1cd2a177cf7638e3ca3a733e5142d49dec7b638de8f85fcc105f8c1bdf70f"
+  },
+  "connections": [
+    {
+      "id": "main",
+      "transport": "process",
+      "materialId": "e3e0954df535096bed60a6ae1dfdcf5e",
+      "planSHA256": "caf462ebb859d0bf9fb78ae9458d86915eee0189595bedef77da63535f19b91e",
+      "manifestSHA256": "6985ce6cf850597e302d5223276ebe73e9804c60fda432cddafb148c5243c20d",
+      "recordingSHA256": "d49a7e7d927e3641cccd02f90d2ca982f744b53edde1e7973bc44522f5c5a5e6",
+      "receipt": "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.json",
+      "processReceipt": "executions/cebe89e0b39fe570c48c87544709def7/receipts/main.process.json"
+    }
+  ],
+  "artifact": {
+    "formatVersion": 3,
+    "sourcePlanSHA256": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195",
+    "originSHA256": "5168b060ebea6ec8bdd1c2276304140c37aaeb021a69f4430493befb5a150975",
+    "id": "e3e0954df535096bed60a6ae1dfdcf5e",
+    "kind": "capture",
+    "action": "record",
+    "provenance": "official",
+    "planSHA256": "caf462ebb859d0bf9fb78ae9458d86915eee0189595bedef77da63535f19b91e",
+    "manifestSHA256": "6985ce6cf850597e302d5223276ebe73e9804c60fda432cddafb148c5243c20d",
+    "recordingSHA256": "d49a7e7d927e3641cccd02f90d2ca982f744b53edde1e7973bc44522f5c5a5e6",
+    "connections": [
+      "main"
+    ],
+    "createdAt": "2026-11-12T19:56:19.339753Z"
+  },
+  "limits": {
+    "timeoutNs": 180000000000
+  },
+  "progressFd": -1,
+  "startedAt": "2026-11-12T19:56:24.606148Z"
+}
