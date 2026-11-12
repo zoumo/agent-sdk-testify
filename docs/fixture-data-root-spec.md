@@ -59,8 +59,8 @@
 - 协议包迁入 internal，复用已有采集、回放、原始 JSON 和录制格式能力。
 - 新命令结构替代旧顶层 record/mock/verify 及 internal-protocol，不保留兼容别名；
   不兼容数据必须拒绝，不能静默解释或改写原始来源字节。CLI 使用
-  `--fixture-dir`、`fixture.json`、`fixtureId` 和 schema 5，并拒绝旧
-  `--session-dir` 与 schema 3。
+  `--fixture-dir`、`fixture.json`、`fixtureId` 和
+  [当前控制面版本](design.md#schema-版本与兼容)，并拒绝旧 `--session-dir` 与旧控制面版本。
 - 库 mock 通过 `StartMockAgent` 使用进程内 `StartMockAgentStreams`，与 CLI mock
   共享 execution、严格回放、receipt 和 material 合同；official 编排继续使用
   公开 CLI 进程入口，不改为库调用。embedded fixture 使用判别式工具身份，不得把

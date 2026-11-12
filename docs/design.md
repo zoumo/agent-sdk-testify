@@ -135,14 +135,14 @@ prepare 完成以下工作：
   case 的官方 driver 由 official 命令选择，plan 的 SDK 宿主由消费者启动；agent
   record 不根据 source 类型启动 driver。recording 使用材料内的录制来源。
 - 将当前材料写为 current recording；没有材料时保持为空。
-- 写入 schema 5 的只读 `fixture.json` 和可变状态索引，不启动客户端、SDK、driver
-  或真实 Agent。工具身份使用 `executable`/`embedded` 判别式：executable 记录绝对
-  command、argv 和哈希；embedded 记录模块路径、版本/修订和 Go 版本，不伪造
-  command、launcher 或进程身份。
+- 写入 schema 6 的只读 `fixture.json` 和可变状态索引，不启动客户端、SDK、driver
+  或真实 Agent。工具身份使用 `executable`/`embedded` 判别式：executable 保存版本
+  和二进制哈希，本次启动命令在运行时解析并核验身份；embedded 记录模块路径、
+  版本/修订和 Go 版本，不伪造 command、launcher 或进程身份。
 
 prepare 不修改外部材料。fixture 目录必须尚不存在；来源路径不能位于目标 fixture
 内。prepare 失败不产生可用 fixture，失败诊断保存在 fixture 内或 prepare 的诊断
-文件中。schema 4 及更旧 fixture 必须拒绝并重新 prepare，不能按 schema 5 猜测字段。
+文件中。schema 5 及更旧 fixture 必须拒绝并重新 prepare，不能按 schema 6 猜测字段。
 
 ### 多个 action execution
 
@@ -180,7 +180,7 @@ agent 命令与 official 命令可以重复调用，不要求成对出现，也�
 ### fixture 目录所有权
 
 调用方拥有整个 fixture 目录。prepare 把运行环境放在 `<fixture>/runtime`，
-`resourceRoot` 指向该目录；工具不创建 fixture 外的长期运行根。
+运行时的 `resourceRoot` 指向该目录；工具不创建 fixture 外的长期运行根。
 
 各 action 在返回前完成自身的协议、材料和资源释放检查，保存成功或失败结果。
 mock 在结束时校验本次 execution 绑定的源历史和派生历史；运行中新建的非绑定文件
@@ -266,6 +266,85 @@ record 成功时，工具先把完整材料写入新的不可变 material 目录
 原子更新 `current.json`。任何一步失败都不能把半成品设为 current。旧 material
 和旧 verification 保留，但不再是 current，也不会被后续动作自动选择。
 
+### 框架路径与录制身份
+
+框架持久化身份、哈希和根目录内的相对引用；执行时从调用方提供的 fixture 根目录
+计算实际绝对路径。材料的身份不包含它在某台机器上的存放位置。
+原始协议、原生历史、日志、用户提供的 plan 和参数保持原样，不执行路径字符串替换。
+
+文件引用只有两种基准：fixture 控制面中的引用相对 fixture 根目录，材料内部的引用
+相对该材料根目录。固定布局由 ID 推导，不重复保存路径；其余文件引用使用规范的
+`/` 分隔相对路径。读取前拒绝绝对引用、`..`、非规范路径和逃逸根目录的符号链接。
+不引入通用 locator、路径占位符或对任意 JSON 字符串的替换机制。
+
+| 字段或内容 | 持久化规则 | 运行时规则 |
+| --- | --- | --- |
+| material 的 `path`，connection/result 中的 material 路径 | 新材料不保存；控制面保存 material ID 和内容哈希 | 从当前 fixture 的 `materials/<materialId>` 定位 |
+| fixture 的 `resourceRoot/workspace/home/config/tmp`，route 的 workspace | 固定布局不重复保存 | 根据当前 fixture 和 action 计算 |
+| execution 的 `workspace/home/config/tmp/artifactRoot` | 固定布局不重复保存 | 根据当前 fixture、execution ID 和 action 计算 |
+| source、history seed 和非固定布局文件 | 保存 fixture 内相对引用及来源哈希 | 只访问 prepare 已复制并验证的副本 |
+| receipt、process receipt、result 和 descriptor 引用 | 保存 fixture 根相对路径；文件哈希表使用同一基准 | 根据本次 fixture 根目录读取 |
+| launcher、框架命令中的 fixture 参数和目录环境变量 | 不保存可推导的本机位置 | 在启动前构造；工具身份仍须匹配 |
+| `project/historyProject/_fixtureProject`、`native.cwd` 和原始参数 | 保留解释录制所需的身份与事实 | 不作为旧目录的文件读取入口，不替换为当前 workspace |
+
+`protocolCwd` 是协议身份，不统一按 workspace 推导。record 和各 provider 的 mock
+仍遵循各自合同；尤其 Codex mock 使用材料中的原始协议项目身份。`_fixtureProject`
+所代表的录制工作目录继续用于解释已有历史和工具路径，不因它由框架生成而删除。
+这些事实即使是绝对路径，也不要求对应目录存在。
+
+新材料元数据不保存本机 `path`。已有材料中的该字段保留原字节，只作为旧格式事实，
+不用于查找文件；加载器显式接收当前材料根目录。导入不为更新位置而重写旧
+`material.json`、plan、manifest、历史或证据。fixture 的新索引与材料文件分开保存；
+没有元数据的受支持旧材料，其导入身份保存在 fixture 索引中，不向旧包补写文件。
+
+### 材料计划与运行配置
+
+官方材料 plan 保存场景输入、实际使用的协议身份、原生参数、CLI 版本与哈希、
+历史 seed 的 session 身份、文件绑定及来源哈希。它不缩减为原始 source plan 的副本：
+录制准备阶段产生且回放或资格检查需要的事实必须进入材料闭包。
+用户提供的 source plan 保持原字节并以哈希绑定。
+
+`root/home/config/raw`、`_seedRoot`、当前 driver workspace、结果文件位置和连接命令
+属于本次运行配置，不进入新材料 plan。driver 分别接收材料 plan 和运行配置：
+读取原始协议身份使用前者，访问本次文件和启动进程使用后者。材料中的
+`_fixtureProject` 不再被当前 workspace 覆盖；`_recordedWorkspace` 不作为另一份
+持久身份重复保存。已有材料中的旧运行字段只按旧格式读取，不能用于定位当前资源。
+
+prepare 完整复制并校验所需 seed 来源闭包和项目快照；后续录制的来源一致性检查
+对这份冻结副本执行。新 seed 不保存外部 `sourceRoot`，使用 fixture 内的明确引用。
+来源 plan/manifest、历史文件及项目快照的哈希检查不能因去掉旧目录而省略，
+也不能只保存哈希而漏掉需要复验的文件。已封存 seed 中的原项目身份保持不变。
+
+执行流程如下：
+
+1. prepare 导入并验证来源，保存不可变副本、身份和相对引用。
+2. record/mock 创建 execution overlay，生成本次绝对 workspace、环境和启动命令。
+3. record 原样采集协议和历史，分别保存材料 plan 与执行证据，完成闭包后发布 current。
+4. mock/official verify 从 current 获取内容，从本次 execution 获取运行位置；
+   原始协议帧及严格匹配规则不变。
+5. export 按材料原字节复制；新目录中的 prepare 建立新的控制面索引，不改写导入材料。
+
+### 路径相关证据
+
+录制隔离和当前验证隔离是两份不同执行的事实。录制时在真实执行环境中检查目录归属、
+有效环境、启动参数和进程身份；新证据以 execution 身份、相对引用及哈希绑定结果。
+归档后的资格检查验证这组封存证据及其关联，不用当前 verify 的 overlay 证明过去
+录制正确。当前 verify 的隔离由它实际调用的 mock execution 独立证明。
+已观察到的绝对 cwd、argv 可以保留为采集事实，但不能作为重开旧目录的依据。
+
+旧录制证据按其原版本校验身份、哈希和路径关系，不访问旧目录，也不因含绝对路径而
+自动拒绝。缺失证据、未知版本、关系冲突或哈希错误仍然失败；不能通过替换为当前
+目录、只比较规范化哈希或忽略字段来接受材料。
+
+CLI 结果通知与落盘 result 使用同一对象、同一相对引用和同一证据版本。
+消费者根据已知 fixture 根目录解析，不能只把通知转换为绝对路径。
+公开 Go 运行时对象中的路径字段继续返回当前解析后的绝对值，字段含义不变；
+这些对象不作为原始持久证据重新序列化或参与原字节哈希比较。
+
+可移植性通过 export 后在新目录重新 prepare 验收。直接移动整个已准备 fixture
+并继续运行不属于此合同；route 符号链接、launcher 和活动执行不因此获得搬迁保证。
+原始回放 `init.cwd` 不变，SDK 对旧 cwd 与当前物理目录的身份校验不在此设计中改写。
+
 ## schema 版本与兼容
 
 `fixture.json`、`execution.json`、execution/material index 和 `current.json`
@@ -273,6 +352,13 @@ record 成功时，工具先把完整材料写入新的不可变 material 目录
 record、mock 和切换 current 时一起写入并相互引用，分别版本会产生无法判定的混合
 状态。material/manifest 保留自身格式版本；进程 receipt、官方编排和 verification
 中的 `schemaVersion` 属于各自证据合同，不与 fixture 控制面版本比较。
+
+控制面使用 schema 6。新 `material.json` 使用 `formatVersion: 2`，不含 `path`；
+无该字段的受支持旧材料按既有格式只读校验，不自动改写或接受未知版本。
+结果通知与持久 result 使用 schema 2；新的 isolation、官方编排和 verification
+证据在改变字段语义时各自使用 schema 2。原生录制格式及既有 raw/manifest 不因
+这些元数据变化而升版。driver 的运行配置合同与材料 plan 分开版本化；
+不识别该运行配置合同的 driver 在启动前失败。
 
 持久化语义发生不兼容变化时才升版。以下任一变化必须升版：
 
@@ -405,7 +491,7 @@ strict-replay、timeout 和 cleanup 使用不同终态；`Wait` 是权威完成�
 
 mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
 连接已经完成。mock 进程 receipt 不记录 `cwd` 或 `workspace`；执行位置和协议项目
-身份以 execution descriptor 的 `workspace`、`protocolCwd` 为准。为兼容 v1，
+身份以 execution 身份解析出的 workspace 和明确的 `protocolCwd` 为准。为兼容 v1，
 校验器忽略旧 receipt 中可能存在的这两个字段，回放和历史文件始终从 fixture/execution
 根定位。
 
@@ -505,8 +591,8 @@ consumer material 和外部用户自行保存的录制可以进入自己的 fixt
   前失败。
 - 库 `StartMockAgent` 必须使用与 CLI mock 相同的 execution、严格回放和 finalize；
   进程内连接不得伪造 executable、PID、launcher 或退出码。
-- fixture、execution 和 index 使用 schema 5；embedded 工具身份不得把 module path
-  当作 command，schema 4 明确拒绝。
+- fixture、execution 和 index 使用 schema 6；embedded 工具身份不得把 module path
+  当作 command，schema 5 及更旧 fixture 明确拒绝。
 - export 不改变 fixture，不产生可信结论，目标必须在 fixture 外且不能覆盖已有目录。
 - 只有精确官方 case material 的 verify 通过可以作为入仓资格的一部分；mock 成功、
   export 成功不能替代。
@@ -619,6 +705,14 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 调用 lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
 
 - prepare 完整复制材料后，删除原始路径仍可 verify、mock 和 export。
+- export 后删除原 fixture 和外部 seed，在新目录 prepare 后仍可 mock、适用的
+  official verify 和再次 export；不以直接移动 fixture 替代这项验收。
+- 导入、验证和导出保持旧材料全部原文件的字节及哈希，不为修正路径重写元数据。
+- 新控制面及材料中的定位字段不保存本机绝对目录；原始录制身份和采集事实单独校验，
+  不按任意字符串中是否出现绝对路径判断材料合格。
+- CLI 通知与落盘 result 完全一致；Go 运行时路径正确解析，相对引用越界和错误
+  execution/material 关联必须失败。
+- 录制隔离证据和当前验证隔离分别验收；丢失原录制证据不能由当前正确的 overlay 抵扣。
 - record 成功原子替换 current；record 失败保留 execution 且 current 不变。
 - verify 只作用于 current，并在新 record 后不把旧 verification 转给新材料。
 - 没有 verified 的 current material 可以正常 mock。
@@ -640,7 +734,7 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
   连接没有伪造的 PID、executable 或退出码。
 - Codex 使用 `ProtocolCwd` 作为逻辑 transport cwd，Claude 使用 `Workspace`；
   两者使用 `ExecutionStart.Env` 替换环境，不修改全局环境。
-- schema 4 fixture 被拒绝，embedded fixture 不含 module-path-as-command；executable
+- schema 5 及更旧 fixture 被拒绝，embedded fixture 不含 module-path-as-command；executable
   fixture 的进程 mock 路径继续通过 CLI descriptor 验收。
 - driver 启动失败、提前退出、验证取消和 mock 缺失时保留验证事实；未完成的验证
   不能产生成功结论或允许清理仍在使用的资源。

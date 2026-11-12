@@ -54,8 +54,8 @@ SDK 输入；若同步等待调用返回，EOF 检查又依赖调用方先半关
     以便不维护两套协议行为。
 16. 作为维护者，我希望库测试在没有工具二进制和 `PATH` 发现的情况下通过，以便证明
     库能力自足。
-17. 作为维护者，我希望旧 schema 4 fixture 被明确拒绝，以便不会把 module path 当作
-    可执行命令解释。
+17. 作为维护者，我希望旧版本 fixture 被明确拒绝，以便不会混用路径合同或把 module
+    path 当作可执行命令解释。
 
 ## Implementation Decisions
 
@@ -369,11 +369,12 @@ report 错误；已进入终态的连接仍必须有可校验的 receipt。连�
 返回的是本连接 finalize 时的快照；多连接 execution 仍可能 `open`，调用方应在所有
 连接结束后用 `ExecutionReport` 读取最终状态。
 
-### 内嵌工具身份与 schema 5
+### 内嵌工具身份与持久化合同
 
-`fixture.json`、`execution.json`、execution/material index 和 `current.json`
-使用 schema 5。schema 4 不再读取；升级必须重新 prepare，不能把旧字段静默解释为新
-身份。material/manifest 的自身格式不因 fixture schema 变化而改写。
+控制面版本及旧 fixture 的处理统一遵循[工具设计](design.md#schema-版本与兼容)；
+不能把旧字段静默解释为新身份。material/manifest 不因 fixture schema 变化而改写。
+以下类型描述公开运行时对象，不是磁盘 JSON 的直接映射；
+路径与引用的持久化规则见[框架路径与录制身份](design.md#框架路径与录制身份)。
 
 工具身份使用判别式 union，而不是“module path 当 command”：
 
@@ -397,7 +398,8 @@ type ToolIdentity struct {
 ```
 
 - `Source == executable`：`Command` 必须是绝对路径，`SHA256`、`Version` 非空；
-  module 字段必须为空。
+  module 字段必须为空。`Command` 是本次解析并核验身份的可执行文件位置，
+  不是从旧 fixture 恢复的启动位置。
 - `Source == embedded`：`Module` 必须是
   `github.com/zoumo/agent-sdk-testify`；`Command`、`Args` 和 `SHA256` 必须为空；
   不存在 launcher、argv 或可执行身份。`Version` 必须是精确 release、pseudo-version
@@ -430,7 +432,7 @@ type ToolIdentity struct {
   调用方应从 `go.mod` 和 `go.sum` 的 exact pin 生成这些测试常量，不得使用 replace、
   latest 或伪造 executable 身份。未提供该字段时，现有 `Prepare` 自证行为不变。
 
-execution connection 同样使用判别式：
+运行时 execution connection 同样使用判别式；持久化不重复保存可推导的启动位置：
 
 - `transport: "process"`：包含绝对 `command`、`args`、可选 `launcher`。
 - `transport: "in-process"`：只包含 `id` 和 transport，不包含 `command`、`args`、
@@ -445,6 +447,8 @@ embedded fixture 的 CLI `agent mock` 和旧 `MockAgent(*os.File)` 进程适配�
 record 返回 `RecordAgentResult`；mock 返回 `MockAgentResult`。两者继续嵌入
 `ActionResult`，保留 `FixtureID`、`ExecutionID`、`ConnectionID`、
 `ConnectionStatus`、`ExecutionStatus`、`ExecutionComplete`、材料身份和证据路径。
+这些公开路径字段继续返回当前 fixture 中解析后的绝对值；CLI 通知和持久 result
+遵循[路径相关证据](design.md#路径相关证据)，不能与公开 Go 对象混作同一序列化合同。
 `ConnectionStatus` 只描述本次调用领取的连接；`ExecutionStatus` 汇总同一 execution
 的全部声明连接；`ExecutionComplete` 只在 execution 已终态时为 true。
 
@@ -488,7 +492,7 @@ if !result.Execution.Complete {
 
 - 直接 import `github.com/zoumo/agent-sdk-testify`，不再依赖
   `AGENT_SDK_TESTIFY_BIN`、`exec.CommandContext` 或 `session.json` schema 3。
-- `Prepare` 不再启动 CLI；`Open` 读取 schema 5 fixture；多连接用显式
+- `Prepare` 不再启动 CLI；`Open` 只读取当前合同版本的 fixture；多连接用显式
   `ExecutionID` 加入；不扫描目录或猜测最新 execution。
 - 进程内客户端使用 `StartMockAgent`、`ExecutionStart`、`FullConsumption`、
   `CloseInput` 和 `ExecutionReport`；不解析 `execution.json`、receipt 或 result
@@ -497,8 +501,8 @@ if !result.Execution.Complete {
   继承宿主环境，`Workspace`/`ProtocolCwd` 必须来自 `ExecutionStart`。
 - `CloseInput` 维护独立的 `inputClosed`/`ErrInputClosed` 语义；半关闭导致的在途
   写错误不能升级为 transport failure，`Wait` 的结果不能被 reader EOF 抢先覆盖。
-- SDK 更新对 testify 的版本 pin 时，必须指向包含 schema 5 和
-  `StartMockAgent` 的精确 commit；旧 pin 与 schema 4 不兼容，不能混合运行。
+- SDK 更新对 testify 的版本 pin 时，必须指向包含当前控制面合同和
+  `StartMockAgent` 的精确 commit；旧 pin 与新控制面不能混合运行。
 
 ## Testing Decisions
 
@@ -518,7 +522,7 @@ CLI，并确保测试环境没有 `agent-sdk-testify` 可执行文件或可从 P
   timeout 和 cleanup failure 分别产生不同 failure class；abort 不伪造 EOF。
 - 多连接通过显式 `ExecutionID` 加入；`ExecutionReport` 覆盖全部声明连接，进程内
   连接不包含伪造的 PID、executable 或退出码。
-- schema 4 fixture 被拒绝，embedded identity 不含 module-path-as-command；library
+- 旧版本 fixture 被拒绝，embedded identity 不含 module-path-as-command；library
   fixture 的 CLI process mock 被明确拒绝。
 
 CLI 继续使用 installed-CLI conformance 测试，覆盖同一命令行为、退出码和
@@ -531,6 +535,6 @@ descriptor；不为库复制整套 CLI 用例。`MockAgent(*os.File)` 的兼容�
 - 不把 official record/verify 暴露为库 API，不改造 driver 进程边界。
 - 不公开 protocol、材料和 raw frame 类型。
 - 不在本次改造中实现进程内 record；record 仍使用真实 Agent/远程 endpoint。
-- 不保证 library fixture 与 CLI fixture 可以交叉执行 action；schema 4 直接拒绝。
+- 不保证 library fixture 与 CLI fixture 可以交叉执行 action；旧控制面版本直接拒绝。
 - 不改变 case 身份、required 集合、材料入仓政策或严格回放。
 - 不新增真实录制、不启动真实 Agent 验证、不执行网络验证。

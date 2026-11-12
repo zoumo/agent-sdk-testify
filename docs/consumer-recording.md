@@ -52,6 +52,8 @@ CLI 和原生参数属于本次 record execution，不改变已准备的 source�
 配置来源、允许文件、认证变量和隔离路径由[工具设计](design.md#环境与隔离)统一维护。
 消费者不能通过 flag 覆盖这些路径，只使用 prepare 返回的 descriptor；认证值不进入
 `fixture.json`，调用进程只需保留 record route `runtimeEnv` 列出的变量。
+持久定位字段与运行时绝对路径的区别见[框架路径与录制身份](design.md#框架路径与录制身份)；
+prepare 返回的运行信息不能作为 `fixture.json` 的字段布局假设。
 
 ### agent record
 
@@ -239,10 +241,15 @@ agent-sdk-testify agent record --fixture-dir /absolute/fixture \
 `fixtureId`、`executionId`、`connectionId`、`command`、`execution` descriptor 路径、
 `receipt` 和持久 `result` 路径；mock 还包含 `processReceipt`。最终通知包含
 `executionSHA256`；成功 record 和所有 mock 通知中的 `material` 包含精确材料 ID、
-路径及 plan、manifest、raw 哈希。record 失败不把未发布材料当成成功材料引用。
+plan、manifest、raw 哈希，不包含本机 material 路径。record 失败不把未发布材料当成
+成功材料引用。
 
 即使不传 `--result-fd`，同一结果仍保存在
 `executions/<executionId>/receipts/<connectionId>.result.json`。
+结果版本及路径基准遵循[路径相关证据](design.md#路径相关证据)和
+[schema 版本与兼容](design.md#schema-版本与兼容)。通知与落盘结果完全一致；
+消费者使用本次传入的 fixture 根目录解析文件引用，不能将通知中的相对路径直接
+交给依赖宿主 cwd 的文件读取操作。
 结果通知通过本次进程明确关联身份，调用方不得扫描最新目录来猜测归属。
 单个 connection 的 `passed` 不代表同一 execution 的其他 connection 已完成；
 完整状态以 execution index 和各 receipt 为准。多连接调用分别使用独立结果描述符。
