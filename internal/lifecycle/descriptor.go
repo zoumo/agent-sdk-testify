@@ -699,6 +699,7 @@ type Index struct {
 	FixtureSHA256  string            `json:"fixtureSha256"`
 	Executions     []IndexExecution  `json:"executions"`
 	Artifacts      []corpus.Material `json:"-"`
+	Descriptorless map[string]bool   `json:"-"`
 	LastUpdatedUTC string            `json:"lastUpdatedUtc"`
 }
 
@@ -1089,7 +1090,15 @@ func readIndex(path string) (*Index, error) {
 			return nil, errors.New("material path must remain inside fixture")
 		}
 	}
+	descriptorless := map[string]bool{}
+	for _, id := range materials.Descriptorless {
+		if id == "" || !seen[id] || descriptorless[id] {
+			return nil, errors.New("invalid descriptorless material identity")
+		}
+		descriptorless[id] = true
+	}
 	index.Artifacts = materials.Materials
+	index.Descriptorless = descriptorless
 	return &index, nil
 }
 
@@ -1123,9 +1132,10 @@ func ReadExecution(fixtureDir string, fixture *Fixture, path string) (*Execution
 // MaterialIndex is the immutable-material registry; current.json alone selects
 // the input for actions. Execution bookkeeping never selects a material.
 type MaterialIndex struct {
-	SchemaVersion int               `json:"schemaVersion"`
-	FixtureID     string            `json:"fixtureId"`
-	Materials     []corpus.Material `json:"materials"`
+	SchemaVersion  int               `json:"schemaVersion"`
+	FixtureID      string            `json:"fixtureId"`
+	Materials      []corpus.Material `json:"materials"`
+	Descriptorless []string          `json:"descriptorless,omitempty"`
 }
 
 func MaterialIndexPath(fixtureDir string) string {
@@ -1133,7 +1143,17 @@ func MaterialIndexPath(fixtureDir string) string {
 }
 
 func writeMaterialIndex(fixtureDir string, index *Index) error {
-	return writeAtomic(MaterialIndexPath(fixtureDir), MaterialIndex{SchemaVersion: SchemaVersion, FixtureID: index.FixtureID, Materials: index.Artifacts})
+	descriptorless := make([]string, 0, len(index.Descriptorless))
+	for _, material := range index.Artifacts {
+		if index.Descriptorless[material.ID] {
+			descriptorless = append(descriptorless, material.ID)
+		}
+	}
+	slices.Sort(descriptorless)
+	return writeAtomic(MaterialIndexPath(fixtureDir), MaterialIndex{
+		SchemaVersion: SchemaVersion, FixtureID: index.FixtureID,
+		Materials: index.Artifacts, Descriptorless: descriptorless,
+	})
 }
 
 func unsupportedSchema(kind string, got int) error {

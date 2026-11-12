@@ -186,21 +186,11 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err := corpus.VerifyMaterials(path, true); err != nil {
 		return nil, err
 	}
-	// Fixture/export packages carry a complete payload inventory in addition
-	// to the legacy protocol manifest. Validate it before making a fresh copy.
-	var material corpus.Material
-	metadata := filepath.Join(path, "material.json")
-	if _, err := os.Lstat(metadata); err == nil {
-		if err := tool.ReadJSON(metadata, &material); err != nil {
-			return nil, err
-		}
-		if len(material.Files) == 0 {
-			return nil, errors.New("material closure hash mismatch")
-		}
-		if err := corpus.CheckMaterialInventory(path, material); err != nil {
-			return nil, err
-		}
-	} else if !os.IsNotExist(err) {
+	// Fixture/export packages may carry a complete payload inventory in
+	// addition to the legacy protocol manifest. The current root is the only
+	// file-access base; a stored legacy path remains evidence in the bytes.
+	imported, err := corpus.ReadMaterialDescriptor(path)
+	if err != nil {
 		return nil, err
 	}
 	var plan tool.Object
@@ -226,15 +216,13 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err != nil {
 		return nil, err
 	}
-	var imported *corpus.Material
-	if len(material.Files) > 0 {
-		if material.ID == "" || (material.Kind != "material" && material.Kind != "capture") {
+	if imported != nil {
+		if imported.ID == "" || (imported.Kind != "material" && imported.Kind != "capture") {
 			return nil, errors.New("invalid imported material identity")
 		}
 		// Capture manifests retain their original provenance. Only complete
 		// metadata can carry the official identity of a fixture-produced capture.
-		provenance = material.Provenance
-		imported = &material
+		provenance = imported.Provenance
 	}
 	planHash, err := tool.FileDigest(filepath.Join(path, "plan.json"))
 	if err != nil {

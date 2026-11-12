@@ -64,7 +64,15 @@ func Export(fixtureDir, output string) error {
 	if err := copyMaterial(material.Path, stage); err != nil {
 		return err
 	}
-	if err := corpus.CheckMaterialInventory(stage, *material); err != nil {
+	descriptorless, err := materialIsDescriptorless(dir, material.ID)
+	if err != nil {
+		return err
+	}
+	if descriptorless {
+		if err := corpus.CheckMaterialFiles(stage, *material); err != nil {
+			return err
+		}
+	} else if err := corpus.CheckMaterialInventory(stage, *material); err != nil {
 		return err
 	}
 	if err := corpus.VerifyMaterials(stage, true); err != nil {

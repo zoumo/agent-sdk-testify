@@ -3,6 +3,7 @@ package lifecycle
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
@@ -12,7 +13,19 @@ import (
 )
 
 func inspectMaterial(fixture *Fixture, artifact corpus.Material) (*corpus.MaterialInspection, error) {
-	inspection, err := corpus.InspectMaterial(artifact)
+	descriptorless, err := materialIsDescriptorless(fixture.dir, artifact.ID)
+	if err != nil {
+		return nil, err
+	}
+	return inspectMaterialWithDescriptor(fixture, artifact, !descriptorless)
+}
+
+func inspectMaterialWithDescriptor(fixture *Fixture, artifact corpus.Material, descriptor bool) (*corpus.MaterialInspection, error) {
+	inspect := corpus.InspectMaterial
+	if !descriptor {
+		inspect = corpus.InspectMaterialWithoutDescriptor
+	}
+	inspection, err := inspect(artifact)
 	if err != nil {
 		return nil, err
 	}
@@ -42,6 +55,17 @@ func inspectMaterial(fixture *Fixture, artifact corpus.Material) (*corpus.Materi
 		}
 	}
 	return inspection, nil
+}
+
+func materialIsDescriptorless(fixtureDir, id string) (bool, error) {
+	if err := persistedSchema(MaterialIndexPath(fixtureDir), "material index"); err != nil {
+		return false, err
+	}
+	var index MaterialIndex
+	if err := tool.ReadJSON(MaterialIndexPath(fixtureDir), &index); err != nil {
+		return false, err
+	}
+	return slices.Contains(index.Descriptorless, id), nil
 }
 
 func executionProvenance(fixture *Fixture, action string, material *corpus.Material) (string, error) {

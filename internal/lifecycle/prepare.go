@@ -412,6 +412,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	}
 	materialRoot := MaterialRoot(fixtureDir, materialID)
 	var materialArtifact *corpus.Material
+	descriptorlessImport := fixture.Source.Kind == "recording" && spec.material == nil
 	switch fixture.Source.Kind {
 	case "case":
 		material, err := initialBuiltin(fixture, materialRoot)
@@ -446,7 +447,11 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		if spec.material == nil {
 			materialArtifact.ID = materialID
 			materialArtifact.Action = "mock"
-			materialArtifact.FormatVersion = corpus.MaterialFormatVersion
+			if descriptorlessImport {
+				materialArtifact.FormatVersion = 0
+			} else {
+				materialArtifact.FormatVersion = corpus.MaterialFormatVersion
+			}
 		}
 		files, err := history.HashTree(materialRoot)
 		if err != nil {
@@ -458,12 +463,12 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		} else if !reflect.DeepEqual(materialArtifact.Files, files) {
 			return nil, errors.New("imported material closure differs from its descriptor")
 		}
-		if spec.material == nil {
+		if spec.material == nil && !descriptorlessImport {
 			if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
 				return nil, err
 			}
 		}
-		if _, err := inspectMaterial(fixture, *materialArtifact); err != nil {
+		if _, err := inspectMaterialWithDescriptor(fixture, *materialArtifact, !descriptorlessImport); err != nil {
 			return nil, err
 		}
 	}
@@ -481,9 +486,12 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err != nil {
 		return nil, err
 	}
-	index := &Index{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, FixtureSHA256: fixtureHash, LastUpdatedUTC: now()}
+	index := &Index{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, FixtureSHA256: fixtureHash, Descriptorless: map[string]bool{}, LastUpdatedUTC: now()}
 	if materialArtifact != nil {
 		index.Artifacts = append(index.Artifacts, *materialArtifact)
+		if descriptorlessImport {
+			index.Descriptorless[materialArtifact.ID] = true
+		}
 	}
 	if err := os.MkdirAll(filepath.Join(fixtureDir, "materials"), 0o700); err != nil {
 		return nil, err
