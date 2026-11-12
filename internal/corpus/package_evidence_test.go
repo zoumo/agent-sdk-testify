@@ -114,3 +114,18 @@ func TestLegacyPreparationHasOneExplicitUnversionedShape(t *testing.T) {
 		})
 	}
 }
+
+func TestPackageQualificationRejectsMissingMaterialDescriptor(t *testing.T) {
+	root := t.TempDir()
+	material := filepath.Join(root, "material")
+	replay := filepath.Join(root, "verify", "verification")
+	require.NoError(t, os.MkdirAll(material, 0o700))
+	c := &Corpus{}
+	_, err := c.qualifyPackage(material, replay, false)
+	require.ErrorContains(t, err, "format 3 material descriptor")
+	_, err = c.ValidateAdmission(material, replay, tool.Object{"schemaVersion": float64(2)})
+	require.ErrorContains(t, err, "format 3 material descriptor")
+	require.NoError(t, tool.WriteJSON(filepath.Join(root, "adoption.json"), tool.Object{"schemaVersion": 2}))
+	_, err = VerifyAdoptedFiles(root)
+	require.ErrorContains(t, err, "format 3 material descriptor")
+}

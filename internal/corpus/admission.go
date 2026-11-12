@@ -242,6 +242,9 @@ func VerifyAdoptedFiles(root string) (tool.Object, error) {
 		if err != nil {
 			return nil, err
 		}
+		if material == nil || material.FormatVersion != 3 {
+			return nil, errors.New("schema 2 adoption requires a format 3 material descriptor")
+		}
 		if err := ValidateCore(material.Path, *material); err != nil {
 			return nil, err
 		}

@@ -75,6 +75,9 @@ func (c *Corpus) qualifyPackage(source, replay string, manual bool) (tool.Object
 	if err != nil {
 		return nil, err
 	}
+	if material == nil || material.FormatVersion != 3 {
+		return nil, errors.New("package qualification requires a format 3 material descriptor")
+	}
 	root := filepath.Dir(source)
 	if filepath.Dir(filepath.Dir(replay)) != root || filepath.Base(filepath.Dir(replay)) != "verify" {
 		return nil, errors.New("verification is outside selected package")
@@ -101,6 +104,9 @@ func (c *Corpus) validatePackageAdmission(source, replay string, review tool.Obj
 	material, err := ReadMaterialDescriptor(source)
 	if err != nil {
 		return nil, err
+	}
+	if material == nil || material.FormatVersion != 3 {
+		return nil, errors.New("package qualification requires a format 3 material descriptor")
 	}
 	root := filepath.Dir(source)
 	if filepath.Dir(filepath.Dir(replay)) != root || filepath.Base(filepath.Dir(replay)) != "verify" {
@@ -298,6 +304,9 @@ func (c *Corpus) adoptPackage(source, replay, reviewPath string, replace func(st
 	material, err := ReadMaterialDescriptor(filepath.Join(stage, "material"))
 	if err != nil {
 		return "", err
+	}
+	if material == nil || material.FormatVersion != 3 {
+		return "", errors.New("selected package omits its format 3 material descriptor")
 	}
 	if err := ValidatePackage(stage, *material); err != nil {
 		return "", err
