@@ -72,6 +72,12 @@ if plan['caseId'] == 'SDK-CASE-035':
     try: verify_seed(broken)
     except ValueError: pass
     else: raise AssertionError('tampered seed hash accepted')
+    broken = copy.deepcopy(plan)
+    broken['historyBindings'][0]['sha256'] = '0'*64
+    try: verify_seed(broken)
+    except ValueError: pass
+    else: raise AssertionError('tampered history binding accepted')
+
 
     assert seed['sessionId'] == 'parent' and seed['agentIds'] == ['child']
     assert len(plan['historyBindings']) >= 2

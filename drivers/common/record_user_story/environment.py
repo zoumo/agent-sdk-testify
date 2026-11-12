@@ -152,7 +152,7 @@ def recording_path(root, reference):
 
 
 def verify_recording(root):
-    item = json.loads((root / 'manifest.json').read_text())
+    item = json.loads(read_regular(root / 'manifest.json'))
     if item.get('materialFormatVersion') == 3:
         files = item.get('files')
         if not isinstance(files, dict) or not files:
@@ -163,6 +163,8 @@ def verify_recording(root):
                 raise ValueError('material inventory traverses symlink')
             if path.is_dir():
                 continue
+            if not path.is_file():
+                raise ValueError('material inventory has an unsupported entry')
             name = path.relative_to(root).as_posix()
             if name not in ('manifest.json', 'material.json'):
                 actual[name] = hashlib.sha256(read_regular(recording_path(root, name), None)).hexdigest()

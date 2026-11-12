@@ -24,8 +24,6 @@ def project_files(project):
     return result
 
 
-
-
 def _verify_canonical_seed(plan, seed):
     runtime = plan.get('_runtime', {})
     root = Path(runtime.get('seedRoot', ''))
@@ -91,6 +89,20 @@ def _verify_canonical_seed(plan, seed):
     selected = [b for b in bindings if b.get('sessionId') in wanted]
     if len(selected) != len(wanted) or {b['sessionId'] for b in selected} != wanted:
         raise ValueError('frozen seed identities differ from history bindings')
+    if not runtime['replay'] and isinstance(previous.get('historyBindings'), list):
+        actual = [b for b in plan.get('historyBindings', []) if b.get('sessionId') in wanted]
+        if len(actual) != len(selected):
+            raise ValueError('parent seed bindings differ from frozen source')
+        prefix = ref['path'].rsplit('/', 1)[0] + '/'
+        for original in selected:
+            expected = dict(original, role='seed', source=prefix + original['source'])
+            match = [b for b in actual if b.get('sessionId') == original['sessionId']]
+            keys = ('role', 'sessionId', 'parentSessionId', 'childSessionId', 'project', 'nativeTarget', 'source', 'sha256')
+            if len(match) != 1 or any(match[0].get(k, '') != expected.get(k, '') for k in keys):
+                raise ValueError('parent seed bindings differ from frozen source')
+            pinned = seed.get('files', {}).get(original['nativeTarget'], {})
+            if pinned.get('source') != expected['source'] or pinned.get('sha256') != original['sha256']:
+                raise ValueError('parent seed file binding differs from frozen source')
     manifest = json.loads(read_regular(source / 'manifest.json'))
     for binding in selected:
         path = _seed_path(source, binding['source'])
