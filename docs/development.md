@@ -38,7 +38,7 @@ agent-sdk-testify/
     index.json              # 固定索引
     builtin/                # 生成的发布快照
   tests/intergration/       # 多模块集成测试
-  test/e2e/                 # installed CLI 的完整流程测试
+  tests/e2e/                # installed CLI 的完整流程测试
   tests/build/              # 生成器、入口一致性与独立构建检查
   drivers/                  # 官方 driver 与 Python wheel
   docs/ / scripts/ / README.md / LICENSE
@@ -130,7 +130,7 @@ required/optional、planned/unsupported 及原因必须保留。
 |---|---|---|---|
 | 单元测试 | 与被测代码放在一起的 `*_test.go` | 单个模块的规则，如协议匹配、哈希、字段校验、配置和历史派生 | 直接调用函数，不启动 CLI、SDK、Agent 或子进程，不访问网络 |
 | 集成测试 | `tests/intergration/` | 多个真实模块之间的协作，如材料加载与校验、采集与回放、状态与回执 | 可以使用临时文件、本地管道和回环连接，必要时 mock 外部依赖；不走完整 CLI 流程 |
-| 端到端测试 | `test/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
+| 端到端测试 | `tests/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
 
 根目录 `library*_test.go` 是公开库能力的最高验收接缝：测试包固定为
 `agenttestify_test`，只导入模块公开路径，不调用 CLI；可以使用临时文件、受控子进程
@@ -180,7 +180,7 @@ race 是检查方式，不是第四层测试。单元和集成测试使用 `go t
 完整门禁中的同一套 CLI 流程只需用 race CLI 跑一次；普通发布二进制另做少量启动和打包检查。
 
 默认三层测试均离线，不启动真实 Agent、不需要认证、不安装官方 SDK、不新增录制。
-端到端不等于真实 Agent 测试；需要真实 Agent 的场景仍放在 `test/e2e/`，仅显式授权执行，
+端到端不等于真实 Agent 测试；需要真实 Agent 的场景仍放在 `tests/e2e/`，仅显式授权执行，
 保留 opt-in 门禁和默认 skip。合同和材料存在不证明当前 SDK 通过，合成材料必须保持
 synthetic 身份。官方验证、SDK 仿真和真实 E2E 分别报告，不互相背书。
 

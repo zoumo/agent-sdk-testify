@@ -17,7 +17,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
+	"github.com/zoumo/agent-sdk-testify/tests/e2e/fixturetest"
 )
 
 func TestVerifyOfficialOnlySelection(t *testing.T) {

@@ -68,7 +68,7 @@ build_binaries() {
 }
 
 e2e_tests() {
-  phase e2e-race env AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_RACE_BIN" bash scripts/with-agent-sdk-testify.sh --race go test -buildvcs=true -json -race -count=1 -timeout=15m ./test/e2e/... > "$artifact_dir/e2e-race.jsonl"
+  phase e2e-race env AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_RACE_BIN" bash scripts/with-agent-sdk-testify.sh --race go test -buildvcs=true -json -race -count=1 -timeout=15m ./tests/e2e/... > "$artifact_dir/e2e-race.jsonl"
 }
 
 build_and_package_checks() {

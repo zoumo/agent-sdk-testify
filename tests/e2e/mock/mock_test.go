@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
+	"github.com/zoumo/agent-sdk-testify/tests/e2e/fixturetest"
 )
 
 // Synthetic material tests the installed CLI, not a real capture or SDK result.

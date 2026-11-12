@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
-	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
+	"github.com/zoumo/agent-sdk-testify/tests/e2e/fixturetest"
 )
 
 type object = map[string]any

@@ -109,7 +109,7 @@ make fmt
 ```
 
 `go test ./...` 会选择全部层，并非快速入口。直接运行 E2E 时，用
-`bash scripts/with-agent-sdk-testify.sh --race go test -race ./test/e2e/...`；
+`bash scripts/with-agent-sdk-testify.sh --race go test -race ./tests/e2e/...`；
 也可传绝对路径 `AGENT_SDK_TESTIFY_BIN` 复用产物，构建模式必须与测试一致。
 测试包不自行构建 CLI。测试分层规则见[开发规范](docs/development.md#测试)。
 
