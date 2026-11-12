@@ -3,6 +3,7 @@ package conformance
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -20,11 +21,6 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
 	setControlledOfficialDriver(t, drivers, "local")
 	fixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
-	if target := os.Getenv("TESTIFY_OFFICIAL_INVENTORY"); target != "" {
-		defer func() {
-			require.NoError(t, writeJSONFile(target, officialInventory(t, fixture)))
-		}()
-	}
 	recorded := runTool(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixture, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	require.Zero(t, recorded.code, recorded.stderr)
 	require.NoFileExists(t, filepath.Join(fixture, "official.json"))
@@ -108,7 +104,30 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, selected, 1)
 	imported := prepareFixture(t, env, "--recording", attempt)
+	importedPackage := filepath.Join(imported, "packages", str(material["id"]))
+	require.Equal(t, officialInventory(t, attempt), officialInventory(t, importedPackage))
+	require.Empty(t, array(fixtureIndex(t, imported)["executions"]), "archived executions do not join the new fixture schedule")
+	// Core export transfers replay inputs, while the full package above retains
+	// the independently selected official/adoption facts at identical paths.
+	exported := filepath.Join(t.TempDir(), "core")
+	mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixture, "--output", exported)
+	require.Equal(t, before, officialInventory(t, exported))
+	if target := os.Getenv("TESTIFY_OFFICIAL_INVENTORY"); target != "" {
+		require.NoError(t, writeJSONFile(target, officialInventory(t, fixture)))
+	}
+	require.NoError(t, os.RemoveAll(fixture))
+	require.NoError(t, os.RemoveAll(attempt))
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", imported)
+	standalone := prepareFixture(t, env, "--recording", exported)
+	require.NoError(t, os.RemoveAll(exported))
+	plan := readJSON(t, filepath.Join(standalone, "packages", str(material["id"]), "material", "plan.json"))
+	input, err := json.Marshal(object{"id": 1, "method": "conformance", "params": object{"cwd": plan["project"]}})
+	require.NoError(t, err)
+	runPreparedMock(t, env, standalone, "", string(input)+"\n")
+	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", standalone)
+	secondExport := filepath.Join(t.TempDir(), "reexported-core")
+	mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", standalone, "--output", secondExport)
+	require.Equal(t, before, officialInventory(t, secondExport))
 }
 
 func officialInventory(t *testing.T, root string) map[string]string {

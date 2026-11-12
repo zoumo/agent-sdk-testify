@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -36,7 +37,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 		},
 		{
 			name: "duplicate index execution",
-			want: "duplicate execution identity",
+			want: "duplicate execution/material identity",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, _ *agenttestify.MockAgentResult, _ *agenttestify.ExecutionReport) {
 				mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "executions", "index.json"), func(value map[string]any) {
 					executions := value["executions"].([]any)
@@ -46,7 +47,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 		},
 		{
 			name: "descriptor execution identity",
-			want: "descriptor identity",
+			want: "execution path differs from package identity",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, result *agenttestify.MockAgentResult, _ *agenttestify.ExecutionReport) {
 				rewriteLibraryDescriptor(t, fixture.FixtureDir, result.ExecutionID, func(value map[string]any) {
 					value["executionId"] = "other"
@@ -66,7 +67,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 			name: "material identity",
 			want: "material",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, _ *agenttestify.MockAgentResult, _ *agenttestify.ExecutionReport) {
-				mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "materials", "index.json"), func(value map[string]any) {
+				mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "packages", "index.json"), func(value map[string]any) {
 					material := value["materials"].([]any)[0].(map[string]any)
 					material["planSHA256"] = strings.Repeat("0", 64)
 				})
@@ -166,7 +167,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 			want: "schema or version",
 			mutate: func(t *testing.T, _ *agenttestify.Fixture, _ *agenttestify.MockAgentResult, report *agenttestify.ExecutionReport) {
 				mutateLibraryJSON(t, report.Connections[0].ReceiptPath, func(value map[string]any) {
-					value["schemaVersion"] = float64(2)
+					value["schemaVersion"] = float64(999)
 				})
 			},
 		},
@@ -208,7 +209,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 		},
 		{
 			name: "receipt recording path",
-			want: "recording path",
+			want: "recording reference",
 			mutate: func(t *testing.T, _ *agenttestify.Fixture, _ *agenttestify.MockAgentResult, report *agenttestify.ExecutionReport) {
 				mutateLibraryJSON(t, report.Connections[0].ReceiptPath, func(value map[string]any) {
 					value["recording"] = "/different"
@@ -376,7 +377,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 		},
 		{
 			name: "material bytes",
-			want: "hash",
+			want: "current legacy inventory differs",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, _ *agenttestify.MockAgentResult, _ *agenttestify.ExecutionReport) {
 				appendFile(t, filepath.Join(fixture.Current.Path, "raw", "raw.jsonl"), "\n")
 			},
@@ -430,6 +431,45 @@ func TestLibraryExecutionReportMissingExecutionDoesNotCreateOne(t *testing.T) {
 	require.ErrorContains(t, err, "identity")
 	require.Nil(t, report)
 	require.Equal(t, before, executionDirectoryCount(t, prepared.FixtureDir))
+}
+
+func TestLibraryExecutionReportRejectsPackageReferenceEscapes(t *testing.T) {
+	for _, name := range []string{"absolute", "traversal", "noncanonical", "wrong execution", "wrong connection", "symlink"} {
+		t.Run(name, func(t *testing.T) {
+			fixture, result := completedLibraryMockReport(t)
+			current := readFile(t, filepath.Join(fixture.FixtureDir, "current.json"))
+			index := readFile(t, filepath.Join(fixture.FixtureDir, "executions", "index.json"))
+			if name == "symlink" {
+				outside := filepath.Join(t.TempDir(), "receipt.json")
+				require.NoError(t, os.WriteFile(outside, readFile(t, result.ReceiptPath), 0o600))
+				require.NoError(t, os.Remove(result.ReceiptPath))
+				require.NoError(t, os.Symlink(outside, result.ReceiptPath))
+			} else {
+				rewriteLibraryDescriptor(t, fixture.FixtureDir, result.ExecutionID, func(value map[string]any) {
+					connection := value["connections"].([]any)[0].(map[string]any)
+					reference := connection["receipt"].(string)
+					switch name {
+					case "absolute":
+						connection["receipt"] = result.ReceiptPath
+					case "traversal":
+						connection["receipt"] = "../" + reference
+					case "noncanonical":
+						connection["receipt"] = "./" + reference
+					case "wrong execution":
+						connection["receipt"] = "executions/other/receipts/main.replay.json"
+					case "wrong connection":
+						connection["receipt"] = "executions/" + result.ExecutionID + "/receipts/probe.replay.json"
+					}
+				}, nil)
+				index = readFile(t, filepath.Join(fixture.FixtureDir, "executions", "index.json"))
+			}
+			report, err := fixture.ExecutionReport(result.ExecutionID)
+			require.Error(t, err)
+			require.Nil(t, report)
+			require.Equal(t, current, readFile(t, filepath.Join(fixture.FixtureDir, "current.json")))
+			require.Equal(t, index, readFile(t, filepath.Join(fixture.FixtureDir, "executions", "index.json")))
+		})
+	}
 }
 
 func TestLibraryMockWaitFailsClosedWhenReportCannotBeBuilt(t *testing.T) {
@@ -505,7 +545,7 @@ func rewriteLibraryDescriptor(
 	mutateIndexExecution func(map[string]any),
 ) {
 	t.Helper()
-	descriptorPath := filepath.Join(fixtureDir, "executions", executionID, "execution.json")
+	descriptorPath := libraryExecutionPath(t, fixtureDir, executionID)
 	mutateLibraryJSON(t, descriptorPath, mutateDescriptor)
 	digest := libraryFileDigest(t, descriptorPath)
 	mutateLibraryJSON(t, filepath.Join(fixtureDir, "executions", "index.json"), func(value map[string]any) {
@@ -524,6 +564,19 @@ func rewriteLibraryDescriptor(
 	})
 }
 
+func libraryExecutionPath(t *testing.T, fixtureDir, executionID string) string {
+	t.Helper()
+	index := readLibraryJSON(t, filepath.Join(fixtureDir, "executions", "index.json"))
+	for _, raw := range index["executions"].([]any) {
+		execution := raw.(map[string]any)
+		if execution["id"] == executionID {
+			return filepath.Join(fixtureDir, "packages", execution["materialId"].(string), "executions", executionID, "execution.json")
+		}
+	}
+	t.Fatalf("execution %s is absent from index", executionID)
+	return ""
+}
+
 func repinLibraryManifest(t *testing.T, fixture *agenttestify.Fixture, executionID string, mutate func(map[string]any)) {
 	t.Helper()
 	manifestPath := filepath.Join(fixture.Current.Path, "manifest.json")
@@ -535,21 +588,44 @@ func repinLibraryManifest(t *testing.T, fixture *agenttestify.Fixture, execution
 			files["manifest.json"] = digest
 		}
 	}
-	mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "materials", "index.json"), func(value map[string]any) {
+	files := treeHashes(t, fixture.Current.Path)
+	var names []string
+	for name := range files {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	var inventory strings.Builder
+	for _, name := range names {
+		inventory.WriteString(name + "\x00" + files[name] + "\n")
+	}
+	sum := sha256.Sum256([]byte(inventory.String()))
+	legacyHash := hex.EncodeToString(sum[:])
+	mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "packages", "index.json"), func(value map[string]any) {
 		for _, raw := range value["materials"].([]any) {
 			material := raw.(map[string]any)
 			if material["id"] != fixture.Current.ID {
 				continue
 			}
 			repinMaterialManifest(material)
+			material["files"] = files
+			material["legacyInventorySHA256"] = legacyHash
 			return
 		}
 		t.Fatalf("material %s is absent from index", fixture.Current.ID)
 	})
-	mutateLibraryJSON(t, filepath.Join(fixture.Current.Path, "material.json"), repinMaterialManifest)
+	// This fixture imports a descriptorless legacy tree. Rebind its control
+	// inventory so the test reaches manifest validation without inventing a core
+	// descriptor or altering any recorded source file beyond the test mutation.
+	require.NoFileExists(t, filepath.Join(fixture.Current.Path, "material.json"))
+	mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "current.json"), func(value map[string]any) {
+		value["manifestSHA256"] = digest
+		value["legacyInventorySHA256"] = legacyHash
+	})
 	rewriteLibraryDescriptor(t, fixture.FixtureDir, executionID, func(value map[string]any) {
 		artifact := value["artifact"].(map[string]any)
 		repinMaterialManifest(artifact)
+		artifact["files"] = files
+		artifact["legacyInventorySHA256"] = legacyHash
 		for _, raw := range value["connections"].([]any) {
 			connection := raw.(map[string]any)
 			connection["manifestSHA256"] = digest

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -132,10 +133,20 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.NotNil(t, imported.Current)
 	expectedMaterial := *prepared.Current
 	expectedMaterial.Path = imported.Current.Path
+	if _, err := os.Stat(filepath.Join(output, "material.json")); os.IsNotExist(err) {
+		// Descriptorless legacy bytes have no durable material identity. Each
+		// prepare assigns one in control, without adding an envelope to the core.
+		require.NotEmpty(t, imported.Current.ID)
+		require.NotEqual(t, prepared.Current.ID, imported.Current.ID)
+		require.Equal(t, "external", imported.Current.Provenance)
+		_, err := time.Parse(time.RFC3339Nano, imported.Current.CreatedAt)
+		require.NoError(t, err)
+		expectedMaterial.ID = imported.Current.ID
+		expectedMaterial.Provenance = "external"
+		expectedMaterial.CreatedAt = imported.Current.CreatedAt
+	}
 	require.Equal(t, expectedMaterial, *imported.Current)
 	exportedHashes, importedHashes := treeHashes(t, output), treeHashes(t, imported.Current.Path)
-	delete(exportedHashes, "material.json")
-	delete(importedHashes, "material.json")
 	require.Equal(t, exportedHashes, importedHashes)
 	assertImportedMaterialBytes(t, output, imported.Current.Path)
 
@@ -568,7 +579,7 @@ func treeContents(t *testing.T, root string) map[string][]byte {
 		if err != nil {
 			return err
 		}
-		contents[filepath.ToSlash(rel)] = append([]byte(nil), readFile(t, path)...)
+		contents[filepath.ToSlash(rel)] = readFile(t, path)
 		return nil
 	}))
 	return contents
@@ -581,16 +592,6 @@ func assertImportedMaterialBytes(t *testing.T, exportedRoot, importedRoot string
 	for name, want := range exported {
 		got, present := imported[name]
 		require.True(t, present, name)
-		if name == "material.json" {
-			// The material envelope binds its new fixture-local path; all other
-			// package bytes must survive the import unchanged.
-			var exportedMaterial, importedMaterial map[string]any
-			require.NoError(t, json.Unmarshal(want, &exportedMaterial))
-			require.NoError(t, json.Unmarshal(got, &importedMaterial))
-			exportedMaterial["path"], importedMaterial["path"] = "", ""
-			require.Equal(t, exportedMaterial, importedMaterial)
-			continue
-		}
 		require.Equal(t, want, got, name)
 	}
 }

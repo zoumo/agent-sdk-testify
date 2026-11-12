@@ -138,7 +138,9 @@ func TestLibraryRecordFailureRetainsEvidenceAndCurrent(t *testing.T) {
 	require.FileExists(t, failed.ReceiptPath)
 	require.FileExists(t, failed.ProcessReceiptPath)
 	require.FileExists(t, failed.ResultPath)
-	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(failed.ReceiptPath), "stderr.raw"))), "synthetic library record failure")
+	// Failed capture retains its native raw evidence in the execution domain;
+	// the stable protocol receipt is a separate connection-owned file.
+	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(failed.ExecutionPath), "capture", "raw", "stderr.raw"))), "synthetic library record failure")
 
 	resultReference := readLibraryJSON(t, failed.ResultPath)
 	require.Equal(t, "failed", resultReference["status"])
