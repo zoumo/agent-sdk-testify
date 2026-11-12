@@ -87,9 +87,20 @@ out = pathlib.Path(runtime['output'])
 	require.FileExists(t, filepath.Join(attempt, "verify", filepath.Base(verifyRoot), "verification.json"))
 	imported := prepareFixture(t, env, "--recording", attempt)
 	require.Equal(t, before, officialInventory(t, filepath.Join(imported, "packages", id, "material")))
+	// A later admission reads back the prior adopted package through
+	// VerifyAdopted before replacing its index entry with the new exact proof.
+	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixture, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
+	verifyRoot, _ = latestOfficialVerification(t, fixture)
+	admission = readJSON(t, filepath.Join(fixture, "runtime", "official", filepath.Base(verifyRoot), "admission-summary.json"))
+	require.Equal(t, "admitted", admission["status"])
+	attempt = str(admission["materials"])
+	require.Equal(t, before, officialInventory(t, filepath.Join(attempt, "material")))
 	indexBefore := readFile(t, corpus.index)
-	for _, status := range []string{"failed", "untriggered"} {
+	for _, status := range []string{"failed", "untriggered", "no-trigger"} {
 		failedDriver := strings.Replace(driver, "'status':'passed','branchStatus':'passed'", "'status':'"+status+"','branchStatus':'"+status+"'", 1)
+		if status == "no-trigger" {
+			failedDriver = strings.Replace(driver, "peer = runtime['peer']", "sys.exit(0)", 1)
+		}
 		require.NoError(t, os.WriteFile(filepath.Join(drivers, "agent-sdk-testify-codex"), []byte(failedDriver), 0o700))
 		failed := runTool(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixture, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
 		require.Equal(t, 1, failed.code, failed.stderr)
