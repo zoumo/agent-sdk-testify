@@ -275,7 +275,7 @@ func TestLibraryStartMockAgentRejectsCorruptJoinEvidence(t *testing.T) {
 		},
 		{
 			name:       "material bytes",
-			want:       "current legacy inventory differs",
+			want:       "material core inventory hash mismatch: remote-probe/raw/raw.jsonl",
 			finishMain: true,
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, _ string) {
 				appendFile(t, filepath.Join(fixture.Current.Path, "remote-probe", "raw", "raw.jsonl"), "\n")

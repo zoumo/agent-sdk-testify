@@ -1,6 +1,7 @@
 package conformance
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,29 +14,20 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-// Use the adopted legacy bytes, including original rollout names and Claude's
-// sidecar. Synthetic peers only exchange protocol frames; the real driver seed
-// reader and installed record/replay commands own every checked artifact.
-func TestFinalContractsTrackedLegacyChildHistorySeed(t *testing.T) {
+// Explicit synthetic legacy inputs preserve rollout names and Claude's sidecar
+// coverage independently of the current recording corpus.
+func TestFinalContractsLegacyChildHistorySeed(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
-		t.Run(provider, func(t *testing.T) { checkTrackedLegacyChildHistorySeed(t, provider) })
+		t.Run(provider, func(t *testing.T) { checkLegacyChildHistorySeed(t, provider) })
 	}
 }
 
-func checkTrackedLegacyChildHistorySeed(t *testing.T, provider string) {
+func checkLegacyChildHistorySeed(t *testing.T, provider string) {
 	python, err := exec.LookPath("python3")
 	require.NoError(t, err)
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
-	var original string
-	for _, value := range array(readJSON(t, filepath.Join(repository, "data", "index.json"))["cases"]) {
-		row := obj(value)
-		if row["provider"] == provider && row["caseId"] == "SDK-CASE-034" {
-			require.Equal(t, "admitted", row["adoption"])
-			original = filepath.Join(repository, "data", str(row["materials"]))
-		}
-	}
-	require.NotEmpty(t, original)
+	original := syntheticLegacyChildHistory(t, provider)
 	require.NotContains(t, readJSON(t, filepath.Join(original, "plan.json")), "historyBindings")
 	inventory := officialInventory(t, original)
 	external := filepath.Join(t.TempDir(), "legacy-source")
@@ -129,4 +121,55 @@ out = pathlib.Path(runtime['output'])
 	if target := os.Getenv("TESTIFY_LEGACY_SEED_INVENTORY"); target != "" {
 		require.NoError(t, writeJSONFile(target+"-"+provider+".json", object{"source": inventory, "core": before, "plan": plan}))
 	}
+}
+
+func syntheticLegacyChildHistory(t *testing.T, provider string) string {
+	t.Helper()
+	root := t.TempDir()
+	const project = "/synthetic/legacy/project"
+	const parent, child = "legacy-parent", "legacy-child"
+	plan := object{
+		"provider": provider, "driverProfile": "history", "project": project,
+		"model": "synthetic-model", "recordingIsolation": "personal-skills-v1",
+		"scenario": object{
+			"parameters": object{"historyTarget": "child-messages"},
+			"files":      object{"fixture.txt": "synthetic legacy seed\n"},
+		},
+	}
+	writeJSON(t, filepath.Join(root, "plan.json"), plan)
+	receipts := []object{{"list_subagents": object{"sessionId": parent, "agentIds": []string{child}}}}
+	history := map[string]object{
+		"config/projects/-synthetic-legacy-project/" + parent + ".jsonl":                                   {"cwd": project, "sessionId": parent},
+		"config/projects/-synthetic-legacy-project/" + parent + "/subagents/agent-" + child + ".jsonl":     {"cwd": project, "sessionId": parent, "agentId": child},
+		"config/projects/-synthetic-legacy-project/" + parent + "/subagents/agent-" + child + ".meta.json": {"agentType": "fixture_reader"},
+	}
+	if provider == "codex" {
+		receipts = []object{{"history-query": object{
+			"method":   "thread/list",
+			"params":   object{"parentThreadId": parent},
+			"response": object{"data": []object{{"id": child, "parentThreadId": parent}}},
+		}}}
+		history = map[string]object{
+			"config/sessions/2026/11/01/rollout-" + parent + ".jsonl": {"type": "session_meta", "payload": object{"id": parent, "cwd": project}},
+			"config/sessions/2026/11/01/rollout-" + child + ".jsonl":  {"type": "session_meta", "payload": object{"id": child, "cwd": project, "parentThreadId": parent}},
+		}
+	}
+	saved := object{}
+	for name, row := range history {
+		path := filepath.Join(root, filepath.FromSlash(name))
+		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
+		data, err := json.Marshal(row)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, append(data, '\n'), 0o600))
+		saved[name] = digestFile(t, path)
+	}
+	writeJSON(t, filepath.Join(root, "report.json"), object{"status": "passed", "provenance": "synthetic", "receipts": receipts})
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "raw"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "raw", "raw.jsonl"), []byte("{}\n"), 0o600))
+	writeJSON(t, filepath.Join(root, "manifest.json"), object{
+		"provenance": "capture", "status": "passed", "captureStatus": "complete",
+		"planSHA256": digestFile(t, filepath.Join(root, "plan.json")), "savedFiles": saved,
+		"files": object{"raw.jsonl": digestFile(t, filepath.Join(root, "raw", "raw.jsonl"))},
+	})
+	return root
 }

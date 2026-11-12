@@ -285,21 +285,22 @@ func TestPlanSeedHistoryConformance(t *testing.T) {
 	artifact := obj(array(index["materials"])[0])
 	material := fixtureMaterialRoot(t, fixtureDir, artifact)
 	manifest := readJSON(t, filepath.Join(material, "manifest.json"))
-	plan := readJSON(t, filepath.Join(material, "plan.json"))
-	seedFiles := obj(obj(plan["historySeed"])["files"])
+	seedFiles := object{}
+	for name, digest := range obj(manifest["files"]) {
+		if strings.HasPrefix(name, "history/seed/") {
+			seedFiles[name] = digest
+		}
+	}
 	require.NotEmpty(t, seedFiles)
 
 	runPreparedMock(t, env, fixtureDir, "", inputs["main"])
 	execution := latestExecution(t, fixtureDir, "mock")
 	historyFiles := obj(execution["historyFiles"])
 	for name, value := range seedFiles {
-		digest := str(obj(value)["sha256"])
+		digest := str(value)
 		require.Equal(t, digest, digestFile(t, filepath.Join(material, filepath.FromSlash(name))), name)
 		require.NotContains(t, historyFiles, name, "frozen seed closure is not a native startup target")
 		require.NoFileExists(t, filepath.Join(executionOverlayRoot(t, fixtureDir, execution), filepath.FromSlash(name)))
-		if declared := obj(manifest["savedFiles"])[name]; declared != nil {
-			require.Equal(t, digest, declared)
-		}
 	}
 	require.NotEmpty(t, historyFiles)
 	assertFileHashes(t, executionOverlayRoot(t, fixtureDir, execution), historyFiles)

@@ -23,7 +23,12 @@ func TestClaudeHistoryMockCompletesWithoutNativeSessionFinalization(t *testing.T
 			input := builtinInputs(t, "claude", caseID)["main"]
 			mustRun(t, env, t.TempDir(), input, "agent", "mock", "--fixture-dir", fixtureDir)
 			execution := latestExecution(t, fixtureDir, "mock")
-			source := obj(readJSON(t, filepath.Join(material, "manifest.json"))["savedFiles"])
+			source := object{}
+			for _, value := range array(readJSON(t, filepath.Join(material, "plan.json"))["historyBindings"]) {
+				binding := obj(value)
+				source[str(binding["nativeTarget"])] = binding["sha256"]
+			}
+			require.NotEmpty(t, source)
 			bindings := obj(execution["historyFiles"])
 			require.Greater(t, len(bindings), len(source))
 			for name, digest := range source {
