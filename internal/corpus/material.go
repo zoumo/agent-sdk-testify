@@ -212,6 +212,17 @@ func SelectionProvenance(plan, manifest tool.Object) (string, error) {
 }
 
 func InspectMaterial(artifact Material) (*MaterialInspection, error) {
+	return inspectMaterial(artifact, true)
+}
+
+// InspectMaterialWithoutDescriptor validates a supported legacy package whose
+// identity is stored only in the caller's fixture index. The material
+// directory must not gain a descriptor during the import.
+func InspectMaterialWithoutDescriptor(artifact Material) (*MaterialInspection, error) {
+	return inspectMaterial(artifact, false)
+}
+
+func inspectMaterial(artifact Material, descriptor bool) (*MaterialInspection, error) {
 	if artifact.Path == "" || !filepath.IsAbs(artifact.Path) {
 		return nil, errors.New("material path must be absolute")
 	}
@@ -223,7 +234,13 @@ func InspectMaterial(artifact Material) (*MaterialInspection, error) {
 		return nil, errors.New("material path is not an unlinked directory")
 	}
 	if len(artifact.Files) > 0 {
-		if err := CheckMaterialInventory(artifact.Path, artifact); err != nil {
+		var err error
+		if descriptor {
+			err = CheckMaterialInventory(artifact.Path, artifact)
+		} else {
+			err = CheckMaterialFiles(artifact.Path, artifact)
+		}
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -287,6 +304,24 @@ func CheckMaterialInventory(root string, artifact Material) error {
 	return nil
 }
 
+// CheckMaterialFiles verifies a descriptorless legacy package against the
+// identity and hashes held by the current fixture index.
+func CheckMaterialFiles(root string, artifact Material) error {
+	if _, err := os.Lstat(filepath.Join(root, "material.json")); err == nil {
+		return errors.New("descriptorless material contains material.json")
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	actual, err := history.HashTree(root)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(actual, artifact.Files) {
+		return errors.New("material closure hash mismatch")
+	}
+	return nil
+}
+
 // SameDescriptor compares persisted material identity without treating the
 // caller-resolved root as part of the descriptor.
 func (m Material) SameDescriptor(other Material) bool {
@@ -331,6 +366,31 @@ func checkMaterialProvenance(artifact Material, plan, manifest tool.Object, sele
 		return fmt.Errorf("artifact provenance is missing or unknown: %q", claimed)
 	}
 	return nil
+}
+
+// ReadMaterialDescriptor loads the descriptor owned by a supported material
+// format. The caller supplies the material root explicitly; a stored legacy
+// path is retained in the file bytes but is never used to locate content.
+// A nil descriptor means a supported legacy package without material.json.
+func ReadMaterialDescriptor(root string) (*Material, error) {
+	path := filepath.Join(root, "material.json")
+	if _, err := os.Lstat(path); os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	var material Material
+	if err := tool.ReadJSON(path, &material); err != nil {
+		return nil, err
+	}
+	if len(material.Files) == 0 {
+		return nil, errors.New("material descriptor omits its file inventory")
+	}
+	material.Path = root
+	if err := CheckMaterialInventory(root, material); err != nil {
+		return nil, err
+	}
+	return &material, nil
 }
 
 // ReadMaterial describes an imported payload. Its caller assigns fixture-local
