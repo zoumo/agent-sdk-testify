@@ -107,7 +107,7 @@ out = pathlib.Path(runtime['output'])
 	for _, key := range []string{"files", "sourceFiles", "projectFiles", "sourceRoot"} {
 		require.NotContains(t, seed, key)
 	}
-	require.Equal(t, float64(3), readJSON(t, filepath.Join(core, "manifest.json"))["materialFormatVersion"])
+	require.Equal(t, 3, int(readJSON(t, filepath.Join(core, "manifest.json"))["materialFormatVersion"].(float64)))
 	require.Equal(t, "history/seed/source/plan.json", obj(seed["materialPlan"])["path"])
 	require.Equal(t, priorHash, obj(seed["materialPlan"])["sha256"])
 	require.Equal(t, digestFile(t, filepath.Join(fixture, "source", "plan.json")), plan["sourcePlanSHA256"])
