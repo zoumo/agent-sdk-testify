@@ -21,7 +21,7 @@ else
   version=$(git -C "$testify_source" describe --tags --exact-match 2>/dev/null || printf devel)
   build_flags=(build)
   if "$race"; then build_flags+=(-race); fi
-  GOPROXY=off GOSUMDB=off "$testify_go" -C "$testify_source" "${build_flags[@]}" \
+  bash "$testify_source/scripts/with-build-checkout.sh" "$testify_go" "${build_flags[@]}" \
     -ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version" \
     -o "$AGENT_SDK_TESTIFY_BIN" ./cmd/agent-sdk-testify
 fi
@@ -31,7 +31,8 @@ actual_race=$(awk '$1 == "build" && $2 == "-race=true" { print "true" }' <<< "$i
 [[ "$package" == github.com/zoumo/agent-sdk-testify/cmd/agent-sdk-testify ]] || { echo "unexpected CLI package: $package" >&2; exit 2; }
 [[ "${actual_race:-false}" == "$race" ]] || { echo "CLI race mode mismatch: artifact race=${actual_race:-false}, requested race=$race" >&2; exit 2; }
 export AGENT_SDK_TESTIFY_BIN
-export AGENT_SDK_TESTIFY_VERSION="$("$AGENT_SDK_TESTIFY_BIN" version | awk '{print $2}')"
+AGENT_SDK_TESTIFY_VERSION="$("$AGENT_SDK_TESTIFY_BIN" version | awk '{print $2}')"
+export AGENT_SDK_TESTIFY_VERSION
 export GORACE="${GORACE:-} atexit_sleep_ms=0"
 printf 'CLI: %s (race=%s)\n' "$AGENT_SDK_TESTIFY_BIN" "$race" >&2
 "$@"

@@ -22,6 +22,14 @@ lint:
 fmt-check:
 	$(GOLANGCI_LINT) fmt --diff
 
+vet:
+	$(GO) vet ./...
+
+ifneq ($(shell test -f .git && echo linked),)
+# One independent checkout per invocation, including all phases of check-offline.
+test test-integration test-e2e test-build test-race build release:
+	bash scripts/with-build-checkout.sh $(MAKE) $@ BINARY="$(abspath $(BINARY))" ARTIFACT_DIR="$(abspath $(ARTIFACT_DIR))"
+else
 test:
 	$(GO) test $(GO_TEST_FLAGS) . ./internal/...
 
@@ -37,23 +45,21 @@ test-build:
 test-race:
 	$(GO) test $(GO_TEST_FLAGS) -race . ./internal/... ./tests/intergration/...
 
-vet:
-	$(GO) vet ./...
-
 build:
 	@mkdir -p "$(dir $(BINARY))"
 	$(GO) run -tags builtin_generate -ldflags=$(GO_LDFLAGS) ./cmd/agent-sdk-testify --check
 	$(GO) build -trimpath -ldflags=$(GO_LDFLAGS) -o "$(BINARY)" ./cmd/agent-sdk-testify
+
+release:
+	@test -n "$(OUTPUT)" || { echo "usage: make release OUTPUT=/absolute/new-dist" >&2; exit 2; }
+	$(PYTHON) scripts/release.py --output "$(OUTPUT)"
+endif
 
 bundle:
 	PYTHON="$(PYTHON)" bash scripts/build.sh
 
 check: fmt-check lint
 	PYTHON="$(PYTHON)" bash scripts/check-offline.sh
-
-release:
-	@test -n "$(OUTPUT)" || { echo "usage: make release OUTPUT=/absolute/new-dist" >&2; exit 2; }
-	$(PYTHON) scripts/release.py --output "$(OUTPUT)"
 
 clean:
 	rm -rf "$(BIN_DIR)" "$(ARTIFACT_DIR)"
