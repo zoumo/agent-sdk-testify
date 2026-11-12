@@ -26,9 +26,7 @@ func (r *OfficialRun) AuthorizeRecord(driverHash string, ids []string) (map[stri
 		return nil, err
 	}
 	planPath := r.Fixture.Source.Path
-	if r.Fixture.Source.Kind == "recording" {
-		planPath = filepath.Join(planPath, "plan.json")
-	}
+
 	sourcePlanHash, err := tool.FileDigest(planPath)
 	if err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -28,7 +29,7 @@ func artifactForMaterial(root, provenance string, connections []string) (*corpus
 		return nil, err
 	}
 	material.ID, material.Action, material.CreatedAt = id, "initial", now()
-	material.FormatVersion = corpus.MaterialFormatVersion
+	material.FormatVersion = 2
 	material.Connections = append([]string(nil), connections...)
 	if hasOfficialOrigin {
 		var origin corpus.OfficialOrigin
@@ -48,30 +49,15 @@ func LoadPlan(fixture *Fixture) (tool.Object, error) {
 	switch fixture.Source.Kind {
 	case "case", "plan":
 	case "recording":
-		path = filepath.Join(fixture.Source.Path, "plan.json")
 	default:
 		return nil, errors.New("unknown fixture source")
 	}
-	if fixture.Source.Kind == "case" || fixture.Source.Kind == "plan" {
-		hash, err := tool.FileDigest(path)
-		if err != nil {
-			return nil, err
-		}
-		if hash != fixture.Source.SHA256 {
-			return nil, errors.New("fixture source changed after prepare")
-		}
-	} else {
-		planHash, err := tool.FileDigest(path)
-		if err != nil {
-			return nil, err
-		}
-		manifestHash, err := tool.FileDigest(filepath.Join(fixture.Source.Path, "manifest.json"))
-		if err != nil {
-			return nil, err
-		}
-		if tool.DigestBytes([]byte(planHash+"\n"+manifestHash+"\n")) != fixture.Source.SHA256 {
-			return nil, errors.New("fixture source changed after prepare")
-		}
+	hash, err := tool.FileDigest(path)
+	if err != nil {
+		return nil, err
+	}
+	if hash != fixture.Source.SHA256 {
+		return nil, errors.New("fixture source changed after prepare")
 	}
 	var plan tool.Object
 	if err := tool.ReadJSON(path, &plan); err != nil {
@@ -131,6 +117,13 @@ func readCurrent(fixtureDir, fixtureID string) (Current, error) {
 		for name, want := range map[string]string{"material.json": current.MaterialSHA256, "manifest.json": current.ManifestSHA256} {
 			if name == "material.json" && want == "" {
 				if _, err := os.Lstat(filepath.Join(root, name)); os.IsNotExist(err) {
+					if current.LegacyFormat != "descriptorless" || current.LegacyInventorySHA256 == "" {
+						return Current{}, errors.New("current legacy material omits inventory identity")
+					}
+					files, err := history.HashTree(root)
+					if err != nil || history.InventoryDigest(files) != current.LegacyInventorySHA256 {
+						return Current{}, errors.New("current legacy inventory differs")
+					}
 					continue // descriptorless legacy import
 				}
 				return Current{}, errors.New("current recording omits its material sealed hash")
@@ -157,11 +150,13 @@ func LatestArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, erro
 }
 
 type Current struct {
-	SchemaVersion  int    `json:"schemaVersion"`
-	FixtureID      string `json:"fixtureId"`
-	MaterialID     string `json:"materialId,omitempty"`
-	MaterialSHA256 string `json:"materialSHA256,omitempty"`
-	ManifestSHA256 string `json:"manifestSHA256,omitempty"`
+	SchemaVersion         int    `json:"schemaVersion"`
+	FixtureID             string `json:"fixtureId"`
+	MaterialID            string `json:"materialId,omitempty"`
+	MaterialSHA256        string `json:"materialSHA256,omitempty"`
+	LegacyInventorySHA256 string `json:"legacyInventorySHA256,omitempty"`
+	LegacyFormat          string `json:"legacyFormat,omitempty"`
+	ManifestSHA256        string `json:"manifestSHA256,omitempty"`
 }
 
 func writeCurrent(fixtureDir string, fixture *Fixture, materialID string) error {
@@ -172,7 +167,14 @@ func writeCurrent(fixtureDir string, fixture *Fixture, materialID string) error 
 		}
 		var err error
 		current.MaterialSHA256, err = tool.FileDigest(filepath.Join(MaterialRoot(fixtureDir, materialID), "material.json"))
-		if err != nil && !os.IsNotExist(err) {
+		if os.IsNotExist(err) {
+			files, e := history.HashTree(MaterialRoot(fixtureDir, materialID))
+			if e != nil {
+				return e
+			}
+			current.LegacyInventorySHA256 = history.InventoryDigest(files)
+			current.LegacyFormat = "descriptorless"
+		} else if err != nil {
 			return err
 		}
 		current.ManifestSHA256, err = tool.FileDigest(filepath.Join(MaterialRoot(fixtureDir, materialID), "manifest.json"))

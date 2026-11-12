@@ -28,6 +28,17 @@ func Bindings(root string) (map[string]string, error) {
 	if err := tool.ReadJSON(filepath.Join(root, "plan.json"), &plan); err != nil {
 		return nil, err
 	}
+	if manifest["materialFormatVersion"] == float64(3) {
+		values, err := CanonicalBindings(root, plan, manifest)
+		if err != nil {
+			return nil, err
+		}
+		out := map[string]string{}
+		for _, b := range values {
+			out[b.Source] = b.SHA256
+		}
+		return out, nil
+	}
 	bindings := map[string]string{}
 	if err := addBindings(root, bindings, "manifest.savedFiles", tool.Obj(manifest["savedFiles"]), func(value any) string {
 		digest, _ := value.(string)
@@ -254,9 +265,26 @@ func VerifyTree(root string, bindings map[string]string) error {
 // Materialize copies only independently bound history files and verifies both
 // the source and destination bytes.
 func Materialize(source, target string) (map[string]string, error) {
+	var canonicalPlan, canonicalManifest tool.Object
+	if err := tool.ReadJSON(filepath.Join(source, "manifest.json"), &canonicalManifest); err != nil {
+		return nil, err
+	}
+	if canonicalManifest["materialFormatVersion"] == float64(3) {
+		if err := tool.ReadJSON(filepath.Join(source, "plan.json"), &canonicalPlan); err != nil {
+			return nil, err
+		}
+		return materializeCanonical(source, target, canonicalPlan, canonicalManifest)
+	}
 	bindings, err := Bindings(source)
 	if err != nil {
 		return nil, err
+	}
+	// Legacy trees remain immutable in the material. Only native startup targets
+	// are copied into a new writable execution, never the frozen source closure.
+	for name := range bindings {
+		if !nativeTarget(name) {
+			delete(bindings, name)
+		}
 	}
 	names := make([]string, 0, len(bindings))
 	for name := range bindings {
@@ -294,6 +322,23 @@ func Materialize(source, target string) (map[string]string, error) {
 	return bindings, nil
 }
 
+// MaterializeStartup retains the complete writable native startup environment.
+// Templates have no execution envelope and therefore keep no sealed derivatives
+// or materialization receipt; an execution creates its own independent evidence.
+func MaterializeStartup(source, target string) (map[string]string, error) {
+	files, err := Materialize(source, target)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.RemoveAll(filepath.Join(target, "history", "derived")); err != nil {
+		return nil, err
+	}
+	if err := os.Remove(filepath.Join(target, "materialization.json")); err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	return files, Check(target, files)
+}
+
 // Check verifies the exact files recorded in an execution descriptor without
 // treating peer-created runtime files as source history.
 func Check(root string, bindings map[string]string) error {
@@ -323,7 +368,17 @@ func ValidateBindings(bindings map[string]string) error {
 }
 
 func Reset(root string) error {
-	for _, prefix := range historyRoots {
+	return resetRoots(root, historyRoots)
+}
+
+// ResetNative replaces native history while preserving the writable project
+// snapshot prepared for an existing-child record.
+func ResetNative(root string) error {
+	return resetRoots(root, []string{"config/projects", "config/sessions"})
+}
+
+func resetRoots(root string, roots []string) error {
+	for _, prefix := range roots {
 		current := filepath.Join(root, filepath.FromSlash(prefix))
 		info, err := os.Lstat(current)
 		if os.IsNotExist(err) {
@@ -421,4 +476,19 @@ func validDigest(value string) bool {
 	}
 	_, err := hex.DecodeString(value)
 	return err == nil
+}
+
+// InventoryDigest binds a descriptorless legacy tree without inventing a
+// material.json file hash. Paths use the same canonical ordering as inventory.
+func InventoryDigest(files map[string]string) string {
+	names := make([]string, 0, len(files))
+	for name := range files {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	hash := sha256.New()
+	for _, name := range names {
+		_, _ = io.WriteString(hash, name+"\x00"+files[name]+"\n")
+	}
+	return hex.EncodeToString(hash.Sum(nil))
 }

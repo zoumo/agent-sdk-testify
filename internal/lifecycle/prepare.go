@@ -3,7 +3,6 @@ package lifecycle
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -279,31 +278,38 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			return nil, errors.New("--fixture-dir must be outside the history seed")
 		}
 		historySeed = SourceSeedPath(fixtureDir)
-		if err := copyMaterial(sourceSeed, historySeed); err != nil {
+		if err := corpus.VerifyMaterials(sourceSeed, true); err != nil {
+			return nil, err
+		}
+		if err := copyMaterial(sourceSeed, filepath.Join(historySeed, "source")); err != nil {
+			return nil, err
+		}
+		var seedPlan tool.Object
+		if err := tool.ReadJSON(filepath.Join(historySeed, "source", "plan.json"), &seedPlan); err != nil {
+			return nil, err
+		}
+		if err := tool.WriteFiles(filepath.Join(historySeed, "project"), tool.Obj(tool.Obj(seedPlan["scenario"])["files"])); err != nil {
 			return nil, err
 		}
 		files, err := history.HashTree(historySeed)
 		if err != nil {
 			return nil, err
 		}
-		historySeedFiles = make(map[string]string, len(files))
+		historySeedFiles = map[string]string{}
 		for name, digest := range files {
 			historySeedFiles[fixtureSourceSeed+"/"+name] = digest
+		}
+		if spec.source.Kind == "plan" {
+			if _, err := history.MaterializeSeed(historySeed, baseline, spec.plan); err != nil {
+				return nil, err
+			}
 		}
 		if spec.source.Kind == "case" && spec.plan["driverProfile"] == "existing-children" {
 			if err := native.PrepareHistorySeed(historySeed, baseline, spec.plan); err != nil {
 				return nil, err
 			}
-			spec.planBytes, err = json.MarshalIndent(spec.plan, "", "  ")
-			if err != nil {
-				return nil, err
-			}
-			spec.planBytes = append(spec.planBytes, '\n')
-			spec.source.SHA256 = tool.DigestBytes(spec.planBytes)
 		}
-		if spec.source.Kind == "plan" {
-			err = tool.CopyTree(historySeed, filepath.Join(baseline, "history-seed"))
-		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -420,6 +426,8 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			return nil, err
 		}
 		if material != nil {
+			_, statErr := os.Lstat(filepath.Join(materialRoot, "material.json"))
+			descriptorlessImport = os.IsNotExist(statErr)
 			artifact, err := artifactForMaterial(materialRoot, "builtin", ids)
 			if err != nil {
 				return nil, err
@@ -427,10 +435,47 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			materialArtifact = artifact
 		}
 	case "recording":
-		if err := copyMaterial(fixture.Source.Path, materialRoot); err != nil {
+		importRoot := spec.source.Path
+		if spec.packageRoot != "" {
+			importRoot = spec.packageRoot
+			if err := copyMaterial(importRoot, PackageRoot(fixtureDir, materialID)); err != nil {
+				return nil, err
+			}
+		} else if err := copyMaterial(importRoot, materialRoot); err != nil {
 			return nil, err
 		}
-		fixture.Source.Path = materialRoot
+
+		rawSource, err := os.ReadFile(filepath.Join(materialRoot, "source-plan.json"))
+		if os.IsNotExist(err) {
+			rawSource, err = os.ReadFile(filepath.Join(materialRoot, "plan.json"))
+		}
+		if err != nil {
+			return nil, err
+		}
+		sourcePath, err := writePlanSnapshot(fixtureDir, rawSource)
+		if err != nil {
+			return nil, err
+		}
+		fixture.Source.Path = sourcePath
+		fixture.Source.SHA256 = tool.DigestBytes(rawSource)
+		seedPath := filepath.Join(materialRoot, "history", "seed")
+		if info, err := os.Lstat(seedPath); err == nil && info.IsDir() {
+			fixture.HistorySeed = SourceSeedPath(fixtureDir)
+			if err := copyMaterial(seedPath, fixture.HistorySeed); err != nil {
+				return nil, err
+			}
+			hashes, err := history.HashTree(fixture.HistorySeed)
+			if err != nil {
+				return nil, err
+			}
+			fixture.HistorySeedFiles = map[string]string{}
+			for name, hash := range hashes {
+				fixture.HistorySeedFiles[fixtureSourceSeed+"/"+name] = hash
+			}
+		} else if err != nil && !os.IsNotExist(err) {
+			return nil, err
+		}
+
 		if spec.material != nil {
 			imported := *spec.material
 			imported.Path = materialRoot
@@ -450,7 +495,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			if descriptorlessImport {
 				materialArtifact.FormatVersion = 0
 			} else {
-				materialArtifact.FormatVersion = corpus.MaterialFormatVersion
+				materialArtifact.FormatVersion = 2
 			}
 		}
 		files, err := history.HashTree(materialRoot)
@@ -458,8 +503,13 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			return nil, err
 		}
 		delete(files, "material.json")
-		if len(materialArtifact.Files) == 0 {
+		if materialArtifact.FormatVersion == 3 {
+			materialArtifact.Files = nil
+		} else if len(materialArtifact.Files) == 0 {
 			materialArtifact.Files = files
+			if descriptorlessImport {
+				materialArtifact.LegacyInventorySHA256 = history.InventoryDigest(files)
+			}
 		} else if !reflect.DeepEqual(materialArtifact.Files, files) {
 			return nil, errors.New("imported material closure differs from its descriptor")
 		}

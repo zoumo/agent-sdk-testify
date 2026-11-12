@@ -63,6 +63,9 @@ func sealExecution(run *transactionContext) error {
 			return errors.New("connection result differs from its execution identity")
 		}
 	}
+	if err := history.ValidateMaterialization(PackageRoot(run.fixtureDir, run.execution.Artifact.ID), run.dir); err != nil {
+		return err
+	}
 	files, err := history.HashTree(run.dir)
 	if err != nil {
 		return err
@@ -82,6 +85,17 @@ func sealExecution(run *transactionContext) error {
 	if run.execution.Command == "record" && run.publicationCommitted || run.execution.Command == "mock" {
 		result["material"] = "material/material.json"
 		result["manifestSHA256"] = run.execution.Artifact.ManifestSHA256
+		result["sourcePlanSHA256"] = run.execution.Artifact.SourcePlanSHA256
+		result["planSHA256"] = run.execution.Artifact.PlanSHA256
+		if run.execution.Artifact.LegacyInventorySHA256 != "" {
+			result["legacyInventorySHA256"] = run.execution.Artifact.LegacyInventorySHA256
+		} else {
+			hash, err := tool.FileDigest(filepath.Join(run.execution.Artifact.Path, "material.json"))
+			if err != nil {
+				return err
+			}
+			result["materialSHA256"] = hash
+		}
 	}
 	return writeExclusive(filepath.Join(run.dir, "result.json"), result)
 }

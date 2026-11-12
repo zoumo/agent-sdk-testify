@@ -3,14 +3,13 @@ package record
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/capture"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
@@ -119,9 +118,7 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	execution := run.Execution()
 	fixture := run.Fixture()
 	planPath := execution.Source.Path
-	if execution.Source.Kind == "recording" {
-		planPath = filepath.Join(planPath, "plan.json")
-	}
+
 	planBytes, err := os.ReadFile(planPath)
 	if err != nil {
 		return nil, err
@@ -129,15 +126,14 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	if _, err := lifecycle.LoadPlan(&fixture); err != nil {
 		return nil, err
 	}
+	if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), planBytes, 0o600); err != nil {
+		return nil, err
+	}
+	derived := run.Plan()
 	if run.IsOfficialCapture() {
-		if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), planBytes, 0o600); err != nil {
-			return nil, err
-		}
-		var derived tool.Object
 		if err := tool.ReadJSON(filepath.Join(run.OverlayRoot(), "material-plan.json"), &derived); err != nil {
 			return nil, err
 		}
-		derived["sourcePlanSHA256"] = tool.DigestBytes(planBytes)
 		if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "official-origin.json"), execution.Artifact.OfficialOrigin); err != nil {
 			return nil, err
 		}
@@ -146,17 +142,50 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 				return nil, err
 			}
 		}
-		encoded, err := json.MarshalIndent(derived, "", "  ")
-		if err != nil {
+	}
+	derived["sourcePlanSHA256"] = tool.DigestBytes(planBytes)
+	if fixture.HistorySeed != "" {
+		if err := lifecycle.VerifyHistorySeed(&fixture); err != nil {
 			return nil, err
 		}
-		planBytes = append([]byte(nil), encoded...)
-		planBytes = append(planBytes, '\n')
 	}
-	if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "plan.json"), planBytes, 0o600); err != nil {
+	seed := ""
+	if fixture.HistorySeed != "" {
+		seed = filepath.Join(run.ArtifactRoot(), "history-source")
+	}
+	startupDerived, err := history.StartupDerived(run.ExecutionDir())
+	if err != nil {
 		return nil, err
 	}
-	if err := snapshotHistory(run.OverlayRoot(), run.ArtifactRoot()); err != nil {
+	bindings, err := history.CaptureCanonical(seed, run.OverlayRoot(), run.ArtifactRoot(), derived, startupDerived)
+	if err != nil {
+		return nil, err
+	}
+	if seed != "" {
+		prefix := "executions/" + execution.ExecutionID + "/capture"
+		if err := history.RebindMaterialization(filepath.Dir(filepath.Dir(run.ExecutionDir())), run.ExecutionDir(), prefix+"/history-source", prefix+"/history/seed"); err != nil {
+			return nil, err
+		}
+		if err := os.RemoveAll(seed); err != nil {
+			return nil, err
+		}
+	}
+	derived["historyBindings"] = bindings
+	if old, ok := derived["historySeed"]; ok {
+		seed := tool.Obj(old)
+		clean := tool.Object{}
+		for _, key := range []string{"provider", "sourceProject", "sessionId", "agentIds"} {
+			if v, ok := seed[key]; ok {
+				clean[key] = v
+			}
+		}
+		derived["historySeed"] = clean
+	}
+	encoded, err := corpus.MaterialPlanBytes(planBytes, derived)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "plan.json"), encoded, 0o600); err != nil {
 		return nil, err
 	}
 	provenance := execution.Provenance
@@ -183,6 +212,9 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "report.json"), report); err != nil {
 		return nil, err
 	}
+	if err := corpus.SealCoreInventory(run.ArtifactRoot()); err != nil {
+		return nil, err
+	}
 	artifact, err := captureArtifact(run, execution)
 	if err != nil {
 		return nil, err
@@ -205,30 +237,6 @@ func environment(values map[string]string) []string {
 	return out
 }
 
-func snapshotHistory(source, target string) error {
-	for _, name := range []string{"config/projects", "config/sessions", "history-seed"} {
-		if err := copyEvidenceTree(source, target, name); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func copyEvidenceTree(source, target, name string) error {
-	path := filepath.Join(source, filepath.FromSlash(name))
-	info, err := os.Lstat(path)
-	if os.IsNotExist(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return fmt.Errorf("capture history is not an unlinked directory: %s", name)
-	}
-	return tool.CopyTree(path, filepath.Join(target, filepath.FromSlash(name)))
-}
-
 func captureArtifact(run lifecycle.RecordContext, execution lifecycle.Execution) (*corpus.Material, error) {
 	planHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "plan.json"))
 	if err != nil {
@@ -247,6 +255,17 @@ func captureArtifact(run lifecycle.RecordContext, execution lifecycle.Execution)
 	artifact.Action = "record"
 	artifact.Provenance = execution.Provenance
 	artifact.Path = run.ArtifactRoot()
+	artifact.FormatVersion = corpus.MaterialFormatVersion
+	artifact.SourcePlanSHA256, err = tool.FileDigest(filepath.Join(run.ArtifactRoot(), "source-plan.json"))
+	if err != nil {
+		return nil, err
+	}
+	if artifact.OfficialOrigin != nil {
+		artifact.OriginSHA256, err = tool.FileDigest(filepath.Join(run.ArtifactRoot(), "official-origin.json"))
+		if err != nil {
+			return nil, err
+		}
+	}
 	artifact.PlanSHA256 = planHash
 	artifact.ManifestSHA256 = manifestHash
 	artifact.RecordingSHA256 = rawHash
