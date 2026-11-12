@@ -7,13 +7,11 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"reflect"
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
-	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/native"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol"
@@ -96,7 +94,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		return err
 	}
 	o.FixtureDir, fixture = activity.FixtureDir, activity.Fixture
-	result := tool.Object{"schemaVersion": 2, "id": activity.ID, "fixtureId": fixture.FixtureID, "mode": "record", "status": "failed", "cleanupComplete": true, "case": plan["caseId"], "agentType": fixture.AgentType, "source": fixture.Source, "driver": tool.Object{"sha256": driverHash}, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
+	result := tool.Object{"schemaVersion": 3, "id": activity.ID, "fixtureId": fixture.FixtureID, "mode": "record", "status": "failed", "cleanupComplete": true, "case": plan["caseId"], "agentType": fixture.AgentType, "driver": tool.Object{"sha256": driverHash}, "startedAt": time.Now().UTC().Format(time.RFC3339Nano)}
 	defer func() {
 		result["completedAt"] = time.Now().UTC().Format(time.RFC3339Nano)
 		if runErr != nil {
@@ -106,8 +104,9 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		}
 		runErr = errors.Join(runErr, activity.Complete(result))
 	}()
-	root := filepath.Join(activity.Dir, "driver")
-	if err := os.MkdirAll(filepath.Join(root, "tmp"), 0o700); err != nil {
+	root := activity.Dir
+	private := filepath.Join(fixture.ResourceRoot, "official", activity.ID)
+	if err := os.MkdirAll(filepath.Join(private, "tmp"), 0o700); err != nil {
 		return err
 	}
 	env, err := lifecycle.RecordEnvironment(fixture)
@@ -130,8 +129,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
 		}
 	}
-	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(root, "raw"), filepath.Join(root, "tmp"), seedRoot, false)
-	private := filepath.Join(fixture.ResourceRoot, "official", activity.ID)
+	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(root, "raw"), filepath.Join(private, "tmp"), seedRoot, false)
 	var service interface {
 		URL() string
 		TokenFile() string
@@ -276,37 +274,14 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		Inspect: func(outcome, report tool.Object, _ error) error {
 			inspectErr := validateBusinessEvidence(fixture.AgentType, plan, bound, outcome, report)
 			refs, refErr := officialRecordReferences(o.FixtureDir, fixture, root, ids)
-			result["connections"] = refs
 			inspectErr = errors.Join(inspectErr, refErr)
-			if refErr == nil && len(refs) > 0 && (o.URL == "" || service != nil) {
-				executionID := tool.Str(refs[0]["executionId"])
-				execution, preparationErr := lifecycle.ReadExecution(o.FixtureDir, fixture, filepath.Join(o.FixtureDir, "executions", executionID, "execution.json"))
-				if preparationErr == nil {
-					preparationErr = lifecycle.RebindNativePreparationExecution(o.FixtureDir, *execution)
-				}
-				if preparationErr == nil {
-					paths := map[string]string{
-						"execution":    filepath.Join(o.FixtureDir, "executions", executionID, "execution.json"),
-						"isolation":    filepath.Join(o.FixtureDir, "executions", executionID, "receipts", "isolation.json"),
-						"preparedPlan": filepath.Join(filepath.Dir(execution.Home), "record-plan.json"),
-						"materialPlan": filepath.Join(filepath.Dir(execution.Home), "material-plan.json"),
-					}
-					references := tool.Object{}
-					for name, path := range paths {
-						reference, referenceErr := lifecycle.FixtureReference(o.FixtureDir, path)
-						hash, hashErr := tool.FileDigest(path)
-						preparationErr = errors.Join(preparationErr, referenceErr, hashErr)
-						references[name] = tool.Object{"path": reference, "sha256": hash}
-					}
-					if preparationErr == nil {
-						preparation := tool.Object{"schemaVersion": 2, "executionId": executionID, "material": execution.Artifact}
-						for name, reference := range references {
-							preparation[name] = reference
-						}
-						result["recordPreparation"] = preparation
-					}
-				}
-				inspectErr = errors.Join(inspectErr, preparationErr)
+			if refErr == nil && len(refs) > 0 {
+				result["executionId"] = refs[0]["executionId"]
+				materialID := tool.Str(tool.Obj(refs[0]["started"])["materialId"])
+				result["materialId"] = materialID
+				executionRefs, executionErr := executionReferences(o.FixtureDir, materialID, refs)
+				result["executions"] = executionRefs
+				inspectErr = errors.Join(inspectErr, executionErr)
 			}
 
 			// The parent report is produced after material closure. Apply the
@@ -327,11 +302,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	if run.ProcessGroupFailed {
 		result["cleanupComplete"] = false
 	}
-	result["business"], result["report"] = run.Outcome, run.Report
-	result["driverFiles"] = run.Files
-	if run.FileHashesComplete {
-		runErr = errors.Join(runErr, tool.WriteJSON(filepath.Join(activity.Dir, "driver-files.json"), run.Files))
-	}
+
 	return runErr
 }
 
@@ -357,42 +328,23 @@ func officialRecordReferences(fixtureDir string, fixture *lifecycle.Fixture, roo
 }
 
 func recordReference(fixtureDir string, fixture *lifecycle.Fixture, root, id string) (tool.Object, error) {
-	ref, execution, connection, err := readPeerReference(fixtureDir, fixture, root, id, "record", func(execution lifecycle.Execution) error {
+	ref, execution, _, err := readPeerReference(fixtureDir, fixture, root, id, "record", func(execution lifecycle.Execution) error {
 		return execution.Validate(*fixture)
 	})
 	if err != nil {
 		return ref, err
 	}
-	material := execution.Artifact
-	if material.ID == "" || material.Path != filepath.Join(fixtureDir, "materials", material.ID) {
-		return ref, errors.New("record did not publish a material")
-	}
-	var descriptor corpus.Material
-	if err := tool.ReadJSON(filepath.Join(material.Path, "material.json"), &descriptor); err != nil {
-		return ref, err
-	}
-	if !material.SameDescriptor(descriptor) {
-		return ref, errors.New("material differs from execution")
-	}
-	actualFiles, err := history.HashTree(material.Path)
+	reservedID := execution.Artifact.ID
+	descriptor, err := corpus.ReadMaterialDescriptor(lifecycle.MaterialRoot(fixtureDir, reservedID))
 	if err != nil {
 		return ref, err
 	}
-	delete(actualFiles, "material.json")
-	if !reflect.DeepEqual(actualFiles, material.Files) {
-		return ref, errors.New("material inventory changed")
+	if descriptor == nil || descriptor.ID != reservedID {
+		return ref, errors.New("record did not publish its reserved material")
 	}
-	for name, expected := range material.Files {
-		if !filepath.IsLocal(name) {
-			return ref, errors.New("invalid material file")
-		}
-		actual, err := tool.FileDigest(filepath.Join(material.Path, name))
-		if err != nil {
-			return ref, err
-		}
-		if actual != expected {
-			return ref, errors.New("material hash mismatch")
-		}
+	material := *descriptor
+	if err := corpus.ValidateCore(material.Path, material); err != nil {
+		return ref, err
 	}
 	ref["material"] = material
 	finished := tool.Obj(ref["finished"])
@@ -404,7 +356,11 @@ func recordReference(fixtureDir string, fixture *lifecycle.Fixture, root, id str
 		return ref, errors.New("final material notification is absent")
 	}
 	var receipt tool.Object
-	if err := tool.ReadJSON(connection.Receipt, &receipt); err != nil {
+	receiptPath, err := lifecycle.ResolvePackageReference(fixtureDir, material.ID, tool.Str(finished["receipt"]))
+	if err != nil {
+		return ref, err
+	}
+	if err := tool.ReadJSON(receiptPath, &receipt); err != nil {
 		return ref, err
 	}
 	if receipt["captureStatus"] != "complete" || receipt["cleanupComplete"] != true {

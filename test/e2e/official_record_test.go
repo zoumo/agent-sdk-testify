@@ -36,7 +36,7 @@ func controlledOfficialDriver(args []string) int {
 	if readJSONFile(request.Runtime, &runtime) != nil || runtime.SchemaVersion != 1 {
 		return 2
 	}
-	fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output)))
+	fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output))))
 	var plan object
 	if readJSONFile(filepath.Join(request.Materials, "case.json"), &plan) != nil {
 		return 2
@@ -127,6 +127,21 @@ func controlledOfficialDriver(args []string) int {
 		}
 	}
 
+	if mode == "lost-notice" || mode == "partial-notice" {
+		path := filepath.Join(runtime.Output, "peer-main.results.jsonl")
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return 6
+		}
+		if mode == "lost-notice" {
+			data = nil
+		} else {
+			data = data[:len(data)-1]
+		}
+		if os.WriteFile(path, data, 0o600) != nil {
+			return 6
+		}
+	}
 	if mode == "hold-after" {
 		driverCheckpoint(runtime.Output, mode)
 		waitDriverCancellation()
@@ -135,7 +150,7 @@ func controlledOfficialDriver(args []string) int {
 		data, err := os.ReadFile(filepath.Join(runtime.Output, "peer-main.results.jsonl"))
 		var finished, execution object
 		rows := strings.Split(strings.TrimSpace(string(data)), "\n")
-		if err != nil || len(rows) != 2 || json.Unmarshal([]byte(rows[1]), &finished) != nil || readJSONFile(filepath.Join(fixtureDir, filepath.FromSlash(str(finished["execution"]))), &execution) != nil {
+		if err != nil || len(rows) != 2 || json.Unmarshal([]byte(rows[1]), &finished) != nil || readJSONFile(filepath.Join(fixtureDir, "packages", str(finished["materialId"]), filepath.FromSlash(str(finished["execution"]))), &execution) != nil {
 			return 6
 		}
 		host, hostErr := os.Stat(os.Getenv("CODEX_HOME"))
@@ -159,7 +174,7 @@ func controlledOfficialDriver(args []string) int {
 		if len(rows) != 2 || json.Unmarshal([]byte(rows[1]), &finished) != nil {
 			return 6
 		}
-		path := filepath.Join(fixtureDir, filepath.FromSlash(str(finished["receipt"])))
+		path := filepath.Join(fixtureDir, "packages", str(finished["materialId"]), filepath.FromSlash(str(finished["receipt"])))
 		var receipt object
 		if readJSONFile(path, &receipt) != nil {
 			return 6
@@ -236,7 +251,7 @@ func controlledOfficialDriver(args []string) int {
 }
 
 func driverAction(output, binary string, args ...string) int {
-	fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(output)))
+	fixtureDir := filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(output))))
 	// Fixture flags precede native argv, exactly as the installed CLI requires.
 	offset := len(args)
 	for i, arg := range args {
@@ -262,10 +277,13 @@ func driverAction(output, binary string, args ...string) int {
 
 func officialRunResult(t *testing.T, fixtureDir string) object {
 	t.Helper()
-	var ids []string
-	require.NoError(t, readJSONFile(filepath.Join(fixtureDir, "official-records", "index.json"), &ids))
-	require.Len(t, ids, 1)
-	return readJSON(t, filepath.Join(fixtureDir, "official-records", ids[0], "result.json"))
+	paths, err := filepath.Glob(filepath.Join(fixtureDir, "packages", "*", "record", "*", "result.json"))
+	require.NoError(t, err)
+	failures, err := filepath.Glob(filepath.Join(fixtureDir, "failures", "official-record", "*", "result.json"))
+	require.NoError(t, err)
+	paths = append(paths, failures...)
+	require.Len(t, paths, 1)
+	return readJSON(t, paths[0])
 }
 
 func TestOfficialRecordInstalledChain(t *testing.T) {
@@ -298,6 +316,17 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 			} else {
 				command = runTool(t, env, t.TempDir(), "", args...)
 			}
+			if mode == "wrong-ref" {
+				require.Equal(t, 1, command.code, command.stderr)
+				journal := readJSON(t, filepath.Join(fixtureDir, "official.json"))
+				require.NotEmpty(t, journal["materialId"])
+				require.NotEmpty(t, journal["executionId"])
+				require.DirExists(t, filepath.Join(fixtureDir, filepath.FromSlash(str(journal["staging"]))))
+				require.NoDirExists(t, filepath.Join(fixtureDir, filepath.FromSlash(str(journal["target"]))))
+				require.Equal(t, journal["materialId"], currentMaterialID(t, fixtureDir))
+				require.Equal(t, sourceBytes, readFile(t, sourcePath))
+				return
+			}
 			result := officialRunResult(t, fixtureDir)
 			if mode == "local" || mode == "busy" {
 				require.Zero(t, command.code, command.stderr)
@@ -310,7 +339,7 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 				require.Contains(t, command.stderr, "protocol process failed or was not reaped")
 			}
 			require.Equal(t, sourceBytes, readFile(t, sourcePath))
-			require.NoFileExists(t, filepath.Join(fixtureDir, "official-active.json"))
+			require.NoFileExists(t, filepath.Join(fixtureDir, "official.json"))
 			if mode == "no-trigger" || mode == "cancel-before" || mode == "startup-failed" {
 				require.Empty(t, array(fixtureIndex(t, fixtureDir)["executions"]))
 				require.Equal(t, previous, currentMaterialID(t, fixtureDir))
@@ -324,14 +353,15 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 			material := latestCapture(t, fixtureDir)
 			require.NotEqual(t, previous, material["id"])
 			require.Equal(t, "official", material["provenance"])
-			require.NotEmpty(t, obj(material["officialOrigin"])["runId"])
 			materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
+			require.NotEmpty(t, readJSON(t, filepath.Join(materialRoot, "official-origin.json"))["runId"])
 			require.Equal(t, sourceBytes, readFile(t, filepath.Join(materialRoot, "source-plan.json")))
-			assertFileHashes(t, materialRoot, obj(material["files"]))
+			assertMaterialHashes(t, materialRoot, material)
 			require.Equal(t, "captured", readJSON(t, filepath.Join(materialRoot, "report.json"))["status"])
 			require.NoFileExists(t, filepath.Join(materialRoot, "result.json"))
 			if mode == "local" {
-				require.Equal(t, true, obj(result["report"])["hostRetainedExecution"])
+				recordRoot := filepath.Join(fixtureDir, "packages", str(material["id"]), "record", str(result["id"]))
+				require.Equal(t, true, readJSON(t, filepath.Join(recordRoot, "report.json"))["hostRetainedExecution"])
 				plan := readJSON(t, filepath.Join(materialRoot, "plan.json"))
 				payload, marshalErr := json.Marshal(object{"id": 1, "method": "conformance", "params": object{"cwd": plan["project"]}})
 				require.NoError(t, marshalErr)
@@ -341,7 +371,7 @@ func TestOfficialRecordInstalledChain(t *testing.T) {
 				mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixtureDir, "--output", exported)
 				originalProof := readFile(t, filepath.Join(exported, "official-origin.json"))
 				// Removing the original fixture makes hidden old-fixture lookups fail.
-				require.NoError(t, os.RemoveAll(filepath.Join(fixtureDir, "official-records")))
+				require.NoError(t, os.RemoveAll(fixtureDir))
 				imported := prepareFixture(t, env, "--recording", exported)
 				importedMaterial := latestCapture(t, imported)
 				require.Equal(t, originalProof, readFile(t, filepath.Join(fixtureMaterialRoot(t, imported, importedMaterial), "official-origin.json")))
@@ -376,13 +406,17 @@ func TestOfficialRecordExistingRemote(t *testing.T) {
 			require.Equal(t, "passed", result["status"])
 			material := latestCapture(t, fixtureDir)
 			connections := stringsOf(material["connections"])
-			require.Len(t, array(result["connections"]), len(connections))
+			refs := array(result["executions"])
+			require.Len(t, refs, 1)
+			require.Len(t, array(obj(refs[0])["connections"]), len(connections))
 			if len(connections) > 1 {
-				require.Equal(t, previous, obj(result["report"])["currentAfterMain"])
-				require.Equal(t, false, obj(result["report"])["mainResultHasMaterial"])
+				recordRoot := filepath.Join(fixtureDir, "packages", str(material["id"]), "record", str(result["id"]))
+				report := readJSON(t, filepath.Join(recordRoot, "report.json"))
+				require.Equal(t, previous, report["currentAfterMain"])
+				require.Equal(t, false, report["mainResultHasMaterial"])
 				materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
 				require.FileExists(t, filepath.Join(materialRoot, "remote-probe", "raw", "raw.jsonl"))
-				require.NotEmpty(t, obj(readJSON(t, filepath.Join(materialRoot, "manifest.json"))["remotePhaseFiles"]))
+				require.Contains(t, obj(readJSON(t, filepath.Join(materialRoot, "manifest.json"))["files"]), "remote-probe/raw/raw.jsonl")
 			}
 			require.NotContains(t, string(readAllFiles(t, fixtureDir)), remote.token)
 			require.Len(t, array(fixtureIndex(t, fixtureDir)["executions"]), 1)

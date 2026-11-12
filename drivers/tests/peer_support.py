@@ -90,9 +90,11 @@ def run_mock(command, **kwargs):
     fixture, receipt = _mock_runs.get(tuple(command), (None, None))
     if result.returncode == 0 and receipt is not None:
         index = json.loads((fixture / 'executions/index.json').read_text())
-        execution = json.loads((fixture / 'executions' / index['executions'][-1]['id'] / 'execution.json').read_text())
+        row = index['executions'][-1]
+        package = fixture / 'packages' / row['materialId']
+        execution = json.loads((package / 'executions' / row['id'] / 'execution.json').read_text())
         actual = execution['connections'][0]['receipt']
-        actual = Path(actual) if Path(actual).is_absolute() else fixture / actual
+        actual = Path(actual) if Path(actual).is_absolute() else package / actual
         # A test convenience copy of the actual public execution receipt.
         with receipt.open('xb') as target:
             target.write(actual.read_bytes())
@@ -118,4 +120,4 @@ def prepare_fixture(root, plan, binary=None):
 def current_capture(fixture):
     import json
     current = json.loads((fixture / 'current.json').read_text())
-    return Path(fixture) / 'materials' / current['materialId']
+    return Path(fixture) / 'packages' / current['materialId'] / 'material'

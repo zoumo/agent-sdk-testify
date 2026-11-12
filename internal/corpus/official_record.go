@@ -13,6 +13,9 @@ import (
 // alone is insufficient: verify/admission must require the exact successful run,
 // business report, supervised connections and unchanged material hashes.
 func ValidateOfficialRecord(root string, artifact Material) error {
+	if artifact.FormatVersion == 3 {
+		return validatePackageRecord(filepath.Dir(filepath.Dir(root)), artifact)
+	}
 	if artifact.OfficialOrigin == nil {
 		return errors.New("official capture origin is incomplete")
 	}

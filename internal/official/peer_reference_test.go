@@ -38,7 +38,8 @@ func TestReadPeerReferenceRejectsInvalidNotificationFraming(t *testing.T) {
 		data string
 		ref  bool
 	}{
-		{"missing final notification", started, true},
+		{"missing final notification", started + "\n", true},
+		{"unterminated first notification", started, false},
 		{"malformed first notification", `{"status":`, false},
 		{"malformed final notification", started + "\n{\"status\":", true},
 		{"null first notification", "null\n" + finished, false},
@@ -254,7 +255,7 @@ func TestReadPeerReferenceRequiresOneDeclaredConnection(t *testing.T) {
 		{"duplicate connection", func(f *peerReferenceFixture) {
 			canonical, err := filepath.EvalSymlinks(f.fixtureDir)
 			require.NoError(f.t, err)
-			receipt := filepath.Join(canonical, "executions", "execution", "receipts", "main.json")
+			receipt := filepath.Join(lifecycle.PackageExecutionRoot(canonical, "material", "execution"), "receipts", "main.json")
 			f.execution.Connections = []lifecycle.ExecutionConnection{
 				{ID: "main", Receipt: receipt},
 				{ID: "main", Receipt: receipt},
@@ -314,10 +315,11 @@ type peerReferenceFixture struct {
 func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 	t.Helper()
 	fixtureDir := filepath.Join(t.TempDir(), "fixture")
-	root := filepath.Join(fixtureDir, "official-records", "run", "driver")
-	executionDir := filepath.Join(fixtureDir, "executions", "execution")
+	root := filepath.Join(fixtureDir, "runtime", "official", "run", "staging")
+	executionDir := lifecycle.PackageExecutionRoot(fixtureDir, "material", "execution")
 	require.NoError(t, os.MkdirAll(filepath.Join(fixtureDir, "source"), 0o700))
-	require.NoError(t, os.MkdirAll(filepath.Join(fixtureDir, "materials"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(fixtureDir, "executions"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(fixtureDir, "packages"), 0o700))
 	require.NoError(t, os.MkdirAll(filepath.Join(executionDir, "receipts"), 0o700))
 	require.NoError(t, os.MkdirAll(root, 0o700))
 
@@ -398,7 +400,7 @@ func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 		"exitCode": float64(0), "reaped": true, "cleanupComplete": true,
 	}
 	started := tool.Object{
-		"status": "running", "fixtureId": "fixture", "processId": float64(42),
+		"schemaVersion": float64(3), "materialId": "material", "status": "running", "fixtureId": "fixture", "processId": float64(42),
 		"executionId": "execution", "connectionId": "main", "command": "record",
 		"execution":       "executions/execution/execution.json",
 		"result":          "executions/execution/receipts/main.result.json",
@@ -406,7 +408,7 @@ func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 		"executionSHA256": digest,
 	}
 	finished := tool.Object{
-		"status": "passed", "fixtureId": "fixture", "processId": float64(42),
+		"schemaVersion": float64(3), "materialId": "material", "status": "passed", "fixtureId": "fixture", "processId": float64(42),
 		"executionId": "execution", "connectionId": "main", "command": "record",
 		"execution":       "executions/execution/execution.json",
 		"result":          "executions/execution/receipts/main.result.json",

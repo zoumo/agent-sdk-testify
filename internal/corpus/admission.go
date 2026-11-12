@@ -17,6 +17,9 @@ import (
 )
 
 func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (tool.Object, error) {
+	if review["schemaVersion"] == float64(2) {
+		return c.validatePackageAdmission(source, replay, review)
+	}
 	v := &Validation{}
 	v.Check(review["version"] == float64(1) && review["origin"] == "real-agent", "review must attest real Agent origin")
 	qualification, automatic := review["qualification"]
@@ -135,7 +138,7 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 			v.Check(len(b) > 0 && transport["frames"] == float64(len(rows)), "capture frame count differs")
 			for i, line := range rows {
 				var row tool.Object
-				if _, e := strictCorpusFrame(line, &row); e != nil {
+				if e := strictCorpusFrame(line, &row); e != nil {
 					v.Err = e
 					break
 				}
@@ -167,15 +170,18 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 	return plan, v.Err
 }
 
-func strictCorpusFrame(b []byte, row *tool.Object) (int, error) {
+func strictCorpusFrame(b []byte, row *tool.Object) error {
 	// Reuse the strict evidence decoder, including duplicate-member rejection.
 	if _, err := rawjson.Parse(b); err != nil {
-		return 0, err
+		return err
 	}
-	return len(b), json.Unmarshal(b, row)
+	return json.Unmarshal(b, row)
 }
 
 func (c *Corpus) Qualification(source, replay string, manual bool) (tool.Object, error) {
+	if material, err := ReadMaterialDescriptor(source); err == nil && material != nil && material.FormatVersion == 3 {
+		return c.qualifyPackage(source, replay, manual)
+	}
 	v := &Validation{}
 	plan := v.Read(source, "plan.json")
 	capture := v.Inventory(source, false)
@@ -230,6 +236,23 @@ func corpusCopy(source, target string, names []string) error {
 // VerifyAdoptedFiles validates the reduced immutable view. External mock may
 // reuse its saved-history hashes without claiming official/publication eligibility.
 func VerifyAdoptedFiles(root string) (tool.Object, error) {
+	var adoptionVersion tool.Object
+	if err := tool.ReadJSON(filepath.Join(root, "adoption.json"), &adoptionVersion); err == nil && adoptionVersion["schemaVersion"] == float64(2) {
+		material, err := ReadMaterialDescriptor(filepath.Join(root, "material"))
+		if err != nil {
+			return nil, err
+		}
+		if material == nil || material.FormatVersion != 3 {
+			return nil, errors.New("schema 2 adoption requires a format 3 material descriptor")
+		}
+		if err := ValidateCore(material.Path, *material); err != nil {
+			return nil, err
+		}
+		if err := ValidatePackage(root, *material); err != nil {
+			return nil, err
+		}
+		return Read(filepath.Join(root, "review.json"))
+	}
 	v := &Validation{}
 	adoption := v.Read(root, "adoption.json")
 	v.Check(adoption["adoption"] == "admitted" && adoption["transformations"] != nil && len(tool.Array(adoption["transformations"])) == 0, "unsupported adoption record")
@@ -265,6 +288,24 @@ func (c *Corpus) VerifyAdopted(entry tool.Object) (string, error) {
 	review, err := VerifyAdoptedFiles(root)
 	if err != nil {
 		return "", err
+	}
+	if review["schemaVersion"] == float64(2) {
+		selectionBytes, err := json.Marshal(review)
+		if err != nil {
+			return "", err
+		}
+		var selection PackageSelection
+		if err := json.Unmarshal(selectionBytes, &selection); err != nil {
+			return "", err
+		}
+		plan, err := c.validatePackageAdmission(filepath.Join(root, "material"), filepath.Join(root, filepath.Dir(selection.Verification.Path)), review)
+		if err != nil {
+			return "", err
+		}
+		if plan["provider"] != entry["provider"] || plan["caseId"] != entry["caseId"] || plan["storyId"] != entry["storyId"] {
+			return "", errors.New("adopted identity differs")
+		}
+		return root, nil
 	}
 	original := tool.Obj(review["captureFiles"])
 	reduced := tool.Object{}
@@ -357,6 +398,9 @@ func (c *Corpus) Adopt(source, replay, reviewPath string) (target string, err er
 }
 
 func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, replace func(string, string) error) (target string, err error) {
+	if review, err := Read(reviewPath); err == nil && review["schemaVersion"] == float64(2) {
+		return c.adoptPackage(source, replay, reviewPath, replace)
+	}
 	archive, err := c.archiveRoot()
 	if err != nil {
 		return "", err

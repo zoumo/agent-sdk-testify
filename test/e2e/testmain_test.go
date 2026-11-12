@@ -68,7 +68,7 @@ func conformanceAgent() int {
 		if err := os.MkdirAll(filepath.Dir(history), 0o700); err != nil {
 			return 3
 		}
-		if err := os.WriteFile(history, []byte("{\"type\":\"conformance-history\"}\n"), 0o600); err != nil {
+		if err := os.WriteFile(history, []byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"conformance-history\",\"cwd\":\"/synthetic\"}}\n"), 0o600); err != nil {
 			return 3
 		}
 	}
@@ -185,7 +185,7 @@ func conformanceDriver(args []string) int {
 		return 6
 	}
 	if mode == "verify-cleanup-failure" {
-		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output))), "fixture.json")
+		slot := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(runtime.Output)))), "fixture.json")
 		if _, err := os.Stat(slot); err != nil {
 			return 7
 		}
@@ -226,7 +226,8 @@ func conformanceRecordFault() int {
 		mode, fixtureDir := os.Args[i+1], os.Args[i+2]
 		var index struct {
 			Executions []struct {
-				ID string `json:"id"`
+				ID         string `json:"id"`
+				MaterialID string `json:"materialId"`
 			} `json:"executions"`
 		}
 		if readJSONFile(filepath.Join(fixtureDir, "executions", "index.json"), &index) != nil || len(index.Executions) == 0 {
@@ -235,15 +236,16 @@ func conformanceRecordFault() int {
 		id := index.Executions[len(index.Executions)-1].ID
 		var execution struct {
 			Artifact struct {
-				ID string `json:"id"`
+				ID         string `json:"id"`
+				MaterialID string `json:"materialId"`
 			} `json:"artifact"`
 		}
-		if readJSONFile(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution) != nil {
+		if readJSONFile(filepath.Join(fixtureDir, "packages", index.Executions[len(index.Executions)-1].MaterialID, "executions", id, "execution.json"), &execution) != nil {
 			return 7
 		}
 		switch mode {
 		case "publication":
-			if os.Mkdir(filepath.Join(fixtureDir, "materials", execution.Artifact.ID), 0o700) != nil {
+			if os.Mkdir(filepath.Join(fixtureDir, "packages", execution.Artifact.ID, "material"), 0o700) != nil {
 				return 7
 			}
 		case "current":

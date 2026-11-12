@@ -9,27 +9,31 @@ import (
 
 // SaveNativePreparation binds observed native preparation to its ordinary execution.
 func SaveNativePreparation(fixtureDir string, fixture *Fixture, execution Execution, runtimePlan tool.Object, planPath, materialPlanPath string) error {
-	runtimeDigest, err := tool.FileDigest(planPath)
+	dir := ExecutionDir(fixtureDir, execution.ExecutionID)
+	prepared := tool.Object{"schemaVersion": 3, "fixtureId": fixture.FixtureID, "executionId": execution.ExecutionID, "sourcePlanSHA256": fixture.Source.SHA256}
+	for _, name := range []string{"project", "_fixtureProject", "root", "home", "config", "tmp", "provider", "caseId", "storyId", "driverProfile", "model", "reasoningEffort", "cliSHA256", "args", "recordingIsolation", "stdinEOFAction", "limits"} {
+		if value, ok := runtimePlan[name]; ok {
+			prepared[name] = value
+		}
+	}
+	prepared["tmp"] = execution.Tmp
+	preparedPath := filepath.Join(dir, "prepared-plan.json")
+	if err := tool.WriteJSON(preparedPath, prepared); err != nil {
+		return err
+	}
+	runtimeDigest, err := tool.FileDigest(preparedPath)
 	if err != nil {
 		return err
 	}
-	materialDigest, err := tool.FileDigest(materialPlanPath)
+	preparedReference, err := PackageReference(fixtureDir, execution.Artifact.ID, preparedPath)
 	if err != nil {
 		return err
 	}
-	executionReference, err := FixtureReference(fixtureDir, filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "execution.json"))
+	executionReference, err := PackageReference(fixtureDir, execution.Artifact.ID, filepath.Join(dir, "execution.json"))
 	if err != nil {
 		return err
 	}
-	preparedReference, err := FixtureReference(fixtureDir, planPath)
-	if err != nil {
-		return err
-	}
-	materialReference, err := FixtureReference(fixtureDir, materialPlanPath)
-	if err != nil {
-		return err
-	}
-	executionDigest, err := tool.FileDigest(filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "execution.json"))
+	executionDigest, err := tool.FileDigest(filepath.Join(dir, "execution.json"))
 	if err != nil {
 		return err
 	}
@@ -51,47 +55,40 @@ func SaveNativePreparation(fixtureDir string, fixture *Fixture, execution Execut
 		}
 	}
 	receipt := tool.Object{
-		"schemaVersion": 2,
-		"method":        "native-preparation",
-		"policy":        runtimePlan["recordingIsolation"],
-		"fixtureId":     fixture.FixtureID,
-		"executionId":   execution.ExecutionID,
-		"execution":     tool.Object{"path": executionReference, "sha256": executionDigest},
-		"preparedPlan":  tool.Object{"path": preparedReference, "sha256": runtimeDigest},
-		"materialPlan":  tool.Object{"path": materialReference, "sha256": materialDigest},
-		"native":        tool.Object{"sha256": runtimePlan["cliSHA256"], "args": runtimePlan["args"]},
-		"cwd":           execution.Workspace,
-		"environment":   env,
-		"configuration": configs,
+		"schemaVersion":    3,
+		"method":           "native-preparation",
+		"policy":           runtimePlan["recordingIsolation"],
+		"fixtureId":        fixture.FixtureID,
+		"executionId":      execution.ExecutionID,
+		"execution":        tool.Object{"path": executionReference, "sha256": executionDigest},
+		"preparedPlan":     tool.Object{"path": preparedReference, "sha256": runtimeDigest},
+		"sourcePlanSHA256": fixture.Source.SHA256,
+		"native":           tool.Object{"sha256": runtimePlan["cliSHA256"], "args": runtimePlan["args"]},
+		"cwd":              execution.Workspace,
+		"environment":      env,
+		"configuration":    configs,
 	}
 	fixture.Tool.bindSHA256(receipt)
-	if err := tool.WriteJSON(filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "receipts", "isolation.json"), receipt); err != nil {
+	if err := tool.WriteJSON(filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "isolation.json"), receipt); err != nil {
 		return err
 	}
 	return nil
 }
 
-// RebindNativePreparationExecution points the observed preparation at the
-// settled execution descriptor. Finalization adds artifact and connection
-// bindings to that descriptor after native preparation has already passed.
+// RebindNativePreparationExecution adds final core hashes before the ordinary
+// execution inventory seals. The declaration itself remains immutable.
 func RebindNativePreparationExecution(fixtureDir string, execution Execution) error {
-	path := filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "receipts", "isolation.json")
+	path := filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "isolation.json")
 	var receipt tool.Object
 	if err := tool.ReadJSON(path, &receipt); err != nil {
 		return err
 	}
-	if receipt["schemaVersion"] != float64(2) {
+	if receipt["schemaVersion"] != float64(3) {
 		return nil
 	}
-	executionPath := filepath.Join(ExecutionDir(fixtureDir, execution.ExecutionID), "execution.json")
-	reference, err := FixtureReference(fixtureDir, executionPath)
-	if err != nil {
-		return err
+	receipt["materialId"] = execution.Artifact.ID
+	if execution.Artifact.ManifestSHA256 != "" {
+		receipt["sourcePlanSHA256"], receipt["planSHA256"], receipt["manifestSHA256"] = execution.Artifact.SourcePlanSHA256, execution.Artifact.PlanSHA256, execution.Artifact.ManifestSHA256
 	}
-	digest, err := tool.FileDigest(executionPath)
-	if err != nil {
-		return err
-	}
-	receipt["execution"] = tool.Object{"path": reference, "sha256": digest}
 	return tool.WriteJSON(path, receipt)
 }

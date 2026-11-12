@@ -88,8 +88,18 @@ func (v *Validation) publicCaptureBusiness(source, replay string, plan tool.Obje
 		v.Check(found, "original recording omits required connection")
 	}
 	preparation := tool.Obj(run["recordPreparation"])
+	v.capturePreparation(source, replay, prefix, execution, material, preparation)
+	v.captureIsolation(replay, prefix, plan, fixture, execution)
+	return business, execution
+}
+
+func (v *Validation) capturePreparation(source, replay, prefix string, execution, material, preparation tool.Object) {
 	switch preparation["schemaVersion"] {
-	case float64(1):
+	case nil, float64(1):
+		_, hasVersion := preparation["schemaVersion"]
+		if preparation["schemaVersion"] == nil {
+			v.Check(!hasVersion && len(preparation) == 3, "unsupported unversioned official record preparation")
+		}
 		v.Check(preparation["executionId"] == execution["executionId"] && preparation["isolationSHA256"] == v.Digest(replay, prefix+"isolation.json") && preparation["preparedPlanSHA256"] == v.Digest(replay, prefix+"prepared-plan.json"), "original native preparation hash binding differs")
 	case float64(2):
 		v.Check(preparation["executionId"] == execution["executionId"] && reflect.DeepEqual(preparation["material"], material), "original native preparation identity differs")
@@ -104,8 +114,6 @@ func (v *Validation) publicCaptureBusiness(source, replay string, plan tool.Obje
 	default:
 		v.Check(false, "unsupported official record preparation schemaVersion")
 	}
-	v.captureIsolation(replay, prefix, plan, fixture, execution)
-	return business, execution
 }
 
 func (v *Validation) captureIsolation(replay, prefix string, plan, fixture, execution tool.Object) {

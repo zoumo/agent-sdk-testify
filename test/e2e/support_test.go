@@ -544,9 +544,9 @@ func cancelOfficialDuringProtocol(t *testing.T, env []string, fixture string, ar
 	ready := false
 	for !ready {
 		var active object
-		if readJSONFile(filepath.Join(fixture, "official-active.json"), &active) == nil {
+		if readJSONFile(filepath.Join(fixture, "official.json"), &active) == nil {
 			var checkpoint object
-			ready = readJSONFile(filepath.Join(str(active["dir"]), "driver", "checkpoint.json"), &checkpoint) == nil
+			ready = readJSONFile(filepath.Join(fixture, filepath.FromSlash(str(active["staging"])), "checkpoint.json"), &checkpoint) == nil
 		}
 		if ready {
 			break
