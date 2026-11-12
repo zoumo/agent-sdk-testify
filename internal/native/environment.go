@@ -180,7 +180,7 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 			if err := codexAuthEnvironment(filepath.Join(root, "config", "config.toml"), env); err != nil {
 				return err
 			}
-			if err := copyCodexModelCatalog(configSource, configTarget); err != nil {
+			if err := copyCodexModelCatalog(configSource, configTarget, filepath.Join(root, "config", "model-catalog.json")); err != nil {
 				return err
 			}
 		}
@@ -204,8 +204,9 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 // visible config directory. Authentication files stay in privateDestination so
 // an execution overlay can link them for one record run without retaining them.
 // The source is discovered from the standard environment or HOME location;
-// callers cannot inject an arbitrary configuration path.
-func CopyNativeConfig(provider, destination, privateDestination string, env map[string]string) error {
+// callers cannot inject an arbitrary configuration path. Generated catalog
+// references name publishedDestination even when destination is still staging.
+func CopyNativeConfig(provider, destination, publishedDestination, privateDestination string, env map[string]string) error {
 	if provider != "codex" && provider != "claude" {
 		return errors.New("unsupported provider")
 	}
@@ -286,7 +287,7 @@ func CopyNativeConfig(provider, destination, privateDestination string, env map[
 	if err := filterCodexConfig(filepath.Join(destination, "config.toml")); err != nil {
 		return err
 	}
-	return copyCodexModelCatalog(configSource, filepath.Join(destination, "config.toml"))
+	return copyCodexModelCatalog(configSource, filepath.Join(destination, "config.toml"), filepath.Join(publishedDestination, "model-catalog.json"))
 }
 
 func nativeEnvironmentNames(provider string) []string {
@@ -321,7 +322,7 @@ func nativeEnvironmentNames(provider string) []string {
 	return names
 }
 
-func copyCodexModelCatalog(sourceConfig, destinationConfig string) error {
+func copyCodexModelCatalog(sourceConfig, destinationConfig, publishedCatalog string) error {
 	var source struct {
 		Catalog string `toml:"model_catalog_json"`
 	}
@@ -361,7 +362,7 @@ func copyCodexModelCatalog(sourceConfig, destinationConfig string) error {
 	if err := toml.Unmarshal(data, &destination); err != nil {
 		return err
 	}
-	destination["model_catalog_json"] = target
+	destination["model_catalog_json"] = publishedCatalog
 	data, err = toml.Marshal(destination)
 	if err != nil {
 		return err

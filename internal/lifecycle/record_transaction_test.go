@@ -123,14 +123,24 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			return run.Plan(), nil
 		},
 		capture: func(_ context.Context, run RecordContext) error {
-			require.NoError(t, os.MkdirAll(filepath.Join(run.ArtifactRoot(), "raw"), 0o700))
-			if run.Connection() == "main" {
-				require.NoError(t, os.WriteFile(filepath.Join(run.ArtifactRoot(), "raw", "raw.jsonl"), []byte("{\"frame\":1}\n"), 0o600))
-			} else {
-				require.NoError(t, os.MkdirAll(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw"), 0o700))
-				require.NoError(t, os.WriteFile(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw", "raw.jsonl"), []byte("{\"probe\":1}\n"), 0o600))
+			if err := os.MkdirAll(filepath.Join(run.ArtifactRoot(), "raw"), 0o700); err != nil {
+				return err
 			}
-			require.NoError(t, os.MkdirAll(filepath.Dir(run.ConnectionReceipt()), 0o700))
+			if run.Connection() == "main" {
+				if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "raw", "raw.jsonl"), []byte("{\"frame\":1}\n"), 0o600); err != nil {
+					return err
+				}
+			} else {
+				if err := os.MkdirAll(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw"), 0o700); err != nil {
+					return err
+				}
+				if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw", "raw.jsonl"), []byte("{\"probe\":1}\n"), 0o600); err != nil {
+					return err
+				}
+			}
+			if err := os.MkdirAll(filepath.Dir(run.ConnectionReceipt()), 0o700); err != nil {
+				return err
+			}
 			return tool.WriteJSON(run.ConnectionReceipt(), tool.Object{
 				"captureStatus": "complete", "cleanupComplete": true, "clientEOF": true,
 				"nativeLaunched": true, "reaped": true, "nativeExitCode": 0, "frames": 0,
@@ -143,27 +153,43 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			execution := run.Execution()
 			if execution.Artifact.OfficialOrigin != nil {
 				sourcePlan, err := os.ReadFile(run.Fixture().Source.Path)
-				require.NoError(t, err)
-				require.NoError(t, os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), sourcePlan, 0o600))
+				if err := err; err != nil {
+					return nil, err
+				}
+				if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), sourcePlan, 0o600); err != nil {
+					return nil, err
+				}
 				sourcePlanSHA256 = tool.DigestBytes(sourcePlan)
 				plan["sourcePlanSHA256"] = sourcePlanSHA256
 				plan["caseId"] = execution.Artifact.OfficialOrigin.CaseID
 				plan["provider"] = execution.Artifact.OfficialOrigin.AgentType
-				require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "official-origin.json"), execution.Artifact.OfficialOrigin))
+				if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "official-origin.json"), execution.Artifact.OfficialOrigin); err != nil {
+					return nil, err
+				}
 				for _, connection := range execution.Connections {
-					require.NoError(t, tool.CopyFile(
+					if err := tool.CopyFile(
 						filepath.Join(run.ExecutionDir(), "receipts", connection.ID+".origin.json"),
 						filepath.Join(run.ArtifactRoot(), "origin", connection.ID+".json"),
-					))
+					); err != nil {
+						return nil, err
+					}
 				}
 			}
-			require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "plan.json"), plan))
+			if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "plan.json"), plan); err != nil {
+				return nil, err
+			}
 			planHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "plan.json"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			rawHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "raw", "raw.jsonl"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			transportHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "raw", "transport.json"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			connections := make([]string, 0, len(execution.Connections))
 			for _, connection := range execution.Connections {
 				connections = append(connections, connection.ID)
@@ -180,10 +206,14 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			if sourcePlanSHA256 != "" {
 				manifest["sourcePlanSHA256"] = sourcePlanSHA256
 			}
-			require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "manifest.json"), manifest))
-			require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "report.json"), tool.Object{
+			if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "manifest.json"), manifest); err != nil {
+				return nil, err
+			}
+			if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "report.json"), tool.Object{
 				"schemaVersion": 1, "status": "captured", "captureStatus": "complete",
-			}))
+			}); err != nil {
+				return nil, err
+			}
 			artifact := execution.Artifact
 			artifact.Kind, artifact.Action = "capture", "record"
 			artifact.Provenance = execution.Provenance
@@ -191,7 +221,9 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			artifact.Connections = connections
 			artifact.PlanSHA256 = planHash
 			artifact.ManifestSHA256, err = tool.FileDigest(filepath.Join(run.ArtifactRoot(), "manifest.json"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			artifact.RecordingSHA256 = rawHash
 			return &artifact, nil
 		},

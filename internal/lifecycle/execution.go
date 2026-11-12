@@ -503,6 +503,11 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 	if err := writeExclusive(descriptorPath, execution); err != nil {
 		return nil, err
 	}
+	if action == "mock" {
+		if err := saveMockPreparation(fixtureDir, fixture, execution, plan); err != nil {
+			return nil, err
+		}
+	}
 	descriptorHash, err := tool.FileDigest(descriptorPath)
 	if err != nil {
 		return nil, err

@@ -165,7 +165,7 @@ func TestLegacyDriverSnapshotHashAndRegularSourceRemainRequired(t *testing.T) {
 	require.NoError(t, os.Remove(path))
 	require.NoError(t, os.Symlink(saved, path))
 	_, err = loadMaterials(o)
-	require.ErrorContains(t, err, "not a regular file")
+	require.ErrorContains(t, err, "source reference traverses symlink")
 }
 
 func TestClaudeConfigCopyRetainsNativeDefaultModelOnly(t *testing.T) {

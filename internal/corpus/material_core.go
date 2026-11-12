@@ -155,8 +155,11 @@ func RecordingRoot(root string) (core string, completePackage bool, err error) {
 		if e != nil {
 			return "", false, e
 		}
-		if m == nil || m.FormatVersion != 3 {
-			return "", false, errors.New("complete package requires format 3 material")
+		if m == nil {
+			return "", false, errors.New("complete package requires a material descriptor")
+		}
+		if e := CheckMaterialInventory(core, *m); e != nil {
+			return "", false, e
 		}
 		if e := ValidatePackage(root, *m); e != nil {
 			return "", false, e

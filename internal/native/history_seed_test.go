@@ -14,7 +14,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func TestPrepareCanonicalHistorySeedCopiesOnlyNativeStartupAndProject(t *testing.T) {
+func TestCanonicalSeedRequiresPackageBusinessEvidence(t *testing.T) {
 	source, target := t.TempDir(), t.TempDir()
 	write := func(name string, data []byte) {
 		t.Helper()
@@ -75,7 +75,10 @@ func TestPrepareCanonicalHistorySeedCopiesOnlyNativeStartupAndProject(t *testing
 	before, err := history.HashTree(source)
 	require.NoError(t, err)
 	runtimePlan := tool.Object{"provider": "codex"}
-	require.NoError(t, PrepareHistorySeed(source, target, runtimePlan))
+	require.ErrorContains(t, PrepareHistorySeed(source, target, runtimePlan), "qualified complete package")
+	// Materialization of native bytes is independent of official business eligibility.
+	_, err = history.MaterializeSeed(source, target, runtimePlan)
+	require.NoError(t, err)
 	after, err := history.HashTree(source)
 	require.NoError(t, err)
 	require.Equal(t, before, after)
@@ -84,7 +87,7 @@ func TestPrepareCanonicalHistorySeedCopiesOnlyNativeStartupAndProject(t *testing
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(data, actual))
 	}
-	require.FileExists(t, filepath.Join(target, "history-seed", "project", "fixture.txt"))
+	require.NoFileExists(t, filepath.Join(target, "history-seed", "project", "fixture.txt"))
 	require.NoDirExists(t, filepath.Join(target, "history-seed", "source"))
 	require.NoDirExists(t, filepath.Join(target, "history-seed", "config"))
 }
