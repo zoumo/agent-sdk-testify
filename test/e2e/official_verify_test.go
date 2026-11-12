@@ -115,9 +115,23 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 				aggregate := readJSON(t, filepath.Join(packageRoot, str(ref["path"])))
 				assertFileHashes(t, packageRoot, obj(aggregate["files"]))
 				require.Equal(t, aggregate["connections"], ref["connections"])
+				executionRoot := filepath.Join(packageRoot, "executions", str(ref["executionId"]))
+				for _, name := range []string{"prepared-plan.json", "isolation.json"} {
+					reference := "executions/" + str(ref["executionId"]) + "/" + name
+					require.Equal(t, digestFile(t, filepath.Join(executionRoot, name)), obj(aggregate["files"])[reference])
+				}
+				isolation := readJSON(t, filepath.Join(executionRoot, "isolation.json"))
+				require.Equal(t, "executions/"+str(ref["executionId"])+"/execution.json", obj(isolation["execution"])["path"])
+				require.Equal(t, ref["executionSHA256"], obj(isolation["execution"])["sha256"])
+				require.Equal(t, "executions/"+str(ref["executionId"])+"/prepared-plan.json", obj(isolation["preparedPlan"])["path"])
+				require.Equal(t, digestFile(t, filepath.Join(executionRoot, "prepared-plan.json")), obj(isolation["preparedPlan"])["sha256"])
+				require.Equal(t, ref["executionId"], isolation["executionId"])
+				require.Equal(t, material["id"], isolation["materialId"])
+				require.NoFileExists(t, filepath.Join(root, "mock-isolation.json"))
+				require.NotContains(t, obj(evidence["files"]), "verify/"+filepath.Base(root)+"/mock-isolation.json")
 				require.NotEmpty(t, evidence["contracts"])
 				files := obj(evidence["files"])
-				for _, name := range []string{"replay-report.json", "result.json", "driver-result.json", "mock-isolation.json", "peers/main.json", "stderr.log", "stdout.log"} {
+				for _, name := range []string{"replay-report.json", "result.json", "driver-result.json", "peers/main.json", "stderr.log", "stdout.log"} {
 					require.Contains(t, files, "verify/"+filepath.Base(root)+"/"+name)
 				}
 				resolvedFixture := resolvedPath(t, fixtureDir)

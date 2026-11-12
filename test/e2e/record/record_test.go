@@ -500,10 +500,20 @@ func TestRecordPreparationFailureKeepsDiagnostic(t *testing.T) {
 	cmd.Env = []string{"PATH=/missing", "HOME=" + t.TempDir(), "CLAUDE_CONFIG_DIR=" + config, "GORACE=" + os.Getenv("GORACE")}
 	data, err := cmd.CombinedOutput()
 	require.Error(t, err, "%s", data)
+	diagnostics, err := filepath.Glob(filepath.Join(filepath.Dir(fixtureDir), ".agent-sdk-testify-prepare-failed-*.json"))
+	require.NoError(t, err)
+	require.Len(t, diagnostics, 1)
 	var diagnostic tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "prepare.json"), &diagnostic))
+	require.NoError(t, tool.ReadJSON(diagnostics[0], &diagnostic))
+	require.EqualValues(t, 7, diagnostic["schemaVersion"])
+	require.Equal(t, "failed", diagnostic["status"])
 	require.NotEmpty(t, diagnostic["error"])
-	require.NoFileExists(t, filepath.Join(fixtureDir, "fixture.json"))
+	require.NoDirExists(t, fixtureDir)
+	entries, err := os.ReadDir(filepath.Dir(fixtureDir))
+	require.NoError(t, err)
+	for _, entry := range entries {
+		require.False(t, entry.IsDir() && strings.HasPrefix(entry.Name(), ".agent-sdk-testify-prepare-"), "failed preparation staging must be removed")
+	}
 }
 
 func TestRecordHelpAndSelectionErrors(t *testing.T) {
