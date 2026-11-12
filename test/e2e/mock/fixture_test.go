@@ -33,7 +33,7 @@ func mockTestAgent() int {
 		if err := os.MkdirAll(filepath.Dir(history), 0o700); err != nil {
 			return 3
 		}
-		if err := os.WriteFile(history, []byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-consumer-history\",\"cwd\":\"/synthetic\"}}\n"), 0o600); err != nil {
+		if err := os.WriteFile(history, []byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-history\",\"cwd\":\"/synthetic\"}}\n"), 0o600); err != nil {
 			return 3
 		}
 	}

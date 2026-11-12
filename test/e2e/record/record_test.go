@@ -120,7 +120,7 @@ func recordAgentSubstitute(args []string) int {
 		if err := os.MkdirAll(filepath.Dir(history), 0o700); err != nil {
 			return 8
 		}
-		if err := os.WriteFile(history, []byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-official-history\",\"cwd\":\"/synthetic\"}}\n"), 0o600); err != nil {
+		if err := os.WriteFile(history, []byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-history\",\"cwd\":\"/synthetic\"}}\n"), 0o600); err != nil {
 			return 8
 		}
 	}
@@ -367,7 +367,7 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 	const history = "history/runtime/config/sessions/synthetic-history.jsonl"
 	var manifest tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.recordRoot(t), "manifest.json"), &manifest))
-	require.Equal(t, tool.DigestBytes([]byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-official-history\",\"cwd\":\"/synthetic\"}}\n")), tool.Obj(manifest["files"])[history])
+	require.Equal(t, tool.DigestBytes([]byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-history\",\"cwd\":\"/synthetic\"}}\n")), tool.Obj(manifest["files"])[history])
 
 	var before tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.fixtureDir, "packages", "index.json"), &before))
@@ -417,7 +417,7 @@ func TestRecordVerifyMockRetainsBoundHistory(t *testing.T) {
 		path := filepath.Join(fixture.fixtureDir, "runtime", "executions", tool.Str(execution["executionId"]), "config", "sessions", "synthetic-history.jsonl")
 		content, err := os.ReadFile(path)
 		require.NoError(t, err)
-		assert.True(t, bytes.Equal([]byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-official-history\",\"cwd\":\"/synthetic\"}}\n"), content), "unexpected history bytes: %q", content)
+		assert.True(t, bytes.Equal([]byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-history\",\"cwd\":\"/synthetic\"}}\n"), content), "unexpected history bytes: %q", content)
 	}
 }
 
@@ -464,7 +464,7 @@ func TestRecordPreservesFailedAttempts(t *testing.T) {
 				require.NoFileExists(t, filepath.Join(officialRoot, "report.json"))
 			}
 			require.FileExists(t, filepath.Join(officialRoot, "stderr.log"))
-			require.FileExists(t, filepath.Join(fixture.fixtureDir, "runtime", "official", filepath.Base(officialRoot), "driver", "materials", "case.json"))
+			require.FileExists(t, filepath.Join(fixture.fixtureDir, "runtime", "official", filepath.Base(officialRoot), "materials", "case.json"))
 			if test.driver != "crash" {
 				output := fixture.recordRoot(t)
 				require.FileExists(t, filepath.Join(output, "raw", "raw.jsonl"))

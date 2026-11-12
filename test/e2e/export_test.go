@@ -49,7 +49,7 @@ func TestExportCurrentRoundTrip(t *testing.T) {
 	require.Equal(t, before, readAllFiles(t, fixtureDir))
 	metadata := readJSON(t, filepath.Join(output, "material.json"))
 	require.Equal(t, current, metadata)
-	assertFileHashes(t, output, obj(metadata["files"]))
+	assertMaterialHashes(t, output, metadata)
 	for _, name := range []string{"fixture.json", "current.json", "executions", "receipts", "verification.json", "qualification.json", "runtime", "index.json"} {
 		require.NoFileExists(t, filepath.Join(output, name))
 		require.NoDirExists(t, filepath.Join(output, name))
@@ -114,7 +114,7 @@ func TestExportOfficialCaptureRoundTrip(t *testing.T) {
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", imported)
 	evidence := readJSON(t, filepath.Join(latestVerificationRoot(t, imported), "verification.json"))
 	require.Equal(t, "passed", evidence["status"])
-	require.Equal(t, material["id"], obj(evidence["material"])["id"])
+	require.Equal(t, material["id"], evidence["materialId"])
 }
 
 func TestExportRejectsTargetsAndTampering(t *testing.T) {

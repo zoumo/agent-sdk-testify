@@ -80,14 +80,15 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 			} else {
 				require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
 			}
-			if fault == "current" {
+			switch fault {
+			case "current":
 				require.NoError(t, os.Chmod(fixtureDir, 0o700))
 				materials := array(materialIndex(t, fixtureDir)["materials"])
 				require.Len(t, materials, 2)
 				unpublished := obj(materials[1])
 				require.NotEqual(t, unpublished["id"], currentMaterialID(t, fixtureDir))
 				assertMaterialHashes(t, fixtureMaterialRoot(t, fixtureDir, unpublished), unpublished)
-			} else if fault == "publication" {
+			case "publication":
 				require.Equal(t, registry, readFile(t, filepath.Join(fixtureDir, "packages", "index.json")))
 			}
 			require.Equal(t, oldBytes, readAllFiles(t, fixtureMaterialRoot(t, fixtureDir, old)))
@@ -99,8 +100,12 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 			require.FileExists(t, filepath.Join(artifactRoot, "raw", "raw.jsonl"))
 			rows := array(fixtureIndex(t, fixtureDir)["executions"])
 			require.Len(t, rows, 2)
-			require.Equal(t, "failed", obj(rows[1])["status"])
-			failure := readJSON(t, filepath.Join(executionPackageRoot(t, fixtureDir, execution), "executions", str(execution["executionId"]), "result.json"))
+			status := "failed"
+			if fault == "cleanup" {
+				status = "passed"
+			}
+			require.Equal(t, status, obj(rows[1])["status"])
+			failure := readJSON(t, filepath.Join(executionPackageRoot(t, fixtureDir, execution), "executions", str(execution["executionId"]), "receipts", "main.result.json"))
 			require.Equal(t, fault == "cleanup", failure["publicationCommitted"])
 			require.Equal(t, "failed", failure["status"])
 			require.NotEmpty(t, failure["error"])
@@ -128,7 +133,7 @@ func TestNewRecordDoesNotInheritVerification(t *testing.T) {
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
 	evidenceRoot, verification := latestOfficialVerification(t, fixtureDir)
 	evidence := readAllFiles(t, evidenceRoot)
-	require.Equal(t, old["id"], obj(verification["material"])["id"])
+	require.Equal(t, old["id"], verification["materialId"])
 	installDriver(t, drivers, "codex", "record")
 	mustRun(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixtureDir, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	material := latestCapture(t, fixtureDir)
@@ -146,7 +151,7 @@ func TestRecordingRecordUsesProtocolPrerequisites(t *testing.T) {
 			agent, _, env := isolatedCommands(t, root, "codex")
 			sourceArgs := []string{"--plan", writeConsumerPlan(t, root, "record-prerequisites")}
 			if fault == "source-history-drift" {
-				seedFixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
+				seedFixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-018")
 				sourceArgs = append(sourceArgs, "--history-seed", fixtureMaterialRootByID(t, seedFixture, currentMaterialID(t, seedFixture)))
 			}
 			producer := prepareFixture(t, env, sourceArgs...)
@@ -161,6 +166,7 @@ func TestRecordingRecordUsesProtocolPrerequisites(t *testing.T) {
 				manifestPath := filepath.Join(legacy, "manifest.json")
 				manifest := readJSON(t, manifestPath)
 				manifest["planSHA256"] = digestFile(t, planPath)
+				manifest["provenance"] = "synthetic"
 				writeJSON(t, manifestPath, manifest)
 				material = legacy
 			}

@@ -266,7 +266,9 @@ func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
 	require.NotEmpty(t, tool.Obj(evidence["tool"])["sha256"])
 	require.NotEmpty(t, evidence["contracts"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "result.json"), &summary))
-	require.Equal(t, "verify", summary["mode"])
+	require.Equal(t, evidence["id"], summary["id"])
+	require.Equal(t, evidence["materialId"], summary["materialId"])
+	require.EqualValues(t, 3, summary["schemaVersion"])
 }
 
 func TestVerifyExecutionDescriptorMatchesOfficialExecutorPaths(t *testing.T) {
@@ -401,6 +403,7 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 				require.NoError(t, tool.WriteJSON(filepath.Join(source, "manifest.json"), manifest))
 			})
 			data, err := cmd.CombinedOutput()
+			t.Logf("official verify stderr/result: %s", data)
 			output := verifyOutput(t, fixtureDir)
 			if mode == "passed" {
 				require.NoError(t, err, "%s", data)
