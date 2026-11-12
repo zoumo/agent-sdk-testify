@@ -218,6 +218,9 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 			"planSHA256": material.PlanSHA256, "manifestSHA256": material.ManifestSHA256,
 			"recordingSHA256": material.RecordingSHA256,
 		}
+		if material.FormatVersion == 3 {
+			tool.Obj(value["material"])["sourcePlanSHA256"] = material.SourcePlanSHA256
+		}
 	}
 	if actionErr != nil {
 		value["error"] = actionErr.Error()

@@ -21,8 +21,8 @@ func TestLoadPlanRejectsChangedRecordingSource(t *testing.T) {
 	fixture := &Fixture{
 		Source: Source{
 			Kind:   "recording",
-			Path:   root,
-			SHA256: tool.DigestBytes([]byte(tool.DigestBytes(plan) + "\n" + tool.DigestBytes(manifest) + "\n")),
+			Path:   filepath.Join(root, "plan.json"),
+			SHA256: tool.DigestBytes(plan),
 		},
 	}
 	_, err := LoadPlan(fixture)

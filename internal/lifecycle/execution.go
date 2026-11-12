@@ -197,7 +197,7 @@ func executionConnections(fixtureDir, executionID, materialID, action string, id
 	return connections, nil
 }
 
-func createExecutionOverlay(fixture *Fixture, action, executionID string, plan tool.Object, material *corpus.Material) (string, map[string]string, error) {
+func createExecutionOverlay(fixture *Fixture, action, executionID string, plan tool.Object, material *corpus.Material, recordSeed string) (string, map[string]string, error) {
 	route, ok := fixture.Routes[action]
 	if !ok || !route.Enabled {
 		return "", nil, fmt.Errorf("%s is not available for this fixture", action)
@@ -239,8 +239,14 @@ func createExecutionOverlay(fixture *Fixture, action, executionID string, plan t
 			return "", nil, err
 		}
 	}
-	if action == "record" && fixture.Source.Kind == "recording" {
-		if _, err := history.Materialize(fixture.Source.Path, overlayRoot); err != nil {
+	if action == "record" && recordSeed != "" {
+		if err := history.ResetNative(overlayRoot); err != nil {
+			return "", nil, err
+		}
+		if err := os.MkdirAll(filepath.Join(overlayRoot, "history-seed"), 0o700); err != nil {
+			return "", nil, err
+		}
+		if _, err := history.Materialize(history.SeedSource(recordSeed), overlayRoot); err != nil {
 			return "", nil, err
 		}
 	}
@@ -373,13 +379,19 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 		if fixture.Source.Kind == "recording" {
 			found := false
 			for _, source := range index.Artifacts {
-				if source.Path != fixture.Source.Path {
+				originalPlan := filepath.Join(source.Path, "source-plan.json")
+				if _, err := os.Lstat(originalPlan); os.IsNotExist(err) {
+					originalPlan = filepath.Join(source.Path, "plan.json")
+				}
+				hash, err := tool.FileDigest(originalPlan)
+				if err != nil || hash != fixture.Source.SHA256 {
 					continue
 				}
 				if _, err := inspectMaterial(fixture, source); err != nil {
 					return nil, err
 				}
 				found = true
+				break
 			}
 			if !found {
 				return nil, errors.New("record source is absent from material registry")
@@ -435,8 +447,32 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
-	overlayRoot, historyFiles, err := createExecutionOverlay(fixture, action, id, plan, material)
+	recordSeed := ""
+	sourceReference := "material"
+	if action == "record" && fixture.HistorySeed != "" {
+		if err := VerifyHistorySeed(fixture); err != nil {
+			return nil, err
+		}
+		recordSeed = filepath.Join(artifactRoot, "history-source")
+		if err := tool.CopyTree(fixture.HistorySeed, recordSeed); err != nil {
+			return nil, err
+		}
+		if err := VerifyHistorySeed(fixture); err != nil {
+			return nil, err
+		}
+		sourceReference = "executions/" + id + "/capture/history-source"
+		if history.SeedSource(recordSeed) != recordSeed {
+			sourceReference += "/source"
+		}
+	}
+	overlayRoot, historyFiles, err := createExecutionOverlay(fixture, action, id, plan, material, recordSeed)
 	if err != nil {
+		return nil, err
+	}
+	if err := history.SealMaterialization(overlayRoot, dir, sourceReference); err != nil {
+		return nil, err
+	}
+	if err := history.ValidateMaterialization(PackageRoot(fixtureDir, materialID), dir); err != nil {
 		return nil, err
 	}
 	routeBound = true

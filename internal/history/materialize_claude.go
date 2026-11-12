@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -119,4 +120,89 @@ func MaterializeClaude(source, root, workspace string, plan tool.Object) error {
 		}
 	}
 	return tool.WriteJSON(filepath.Join(root, "materialization.json"), tool.Object{"version": 1, "executionProject": workspace, "originalProject": plan["project"], "originalHistoryProject": plan["historyProject"], "transformations": transformations})
+}
+
+// deriveCanonicalClaude seals only bytes that require a cwd/project transform.
+func deriveCanonicalClaude(source, root, workspace string, binding Binding) (tool.Object, error) {
+	if !strings.HasPrefix(binding.NativeTarget, "config/projects/") {
+		return nil, nil
+	}
+	key := regexp.MustCompile(`[^a-zA-Z0-9]`)
+	prefix := "config/projects/" + key.ReplaceAllString(binding.Project, "-") + "/"
+	if !strings.HasPrefix(binding.NativeTarget, prefix) {
+		return nil, errors.New("claude native target differs from original project")
+	}
+	target := "config/projects/" + key.ReplaceAllString(workspace, "-") + "/" + strings.TrimPrefix(binding.NativeTarget, prefix)
+	if target == binding.NativeTarget {
+		return nil, nil
+	}
+	data, err := os.ReadFile(filepath.Join(source, filepath.FromSlash(binding.Source)))
+	if err != nil {
+		return nil, err
+	}
+	output, err := claudeDerivedBytes(data, target, binding.Project, workspace)
+	if err != nil {
+		return nil, err
+	}
+	derived := "history/derived/" + target
+	for _, name := range []string{target, derived} {
+		dest := filepath.Join(root, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(dest), 0o700); err != nil {
+			return nil, err
+		}
+		f, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+		if err != nil {
+			return nil, err
+		}
+		_, we := f.Write(output)
+		if err := errors.Join(we, f.Close()); err != nil {
+			return nil, err
+		}
+	}
+	return tool.Object{"kind": "claude-project-cwd-copy", "source": binding.Source, "sourceSHA256": binding.SHA256, "derived": derived, "derivedSHA256": tool.DigestBytes(output), "nativeTarget": target, "sourceCWD": binding.Project, "executionCWD": workspace}, nil
+}
+
+func claudeDerivedBytes(data []byte, target, sourceCWD, executionCWD string) ([]byte, error) {
+	var output bytes.Buffer
+	rows := bytes.SplitAfter(data, []byte{'\n'})
+	if filepath.Ext(target) == ".json" {
+		rows = [][]byte{data}
+	}
+	for _, line := range rows {
+		if len(bytes.TrimSpace(line)) == 0 {
+			output.Write(line)
+			continue
+		}
+		record, err := rawjson.Parse(line)
+		if err != nil || record.Kind() != rawjson.Object {
+			return nil, errors.New("invalid Claude history derivation source")
+		}
+		if value, ok := record.Member("cwd"); ok && value.Kind() != rawjson.Null {
+			cwd, err := value.String()
+			if err != nil {
+				return nil, err
+			}
+			if cwd != "" && cwd != sourceCWD {
+				return nil, errors.New("claude history cwd differs from original project")
+			}
+			if cwd == sourceCWD {
+				encoded, err := json.Marshal(executionCWD)
+				if err != nil {
+					return nil, err
+				}
+				replacement, err := rawjson.Parse(encoded)
+				if err != nil {
+					return nil, err
+				}
+				changed, err := record.Replace([]string{"cwd"}, replacement)
+				if err != nil {
+					return nil, err
+				}
+				// Preserve trailing bytes outside the parsed object, including newline.
+				line = append(append([]byte(nil), changed.Raw()...), line[len(record.Raw()):]...)
+			}
+		}
+		output.Write(line)
+	}
+	return output.Bytes(), nil
 }

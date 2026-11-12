@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -26,6 +27,7 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	if err != nil {
 		return err
 	}
+	source = history.SeedSource(source)
 	if err := corpus.VerifyMaterials(source, true); err != nil {
 		return err
 	}
@@ -63,31 +65,35 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	if err != nil {
 		return err
 	}
-	sourceSnapshot := filepath.Join(root, "history-seed", "source")
-	if err := os.RemoveAll(sourceSnapshot); err != nil {
-		return err
-	}
-	if err := tool.CopyTree(source, sourceSnapshot); err != nil {
-		return err
-	}
-	if err := corpus.VerifyMaterials(sourceSnapshot, true); err != nil {
-		return err
-	}
-	if report["status"] == "captured" {
-		if _, err := corpus.VerifyAdoptedFiles(sourceSnapshot); err != nil {
-			return err
-		}
-	}
+	sourceSnapshot := source
 	if session == "" || len(agents) == 0 || agents[""] {
 		return errors.New("seed has no saved parent and child identities")
 	}
 	files := tool.Object{}
 	found := map[string]bool{}
-	for name, digest := range tool.Obj(manifest["savedFiles"]) {
+	type seedFile struct {
+		source string
+		digest string
+	}
+	selected := map[string]seedFile{}
+	if manifest["materialFormatVersion"] == float64(3) {
+		bindings, err := history.CanonicalBindings(source, previous, manifest)
+		if err != nil {
+			return err
+		}
+		for _, binding := range bindings {
+			selected[binding.NativeTarget] = seedFile{source: binding.Source, digest: binding.SHA256}
+		}
+	} else {
+		for name, digest := range tool.Obj(manifest["savedFiles"]) {
+			selected[name] = seedFile{source: name, digest: tool.Str(digest)}
+		}
+	}
+	for name, file := range selected {
 		if !filepath.IsLocal(name) {
 			return errors.New("seed file escapes source")
 		}
-		data, e := os.ReadFile(filepath.Join(source, name))
+		data, e := os.ReadFile(filepath.Join(source, filepath.FromSlash(file.source)))
 		if e != nil {
 			return e
 		}
@@ -112,18 +118,13 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		}
 		sum := sha256.Sum256(data)
 		actual := hex.EncodeToString(sum[:])
-		if actual != tool.Str(digest) {
+		if actual != file.digest {
 			return errors.New("seed content changed")
 		}
-		if err := tool.CopyFile(filepath.Join(source, name), filepath.Join(root, name)); err != nil {
+		if err := tool.CopyFile(filepath.Join(source, filepath.FromSlash(file.source)), filepath.Join(root, name)); err != nil {
 			return err
 		}
-		destination := filepath.Join("history-seed", name)
-		if err := tool.CopyFile(filepath.Join(source, name), filepath.Join(root, destination)); err != nil {
-			return err
-		}
-		frozenSource := filepath.ToSlash(filepath.Join("history-seed", "source", name))
-		files[destination] = tool.Object{"source": frozenSource, "sha256": actual}
+		files[name] = tool.Object{"source": "history/seed/" + filepath.ToSlash(file.source), "sha256": actual}
 		found[identity] = true
 	}
 	if !found[session] || len(found) != len(agents)+1 {
@@ -204,7 +205,7 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		}
 	}
 	plan["historySeed"] = tool.Object{
-		"provider": provider, "sourceRootRef": "history-seed/source", "sourceProject": project,
+		"provider": provider, "sourceRootRef": "history/seed", "sourceProject": project,
 		"sessionId": session, "agentIds": ids, "files": files, "sourceFiles": sourceFiles,
 		"projectFiles": projectFiles, "projectSnapshot": "history-seed/project",
 	}

@@ -2,6 +2,7 @@ package corpus
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +14,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func TestMaterialFormatTwoOmitsAndRejectsMachineLocalPath(t *testing.T) {
+func TestPortableMaterialOmitsAndRejectsMachineLocalPath(t *testing.T) {
 	material := Material{FormatVersion: MaterialFormatVersion, ID: "material", Kind: "capture", Action: "record", Provenance: "consumer", PlanSHA256: "plan", Connections: []string{"main"}}
 	material.Path = "/machine/local/material"
 	encoded, err := json.Marshal(material)
@@ -31,7 +32,7 @@ func TestMaterialFormatTwoOmitsAndRejectsMachineLocalPath(t *testing.T) {
 		message string
 	}{
 		{"format two path", `{"formatVersion":2,"id":"material","path":"/machine/local/material"}`, "machine-local path"},
-		{"unknown format", `{"formatVersion":3,"id":"material"}`, "unsupported material formatVersion 3"},
+		{"unknown format", `{"formatVersion":4,"id":"material"}`, "unsupported material formatVersion 4"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var value Material
@@ -65,13 +66,13 @@ func TestReadMaterialDescriptorSelectsSupportedFormatsAtCurrentRoot(t *testing.T
 
 	t.Run("format two without location", func(t *testing.T) {
 		material := base
-		material.FormatVersion = MaterialFormatVersion
+		material.FormatVersion = 2
 		require.NoError(t, tool.WriteJSON(filepath.Join(root, "material.json"), material))
 
 		loaded, err := ReadMaterialDescriptor(root)
 		require.NoError(t, err)
 		require.NotNil(t, loaded)
-		require.Equal(t, MaterialFormatVersion, loaded.FormatVersion)
+		require.Equal(t, 2, loaded.FormatVersion)
 		require.Equal(t, root, loaded.Path)
 	})
 
@@ -102,9 +103,9 @@ func TestReadMaterialDescriptorSelectsSupportedFormatsAtCurrentRoot(t *testing.T
 	})
 
 	t.Run("unknown format", func(t *testing.T) {
-		require.NoError(t, tool.WriteJSON(filepath.Join(root, "material.json"), tool.Object{"formatVersion": 3, "id": base.ID}))
+		require.NoError(t, tool.WriteJSON(filepath.Join(root, "material.json"), tool.Object{"formatVersion": 4, "id": base.ID}))
 		_, err := ReadMaterialDescriptor(root)
-		require.ErrorContains(t, err, "unsupported material formatVersion 3")
+		require.ErrorContains(t, err, "unsupported material formatVersion 4")
 	})
 
 	t.Run("missing inventory", func(t *testing.T) {
@@ -166,6 +167,22 @@ func syntheticMaterialPackage(t *testing.T) (string, map[string]string) {
 	files, err := history.HashTree(root)
 	require.NoError(t, err)
 	return root, files
+}
+
+func TestVerifyLegacySeedChecksItsCompleteDeclaredInventory(t *testing.T) {
+	for _, format := range []int{0, 2} {
+		t.Run(fmt.Sprintf("format-%d", format), func(t *testing.T) {
+			root, files := syntheticMaterialPackage(t)
+			material := Material{
+				FormatVersion: format, ID: "legacy-seed", Kind: "material", Action: "mock", Provenance: "consumer",
+				PlanSHA256: files["plan.json"], ManifestSHA256: files["manifest.json"], RecordingSHA256: files["raw/raw.jsonl"], Files: files,
+			}
+			require.NoError(t, tool.WriteJSON(filepath.Join(root, "material.json"), material))
+			require.NoError(t, VerifyMaterials(root, true))
+			require.NoError(t, os.Remove(filepath.Join(root, "evidence.txt")))
+			require.ErrorContains(t, VerifyMaterials(root, true), "material closure hash mismatch")
+		})
+	}
 }
 
 func mustReadFile(t *testing.T, path string) []byte {

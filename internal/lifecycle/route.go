@@ -48,15 +48,29 @@ func RefreshRoutes(fixture *Fixture) error {
 			return err
 		}
 		historyFiles := map[string]string{}
+		source := ""
 		if action == "mock" && current.MaterialID != "" {
+			source = MaterialRoot(fixture.dir, current.MaterialID)
+		}
+		if action == "record" && fixture.HistorySeed != "" {
+			if err := VerifyHistorySeed(fixture); err != nil {
+				return err
+			}
+			source = history.SeedSource(fixture.HistorySeed)
+		}
+		if source != "" {
 			template := TemplateRoot(fixture.dir, action)
-			if err := history.Reset(template); err != nil {
+			reset := history.Reset
+			if action == "record" {
+				reset = history.ResetNative
+			}
+			if err := reset(template); err != nil {
 				return err
 			}
 			if err := os.MkdirAll(filepath.Join(template, "history-seed"), 0o700); err != nil {
 				return err
 			}
-			historyFiles, err = history.Materialize(MaterialRoot(fixture.dir, current.MaterialID), template)
+			historyFiles, err = history.MaterializeStartup(source, template)
 			if err != nil {
 				return err
 			}

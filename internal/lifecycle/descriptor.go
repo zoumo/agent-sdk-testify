@@ -638,6 +638,13 @@ func (e *Execution) Resolve(fixture *Fixture, fixtureDir string) error {
 	default:
 		return fmt.Errorf("unknown execution action %q", e.Command)
 	}
+	if e.Artifact.FormatVersion == 3 && e.Artifact.OriginSHA256 != "" {
+		origin, err := corpus.CaptureOrigin(e.Artifact)
+		if err != nil {
+			return err
+		}
+		e.Artifact.OfficialOrigin = origin
+	}
 	route := fixture.Routes[e.Command]
 	for i := range e.Connections {
 		connection := &e.Connections[i]
@@ -1100,6 +1107,13 @@ func readIndex(path string) (*Index, error) {
 		}
 		seen[material.ID] = true
 		material.Path = MaterialRoot(fixtureDir, material.ID)
+		if material.FormatVersion == 3 && material.OriginSHA256 != "" {
+			origin, err := corpus.CaptureOrigin(*material)
+			if err != nil {
+				return nil, err
+			}
+			material.OfficialOrigin = origin
+		}
 		if _, err := ResolveFixtureReference(fixtureDir, MaterialReference(material.ID)); err != nil {
 			return nil, err
 		}

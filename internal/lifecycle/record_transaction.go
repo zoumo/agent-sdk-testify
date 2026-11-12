@@ -2,6 +2,7 @@ package lifecycle
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -181,7 +182,25 @@ func (r *recordTransaction) settleConnection(status string) (ready, passed bool,
 }
 
 func (r *recordTransaction) fail() error {
-	return failTransaction(r.fixture, r.fixtureDir, "record", r.execution.ExecutionID, r.overlayRoot, r.restoreRoutes)
+	var sourceErr error
+	seed := filepath.Join(r.artifactRoot, "history", "seed")
+	staging := filepath.Join(r.artifactRoot, "history-source")
+	if _, err := os.Lstat(seed); err == nil {
+		if _, err := os.Lstat(staging); os.IsNotExist(err) {
+			sourceErr = os.Rename(seed, staging)
+		} else if err == nil {
+			sourceErr = os.RemoveAll(seed)
+		} else {
+			sourceErr = err
+		}
+		if sourceErr == nil {
+			prefix := "executions/" + r.execution.ExecutionID + "/capture"
+			sourceErr = history.RebindMaterialization(PackageRoot(r.fixtureDir, r.execution.Artifact.ID), r.dir, prefix+"/history/seed", prefix+"/history-source")
+		}
+	} else if !os.IsNotExist(err) {
+		sourceErr = err
+	}
+	return errors.Join(sourceErr, failTransaction(r.fixture, r.fixtureDir, "record", r.execution.ExecutionID, r.overlayRoot, r.restoreRoutes))
 }
 
 func (r *recordTransaction) restoreRoutes() error {
@@ -249,7 +268,13 @@ func (r *recordTransaction) commitPublication(artifact corpus.Material) error {
 		return err
 	}
 	delete(files, "material.json")
-	artifact.Path, artifact.Files, artifact.FormatVersion = materialRoot, files, corpus.MaterialFormatVersion
+	artifact.Path = materialRoot
+	if artifact.FormatVersion == 3 {
+		artifact.Files = nil
+	} else {
+		artifact.Files = files
+		artifact.FormatVersion = 2
+	}
 	if err := writeExclusive(filepath.Join(captureRoot, "material.json"), artifact); err != nil {
 		return err
 	}
@@ -278,6 +303,9 @@ func (r *recordTransaction) commitPublication(artifact corpus.Material) error {
 		return err
 	}
 	if err := os.Rename(stage, materialRoot); err != nil {
+		return err
+	}
+	if err := history.RebindMaterialization(packageRoot, r.dir, "executions/"+r.execution.ExecutionID+"/capture/history/seed", "material/history/seed"); err != nil {
 		return err
 	}
 	if _, err := inspectMaterial(r.fixture, artifact); err != nil {
@@ -515,7 +543,12 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	}()
 	if origin != nil {
 		path := filepath.Join(run.dir, "receipts", request.Connection+".origin.json")
-		proof := tool.Object{"schemaVersion": 1, "origin": origin, "connectionId": request.Connection, "executionId": run.execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid()}
+		originBytes, err := json.MarshalIndent(origin, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+		originHash := tool.DigestBytes(append(originBytes, '\n'))
+		proof := tool.Object{"schemaVersion": 2, "originSHA256": originHash, "runId": run.execution.Artifact.OfficialOrigin.RunID, "connectionId": request.Connection, "executionId": run.execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid()}
 		fixture.Tool.bindSHA256(proof)
 		if err := writeExclusive(path, proof); err != nil {
 			return nil, err

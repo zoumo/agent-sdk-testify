@@ -17,38 +17,44 @@ import (
 // MaterialFormatVersion is the portable material descriptor version. It stores
 // identity, provenance, hashes and material-root-relative bindings without a
 // machine-local location.
-const MaterialFormatVersion = 2
+const MaterialFormatVersion = 3
 
 type Material struct {
-	FormatVersion   int               `json:"formatVersion,omitempty"`
-	OfficialOrigin  *OfficialOrigin   `json:"officialOrigin,omitempty"`
-	Files           map[string]string `json:"files,omitempty"`
-	ID              string            `json:"id"`
-	Kind            string            `json:"kind"`
-	Action          string            `json:"action"`
-	Provenance      string            `json:"provenance"`
-	Path            string            `json:"-"`
-	PlanSHA256      string            `json:"planSHA256"`
-	ManifestSHA256  string            `json:"manifestSHA256"`
-	RecordingSHA256 string            `json:"recordingSHA256"`
-	Connections     []string          `json:"connections"`
-	CreatedAt       string            `json:"createdAt"`
+	FormatVersion         int               `json:"formatVersion,omitempty"`
+	LegacyInventorySHA256 string            `json:"legacyInventorySHA256,omitempty"`
+	SourcePlanSHA256      string            `json:"sourcePlanSHA256,omitempty"`
+	OriginSHA256          string            `json:"originSHA256,omitempty"`
+	OfficialOrigin        *OfficialOrigin   `json:"officialOrigin,omitempty"`
+	Files                 map[string]string `json:"files,omitempty"`
+	ID                    string            `json:"id"`
+	Kind                  string            `json:"kind"`
+	Action                string            `json:"action"`
+	Provenance            string            `json:"provenance"`
+	Path                  string            `json:"-"`
+	PlanSHA256            string            `json:"planSHA256"`
+	ManifestSHA256        string            `json:"manifestSHA256"`
+	RecordingSHA256       string            `json:"recordingSHA256"`
+	Connections           []string          `json:"connections"`
+	CreatedAt             string            `json:"createdAt"`
 }
 
 type materialWire struct {
-	FormatVersion   int               `json:"formatVersion,omitempty"`
-	OfficialOrigin  *OfficialOrigin   `json:"officialOrigin,omitempty"`
-	Files           map[string]string `json:"files,omitempty"`
-	ID              string            `json:"id"`
-	Kind            string            `json:"kind"`
-	Action          string            `json:"action"`
-	Provenance      string            `json:"provenance"`
-	Path            string            `json:"path,omitempty"`
-	PlanSHA256      string            `json:"planSHA256"`
-	ManifestSHA256  string            `json:"manifestSHA256"`
-	RecordingSHA256 string            `json:"recordingSHA256"`
-	Connections     []string          `json:"connections"`
-	CreatedAt       string            `json:"createdAt"`
+	FormatVersion         int               `json:"formatVersion,omitempty"`
+	LegacyInventorySHA256 string            `json:"legacyInventorySHA256,omitempty"`
+	SourcePlanSHA256      string            `json:"sourcePlanSHA256,omitempty"`
+	OriginSHA256          string            `json:"originSHA256,omitempty"`
+	OfficialOrigin        *OfficialOrigin   `json:"officialOrigin,omitempty"`
+	Files                 map[string]string `json:"files,omitempty"`
+	ID                    string            `json:"id"`
+	Kind                  string            `json:"kind"`
+	Action                string            `json:"action"`
+	Provenance            string            `json:"provenance"`
+	Path                  string            `json:"path,omitempty"`
+	PlanSHA256            string            `json:"planSHA256"`
+	ManifestSHA256        string            `json:"manifestSHA256"`
+	RecordingSHA256       string            `json:"recordingSHA256"`
+	Connections           []string          `json:"connections"`
+	CreatedAt             string            `json:"createdAt"`
 }
 
 func (m *Material) UnmarshalJSON(data []byte) error {
@@ -58,13 +64,25 @@ func (m *Material) UnmarshalJSON(data []byte) error {
 	if err := decoder.Decode(&wire); err != nil {
 		return err
 	}
-	if wire.FormatVersion != 0 && wire.FormatVersion != MaterialFormatVersion {
+	if wire.FormatVersion != 0 && wire.FormatVersion != 2 && wire.FormatVersion != MaterialFormatVersion {
 		return fmt.Errorf("unsupported material formatVersion %d; format %d is required", wire.FormatVersion, MaterialFormatVersion)
 	}
-	if wire.FormatVersion == MaterialFormatVersion && wire.Path != "" {
-		return errors.New("format 2 material declares a machine-local path")
+	if wire.FormatVersion >= 2 && wire.Path != "" {
+		return errors.New("portable material declares a machine-local path")
+	}
+	if wire.FormatVersion == 3 {
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(data, &fields); err != nil {
+			return err
+		}
+		for _, key := range []string{"path", "files", "officialOrigin", "legacyInventorySHA256"} {
+			if _, exists := fields[key]; exists {
+				return errors.New("format 3 material contains a legacy location, inventory or origin field")
+			}
+		}
 	}
 	*m = Material{
+		LegacyInventorySHA256: wire.LegacyInventorySHA256, SourcePlanSHA256: wire.SourcePlanSHA256, OriginSHA256: wire.OriginSHA256,
 		FormatVersion: wire.FormatVersion, OfficialOrigin: wire.OfficialOrigin,
 		Files: wire.Files, ID: wire.ID, Kind: wire.Kind, Action: wire.Action,
 		Provenance: wire.Provenance, Path: wire.Path,
@@ -78,6 +96,10 @@ func (m *Material) UnmarshalJSON(data []byte) error {
 // MarshalJSON never persists a machine-local material location.
 func (m Material) MarshalJSON() ([]byte, error) {
 	type materialOutput Material
+	if m.FormatVersion == 3 {
+		m.Files = nil
+		m.OfficialOrigin = nil
+	}
 	return json.Marshal(materialOutput(m))
 }
 
@@ -116,7 +138,10 @@ func (o *OfficialOrigin) UnmarshalJSON(data []byte) error {
 // ValidateOfficialCapture checks portable, sealed capture ownership. It does
 // not read the originating fixture or imply that the parent's business passed.
 func ValidateOfficialCapture(artifact Material) error {
-	origin := artifact.OfficialOrigin
+	origin, err := CaptureOrigin(artifact)
+	if err != nil {
+		return err
+	}
 	if origin == nil || origin.RunID == "" || origin.FixtureID == "" || len(origin.DriverSHA256) != 64 {
 		return errors.New("official capture origin is incomplete")
 	}
@@ -147,7 +172,10 @@ func ValidateOfficialCapture(artifact Material) error {
 			return errors.New("invalid official connection identity")
 		}
 		var proof struct {
+			SchemaVersion int            `json:"schemaVersion"`
+			OriginSHA256  string         `json:"originSHA256"`
 			ExecutionID   string         `json:"executionId"`
+			RunID         string         `json:"runId"`
 			Origin        OfficialOrigin `json:"origin"`
 			ConnectionID  string         `json:"connectionId"`
 			ProtocolPID   int            `json:"protocolPid"`
@@ -161,7 +189,22 @@ func ValidateOfficialCapture(artifact Material) error {
 			return errors.New("official launch proofs disagree on execution")
 		}
 		executionID = proof.ExecutionID
-		if !reflect.DeepEqual(proof.Origin, *origin) || proof.ConnectionID != id || proof.ProtocolPID <= 0 || proof.SupervisorPID <= 0 || len(proof.ToolSHA256) != 64 {
+		originMatches := reflect.DeepEqual(proof.Origin, *origin)
+		if proof.SchemaVersion == 2 {
+			hash, err := tool.FileDigest(filepath.Join(artifact.Path, "official-origin.json"))
+			if err != nil {
+				return err
+			}
+			var fields tool.Object
+			if err := tool.ReadJSON(filepath.Join(artifact.Path, "origin", id+".json"), &fields); err != nil {
+				return err
+			}
+			_, embedded := fields["origin"]
+			originMatches = proof.OriginSHA256 == hash && proof.RunID == origin.RunID && !embedded
+		} else if artifact.FormatVersion == 3 || proof.SchemaVersion < 0 || proof.SchemaVersion > 2 {
+			originMatches = false
+		}
+		if !originMatches || proof.ConnectionID != id || proof.ProtocolPID <= 0 || proof.SupervisorPID <= 0 || len(proof.ToolSHA256) != 64 {
 			return errors.New("official connection launch proof is incomplete")
 		}
 	}
@@ -233,6 +276,11 @@ func inspectMaterial(artifact Material, descriptor bool) (*MaterialInspection, e
 	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return nil, errors.New("material path is not an unlinked directory")
 	}
+	if artifact.FormatVersion == 3 {
+		if err := ValidateCore(artifact.Path, artifact); err != nil {
+			return nil, err
+		}
+	}
 	if len(artifact.Files) > 0 {
 		var err error
 		if descriptor {
@@ -253,6 +301,9 @@ func inspectMaterial(artifact Material, descriptor bool) (*MaterialInspection, e
 	}
 	if err := tool.ReadJSON(filepath.Join(artifact.Path, "manifest.json"), &manifest); err != nil {
 		return nil, err
+	}
+	if manifest["materialFormatVersion"] != nil && artifact.FormatVersion != 3 {
+		return nil, errors.New("material descriptor and manifest formats differ")
 	}
 	selected, err := SelectionProvenance(plan, manifest)
 	if err != nil {
@@ -293,6 +344,9 @@ func CheckMaterialInventory(root string, artifact Material) error {
 	if !artifact.SameDescriptor(descriptor) {
 		return errors.New("material descriptor differs from its index")
 	}
+	if artifact.FormatVersion == 3 {
+		return ValidateCore(root, artifact)
+	}
 	actual, err := history.HashTree(root)
 	if err != nil {
 		return err
@@ -316,7 +370,7 @@ func CheckMaterialFiles(root string, artifact Material) error {
 	if err != nil {
 		return err
 	}
-	if !reflect.DeepEqual(actual, artifact.Files) {
+	if !reflect.DeepEqual(actual, artifact.Files) || (artifact.LegacyInventorySHA256 != "" && history.InventoryDigest(actual) != artifact.LegacyInventorySHA256) {
 		return errors.New("material closure hash mismatch")
 	}
 	return nil
@@ -327,6 +381,14 @@ func CheckMaterialFiles(root string, artifact Material) error {
 func (m Material) SameDescriptor(other Material) bool {
 	a, b := m, other
 	a.Path, b.Path = "", ""
+	if a.FormatVersion == 3 {
+		a.Files = nil
+		a.OfficialOrigin = nil
+	}
+	if b.FormatVersion == 3 {
+		b.Files = nil
+		b.OfficialOrigin = nil
+	}
 	return reflect.DeepEqual(a, b)
 }
 
@@ -335,7 +397,7 @@ func checkMaterialProvenance(artifact Material, plan, manifest tool.Object, sele
 	switch claimed {
 	case "official":
 		if artifact.Kind == "capture" {
-			if artifact.OfficialOrigin != nil {
+			if artifact.OfficialOrigin != nil || artifact.FormatVersion == 3 {
 				if err := ValidateOfficialCapture(artifact); err != nil {
 					return err
 				}
@@ -383,10 +445,17 @@ func ReadMaterialDescriptor(root string) (*Material, error) {
 	if err := tool.ReadJSON(path, &material); err != nil {
 		return nil, err
 	}
-	if len(material.Files) == 0 {
+	if material.FormatVersion != 3 && len(material.Files) == 0 {
 		return nil, errors.New("material descriptor omits its file inventory")
 	}
 	material.Path = root
+	if material.FormatVersion == 3 && material.OriginSHA256 != "" {
+		origin, err := CaptureOrigin(material)
+		if err != nil {
+			return nil, err
+		}
+		material.OfficialOrigin = origin
+	}
 	if err := CheckMaterialInventory(root, material); err != nil {
 		return nil, err
 	}
@@ -410,4 +479,30 @@ func ReadMaterial(root, provenance string) (*Material, error) {
 		return nil, err
 	}
 	return material, nil
+}
+
+// CaptureOrigin resolves the one canonical origin object for format 3. The
+// returned pointer is an in-memory view and is never embedded in new metadata.
+func CaptureOrigin(material Material) (*OfficialOrigin, error) {
+	if material.FormatVersion != 3 {
+		return material.OfficialOrigin, nil
+	}
+	if material.OriginSHA256 == "" {
+		return nil, nil
+	}
+	if err := VerifyFile(material.Path, "official-origin.json", material.OriginSHA256); err != nil {
+		return nil, err
+	}
+	var fields tool.Object
+	if err := tool.ReadJSON(filepath.Join(material.Path, "official-origin.json"), &fields); err != nil {
+		return nil, err
+	}
+	if _, ok := fields["schemaVersion"]; ok {
+		return nil, errors.New("official origin has no independent schemaVersion")
+	}
+	var origin OfficialOrigin
+	if err := tool.ReadJSON(filepath.Join(material.Path, "official-origin.json"), &origin); err != nil {
+		return nil, err
+	}
+	return &origin, nil
 }

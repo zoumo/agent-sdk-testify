@@ -42,8 +42,12 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 	// Keep native request cwd stable across SDK and protocol subprocesses. Mock
 	// will replay this precise value while placing writable fixtures elsewhere.
 	delete(plan, "recordingIsolation")
+	if tool.Str(plan["_fixtureProject"]) == "" {
+		if project := tool.Str(plan["project"]); project != "" {
+			plan["_fixtureProject"] = project
+		}
+	}
 	plan["project"] = fixture.Routes["record"].Workspace
-	plan["_fixtureProject"] = execution.Workspace
 	plan["root"], plan["home"], plan["config"], plan["raw"] = run.OverlayRoot(), execution.Home, execution.Config, filepath.Join(run.ArtifactRoot(), "raw")
 	plan["stdinEOFAction"] = "close"
 	if fixture.AgentType == "claude" && plan["driverProfile"] == "interrupt" {
@@ -88,8 +92,6 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 
 func recordSourcePlanDigest(execution lifecycle.Execution) (string, error) {
 	path := execution.Source.Path
-	if execution.Source.Kind == "recording" {
-		path = filepath.Join(path, "plan.json")
-	}
+
 	return tool.FileDigest(path)
 }
