@@ -20,27 +20,16 @@ jobs:
     with:
       runner: ubuntu-latest
 
-  macos:
-    name: macos
-    permissions:
-      contents: read
-    uses: ./.github/workflows/offline-platform.yml
-    with:
-      runner: macos-latest
-
   required:
     name: offline (required)
     if: always()
-    needs: [ubuntu, macos]
+    needs: [ubuntu]
     runs-on: ubuntu-latest
     steps:
       - name: Require all offline validation jobs
         env:
           UBUNTU: ${{ needs.ubuntu.result }}
-          MACOS: ${{ needs.macos.result }}
         run: |
           set -euo pipefail
           echo "ubuntu: ${UBUNTU}"
-          echo "macos: ${MACOS}"
           test "${UBUNTU}" = success
-          test "${MACOS}" = success

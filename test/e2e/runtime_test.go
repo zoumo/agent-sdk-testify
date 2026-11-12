@@ -91,7 +91,32 @@ func TestMockRejectsHistoryDriftBeforePublishingActionSuccess(t *testing.T) {
 			require.Contains(t, stderr.String(), "history hash mismatch")
 			require.Equal(t, "failed", connectionStatus(t, fixtureDir, execution, "main"))
 			connection := obj(array(execution["connections"])[0])
-			require.Equal(t, "failed", readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["processReceipt"])))["status"])
+			receipt := readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["receipt"])))
+			require.Equal(t, "failed", receipt["status"])
+			require.Equal(t, true, receipt["fullConsumption"])
+			require.Equal(t, true, receipt["clientEOF"])
+			require.Equal(t, true, receipt["cleanupComplete"])
+			require.Equal(t, "internal", receipt["failureClass"])
+			require.Contains(t, receipt["error"], "history hash mismatch")
+			process := readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["processReceipt"])))
+			require.Equal(t, "failed", process["status"])
+			require.EqualValues(t, 1, process["exitCode"])
+			require.Equal(t, "internal", process["failureClass"])
+			require.Contains(t, process["error"], "history hash mismatch")
+			result := readJSON(t, filepath.Join(executionPackageRoot(t, fixtureDir, execution), "executions", str(execution["executionId"]), "receipts", "main.result.json"))
+			require.Equal(t, "failed", result["status"])
+			require.Equal(t, "internal", result["failureClass"])
+			require.Contains(t, result["error"], "history hash mismatch")
+			var indexed object
+			for _, value := range array(fixtureIndex(t, fixtureDir)["executions"]) {
+				if row := obj(value); str(row["id"]) == str(execution["executionId"]) {
+					indexed = row
+					break
+				}
+			}
+			require.NotEmpty(t, indexed)
+			require.Equal(t, "failed", indexed["status"])
+			require.Equal(t, "failed", obj(array(indexed["connections"])[0])["status"])
 			require.Equal(t, content, readFile(t, filepath.Join(material, history)))
 		})
 	}

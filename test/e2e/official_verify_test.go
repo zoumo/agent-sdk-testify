@@ -42,7 +42,7 @@ func recordControlledOfficial(t *testing.T, env []string, fixtureDir, agent stri
 }
 
 func TestOfficialVerifyInstalledChain(t *testing.T) {
-	for _, mode := range []string{"local", "busy", "business-failed", "no-trigger", "early-exit", "wrong-ref", "reuse-ref", "cancel-before", "cancel-during", "startup-failed"} {
+	for _, mode := range []string{"local", "busy", "business-failed", "no-trigger", "early-exit", "wrong-ref", "reuse-ref", "cancel-before", "cancel-during", "startup-failed", "replay-schema-missing", "process-passed-error"} {
 		t.Run(mode, func(t *testing.T) {
 			agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
 			setControlledOfficialDriver(t, drivers, "local")

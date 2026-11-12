@@ -15,6 +15,51 @@ import (
 	agenttestify "github.com/zoumo/agent-sdk-testify"
 )
 
+func TestLibraryExecutionReportRejectsFailedResultWithoutDiagnostic(t *testing.T) {
+	binary := buildCLI(t, false)
+	root := t.TempDir()
+	dir := filepath.Join(root, "fixture")
+	runCLI(t, binary, "prepare", "--agent", "codex", "--case", "SDK-CASE-001", "--fixture-dir", dir)
+	fixture, err := agenttestify.Open(dir)
+	require.NoError(t, err)
+	input := writeBuildStream(t, root, "input", clientInput(t, fixture.Current.Path))
+	output := writeBuildStream(t, root, "output", "")
+	stderr := writeBuildStream(t, root, "stderr", "")
+	result, err := fixture.MockAgent(t.Context(), agenttestify.MockAgentOptions{
+		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+	}, agenttestify.Streams{In: input, Out: output, Err: stderr})
+	require.NoError(t, err, readOpenBuildFile(t, stderr))
+	require.NotNil(t, result)
+	require.NotNil(t, result.Execution)
+	require.Equal(t, agenttestify.ExecutionStatusPassed, result.Execution.Status)
+	require.True(t, result.Execution.Complete)
+
+	// Change only the result's declaration, retaining its valid identity and hash
+	// bindings and the successful replay, process and execution index facts.
+	mutateBuildJSON(t, result.ResultPath, func(value map[string]any) {
+		require.NotContains(t, value, "error")
+		require.NotContains(t, value, "failureClass")
+		value["status"] = "failed"
+	})
+	paths := []string{
+		result.ExecutionPath, result.ResultPath, result.ReceiptPath, result.ProcessReceiptPath,
+		filepath.Join(dir, "executions", "index.json"), filepath.Join(dir, "current.json"),
+		filepath.Join(fixture.Current.Path, "raw", "raw.jsonl"),
+	}
+	before := make(map[string][]byte, len(paths))
+	for _, path := range paths {
+		before[path] = mustRead(t, path)
+	}
+	reopened, err := agenttestify.Open(dir)
+	require.NoError(t, err)
+	report, err := reopened.ExecutionReport(result.ExecutionID)
+	require.ErrorContains(t, err, "passed with a failed result")
+	require.Nil(t, report)
+	for _, path := range paths {
+		require.Equal(t, before[path], mustRead(t, path), "reader must preserve %s", path)
+	}
+}
+
 func TestLibraryProcessMockReportAndAdapterBoundaries(t *testing.T) {
 	binary := buildCLI(t, false)
 	root := t.TempDir()

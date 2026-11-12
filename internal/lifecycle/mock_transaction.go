@@ -167,10 +167,10 @@ func (m *mockTransaction) settleConnection(status string) (ready, passed bool, e
 
 func (m *mockTransaction) pass() error {
 	if err := m.restoreRoutes(); err != nil {
-		return err
+		return ClassifyFailure(FailureClassCleanup, err)
 	}
 	if err := scrubExecutionAuthentication(m.fixture, m.overlayRoot); err != nil {
-		return err
+		return ClassifyFailure(FailureClassCleanup, err)
 	}
 	return updateIndex(m.fixtureDir, func(index *Index) error {
 		for i := range index.Executions {
@@ -370,7 +370,7 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if err != nil {
 			return nil, err
 		}
-		if err := validateExecutionStatus(ExecutionStatus(pending.Status), statuses); err != nil {
+		if err := validateExecutionStatus(ExecutionStatus(pending.Status), statuses, false, false); err != nil {
 			return nil, err
 		}
 		if connectionStarted(pending, request.Connection) {

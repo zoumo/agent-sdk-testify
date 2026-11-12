@@ -212,6 +212,7 @@ func TestMockTimeoutPolicyAndSourceBytes(t *testing.T) {
 					require.Contains(t, result.stderr, "deadline exceeded")
 					require.Equal(t, "failed", receipt["status"])
 					require.Equal(t, false, receipt["clientEOF"])
+					require.Equal(t, "timeout", receipt["failureClass"])
 				}
 			})
 		}
@@ -282,6 +283,9 @@ func TestMockProgressReceiptWaitsForEOF(t *testing.T) {
 				require.Error(t, err)
 				require.Equal(t, "failed", receipt["status"])
 				require.Equal(t, false, receipt["clientEOF"])
+				if ending == "extra" {
+					require.Equal(t, "strict-replay", receipt["failureClass"])
+				}
 				require.NotEmpty(t, stderr.String())
 			}
 			require.Equal(t, code, cmd.ProcessState.ExitCode())

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/replay"
@@ -47,7 +48,7 @@ func Run(ctx context.Context, prepared Prepared, input, output *os.File) (*Resul
 	}, mockReplayPolicy{prepared: prepared, input: input, output: output})
 }
 
-func replayConnection(ctx context.Context, prepared Prepared, input, output *os.File, sourceRoot, recordingReference, materialID, executionID, phase, reportPath string) (err error) {
+func replayConnection(ctx context.Context, prepared Prepared, run lifecycle.MockContext, input, output *os.File) (err error) {
 	var notification *os.File
 	if prepared.ProgressFD >= 3 {
 		fd, e := syscall.Dup(prepared.ProgressFD)
@@ -58,40 +59,27 @@ func replayConnection(ctx context.Context, prepared Prepared, input, output *os.
 		notification = os.NewFile(uintptr(fd), "consumption-notification")
 		defer notification.Close()
 	}
-	receiptFile, e := os.OpenFile(reportPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
-	if e != nil {
-		return e
+	outcome, openErr := openReplayOutcome(run.ConnectionReceipt(), tool.Object{
+		"schemaVersion": 2, "materialId": run.Artifact().ID, "executionId": run.Execution().ExecutionID, "connectionId": run.Connection(), "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
+		"exitCode": 0, "fullConsumption": false, "clientEOF": false, "cleanupComplete": true,
+		"recording": run.MaterialReference(), "toolVersion": version.String(),
+	})
+	if openErr != nil {
+		return lifecycle.ClassifyFailure(lifecycle.FailureClassCleanup, openErr)
 	}
-	receipt := tool.Object{
-		"schemaVersion": 2, "version": 1, "materialId": materialID, "executionId": executionID, "connectionId": phase, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
-		"fullConsumption": false, "clientEOF": false, "cleanupComplete": true, "recording": recordingReference, "toolVersion": version.String(),
+	defer func() { err = errors.Join(err, outcome.finish(nil, nil)) }()
+	manifest, document, loadErr := loadMockPhase(run.Artifact().Path, prepared.Agent, run.Connection())
+	if loadErr != nil {
+		outcome.recordReplay(false, lifecycle.ClassifyFailure(lifecycle.FailureClassInternal, loadErr))
+		return nil
 	}
-	defer func() {
-		receipt["exitCode"] = 0
-		if err != nil {
-			receipt["exitCode"] = 1
-			receipt["error"] = err.Error()
-		}
-		closeErr := receiptFile.Close()
-		err = errors.Join(err, closeErr, atomicMockJSON(reportPath, receipt))
-	}()
-	manifest, document, e := loadMockPhase(sourceRoot, prepared.Agent, phase)
-	if e != nil {
-		return e
-	}
-	receipt["provider"] = prepared.Agent
-	receipt["planSHA256"] = manifest["planSHA256"]
-	receipt["provenance"] = manifest["provenance"]
-	receipt["recordingSHA256"] = document.SHA256
-	receipt["frames"] = len(document.Frames)
+	outcome.receipt["provider"] = prepared.Agent
+	outcome.bind(manifest, document)
 	ctx, cancel := context.WithTimeout(ctx, replayTimeout(prepared.Agent, prepared.Timeout, document.Timeout))
 	defer cancel()
-	consumed, e := mockProtocolNotifying(ctx, document, notification, input, output)
-	receipt["fullConsumption"] = consumed
-	if e != nil {
-		return e
-	}
-	receipt["status"], receipt["fullConsumption"], receipt["clientEOF"] = "passed", true, true
+	consumed, replayErr := mockProtocolNotifying(ctx, document, notification, input, output)
+	outcome.recordReplay(consumed, replayErr)
+	outcome.recordHistory(history.Check(run.OverlayRoot(), run.Execution().HistoryFiles))
 	return nil
 }
 

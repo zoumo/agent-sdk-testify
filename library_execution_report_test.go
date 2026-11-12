@@ -181,6 +181,24 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 			},
 		},
 		{
+			name: "receipt missing schema",
+			want: "schema or version",
+			mutate: func(t *testing.T, _ *agenttestify.Fixture, _ *agenttestify.MockAgentResult, report *agenttestify.ExecutionReport) {
+				mutateLibraryJSON(t, report.Connections[0].ReceiptPath, func(value map[string]any) {
+					delete(value, "schemaVersion")
+				})
+			},
+		},
+		{
+			name: "passed receipt error",
+			want: "passed status conflicts with error",
+			mutate: func(t *testing.T, _ *agenttestify.Fixture, _ *agenttestify.MockAgentResult, report *agenttestify.ExecutionReport) {
+				mutateLibraryJSON(t, report.Connections[0].ReceiptPath, func(value map[string]any) {
+					value["error"] = "synthetic failure"
+				})
+			},
+		},
+		{
 			name: "receipt boolean",
 			want: "not boolean",
 			mutate: func(t *testing.T, _ *agenttestify.Fixture, _ *agenttestify.MockAgentResult, report *agenttestify.ExecutionReport) {
