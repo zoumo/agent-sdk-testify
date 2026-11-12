@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "toolVersion": "v0.1.3-portable-recordings.0",
-  "sourceRevision": "2de88b73189e10f390006f5e4ef1054bc98adb7d",
+  "toolVersion": "v0.1.3-portable-recordings.1",
+  "sourceRevision": "2c2756c03d97942f6f0a7df44367c9ad3d8a139f",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "7b8b7c3efaf0fc4fcd732319772d96d832e0d03c9ade39c84b2e9110140ec1a3",
+  "indexSHA256": "9d1cb0baf02b909d6d76e641682fe170450e127eb55522aea926c4a6aa5bafc6",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -15,7 +15,7 @@
     "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
     "bindings.schema.json": "3aacaf0924c4508d4dd9274e4c5390bb64e96ce700179dcf1619748196f344a9",
     "bindings/claude.json": "4345fbf3136d2505049cfe7c7b4655edcfc6c9902e9cd9c1c69cdfa8341e5ba4",
-    "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e",
+    "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "0fc8cea5b78acf7c4c58d0de80dfd4ad744bcfcf27d80258693403a22da3d1c1"
@@ -708,12 +708,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-025",
-      "missingReason": "Codex exposes reasoning effort, not an independent thinking mode; effort is required and verified by SDK-CASE-027. The old SDK-CASE-025 recording remains retained as effort evidence only.",
+      "missingReason": "Codex exposes reasoning effort, not an independent thinking mode; effort is required and verified by SDK-CASE-027. SDK-CASE-025 has no current recording; effort evidence belongs to SDK-CASE-027.",
       "provider": "codex",
       "requirement": "optional",
       "storyId": "SDK-US-006",
       "verification": "unsupported",
-      "verificationReason": "Codex exposes reasoning effort, not an independent thinking mode; effort is required and verified by SDK-CASE-027. The old SDK-CASE-025 recording remains retained as effort evidence only."
+      "verificationReason": "Codex exposes reasoning effort, not an independent thinking mode; effort is required and verified by SDK-CASE-027. SDK-CASE-025 has no current recording; effort evidence belongs to SDK-CASE-027."
     },
     {
       "adoption": "missing",
@@ -6078,7 +6078,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6212,7 +6212,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6344,7 +6344,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6476,7 +6476,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6608,7 +6608,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6741,7 +6741,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6875,7 +6875,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7015,7 +7015,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7155,7 +7155,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7292,7 +7292,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7429,7 +7429,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7571,7 +7571,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7710,7 +7710,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7854,7 +7854,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8023,7 +8023,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8191,7 +8191,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8359,7 +8359,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8527,7 +8527,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8681,7 +8681,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8814,7 +8814,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8954,7 +8954,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9090,7 +9090,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9224,7 +9224,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9363,7 +9363,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9500,7 +9500,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9654,7 +9654,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9784,7 +9784,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9926,7 +9926,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -10066,7 +10066,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -10209,7 +10209,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -10409,7 +10409,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -10566,7 +10566,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -10709,7 +10709,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -10844,7 +10844,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "7487d04a4880c1613a57e6d52e2bfbf1e315ed8e853a4aa4cdfde069aaa8c16e"
+        "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f"
       },
       "officialSDK": {
         "package": "openai-codex",
