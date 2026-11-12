@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 func TestSelfContainedRecordingPrepare(t *testing.T) {
@@ -15,22 +17,23 @@ func TestSelfContainedRecordingPrepare(t *testing.T) {
 	recordConsumer(t, env, producer, agent, requestOne)
 	original := fixtureMaterialRoot(t, producer, latestCapture(t, producer))
 	raw := readFile(t, filepath.Join(original, "raw", "raw.jsonl"))
-	history := readFile(t, filepath.Join(original, "config", "sessions", "conformance-history.jsonl"))
+	history := readFile(t, filepath.Join(original, "history", "runtime", "config", "sessions", "conformance-history.jsonl"))
 	fixtureDir := prepareFixture(t, env, "--recording", original)
 	descriptorPath := filepath.Join(fixtureDir, "fixture.json")
 	descriptor := readFile(t, descriptorPath)
 	source := str(obj(readJSON(t, descriptorPath)["source"])["path"])
-	require.Equal(t, "packages/"+currentMaterialID(t, fixtureDir)+"/material", source)
-	sourceRoot := resolveFixtureReference(t, fixtureDir, source)
+	require.Equal(t, "source/plan.json", source)
+	require.FileExists(t, resolveFixtureReference(t, fixtureDir, source))
+	sourceRoot := fixtureMaterialRootByID(t, fixtureDir, currentMaterialID(t, fixtureDir))
 	require.Equal(t, raw, readFile(t, filepath.Join(sourceRoot, "raw", "raw.jsonl")))
-	require.Equal(t, history, readFile(t, filepath.Join(sourceRoot, "config", "sessions", "conformance-history.jsonl")))
+	require.Equal(t, history, readFile(t, filepath.Join(sourceRoot, "history", "runtime", "config", "sessions", "conformance-history.jsonl")))
 	current := readFile(t, filepath.Join(fixtureDir, "current.json"))
 	materialDescriptor := readFile(t, filepath.Join(sourceRoot, "material.json"))
 	require.NoError(t, os.RemoveAll(producer))
 
 	result := runPreparedMock(t, env, fixtureDir, "", requestOne)
 	require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, result.stdout)
-	require.Equal(t, "packages/"+currentMaterialID(t, fixtureDir)+"/material", source)
+	require.Equal(t, "source/plan.json", source)
 	require.Equal(t, currentMaterialID(t, fixtureDir), obj(latestExecution(t, fixtureDir, "mock")["artifact"])["id"])
 	require.Equal(t, descriptor, readFile(t, descriptorPath))
 	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
@@ -96,8 +99,8 @@ func TestPlanAndSeedSurviveOriginalRemoval(t *testing.T) {
 	agent, _, env := isolatedCommands(t, root, "codex")
 	plan := writeConsumerPlan(t, root, "deleted-plan")
 	seed := filepath.Join(root, "seed")
-	require.NoError(t, os.Mkdir(seed, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(seed, "history.jsonl"), []byte("seed\n"), 0o600))
+	seedFixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
+	require.NoError(t, tool.CopyTree(fixtureMaterialRootByID(t, seedFixture, currentMaterialID(t, seedFixture)), seed))
 	fixtureDir := prepareFixture(t, env, "--plan", plan, "--history-seed", seed)
 	descriptor := readFile(t, filepath.Join(fixtureDir, "fixture.json"))
 	require.NoError(t, os.Remove(plan))
@@ -109,20 +112,12 @@ func TestPlanAndSeedSurviveOriginalRemoval(t *testing.T) {
 
 func TestIncompatibleCurrentFailsBeforeExecution(t *testing.T) {
 	root := t.TempDir()
-	agent, _, env := isolatedCommands(t, root, "codex")
-	producer := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "incompatible-format"))
-	recordConsumer(t, env, producer, agent, requestOne)
-	material := fixtureMaterialRoot(t, producer, latestCapture(t, producer))
-	rawManifestPath := filepath.Join(material, "raw", "manifest.json")
-	rawManifest := readJSON(t, rawManifestPath)
-	obj(rawManifest["recordingFormat"])["version"] = 999
-	writeJSON(t, rawManifestPath, rawManifest)
-	manifestPath := filepath.Join(material, "manifest.json")
-	manifest := readJSON(t, manifestPath)
-	obj(manifest["files"])["manifest.json"] = digestFile(t, rawManifestPath)
-	writeJSON(t, manifestPath, manifest)
-	// This fixture deliberately represents a legacy package with an unsupported protocol format.
-	require.NoError(t, os.Remove(filepath.Join(material, "material.json")))
+	_, _, env := isolatedCommands(t, root, "codex")
+	material := syntheticReplayMaterial(t, "codex", "{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"protocol\",\"epoch\":1,\"wire\":{\"id\":1,\"method\":\"ping\"}}\n")
+	writeJSON(t, filepath.Join(material, "raw", "manifest.json"), object{
+		"recordingFormat": object{"name": "agent-mock-jsonl", "version": 999, "transport": "stdio-jsonl"},
+		"files":           object{"raw.jsonl": digestFile(t, filepath.Join(material, "raw", "raw.jsonl"))},
+	})
 	fixtureDir := prepareFixture(t, env, "--recording", material)
 	index := readFile(t, filepath.Join(fixtureDir, "executions", "index.json"))
 	result := runTool(t, env, t.TempDir(), requestOne, "agent", "mock", "--fixture-dir", fixtureDir)

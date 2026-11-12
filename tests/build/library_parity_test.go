@@ -329,15 +329,6 @@ func payloadHashes(t *testing.T, root string) map[string]string {
 	return hashes
 }
 
-func sortedKeys[V any](values map[string]V) []string {
-	keys := make([]string, 0, len(values))
-	for key := range values {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
 func readJSON(path string, value any) error {
 	data, err := os.ReadFile(path)
 	if err != nil {

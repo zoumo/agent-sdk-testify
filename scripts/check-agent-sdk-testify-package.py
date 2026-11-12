@@ -28,11 +28,18 @@ def check(wheel):
         materials.mkdir(); output.mkdir()
         for provider in ('codex', 'claude'):
             (materials / 'case.json').write_text(json.dumps({'caseId': 'not-implemented', 'provider': provider, 'scenario': {}}))
-            request = {'case': 'not-implemented', 'materials': str(materials), 'workspace': str(root),
-                       'peer': {'command': '/must-not-launch'}, 'output': str(output)}
+            runtime = {'schemaVersion': 1, 'root': str(root), 'workspace': str(root),
+                       'home': str(root / 'home'), 'config': str(root / 'config'),
+                       'raw': str(root / 'raw'), 'tmp': str(root / 'tmp'),
+                       'output': str(output), 'replay': False,
+                       'peer': {'command': '/must-not-launch', 'args': []}}
+            (root / 'runtime.json').write_text(json.dumps(runtime))
+            request = {'case': 'not-implemented', 'materials': str(materials),
+                       'runtime': str(root / 'runtime.json')}
             (root / 'request.json').write_text(json.dumps(request))
             run(python.parent / ('agent-sdk-testify-' + provider), '--request', root / 'request.json')
             assert json.loads((output / 'result.json').read_text())['status'] == 'unsupported'
+            print(f'{provider}: installed driver returned unsupported; sentinel Agent command was not launched.')
             (output / 'result.json').unlink()
         help_result = run(python, '-I', '-m', 'record_user_story.bootstrap', '--help')
         assert '{catalog}' in help_result.stdout.decode()

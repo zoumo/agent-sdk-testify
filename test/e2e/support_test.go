@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
+	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
 )
 
 type object = map[string]any
@@ -279,6 +280,20 @@ func fixtureMaterialRootByID(t *testing.T, fixture, id string) string {
 	return filepath.Join(fixture, "packages", id, "material")
 }
 
+func executionPackageRoot(t *testing.T, fixture string, execution object) string {
+	t.Helper()
+	id := str(obj(execution["artifact"])["id"])
+	require.NotEmpty(t, id)
+	return filepath.Join(fixture, "packages", id)
+}
+
+func resultPackageRoot(t *testing.T, fixture string, result object) string {
+	t.Helper()
+	id := str(result["materialId"])
+	require.NotEmpty(t, id)
+	return filepath.Join(fixture, "packages", id)
+}
+
 func executionOverlayRoot(t *testing.T, fixture string, execution object) string {
 	t.Helper()
 	id := str(execution["executionId"])
@@ -295,7 +310,16 @@ func executionArtifactRoot(t *testing.T, fixture string, execution object) strin
 	t.Helper()
 	require.NotEmpty(t, str(execution["executionId"]))
 	require.NotEmpty(t, str(execution["command"]))
-	return filepath.Join(fixture, "executions", str(execution["executionId"]), str(execution["command"]))
+	packageRoot := executionPackageRoot(t, fixture, execution)
+	core := filepath.Join(packageRoot, "material")
+	capture := filepath.Join(packageRoot, "executions", str(execution["executionId"]), "capture")
+	// A failed publication can retain a sealed core; otherwise the writer's
+	// only capture remains in its execution. Both locations have this exact owner.
+	if _, err := os.Stat(filepath.Join(core, "raw", "raw.jsonl")); err == nil {
+		require.NoFileExists(t, filepath.Join(capture, "raw", "raw.jsonl"))
+		return core
+	}
+	return capture
 }
 
 func connectionStatus(t *testing.T, fixture string, execution object, id string) any {
@@ -359,14 +383,14 @@ func prepareFixture(t *testing.T, env []string, args ...string) string {
 	require.Empty(t, result.stderr)
 	t.Cleanup(func() {
 		if t.Failed() {
-			for _, parent := range []string{"official-records", "verifications"} {
-				var ids []string
-				if readJSONFile(filepath.Join(fixture, parent, "index.json"), &ids) != nil || len(ids) == 0 {
-					continue
-				}
-				path := filepath.Join(fixture, parent, ids[len(ids)-1], "driver", "stderr.log")
+			paths, err := fixturetest.OfficialStderr(fixture)
+			if err != nil {
+				t.Logf("official diagnostics: %v", err)
+				return
+			}
+			for _, path := range paths {
 				if data, err := os.ReadFile(path); err == nil {
-					t.Logf("official driver diagnostics: %s", data)
+					t.Logf("official driver diagnostics (%s): %s", path, data)
 				}
 			}
 		}
@@ -570,7 +594,7 @@ func cancelOfficialDuringProtocol(t *testing.T, env []string, fixture string, ar
 func readFixtureEvidence(t *testing.T, fixture string) []byte {
 	t.Helper()
 	var contents []byte
-	for _, name := range []string{"fixture.json", "source", "materials", "executions"} {
+	for _, name := range []string{"fixture.json", "current.json", "source", "packages", "executions"} {
 		path := filepath.Join(fixture, name)
 		info, err := os.Stat(path)
 		require.NoError(t, err)

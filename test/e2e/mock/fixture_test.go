@@ -33,7 +33,7 @@ func mockTestAgent() int {
 		if err := os.MkdirAll(filepath.Dir(history), 0o700); err != nil {
 			return 3
 		}
-		if err := os.WriteFile(history, []byte("{\"type\":\"consumer-history\"}\n"), 0o600); err != nil {
+		if err := os.WriteFile(history, []byte("{\"type\":\"session_meta\",\"payload\":{\"id\":\"synthetic-history\",\"cwd\":\"/synthetic\"}}\n"), 0o600); err != nil {
 			return 3
 		}
 	}
@@ -89,7 +89,7 @@ func latestFixtureExecution(t *testing.T, fixture, command string) (tool.Object,
 		}
 		id := tool.Str(row["id"])
 		var execution tool.Object
-		require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", id, "execution.json"), &execution))
+		require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "packages", tool.Str(row["materialId"]), "executions", id, "execution.json"), &execution))
 		return execution, id
 	}
 	t.Fatalf("fixture has no %s execution", command)
@@ -231,18 +231,18 @@ func TestPreparedHalfOpenMockRetainsPendingConnection(t *testing.T) {
 	}
 	require.NotEmpty(t, mainConnection)
 	require.NotEmpty(t, probeConnection)
-	require.FileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(mainConnection["receipt"]))))
-	require.NoFileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(probeConnection["receipt"]))))
+	require.FileExists(t, filepath.Join(fixture, "packages", tool.Str(tool.Obj(execution["artifact"])["id"]), filepath.FromSlash(tool.Str(mainConnection["receipt"]))))
+	require.NoFileExists(t, filepath.Join(fixture, "packages", tool.Str(tool.Obj(execution["artifact"])["id"]), filepath.FromSlash(tool.Str(probeConnection["receipt"]))))
 
 	var index tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", "index.json"), &index))
 	require.Equal(t, "open", tool.Obj(tool.Array(index["executions"])[0])["status"])
 
-	require.FileExists(t, filepath.Join(fixture, "executions", executionID, "execution.json"))
-	require.FileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(mainConnection["receipt"]))))
-	require.FileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(mainConnection["processReceipt"]))))
-	require.NoFileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(probeConnection["receipt"]))))
-	require.NoFileExists(t, filepath.Join(fixture, filepath.FromSlash(tool.Str(probeConnection["processReceipt"]))))
+	require.FileExists(t, filepath.Join(fixture, "packages", tool.Str(tool.Obj(execution["artifact"])["id"]), "executions", executionID, "execution.json"))
+	require.FileExists(t, filepath.Join(fixture, "packages", tool.Str(tool.Obj(execution["artifact"])["id"]), filepath.FromSlash(tool.Str(mainConnection["receipt"]))))
+	require.FileExists(t, filepath.Join(fixture, "packages", tool.Str(tool.Obj(execution["artifact"])["id"]), filepath.FromSlash(tool.Str(mainConnection["processReceipt"]))))
+	require.NoFileExists(t, filepath.Join(fixture, "packages", tool.Str(tool.Obj(execution["artifact"])["id"]), filepath.FromSlash(tool.Str(probeConnection["receipt"]))))
+	require.NoFileExists(t, filepath.Join(fixture, "packages", tool.Str(tool.Obj(execution["artifact"])["id"]), filepath.FromSlash(tool.Str(probeConnection["processReceipt"]))))
 }
 
 func TestPreparedMockUsesCurrentWithoutRecordSource(t *testing.T) {
@@ -282,7 +282,7 @@ func TestPreparedSchemaFourFixtureRejected(t *testing.T) {
 	require.NoError(t, tool.WriteJSON(path, descriptor))
 	data, err := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixture).CombinedOutput()
 	require.Error(t, err, "%s", data)
-	assert.Contains(t, string(data), "unsupported fixture schemaVersion 4; schema 6 is required")
+	assert.Contains(t, string(data), "unsupported fixture schemaVersion 4; schema 7 is required")
 }
 
 func TestPreparedMockLauncherUsesIsolatedExecutionOverlays(t *testing.T) {
@@ -358,7 +358,7 @@ exec '%s' "$@"
 	assertRouteSlotsAtTemplate()
 	firstConnection := tool.Obj(tool.Array(first["connections"])[0])
 	var firstProcess tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, filepath.FromSlash(tool.Str(firstConnection["processReceipt"]))), &firstProcess))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "packages", tool.Str(tool.Obj(first["artifact"])["id"]), filepath.FromSlash(tool.Str(firstConnection["processReceipt"]))), &firstProcess))
 	require.EqualValues(t, 1, firstProcess["schemaVersion"])
 	require.NotContains(t, firstProcess, "cwd")
 	require.NotContains(t, firstProcess, "workspace")
@@ -382,7 +382,7 @@ exec '%s' "$@"
 	assertRouteSlotsAtTemplate()
 	secondConnection := tool.Obj(tool.Array(second["connections"])[0])
 	var secondProcess tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, filepath.FromSlash(tool.Str(secondConnection["processReceipt"]))), &secondProcess))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "packages", tool.Str(tool.Obj(second["artifact"])["id"]), filepath.FromSlash(tool.Str(secondConnection["processReceipt"]))), &secondProcess))
 	require.EqualValues(t, 1, secondProcess["schemaVersion"])
 	require.NotContains(t, secondProcess, "cwd")
 	require.NotContains(t, secondProcess, "workspace")
@@ -421,7 +421,7 @@ func TestPreparedConsumerRecordFailure(t *testing.T) {
 	var index tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "executions", "index.json"), &index))
 	var materials tool.Object
-	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "materials", "index.json"), &materials))
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixture, "packages", "index.json"), &materials))
 	assert.Empty(t, tool.Array(materials["materials"]))
 
 	require.Equal(t, "failed", tool.Obj(tool.Array(index["executions"])[0])["status"])

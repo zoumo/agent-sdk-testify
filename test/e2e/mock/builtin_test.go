@@ -79,10 +79,10 @@ func TestPreparedMaterialsPreserveNativeBytes(t *testing.T) {
 					Path string `json:"path"`
 				} `json:"materials"`
 			}
-			require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "materials", "index.json"), &index))
+			require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "packages", "index.json"), &index))
 			require.Len(t, index.Materials, 1)
 			require.Empty(t, index.Materials[0].Path)
-			material := filepath.Join(fixtureDir, "materials", index.Materials[0].ID)
+			material := filepath.Join(fixtureDir, "packages", index.Materials[0].ID, "material")
 			for _, name := range []string{"plan.json", "report.json", "raw/raw.jsonl"} {
 				original, err := os.ReadFile(filepath.Join(source, name))
 				require.NoError(t, err)
@@ -105,7 +105,9 @@ func TestPreparedMaterialsPreserveNativeBytes(t *testing.T) {
 	fixtureDir, _ := preparedFixtureWithArgs(t, "prepare", "--recording", root)
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
-	material := filepath.Join(fixtureDir, filepath.FromSlash(tool.Str(tool.Obj(descriptor["source"])["path"])))
+	var current tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "current.json"), &current))
+	material := filepath.Join(fixtureDir, "packages", tool.Str(current["materialId"]), "material")
 	copied, err := os.ReadFile(filepath.Join(material, "report.json"))
 	require.NoError(t, err)
 	assert.Equal(t, report, copied)

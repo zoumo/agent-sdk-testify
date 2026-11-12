@@ -25,7 +25,7 @@ func TestRecordingSourceRemainsFixedAcrossRecords(t *testing.T) {
 			descriptorBytes := readFile(t, descriptorPath)
 			descriptor := readJSON(t, descriptorPath)
 			fixedSource := obj(descriptor["source"])
-			fixedSourceRoot := resolveFixtureReference(t, fixtureDir, str(fixedSource["path"]))
+			fixedSourceRoot := filepath.Dir(resolveFixtureReference(t, fixtureDir, str(fixedSource["path"])))
 			sourceBytes := readAllFiles(t, fixedSourceRoot)
 			require.NoError(t, os.RemoveAll(producer))
 			installDriver(t, drivers, "codex", "record")
@@ -41,7 +41,7 @@ func TestRecordingSourceRemainsFixedAcrossRecords(t *testing.T) {
 				require.Equal(t, previous, material["id"])
 				require.NotContains(t, material, "path")
 				require.Equal(t, material, readJSON(t, filepath.Join(materialRoot, "material.json")))
-				assertFileHashes(t, materialRoot, obj(material["files"]))
+				assertMaterialHashes(t, materialRoot, material)
 				workspace := executionOverlayPath(t, fixtureDir, execution, "workspace")
 				resolvedWorkspace := resolvedPath(t, workspace)
 				require.True(t, strings.HasPrefix(resolvedWorkspace, fixtureRuntimeRoot(resolvedPath(t, fixtureDir))+string(filepath.Separator)))
@@ -68,23 +68,28 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 			recordConsumer(t, env, fixtureDir, agent, requestOne)
 			t.Cleanup(func() { _ = os.Chmod(fixtureDir, 0o700) })
 			current := readFile(t, filepath.Join(fixtureDir, "current.json"))
-			registry := readFile(t, filepath.Join(fixtureDir, "materials", "index.json"))
+			registry := readFile(t, filepath.Join(fixtureDir, "packages", "index.json"))
 			old := latestCapture(t, fixtureDir)
 			oldBytes := readAllFiles(t, fixtureMaterialRoot(t, fixtureDir, old))
 			faultAgent := filepath.Join(root, "fault-agent")
 			writeExecutable(t, faultAgent, os.Executable, "conformance-agent", "--conformance-fault", fault, fixtureDir)
 			failed := runTool(t, env, t.TempDir(), requestTwo, "agent", "record", "--fixture-dir", fixtureDir, "--cmd", faultAgent, "--", "app-server", "--listen", "stdio://")
 			require.NotZero(t, failed.code)
-			require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
-			if fault == "current" {
+			if fault == "cleanup" {
+				require.NotEqual(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
+			} else {
+				require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
+			}
+			switch fault {
+			case "current":
 				require.NoError(t, os.Chmod(fixtureDir, 0o700))
 				materials := array(materialIndex(t, fixtureDir)["materials"])
 				require.Len(t, materials, 2)
 				unpublished := obj(materials[1])
 				require.NotEqual(t, unpublished["id"], currentMaterialID(t, fixtureDir))
-				assertFileHashes(t, fixtureMaterialRoot(t, fixtureDir, unpublished), obj(unpublished["files"]))
-			} else {
-				require.Equal(t, registry, readFile(t, filepath.Join(fixtureDir, "materials", "index.json")))
+				assertMaterialHashes(t, fixtureMaterialRoot(t, fixtureDir, unpublished), unpublished)
+			case "publication":
+				require.Equal(t, registry, readFile(t, filepath.Join(fixtureDir, "packages", "index.json")))
 			}
 			require.Equal(t, oldBytes, readAllFiles(t, fixtureMaterialRoot(t, fixtureDir, old)))
 			execution := latestExecution(t, fixtureDir, "record")
@@ -95,14 +100,23 @@ func TestRecordCleanupAndPublicationFailuresKeepCurrent(t *testing.T) {
 			require.FileExists(t, filepath.Join(artifactRoot, "raw", "raw.jsonl"))
 			rows := array(fixtureIndex(t, fixtureDir)["executions"])
 			require.Len(t, rows, 2)
-			require.Equal(t, "failed", obj(rows[1])["status"])
-			failure := readJSON(t, filepath.Join(fixtureDir, "executions", str(execution["executionId"]), "receipts", "main.failure.json"))
+			status := "failed"
+			if fault == "cleanup" {
+				status = "passed"
+			}
+			require.Equal(t, status, obj(rows[1])["status"])
+			failure := readJSON(t, filepath.Join(executionPackageRoot(t, fixtureDir, execution), "executions", str(execution["executionId"]), "receipts", "main.result.json"))
+			require.Equal(t, fault == "cleanup", failure["publicationCommitted"])
 			require.Equal(t, "failed", failure["status"])
 			require.NotEmpty(t, failure["error"])
 			if fault == "cleanup" {
 				require.NoError(t, os.Remove(filepath.Join(fixtureRouteRoot(fixtureDir, "record"), "workspace")))
 			}
-			runPreparedMock(t, env, fixtureDir, "", requestOne)
+			request := requestOne
+			if fault == "cleanup" {
+				request = requestTwo
+			}
+			runPreparedMock(t, env, fixtureDir, "", request)
 		})
 	}
 }
@@ -119,7 +133,7 @@ func TestNewRecordDoesNotInheritVerification(t *testing.T) {
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixtureDir)
 	evidenceRoot, verification := latestOfficialVerification(t, fixtureDir)
 	evidence := readAllFiles(t, evidenceRoot)
-	require.Equal(t, old["id"], obj(verification["material"])["id"])
+	require.Equal(t, old["id"], verification["materialId"])
 	installDriver(t, drivers, "codex", "record")
 	mustRun(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixtureDir, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	material := latestCapture(t, fixtureDir)
@@ -135,20 +149,26 @@ func TestRecordingRecordUsesProtocolPrerequisites(t *testing.T) {
 		t.Run(fault, func(t *testing.T) {
 			root := t.TempDir()
 			agent, _, env := isolatedCommands(t, root, "codex")
-			producer := prepareFixture(t, env, "--plan", writeConsumerPlan(t, root, "record-prerequisites"))
+			sourceArgs := []string{"--plan", writeConsumerPlan(t, root, "record-prerequisites")}
+			if fault == "source-history-drift" {
+				seedFixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-018")
+				sourceArgs = append(sourceArgs, "--history-seed", fixtureMaterialRootByID(t, seedFixture, currentMaterialID(t, seedFixture)))
+			}
+			producer := prepareFixture(t, env, sourceArgs...)
 			recordConsumer(t, env, producer, agent, requestOne)
 			material := fixtureMaterialRoot(t, producer, latestCapture(t, producer))
 			if fault == "missing-driver-binding" {
-				planPath := filepath.Join(material, "plan.json")
+				legacy := syntheticReplayMaterial(t, "codex", "{\"ordinal\":1,\"direction\":\"c2s\",\"channel\":\"protocol\",\"epoch\":1,\"wire\":{\"id\":1,\"method\":\"ping\"}}\n")
+				planPath := filepath.Join(legacy, "plan.json")
 				plan := readJSON(t, planPath)
 				plan["driverProfile"] = "no-such-official-driver"
 				writeJSON(t, planPath, plan)
-				manifestPath := filepath.Join(material, "manifest.json")
+				manifestPath := filepath.Join(legacy, "manifest.json")
 				manifest := readJSON(t, manifestPath)
-				manifest["provenance"] = "synthetic"
 				manifest["planSHA256"] = digestFile(t, planPath)
+				manifest["provenance"] = "synthetic"
 				writeJSON(t, manifestPath, manifest)
-				require.NoError(t, os.Remove(filepath.Join(material, "material.json")))
+				material = legacy
 			}
 			fixtureDir := prepareFixture(t, env, "--recording", material)
 			if fault == "missing-driver-binding" {
@@ -159,8 +179,16 @@ func TestRecordingRecordUsesProtocolPrerequisites(t *testing.T) {
 				return
 			}
 			if fault == "source-history-drift" {
-				source := resolveFixtureReference(t, fixtureDir, str(obj(readJSON(t, filepath.Join(fixtureDir, "fixture.json"))["source"])["path"]))
-				require.NoError(t, os.WriteFile(filepath.Join(source, "config", "sessions", "conformance-history.jsonl"), []byte("changed\n"), 0o600))
+				descriptor := readJSON(t, filepath.Join(fixtureDir, "fixture.json"))
+				var historyPath string
+				for name := range obj(descriptor["historySeedFiles"]) {
+					if strings.Contains(name, "/config/") && strings.HasSuffix(name, ".jsonl") {
+						historyPath = name
+						break
+					}
+				}
+				require.NotEmpty(t, historyPath)
+				require.NoError(t, os.WriteFile(resolveFixtureReference(t, fixtureDir, historyPath), []byte("changed\n"), 0o600))
 			}
 			index := readFile(t, filepath.Join(fixtureDir, "executions", "index.json"))
 			current := readFile(t, filepath.Join(fixtureDir, "current.json"))

@@ -79,7 +79,7 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				require.Zero(t, result.code, result.stderr)
 				require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, result.stdout)
 				require.Equal(t, "passed", reference["status"])
-				execution := readJSON(t, resolveFixtureReference(t, fixtureDir, str(reference["execution"])))
+				execution := readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, reference), str(reference["execution"])))
 				executionArgs := stringsOf(execution["args"])
 				require.Equal(t, "--cmd", executionArgs[0])
 				require.NotContains(t, executionArgs, "--fixture-dir")
@@ -92,7 +92,9 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				material := obj(reference["material"])
 				require.NotEqual(t, initial, material["id"])
 				require.Equal(t, currentMaterialID(t, fixtureDir), material["id"])
-				artifact := obj(execution["artifact"])
+				aggregate := readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, reference), str(reference["result"])))
+				artifact := obj(aggregate["material"])
+				require.Equal(t, obj(execution["artifact"])["id"], artifact["id"])
 				for key, value := range material {
 					require.Equal(t, artifact[key], value, key)
 				}
@@ -102,7 +104,7 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				}
 				require.Equal(t, provenance, material["provenance"])
 				materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
-				assertFileHashes(t, materialRoot, obj(artifact["files"]))
+				assertFileHashes(t, materialRoot, obj(readJSON(t, filepath.Join(materialRoot, "manifest.json"))["files"]))
 				require.NoFileExists(t, filepath.Join(materialRoot, "result.json"))
 				sealed := readAllFiles(t, materialRoot)
 				// A parent business report written after capture cannot enter the material.
@@ -112,7 +114,7 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 				require.Equal(t, "passed", mockReference["status"])
 				require.Equal(t, material, mockReference["material"])
 				require.NotEqual(t, reference["executionId"], mockReference["executionId"])
-				require.Equal(t, "passed", readJSON(t, resolveFixtureReference(t, fixtureDir, str(mockReference["receipt"])))["status"])
+				require.Equal(t, "passed", readJSON(t, resolveFixtureReference(t, resultPackageRoot(t, fixtureDir, mockReference), str(mockReference["receipt"])))["status"])
 				require.Equal(t, sealed, readAllFiles(t, materialRoot))
 			}
 			require.NoFileExists(t, marker)

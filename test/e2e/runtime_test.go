@@ -91,7 +91,7 @@ func TestMockRejectsHistoryDriftBeforePublishingActionSuccess(t *testing.T) {
 			require.Contains(t, stderr.String(), "history hash mismatch")
 			require.Equal(t, "failed", connectionStatus(t, fixtureDir, execution, "main"))
 			connection := obj(array(execution["connections"])[0])
-			require.Equal(t, "failed", readJSON(t, resolveFixtureReference(t, fixtureDir, str(connection["processReceipt"])))["status"])
+			require.Equal(t, "failed", readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(connection["processReceipt"])))["status"])
 			require.Equal(t, content, readFile(t, filepath.Join(material, history)))
 		})
 	}
