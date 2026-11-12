@@ -229,7 +229,14 @@ func fixtureIndex(t *testing.T, fixture string) object {
 
 func executionByID(t *testing.T, fixture, id string) object {
 	t.Helper()
-	return readJSON(t, filepath.Join(fixture, "executions", id, "execution.json"))
+	for _, value := range array(fixtureIndex(t, fixture)["executions"]) {
+		row := obj(value)
+		if str(row["id"]) == id {
+			return readJSON(t, filepath.Join(fixture, "packages", str(row["materialId"]), "executions", id, "execution.json"))
+		}
+	}
+	t.Fatalf("execution %s absent from control index", id)
+	return nil
 }
 
 // resolveFixtureReference resolves a persisted fixture-root-relative reference.
@@ -263,14 +270,13 @@ func fixtureLauncher(fixture, connection string) string {
 func fixtureMaterialRoot(t *testing.T, fixture string, material object) string {
 	t.Helper()
 	id := str(material["id"])
-	require.NotEmpty(t, id)
-	return filepath.Join(fixture, "materials", id)
+	return fixtureMaterialRootByID(t, fixture, id)
 }
 
 func fixtureMaterialRootByID(t *testing.T, fixture, id string) string {
 	t.Helper()
 	require.NotEmpty(t, id)
-	return filepath.Join(fixture, "materials", id)
+	return filepath.Join(fixture, "packages", id, "material")
 }
 
 func executionOverlayRoot(t *testing.T, fixture string, execution object) string {
@@ -499,7 +505,7 @@ func requireDistinct(t *testing.T, values ...string) {
 
 func materialIndex(t *testing.T, fixture string) object {
 	t.Helper()
-	return readJSON(t, filepath.Join(fixture, "materials", "index.json"))
+	return readJSON(t, filepath.Join(fixture, "packages", "index.json"))
 }
 
 func currentMaterialID(t *testing.T, fixture string) string {

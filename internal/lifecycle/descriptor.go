@@ -22,7 +22,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
-const SchemaVersion = 6
+const SchemaVersion = 7
 
 const (
 	ToolSourceExecutable ToolSource = "executable"
@@ -397,19 +397,10 @@ func (f *Fixture) Resolve(fixtureDir string) error {
 		f.HistorySeed = seed
 	}
 	f.Env = baseEnvironment(f.AgentType, baseline)
-	for action, route := range f.Routes {
-		route.Workspace = RouteWorkspace(fixtureDir, action)
-		route.Env = baseEnvironment(f.AgentType, RouteRoot(fixtureDir, action))
-		if route.ProtocolCwd == "" {
-			route.ProtocolCwd = route.Workspace
-		}
-		for i := range route.Connections {
-			connection := &route.Connections[i]
-			if connection.Transport != ConnectionTransportProcess {
-				continue
-			}
-			connection.Command = f.Tool.Command
-			connection.Args, connection.Launcher = connectionLaunch(fixtureDir, action, connection.ID)
+	for action := range f.Routes {
+		route, err := ResolveRoute(f, action)
+		if err != nil {
+			return err
 		}
 		f.Routes[action] = route
 	}
@@ -545,13 +536,13 @@ func (e Execution) MarshalJSON() ([]byte, error) {
 		if err := validateExecutionID(connection.ID); err != nil {
 			return nil, err
 		}
-		receipt, err := FixtureReference(e.dir, connection.Receipt)
+		receipt, err := PackageReference(e.dir, e.Artifact.ID, connection.Receipt)
 		if err != nil {
 			return nil, fmt.Errorf("connection %s receipt: %w", connection.ID, err)
 		}
 		connection.Receipt = receipt
 		if connection.ProcessReceipt != "" {
-			process, err := FixtureReference(e.dir, connection.ProcessReceipt)
+			process, err := PackageReference(e.dir, e.Artifact.ID, connection.ProcessReceipt)
 			if err != nil {
 				return nil, fmt.Errorf("connection %s process receipt: %w", connection.ID, err)
 			}
@@ -604,7 +595,10 @@ func (e *Execution) Resolve(fixture *Fixture, fixtureDir string) error {
 	e.Config = filepath.Join(overlay, "config")
 	e.Tmp = filepath.Join(overlay, "tmp")
 	e.HistorySeed = filepath.Join(overlay, "history-seed")
-	e.ArtifactRoot = ExecutionArtifactRoot(fixtureDir, e.ExecutionID, e.Command)
+	e.ArtifactRoot = filepath.Join(PackageExecutionRoot(fixtureDir, e.Artifact.ID, e.ExecutionID), e.Command)
+	if e.Command == "record" {
+		e.ArtifactRoot = filepath.Join(PackageExecutionRoot(fixtureDir, e.Artifact.ID, e.ExecutionID), "capture")
+	}
 	if e.ProtocolCwd == "" {
 		e.ProtocolCwd = e.Workspace
 	}
@@ -657,13 +651,13 @@ func (e *Execution) Resolve(fixture *Fixture, fixtureDir string) error {
 		connection.Command = template.Command
 		connection.Args = slices.Clone(template.Args)
 		connection.Launcher = template.Launcher
-		receipt, err := ResolveFixtureReference(fixtureDir, connection.Receipt)
+		receipt, err := ResolvePackageReference(fixtureDir, e.Artifact.ID, connection.Receipt)
 		if err != nil {
 			return fmt.Errorf("connection %s receipt: %w", connection.ID, err)
 		}
 		connection.Receipt = receipt
 		if connection.ProcessReceipt != "" {
-			process, err := ResolveFixtureReference(fixtureDir, connection.ProcessReceipt)
+			process, err := ResolvePackageReference(fixtureDir, e.Artifact.ID, connection.ProcessReceipt)
 			if err != nil {
 				return fmt.Errorf("connection %s process receipt: %w", connection.ID, err)
 			}
@@ -683,6 +677,8 @@ type IndexConnection struct {
 }
 
 type IndexExecution struct {
+	MaterialID       string            `json:"materialId"`
+	Publishing       *Publication      `json:"publishing,omitempty"`
 	ID               string            `json:"id"`
 	Command          string            `json:"command"`
 	DescriptorSHA256 string            `json:"descriptorSHA256"`
@@ -771,7 +767,18 @@ func IndexPath(fixtureDir string) string {
 }
 
 func ExecutionDir(fixtureDir, id string) string {
-	return filepath.Join(fixtureDir, "executions", id)
+	if validateExecutionID(id) != nil {
+		return ""
+	}
+	var index Index
+	if err := tool.ReadJSON(IndexPath(fixtureDir), &index); err != nil || index.SchemaVersion != SchemaVersion {
+		return ""
+	}
+	indexed, err := findIndexExecution(&index, id)
+	if err != nil || indexed == nil || validateExecutionID(indexed.MaterialID) != nil {
+		return ""
+	}
+	return PackageExecutionRoot(fixtureDir, indexed.MaterialID, id)
 }
 
 func (f Fixture) Validate() error {
@@ -828,7 +835,15 @@ func (f Fixture) Validate() error {
 		if route.Enabled && (!filepath.IsAbs(route.Workspace) || route.Executor == "" || route.Target == "" || route.Provenance == "") {
 			return fmt.Errorf("incomplete %s route", action)
 		}
+		seen := map[string]bool{}
 		for _, connection := range route.Connections {
+			if seen[connection.ID] {
+				return errors.New("duplicate route connection identity")
+			}
+			seen[connection.ID] = true
+			if err := validateExecutionID(connection.ID); err != nil {
+				return err
+			}
 			if err := f.validateConnectionTemplate(connection); err != nil {
 				return fmt.Errorf("%s route connection %s: %w", action, connection.ID, err)
 			}
@@ -919,7 +934,10 @@ func (e Execution) Validate(f Fixture) error {
 			"config":       filepath.Join(overlay, "config"),
 			"tmp":          filepath.Join(overlay, "tmp"),
 			"historySeed":  filepath.Join(overlay, "history-seed"),
-			"artifactRoot": ExecutionArtifactRoot(e.dir, e.ExecutionID, e.Command),
+			"artifactRoot": filepath.Join(PackageExecutionRoot(e.dir, e.Artifact.ID, e.ExecutionID), e.Command),
+		}
+		if e.Command == "record" {
+			expected["artifactRoot"] = filepath.Join(PackageExecutionRoot(e.dir, e.Artifact.ID, e.ExecutionID), "capture")
 		}
 		actual := map[string]string{
 			"workspace": e.Workspace, "home": e.Home, "config": e.Config,
@@ -1082,6 +1100,9 @@ func readIndex(path string) (*Index, error) {
 		}
 		seen[material.ID] = true
 		material.Path = MaterialRoot(fixtureDir, material.ID)
+		if _, err := ResolveFixtureReference(fixtureDir, MaterialReference(material.ID)); err != nil {
+			return nil, err
+		}
 		resolved, err := filepath.EvalSymlinks(material.Path)
 		if err != nil {
 			return nil, err
@@ -1096,6 +1117,13 @@ func readIndex(path string) (*Index, error) {
 			return nil, errors.New("invalid descriptorless material identity")
 		}
 		descriptorless[id] = true
+	}
+	seenExecutions := map[string]bool{}
+	for _, execution := range index.Executions {
+		if validateExecutionID(execution.ID) != nil || validateExecutionID(execution.MaterialID) != nil || seenExecutions[execution.ID] {
+			return nil, errors.New("invalid or duplicate execution/material identity")
+		}
+		seenExecutions[execution.ID] = true
 	}
 	index.Artifacts = materials.Materials
 	index.Descriptorless = descriptorless
@@ -1113,6 +1141,10 @@ func ReadExecution(fixtureDir string, fixture *Fixture, path string) (*Execution
 		return nil, err
 	}
 	fixtureDir = dir
+	path, err = filepath.EvalSymlinks(path)
+	if err != nil {
+		return nil, err
+	}
 	if err := persistedSchema(path, "execution"); err != nil {
 		return nil, err
 	}
@@ -1122,6 +1154,9 @@ func ReadExecution(fixtureDir string, fixture *Fixture, path string) (*Execution
 	}
 	if err := execution.Resolve(fixture, fixtureDir); err != nil {
 		return nil, err
+	}
+	if filepath.Clean(path) != filepath.Join(PackageExecutionRoot(fixtureDir, execution.Artifact.ID, execution.ExecutionID), "execution.json") {
+		return nil, errors.New("execution path differs from package identity")
 	}
 	if err := execution.Validate(*fixture); err != nil {
 		return nil, err
@@ -1139,7 +1174,7 @@ type MaterialIndex struct {
 }
 
 func MaterialIndexPath(fixtureDir string) string {
-	return filepath.Join(fixtureDir, "materials", "index.json")
+	return filepath.Join(fixtureDir, "packages", "index.json")
 }
 
 func writeMaterialIndex(fixtureDir string, index *Index) error {

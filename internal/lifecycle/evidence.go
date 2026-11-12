@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
@@ -23,7 +24,7 @@ type replayReceiptExpectation struct {
 }
 
 func validateExecutionID(id string) error {
-	if id == "" || filepath.Base(id) != id || !filepath.IsLocal(id) {
+	if id == "" || id == "." || strings.ContainsAny(id, "\\/\x00") || filepath.Base(id) != id || !filepath.IsLocal(id) {
 		return errors.New("execution identity is not a local directory name")
 	}
 	return nil
@@ -64,20 +65,20 @@ func validateConnectionInventory(fixtureDir string, execution Execution, artifac
 	} else if artifact != nil {
 		ids = append([]string(nil), artifact.Connections...)
 	}
-	connections, err := executionConnections(fixtureDir, execution.ExecutionID, execution.Command, ids, artifact, route)
+	connections, err := executionConnections(fixtureDir, execution.ExecutionID, execution.Artifact.ID, execution.Command, ids, artifact, route)
 	if err != nil {
 		return err
 	}
 	actual := make([]ExecutionConnection, len(execution.Connections))
 	for i, connection := range execution.Connections {
 		connection.Command, connection.Args, connection.Launcher, connection.Material = "", nil, "", ""
-		reference, err := FixtureReference(fixtureDir, connection.Receipt)
+		reference, err := PackageReference(fixtureDir, execution.Artifact.ID, connection.Receipt)
 		if err != nil {
 			return err
 		}
 		connection.Receipt = reference
 		if connection.ProcessReceipt != "" {
-			processReference, err := FixtureReference(fixtureDir, connection.ProcessReceipt)
+			processReference, err := PackageReference(fixtureDir, execution.Artifact.ID, connection.ProcessReceipt)
 			if err != nil {
 				return err
 			}
@@ -233,7 +234,7 @@ func ValidateMockConnection(provider string, execution Execution, connection Exe
 	}
 	return validateMockReceipts(connection.Receipt, connection.ProcessReceipt, execution, connection, replayReceiptExpectation{
 		Provider: provider, RecordingSHA256: hash, PlanSHA256: execution.Artifact.PlanSHA256,
-		Material: MaterialReference(execution.Artifact.ID), Frames: frames, RequirePlan: true, RequireExitCode: true,
+		Material: "material", Frames: frames, RequirePlan: true, RequireExitCode: true,
 	})
 }
 

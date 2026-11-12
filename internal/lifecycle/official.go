@@ -79,8 +79,8 @@ func BeginOfficial(fixtureDir, mode string) (*OfficialRun, error) {
 	if err := writeAtomic(registry, records); err != nil {
 		return nil, err
 	}
-	if err := writeAtomic(filepath.Join(fixtureDir, "official-active.json"), tool.Object{
-		"schemaVersion": 1, "fixtureId": fixture.FixtureID, "id": id, "mode": mode, "pid": os.Getpid(), "status": "running", "dir": dir, "tracked": true, "processes": map[string]tool.Object{},
+	if err := writeAtomic(filepath.Join(fixtureDir, "official.json"), tool.Object{
+		"schemaVersion": SchemaVersion, "fixtureId": fixture.FixtureID, "id": id, "mode": mode, "pid": os.Getpid(), "status": "running", "dir": filepath.ToSlash(filepath.Join(parent, id)), "tracked": true, "processes": map[string]tool.Object{},
 	}); err != nil {
 		return nil, err
 	}
@@ -90,11 +90,14 @@ func BeginOfficial(fixtureDir, mode string) (*OfficialRun, error) {
 
 func checkOfficialIdle(fixtureDir string) error {
 	var active tool.Object
-	err := tool.ReadJSON(filepath.Join(fixtureDir, "official-active.json"), &active)
+	err := tool.ReadJSON(filepath.Join(fixtureDir, "official.json"), &active)
 	if os.IsNotExist(err) {
 		return nil
 	}
 	if err != nil {
+		return err
+	}
+	if err := persistedSchema(filepath.Join(fixtureDir, "official.json"), "official activity"); err != nil {
 		return err
 	}
 	// A crashed owner leaves a durable reservation. Never infer that its
@@ -127,7 +130,7 @@ func (r *OfficialRun) Complete(result tool.Object) error {
 	if result["cleanupComplete"] != true {
 		return errors.Join(errors.New("official processes are not confirmed stopped; activity retained"), processErr, r.lock.Close())
 	}
-	err := os.Remove(filepath.Join(r.FixtureDir, "official-active.json"))
+	err := os.Remove(filepath.Join(r.FixtureDir, "official.json"))
 	return errors.Join(err, r.lock.Close())
 }
 
@@ -158,7 +161,10 @@ func (r *OfficialRun) TrackProcess(name, state string, pid int) error {
 	defer r.mu.Unlock()
 	r.processes[name] = tool.Object{"state": state, "pid": pid}
 	var active tool.Object
-	path := filepath.Join(r.FixtureDir, "official-active.json")
+	path := filepath.Join(r.FixtureDir, "official.json")
+	if err := persistedSchema(path, "official activity"); err != nil {
+		return err
+	}
 	if err := tool.ReadJSON(path, &active); err != nil {
 		return err
 	}
@@ -199,5 +205,5 @@ func (r *OfficialRun) restoreRoute(action string) error {
 	if pendingExecution(index) != nil {
 		return ErrBusy
 	}
-	return restoreRouteSlots(r.Fixture, action)
+	return errors.Join(restoreRouteSlots(r.Fixture, action), RefreshRoutes(r.Fixture))
 }

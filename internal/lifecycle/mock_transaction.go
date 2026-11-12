@@ -65,6 +65,7 @@ func (m *mockTransaction) result() *MockResult {
 	result := &MockResult{
 		ActionResult: ActionResult{
 			FixtureID:        m.fixture.FixtureID,
+			MaterialID:       m.execution.Artifact.ID,
 			ExecutionID:      m.execution.ExecutionID,
 			ConnectionID:     id,
 			ConnectionStatus: ConnectionStatusUnknown,
@@ -88,7 +89,7 @@ func (m *mockTransaction) result() *MockResult {
 // finalize serializes completion across declared connections and owns every
 // state transition from process evidence through result delivery.
 func (m *mockTransaction) finalize(ctx context.Context, stream *os.File, replayErr error) (err error) {
-	lock, lockErr := lockFile(filepath.Join(m.dir, "mock-finalize.lock"), true, true)
+	lock, lockErr := lockFile(filepath.Join(m.overlayRoot, "mock-finalize.lock"), true, true)
 	if lockErr != nil {
 		processErr := m.writeProcessReceipt(replayErr)
 		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, replayErr, processErr, lockErr)
@@ -191,7 +192,7 @@ func (m *mockTransaction) fail() error {
 
 func (m *mockTransaction) restoreRoutes() error {
 	var active tool.Object
-	err := tool.ReadJSON(filepath.Join(m.fixtureDir, "official-active.json"), &active)
+	err := tool.ReadJSON(filepath.Join(m.fixtureDir, "official.json"), &active)
 	if err == nil {
 		if active["fixtureId"] == m.fixture.FixtureID && active["mode"] == "verify" {
 			return nil
@@ -199,7 +200,7 @@ func (m *mockTransaction) restoreRoutes() error {
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	return restoreRouteSlots(m.fixture, "mock")
+	return errors.Join(restoreRouteSlots(m.fixture, "mock"), RefreshRoutes(m.fixture))
 }
 
 // RunMock owns one mock connection from allocation or join through result
@@ -304,7 +305,7 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		return nil, err
 	}
 	for _, id := range current.Connections {
-		if _, ok := connectionTemplate(route, id); !ok {
+		if _, declared := connectionTemplate(route, id); !declared {
 			return nil, fmt.Errorf("route does not declare connection %s", id)
 		}
 	}

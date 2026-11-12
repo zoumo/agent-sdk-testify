@@ -81,7 +81,10 @@ func replayInProcessConnection(ctx context.Context, policy inProcessReplayPolicy
 		return lifecycle.ClassifyFailure(lifecycle.FailureClassCleanup, errors.Join(openErr, closeErr))
 	}
 	receipt := tool.Object{
-		"schemaVersion":   1,
+		"schemaVersion":   2,
+		"materialId":      run.Artifact().ID,
+		"executionId":     run.Execution().ExecutionID,
+		"connectionId":    run.Connection(),
 		"version":         1,
 		"status":          "failed",
 		"peer":            "Go in-process mock",

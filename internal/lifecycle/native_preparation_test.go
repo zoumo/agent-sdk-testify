@@ -17,6 +17,8 @@ func TestNativePreparationBindsActualEnvironmentAndPlan(t *testing.T) {
 	plan := tool.Object{"recordingIsolation": "personal-skills-v1", "cliSHA256": "native", "args": []string{"app-server"}}
 	require.NoError(t, tool.WriteJSON(path, plan))
 	require.NoError(t, tool.WriteJSON(materialPath, plan))
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "executions"), 0o700))
+	require.NoError(t, tool.WriteJSON(IndexPath(root), Index{SchemaVersion: SchemaVersion, Executions: []IndexExecution{{ID: "execution", MaterialID: "material"}}}))
 	execution := Execution{ExecutionID: "execution", Config: filepath.Join(root, "config"), Workspace: filepath.Join(root, "workspace"), RuntimeEnv: map[string]string{"HOME": filepath.Join(root, "home"), "CODEX_HOME": filepath.Join(root, "config"), "OPENAI_API_KEY": "private-credential"}}
 	require.NoError(t, os.MkdirAll(filepath.Join(ExecutionDir(root, "execution"), "receipts"), 0o700))
 	require.NoError(t, tool.WriteJSON(filepath.Join(ExecutionDir(root, "execution"), "execution.json"), tool.Object{"executionId": "execution"}))

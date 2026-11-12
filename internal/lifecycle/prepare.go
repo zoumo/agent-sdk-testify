@@ -493,7 +493,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			index.Descriptorless[materialArtifact.ID] = true
 		}
 	}
-	if err := os.MkdirAll(filepath.Join(fixtureDir, "materials"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(fixtureDir, "packages"), 0o700); err != nil {
 		return nil, err
 	}
 	if err := writeMaterialIndex(fixtureDir, index); err != nil {
@@ -507,6 +507,9 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		currentID = materialArtifact.ID
 	}
 	if err := writeCurrent(fixtureDir, fixture, currentID); err != nil {
+		return nil, err
+	}
+	if err := RefreshRoutes(fixture); err != nil {
 		return nil, err
 	}
 	if err := os.Chmod(fixturePath, 0o400); err != nil {

@@ -137,7 +137,7 @@ func setConnectionStarted(execution *IndexExecution, id, status string) {
 	}
 }
 
-func executionConnections(fixtureDir, executionID, action string, ids []string, material *corpus.Material, route Route) ([]ExecutionConnection, error) {
+func executionConnections(fixtureDir, executionID, materialID, action string, ids []string, material *corpus.Material, route Route) ([]ExecutionConnection, error) {
 	var connections []ExecutionConnection
 	for _, id := range ids {
 		template, ok := connectionTemplate(route, id)
@@ -145,32 +145,33 @@ func executionConnections(fixtureDir, executionID, action string, ids []string, 
 			return nil, fmt.Errorf("route does not declare connection %s", id)
 		}
 		connection := ExecutionConnection{
-			ID:        id,
-			Transport: template.Transport,
+			ID:         id,
+			MaterialID: materialID,
+			Transport:  template.Transport,
 		}
-		dir := ExecutionDir(fixtureDir, executionID)
+		dir := PackageExecutionRoot(fixtureDir, materialID, executionID)
 		switch action {
 		case "record":
-			base := ExecutionArtifactRoot(fixtureDir, executionID, "record")
+			base := filepath.Join(dir, "capture")
 			if id == "probe" {
 				base = filepath.Join(base, "remote-probe")
 			}
 			receipt := filepath.Join(base, "raw", "transport.json")
-			reference, err := FixtureReference(fixtureDir, receipt)
+			reference, err := PackageReference(fixtureDir, materialID, receipt)
 			if err != nil {
 				return nil, err
 			}
 			connection.Receipt = reference
 		case "mock":
 			receipt := filepath.Join(dir, "receipts", id+".json")
-			reference, err := FixtureReference(fixtureDir, receipt)
+			reference, err := PackageReference(fixtureDir, materialID, receipt)
 			if err != nil {
 				return nil, err
 			}
 			connection.Receipt = reference
 			if template.Transport == ConnectionTransportProcess {
 				process := filepath.Join(dir, "receipts", id+".process.json")
-				processReference, err := FixtureReference(fixtureDir, process)
+				processReference, err := PackageReference(fixtureDir, materialID, process)
 				if err != nil {
 					return nil, err
 				}
@@ -258,7 +259,7 @@ func executionProtocolCwd(action string, plan tool.Object, workspace string) str
 	return planProtocolCwd(plan, workspace)
 }
 
-func newExecution(fixture *Fixture, action, id, overlayRoot string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
+func newExecution(fixture *Fixture, action, id, materialID, overlayRoot string, commandArgs, nativeArgs []string, timeout time.Duration, progressFD int, ids []string, material *corpus.Material, admission *Admission, plan tool.Object, historyFiles map[string]string) (Execution, error) {
 	workspace := filepath.Join(overlayRoot, "workspace")
 	limits := fixture.Limits
 	if timeout > 0 {
@@ -269,7 +270,7 @@ func newExecution(fixture *Fixture, action, id, overlayRoot string, commandArgs,
 	if err != nil {
 		return Execution{}, err
 	}
-	connections, err := executionConnections(fixture.dir, id, action, ids, material, route)
+	connections, err := executionConnections(fixture.dir, id, materialID, action, ids, material, route)
 	if err != nil {
 		return Execution{}, err
 	}
@@ -299,12 +300,8 @@ func newExecution(fixture *Fixture, action, id, overlayRoot string, commandArgs,
 		StartedAt:     now(),
 	}
 	if action == "record" {
-		artifactID, err := randomID()
-		if err != nil {
-			return Execution{}, err
-		}
 		execution.Artifact = corpus.Material{
-			ID:          artifactID,
+			ID:          materialID,
 			Kind:        "capture",
 			Action:      "record",
 			Provenance:  provenance,
@@ -418,11 +415,23 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 	if err != nil {
 		return nil, err
 	}
-	dir := ExecutionDir(fixtureDir, id)
+	materialID := ""
+	if material != nil {
+		materialID = material.ID
+	} else {
+		materialID, err = randomID()
+		if err != nil {
+			return nil, err
+		}
+	}
+	dir := PackageExecutionRoot(fixtureDir, materialID, id)
 	if err := os.MkdirAll(filepath.Join(dir, "receipts"), 0o700); err != nil {
 		return nil, err
 	}
 	artifactRoot := filepath.Join(dir, action)
+	if action == "record" {
+		artifactRoot = filepath.Join(dir, "capture")
+	}
 	if err := os.MkdirAll(artifactRoot, 0o700); err != nil {
 		return nil, err
 	}
@@ -437,7 +446,7 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 			ids = append([]string(nil), material.Connections...)
 		}
 	}
-	execution, err := newExecution(fixture, action, id, overlayRoot, commandArgs, nativeArgs, timeout, progressFD, ids, material, admission, plan, historyFiles)
+	execution, err := newExecution(fixture, action, id, materialID, overlayRoot, commandArgs, nativeArgs, timeout, progressFD, ids, material, admission, plan, historyFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -473,6 +482,7 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 		}
 		value.Executions = append(value.Executions, IndexExecution{
 			ID:               id,
+			MaterialID:       materialID,
 			Command:          action,
 			DescriptorSHA256: descriptorHash,
 			Status:           executionStatus,
@@ -491,6 +501,9 @@ func createTransactionLocked(fixtureDir, action string, commandArgs, nativeArgs 
 func beginActionLock(fixtureDir string) (*Lock, bool, error) {
 	lock, err := actionLock(fixtureDir, true)
 	if err == nil {
+		if err := recoverPublication(fixtureDir); err != nil {
+			return nil, false, errors.Join(err, lock.Close())
+		}
 		return lock, true, nil
 	}
 	if !errors.Is(err, ErrBusy) {
@@ -536,10 +549,7 @@ func connectionClaimPath(execution Execution, id string) (string, error) {
 	if connection == nil {
 		return "", fmt.Errorf("undeclared %s connection %s", execution.Command, id)
 	}
-	path := filepath.Join(filepath.Dir(connection.Receipt), "."+id+".started")
-	if execution.Command == "record" {
-		path = filepath.Join(filepath.Dir(execution.ArtifactRoot), "receipts", "."+id+".started")
-	}
+	path := filepath.Join(filepath.Dir(execution.Home), "claims", id+".started")
 	return path, nil
 }
 

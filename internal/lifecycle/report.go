@@ -169,6 +169,11 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 		}
 		report.Connections = append(report.Connections, item)
 	}
+	if report.Complete {
+		if err := validateExecutionAggregate(fixtureDir, execution.Artifact.ID, execution.ExecutionID, descriptorSHA256); err != nil {
+			return nil, err
+		}
+	}
 	return report, nil
 }
 
@@ -273,8 +278,11 @@ func readReportReceipt(fixtureDir, path string, status ConnectionStatus, transpo
 	if err != nil {
 		return nil, fmt.Errorf("mock replay receipt: %w", err)
 	}
-	if receipt["schemaVersion"] != float64(1) || receipt["version"] != float64(1) {
+	if receipt["schemaVersion"] != float64(2) || receipt["version"] != float64(1) {
 		return nil, errors.New("mock replay receipt schema or version differs from the contract")
+	}
+	if receipt["materialId"] != artifact.ID || receipt["connectionId"] != connection.ID || receipt["executionId"] != filepath.Base(filepath.Dir(filepath.Dir(path))) {
+		return nil, errors.New("mock replay receipt identity differs from execution")
 	}
 	for _, field := range []string{"nativeLaunched", "fullConsumption", "clientEOF", "cleanupComplete"} {
 		if _, ok := receipt[field].(bool); !ok {
@@ -291,7 +299,7 @@ func readReportReceipt(fixtureDir, path string, status ConnectionStatus, transpo
 	if tool.Str(receipt["provider"]) != provider {
 		return nil, fmt.Errorf("mock replay receipt provider %q differs from fixture agent %q", tool.Str(receipt["provider"]), provider)
 	}
-	recordingRoot, err := ResolveFixtureReference(fixtureDir, tool.Str(receipt["recording"]))
+	recordingRoot, err := ResolvePackageReference(fixtureDir, artifact.ID, tool.Str(receipt["recording"]))
 	if err != nil || recordingRoot != artifact.Path {
 		return nil, errors.New("mock replay receipt recording reference differs from execution material")
 	}
@@ -346,27 +354,31 @@ func readReportResult(fixtureDir, path string, execution Execution, connection E
 	if err != nil {
 		return nil, fmt.Errorf("mock result: %w", err)
 	}
-	if result["schemaVersion"] != float64(2) ||
+	if result["schemaVersion"] != float64(3) ||
 		result["fixtureId"] != execution.FixtureID ||
 		result["executionId"] != execution.ExecutionID {
 		return nil, errors.New("mock result execution identity differs from execution")
 	}
-	if result["connectionId"] != connection.ID {
+	if result["materialId"] != execution.Artifact.ID || result["connectionId"] != connection.ID {
 		return nil, errors.New("mock result connection identity differs from execution")
 	}
 	if resultStatus := tool.Str(result["status"]); resultStatus != "passed" && resultStatus != "failed" {
 		return nil, fmt.Errorf("mock result status %q is invalid", resultStatus)
 	}
 	expectedExecution := filepath.Join(filepath.Dir(filepath.Dir(path)), "execution.json")
-	declaredExecution, err := ResolveFixtureReference(fixtureDir, tool.Str(result["execution"]))
+	declaredExecution, err := ResolvePackageReference(fixtureDir, execution.Artifact.ID, tool.Str(result["execution"]))
 	if err != nil || declaredExecution != expectedExecution {
 		return nil, errors.New("mock result execution path differs from execution")
 	}
-	declaredResult, err := ResolveFixtureReference(fixtureDir, tool.Str(result["result"]))
+	hash, err := tool.FileDigest(expectedExecution)
+	if err != nil || result["executionSHA256"] != hash {
+		return nil, errors.New("mock result descriptor hash differs from execution")
+	}
+	declaredResult, err := ResolvePackageReference(fixtureDir, execution.Artifact.ID, tool.Str(result["result"]))
 	if err != nil || declaredResult != path {
 		return nil, errors.New("mock result path differs from execution")
 	}
-	declaredReceipt, err := ResolveFixtureReference(fixtureDir, tool.Str(result["receipt"]))
+	declaredReceipt, err := ResolvePackageReference(fixtureDir, execution.Artifact.ID, tool.Str(result["receipt"]))
 	if err != nil || declaredReceipt != connection.Receipt {
 		return nil, errors.New("mock result receipt path differs from execution")
 	}
@@ -395,7 +407,7 @@ func readReportResult(fixtureDir, path string, execution Execution, connection E
 		if tool.Str(result["command"]) != execution.Command {
 			return nil, errors.New("process mock result command differs from execution")
 		}
-		declaredProcess, err := ResolveFixtureReference(fixtureDir, tool.Str(result["processReceipt"]))
+		declaredProcess, err := ResolvePackageReference(fixtureDir, execution.Artifact.ID, tool.Str(result["processReceipt"]))
 		if connection.ProcessReceipt == "" || err != nil || declaredProcess != connection.ProcessReceipt {
 			return nil, errors.New("process mock result receipt differs from execution")
 		}

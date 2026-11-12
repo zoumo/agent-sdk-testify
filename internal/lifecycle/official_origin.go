@@ -65,7 +65,10 @@ func recordOrigin(fixtureDir string, fixture *Fixture, connection string) (*corp
 		return nil, errors.New("official launch does not declare connection")
 	}
 	var active tool.Object
-	if err := tool.ReadJSON(filepath.Join(fixtureDir, "official-active.json"), &active); err != nil {
+	if err := persistedSchema(filepath.Join(fixtureDir, "official.json"), "official activity"); err != nil {
+		return nil, err
+	}
+	if err := tool.ReadJSON(filepath.Join(fixtureDir, "official.json"), &active); err != nil {
 		return nil, err
 	}
 	if active["id"] != origin.RunID || active["fixtureId"] != fixture.FixtureID || active["mode"] != "record" || active["status"] != "running" {

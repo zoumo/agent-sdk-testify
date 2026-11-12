@@ -2,6 +2,7 @@ package lifecycle
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
@@ -122,6 +123,24 @@ func readCurrent(fixtureDir, fixtureID string) (Current, error) {
 	if current.FixtureID != fixtureID {
 		return Current{}, errors.New("invalid current recording identity")
 	}
+	if current.MaterialID != "" {
+		if err := validateExecutionID(current.MaterialID); err != nil {
+			return Current{}, err
+		}
+		root := MaterialRoot(fixtureDir, current.MaterialID)
+		for name, want := range map[string]string{"material.json": current.MaterialSHA256, "manifest.json": current.ManifestSHA256} {
+			if name == "material.json" && want == "" {
+				if _, err := os.Lstat(filepath.Join(root, name)); os.IsNotExist(err) {
+					continue // descriptorless legacy import
+				}
+				return Current{}, errors.New("current recording omits its material sealed hash")
+			}
+			got, err := tool.FileDigest(filepath.Join(root, name))
+			if err != nil || got != want {
+				return Current{}, errors.New("current recording sealed hash differs")
+			}
+		}
+	}
 	return current, nil
 }
 
@@ -138,11 +157,28 @@ func LatestArtifact(fixtureDir string, fixture *Fixture) (*corpus.Material, erro
 }
 
 type Current struct {
-	SchemaVersion int    `json:"schemaVersion"`
-	FixtureID     string `json:"fixtureId"`
-	MaterialID    string `json:"materialId,omitempty"`
+	SchemaVersion  int    `json:"schemaVersion"`
+	FixtureID      string `json:"fixtureId"`
+	MaterialID     string `json:"materialId,omitempty"`
+	MaterialSHA256 string `json:"materialSHA256,omitempty"`
+	ManifestSHA256 string `json:"manifestSHA256,omitempty"`
 }
 
 func writeCurrent(fixtureDir string, fixture *Fixture, materialID string) error {
-	return writeAtomic(filepath.Join(fixtureDir, "current.json"), Current{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, MaterialID: materialID})
+	current := Current{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, MaterialID: materialID}
+	if materialID != "" {
+		if err := validateExecutionID(materialID); err != nil {
+			return err
+		}
+		var err error
+		current.MaterialSHA256, err = tool.FileDigest(filepath.Join(MaterialRoot(fixtureDir, materialID), "material.json"))
+		if err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		current.ManifestSHA256, err = tool.FileDigest(filepath.Join(MaterialRoot(fixtureDir, materialID), "manifest.json"))
+		if err != nil {
+			return err
+		}
+	}
+	return writeAtomic(filepath.Join(fixtureDir, "current.json"), current)
 }

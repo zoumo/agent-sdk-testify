@@ -27,7 +27,7 @@ func TestLegacyMaterialFormatsPreserveBytesAcrossImportMockExport(t *testing.T) 
 			fixtureDir := prepareFixture(t, env, "--recording", source)
 			require.Equal(t, sourceContents, legacyMaterialContents(t, source), "prepare changed its source")
 			var index object
-			require.NoError(t, readJSONFile(filepath.Join(fixtureDir, "materials", "index.json"), &index))
+			require.NoError(t, readJSONFile(filepath.Join(fixtureDir, "packages", "index.json"), &index))
 			material := obj(array(index["materials"])[0])
 			materialRoot := fixtureMaterialRoot(t, fixtureDir, material)
 			require.Equal(t, sourceHashes, packageHashes(t, materialRoot))
@@ -59,7 +59,7 @@ func TestLegacyMaterialFormatsPreserveBytesAcrossImportMockExport(t *testing.T) 
 			require.NoError(t, os.RemoveAll(fixtureDir))
 			reimported := prepareFixture(t, env, "--recording", exported)
 			var reimportedIndex object
-			require.NoError(t, readJSONFile(filepath.Join(reimported, "materials", "index.json"), &reimportedIndex))
+			require.NoError(t, readJSONFile(filepath.Join(reimported, "packages", "index.json"), &reimportedIndex))
 			reimportedMaterial := obj(array(reimportedIndex["materials"])[0])
 			require.Equal(t, sourceHashes, packageHashes(t, fixtureMaterialRoot(t, reimported, reimportedMaterial)))
 			if descriptorless {

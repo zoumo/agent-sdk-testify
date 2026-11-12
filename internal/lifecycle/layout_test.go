@@ -57,11 +57,33 @@ func TestFixedLayoutDerivation(t *testing.T) {
 	require.Equal(t, filepath.Join(root, "runtime", "routes", "mock", "workspace"), RouteWorkspace(root, "mock"))
 	require.Equal(t, filepath.Join(root, "runtime", "templates", "mock"), TemplateRoot(root, "mock"))
 	require.Equal(t, filepath.Join(root, "runtime", "launchers", "peer-main"), LauncherPath(root, "main"))
-	require.Equal(t, filepath.Join(root, "materials", "material"), MaterialRoot(root, "material"))
+	require.Equal(t, filepath.Join(root, "packages", "material", "material"), MaterialRoot(root, "material"))
 	require.Equal(t, filepath.Join(root, "runtime", "executions", "execution"), ExecutionOverlayRoot(root, "execution"))
-	require.Equal(t, filepath.Join(root, "executions", "execution", "record"), ExecutionArtifactRoot(root, "execution", "record"))
+	require.Equal(t, filepath.Join(root, "packages", "material", "executions", "execution"), PackageExecutionRoot(root, "material", "execution"))
 	require.Equal(t, filepath.Join(root, "source", "plan.json"), SourcePlanPath(root))
-	require.Equal(t, "materials/material", MaterialReference("material"))
+	require.Equal(t, "packages/material/material", MaterialReference("material"))
+}
+
+func TestPackageReferencesRejectWrongBaseAndSymlinks(t *testing.T) {
+	root := t.TempDir()
+	packageRoot := PackageRoot(root, "material-id")
+	require.NoError(t, os.MkdirAll(filepath.Join(packageRoot, "material"), 0o700))
+	for _, invalid := range []string{"", "/absolute", "../other/material", "./material", "material/../executions", `material\raw`} {
+		_, err := ResolvePackageReference(root, "material-id", invalid)
+		require.Error(t, err, invalid)
+	}
+	for _, id := range []string{"", "../other", "/absolute", "a/b"} {
+		_, err := ResolvePackageReference(root, id, "material")
+		require.Error(t, err, id)
+	}
+	_, err := PackageReference(root, "material-id", MaterialRoot(root, "other-id"))
+	require.Error(t, err)
+	require.NoError(t, os.Symlink(filepath.Join(packageRoot, "material"), filepath.Join(packageRoot, "alias")))
+	_, err = ResolvePackageReference(root, "material-id", "alias/raw")
+	require.ErrorContains(t, err, "symlink")
+	require.NoError(t, os.Symlink(packageRoot, PackageRoot(root, "alias-id")))
+	_, err = ResolvePackageReference(root, "alias-id", "material")
+	require.ErrorContains(t, err, "symlink")
 }
 
 func TestPreparedFixtureResolvesFixedLayoutAndOmitsMachineLocalPaths(t *testing.T) {
@@ -76,7 +98,7 @@ func TestPreparedFixtureResolvesFixedLayoutAndOmitsMachineLocalPaths(t *testing.
 
 	var descriptor tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixtureDir, "fixture.json"), &descriptor))
-	require.EqualValues(t, 6, descriptor["schemaVersion"])
+	require.EqualValues(t, 7, descriptor["schemaVersion"])
 	for _, key := range []string{"resourceRoot", "workspace", "home", "config", "tmp"} {
 		require.NotContains(t, descriptor, key)
 	}

@@ -41,17 +41,19 @@ const (
 // ActionResult is the shared evidence returned after one record or mock
 // connection call. A passed connection does not imply a complete execution.
 type ActionResult struct {
-	FixtureID          string
-	ExecutionID        string
-	ConnectionID       string
-	ConnectionStatus   ConnectionStatus
-	ExecutionStatus    ExecutionStatus
-	ExecutionComplete  bool
-	Material           *corpus.Material
-	ExecutionPath      string
-	ReceiptPath        string
-	ProcessReceiptPath string
-	ResultPath         string
+	MaterialID           string
+	PublicationCommitted bool
+	FixtureID            string
+	ExecutionID          string
+	ConnectionID         string
+	ConnectionStatus     ConnectionStatus
+	ExecutionStatus      ExecutionStatus
+	ExecutionComplete    bool
+	Material             *corpus.Material
+	ExecutionPath        string
+	ReceiptPath          string
+	ProcessReceiptPath   string
+	ResultPath           string
 }
 
 // RecordResult identifies the execution and connection completed by one record
@@ -141,22 +143,38 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 		id = "main"
 	}
 	path := filepath.Join(run.dir, "receipts", id+".result.json")
-	executionReference, err := FixtureReference(run.fixtureDir, filepath.Join(run.dir, "execution.json"))
+	executionReference, err := PackageReference(run.fixtureDir, run.execution.Artifact.ID, filepath.Join(run.dir, "execution.json"))
 	if err != nil {
 		return "", nil, err
 	}
-	resultReference, err := FixtureReference(run.fixtureDir, path)
+	resultReference, err := PackageReference(run.fixtureDir, run.execution.Artifact.ID, path)
 	if err != nil {
 		return "", nil, err
 	}
 	value := tool.Object{
-		"schemaVersion": 2,
-		"fixtureId":     run.fixture.FixtureID,
-		"executionId":   run.execution.ExecutionID,
-		"connectionId":  id,
-		"status":        status,
-		"execution":     executionReference,
-		"result":        resultReference,
+		"schemaVersion":        3,
+		"materialId":           run.execution.Artifact.ID,
+		"publicationCommitted": run.publicationCommitted,
+		"fixtureId":            run.fixture.FixtureID,
+		"executionId":          run.execution.ExecutionID,
+		"connectionId":         id,
+		"status":               status,
+		"execution":            executionReference,
+		"result":               resultReference,
+	}
+	value["connectionStatus"] = status
+	value["executionStatus"] = "open"
+	value["executionComplete"] = false
+	if index, err := readIndex(IndexPath(run.fixtureDir)); err == nil {
+		if indexed, err := findIndexExecution(index, run.execution.ExecutionID); err == nil && indexed != nil {
+			for _, c := range indexed.Connections {
+				if c.ID == id {
+					value["connectionStatus"] = c.Status
+				}
+			}
+			value["executionStatus"] = indexed.Status
+			value["executionComplete"] = indexed.Status == "passed" || indexed.Status == "failed"
+		}
 	}
 	if run.connectionTransport() == ConnectionTransportInProcess {
 		value["transport"] = ConnectionTransportInProcess
@@ -165,22 +183,35 @@ func actionResult(run *transactionContext, status string, actionErr error) (stri
 		value["command"] = run.execution.Command
 	}
 	for _, connection := range run.execution.Connections {
-		if connection.ID == id {
-			receipt, err := FixtureReference(run.fixtureDir, connection.Receipt)
+		if connection.ID != id {
+			continue
+		}
+		receiptPath := connection.Receipt
+		if run.execution.Command == "record" && status != "running" {
+			stable := filepath.Join(run.dir, "receipts", id+".transport.json")
+			if info, err := os.Lstat(stable); err == nil && info.Mode().IsRegular() {
+				receiptPath = stable
+			}
+		}
+		receipt, err := PackageReference(run.fixtureDir, run.execution.Artifact.ID, receiptPath)
+		if err != nil {
+			return "", nil, err
+		}
+		value["receipt"] = receipt
+		if connection.ProcessReceipt != "" {
+			process, err := PackageReference(run.fixtureDir, run.execution.Artifact.ID, connection.ProcessReceipt)
 			if err != nil {
 				return "", nil, err
 			}
-			value["receipt"] = receipt
-			if connection.ProcessReceipt != "" {
-				process, err := FixtureReference(run.fixtureDir, connection.ProcessReceipt)
-				if err != nil {
-					return "", nil, err
-				}
-				value["processReceipt"] = process
-			}
+			value["processReceipt"] = process
 		}
 	}
-	if run.execution.Command == "mock" || (status == "passed" && run.execution.Artifact.ManifestSHA256 != "") {
+	if run.publicationCommitted {
+		value["executionStatus"] = "passed"
+		value["executionComplete"] = true
+		value["connectionStatus"] = "passed"
+	}
+	if run.execution.Command == "mock" || run.publicationCommitted {
 		material := run.execution.Artifact
 		value["material"] = tool.Object{
 			"id": material.ID, "provenance": material.Provenance,
@@ -238,20 +269,39 @@ func writeActionResult(ctx context.Context, run *transactionContext, stream *os.
 		return err
 	}
 	if stream != nil {
-		return notifyResult(context.WithoutCancel(ctx), stream, value)
+		return deliverActionResult(ctx, run, stream, path, value)
 	}
-	return nil
+	return sealExecution(run)
+}
+
+// deliverActionResult preserves the authoritative outcome when a notification
+// is lost or only a prefix reaches the caller. No complete final line was sent.
+func deliverActionResult(ctx context.Context, run *transactionContext, stream resultWriter, path string, value tool.Object) error {
+	if err := notifyResult(context.WithoutCancel(ctx), stream, value); err != nil {
+		value["deliveryError"] = err.Error()
+		return errors.Join(err, writeAtomic(path, value), sealExecution(run))
+	}
+	return sealExecution(run)
 }
 
 // Notifications must not outlive a blocked or abandoned caller. Final results
 // remain durable even when cancellation has already closed the protocol stream.
-func notifyResult(ctx context.Context, stream *os.File, value tool.Object) error {
+type resultWriter interface {
+	Write([]byte) (int, error)
+	SetWriteDeadline(time.Time) error
+}
+
+func notifyResult(ctx context.Context, stream resultWriter, value tool.Object) error {
 	deadline := time.Now().Add(time.Second)
 	if limit, ok := ctx.Deadline(); ok && limit.Before(deadline) {
 		deadline = limit
 	}
 	if err := stream.SetWriteDeadline(deadline); err != nil {
-		info, statErr := stream.Stat()
+		file, ok := stream.(*os.File)
+		if !ok {
+			return err
+		}
+		info, statErr := file.Stat()
 		if statErr != nil || !info.Mode().IsRegular() {
 			return errors.Join(err, statErr)
 		}
