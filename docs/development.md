@@ -135,8 +135,15 @@ required/optional、planned/unsupported 及原因必须保留。
 根目录 `library*_test.go` 是公开库能力的最高验收接缝：测试包固定为
 `agenttestify_test`，只导入模块公开路径，不调用 CLI；可以使用临时文件、受控子进程
 和本地回环连接。这些测试由 `make test` 和 `make test-race` 纳入默认门禁。
-embedded prepare 读取 Go build info 中的精确 VCS 身份，因此根库测试必须以
-`-buildvcs=true` 在干净工作树上运行；`Makefile` 和离线门禁已固定该参数。
+embedded prepare 读取 Go build info 中的精确 VCS 身份。Go 1.26.10 在 `.git` 为文件的
+linked worktree 中不写入 VCS 信息，因此使用标准 `make` 测试/构建命令或
+`scripts/check-offline.sh`：入口从干净源码的精确 HEAD 创建本地独立 checkout，核对
+HEAD/tree 后以 `-buildvcs=true` 执行测试。dirty 源码必须先提交，不能测试旧 HEAD
+代替未提交内容。已有 `.git` 目录的 checkout 原地运行，不重复复制。
+聚焦命令可以使用 `bash scripts/with-build-checkout.sh go test -buildvcs=true ...`。
+wrapper 不修改构建身份或产品校验，也不获取网络依赖；失败保留临时 checkout 与命令日志
+并输出位置，成功清理临时目录。标准入口的构建产物和门禁日志仍输出到调用方仓库的
+`bin/`、`.artifacts/` 或显式输出目录；自行传给 wrapper 的输出路径须使用绝对路径。
 `tests/build/` 比较公开库 fixture 与 installed CLI fixture 的 layout、descriptor 形状、
 material 字节和哈希，不复制 CLI 用例集。
 
