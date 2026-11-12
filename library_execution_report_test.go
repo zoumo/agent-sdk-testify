@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -395,7 +394,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 		},
 		{
 			name: "material bytes",
-			want: "current legacy inventory differs",
+			want: "material core inventory hash mismatch: raw/raw.jsonl",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, _ *agenttestify.MockAgentResult, _ *agenttestify.ExecutionReport) {
 				appendFile(t, filepath.Join(fixture.Current.Path, "raw", "raw.jsonl"), "\n")
 			},
@@ -597,56 +596,39 @@ func libraryExecutionPath(t *testing.T, fixtureDir, executionID string) string {
 
 func repinLibraryManifest(t *testing.T, fixture *agenttestify.Fixture, executionID string, mutate func(map[string]any)) {
 	t.Helper()
+	// Repin outer envelopes so the report reaches the deliberately corrupted
+	// raw manifest, including its path traversal and source hash checks.
+	rawManifest := filepath.Join(fixture.Current.Path, "raw", "manifest.json")
+	mutateLibraryJSON(t, rawManifest, mutate)
 	manifestPath := filepath.Join(fixture.Current.Path, "manifest.json")
-	mutateLibraryJSON(t, manifestPath, mutate)
+	mutateLibraryJSON(t, manifestPath, func(value map[string]any) {
+		value["files"].(map[string]any)["raw/manifest.json"] = libraryFileDigest(t, rawManifest)
+	})
 	digest := libraryFileDigest(t, manifestPath)
 	repinMaterialManifest := func(material map[string]any) {
 		material["manifestSHA256"] = digest
-		if files, ok := material["files"].(map[string]any); ok {
-			files["manifest.json"] = digest
-		}
 	}
-	files := treeHashes(t, fixture.Current.Path)
-	var names []string
-	for name := range files {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	var inventory strings.Builder
-	for _, name := range names {
-		inventory.WriteString(name + "\x00" + files[name] + "\n")
-	}
-	sum := sha256.Sum256([]byte(inventory.String()))
-	legacyHash := hex.EncodeToString(sum[:])
+	materialPath := filepath.Join(fixture.Current.Path, "material.json")
+	mutateLibraryJSON(t, materialPath, repinMaterialManifest)
+	materialDigest := libraryFileDigest(t, materialPath)
 	mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "packages", "index.json"), func(value map[string]any) {
 		for _, raw := range value["materials"].([]any) {
 			material := raw.(map[string]any)
-			if material["id"] != fixture.Current.ID {
-				continue
+			if material["id"] == fixture.Current.ID {
+				repinMaterialManifest(material)
+				return
 			}
-			repinMaterialManifest(material)
-			material["files"] = files
-			material["legacyInventorySHA256"] = legacyHash
-			return
 		}
 		t.Fatalf("material %s is absent from index", fixture.Current.ID)
 	})
-	// This fixture imports a descriptorless legacy tree. Rebind its control
-	// inventory so the test reaches manifest validation without inventing a core
-	// descriptor or altering any recorded source file beyond the test mutation.
-	require.NoFileExists(t, filepath.Join(fixture.Current.Path, "material.json"))
 	mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "current.json"), func(value map[string]any) {
 		value["manifestSHA256"] = digest
-		value["legacyInventorySHA256"] = legacyHash
+		value["materialSHA256"] = materialDigest
 	})
 	rewriteLibraryDescriptor(t, fixture.FixtureDir, executionID, func(value map[string]any) {
-		artifact := value["artifact"].(map[string]any)
-		repinMaterialManifest(artifact)
-		artifact["files"] = files
-		artifact["legacyInventorySHA256"] = legacyHash
+		repinMaterialManifest(value["artifact"].(map[string]any))
 		for _, raw := range value["connections"].([]any) {
-			connection := raw.(map[string]any)
-			connection["manifestSHA256"] = digest
+			raw.(map[string]any)["manifestSHA256"] = digest
 		}
 	}, nil)
 }

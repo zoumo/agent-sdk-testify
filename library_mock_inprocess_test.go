@@ -264,7 +264,7 @@ func TestLibraryStartMockAgentHistoryDriftFailsConsistently(t *testing.T) {
 		t.Fatal("full consumption did not arrive before EOF")
 	}
 
-	source := readLibraryJSON(t, filepath.Join(prepared.Current.Path, "manifest.json"))["savedFiles"].(map[string]any)
+	source := readLibraryJSON(t, filepath.Join(prepared.Current.Path, "manifest.json"))["files"].(map[string]any)
 	name := ""
 	for candidate := range run.Start.HistoryFiles {
 		if _, ok := source[candidate]; !ok {
