@@ -433,6 +433,45 @@ func TestLibraryExecutionReportMissingExecutionDoesNotCreateOne(t *testing.T) {
 	require.Equal(t, before, executionDirectoryCount(t, prepared.FixtureDir))
 }
 
+func TestLibraryExecutionReportRejectsPackageReferenceEscapes(t *testing.T) {
+	for _, name := range []string{"absolute", "traversal", "noncanonical", "wrong execution", "wrong connection", "symlink"} {
+		t.Run(name, func(t *testing.T) {
+			fixture, result := completedLibraryMockReport(t)
+			current := readFile(t, filepath.Join(fixture.FixtureDir, "current.json"))
+			index := readFile(t, filepath.Join(fixture.FixtureDir, "executions", "index.json"))
+			if name == "symlink" {
+				outside := filepath.Join(t.TempDir(), "receipt.json")
+				require.NoError(t, os.WriteFile(outside, readFile(t, result.ReceiptPath), 0o600))
+				require.NoError(t, os.Remove(result.ReceiptPath))
+				require.NoError(t, os.Symlink(outside, result.ReceiptPath))
+			} else {
+				rewriteLibraryDescriptor(t, fixture.FixtureDir, result.ExecutionID, func(value map[string]any) {
+					connection := value["connections"].([]any)[0].(map[string]any)
+					reference := connection["receipt"].(string)
+					switch name {
+					case "absolute":
+						connection["receipt"] = result.ReceiptPath
+					case "traversal":
+						connection["receipt"] = "../" + reference
+					case "noncanonical":
+						connection["receipt"] = "./" + reference
+					case "wrong execution":
+						connection["receipt"] = "executions/other/receipts/main.replay.json"
+					case "wrong connection":
+						connection["receipt"] = "executions/" + result.ExecutionID + "/receipts/probe.replay.json"
+					}
+				}, nil)
+				index = readFile(t, filepath.Join(fixture.FixtureDir, "executions", "index.json"))
+			}
+			report, err := fixture.ExecutionReport(result.ExecutionID)
+			require.Error(t, err)
+			require.Nil(t, report)
+			require.Equal(t, current, readFile(t, filepath.Join(fixture.FixtureDir, "current.json")))
+			require.Equal(t, index, readFile(t, filepath.Join(fixture.FixtureDir, "executions", "index.json")))
+		})
+	}
+}
+
 func TestLibraryMockWaitFailsClosedWhenReportCannotBeBuilt(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
 	input := newControlledInput(libraryMockInput)

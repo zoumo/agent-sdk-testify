@@ -21,11 +21,6 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
 	setControlledOfficialDriver(t, drivers, "local")
 	fixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
-	if target := os.Getenv("TESTIFY_OFFICIAL_INVENTORY"); target != "" {
-		defer func() {
-			require.NoError(t, writeJSONFile(target, officialInventory(t, fixture)))
-		}()
-	}
 	recorded := runTool(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixture, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	require.Zero(t, recorded.code, recorded.stderr)
 	require.NoFileExists(t, filepath.Join(fixture, "official.json"))
@@ -117,6 +112,9 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	exported := filepath.Join(t.TempDir(), "core")
 	mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixture, "--output", exported)
 	require.Equal(t, before, officialInventory(t, exported))
+	if target := os.Getenv("TESTIFY_OFFICIAL_INVENTORY"); target != "" {
+		require.NoError(t, writeJSONFile(target, officialInventory(t, fixture)))
+	}
 	require.NoError(t, os.RemoveAll(fixture))
 	require.NoError(t, os.RemoveAll(attempt))
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", imported)

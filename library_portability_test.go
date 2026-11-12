@@ -34,10 +34,18 @@ func TestLibraryExportReprepareAfterDeletingOriginalSources(t *testing.T) {
 	}, "{\"id\":1,\"method\":\"synthetic\"}\n")
 	require.NoError(t, err)
 	material := assertPublishedLibraryRecord(t, prepared, recorded)
+	packageBytes := treeContents(t, filepath.Dir(material.Path))
+	packageInput := filepath.Join(root, "package-input")
+	for name, data := range packageBytes {
+		target := filepath.Join(packageInput, filepath.FromSlash(name))
+		require.NoError(t, os.MkdirAll(filepath.Dir(target), 0o700))
+		require.NoError(t, os.WriteFile(target, data, 0o600))
+	}
 	exported := filepath.Join(root, "export")
 	require.NoError(t, agenttestify.Export(agenttestify.ExportOptions{FixtureDir: prepared.FixtureDir, Output: exported}))
 	before := treeContents(t, exported)
 	hashes := treeHashes(t, exported)
+	t.Logf("before core inventory: %v", hashes)
 	descriptor := readLibraryJSON(t, filepath.Join(exported, "material.json"))
 	require.EqualValues(t, 3, descriptor["formatVersion"])
 	require.Equal(t, hashes["source-plan.json"], descriptor["sourcePlanSHA256"])
@@ -92,6 +100,23 @@ func TestLibraryExportReprepareAfterDeletingOriginalSources(t *testing.T) {
 	require.NoError(t, agenttestify.Export(agenttestify.ExportOptions{FixtureDir: imported.FixtureDir, Output: exported}))
 	require.Equal(t, before, treeContents(t, exported))
 	require.Equal(t, hashes, treeHashes(t, exported))
+	t.Logf("after core inventory: %v", treeHashes(t, exported))
+
+	full, err := agenttestify.Prepare(agenttestify.PrepareOptions{FixtureDir: filepath.Join(root, "full-package"), Recording: packageInput})
+	require.NoError(t, err)
+	require.Equal(t, material.ID, full.Current.ID)
+	require.Equal(t, packageBytes, treeContents(t, filepath.Dir(full.Current.Path)))
+	require.Empty(t, readLibraryJSON(t, filepath.Join(full.FixtureDir, "executions", "index.json"))["executions"])
+	require.NoError(t, os.RemoveAll(packageInput))
+	archived, err := full.ExecutionReport(recorded.ExecutionID)
+	require.ErrorContains(t, err, "absent")
+	require.Nil(t, archived)
+	result, _, _, err = runLibraryMock(t, full, agenttestify.MockAgentOptions{NativeArgs: []string{"app-server", "--listen", "stdio://"}}, "{\"id\":1,\"method\":\"synthetic\"}\n")
+	require.NoError(t, err)
+	require.NotEqual(t, recorded.ExecutionID, result.ExecutionID)
+	for name, original := range packageBytes {
+		require.Equal(t, original, readFile(t, filepath.Join(filepath.Dir(full.Current.Path), filepath.FromSlash(name))), name)
+	}
 }
 
 func TestLibraryCallerCoordinatesBeforeClaimThroughHostShutdown(t *testing.T) {
