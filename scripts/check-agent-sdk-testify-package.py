@@ -39,6 +39,7 @@ def check(wheel):
             (root / 'request.json').write_text(json.dumps(request))
             run(python.parent / ('agent-sdk-testify-' + provider), '--request', root / 'request.json')
             assert json.loads((output / 'result.json').read_text())['status'] == 'unsupported'
+            print(f'{provider}: installed driver returned unsupported; sentinel Agent command was not launched.')
             (output / 'result.json').unlink()
         help_result = run(python, '-I', '-m', 'record_user_story.bootstrap', '--help')
         assert '{catalog}' in help_result.stdout.decode()

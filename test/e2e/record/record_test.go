@@ -278,7 +278,14 @@ func (p *preparedRecord) recordRoot(t *testing.T) string {
 	require.NotEmpty(t, rows)
 	last := tool.Obj(rows[len(rows)-1])
 	require.Equal(t, "record", last["command"])
-	return filepath.Join(p.fixtureDir, "packages", tool.Str(last["materialId"]), "material")
+	packageRoot := filepath.Join(p.fixtureDir, "packages", tool.Str(last["materialId"]))
+	executionRoot := filepath.Join(packageRoot, "executions", tool.Str(last["id"]))
+	var result tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(executionRoot, "result.json"), &result))
+	if result["publicationCommitted"] == true {
+		return filepath.Join(packageRoot, "material")
+	}
+	return filepath.Join(executionRoot, "capture")
 }
 
 func TestRecordUsesInstalledOfficialDriverOutsideCheckout(t *testing.T) {

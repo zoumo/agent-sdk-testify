@@ -175,13 +175,15 @@ func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T
 		if !t.Failed() {
 			return
 		}
-		var ids []string
-		if tool.ReadJSON(filepath.Join(fixtureDir, "verifications", "index.json"), &ids) != nil || len(ids) == 0 {
+		paths, err := fixturetest.OfficialStderr(fixtureDir)
+		if err != nil {
+			t.Logf("official diagnostics: %v", err)
 			return
 		}
-		root := filepath.Join(fixtureDir, "verifications", ids[len(ids)-1], "driver")
-		if data, err := os.ReadFile(filepath.Join(root, "stderr.log")); err == nil {
-			t.Logf("driver diagnostics: %s", data)
+		for _, path := range paths {
+			if data, err := os.ReadFile(path); err == nil {
+				t.Logf("driver diagnostics (%s): %s", path, data)
+			}
 		}
 	})
 	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "official", "verify", "--fixture-dir", fixtureDir)
@@ -404,14 +406,37 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 			})
 			data, err := cmd.CombinedOutput()
 			t.Logf("official verify stderr/result: %s", data)
-			output := verifyOutput(t, fixtureDir)
 			if mode == "passed" {
 				require.NoError(t, err, "%s", data)
-				require.FileExists(t, filepath.Join(filepath.Dir(filepath.Dir(output)), "executions", tool.Str(tool.Obj(tool.Array(readObject(t, filepath.Join(output, "verification.json"))["executions"])[0])["executionId"]), "receipts", "probe.json"))
+				output := verifyOutput(t, fixtureDir)
+				evidence := readObject(t, filepath.Join(output, "verification.json"))
+				refs := tool.Array(evidence["executions"])
+				require.Len(t, refs, 1)
+				executionRoot, err := fixturetest.ExecutionRoot(fixtureDir, tool.Str(tool.Obj(refs[0])["executionId"]))
+				require.NoError(t, err)
+				require.FileExists(t, filepath.Join(executionRoot, "receipts", "probe.json"))
 				require.FileExists(t, filepath.Join(output, "peers", "probe.json"))
 			} else {
 				require.Error(t, err, "%s", data)
 				require.Contains(t, string(data), "probe: protocol process not started or settled")
+				require.Contains(t, string(data), "official execution is not settled; journal retained")
+				journal := readObject(t, filepath.Join(fixtureDir, "official.json"))
+				require.Equal(t, "running", journal["status"])
+				require.Equal(t, "verify", journal["mode"])
+				staging := filepath.Join(fixtureDir, filepath.FromSlash(tool.Str(journal["staging"])))
+				require.FileExists(t, filepath.Join(staging, "replay-report.json"))
+				require.FileExists(t, filepath.Join(staging, "stderr.log"))
+				require.NoFileExists(t, filepath.Join(fixtureDir, filepath.FromSlash(tool.Str(journal["target"])), "verification.json"))
+				index := readObject(t, filepath.Join(fixtureDir, "executions", "index.json"))
+				rows := tool.Array(index["executions"])
+				require.Len(t, rows, 1)
+				require.Equal(t, "open", tool.Obj(rows[0])["status"])
+				for _, value := range tool.Array(tool.Obj(rows[0])["connections"]) {
+					connection := tool.Obj(value)
+					if connection["id"] == "probe" {
+						require.Equal(t, "pending", connection["status"])
+					}
+				}
 			}
 		})
 	}

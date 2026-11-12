@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
+	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
 )
 
 type object = map[string]any
@@ -382,14 +383,14 @@ func prepareFixture(t *testing.T, env []string, args ...string) string {
 	require.Empty(t, result.stderr)
 	t.Cleanup(func() {
 		if t.Failed() {
-			for _, parent := range []string{"official-records", "verifications"} {
-				var ids []string
-				if readJSONFile(filepath.Join(fixture, parent, "index.json"), &ids) != nil || len(ids) == 0 {
-					continue
-				}
-				path := filepath.Join(fixture, parent, ids[len(ids)-1], "driver", "stderr.log")
+			paths, err := fixturetest.OfficialStderr(fixture)
+			if err != nil {
+				t.Logf("official diagnostics: %v", err)
+				return
+			}
+			for _, path := range paths {
 				if data, err := os.ReadFile(path); err == nil {
-					t.Logf("official driver diagnostics: %s", data)
+					t.Logf("official driver diagnostics (%s): %s", path, data)
 				}
 			}
 		}

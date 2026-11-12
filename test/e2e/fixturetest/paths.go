@@ -33,3 +33,16 @@ func ExecutionRoot(fixture, id string) (string, error) {
 func safeID(id string) bool {
 	return id != "" && id != "." && filepath.Base(id) == id && filepath.IsLocal(id)
 }
+
+// OfficialStderr returns diagnostics from explicit settled and staging domains.
+func OfficialStderr(fixture string) ([]string, error) {
+	var paths []string
+	for _, pattern := range []string{"packages/*/record/*/stderr.log", "packages/*/verify/*/stderr.log", "failures/official-record/*/stderr.log", "runtime/official/*/staging/stderr.log"} {
+		matches, err := filepath.Glob(filepath.Join(fixture, filepath.FromSlash(pattern)))
+		if err != nil {
+			return nil, err
+		}
+		paths = append(paths, matches...)
+	}
+	return paths, nil
+}
