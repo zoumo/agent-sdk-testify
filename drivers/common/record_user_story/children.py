@@ -308,7 +308,10 @@ async def claude(plan, report):
         return False
 
     definition = AgentDefinition(description='Read the synthetic child-fixture.txt and return its token.',
-                 prompt=child_task('claude', strict=strict), background=background, model='inherit',
+                 prompt=(child_task('claude', strict=strict)
+                         + ' Before completing the child task, send the read result in an assistant text message.'
+                         + ' Do not provide the result only as a tool-call argument.'),
+                 background=background, model='inherit',
                  **({'tools': ['Read']} if strict else {}))
     options = ClaudeAgentOptions(cwd=str(execution_workspace(plan)), can_use_tool=permission,
                agents={CHILD_ROLE: definition}, include_partial_messages=True)
