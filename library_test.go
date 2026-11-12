@@ -579,7 +579,7 @@ func treeContents(t *testing.T, root string) map[string][]byte {
 		if err != nil {
 			return err
 		}
-		contents[filepath.ToSlash(rel)] = append([]byte(nil), readFile(t, path)...)
+		contents[filepath.ToSlash(rel)] = readFile(t, path)
 		return nil
 	}))
 	return contents
