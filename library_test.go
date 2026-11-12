@@ -60,7 +60,7 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	require.FileExists(t, filepath.Join(fixtureDir, "fixture.json"))
 	require.FileExists(t, filepath.Join(fixtureDir, "current.json"))
 	fixtureDescriptor := readLibraryJSON(t, filepath.Join(fixtureDir, "fixture.json"))
-	require.EqualValues(t, 6, fixtureDescriptor["schemaVersion"])
+	require.EqualValues(t, 7, fixtureDescriptor["schemaVersion"])
 	tool := fixtureDescriptor["tool"].(map[string]any)
 	require.Equal(t, "embedded", tool["source"])
 	require.Equal(t, libraryModule, tool["module"])
@@ -79,7 +79,7 @@ func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	}
 	for _, path := range []string{
 		"executions/index.json",
-		"materials/index.json",
+		"packages/index.json",
 	} {
 		require.FileExists(t, filepath.Join(fixtureDir, filepath.FromSlash(path)))
 	}

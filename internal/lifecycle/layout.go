@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -19,7 +20,7 @@ const (
 	fixtureToolBinding   = "runtime/tool.json"
 	fixtureSourcePlan    = "source/plan.json"
 	fixtureSourceSeed    = "source/history-seed"
-	fixtureMaterials     = "materials"
+	fixturePackages      = "packages"
 	fixtureExecutions    = "executions"
 )
 
@@ -59,8 +60,37 @@ func LauncherPath(fixtureDir, connection string) string {
 	return filepath.Join(fixtureDir, filepath.FromSlash(fixtureLaunchers), "peer-"+connection)
 }
 
+// PackageRoot is the single persistent root for one material and its evidence.
+func PackageRoot(fixtureDir, materialID string) string {
+	return filepath.Join(fixtureDir, fixturePackages, materialID)
+}
+
+func PackageExecutionRoot(fixtureDir, materialID, executionID string) string {
+	return filepath.Join(PackageRoot(fixtureDir, materialID), fixtureExecutions, executionID)
+}
+
+func PackageReference(fixtureDir, materialID, target string) (string, error) {
+	if err := validateExecutionID(materialID); err != nil {
+		return "", err
+	}
+	if _, err := ResolveFixtureReference(fixtureDir, path.Join(fixturePackages, materialID)); err != nil {
+		return "", err
+	}
+	return FixtureReference(PackageRoot(fixtureDir, materialID), target)
+}
+
+func ResolvePackageReference(fixtureDir, materialID, reference string) (string, error) {
+	if err := validateExecutionID(materialID); err != nil {
+		return "", err
+	}
+	if _, err := ResolveFixtureReference(fixtureDir, path.Join(fixturePackages, materialID)); err != nil {
+		return "", err
+	}
+	return resolveReference(PackageRoot(fixtureDir, materialID), reference, "package")
+}
+
 func MaterialRoot(fixtureDir, materialID string) string {
-	return filepath.Join(fixtureDir, filepath.FromSlash(fixtureMaterials), materialID)
+	return filepath.Join(PackageRoot(fixtureDir, materialID), "material")
 }
 
 func ExecutionOverlayRoot(fixtureDir, executionID string) string {
@@ -68,6 +98,9 @@ func ExecutionOverlayRoot(fixtureDir, executionID string) string {
 }
 
 func ExecutionArtifactRoot(fixtureDir, executionID, action string) string {
+	if action == "record" {
+		action = "capture"
+	}
 	return filepath.Join(ExecutionDir(fixtureDir, executionID), action)
 }
 
@@ -107,6 +140,11 @@ func FixtureReference(fixtureDir, target string) (string, error) {
 		return "", fmt.Errorf("path must be absolute: %q", target)
 	}
 	root := filepath.Clean(fixtureDir)
+	if relative, err := filepath.Rel(root, filepath.Clean(target)); err == nil && filepath.IsLocal(relative) {
+		if err := rejectLinkedReference(root, filepath.ToSlash(relative)); err != nil {
+			return "", err
+		}
+	}
 	resolvedRoot, err := filepath.EvalSymlinks(root)
 	if err != nil {
 		return "", err
@@ -119,8 +157,8 @@ func FixtureReference(fixtureDir, target string) (string, error) {
 			if !withinResolved(resolvedRoot, resolved) {
 				return "", fmt.Errorf("path escapes fixture through a symlink: %q", target)
 			}
-			for i := len(missing) - 1; i >= 0; i-- {
-				resolved = filepath.Join(resolved, missing[i])
+			for _, part := range slices.Backward(missing) {
+				resolved = filepath.Join(resolved, part)
 			}
 			relative, err := filepath.Rel(resolvedRoot, resolved)
 			if err != nil {
@@ -157,6 +195,9 @@ func resolveReference(root, reference, kind string) (string, error) {
 	if err := canonicalReference(reference); err != nil {
 		return "", err
 	}
+	if err := rejectLinkedReference(root, reference); err != nil {
+		return "", err
+	}
 	resolvedRoot, err := filepath.EvalSymlinks(root)
 	if err != nil {
 		return "", err
@@ -183,6 +224,31 @@ func resolveReference(root, reference, kind string) (string, error) {
 	return target, nil
 }
 
+func rejectLinkedReference(root, reference string) error {
+	current := root
+	parts := strings.Split(reference, "/")
+	for i, part := range parts {
+		current = filepath.Join(current, part)
+		info, err := os.Lstat(current)
+		if os.IsNotExist(err) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("reference traverses a symlink: %q", reference)
+		}
+		if i < len(parts)-1 && !info.IsDir() {
+			return fmt.Errorf("reference traverses a non-directory: %q", reference)
+		}
+		if i == len(parts)-1 && !info.IsDir() && !info.Mode().IsRegular() {
+			return fmt.Errorf("reference is not an ordinary file or directory: %q", reference)
+		}
+	}
+	return nil
+}
+
 func withinResolved(root, target string) bool {
 	relative, err := filepath.Rel(root, target)
 	return err == nil && (relative == "." || (relative != ".." && filepath.IsLocal(relative)))
@@ -191,7 +257,7 @@ func withinResolved(root, target string) bool {
 // MaterialReference derives the fixture-root-relative reference for a material
 // identity. Material contents use references relative to this root.
 func MaterialReference(materialID string) string {
-	return path.Join(fixtureMaterials, materialID)
+	return path.Join(fixturePackages, materialID, "material")
 }
 
 // stripFixtureArgs removes the single fixture-owned argument pair from a

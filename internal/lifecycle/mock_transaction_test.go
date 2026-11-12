@@ -49,7 +49,10 @@ func writeMockPolicyReceipt(run MockContext, replayErr error) error {
 		}
 	}
 	receipt := tool.Object{
-		"schemaVersion":   1,
+		"schemaVersion":   2,
+		"materialId":      run.Artifact().ID,
+		"executionId":     run.Execution().ExecutionID,
+		"connectionId":    run.Connection(),
 		"version":         1,
 		"status":          "failed",
 		"peer":            "test mock policy",
@@ -415,7 +418,7 @@ func TestMockTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 	fixtureDir := prepareMockTransactionFixture(t, "SDK-CASE-001")
 	result, fd := recordResultFile(t)
 	_, err := RunMock(t.Context(), mockRequest(t, fixtureDir, "main", fd), mockPolicyFunc(func(_ context.Context, run MockContext) error {
-		return os.Mkdir(filepath.Join(run.ExecutionDir(), "mock-finalize.lock"), 0o700)
+		return os.Mkdir(filepath.Join(run.OverlayRoot(), "mock-finalize.lock"), 0o700)
 	}))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "is a directory")
@@ -520,5 +523,5 @@ func TestMockTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 }
 
 func executionDirForTest(fixtureDir string, execution Execution) string {
-	return filepath.Join(fixtureDir, "executions", execution.ExecutionID)
+	return PackageExecutionRoot(fixtureDir, execution.Artifact.ID, execution.ExecutionID)
 }

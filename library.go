@@ -81,17 +81,19 @@ const (
 // by record and mock calls. ConnectionStatus describes this call only;
 // ExecutionStatus and ExecutionComplete describe every declared connection.
 type ActionResult struct {
-	FixtureID          string
-	ExecutionID        string
-	ConnectionID       string
-	ConnectionStatus   ConnectionStatus
-	ExecutionStatus    ExecutionStatus
-	ExecutionComplete  bool
-	Material           *Material
-	ExecutionPath      string
-	ReceiptPath        string
-	ProcessReceiptPath string
-	ResultPath         string
+	MaterialID           string
+	PublicationCommitted bool
+	FixtureID            string
+	ExecutionID          string
+	ConnectionID         string
+	ConnectionStatus     ConnectionStatus
+	ExecutionStatus      ExecutionStatus
+	ExecutionComplete    bool
+	Material             *Material
+	ExecutionPath        string
+	ReceiptPath          string
+	ProcessReceiptPath   string
+	ResultPath           string
 }
 
 // PrepareOptions selects the immutable initial state for a new fixture.
@@ -516,16 +518,18 @@ func (r *MockRun) Abort() error {
 
 func actionResultView(result lifecycle.ActionResult) ActionResult {
 	view := ActionResult{
-		FixtureID:          result.FixtureID,
-		ExecutionID:        result.ExecutionID,
-		ConnectionID:       result.ConnectionID,
-		ConnectionStatus:   ConnectionStatus(result.ConnectionStatus),
-		ExecutionStatus:    ExecutionStatus(result.ExecutionStatus),
-		ExecutionComplete:  result.ExecutionComplete,
-		ExecutionPath:      result.ExecutionPath,
-		ReceiptPath:        result.ReceiptPath,
-		ProcessReceiptPath: result.ProcessReceiptPath,
-		ResultPath:         result.ResultPath,
+		MaterialID:           result.MaterialID,
+		PublicationCommitted: result.PublicationCommitted,
+		FixtureID:            result.FixtureID,
+		ExecutionID:          result.ExecutionID,
+		ConnectionID:         result.ConnectionID,
+		ConnectionStatus:     ConnectionStatus(result.ConnectionStatus),
+		ExecutionStatus:      ExecutionStatus(result.ExecutionStatus),
+		ExecutionComplete:    result.ExecutionComplete,
+		ExecutionPath:        result.ExecutionPath,
+		ReceiptPath:          result.ReceiptPath,
+		ProcessReceiptPath:   result.ProcessReceiptPath,
+		ResultPath:           result.ResultPath,
 	}
 	if result.Material != nil {
 		view.Material = materialView(*result.Material)

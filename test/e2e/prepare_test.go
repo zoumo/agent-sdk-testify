@@ -20,7 +20,7 @@ func TestSelfContainedRecordingPrepare(t *testing.T) {
 	descriptorPath := filepath.Join(fixtureDir, "fixture.json")
 	descriptor := readFile(t, descriptorPath)
 	source := str(obj(readJSON(t, descriptorPath)["source"])["path"])
-	require.Equal(t, "materials/"+currentMaterialID(t, fixtureDir), source)
+	require.Equal(t, "packages/"+currentMaterialID(t, fixtureDir)+"/material", source)
 	sourceRoot := resolveFixtureReference(t, fixtureDir, source)
 	require.Equal(t, raw, readFile(t, filepath.Join(sourceRoot, "raw", "raw.jsonl")))
 	require.Equal(t, history, readFile(t, filepath.Join(sourceRoot, "config", "sessions", "conformance-history.jsonl")))
@@ -30,7 +30,7 @@ func TestSelfContainedRecordingPrepare(t *testing.T) {
 
 	result := runPreparedMock(t, env, fixtureDir, "", requestOne)
 	require.JSONEq(t, `{"id":1,"result":{"synthetic":true}}`, result.stdout)
-	require.Equal(t, "materials/"+currentMaterialID(t, fixtureDir), source)
+	require.Equal(t, "packages/"+currentMaterialID(t, fixtureDir)+"/material", source)
 	require.Equal(t, currentMaterialID(t, fixtureDir), obj(latestExecution(t, fixtureDir, "mock")["artifact"])["id"])
 	require.Equal(t, descriptor, readFile(t, descriptorPath))
 	require.Equal(t, current, readFile(t, filepath.Join(fixtureDir, "current.json")))
