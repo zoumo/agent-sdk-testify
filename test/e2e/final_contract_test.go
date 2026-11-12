@@ -107,6 +107,15 @@ out = pathlib.Path(runtime['output'])
 	seedBefore := officialInventory(t, attempt)
 	seedFixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-035", "--history-seed", attempt)
 	require.Equal(t, seedBefore, officialInventory(t, attempt))
+	seedPlan := readJSON(t, filepath.Join(attempt, "material", "plan.json"))
+	for _, value := range array(seedPlan["historyBindings"]) {
+		binding := obj(value)
+		nativeTarget := str(binding["nativeTarget"])
+		sourceBytes := readFile(t, filepath.Join(attempt, "material", str(binding["source"])))
+		for _, location := range []string{"baseline", filepath.Join("templates", "record")} {
+			require.Equal(t, sourceBytes, readFile(t, filepath.Join(seedFixture, "runtime", location, nativeTarget)))
+		}
+	}
 	require.Equal(t, "captured", readJSON(t, filepath.Join(attempt, "material", "report.json"))["status"])
 	// Standalone exported core has no selected business facts, even though its
 	// native history, source plan and capture inventory are complete.

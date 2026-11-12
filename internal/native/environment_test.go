@@ -59,7 +59,7 @@ trust_level = "trusted"
 	destination := filepath.Join(root, "session", "config")
 	private := filepath.Join(root, "session", "private-config")
 	env := map[string]string{}
-	require.NoError(t, CopyNativeConfig("codex", destination, private, env))
+	require.NoError(t, CopyNativeConfig("codex", destination, destination, private, env))
 
 	var copied tool.Object
 	data, err := os.ReadFile(filepath.Join(destination, "config.toml"))
@@ -96,7 +96,7 @@ func TestCopyNativeConfigRejectsMissingCodexCatalog(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(source, "config.toml"), []byte(`model_catalog_json = "missing.json"`), 0o600))
 	t.Setenv("CODEX_HOME", source)
 
-	err := CopyNativeConfig("codex", filepath.Join(root, "session", "config"), filepath.Join(root, "session", "private-config"), map[string]string{})
+	err := CopyNativeConfig("codex", filepath.Join(root, "session", "config"), filepath.Join(root, "session", "config"), filepath.Join(root, "session", "private-config"), map[string]string{})
 	require.ErrorContains(t, err, "codex model catalog")
 }
 
@@ -144,7 +144,7 @@ func TestCopyNativeConfigKeepsClaudeRoutingSettings(t *testing.T) {
 	destination := filepath.Join(root, "session", "config")
 	private := filepath.Join(root, "session", "private-config")
 	env := map[string]string{}
-	require.NoError(t, CopyNativeConfig("claude", destination, private, env))
+	require.NoError(t, CopyNativeConfig("claude", destination, destination, private, env))
 
 	var copied tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(destination, "settings.json"), &copied))

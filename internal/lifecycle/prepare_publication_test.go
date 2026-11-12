@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -70,6 +71,31 @@ func TestPreparePublishesOnlyCompleteFixture(t *testing.T) {
 			require.ErrorContains(t, err, "already exists")
 		})
 	}
+}
+
+func TestPrepareModelCatalogUsesPublishedBaseline(t *testing.T) {
+	config := t.TempDir()
+	t.Setenv("CODEX_HOME", config)
+	original := []byte("model_catalog_json = 'original-catalog.json'\n")
+	require.NoError(t, os.WriteFile(filepath.Join(config, "config.toml"), original, 0o600))
+	catalog := []byte("{\"models\":[]}\n")
+	require.NoError(t, os.WriteFile(filepath.Join(config, "original-catalog.json"), catalog, 0o600))
+	fixture, err := Prepare(PrepareOptions{FixtureDir: filepath.Join(t.TempDir(), "fixture"), Agent: "codex", Case: "SDK-CASE-001"})
+	require.NoError(t, err)
+	for _, root := range []string{BaselineRoot(fixture.dir), TemplateRoot(fixture.dir, "record")} {
+		data, err := os.ReadFile(filepath.Join(root, "config", "config.toml"))
+		require.NoError(t, err)
+		var settings tool.Object
+		require.NoError(t, toml.Unmarshal(data, &settings))
+		reference := tool.Str(settings["model_catalog_json"])
+		require.Equal(t, filepath.Join(fixture.Config, "model-catalog.json"), reference)
+		actual, err := os.ReadFile(reference)
+		require.NoError(t, err)
+		require.Equal(t, catalog, actual)
+	}
+	actual, err := os.ReadFile(filepath.Join(config, "config.toml"))
+	require.NoError(t, err)
+	require.Equal(t, original, actual)
 }
 
 func TestRecordWorkerReturnsCallbackFileFailure(t *testing.T) {

@@ -253,7 +253,7 @@ func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (
 	}
 	baselineEnv := baseEnvironment(agentType, baseline)
 	privateEnv := map[string]string{}
-	if err := native.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), filepath.Join(root, "private-config"), privateEnv); err != nil {
+	if err := native.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), filepath.Join(BaselineRoot(publishedDir), "config"), filepath.Join(root, "private-config"), privateEnv); err != nil {
 		return nil, err
 	}
 	files, err := catalog.PlanFiles(spec.plan)
