@@ -165,6 +165,62 @@ func TestCanonicalClaudeDerivationSealsOnlyChangedBytes(t *testing.T) {
 	require.ErrorContains(t, Check(overlay, files), "hash mismatch")
 }
 
+func TestCanonicalClaudeUpdatedSeedUsesRuntimeDerivation(t *testing.T) {
+	core, overlay := t.TempDir(), t.TempDir()
+	const seed = "{\"sessionId\":\"session\",\"cwd\":\"/seed\",\"large\":9007199254740993}\n"
+	const runtime = "{\"sessionId\":\"session\",\"cwd\":\"/recorded\",\"large\":9007199254740993}\n{\"sessionId\":\"session\",\"cwd\":\"/recorded\",\"text\":\"new output\"}\n"
+	bindings := []Binding{
+		{Role: "seed", SessionID: "session", Project: "/seed", NativeTarget: "config/projects/-seed/session.jsonl", Source: "history/seed/config/projects/-seed/session.jsonl", SHA256: tool.DigestBytes([]byte(seed))},
+		{Role: "runtime", SessionID: "session", Project: "/recorded", NativeTarget: "config/projects/-recorded/session.jsonl", Source: "history/runtime/config/projects/-recorded/session.jsonl", SHA256: tool.DigestBytes([]byte(runtime))},
+	}
+	writeHistory(t, core, bindings[0].Source, seed)
+	writeHistory(t, core, bindings[1].Source, runtime)
+	plan, manifest := canonicalObjects(t, core, bindings)
+	plan["provider"] = "claude"
+	files, err := materializeCanonical(core, overlay, plan, manifest)
+	require.NoError(t, err)
+	require.Len(t, files, 3)
+	require.NoError(t, Check(overlay, files))
+	require.True(t, bytes.Equal([]byte(seed), readHistory(t, filepath.Join(core, bindings[0].Source))))
+	require.True(t, bytes.Equal([]byte(runtime), readHistory(t, filepath.Join(core, bindings[1].Source))))
+	var receipt tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(overlay, "materialization.json"), &receipt))
+	items := tool.Array(receipt["transformations"])
+	require.Len(t, items, 1)
+	derived := tool.Obj(items[0])
+	require.Equal(t, bindings[1].Source, derived["source"])
+	data := string(readHistory(t, filepath.Join(overlay, tool.Str(derived["derived"]))))
+	require.Contains(t, data, `"text":"new output"`)
+	require.Contains(t, data, "9007199254740993")
+	plan, manifest = canonicalObjects(t, core, []Binding{bindings[1], bindings[0]})
+	plan["provider"] = "claude"
+	reversed := t.TempDir()
+	_, err = materializeCanonical(core, reversed, plan, manifest)
+	require.NoError(t, err)
+	require.NoError(t, tool.ReadJSON(filepath.Join(reversed, "materialization.json"), &receipt))
+	require.Equal(t, bindings[1].Source, tool.Obj(tool.Array(receipt["transformations"])[0])["source"])
+}
+
+func TestCanonicalClaudeRejectsAmbiguousProjectDerivations(t *testing.T) {
+	for _, role := range []string{"seed", "runtime"} {
+		t.Run(role, func(t *testing.T) {
+			core := t.TempDir()
+			var bindings []Binding
+			for _, project := range []string{"/first", "/second"} {
+				data := "{\"sessionId\":\"session\",\"cwd\":\"" + project + "\"}\n"
+				target := "config/projects/-" + filepath.Base(project) + "/session.jsonl"
+				binding := Binding{Role: role, SessionID: "session", Project: project, NativeTarget: target, Source: "history/" + role + "/" + target, SHA256: tool.DigestBytes([]byte(data))}
+				writeHistory(t, core, binding.Source, data)
+				bindings = append(bindings, binding)
+			}
+			plan, manifest := canonicalObjects(t, core, bindings)
+			plan["provider"] = "claude"
+			_, err := materializeCanonical(core, t.TempDir(), plan, manifest)
+			require.ErrorContains(t, err, "ambiguous Claude history derivation target")
+		})
+	}
+}
+
 func readHistory(t *testing.T, name string) []byte {
 	t.Helper()
 	data, err := os.ReadFile(name)

@@ -285,7 +285,7 @@ func CaptureCanonical(seed, overlay, core string, plan tool.Object, startupDeriv
 			}
 			b, err := identifyCaptured(overlay, target, target, data, historyProject(plan))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("identify native history %s: %w", target, err)
 			}
 			if old, ok := bindings[target]; ok && old.SHA256 == hash && old.SessionID == b.SessionID && old.Project == b.Project {
 				continue
@@ -378,7 +378,11 @@ func materializeCanonical(source, target string, plan, manifest tool.Object) (ma
 	// Canonical Claude derivations are implemented separately; the sealed bytes
 	// belong to the execution, while native targets remain disposable copies.
 	if plan["provider"] == "claude" || plan["agentType"] == "claude" {
-		for _, b := range bindings {
+		derivedBindings, err := claudeBindingsForWorkspace(bindings, filepath.Join(target, "workspace"))
+		if err != nil {
+			return nil, err
+		}
+		for _, b := range derivedBindings {
 			tr, err := deriveCanonicalClaude(source, target, filepath.Join(target, "workspace"), b)
 			if err != nil {
 				return nil, err

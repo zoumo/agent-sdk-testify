@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/rawjson"
@@ -122,17 +123,61 @@ func MaterializeClaude(source, root, workspace string, plan tool.Object) error {
 	return tool.WriteJSON(filepath.Join(root, "materialization.json"), tool.Object{"version": 1, "executionProject": workspace, "originalProject": plan["project"], "originalHistoryProject": plan["historyProject"], "transformations": transformations})
 }
 
-// deriveCanonicalClaude seals only bytes that require a cwd/project transform.
-func deriveCanonicalClaude(source, root, workspace string, binding Binding) (tool.Object, error) {
+func claudeHistoryTarget(workspace string, binding Binding) (string, error) {
 	if !strings.HasPrefix(binding.NativeTarget, "config/projects/") {
-		return nil, nil
+		return "", nil
 	}
 	key := regexp.MustCompile(`[^a-zA-Z0-9]`)
 	prefix := "config/projects/" + key.ReplaceAllString(binding.Project, "-") + "/"
 	if !strings.HasPrefix(binding.NativeTarget, prefix) {
-		return nil, errors.New("claude native target differs from original project")
+		return "", errors.New("claude native target differs from original project")
 	}
-	target := "config/projects/" + key.ReplaceAllString(workspace, "-") + "/" + strings.TrimPrefix(binding.NativeTarget, prefix)
+	return "config/projects/" + key.ReplaceAllString(workspace, "-") + "/" + strings.TrimPrefix(binding.NativeTarget, prefix), nil
+}
+
+// Keep both original targets, but derive the updated runtime state when a seed
+// and its continuation move the same native identity into one workspace.
+func claudeBindingsForWorkspace(bindings []Binding, workspace string) ([]Binding, error) {
+	selected := map[string]Binding{}
+	for _, binding := range bindings {
+		target, err := claudeHistoryTarget(workspace, binding)
+		if err != nil {
+			return nil, err
+		}
+		if target == "" {
+			continue
+		}
+		if previous, exists := selected[target]; exists {
+			if previous.Role == binding.Role || previous.SessionID != binding.SessionID || previous.ParentSessionID != binding.ParentSessionID || previous.ChildSessionID != binding.ChildSessionID {
+				return nil, errors.New("ambiguous Claude history derivation target")
+			}
+			if previous.Role == "runtime" {
+				continue
+			}
+		}
+		selected[target] = binding
+	}
+	targets := make([]string, 0, len(selected))
+	for target := range selected {
+		targets = append(targets, target)
+	}
+	sort.Strings(targets)
+	result := make([]Binding, 0, len(targets))
+	for _, target := range targets {
+		result = append(result, selected[target])
+	}
+	return result, nil
+}
+
+// deriveCanonicalClaude seals only bytes that require a cwd/project transform.
+func deriveCanonicalClaude(source, root, workspace string, binding Binding) (tool.Object, error) {
+	target, err := claudeHistoryTarget(workspace, binding)
+	if err != nil {
+		return nil, err
+	}
+	if target == "" {
+		return nil, nil
+	}
 	if target == binding.NativeTarget {
 		return nil, nil
 	}
