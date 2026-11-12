@@ -2,6 +2,7 @@ package conformance
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -104,7 +105,10 @@ out = pathlib.Path(runtime['output'])
 `), 0o700))
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
-	env = append(env, "PYTHONPATH="+filepath.Join(repository, "drivers", "common"), "PYTHONDONTWRITEBYTECODE=1")
+	contents, err := os.ReadFile(driver)
+	require.NoError(t, err)
+	contents = []byte(strings.Replace(string(contents), "import json, pathlib, subprocess, sys", fmt.Sprintf("import json, pathlib, subprocess, sys\nsys.dont_write_bytecode = True\nsys.path.insert(0, %q)", filepath.Join(repository, "drivers", "common")), 1))
+	require.NoError(t, os.WriteFile(driver, contents, 0o700))
 	nativeArgs := []string{"app-server", "--listen", "stdio://"}
 	if provider == "claude" {
 		nativeArgs = []string{"--input-format", "stream-json", "--output-format", "stream-json", "--permission-prompt-tool", "stdio"}
