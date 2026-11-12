@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+if [[ -f .git ]]; then
+  export ARTIFACT_DIR=${ARTIFACT_DIR:-.artifacts/acceptance}
+  [[ "$ARTIFACT_DIR" = /* ]] || ARTIFACT_DIR="$PWD/$ARTIFACT_DIR"
+  exec bash scripts/with-build-checkout.sh bash scripts/check-offline.sh "$@"
+fi
 python=${PYTHON:-python3}
 task=${1:-all}
 if (( $# > 1 )); then

@@ -86,7 +86,14 @@ if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
 
 使用 Go 1.26.10 和 golangci-lint 2.12.2，不需要 Go SDK checkout、Go driver 或官方 SDK。
 CLI 也可以用 `go build ./cmd/agent-sdk-testify` 独立构建。
-`make test` 运行根目录公开库测试和内部单元测试，不构建 CLI。集成和完整流程分别运行：
+`make test` 运行根目录公开库测试和内部单元测试，不构建 CLI。
+
+Go 1.26.10 的 linked worktree 构建请使用这些标准入口：先提交源码，入口会从精确 HEAD
+创建本地独立构建 checkout，以保留 Go 的 VCS 身份。dirty 输入会被拒绝；失败时输出
+保留的 checkout/日志位置，产物仍写入调用方目录。聚焦测试可运行
+`bash scripts/with-build-checkout.sh go test -buildvcs=true -run 'TEST' .`。
+
+构建、集成和完整流程分别运行：
 
 ```sh
 make build
