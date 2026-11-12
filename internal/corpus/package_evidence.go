@@ -149,7 +149,7 @@ func validateOfficialExecutions(root, kind, id string, material Material, result
 		}
 	}
 	if kind == "verify" {
-		return validatePackageMockIsolation(root, id, executionID, material, declaration)
+		return validatePackageMockIsolation(root, executionID, material, declaration)
 	}
 	return nil
 }
@@ -182,13 +182,37 @@ func validatePackageMockReceipt(root, executionID, connectionID string, material
 	return nil
 }
 
-func validatePackageMockIsolation(root, verificationID, executionID string, material Material, declaration tool.Object) error {
+func validatePackageMockIsolation(root, executionID string, material Material, declaration tool.Object) error {
 	var isolation, plan tool.Object
-	if err := tool.ReadJSON(filepath.Join(root, "verify", verificationID, "mock-isolation.json"), &isolation); err != nil {
+	if err := tool.ReadJSON(filepath.Join(root, "executions", executionID, "isolation.json"), &isolation); err != nil {
 		return err
 	}
 	if err := tool.ReadJSON(filepath.Join(root, "material", "plan.json"), &plan); err != nil {
 		return err
+	}
+
+	var prepared tool.Object
+	preparedPath := "executions/" + executionID + "/prepared-plan.json"
+	preparedRef := tool.Obj(isolation["preparedPlan"])
+	if isolation["method"] != "mock-preparation" || preparedRef["path"] != preparedPath {
+		return errors.New("mock prepared-plan reference differs")
+	}
+	if err := VerifyFile(root, preparedPath, tool.Str(preparedRef["sha256"])); err != nil {
+		return err
+	}
+	if err := tool.ReadJSON(filepath.Join(root, filepath.FromSlash(preparedPath)), &prepared); err != nil {
+		return err
+	}
+	if prepared["schemaVersion"] != float64(3) || prepared["fixtureId"] != declaration["fixtureId"] || prepared["executionId"] != executionID || prepared["materialId"] != material.ID || prepared["command"] != "mock" || prepared["provider"] != plan["provider"] || prepared["sourcePlanSHA256"] != material.SourcePlanSHA256 || prepared["planSHA256"] != material.PlanSHA256 || prepared["manifestSHA256"] != material.ManifestSHA256 || !reflect.DeepEqual(prepared["args"], declaration["nativeArgs"]) || !reflect.DeepEqual(prepared["limits"], declaration["limits"]) {
+		return errors.New("mock prepared-plan identity differs")
+	}
+	for key, isolationKey := range map[string]string{"project": "protocolCwd", "home": "home", "config": "config", "tmp": "tmp"} {
+		if prepared[key] != isolation[isolationKey] {
+			return errors.New("mock prepared-plan environment differs")
+		}
+	}
+	if prepared["root"] != filepath.Dir(tool.Str(isolation["workspace"])) {
+		return errors.New("mock prepared-plan overlay differs")
 	}
 	ref := tool.Obj(isolation["execution"])
 	path := "executions/" + executionID + "/execution.json"

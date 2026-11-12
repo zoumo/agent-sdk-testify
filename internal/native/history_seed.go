@@ -27,6 +27,7 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	if err != nil {
 		return err
 	}
+	sourceSnapshot := source
 	source = history.SeedSource(source)
 	if err := corpus.VerifyMaterials(source, true); err != nil {
 		return err
@@ -42,11 +43,9 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	if previous["recordingIsolation"] != isolatedRecording || manifest["provenance"] != "capture" || tool.Str(manifest["planSHA256"]) == "" || manifest["captureStatus"] != "complete" || (manifest["status"] != "passed" && manifest["status"] != "captured") {
 		return errors.New("seed must come from an isolated recording")
 	}
-	if report["status"] == "captured" {
-		if _, err := corpus.VerifyAdoptedFiles(source); err != nil {
-			return err
-		}
-		if err := tool.ReadJSON(filepath.Join(source, "official-replay", "driver", "record-origin", "run", "driver", "report.json"), &report); err != nil {
+	if report["status"] == "captured" || manifest["materialFormatVersion"] == float64(3) {
+		report, err = corpus.SeedBusinessReport(source)
+		if err != nil {
 			return err
 		}
 	}
@@ -65,7 +64,10 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	if err != nil {
 		return err
 	}
-	sourceSnapshot := source
+	sourcePrefix, err := filepath.Rel(sourceSnapshot, source)
+	if err != nil {
+		return err
+	}
 	if session == "" || len(agents) == 0 || agents[""] {
 		return errors.New("seed has no saved parent and child identities")
 	}
@@ -124,7 +126,7 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 		if err := tool.CopyFile(filepath.Join(source, filepath.FromSlash(file.source)), filepath.Join(root, name)); err != nil {
 			return err
 		}
-		files[name] = tool.Object{"source": "history/seed/" + filepath.ToSlash(file.source), "sha256": actual}
+		files[name] = tool.Object{"source": filepath.ToSlash(filepath.Join("history/seed", sourcePrefix, file.source)), "sha256": actual}
 		found[identity] = true
 	}
 	if !found[session] || len(found) != len(agents)+1 {
@@ -199,7 +201,8 @@ func PrepareHistorySeed(source, root string, plan tool.Object) error {
 	}); err != nil {
 		return err
 	}
-	for _, name := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl"} {
+	for _, file := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl"} {
+		name := filepath.ToSlash(filepath.Join(sourcePrefix, file))
 		if sourceFiles[name] == nil {
 			return fmt.Errorf("seed source closure omits %s", name)
 		}

@@ -201,6 +201,8 @@ func TestPackageRecordConnectionsCanCaptureConcurrently(t *testing.T) {
 	capture := policy.capture
 	started := make(chan string, 2)
 	release := make(chan struct{})
+	var releaseOnce sync.Once
+	releaseWorkers := func() { releaseOnce.Do(func() { close(release) }) }
 	policy.capture = func(ctx context.Context, run RecordContext) error {
 		started <- run.Connection()
 		select {
@@ -211,11 +213,24 @@ func TestPackageRecordConnectionsCanCaptureConcurrently(t *testing.T) {
 		return capture(ctx, run)
 	}
 	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
-	defer cancel()
+	var workers sync.WaitGroup
+	t.Cleanup(func() {
+		cancel()
+		releaseWorkers()
+		done := make(chan struct{})
+		go func() { workers.Wait(); close(done) }()
+		select {
+		case <-done:
+		case <-time.After(5 * time.Second):
+			t.Error("record workers did not stop")
+		}
+	})
 	results := make(chan *RecordResult, 2)
 	failures := make(chan error, 2)
 	for _, connection := range []string{"main", "probe"} {
+		workers.Add(1)
 		go func() {
+			defer workers.Done()
 			request := recordTransactionRequest(fixtureDir, 0)
 			request.Connection = connection
 			result, err := RunRecord(ctx, request, policy)
@@ -233,10 +248,23 @@ func TestPackageRecordConnectionsCanCaptureConcurrently(t *testing.T) {
 		}
 	}
 	require.Len(t, seen, 2)
-	close(release)
-	first, second := <-results, <-results
-	require.NoError(t, <-failures)
-	require.NoError(t, <-failures)
+	releaseWorkers()
+	completed := make([]*RecordResult, 0, 2)
+	for range 2 {
+		select {
+		case result := <-results:
+			completed = append(completed, result)
+		case <-ctx.Done():
+			t.Fatal("record workers did not return: ", ctx.Err())
+		}
+		select {
+		case err := <-failures:
+			require.NoError(t, err)
+		case <-ctx.Done():
+			t.Fatal("record workers did not report: ", ctx.Err())
+		}
+	}
+	first, second := completed[0], completed[1]
 	require.Equal(t, first.ExecutionID, second.ExecutionID)
 	require.Equal(t, first.MaterialID, second.MaterialID)
 	require.Equal(t, 1, packages)
@@ -379,6 +407,8 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 	var stale tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(ResourceRoot(fixtureDir), "routes", "record.json"), &stale))
 	usage.Unlock()
+	var releaseHostOnce sync.Once
+	releaseHost := func() { releaseHostOnce.Do(usage.Unlock) }
 	usage.Lock() // A owns the complete host lifetime, starting before route reads.
 	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
@@ -389,6 +419,22 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 	capture := policy.capture
 	claimed := make(chan string, 1)
 	releaseCapture := make(chan struct{})
+	var releaseOnce sync.Once
+	releaseCaptureWorker := func() { releaseOnce.Do(func() { close(releaseCapture) }) }
+	ctx, cancel := context.WithCancel(t.Context())
+	var workers sync.WaitGroup
+	t.Cleanup(func() {
+		cancel()
+		releaseCaptureWorker()
+		releaseHost()
+		done := make(chan struct{})
+		go func() { workers.Wait(); close(done) }()
+		select {
+		case <-done:
+		case <-time.After(5 * time.Second):
+			t.Error("host workers did not stop")
+		}
+	})
 	policy.capture = func(ctx context.Context, run RecordContext) error {
 		claimed <- run.OverlayRoot()
 		select {
@@ -403,8 +449,10 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 		err    error
 	}
 	returned := make(chan outcome, 1)
+	workers.Add(1)
 	go func() {
-		result, err := RunRecord(t.Context(), recordTransactionRequest(fixtureDir, 0), policy)
+		defer workers.Done()
+		result, err := RunRecord(ctx, recordTransactionRequest(fixtureDir, 0), policy)
 		returned <- outcome{result, err}
 	}()
 	var overlay string
@@ -417,7 +465,9 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 	require.NoError(t, err)
 	nextHostStarted := make(chan string, 1)
 	waiting := make(chan struct{})
+	workers.Add(1)
 	go func() {
+		defer workers.Done()
 		close(waiting)
 		usage.Lock()
 		defer usage.Unlock()
@@ -431,7 +481,11 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 		}
 		nextHostStarted <- tool.Str(snapshot["materialId"])
 	}()
-	<-waiting
+	select {
+	case <-waiting:
+	case <-time.After(5 * time.Second):
+		t.Fatal("B did not start")
+	}
 	select {
 	case <-nextHostStarted:
 		t.Fatal("B used its stale route while A was active")
@@ -440,7 +494,7 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 	after, err := history.HashTree(filepath.Join(overlay, "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, before, after, "B must not touch the active overlay before its own claim")
-	close(releaseCapture)
+	releaseCaptureWorker()
 	var completed outcome
 	select {
 	case completed = <-returned:
@@ -454,7 +508,7 @@ func TestPackageCallerCoordinationCoversHostAfterAgentReturn(t *testing.T) {
 	default:
 	}
 	// A's host/peer shutdown and settlement finish after the agent call returns.
-	usage.Unlock()
+	releaseHost()
 	select {
 	case id := <-nextHostStarted:
 		require.Equal(t, completed.result.MaterialID, id)

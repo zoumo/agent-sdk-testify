@@ -75,6 +75,13 @@ func sealExecution(run *transactionContext) error {
 			return err
 		}
 	}
+	if status == "passed" && run.execution.Command == "mock" {
+		for _, name := range []string{"isolation.json", "prepared-plan.json"} {
+			if _, err := os.Stat(filepath.Join(run.dir, name)); err != nil {
+				return err
+			}
+		}
+	}
 	files, err := history.HashTree(run.dir)
 	if err != nil {
 		return err

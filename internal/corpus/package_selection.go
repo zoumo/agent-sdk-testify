@@ -125,6 +125,11 @@ func validatePackageDomain(root, kind, id string, material Material) error {
 		if err := history.ValidateMaterialization(root, filepath.Join(root, filepath.FromSlash(prefix))); err != nil {
 			return err
 		}
+		if object["status"] == "passed" && declaration["command"] == "mock" {
+			if err := validatePackageMockIsolation(root, id, material, declaration); err != nil {
+				return err
+			}
+		}
 		if object["status"] == "passed" {
 			if object["material"] != "material/material.json" || object["planSHA256"] != material.PlanSHA256 ||
 				object["sourcePlanSHA256"] != material.SourcePlanSHA256 || object["manifestSHA256"] != material.ManifestSHA256 {

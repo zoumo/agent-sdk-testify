@@ -531,6 +531,13 @@ func SealMaterialization(overlay, execution, sourceReference string) error {
 // SeedSource recognizes the fixed complete source/project closure. Legacy seed
 // roots remain readable at their original location.
 func SeedSource(root string) string {
+	// These are the two supported package positions inside the frozen seed
+	// closure. Package validation remains the corpus reader's responsibility.
+	for _, name := range []string{"material", "source/material"} {
+		if info, err := os.Lstat(filepath.Join(root, name, "material.json")); err == nil && info.Mode().IsRegular() {
+			return filepath.Join(root, name)
+		}
+	}
 	if _, err := os.Lstat(filepath.Join(root, "plan.json")); os.IsNotExist(err) {
 		if info, e := os.Lstat(filepath.Join(root, "source", "plan.json")); e == nil && info.Mode().IsRegular() {
 			return filepath.Join(root, "source")

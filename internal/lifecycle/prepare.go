@@ -74,6 +74,11 @@ func baseEnvironment(provider, root string) map[string]string {
 var routeEnvironmentEntries = []string{"workspace", "home", "config", "tmp", "history-seed"}
 
 func bindRouteSlots(routeRoot, targetRoot string) error {
+	return bindPreparedRouteSlots(routeRoot, targetRoot, targetRoot)
+}
+
+// Validation uses the physical tree; links name its final published location.
+func bindPreparedRouteSlots(routeRoot, targetRoot, publishedTarget string) error {
 	info, err := os.Lstat(targetRoot)
 	if err != nil {
 		return err
@@ -98,7 +103,7 @@ func bindRouteSlots(routeRoot, targetRoot string) error {
 			return err
 		}
 		temp := filepath.Join(routeRoot, "."+name+"-"+id)
-		if err := os.Symlink(target, temp); err != nil {
+		if err := os.Symlink(filepath.Join(publishedTarget, name), temp); err != nil {
 			return err
 		}
 		if err := os.Rename(temp, filepath.Join(routeRoot, name)); err != nil {
@@ -184,7 +189,13 @@ func initialBuiltin(fixture *Fixture, materialRoot string) (*builtin.Material, e
 
 // Prepare creates a caller-owned fixture directory containing its runtime
 // baseline. It never starts a client, SDK, driver or native Agent.
-func Prepare(o PrepareOptions) (result *Fixture, err error) {
+func Prepare(o PrepareOptions) (*Fixture, error) {
+	return prepare(o, nil)
+}
+
+// beforePublish is an internal fault boundary; all preparation has completed
+// when invoked, and only the final no-replace rename remains.
+func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (result *Fixture, err error) {
 	spec, err := resolveSource(o)
 	if err != nil {
 		return nil, err
@@ -197,22 +208,21 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := os.Mkdir(fixtureDir, 0o700); err != nil {
+	publishedDir := fixtureDir
+	fixtureDir, err = os.MkdirTemp(filepath.Dir(publishedDir), ".agent-sdk-testify-prepare-*")
+	if err != nil {
 		return nil, err
 	}
+	defer os.RemoveAll(fixtureDir)
 	var root string
 	defer func() {
 		if err != nil {
-			_ = os.Remove(FixturePath(fixtureDir))
-			diagnostic := map[string]any{"schemaVersion": SchemaVersion, "status": "failed", "error": err.Error(), "resourceRoot": root}
-			if root != "" {
-				cleanup := os.RemoveAll(root)
-				diagnostic["cleanupComplete"] = cleanup == nil
-				if cleanup != nil {
-					diagnostic["cleanupError"] = cleanup.Error()
-				}
+			diagnostic, createErr := os.CreateTemp(filepath.Dir(publishedDir), ".agent-sdk-testify-prepare-failed-*.json")
+			if createErr == nil {
+				name := diagnostic.Name()
+				_ = diagnostic.Close()
+				_ = tool.WriteJSON(name, tool.Object{"schemaVersion": SchemaVersion, "status": "failed", "error": err.Error()})
 			}
-			_ = writeAtomic(filepath.Join(fixtureDir, "prepare.json"), diagnostic)
 		}
 	}()
 	root = filepath.Join(fixtureDir, "runtime")
@@ -278,14 +288,18 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			return nil, errors.New("--fixture-dir must be outside the history seed")
 		}
 		historySeed = SourceSeedPath(fixtureDir)
-		if err := corpus.VerifyMaterials(sourceSeed, true); err != nil {
+		seedCore, _, err := corpus.RecordingRoot(sourceSeed)
+		if err != nil {
+			return nil, err
+		}
+		if err := corpus.VerifyMaterials(seedCore, true); err != nil {
 			return nil, err
 		}
 		if err := copyMaterial(sourceSeed, filepath.Join(historySeed, "source")); err != nil {
 			return nil, err
 		}
 		var seedPlan tool.Object
-		if err := tool.ReadJSON(filepath.Join(historySeed, "source", "plan.json"), &seedPlan); err != nil {
+		if err := tool.ReadJSON(filepath.Join(history.SeedSource(historySeed), "plan.json"), &seedPlan); err != nil {
 			return nil, err
 		}
 		if err := tool.WriteFiles(filepath.Join(historySeed, "project"), tool.Obj(tool.Obj(seedPlan["scenario"])["files"])); err != nil {
@@ -367,7 +381,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 				return nil, err
 			}
 		}
-		if err := bindRouteSlots(routeRoot, templateRoot); err != nil {
+		if err := bindPreparedRouteSlots(routeRoot, templateRoot, TemplateRoot(publishedDir, action)); err != nil {
 			return nil, err
 		}
 		route := Route{
@@ -397,7 +411,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 				case "mock":
 					template.Args = []string{"agent", "mock", "--connection", id}
 					template.Launcher = LauncherPath(fixtureDir, id)
-					if err := writeConnectionLauncher(template.Launcher, id, toolIdentity.Command, fixtureDir); err != nil {
+					if err := writeConnectionLauncher(template.Launcher, id, toolIdentity.Command, publishedDir); err != nil {
 						return nil, err
 					}
 				}
@@ -559,7 +573,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err := writeCurrent(fixtureDir, fixture, currentID); err != nil {
 		return nil, err
 	}
-	if err := RefreshRoutes(fixture); err != nil {
+	if err := refreshPreparedRoutes(fixture, publishedDir); err != nil {
 		return nil, err
 	}
 	if err := os.Chmod(fixturePath, 0o400); err != nil {
@@ -572,7 +586,17 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err := lock.Close(); err != nil {
 		return nil, err
 	}
-	return fixture, nil
+	if beforePublish != nil {
+		if err := beforePublish(fixtureDir, publishedDir); err != nil {
+			return nil, err
+		}
+	}
+	if err := renameExport(fixtureDir, publishedDir); err != nil {
+		return nil, err
+	}
+	// Resolve from the committed descriptor, so the returned object has exactly
+	// the same final runtime bindings as every subsequent Open.
+	return OpenFixture(publishedDir)
 }
 
 func prepareToolIdentity(embedded bool, provided *version.EmbeddedIdentity) (ToolIdentity, error) {
