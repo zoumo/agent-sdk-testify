@@ -283,7 +283,16 @@ func CaptureCanonical(seed, overlay, core string, plan tool.Object, startupDeriv
 			if err != nil {
 				return nil, err
 			}
-			b, err := identifyCaptured(overlay, target, target, data, historyProject(plan))
+			project := historyProject(plan)
+			if strings.HasPrefix(target, "config/projects/") {
+				// Metadata-only child files have no cwd. New files belong to
+				// this execution; frozen seed targets retain their own project.
+				project = filepath.Join(overlay, "workspace")
+				if original, exists := bindings[target]; exists {
+					project = original.Project
+				}
+			}
+			b, err := identifyCaptured(overlay, target, target, data, project)
 			if err != nil {
 				return nil, fmt.Errorf("identify native history %s: %w", target, err)
 			}

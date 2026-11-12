@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -272,4 +273,45 @@ func TestClaudeMetadataUsesNativeChildIdentity(t *testing.T) {
 	require.Equal(t, "parent", b.ParentSessionID)
 	require.Equal(t, "child", b.ChildSessionID)
 	require.Equal(t, "child", b.SessionID)
+}
+
+func TestCaptureClaudeMetadataUsesExecutionProject(t *testing.T) {
+	overlay, core := t.TempDir(), t.TempDir()
+	project := filepath.Join(overlay, "workspace")
+	key := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(project, "-")
+	target := "config/projects/" + key + "/parent/subagents/agent-child.meta.json"
+	const data = "{\"agentType\":\"general-purpose\"}\n"
+	writeHistory(t, overlay, target, data)
+	bindings, err := CaptureCanonical("", overlay, core, tool.Object{"provider": "claude", "project": "/stable/route/workspace"}, nil)
+	require.NoError(t, err)
+	require.Len(t, bindings, 1)
+	require.Equal(t, project, bindings[0].Project)
+	require.Equal(t, "parent", bindings[0].ParentSessionID)
+	require.Equal(t, "child", bindings[0].ChildSessionID)
+	require.Equal(t, target, bindings[0].NativeTarget)
+	require.True(t, bytes.Equal([]byte(data), readHistory(t, filepath.Join(core, bindings[0].Source))))
+	plan, manifest := canonicalObjects(t, core, bindings)
+	_, err = CanonicalBindings(core, plan, manifest)
+	require.NoError(t, err)
+
+	seed := t.TempDir()
+	original := Binding{Role: "runtime", SessionID: "old-child", ParentSessionID: "old-parent", ChildSessionID: "old-child", Project: "/seed", NativeTarget: "config/projects/-seed/old-parent/subagents/agent-old-child.meta.json", SHA256: tool.DigestBytes([]byte(data))}
+	original.Source = "history/runtime/" + original.NativeTarget
+	writeHistory(t, seed, original.Source, data)
+	seedPlan, seedManifest := canonicalObjects(t, seed, []Binding{original})
+	seedManifest["materialFormatVersion"] = 3
+	require.NoError(t, tool.WriteJSON(filepath.Join(seed, "plan.json"), seedPlan))
+	require.NoError(t, tool.WriteJSON(filepath.Join(seed, "manifest.json"), seedManifest))
+	writeHistory(t, overlay, original.NativeTarget, data)
+	bindings, err = CaptureCanonical(seed, overlay, t.TempDir(), tool.Object{"provider": "claude", "project": "/stable/route/workspace"}, nil)
+	require.NoError(t, err)
+	require.Len(t, bindings, 2)
+	for _, binding := range bindings {
+		if binding.NativeTarget == original.NativeTarget {
+			require.Equal(t, "seed", binding.Role)
+			require.Equal(t, original.Project, binding.Project)
+		} else {
+			require.Equal(t, project, binding.Project)
+		}
+	}
 }
