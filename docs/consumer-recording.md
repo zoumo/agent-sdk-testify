@@ -109,7 +109,8 @@ material 时先 export。运行环境和私有配置都位于 fixture/runtime；
   action 不接受材料覆盖。
 - 需要在另一 fixture 使用材料时，先 export，再 prepare --recording；导出不提升可信等级。
 - 每次 record 或 mock 使用独立 execution overlay，前一次 SDK 的历史和写入不会污染后一次。
-- 同一 fixture 的 record/mock execution 串行执行；上一个 execution 完成后才可以开始下一个。
+- 同一 fixture 的 SDK 宿主使用区间按[运行时入口](design.md#sdk-宿主的运行时入口)
+  由调用方协调；不能只等待上一个 execution 完成就复用 route。
 - consumer capture 不进入 verify；需要官方验证时必须重新走官方 case 录制。
 
 环境职责和认证边界见[工具设计](design.md#环境与隔离)。本路径的差异只有：消费者提供

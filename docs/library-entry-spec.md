@@ -220,6 +220,8 @@ type ExecutionStart struct {
 `Workspace`、`ProtocolCwd`、`Home`、`Config`、`Tmp`、`HistoryFiles` 和 `Env`
 必须来自本次 execution overlay，不能取自 `Prepare` 返回的 route template。每次
 execution 的可写状态彼此隔离；调用方不得通过修改 `Fixture.Routes` 伪造本次启动环境。
+宿主串行协调及 action 锁的检测边界统一见
+[SDK 宿主的运行时入口](design.md#sdk-宿主的运行时入口)；进程内入口同样遵循该合同。
 
 `Env` 是 fixture 基线、execution overlay 与私有运行环境合并后的有效环境。调用方必须
 把它作为 SDK transport 的完整替换环境传入，不修改 `os.Environ`，也不在全局

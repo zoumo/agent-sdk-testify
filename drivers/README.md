@@ -112,8 +112,10 @@ driver 必须分别校验这两个输入。runtime 配置当前为 schema 1；�
 在启动 SDK 前失败，不能从 material plan 猜测运行字段。request、runtime 和 case
 派生的运行时输入默认只存在于 runtime，不进入持久 package。
 
-官方录制和验证的 driver 都须报告实际启动的 agent execution/连接身份，以及 SDK
-关闭和 agent 进程退出事实。official 命令据此核验结果；协议回执由 agent 命令自行
+官方 driver 与外层调用方的宿主串行责任遵循
+[SDK 宿主的运行时入口](../docs/design.md#sdk-宿主的运行时入口)，不能把 agent claim
+锁当作 driver 启动前的互斥。官方录制和验证的 driver 都须报告实际启动的 agent
+execution/连接身份，以及 SDK 关闭和 agent 进程退出事实。official 命令据此核验结果；协议回执由 agent 命令自行
 保存，不由 driver 或 official 命令代写。录制业务报告在采集结束后单独保存并关联
 material，不回写不可变录制。职责和证据归属见[工具设计](../docs/design.md#official-verify)。
 

@@ -54,7 +54,8 @@ material 内部引用使用 material 根相对引用。
 
 启动 SDK 宿主前，Go 调用方使用 prepare/Open 的公开运行时对象，CLI 脚本读取
 `runtime/routes/mock.json`；进程内 mock 使用本次 execution 的 `ExecutionStart`。
-读取和过期检查见[SDK 宿主的运行时入口](design.md#sdk-宿主的运行时入口)。
+调用方负责的完整宿主串行区间、快照检查的限制见
+[SDK 宿主的运行时入口](design.md#sdk-宿主的运行时入口)。
 这些入口提供已经解析的 env、workspace 和连接命令；这些值由当前根计算，
 不是 `fixture.json` 中的持久字段。只设置 mock 子进程环境不能配置父进程的历史 API。
 Codex 使用 protocolCwd 配置协议项目，Claude 使用 workspace 配置 WorkDir 和历史查询。

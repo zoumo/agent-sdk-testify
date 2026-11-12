@@ -240,10 +240,12 @@ official record 先启动 driver，stdout/stderr 等文件此时唯一 owner 是
 execution 后，通过普通 launcher 的 `--result-fd` 通知给出 material/execution/connection
 身份。driver 可以晚于采集完成才产生 report；material core 不等待或吸收这些报告。
 所有 writer 关闭、子进程退出或被确认终止后，编排域才结算，细节见封存合同。
-拿到经校验的 running 身份，即使 core 失败或未封存，run 也归该 package 的
-`record/<runId>/`；从未领取 execution 时归 `failures/official-record/<runId>/`。
-有已登记但缺失通知的 execution 时，必须使用本次 journal 中明确登记的关联复核，
-不能因通知丢失而扫 latest；不能确认关联则保留未结算失败，禁止猜测或清理 staging。
+编排输出的归属按以下单一规则确定：拿到经校验的 running 身份，即使 core 失败或
+未封存，run 也归该 package 的 `record/<runId>/`；只有确认本次从未领取 execution，
+才进入 `failures/official-record/<runId>/`。已领取 execution 或是否领取不明时，使用
+本次结果接口和已有明确登记的关联复核；无法确认精确归属则保留未结算事实与 staging，
+禁止猜测或清理。未收到 running 通知不证明没有 execution/package，不能据此结算
+到 no-material 域，也不能扫描 latest。关联复核使用既有结果与活动登记。
 
 无 execution/no-material 失败域与 package record 域互斥。它们保留启动失败、
 untriggered、取消、业务失败和实际存在的输出；空 stdout/stderr 仍保留为零输出证据。
@@ -359,7 +361,7 @@ fixture 目录是持久控制面和唯一业务数据根：
       stdout.log
       stderr.log
   failures/official-record/<runId>/
-    result.json                    # 未产生 material ID 时的固定持久失败域
+    result.json                    # 归属条件见“多个 action execution”的编排输出规则
     stdout.log
     stderr.log
     driver-result.json             # driver 实际产生时才存在
@@ -390,9 +392,8 @@ record 在提交前组装并封存，半成品只在明确登记的 staging 中�
   记录有效环境、argv 和 cwd 关系，两类证据不能互相替代。
 - `record/<runId>/` 由 official record 在 driver 结算后写入，引用精确 record
   execution；没有 parent 的直接 agent record 不伪造这一域。
-- `failures/official-record/<runId>/` 是 fixture 级固定失败域，只在 official record
-  无法从公开 result fd 得到 material ID、因而没有可归属 package 时使用。它与
-  package 的 record 域互斥，不复制同一证据。
+- `failures/official-record/<runId>/` 由 official record 保存独立失败事实；归属条件
+  只按[多个 action execution](#多个-action-execution)中的编排输出规则判断。
 - `verify/<verificationId>/` 由 official verify 写入，引用本次实际 mock
   execution 和连接；普通 mock 不产生 verify 域。
 
@@ -447,7 +448,7 @@ verification 及被引用的 execution，不按 latest 推测。
 | record/<runId>/result.json | official record；结算最后封存 | 独立编排结论、域 inventory、实际 record execution/core 引用、稳定 invocation 事实 |
 | verify/<verificationId>/{replay-report,driver-result,peers/*,stdout,stderr} 及实际 case 证据文件 | 本次 official driver-run；关闭 writer 后结算并封存 | 本次验证业务和 launcher 事实；内容即使与 record 相同仍是另一执行的事实，不能共享文件 |
 | verify/<verificationId>/result.json、verification.json | official verify；依次封存 driver 进程事实和验证结论 | result 仅持有进程执行事实；verification 是唯一验证结论与域 inventory，引用本次 execution，不 snapshot material/record/fixture |
-| failures/official-record/<runId>/ | official record；同一结算合同 | 没有 material ID 的独立失败事实；无 material/execution 的字段明确为空而非伪造身份 |
+| failures/official-record/<runId>/ | official record；归属按[编排输出规则](#多个-action-execution)，封存按同一结算合同 | 独立失败事实；不以未知关联伪造无 material/execution |
 | review.json、adoption.json | qualification/adoption；显式采用时 | review 选择已封存对象，adoption 绑定 review 哈希与采用身份；不重新保存闭包库存 |
 
 `material.json` 保存 material ID、format、provenance、连接集合及 plan/manifest/raw 哈希，
@@ -663,9 +664,28 @@ workspace、protocolCwd、env、runtimeEnv 变量名、historyFiles 与 connecti
 私有配置，不能把当前进程整个环境写入快照。snapshot 中的绝对路径允许存在，因为它
 只适用于当前 fixture 的活跃 runtime，不是持久定位证据。
 
-prepare、current 提交后的 route 刷新和 execution 路由恢复负责原子刷新快照；活动
-execution 时不能用旧快照启动另一个宿主。读者核对 fixtureId/action、current ID 和
-runtime 是否存在，busy/快照过期/缺失时失败；不能自行改写或按旧值猜测环境。
+同一 fixture 的调用方负责串行协调每次完整的 SDK 使用过程。协调区间从取得任何
+route/快照或调用 `StartMockAgent` 之前开始，覆盖 SDK 宿主创建、启动前 history/config
+发现、agent 领取 execution、业务执行，以及本次所有 SDK 宿主、peer 和相关子进程
+停止、输出结算与 route 恢复；这些步骤完成后才允许下一次独立使用。agent action
+返回或单连接完成都不代表宿主已停止。该责任同时适用于普通 Go/CLI 消费者与调用
+官方编排的外层调用方；official 命令负责自己启动的 driver/SDK/peer 收尾，不能替
+外层调用方协调另一个消费者。可用调用顺序或调用方自己的进程协调保证该区间；
+无法共同协调或需要独立并行时使用不同 fixture。
+
+同一 execution 声明的 main/probe 等连接属于同一次已协调使用，可以有多个 SDK
+宿主/peer 并发，共享上述协调区间；不得把另一独立使用加入其中。协调期间不持有
+会妨碍其 agent 子进程领取/join execution 的框架锁，不新增 token、lease 或命令。
+`StartMockAgent` 即使先领取 execution 再启动 SDK，也不免除整个宿主生命周期的
+调用方协调责任。
+
+prepare、current 提交后的 route 刷新和 execution 路由恢复负责原子刷新快照。读者
+仍须核对 fixtureId/action、current ID 和 runtime 是否存在，已知过期或缺失时失败；
+这些检查与读取快照本身没有互斥或锁语义，字段一致不证明没有活动 execution，也
+不能消除检查后到 agent claim 之间的竞争。框架只在正常 agent claim/official 活动
+登记时按既有锁检测冲突并返回 busy；这不保护 claim 前 SDK 对可写 template/history
+的访问，不承诺拦截未经协调的宿主启动或防止这种误用的污染。不得增加非原子 busy
+字段来声称补足保证，也不能自行改写快照或凭旧值绕过调用方协调。
 提交后快照刷新失败属于已提交后的 cleanup 失败，恢复必须按 current 重建快照。
 Go 运行时对象与快照使用同一 route 解析器，避免独立路径算法；StartMockAgent 仍
 返回实际 execution 的绝对路径，不把启动前 template 快照冒充 execution 环境。
@@ -1054,9 +1074,9 @@ verify 前置检查失败直接返回诊断；开始验证后，无论 driver �
 execution 按 mock 自己的 finalize 合同保留；verification 写入失败不能改变其结论。
 
 official record 同样保留 driver 启动、业务、退出和取消事实，引用已经产生的
-record execution/material；没有采集 execution 时明确记录未启动。存在 material ID
-时失败证据写入该 package 的 `record/<runId>/`；没有 material ID 时写入固定的
-`failures/official-record/<runId>/`，不能臆造空 package。driver 在采集发布后失败，
+record execution/material；确认未启动与关联未知分别记录。失败证据的归属只按
+[多个 action execution](#多个-action-execution)中的编排输出规则结算或保留未结算事实。
+driver 在采集发布后失败，
 record run 为失败，但已发布材料及其 current 指针不因业务失败回滚。等待子进程退出
 后才能结算 staging 并结束编排登记；未清理完成不能报告成功。
 
@@ -1220,10 +1240,12 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 | --- | --- | --- |
 | 单一持久布局与唯一 owner | installed CLI 的 prepare→受控 record→mock→verify→采用；同场景前后 inventory/字节数及路径归属比较，逐文件 hash 保留 | 新 final case 与 fixture 发生重排、重复整树 source/record snapshot、多连接复制 execution、误删空日志 |
 | 来源完整与新旧导入 | 公开 Prepare/Open/Export 与 installed CLI 交叉；三类输入导入后删除外部输入、再次 export，比较原文件原字节 | source 只有 hash 缺文件、截断 project snapshot、legacy 自动迁移、旧 fixtureId 改写或旧 execution 进入本地调度 |
-| 核心与晚出业务事实 | installed official record→公开 agent record，暂停父 driver 到 core 提交后再输出报告；前后 core inventory/hash 一致 | 父 driver 后失败、未触发、采集领取后失败、通知丢失；必须进入正确唯一失败域，不能回滚提交或补成功 |
+| 核心与晚出业务事实 | installed official record→公开 agent record，暂停父 driver 到 core 提交后再输出报告；前后 core inventory/hash 一致 | 父 driver 后失败、未触发、采集领取后失败、通知丢失；按唯一归属规则结算或保留未结算事实，不能回滚提交或补成功 |
 | 原子边界与恢复 | installed CLI 对明确 journal 的故障点注入：core rename 前后、current rename 前后、staging rename 前后、索引写入失败 | writer 未退出时清理、两处副本/悬空 staging、旧 current 损坏、凭 latest 恢复；重复恢复/采用不得造第二份事实 |
 | 路径与通知 | installed CLI result fd 完整行与落盘对象比较；公开 Go 运行时对象在新目录返回绝对路径 | fixture/package/material 基准混用、错 material/execution/run/connection、绝对/非规范/符号链接引用、未知/缺版本、坏 hash |
 | 历史与 SDK 启动前读取 | 公开 Go StartMockAgent/ExecutionStart 与 installed CLI route 启动前 discovery；绑定文件、必要 Claude derived 原字节/双向 hash | template 缺完整启动环境、跨 execution 写污染、未知历史被绑定、源/派生篡改；不以通过代替 SDK session_cwd_mismatch 修复 |
+| SDK 宿主串行责任（claim 前） | 公开 Go/CLI 消费者侧受控协调流程：暂停 A 于 route 读取后、agent claim 前，让 B 请求读取 route 并启动；B 在 A 的完整使用结束前不得进入 route/discovery/SDK 启动，暂停 A 的可写操作后核验其模板/已存在 overlay 与冻结 source 的 hash 不变；official driver 场景同样由外层调用方协调 | 两宿主在首次 claim 前同时使用同一 fixture；测试证明调用方协调区间，不宣称快照或 action 锁强制保护 SDK 启动 |
+| SDK 宿主串行责任（claim 后旧快照） | A 已 claim 时给 B 先前取得的 route；原始读取及字段检查可以成功，但消费者协调流程必须阻止 B 用它启动 SDK，直到 A 全部宿主/peer 停止并恢复 route，B 才能重新取得当前 route；暂停 A 的可写操作后核验活动 overlay/source 未被 B 改写 | 单独以直接重复 agent claim 验收框架 busy，只证明 claim 时拒绝；不能据此宣称框架阻止 B 在 claim 前使用旧快照或访问共享模板；合法同 execution 的 main/probe 仍可并发 |
 | 计划与运行输入 | installed official driver request + runtime 1；核对 consumer/official sourcePlanSHA256 与派生 planSHA256 | 把 source plan 与 material plan hash 混同、historyBindings 只写 raw source、持久域引用已删除 request/runtime/case.json 或秘密配置 |
 | 选择闭包与兼容资格 | installed official verify 的显式采用入口；重新 prepare 采用包后只新增本地 execution，原闭包不变 | record/verify 相同内容被当同一事实、漏 connection/receipt、复用另次 passed、review/adoption 重复库存、standalone core 缺录制业务证据仍被采用 |
 
