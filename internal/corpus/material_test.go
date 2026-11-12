@@ -2,6 +2,7 @@ package corpus
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -166,6 +167,22 @@ func syntheticMaterialPackage(t *testing.T) (string, map[string]string) {
 	files, err := history.HashTree(root)
 	require.NoError(t, err)
 	return root, files
+}
+
+func TestVerifyLegacySeedChecksItsCompleteDeclaredInventory(t *testing.T) {
+	for _, format := range []int{0, 2} {
+		t.Run(fmt.Sprintf("format-%d", format), func(t *testing.T) {
+			root, files := syntheticMaterialPackage(t)
+			material := Material{
+				FormatVersion: format, ID: "legacy-seed", Kind: "material", Action: "mock", Provenance: "consumer",
+				PlanSHA256: files["plan.json"], ManifestSHA256: files["manifest.json"], RecordingSHA256: files["raw/raw.jsonl"], Files: files,
+			}
+			require.NoError(t, tool.WriteJSON(filepath.Join(root, "material.json"), material))
+			require.NoError(t, VerifyMaterials(root, true))
+			require.NoError(t, os.Remove(filepath.Join(root, "evidence.txt")))
+			require.ErrorContains(t, VerifyMaterials(root, true), "material closure hash mismatch")
+		})
+	}
 }
 
 func mustReadFile(t *testing.T, path string) []byte {

@@ -17,10 +17,16 @@ import (
 // recording manifest. Existing manifests, when present, must remain truthful.
 func VerifyMaterials(root string, requireComplete bool) error {
 	var descriptor Material
-	if err := tool.ReadJSON(filepath.Join(root, "material.json"), &descriptor); err == nil && descriptor.FormatVersion == 3 {
+	if err := tool.ReadJSON(filepath.Join(root, "material.json"), &descriptor); err == nil {
 		descriptor.Path = root
-		if err := ValidateCore(root, descriptor); err != nil {
-			return err
+		if descriptor.FormatVersion == 3 {
+			if err := ValidateCore(root, descriptor); err != nil {
+				return err
+			}
+		} else if descriptor.FormatVersion == 2 || len(descriptor.Files) > 0 {
+			if err := CheckMaterialInventory(root, descriptor); err != nil {
+				return err
+			}
 		}
 	} else if err != nil && !os.IsNotExist(err) {
 		return err
