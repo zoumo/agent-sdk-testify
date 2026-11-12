@@ -491,7 +491,7 @@ func TestLibraryStartMockAgentAbortDuringFinalizeFails(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	executionDir := filepath.Dir(run.Start.ExecutionPath)
+	executionDir := filepath.Dir(run.Start.Config)
 	cleanupMockRun(t, run)
 	finalizeLock, err := os.OpenFile(filepath.Join(executionDir, "mock-finalize.lock"), os.O_CREATE|os.O_RDWR, 0o600)
 	require.NoError(t, err)

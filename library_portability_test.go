@@ -19,12 +19,16 @@ func TestLibraryExportReprepareAfterDeletingOriginalSources(t *testing.T) {
 	plan := writeLibraryPlan(t, root)
 	sourcePlan := readFile(t, plan)
 	seed := filepath.Join(root, "external-seed")
-	require.NoError(t, os.Mkdir(seed, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(seed, "history.jsonl"), []byte("synthetic seed\n"), 0o600))
+	donor, err := agenttestify.Prepare(agenttestify.PrepareOptions{FixtureDir: filepath.Join(root, "seed-donor"), Agent: "codex", Case: "SDK-CASE-001"})
+	require.NoError(t, err)
+	require.NoError(t, agenttestify.Export(agenttestify.ExportOptions{FixtureDir: donor.FixtureDir, Output: seed}))
+	seedBefore := treeContents(t, seed)
 	prepared, err := agenttestify.Prepare(agenttestify.PrepareOptions{
 		FixtureDir: filepath.Join(root, "original"), Plan: plan, HistorySeed: seed,
 	})
 	require.NoError(t, err)
+	require.NoError(t, os.RemoveAll(donor.FixtureDir))
+	require.Equal(t, seedBefore, treeContents(t, filepath.Join(prepared.FixtureDir, "source", "history-seed", "source")))
 	recorded, _, _, err := runLibraryRecord(t, prepared, agenttestify.RecordAgentOptions{
 		Command: writeLibraryRecordPeer(t, root, "success"), NativeArgs: []string{"app-server", "--listen", "stdio://"}, Timeout: 10 * time.Second,
 	}, "{\"id\":1,\"method\":\"synthetic\"}\n")
@@ -40,6 +44,7 @@ func TestLibraryExportReprepareAfterDeletingOriginalSources(t *testing.T) {
 	require.Equal(t, hashes["plan.json"], descriptor["planSHA256"])
 	require.NotEqual(t, descriptor["sourcePlanSHA256"], descriptor["planSHA256"])
 	require.Equal(t, sourcePlan, before["source-plan.json"])
+	require.Equal(t, seedBefore, treeContents(t, filepath.Join(exported, "history", "seed", "source")))
 	require.NotContains(t, descriptor, "path")
 	require.NotContains(t, descriptor, "files")
 	require.NoError(t, os.RemoveAll(prepared.FixtureDir))
@@ -143,7 +148,12 @@ func TestLibraryCallerCoordinatesBeforeClaimThroughHostShutdown(t *testing.T) {
 		}
 	}
 	assertWaiting() // A has read its route but has not claimed yet.
-	require.DirExists(t, stale.Workspace)
+	workspace, err := filepath.EvalSymlinks(stale.Workspace)
+	require.NoError(t, err)
+	require.DirExists(t, workspace)
+	templateBefore := treeHashes(t, filepath.Join(prepared.FixtureDir, "runtime", "templates"))
+	assertWaiting()
+	require.Equal(t, templateBefore, treeHashes(t, filepath.Join(prepared.FixtureDir, "runtime", "templates")))
 	sourceBefore := treeHashes(t, filepath.Join(prepared.FixtureDir, "source"))
 	input := newControlledInput(libraryMockInput)
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{}, agenttestify.StartMockAgentStreams{
@@ -154,7 +164,8 @@ func TestLibraryCallerCoordinatesBeforeClaimThroughHostShutdown(t *testing.T) {
 	awaitFullConsumption(t, run)
 	overlayBefore := treeHashes(t, filepath.Dir(run.Start.Config))
 	assertWaiting() // The old route is still readable after A claims.
-	require.DirExists(t, stale.Workspace)
+	_, err = filepath.EvalSymlinks(stale.Workspace)
+	require.NoError(t, err)
 	require.Equal(t, overlayBefore, treeHashes(t, filepath.Dir(run.Start.Config)))
 	require.Equal(t, sourceBefore, treeHashes(t, filepath.Join(prepared.FixtureDir, "source")))
 	require.NoError(t, input.CloseEOF())

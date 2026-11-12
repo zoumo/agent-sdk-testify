@@ -243,7 +243,7 @@ func TestLibraryStartMockAgentRejectsCorruptJoinEvidence(t *testing.T) {
 		},
 		{
 			name: "descriptor execution identity",
-			want: "descriptor identity",
+			want: "execution path differs from package identity",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, executionID string) {
 				rewriteLibraryDescriptor(t, fixture.FixtureDir, executionID, func(value map[string]any) {
 					value["executionId"] = "other"

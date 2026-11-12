@@ -47,7 +47,7 @@ func TestLibraryExecutionReportFailsClosedOnCorruptEvidence(t *testing.T) {
 		},
 		{
 			name: "descriptor execution identity",
-			want: "descriptor identity",
+			want: "execution path differs from package identity",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, result *agenttestify.MockAgentResult, _ *agenttestify.ExecutionReport) {
 				rewriteLibraryDescriptor(t, fixture.FixtureDir, result.ExecutionID, func(value map[string]any) {
 					value["executionId"] = "other"
