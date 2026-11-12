@@ -292,7 +292,7 @@ func officialRunResult(t *testing.T, fixtureDir string) object {
 	require.NoError(t, err)
 	failures, err := filepath.Glob(filepath.Join(fixtureDir, "failures", "official-record", "*", "result.json"))
 	require.NoError(t, err)
-	paths = append(paths, failures...)
+	paths = ownOfficialEvidence(t, fixtureDir, append(paths, failures...))
 	require.Len(t, paths, 1)
 	return readJSON(t, paths[0])
 }

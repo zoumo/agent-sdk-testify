@@ -14,6 +14,7 @@ func latestOfficialVerification(t *testing.T, fixtureDir string) (string, object
 	t.Helper()
 	paths, err := filepath.Glob(filepath.Join(fixtureDir, "packages", "*", "verify", "*", "verification.json"))
 	require.NoError(t, err)
+	paths = ownOfficialEvidence(t, fixtureDir, paths)
 	require.NotEmpty(t, paths)
 	var latest object
 	var root string

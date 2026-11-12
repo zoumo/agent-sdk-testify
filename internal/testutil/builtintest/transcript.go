@@ -1,4 +1,5 @@
-package testutil
+// Package builtintest reads builtin recordings for installed CLI checks.
+package builtintest
 
 import (
 	"bytes"
@@ -10,13 +11,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 // BuiltinTranscript reads immutable recorded inputs for transport and build checks.
 func BuiltinTranscript(t *testing.T, provider, id, connection string) (string, string) {
 	t.Helper()
-	repository, err := RepositoryRoot()
+	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)
 	var index tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(repository, "data", "index.json"), &index))
@@ -26,6 +29,8 @@ func BuiltinTranscript(t *testing.T, provider, id, connection string) (string, s
 			continue
 		}
 		root := filepath.Join(repository, "data", tool.Str(row["materials"]))
+		root, _, err = corpus.RecordingRoot(root)
+		require.NoError(t, err)
 		rawRoot := filepath.Join(root, "raw")
 		if connection == "probe" {
 			rawRoot = filepath.Join(root, "remote-probe", "raw")

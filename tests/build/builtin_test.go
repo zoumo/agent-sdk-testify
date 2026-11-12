@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
+	"github.com/zoumo/agent-sdk-testify/internal/testutil/builtintest"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
@@ -40,7 +41,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 		return cmd.CombinedOutput()
 	}
 	// A selected missing file must fail, even though the generated bundle exists.
-	_, source := testutil.BuiltinTranscript(t, "codex", "SDK-CASE-001", "main")
+	_, source := builtintest.BuiltinTranscript(t, "codex", "SDK-CASE-001", "main")
 	relativeSource, err := filepath.Rel(repository, source)
 	require.NoError(t, err)
 	raw := filepath.Join(root, relativeSource, "raw", "raw.jsonl")

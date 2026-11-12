@@ -46,3 +46,33 @@ func OfficialStderr(fixture string) ([]string, error) {
 	}
 	return paths, nil
 }
+
+// OwnOfficialEvidence selects settled evidence created by this fixture, excluding
+// the original record and verify domains preserved in imported packages.
+func OwnOfficialEvidence(fixture string, paths []string) ([]string, error) {
+	var identity struct {
+		FixtureID string `json:"fixtureId"`
+	}
+	if err := tool.ReadJSON(filepath.Join(fixture, "fixture.json"), &identity); err != nil {
+		return nil, err
+	}
+	if identity.FixtureID == "" {
+		return nil, fmt.Errorf("fixture has no fixtureId: %s", fixture)
+	}
+	var own []string
+	for _, path := range paths {
+		var evidence struct {
+			FixtureID string `json:"fixtureId"`
+		}
+		if err := tool.ReadJSON(path, &evidence); err != nil {
+			return nil, err
+		}
+		if evidence.FixtureID == "" {
+			return nil, fmt.Errorf("official evidence has no fixtureId: %s", path)
+		}
+		if evidence.FixtureID == identity.FixtureID {
+			own = append(own, path)
+		}
+	}
+	return own, nil
+}

@@ -19,6 +19,7 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/official"
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
+	"github.com/zoumo/agent-sdk-testify/test/e2e/fixturetest"
 )
 
 const recordExecutionTimeout = "30s"
@@ -587,7 +588,8 @@ func (p *preparedRecord) officialRoot(t *testing.T) string {
 	require.NoError(t, err)
 	failures, err := filepath.Glob(filepath.Join(p.fixtureDir, "failures", "official-record", "*", "result.json"))
 	require.NoError(t, err)
-	paths = append(paths, failures...)
+	paths, err = fixturetest.OwnOfficialEvidence(p.fixtureDir, append(paths, failures...))
+	require.NoError(t, err)
 	require.Len(t, paths, 1)
 	return filepath.Dir(paths[0])
 }

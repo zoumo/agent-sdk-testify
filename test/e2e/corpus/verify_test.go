@@ -247,6 +247,8 @@ func verifyOutput(t *testing.T, fixtureDir string) string {
 	t.Helper()
 	paths, err := filepath.Glob(filepath.Join(fixtureDir, "packages", "*", "verify", "*", "verification.json"))
 	require.NoError(t, err)
+	paths, err = fixturetest.OwnOfficialEvidence(fixtureDir, paths)
+	require.NoError(t, err)
 	require.Len(t, paths, 1)
 	return filepath.Dir(paths[0])
 }

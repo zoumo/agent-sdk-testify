@@ -206,10 +206,11 @@ func TestOfficialPackageFailureOwnership(t *testing.T) {
 				require.Equal(t, journal["materialId"], readJSON(t, filepath.Join(fixture, "current.json"))["materialId"])
 			default:
 				require.NoFileExists(t, filepath.Join(fixture, "official.json"))
-				roots, err := filepath.Glob(filepath.Join(fixture, "packages", "*", "record", "*"))
+				paths, err := filepath.Glob(filepath.Join(fixture, "packages", "*", "record", "*", "result.json"))
 				require.NoError(t, err)
-				require.Len(t, roots, 1)
-				result := readJSON(t, filepath.Join(roots[0], "result.json"))
+				paths = ownOfficialEvidence(t, fixture, paths)
+				require.Len(t, paths, 1)
+				result := readJSON(t, paths[0])
 				require.Equal(t, "failed", result["status"])
 				require.NotEmpty(t, result["materialId"])
 				switch mode {

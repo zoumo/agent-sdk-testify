@@ -613,3 +613,10 @@ func resolvedPath(t *testing.T, path string) string {
 	require.NoError(t, err)
 	return resolved
 }
+
+func ownOfficialEvidence(t *testing.T, fixture string, paths []string) []string {
+	t.Helper()
+	own, err := fixturetest.OwnOfficialEvidence(fixture, paths)
+	require.NoError(t, err)
+	return own
+}

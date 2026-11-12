@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zoumo/agent-sdk-testify/internal/testutil"
+	"github.com/zoumo/agent-sdk-testify/internal/testutil/builtintest"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
@@ -39,7 +39,9 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 					if mode == "builtin" {
 						good = out
 						execution, _ := latestFixtureExecution(t, fixtureDir, "mock")
-						assert.Equal(t, "builtin", execution["provenance"])
+						var descriptor tool.Object
+						require.NoError(t, tool.ReadJSON(filepath.Join(root, "material.json"), &descriptor))
+						assert.Equal(t, descriptor["provenance"], execution["provenance"])
 					} else {
 						assert.Equal(t, string(good), string(out))
 					}
@@ -117,9 +119,9 @@ func TestPreparedMaterialsPreserveNativeBytes(t *testing.T) {
 }
 
 func builtinTranscript(t *testing.T, provider, id string) (string, string) {
-	return testutil.BuiltinTranscript(t, provider, id, "main")
+	return builtintest.BuiltinTranscript(t, provider, id, "main")
 }
 
 func builtinConnectionTranscript(t *testing.T, provider, id, connection string) (string, string) {
-	return testutil.BuiltinTranscript(t, provider, id, connection)
+	return builtintest.BuiltinTranscript(t, provider, id, connection)
 }
