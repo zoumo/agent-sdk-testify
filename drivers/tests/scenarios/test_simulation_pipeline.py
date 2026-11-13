@@ -18,6 +18,29 @@ class TransportClosedError(RuntimeError):
 
 
 class SimulationPipelineTests(unittest.TestCase):
+    def test_claude_numeric_budget_is_unsupported_before_sdk_or_native_launch(self):
+        definition = case_recipes('claude', cases='SDK-CASE-026')[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plan = dict(version=4, provider='claude', story=definition['storyId'],
+                        storyId=definition['storyId'], caseId=definition['caseId'],
+                        driverProfile=definition['driverProfile'], root=tmp, project=tmp,
+                        scenario=definition, scenarioSHA256=digest(definition),
+                        prompts=definition['prompts'], model='auto/deepseek-v4.1-flash-1017[1m]')
+            with patch('record_user_story.drivers.sdk_identity',
+                       side_effect=AssertionError('unsupported budget must not load the SDK')) as sdk:
+                result = request_case(plan)
+            sdk.assert_not_called()
+            self.assertEqual(result['status'], 'unsupported')
+            self.assertIn('数值预算', result['message'])
+            self.assertIsNone(result['sdk'])
+            report = json.loads((root / 'report.json').read_text())
+            self.assertEqual(report['status'], 'unsupported')
+            self.assertEqual(report['branchStatus'], 'unsupported')
+            self.assertEqual(report['captureStatus'], 'not-executed')
+            self.assertEqual((report['inputs'], report['results']), (0, 0))
+            self.assertFalse((root / 'diagnostics.private.json').exists())
+
     def test_file_approval_never_accepts_shell_approval_as_file_evidence(self):
         for case, native_kind, expected, decision in (
             ('SDK-CASE-008', 'fileChange', 'passed', 'decline'),

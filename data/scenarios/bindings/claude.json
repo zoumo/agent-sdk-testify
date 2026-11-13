@@ -253,7 +253,11 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "当前官方 Claude driver 尚无动态思考数值预算生效的验证路径。Claude CLI 2.1.293 的 DeepSeek 与 GLM-5.3 路径均将 set_max_thinking_tokens 的 0/正值映射为关闭/adaptive，不向 API 传递 budget_tokens，get_settings 也不读回预算。当前 driver 将该 case 报为 unsupported，不启动原生 Agent；成功回执、effort 或输出长度不能作为数值预算生效证据。该结论限于当前 driver 和已检查的模型路径。"
+      }
     },
     "SDK-CASE-027": {
       "files": {},

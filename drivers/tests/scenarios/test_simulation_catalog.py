@@ -45,6 +45,8 @@ class SimulationCatalogTests(unittest.TestCase):
         c, a = by_id(codex), by_id(claude)
         self.assertEqual(c['SDK-CASE-003']['mode'], 'unsupported')
         self.assertEqual(a['SDK-CASE-017']['mode'], 'unsupported')
+        self.assertEqual(a['SDK-CASE-026']['mode'], 'unsupported')
+        self.assertIn('数值预算', a['SDK-CASE-026']['reason'])
         self.assertEqual(c['SDK-CASE-033']['mode'], 'live-selected-path')
         self.assertEqual(a['SDK-CASE-033']['driverProfile'], 'history')
         self.assertEqual(c['SDK-CASE-031']['driverProfile'], 'session-close')

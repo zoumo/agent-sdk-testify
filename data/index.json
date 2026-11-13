@@ -294,8 +294,8 @@
       "provider": "claude",
       "requirement": "optional",
       "storyId": "SDK-US-006",
-      "verification": "failed",
-      "verificationReason": "The native protocol observations did not establish the requested thinking budget effect; the official recording report remained untriggered."
+      "verification": "unsupported",
+      "verificationReason": "\u5f53\u524d\u5b98\u65b9 Claude driver \u5c1a\u65e0\u52a8\u6001\u601d\u8003\u6570\u503c\u9884\u7b97\u751f\u6548\u7684\u9a8c\u8bc1\u8def\u5f84\u3002Claude CLI 2.1.293 \u7684 DeepSeek \u4e0e GLM-5.3 \u8def\u5f84\u5747\u5c06 set_max_thinking_tokens \u7684 0/\u6b63\u503c\u6620\u5c04\u4e3a\u5173\u95ed/adaptive\uff0c\u4e0d\u5411 API \u4f20\u9012 budget_tokens\uff0cget_settings \u4e5f\u4e0d\u8bfb\u56de\u9884\u7b97\u3002\u5f53\u524d driver \u5c06\u8be5 case \u62a5\u4e3a unsupported\uff0c\u4e0d\u542f\u52a8\u539f\u751f Agent\uff1b\u6210\u529f\u56de\u6267\u3001effort \u6216\u8f93\u51fa\u957f\u5ea6\u4e0d\u80fd\u4f5c\u4e3a\u6570\u503c\u9884\u7b97\u751f\u6548\u8bc1\u636e\u3002\u8be5\u7ed3\u8bba\u9650\u4e8e\u5f53\u524d driver \u548c\u5df2\u68c0\u67e5\u7684\u6a21\u578b\u8def\u5f84\u3002"
     },
     {
       "adoption": "admitted",

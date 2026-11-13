@@ -25,6 +25,7 @@ def run(plan):
     if definition['mode'] != 'live-selected-path':
         report['captureStatus'] = 'not-executed'
         report['status'] = definition['mode']
+        report['branchStatus'] = definition['mode']
         report['gaps'].append(definition['reason'])
     else:
         try:
