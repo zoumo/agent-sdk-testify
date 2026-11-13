@@ -143,7 +143,7 @@ func ConnectionIDs(source Source, plan tool.Object) []string {
 	if source.Kind == "plan" {
 		return []string{"main"}
 	}
-	if tool.Str(plan["driverProfile"]) == "remote-close" && source.Provenance != "consumer" {
+	if (tool.Str(plan["driverProfile"]) == "remote-close" || corpus.SelfSeededChildren(plan)) && source.Provenance != "consumer" {
 		return []string{"main", "probe"}
 	}
 	return []string{"main"}
@@ -505,7 +505,7 @@ func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (
 		fixture.Source.Path = sourcePath
 		fixture.Source.SHA256 = tool.DigestBytes(rawSource)
 		seedPath := filepath.Join(materialRoot, "history", "seed")
-		if info, err := os.Lstat(seedPath); err == nil && info.IsDir() {
+		if info, err := os.Lstat(seedPath); err == nil && info.IsDir() && !corpus.SelfSeededChildren(spec.plan) {
 			fixture.HistorySeed = SourceSeedPath(fixtureDir)
 			if err := copyMaterial(seedPath, fixture.HistorySeed); err != nil {
 				return nil, err

@@ -616,6 +616,20 @@ material 根相对 source 路径与 SHA-256；SHA 必须与 manifest.files 的�
 来源闭包的完整库存仅由 manifest.files 覆盖，绑定表只描述实际 materialization 的目标，
 不得以绑定表仅选少量文件为由截断来源闭包。
 
+035 的 `existing-children` 流程在一次 official record 内自行建立前置历史。
+main 连接通过官方 SDK 执行 setup，结束真实父子任务并关闭后，agent record 保存
+本次原生历史到 `history/seed/`；这份 seed 来自同一 execution，不引用其他 case
+或外部资格包。`existing-children/setup.json` 与 material plan 的
+`existingChildrenSetup` 绑定父子身份、setup raw/transport 哈希、历史绑定及完成时间。
+probe 连接仅在本 execution 的 main 成功结算后启动，保存绑定 setup 哈希和开始时间的
+`existing-children/observation.json`，在同一父身份上建立新的零输入观察入口。
+Claude probe 的原生 argv 严格等于 setup argv 加 `--resume <parent UUID>`；
+Codex probe 使用相同 argv，以原生 thread/resume 建立新观察。两连接各自的原始
+协议与普通 receipt 均由公开 agent 命令拥有；probe 使用既有多连接的
+`remote-probe/raw/` 布局，不新增官方专用 execution 路径。
+官方 driver 分别校验 setup 创建、子完成、历史身份与正式观察发现；setup 失败不能
+成为观察成功。后续 verify/mock 重放两个连接，并只读取 035 自己封存的材料。
+
 `history/runtime/` 只保存录制完成时新增或已变化的原生历史。若某个声明的 runtime
 目标与已保存 seed 文件身份相符且字节完全相同，绑定可以显式复用 seed 中那个文件；
 不再存第二份物理文件。保留 native filename 与 session 身份，通过绑定让多个明确

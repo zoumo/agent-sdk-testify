@@ -1,0 +1,31 @@
+{
+  "agentIds": [
+    "01a1d329-9e74-79a1-880e-62541e3bc036"
+  ],
+  "completedAt": "2026-11-13T04:28:07.441706Z",
+  "historyBindings": [
+    {
+      "role": "seed",
+      "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+      "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+      "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+      "sha256": "81a56a070d6c002d6b421e3c1ff684200ad6739fc7ce1ee6d2456923f88f8849"
+    },
+    {
+      "role": "seed",
+      "sessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+      "parentSessionId": "01a1d329-557e-7913-986d-f583d2216487",
+      "childSessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+      "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+      "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+      "sha256": "971fda679b58ed2a7f6f7be74ae8e3690ed3d0d48ff11e87719242d0b3152a91"
+    }
+  ],
+  "provider": "codex",
+  "rawSHA256": "ed050cf23099d2ed876103f82240b0fd7557978171bc6724c0ee44b9d7c3a5ce",
+  "schemaVersion": 1,
+  "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+  "transportSHA256": "a6c687ee3599d7b470bdbd238e212151bbbdd02c032113f6d99ab16a7b9c9d05"
+}

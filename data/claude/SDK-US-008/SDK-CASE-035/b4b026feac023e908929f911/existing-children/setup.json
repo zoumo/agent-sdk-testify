@@ -1,0 +1,41 @@
+{
+  "agentIds": [
+    "a9740d750f0b02d37"
+  ],
+  "completedAt": "2026-11-13T04:28:25.037002Z",
+  "historyBindings": [
+    {
+      "role": "seed",
+      "sessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+      "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+      "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl",
+      "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl",
+      "sha256": "c3688ffef35788b7a14e133ca9ba493e80b32847018bc893e9e0add7eed052ce"
+    },
+    {
+      "role": "seed",
+      "sessionId": "a9740d750f0b02d37",
+      "parentSessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+      "childSessionId": "a9740d750f0b02d37",
+      "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+      "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.jsonl",
+      "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.jsonl",
+      "sha256": "bb2e77b0ef6143538cdea4c9e1a3224c75ae51a62c69a4c1bf0629f706146c4c"
+    },
+    {
+      "role": "seed",
+      "sessionId": "a9740d750f0b02d37",
+      "parentSessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+      "childSessionId": "a9740d750f0b02d37",
+      "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+      "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.meta.json",
+      "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.meta.json",
+      "sha256": "0320b9734a23599eed177c86f1a8f6a9606ce231306fdd0c0b3383b3c5680470"
+    }
+  ],
+  "provider": "claude",
+  "rawSHA256": "eb42ba2b36d0ccb3ec0cd37d4bc19ff08b656a471889fa39d34ed2a37d1231d1",
+  "schemaVersion": 1,
+  "sessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+  "transportSHA256": "93380adaf5d760cefce5e9e13e675316cc27630f503f7531f5ac5bbba40fce8b"
+}

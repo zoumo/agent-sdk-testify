@@ -153,7 +153,7 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, *recording.
 	}
 	rawRoot := filepath.Join(sourceRoot, "raw")
 	expected := tool.Str(tool.Obj(manifest["files"])[rawName])
-	if phase == "probe" && plan["driverProfile"] == "remote-close" {
+	if phase == "probe" && (plan["driverProfile"] == "remote-close" || corpus.SelfSeededChildren(plan)) {
 		rawRoot = filepath.Join(sourceRoot, "remote-probe", "raw")
 		expected = tool.Str(tool.Obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"])
 		if manifest["materialFormatVersion"] == float64(3) {

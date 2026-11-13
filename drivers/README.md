@@ -179,6 +179,12 @@ package 的 `record/<runId>/`。显式采用时，工具选择已核验的原编
 `--history-seed` 用于新的真实录制时仍须提供外部完整合格证据包，不能用精简后的
 standalone core 代替原录制业务证明。
 
+035 自行创建前置父子历史，不需要 `--history-seed`，也不读取 034 材料或资格归档。
+prepare 保持离线；official record 内的 main 连接执行一次 setup 输入，确认真实
+子完成和 native history 保存后关闭。probe 在同一 execution 的同一父身份上
+建立新的正式观察入口，保持零输入。材料中保存 setup 的原始协议、历史、
+身份和阶段哈希；official verify 离线重放 setup 与正式观察，并复核阶段顺序。
+
 以下输入不得混用：
 
 - 真实录制：实际 Agent 交互，可进入验证和采用流程。

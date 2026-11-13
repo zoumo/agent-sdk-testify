@@ -326,7 +326,7 @@ func corpusPublishable(name string) bool {
 
 func Phases(plan tool.Object) [][2]string {
 	out := [][2]string{{"", ""}}
-	if plan["driverProfile"] == "remote-close" {
+	if plan["driverProfile"] == "remote-close" || SelfSeededChildren(plan) {
 		out = append(out, [2]string{"remote-probe/", "remote-probe/"})
 	}
 	return out

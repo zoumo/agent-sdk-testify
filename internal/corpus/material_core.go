@@ -118,6 +118,9 @@ func ValidateCore(root string, material Material) error {
 		return seedErr
 	}
 	_, err = history.Bindings(root)
+	if err == nil && SelfSeededChildren(plan) {
+		err = validateChildObservation(root, plan)
+	}
 	return err
 }
 

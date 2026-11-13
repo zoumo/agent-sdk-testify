@@ -31,7 +31,10 @@ def run(plan):
         try:
             report['officialSDK'] = sdk_identity(plan['provider'])
             if definition['driverProfile'] == 'existing-children':
-                if plan['provider'] == 'codex':
+                if definition.get('parameters', {}).get('selfSeed') and not plan.get('historySeed'):
+                    from .self_seeded_children import run as self_seeded
+                    self_seeded(plan, report)
+                elif plan['provider'] == 'codex':
                     from codex_driver.existing import observe
                     observe(plan, report)
                 else:

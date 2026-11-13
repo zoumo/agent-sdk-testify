@@ -64,7 +64,13 @@ func (p recordPolicy) Prepare(ctx context.Context, run lifecycle.RecordContext, 
 }
 
 func (p recordPolicy) Capture(ctx context.Context, run lifecycle.RecordContext) error {
-	return captureNative(ctx, run, p.command, p.args, p.remote, p.timeout, p.streams)
+	if err := captureNative(ctx, run, p.command, p.args, p.remote, p.timeout, p.streams); err != nil {
+		return err
+	}
+	if run.IsOfficialCapture() && corpus.SelfSeededChildren(run.Plan()) && run.Connection() == "main" {
+		return snapshotChildSetup(run)
+	}
+	return nil
 }
 
 func (p recordPolicy) Package(_ context.Context, run lifecycle.RecordContext) (*corpus.Material, error) {
@@ -76,6 +82,13 @@ func captureNative(ctx context.Context, run lifecycle.RecordContext, command str
 	plan := run.Plan()
 	if run.IsOfficialCapture() && remote == nil {
 		args = tool.Strings(plan["args"])
+		if corpus.SelfSeededChildren(plan) && run.Connection() == "probe" {
+			var err error
+			args, err = corpus.ChildObservationArgs(plan)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	var commandArgs []string
@@ -153,6 +166,9 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	if fixture.HistorySeed != "" {
 		seed = filepath.Join(run.ArtifactRoot(), "history-source")
 	}
+	if corpus.SelfSeededChildren(derived) {
+		seed = filepath.Join(run.ArtifactRoot(), "history", "seed")
+	}
 	startupDerived, err := history.StartupDerived(run.ExecutionDir())
 	if err != nil {
 		return nil, err
@@ -161,7 +177,7 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	if err != nil {
 		return nil, err
 	}
-	if seed != "" {
+	if seed != "" && !corpus.SelfSeededChildren(derived) {
 		prefix := "executions/" + execution.ExecutionID + "/capture"
 		if err := history.RebindMaterialization(filepath.Dir(filepath.Dir(run.ExecutionDir())), run.ExecutionDir(), prefix+"/history-source", prefix+"/history/seed"); err != nil {
 			return nil, err

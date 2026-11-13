@@ -325,7 +325,8 @@ async def observe_claude(plan, report):
 
 
 def require_observation_wire(plan, report):
-    frames = [json.loads(line) for line in read_regular(capture_root(plan) / 'raw/raw.jsonl', None).splitlines()]
+    raw = 'remote-probe/raw/raw.jsonl' if plan.get('_observationPhase') == 'probe' else 'raw/raw.jsonl'
+    frames = [json.loads(line) for line in read_regular(capture_root(plan) / raw, None).splitlines()]
     requests = [frame['wire'] for frame in frames if frame['direction'] == 'c2s']
     if (len(requests) != 1 or requests[0].get('type') != 'control_request'
             or requests[0].get('request', {}).get('subtype') != 'initialize'):

@@ -1,0 +1,116 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "agents.enabled=true",
+    "-c",
+    "features.multi_agent=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-035",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
+    "storyId": "SDK-US-008"
+  },
+  "caseId": "SDK-CASE-035",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "existing-children",
+  "existingChildrenSetup": {
+    "agentIds": [
+      "01a1d329-9e74-79a1-880e-62541e3bc036"
+    ],
+    "completedAt": "2026-11-13T04:28:07.441706Z",
+    "historyBindings": [
+      {
+        "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+        "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+        "role": "seed",
+        "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+        "sha256": "81a56a070d6c002d6b421e3c1ff684200ad6739fc7ce1ee6d2456923f88f8849",
+        "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl"
+      },
+      {
+        "childSessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+        "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+        "parentSessionId": "01a1d329-557e-7913-986d-f583d2216487",
+        "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+        "role": "seed",
+        "sessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+        "sha256": "971fda679b58ed2a7f6f7be74ae8e3690ed3d0d48ff11e87719242d0b3152a91",
+        "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl"
+      }
+    ],
+    "provider": "codex",
+    "rawSHA256": "ed050cf23099d2ed876103f82240b0fd7557978171bc6724c0ee44b9d7c3a5ce",
+    "schemaVersion": 1,
+    "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+    "transportSHA256": "a6c687ee3599d7b470bdbd238e212151bbbdd02c032113f6d99ab16a7b9c9d05"
+  },
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+      "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+      "sha256": "6770c00c08069d7c201a4769becd9c18e561652c3917a031adf56a504c2dd1d8"
+    },
+    {
+      "role": "seed",
+      "sessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+      "parentSessionId": "01a1d329-557e-7913-986d-f583d2216487",
+      "childSessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+      "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+      "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+      "sha256": "971fda679b58ed2a7f6f7be74ae8e3690ed3d0d48ff11e87719242d0b3152a91"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+  "prompts": [],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-035",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "发现当前观察入口建立前已经存在的子 Agent 及已证实关系；不回补历史实时事件。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-035",
+    "configuration": {},
+    "driverProfile": "existing-children",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "selfSeed": true,
+      "setupPrompt": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_EXISTING_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+    },
+    "prompts": [],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-008"
+  },
+  "sourcePlanSHA256": "550100ceb77ba398ab3f93150cb81d92fba849d5eee7f0198e1f47d89f8fda70",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-008",
+  "storyId": "SDK-US-008"
+}

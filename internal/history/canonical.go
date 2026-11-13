@@ -204,8 +204,10 @@ func CaptureCanonical(seed, overlay, core string, plan tool.Object, startupDeriv
 		if err != nil {
 			return nil, err
 		}
-		if err := tool.CopyTree(seed, seedRoot); err != nil {
-			return nil, err
+		if filepath.Clean(seed) != filepath.Clean(seedRoot) {
+			if err := tool.CopyTree(seed, seedRoot); err != nil {
+				return nil, err
+			}
 		}
 		after, err := HashTree(seedRoot)
 		if err != nil {
