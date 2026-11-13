@@ -44,6 +44,8 @@ class SimulationCatalogTests(unittest.TestCase):
         self.assertEqual(len(claude), 38)
         c, a = by_id(codex), by_id(claude)
         self.assertEqual(c['SDK-CASE-003']['mode'], 'unsupported')
+        self.assertEqual(a['SDK-CASE-003']['mode'], 'unsupported')
+        self.assertIn('document', a['SDK-CASE-003']['reason'])
         self.assertEqual(a['SDK-CASE-017']['mode'], 'unsupported')
         self.assertEqual(a['SDK-CASE-026']['mode'], 'unsupported')
         self.assertIn('数值预算', a['SDK-CASE-026']['reason'])

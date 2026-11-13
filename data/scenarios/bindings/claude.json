@@ -32,7 +32,11 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "当前配置的 Claude 网关路径尚未验证 document 内容支持：DeepSeek 的 PDF 录制未读取文档；GPT 路径在 PDF 和 text/plain document 输入下均回答未提供文档，而内联文本对照通过。原生 CLI 已确认向 API 保留 document 块；GLM-5.3 的对照超时，不能作为支持证据。当前 driver 将该 case 报为 unsupported，不启动原生 Agent。保留原生文档输入和内容断言，不以普通 text 块替代 document；该结论不表示 Claude 或所有模型均不支持文档。"
+      }
     },
     "SDK-CASE-004": {
       "files": {},

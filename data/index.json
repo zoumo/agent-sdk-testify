@@ -66,8 +66,8 @@
       "provider": "claude",
       "requirement": "optional",
       "storyId": "SDK-US-001",
-      "verification": "failed",
-      "verificationReason": "DeepSeek document input was sent, but the native answer did not establish the supplied content: synthetic document 42; the official recording report remained untriggered."
+      "verification": "unsupported",
+      "verificationReason": "\u5f53\u524d\u914d\u7f6e\u7684 Claude \u7f51\u5173\u8def\u5f84\u5c1a\u672a\u9a8c\u8bc1 document \u5185\u5bb9\u652f\u6301\uff1aDeepSeek \u7684 PDF \u5f55\u5236\u672a\u8bfb\u53d6\u6587\u6863\uff1bGPT \u8def\u5f84\u5728 PDF \u548c text/plain document \u8f93\u5165\u4e0b\u5747\u56de\u7b54\u672a\u63d0\u4f9b\u6587\u6863\uff0c\u800c\u5185\u8054\u6587\u672c\u5bf9\u7167\u901a\u8fc7\u3002\u539f\u751f CLI \u5df2\u786e\u8ba4\u5411 API \u4fdd\u7559 document \u5757\uff1bGLM-5.3 \u7684\u5bf9\u7167\u8d85\u65f6\uff0c\u4e0d\u80fd\u4f5c\u4e3a\u652f\u6301\u8bc1\u636e\u3002\u5f53\u524d driver \u5c06\u8be5 case \u62a5\u4e3a unsupported\uff0c\u4e0d\u542f\u52a8\u539f\u751f Agent\u3002\u4fdd\u7559\u539f\u751f\u6587\u6863\u8f93\u5165\u548c\u5185\u5bb9\u65ad\u8a00\uff0c\u4e0d\u4ee5\u666e\u901a text \u5757\u66ff\u4ee3 document\uff1b\u8be5\u7ed3\u8bba\u4e0d\u8868\u793a Claude \u6216\u6240\u6709\u6a21\u578b\u5747\u4e0d\u652f\u6301\u6587\u6863\u3002"
     },
     {
       "adoption": "admitted",
