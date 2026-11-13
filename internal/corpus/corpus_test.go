@@ -2,6 +2,7 @@ package corpus
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -483,9 +484,7 @@ func (s *corpusSuite) TestLegacyReplacementClearsPublishedMaterialReceipt() {
 		for _, row := range tool.Array(index["cases"]) {
 			entry := tool.Obj(row)
 			if entry["provider"] == published["provider"] && entry["caseId"] == published["caseId"] {
-				for key, value := range published {
-					entry[key] = value
-				}
+				maps.Copy(entry, published)
 				source := filepath.Join(repository, "data", tool.Str(published["materials"]))
 				target := filepath.Join(filepath.Dir(s.c.Index), tool.Str(published["materials"]))
 				s.Require().NoError(tool.CopyTree(source, target))
