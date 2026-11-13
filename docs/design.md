@@ -737,7 +737,7 @@ record、mock 和切换 current 时一起写入并相互引用，分别版本会
 | native recording/raw manifest、process receipt | 保留各自已有版本 | 原始帧和采集文件不改字节；process receipt 的 tool/cwd 是观察事实，无新文件定位语义 |
 | execution 根汇总 | `schemaVersion: 1` | 新增对象，定义状态、inventory 和发布事实；不借用 control schema 7 或 agent result schema 3 |
 | agent result 与 CLI 通知 | `schemaVersion: 3` | schema 2 为 fixture 根相对引用；新版本增加必填 materialId 并改为包根相对引用，旧对象只读，不能混用 |
-| final `review.json`、`adoption.json` | `schemaVersion: 2` | version 1 只读兼容，不重写原有 `data/` 文件 |
+| 私有归档的 `review.json`、`adoption.json` | `schemaVersion: 2` | version 1 只读兼容，不重写旧证明文件 |
 | official driver 运行配置 | `schemaVersion: 1` | 与 material plan 分开；不识别该版本的 driver 在启动前失败 |
 | CLI 宿主 route 快照（仅 runtime） | `schemaVersion: 1` | 新的短生命周期读接口，不与 driver runtime 1 或控制面版本混判；删除 runtime 后不可使用 |
 
@@ -1084,7 +1084,8 @@ record run 为失败，但已发布材料及其 current 指针不因业务失败
 
 record 提交前失败时，current recording 不变；提交后失败保留提交事实；verify 失败时 current recording 不变；
 mock 失败时 current recording 不变。失败 attempt 的部分 package、execution 和
-record/verify 域保留供诊断，但只有完整、成功且被 review 选择的证据闭包可以入仓。
+record/verify 域保留供诊断；只有完整、成功且被 review 选择的证据闭包可以资格归档，
+对应 material 才可入仓。
 任何失败都不能删掉旧材料或旧验证证据。
 
 工具按[封存、发布与恢复](#封存发布与恢复)区分采集、current 提交、通知交付与编排结算；

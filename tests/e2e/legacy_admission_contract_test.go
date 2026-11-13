@@ -82,19 +82,22 @@ out = pathlib.Path(runtime['output'])
 	admission := readJSON(t, filepath.Join(fixture, "runtime", "official", filepath.Base(verifyRoot), "admission-summary.json"))
 	require.Equal(t, "admitted", admission["status"])
 	attempt := str(admission["materials"])
-	require.Equal(t, before, officialInventory(t, filepath.Join(attempt, "material")))
+	archived := filepath.Join(corpus.archive, filepath.Base(attempt))
+	require.Equal(t, before, officialInventory(t, attempt))
 	require.Equal(t, before, officialInventory(t, core))
-	require.FileExists(t, filepath.Join(attempt, "verify", filepath.Base(verifyRoot), "verification.json"))
+	require.FileExists(t, filepath.Join(archived, "verify", filepath.Base(verifyRoot), "verification.json"))
+	require.NoDirExists(t, filepath.Join(attempt, "verify"))
 	imported := prepareFixture(t, env, "--recording", attempt)
 	require.Equal(t, before, officialInventory(t, filepath.Join(imported, "packages", id, "material")))
-	// A later admission reads back the prior adopted package through
+	// A later admission reads back the prior published material through
 	// VerifyAdopted before replacing its index entry with the new exact proof.
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixture, "--index", corpus.index, "--scenarios", corpus.scenarios, "--archive", corpus.archive)
 	verifyRoot, _ = latestOfficialVerification(t, fixture)
 	admission = readJSON(t, filepath.Join(fixture, "runtime", "official", filepath.Base(verifyRoot), "admission-summary.json"))
 	require.Equal(t, "admitted", admission["status"])
 	attempt = str(admission["materials"])
-	require.Equal(t, before, officialInventory(t, filepath.Join(attempt, "material")))
+	archived = filepath.Join(corpus.archive, filepath.Base(attempt))
+	require.Equal(t, before, officialInventory(t, attempt))
 	indexBefore := readFile(t, corpus.index)
 	for _, status := range []string{"failed", "untriggered", "no-trigger"} {
 		failedDriver := strings.Replace(driver, "'status':'passed','branchStatus':'passed'", "'status':'"+status+"','branchStatus':'"+status+"'", 1)
@@ -108,13 +111,14 @@ out = pathlib.Path(runtime['output'])
 		require.Equal(t, before, officialInventory(t, core))
 	}
 	for _, ref := range []string{"report.json", filepath.Join("verify", filepath.Base(verifyRoot), "replay-report.json")} {
-		path := filepath.Join(attempt, ref)
-		if ref == "report.json" {
-			path = filepath.Join(attempt, "material", ref)
+		source := attempt
+		if ref != "report.json" {
+			source = archived
 		}
+		path := filepath.Join(source, ref)
 		original := readFile(t, path)
 		require.NoError(t, os.WriteFile(path, []byte("{}\n"), 0o600))
-		rejected := runTool(t, env, t.TempDir(), "", "prepare", "--recording", attempt, "--fixture-dir", filepath.Join(t.TempDir(), "tampered"))
+		rejected := runTool(t, env, t.TempDir(), "", "prepare", "--recording", source, "--fixture-dir", filepath.Join(t.TempDir(), "tampered"))
 		require.Equal(t, 1, rejected.code)
 		require.NoError(t, os.WriteFile(path, original, 0o600))
 	}
