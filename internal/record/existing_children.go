@@ -70,6 +70,9 @@ func snapshotChildSetup(run lifecycle.RecordContext) error {
 		"rawSHA256": rawHash, "transportSHA256": transportHash,
 		"completedAt": time.Now().UTC().Format(time.RFC3339Nano),
 	}
+	if err := os.MkdirAll(filepath.Join(run.ArtifactRoot(), "existing-children"), 0o700); err != nil {
+		return err
+	}
 	if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "existing-children", "setup.json"), setup); err != nil {
 		return err
 	}
