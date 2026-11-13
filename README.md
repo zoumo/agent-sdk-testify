@@ -205,6 +205,16 @@ amd64/arm64 独立归档、官方 driver wheel、manifest.json 和 SHA256SUMS。
 先显式准备 Go module 与 Python 构建依赖；脚本不会下载依赖、推送或发布。
 发布必须从带精确 Git tag 的提交构建；未打 tag 时构建仍显示 `devel`，但不允许生成 release。
 版本、工具源码 revision、内置材料 revision/哈希和逐产物校验和分别记录。
+内置快照不记录工具版本；工具发版不需要修改或重新生成材料。
+在已通过验证的 main 提交上创建并推送版本 tag：
+
+```sh
+git tag -a v0.2.0 -m 'v0.2.0'
+git push origin v0.2.0
+```
+
+`v*.*.*` tag 触发 GitHub Actions 的 Release 工作流，离线门禁通过后构建并发布
+上述归档、wheel、manifest.json 和 SHA256SUMS；带预发布后缀的 tag 创建 prerelease。
 运行 `make check` 执行离线完整门禁；CI 分开准备依赖后执行同一入口。
 
 消费者按 [mock 使用指南](docs/using-mock.md) prepare、在 fixture 中

@@ -34,7 +34,7 @@ check_environment() {
 
 quality_checks() {
   go mod verify
-  go run -tags builtin_generate -ldflags="$ldflags" ./cmd/agent-sdk-testify --check
+  go run -tags builtin_generate ./cmd/agent-sdk-testify --check
   go vet ./...
   go list -deps -test ./... > "$artifact_dir/dependencies.txt"
   "$python" -c "from pathlib import Path; assert 'github.com/zoumo/agent-sdk-go' not in Path('$artifact_dir/dependencies.txt').read_text()"

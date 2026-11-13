@@ -47,7 +47,7 @@ test-race:
 
 build:
 	@mkdir -p "$(dir $(BINARY))"
-	$(GO) run -tags builtin_generate -ldflags=$(GO_LDFLAGS) ./cmd/agent-sdk-testify --check
+	$(GO) run -tags builtin_generate ./cmd/agent-sdk-testify --check
 	$(GO) build -trimpath -ldflags=$(GO_LDFLAGS) -o "$(BINARY)" ./cmd/agent-sdk-testify
 
 release:

@@ -7,9 +7,9 @@ def run(*args, env=None):
 def release_version(allow_untagged):
     result=subprocess.run(['git','describe','--tags','--exact-match','HEAD'], cwd=ROOT, capture_output=True, text=True)
     if result.returncode == 0:
-        return result.stdout.strip(), True
+        return result.stdout.strip()
     if allow_untagged:
-        return 'devel', False
+        return 'devel'
     raise SystemExit('release requires an exact Git tag: '+result.stderr.strip())
 def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
@@ -19,15 +19,13 @@ def main():
     parser.add_argument('--allow-untagged',action='store_true')
     args=parser.parse_args()
     output=args.output.resolve(); output.mkdir(parents=True,exist_ok=False)
-    version,tagged=release_version(args.allow_untagged)
+    version=release_version(args.allow_untagged)
     bundle=json.loads((ROOT/'data/builtin/manifest.json').read_text())
-    if tagged and bundle['toolVersion'] != version:
-        raise SystemExit(f"builtin toolVersion {bundle['toolVersion']} does not match exact tag {version}")
     revision=run('git','rev-parse','HEAD')
     epoch=run('git','show','-s','--format=%ct','HEAD')
     environment=dict(os.environ,CGO_ENABLED='0',GOTOOLCHAIN='local',GOPROXY='off',GOSUMDB='off',SOURCE_DATE_EPOCH=epoch,AGENT_SDK_TESTIFY_VERSION=version)
     ldflags='-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion='+version
-    run('go','run','-tags','builtin_generate','-ldflags',ldflags,'./cmd/agent-sdk-testify','--check')
+    run('go','run','-tags','builtin_generate','./cmd/agent-sdk-testify','--check')
     files=[]
     for target in args.targets:
         system,arch=target.split('/')
