@@ -56,7 +56,7 @@ func TestPrepareClaudeStartupHistoryUsesPublishedRoute(t *testing.T) {
 				data, err := os.ReadFile(name)
 				require.NoError(t, err)
 				require.NotContains(t, string(data), staging)
-				for _, line := range bytes.Split(data, []byte{'\n'}) {
+				for line := range bytes.SplitSeq(data, []byte{'\n'}) {
 					if len(bytes.TrimSpace(line)) == 0 {
 						continue
 					}
