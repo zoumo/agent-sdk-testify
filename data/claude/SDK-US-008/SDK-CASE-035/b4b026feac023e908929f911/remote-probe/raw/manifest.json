@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]",
+      "--forward-subagent-text",
+      "--resume",
+      "41a06954-b41f-4d27-92b5-77e3a16887ef"
+    ],
+    "cwd": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "files": {
+    "raw.jsonl": "e949a2f76fad769a467f2b2404376d162fbf0f3e448a0f2fc46db65e81908087",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "c9080e6378a91f296db2728c32efdce3f019a8651879d5423ed1774178e71ecb"
+  }
+}

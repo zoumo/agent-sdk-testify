@@ -295,6 +295,7 @@ func TestPlanSeedHistoryConformance(t *testing.T) {
 	require.NotEmpty(t, seedFiles)
 
 	runPreparedMock(t, env, fixtureDir, "", inputs["main"])
+	runPreparedMock(t, env, fixtureDir, "probe", inputs["probe"])
 	execution := latestExecution(t, fixtureDir, "mock")
 	historyFiles := obj(execution["historyFiles"])
 	for name, value := range seedFiles {
