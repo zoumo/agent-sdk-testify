@@ -19,7 +19,6 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 type GenerateOptions struct {
@@ -49,22 +48,12 @@ func Generate(o GenerateOptions) error {
 	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(o.Revision) {
 		return errors.New("full source --revision required")
 	}
-	toolVersion := version.String()
-	if o.Check && !version.ExactModuleVersion(toolVersion) {
-		toolVersion = previous.ToolVersion
-	}
-	if !version.ExactModuleVersion(toolVersion) {
-		return fmt.Errorf("builtin generation requires an exact Git tag, got %q", toolVersion)
-	}
-	if o.Check && toolVersion != previous.ToolVersion {
-		return fmt.Errorf("builtin drift: toolVersion is %s, want %s", toolVersion, previous.ToolVersion)
-	}
 	c := corpus.Corpus{Index: filepath.Join(o.Root, "data", "index.json"), Scenarios: filepath.Join(o.Root, "data", "scenarios")}
 	index, err := c.LoadIndex()
 	if err != nil {
 		return err
 	}
-	m := Manifest{SchemaVersion: 1, ToolVersion: toolVersion, SourceRevision: o.Revision, Scope: "local technical candidates; public release not authorized", Catalog: map[string]string{}, Coverage: []tool.Object{}, Materials: []Material{}}
+	m := Manifest{SchemaVersion: 1, SourceRevision: o.Revision, Scope: "local technical candidates; public release not authorized", Catalog: map[string]string{}, Coverage: []tool.Object{}, Materials: []Material{}}
 	m.IndexSHA256, err = tool.FileDigest(c.Index)
 	if err != nil {
 		return err

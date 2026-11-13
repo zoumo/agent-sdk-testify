@@ -18,12 +18,10 @@ import (
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
-	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 type Manifest struct {
 	SchemaVersion  int               `json:"schemaVersion"`
-	ToolVersion    string            `json:"toolVersion"`
 	SourceRevision string            `json:"sourceRevision"`
 	Scope          string            `json:"scope"`
 	IndexSHA256    string            `json:"indexSHA256"`
@@ -60,7 +58,7 @@ func Read() (*Manifest, string, error) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		return nil, "", err
 	}
-	if m.SchemaVersion != 1 || !version.ExactModuleVersion(m.ToolVersion) || len(m.Materials) == 0 {
+	if m.SchemaVersion != 1 || len(m.Materials) == 0 {
 		return nil, "", errors.New("invalid or empty builtin manifest; regenerate")
 	}
 	catalog := data.Scenarios()
