@@ -1,7 +1,6 @@
 package lifecycle
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -55,16 +54,17 @@ func TestPrepareClaudeStartupHistoryUsesPublishedRoute(t *testing.T) {
 				data, err := os.ReadFile(name)
 				require.NoError(t, err)
 				require.NotContains(t, string(data), staging)
-				scanner := bufio.NewScanner(bytes.NewReader(data))
-				for scanner.Scan() {
+				for _, line := range bytes.Split(data, []byte{'\n'}) {
+					if len(bytes.TrimSpace(line)) == 0 {
+						continue
+					}
 					var row tool.Object
-					require.NoError(t, json.Unmarshal(scanner.Bytes(), &row))
+					require.NoError(t, json.Unmarshal(line, &row))
 					if cwd := tool.Str(row["cwd"]); cwd != "" {
 						require.Equal(t, route.Workspace, cwd)
 						cwdRows++
 					}
 				}
-				require.NoError(t, scanner.Err())
 			}
 			require.Positive(t, cwdRows)
 			var snapshot struct {
