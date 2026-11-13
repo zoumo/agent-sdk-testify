@@ -43,7 +43,9 @@ func TestPrepareClaudeStartupHistoryUsesPublishedRoute(t *testing.T) {
 			}
 			route, err := ResolveRoute(fixture, "mock")
 			require.NoError(t, err)
-			key := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(route.Workspace, "-")
+			workspace, err := filepath.EvalSymlinks(route.Workspace)
+			require.NoError(t, err)
+			key := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(workspace, "-")
 			project := filepath.Join(route.Env["CLAUDE_CONFIG_DIR"], "projects", key)
 			require.DirExists(t, project, "the published route must discover history before claiming an execution")
 			files, err := filepath.Glob(filepath.Join(project, "*.jsonl"))
@@ -61,7 +63,7 @@ func TestPrepareClaudeStartupHistoryUsesPublishedRoute(t *testing.T) {
 					var row tool.Object
 					require.NoError(t, json.Unmarshal(line, &row))
 					if cwd := tool.Str(row["cwd"]); cwd != "" {
-						require.Equal(t, route.Workspace, cwd)
+						require.Equal(t, workspace, cwd)
 						cwdRows++
 					}
 				}
