@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "toolVersion": "v0.1.3-035-self-seed.1",
-  "sourceRevision": "a8232b0c29d79dfe2b3e6a4fcc0e36ea19ee4fec",
+  "toolVersion": "v0.1.3-035-self-seed.2",
+  "sourceRevision": "e82f752448eab225f464df54be29cbd4f93fbc2f",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "5447aa30fa7ea7446f5ce43ea4742ec5e767e580d8096ee29320303238937167",
+  "indexSHA256": "e09208532c5808f4e022777c8c81139fa3bce9fac3780e6b9280906dbe6f2bbd",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -20,7 +20,7 @@
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "879c098d5069ce0a1b7a732026d1727377c2cab8e76f53d7e6da7ad21e64c0a8"
   },
-  "archiveSHA256": "48a3e742d1f791a17df09c4339c3ad3ea71ded4c0847f41df1fdbf57b29c464f",
+  "archiveSHA256": "f1b94c443374631bdd19af47a259f1af470e16b3b67cbe8341f4d24306c47b13",
   "coverage": [
     {
       "adoption": "admitted",
@@ -668,11 +668,11 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "01f78e74fee97a771418de971985ca0a4fef1d039f926c618269a3e9d6435051",
+      "adoptionSHA256": "5b2768e32fb2987858734f595c0735d522d21da8165ea020542d5aae56c72179",
       "available": true,
       "caseId": "SDK-CASE-035",
-      "materialSHA256": "a6a8e9ef72269d3d7d4caa36b36b150842ed7f6735178d3c376fbd4d415a8b2e",
-      "materials": "claude/SDK-US-008/SDK-CASE-035/8e60944e3531638b79982061",
+      "materialSHA256": "afd5d8c9053e5426c0ec71c608d469316f9f66b4c3f6340a36e5ff400a13fa14",
+      "materials": "claude/SDK-US-008/SDK-CASE-035/b4b026feac023e908929f911",
       "officialSDK": {
         "package": "claude-agent-sdk",
         "version": "0.2.174"
@@ -680,7 +680,7 @@
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:26:15.612014Z"
+        "qualifiedAt": "2026-11-13T04:30:02.679789Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -1392,11 +1392,11 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "6bbd44708d980413e4b2cf7d3aa2705f40822c8f3e82a22bad545274cad85d91",
+      "adoptionSHA256": "0b717c97e4bdd134b318aa3f1fc37ec85e011e92220035a27a0453cfacf020b5",
       "available": true,
       "caseId": "SDK-CASE-035",
-      "materialSHA256": "30189daad76635d184955bb5cf343b919d12e7d0b2a1bba4828a632039f82f36",
-      "materials": "codex/SDK-US-008/SDK-CASE-035/3b960e445e51783bdd3325f4",
+      "materialSHA256": "ddb40f35a5823b61077c261201f142b15095fcc459a1eef0f6174de2de937f8e",
+      "materials": "codex/SDK-US-008/SDK-CASE-035/7b9d1063354588ee50cefff7",
       "officialSDK": {
         "package": "openai-codex",
         "version": "0.0.0.dev0"
@@ -1404,7 +1404,7 @@
       "provider": "codex",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:26:12.645Z"
+        "qualifiedAt": "2026-11-13T04:29:59.755087Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -4953,71 +4953,31 @@
       "provider": "claude",
       "caseId": "SDK-CASE-035",
       "storyId": "SDK-US-008",
-      "attempt": "8e60944e3531638b79982061",
-      "path": "claude/SDK-US-008/SDK-CASE-035/8e60944e3531638b79982061",
+      "attempt": "b4b026feac023e908929f911",
+      "path": "claude/SDK-US-008/SDK-CASE-035/b4b026feac023e908929f911",
       "files": {
-        "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl": "dab88c7cf82c60009f4e1a1f9bff4e680bfe8716db6c67897c8efa63f5ffe570",
-        "history/seed/source/adoption.json": "9484001e1534dd9d385afb22d9eecb5841d0cc51320bc1dee2f21285eabfeb15",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/execution.json": "86e0e3bde1f6bbc8a471c59bafd419df8436d0b5c1167de92ffbc4a93886c463",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/isolation.json": "5914f6e7e23e278f852c2bbeb5b249ff9a541f7debee3b4648ef0e858099e75b",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/materialization.json": "f276c7c901cf95db6732dd312b624fa157b2dc27f7bd86f585111ea62564d44e",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/prepared-plan.json": "37bed2445b448d22f7a43ad638dfda772ea087bf4368058c3133d67f6461a696",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/receipts/main.native-process.json": "33e56d38238c963e72e48f02a7bbe474e4ac96d2fcf03f4e083bcc18f975d461",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/receipts/main.origin.json": "5fda7fbd98000275c3a1496e7262d9d5966abfc749cf0c6ea868c0bd226d718d",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/receipts/main.probe.native-process.json": "08198704dce88776f98c320f079e4ef67f4d92527684dd21bc3f9a34fcf507e3",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/receipts/main.result.json": "c4dfe38fce6f345bbbd77ac33b704efbdc90666e5e62068fa919c577ff97befc",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/receipts/main.transport.json": "19f2718e367489b46570f0a0038ebf99f66b19bd40e23ce4bf209c88f297c8d8",
-        "history/seed/source/executions/2ac4d5f83def74f9f2e4c5892557d93d/result.json": "8063dee2f1430385a892637f31e7e5df2320a93cd54eba35693a6779e7d6c15f",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/execution.json": "0ee013bc38fa2ad9ef03d3d4e14c7087ac64bbe7ae3806cf24dcbe0ba6f30654",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-af3942ae801c6ea8e6d11e14588d2c1b-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl": "c02f87d505b72d761b3521e457cfcfcdfb2f88c52c480c749045861690a0766c",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-af3942ae801c6ea8e6d11e14588d2c1b-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl": "94557608c5089c35c8f32c29b8c64b5f42a39e0494340d1c8ae92ad87ee10ce7",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/history/derived/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-af3942ae801c6ea8e6d11e14588d2c1b-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json": "835c89e699ff9efaac28f5ee1f20fda8239f3a5b9b00dad5fb382575cc58fb63",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/isolation.json": "17c1f2db49dfd4a056ee40a229e10502390da088d3e4a701c566d2ac268af495",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/materialization.json": "a002a130ce00a0116492c4769a52fba1b3b5403272d14c2d836e02a38f3ebd3f",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/prepared-plan.json": "6172f25ad424d4e37d3e31493a61da132715b3861ac2d7b3b7553d4ae2dbc18b",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/receipts/main.json": "a53cc1f6e8642cd07d06f55159fec1dd6004026d54297271d45c266be5d2b425",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/receipts/main.process.json": "4084d1bbdc4592036aa43ab6e50d634e63e62cb5673510841e33ba9af0c52851",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/receipts/main.result.json": "bdf232cfd6c1dce6a5abd20468ddd175e01354a411ebdda59362f351c23cab66",
-        "history/seed/source/executions/af3942ae801c6ea8e6d11e14588d2c1b/result.json": "05f707c226e300f094fa2a327068ccd4801832303926affc1adb84d8b2232c74",
-        "history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl": "59403e1606c37753ad1bbe4775d09296925807869e132d154be72e887a05865c",
-        "history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl": "5c0edbd4b1b895311c3317dbb0b9051d8585c0f3821ecbb21c6a706f049d2dd6",
-        "history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json": "835c89e699ff9efaac28f5ee1f20fda8239f3a5b9b00dad5fb382575cc58fb63",
-        "history/seed/source/material/manifest.json": "08e67d094392f5a02dd22908e5f73693348aac8fc05394ab73b7c95fcdf042dc",
-        "history/seed/source/material/material.json": "dd07827aa2d466292d4d807c417daf53fddbc07142ca1cfa3e1e60514d8216b4",
-        "history/seed/source/material/official-origin.json": "a84dfd1cfce657cc81d266bee05ad24ddb6b7349d44be0b8a58d1eb69e4318e8",
-        "history/seed/source/material/origin/main.json": "5fda7fbd98000275c3a1496e7262d9d5966abfc749cf0c6ea868c0bd226d718d",
-        "history/seed/source/material/plan.json": "d457269e88443091273fbede344b55f5e7d69d2c6bc0c70221ba409e43227fb5",
-        "history/seed/source/material/raw/manifest.json": "075fbf30ee70c2ac850403b5608e6a673bada4d6cdd8afa23001db09a13e854f",
-        "history/seed/source/material/raw/raw.jsonl": "77104bef7c3c06d7e349c618b8b08af20a385ad1bc631a37ccf425a9dc0d7589",
-        "history/seed/source/material/raw/stderr.raw": "87adb7e2a99d597ca97ba3b110ff5ed98caef5cf68faef79e6d51e10131c8104",
-        "history/seed/source/material/raw/transport.json": "19f2718e367489b46570f0a0038ebf99f66b19bd40e23ce4bf209c88f297c8d8",
-        "history/seed/source/material/report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
-        "history/seed/source/material/source-plan.json": "daceda7d6d49f8851cc2550f486792d4d721711bb17dd290df2165f414da7088",
-        "history/seed/source/record/1b9072d33973d707bf9ce0e5f405e772/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
-        "history/seed/source/record/1b9072d33973d707bf9ce0e5f405e772/peers/main.json": "f864b89f96144cda4c54aa151506ee9ce121e14be80b3227604a22974df3a979",
-        "history/seed/source/record/1b9072d33973d707bf9ce0e5f405e772/report.json": "514c29164446ef8606ae8332f8323a2ff920ca83de9b678b4fcc43f7ddfefe95",
-        "history/seed/source/record/1b9072d33973d707bf9ce0e5f405e772/result.json": "0b1e4402d13f7b32f4a3deb0698b39569f69d5b8669b56381e63f906ff67efcd",
-        "history/seed/source/record/1b9072d33973d707bf9ce0e5f405e772/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/record/1b9072d33973d707bf9ce0e5f405e772/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/review.json": "2adbb8b675acd84d35a978fdf8379a3d74d377a47870de397c71e63ebec1c27a",
-        "history/seed/source/verify/e7c202211fb30e903f9d4ef88285448c/driver-result.json": "2903bef6fdd7a08db8e23a199dcb8cf84ba12f88e68ea063cff83fafee8e3dc5",
-        "history/seed/source/verify/e7c202211fb30e903f9d4ef88285448c/peers/main.json": "fd5c5af93346eb71ecf936af18b27aec7be0bfeb001eb9333aa342d68c9f5d8c",
-        "history/seed/source/verify/e7c202211fb30e903f9d4ef88285448c/replay-report.json": "eabb59311e19f4eb2ca9c17205312d18b47ca9934b8da7c79b2a24145ae1102e",
-        "history/seed/source/verify/e7c202211fb30e903f9d4ef88285448c/result.json": "439357569b9c19d1e65bcaef9b6a83be83a9ef23f6de527e2051b6d98624d654",
-        "history/seed/source/verify/e7c202211fb30e903f9d4ef88285448c/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/verify/e7c202211fb30e903f9d4ef88285448c/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/verify/e7c202211fb30e903f9d4ef88285448c/verification.json": "f491eddfff7467400171f62501149c29584a7965478eff13373cf990a21165dd",
-        "manifest.json": "05646b4f5706b8db0edd8f2583f6949739fbbc6c7701e000ec50dbb3a60e2647",
-        "material.json": "a6a8e9ef72269d3d7d4caa36b36b150842ed7f6735178d3c376fbd4d415a8b2e",
-        "official-origin.json": "9ff0fb6d558d0b8f005dca38f905a7678bbce707d33c1c96a40ebca261b51270",
-        "origin/main.json": "83784b85389f2d1f4b9e1373d021dd9dcd8153d50a5fe505c9acdc35cbeec9e1",
-        "plan.json": "22e1b2f6b6018e0be8b6e285b278ff1c58986d0eb51799372d53b0be9ec725ec",
-        "raw/manifest.json": "776eda79731a06009739c27ee6c7bdfc6f819b9c9c914a47d9168b60c50658f3",
-        "raw/raw.jsonl": "8e93bcd448eaafd65f6ea863f0bde82a1b85440cc27d820301efff1d36cb15bf",
-        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "raw/transport.json": "067bf75e3b07a851ee54900ca265f7739d654f31ed5c2f3c054c32de452c39ac",
+        "existing-children/observation.json": "cd8c045580ad5ad04dc12a1f73caad92b5d47733ac97d7086345a0f92dbd795b",
+        "existing-children/setup.json": "dca24e38b815493d5511717a1c78629a68e6892730e4160c3c64dc8cbf70597d",
+        "history/runtime/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl": "9d742d4879798d0b801f62d54fa5fa873d786284cc77060469f59dad71389f4d",
+        "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl": "c3688ffef35788b7a14e133ca9ba493e80b32847018bc893e9e0add7eed052ce",
+        "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.jsonl": "bb2e77b0ef6143538cdea4c9e1a3224c75ae51a62c69a4c1bf0629f706146c4c",
+        "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.meta.json": "0320b9734a23599eed177c86f1a8f6a9606ce231306fdd0c0b3383b3c5680470",
+        "manifest.json": "ad6ccedaf5e4fbe076a48b4eb531cb592c798a4a5dd59f5c595523404cb22f95",
+        "material.json": "afd5d8c9053e5426c0ec71c608d469316f9f66b4c3f6340a36e5ff400a13fa14",
+        "official-origin.json": "e3009e8f988582b5dcc823e0d5031baf6a9d60d0f9540e0219f1a60cee7bee53",
+        "origin/main.json": "c5d8e62b11ea1897ed978623c5e9fb43afc0554cc2b912a9fc543d009995e124",
+        "origin/probe.json": "8ef1133837aa2e93b427053e91f9d89115349c27621db221bfb208c950a5725f",
+        "plan.json": "8d82c9fe9b81530d0fbb6bdc930f4a50cbc1459550d671b83e6756896e546433",
+        "raw/manifest.json": "4403c3e37bee2005d52ec064c72ddb5062a34af99a87fac84ba51c0c5732aafc",
+        "raw/raw.jsonl": "eb42ba2b36d0ccb3ec0cd37d4bc19ff08b656a471889fa39d34ed2a37d1231d1",
+        "raw/stderr.raw": "87adb7e2a99d597ca97ba3b110ff5ed98caef5cf68faef79e6d51e10131c8104",
+        "raw/transport.json": "93380adaf5d760cefce5e9e13e675316cc27630f503f7531f5ac5bbba40fce8b",
+        "remote-probe/raw/manifest.json": "64b92296542637d30571f73198b477a07d842a12d381db075c52a25875e97742",
+        "remote-probe/raw/raw.jsonl": "e949a2f76fad769a467f2b2404376d162fbf0f3e448a0f2fc46db65e81908087",
+        "remote-probe/raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "remote-probe/raw/transport.json": "c9080e6378a91f296db2728c32efdce3f019a8651879d5423ed1774178e71ecb",
         "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
-        "source-plan.json": "7bbd8e60d6cd28ae48a1100cfe35331e510110a5e1aa38307f88f237d9d2ec37"
+        "source-plan.json": "c884e89a7056e8b100775d8beb8277d844f174d43d7e2adc8321a29a0308ddfe"
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
@@ -5029,7 +4989,7 @@
       },
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:26:15.612014Z"
+        "qualifiedAt": "2026-11-13T04:30:02.679789Z"
       },
       "plan": {
         "args": [
@@ -5043,15 +5003,13 @@
           "stdio",
           "--print",
           "--system-prompt",
-          "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-035/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+          "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/routes/record/workspace\". Use paths relative to this directory.",
           "--setting-sources",
           "user",
           "--disable-slash-commands",
           "--strict-mcp-config",
           "--model",
           "auto/deepseek-v4.1-flash-1017[1m]",
-          "--resume",
-          "9e180fd5-837a-4328-b30b-0795ad5bd07c",
           "--forward-subagent-text"
         ],
         "case": {
@@ -5067,59 +5025,79 @@
         "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
         "cliVersion": "2.1.293 (Claude Code)",
         "driverProfile": "existing-children",
+        "existingChildrenSetup": {
+          "agentIds": [
+            "a9740d750f0b02d37"
+          ],
+          "completedAt": "2026-11-13T04:28:25.037002Z",
+          "historyBindings": [
+            {
+              "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl",
+              "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+              "role": "seed",
+              "sessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+              "sha256": "c3688ffef35788b7a14e133ca9ba493e80b32847018bc893e9e0add7eed052ce",
+              "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl"
+            },
+            {
+              "childSessionId": "a9740d750f0b02d37",
+              "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.jsonl",
+              "parentSessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+              "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+              "role": "seed",
+              "sessionId": "a9740d750f0b02d37",
+              "sha256": "bb2e77b0ef6143538cdea4c9e1a3224c75ae51a62c69a4c1bf0629f706146c4c",
+              "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.jsonl"
+            },
+            {
+              "childSessionId": "a9740d750f0b02d37",
+              "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.meta.json",
+              "parentSessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+              "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+              "role": "seed",
+              "sessionId": "a9740d750f0b02d37",
+              "sha256": "0320b9734a23599eed177c86f1a8f6a9606ce231306fdd0c0b3383b3c5680470",
+              "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.meta.json"
+            }
+          ],
+          "provider": "claude",
+          "rawSHA256": "eb42ba2b36d0ccb3ec0cd37d4bc19ff08b656a471889fa39d34ed2a37d1231d1",
+          "schemaVersion": 1,
+          "sessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+          "transportSHA256": "93380adaf5d760cefce5e9e13e675316cc27630f503f7531f5ac5bbba40fce8b"
+        },
         "historyBindings": [
           {
-            "role": "seed",
-            "sessionId": "9e180fd5-837a-4328-b30b-0795ad5bd07c",
-            "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/executions/2ac4d5f83def74f9f2e4c5892557d93d/workspace",
-            "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl",
-            "source": "history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl",
-            "sha256": "59403e1606c37753ad1bbe4775d09296925807869e132d154be72e887a05865c"
-          },
-          {
-            "role": "seed",
-            "sessionId": "a24765644f2bde547",
-            "parentSessionId": "9e180fd5-837a-4328-b30b-0795ad5bd07c",
-            "childSessionId": "a24765644f2bde547",
-            "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/executions/2ac4d5f83def74f9f2e4c5892557d93d/workspace",
-            "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl",
-            "source": "history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.jsonl",
-            "sha256": "5c0edbd4b1b895311c3317dbb0b9051d8585c0f3821ecbb21c6a706f049d2dd6"
-          },
-          {
-            "role": "seed",
-            "sessionId": "a24765644f2bde547",
-            "parentSessionId": "9e180fd5-837a-4328-b30b-0795ad5bd07c",
-            "childSessionId": "a24765644f2bde547",
-            "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/executions/2ac4d5f83def74f9f2e4c5892557d93d/workspace",
-            "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json",
-            "source": "history/seed/source/material/history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-034-fixture-runtime-executions-2ac4d5f83def74f9f2e4c5892557d93d-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c/subagents/agent-a24765644f2bde547.meta.json",
-            "sha256": "835c89e699ff9efaac28f5ee1f20fda8239f3a5b9b00dad5fb382575cc58fb63"
-          },
-          {
             "role": "runtime",
-            "sessionId": "9e180fd5-837a-4328-b30b-0795ad5bd07c",
-            "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-035/fixture/runtime/executions/dadd6351d83ec5b539a2f1c3cd111184/workspace",
-            "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl",
-            "source": "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r3-claude-SDK-CASE-035-fixture-runtime-executions-dadd6351d83ec5b539a2f1c3cd111184-workspace/9e180fd5-837a-4328-b30b-0795ad5bd07c.jsonl",
-            "sha256": "dab88c7cf82c60009f4e1a1f9bff4e680bfe8716db6c67897c8efa63f5ffe570"
+            "sessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+            "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+            "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl",
+            "source": "history/runtime/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef.jsonl",
+            "sha256": "9d742d4879798d0b801f62d54fa5fa873d786284cc77060469f59dad71389f4d"
+          },
+          {
+            "role": "seed",
+            "sessionId": "a9740d750f0b02d37",
+            "parentSessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+            "childSessionId": "a9740d750f0b02d37",
+            "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+            "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.jsonl",
+            "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.jsonl",
+            "sha256": "bb2e77b0ef6143538cdea4c9e1a3224c75ae51a62c69a4c1bf0629f706146c4c"
+          },
+          {
+            "role": "seed",
+            "sessionId": "a9740d750f0b02d37",
+            "parentSessionId": "41a06954-b41f-4d27-92b5-77e3a16887ef",
+            "childSessionId": "a9740d750f0b02d37",
+            "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/executions/70a7b178dc9d546d99b874a475cc7c45/workspace",
+            "nativeTarget": "config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.meta.json",
+            "source": "history/seed/config/projects/-Users-jim--local-share-agent-sdk-testify-035-self-seed-20261113-claude-01-runtime-executions-70a7b178dc9d546d99b874a475cc7c45-workspace/41a06954-b41f-4d27-92b5-77e3a16887ef/subagents/agent-a9740d750f0b02d37.meta.json",
+            "sha256": "0320b9734a23599eed177c86f1a8f6a9606ce231306fdd0c0b3383b3c5680470"
           }
         ],
-        "historyProject": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/routes/record/workspace",
-        "historySeed": {
-          "agentIds": [
-            "a24765644f2bde547"
-          ],
-          "materialPlan": {
-            "path": "history/seed/source/material/plan.json",
-            "sha256": "d457269e88443091273fbede344b55f5e7d69d2c6bc0c70221ba409e43227fb5"
-          },
-          "provider": "claude",
-          "sessionId": "9e180fd5-837a-4328-b30b-0795ad5bd07c",
-          "sourceProject": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-034/fixture/runtime/routes/record/workspace"
-        },
         "model": "auto/deepseek-v4.1-flash-1017[1m]",
-        "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/claude/SDK-CASE-035/fixture/runtime/routes/record/workspace",
+        "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/claude-01/runtime/routes/record/workspace",
         "prompts": [],
         "provider": "claude",
         "recordingIsolation": "personal-skills-v1",
@@ -5139,14 +5117,17 @@
           "driverProfile": "existing-children",
           "files": {},
           "mode": "live-selected-path",
-          "parameters": {},
+          "parameters": {
+            "selfSeed": true,
+            "setupPrompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_EXISTING_CHILD and no tool calls. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+          },
           "prompts": [],
           "provider": "claude",
           "reason": "",
           "requiredRequests": [],
           "storyId": "SDK-US-008"
         },
-        "sourcePlanSHA256": "7bbd8e60d6cd28ae48a1100cfe35331e510110a5e1aa38307f88f237d9d2ec37",
+        "sourcePlanSHA256": "c884e89a7056e8b100775d8beb8277d844f174d43d7e2adc8321a29a0308ddfe",
         "stdinEOFAction": "close",
         "story": "SDK-US-008",
         "storyId": "SDK-US-008"
@@ -8784,67 +8765,30 @@
       "provider": "codex",
       "caseId": "SDK-CASE-035",
       "storyId": "SDK-US-008",
-      "attempt": "3b960e445e51783bdd3325f4",
-      "path": "codex/SDK-US-008/SDK-CASE-035/3b960e445e51783bdd3325f4",
+      "attempt": "7b9d1063354588ee50cefff7",
+      "path": "codex/SDK-US-008/SDK-CASE-035/7b9d1063354588ee50cefff7",
       "files": {
-        "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-24-56-01a1d16f-540c-7f70-8cef-b56a7b6cc4d1.jsonl": "3c3e40c3d96b552622109f7752ac020fa26930030bab83183bcaba8db493b077",
-        "history/seed/source/adoption.json": "81d6a430c5beb18e09d280c8f7c506219b79c0b717a09765355c3c5c2d180fdd",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/execution.json": "fd55cb31206fd5290a2778b646a69e3b9dd4d9411910a294cb1db86788c61687",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/isolation.json": "c7c7e85a6213d69f1977f5ba7fc89aec9a3d1ce3de24c42756eff768fb17f3c8",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/materialization.json": "f276c7c901cf95db6732dd312b624fa157b2dc27f7bd86f585111ea62564d44e",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/prepared-plan.json": "93acf92a1ec5a3938d43e9fae40372a84493442315ff5d50fd844e440ab3f186",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/receipts/main.native-process.json": "34fed84208011c94c2191a245d2f47a26a9dea6ccb977b59fc58d934e02338aa",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/receipts/main.origin.json": "05d528868126edcd17f3c39211e8a16cf2ca58093709b1555a01dbf86e0b9b33",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/receipts/main.probe.native-process.json": "b0e4da62861f2bc0e7b5561567cd29e54fe2632792061dfcc6a52b87ee3c682f",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/receipts/main.result.json": "f7ce1c6da68ae6ade67f31461b95682a985cf90efb737ea5ab07480b52496d9a",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/receipts/main.transport.json": "2a938bd4cdd35602754f975c1653c11c5092aebdc76a312afb16525e4068171a",
-        "history/seed/source/executions/03e6f1fdb9ced501480d98564aebcb63/result.json": "5a0e63907df7b3d940cc2ff5c14b67a913cf00b757976a63586492d615d38bda",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/execution.json": "fcd92619e4291530e52b4c7769dd7e4d5b3096c40b831ea62849b799e0dc8557",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/isolation.json": "0032ff33db79cde72a5d022136a95ffd11cb83534e6b905eb0829f88b2ea4ec5",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/materialization.json": "f276c7c901cf95db6732dd312b624fa157b2dc27f7bd86f585111ea62564d44e",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/prepared-plan.json": "6fae27750080f373eeb6d6e20dd94ea8d7467e7a6100d0ca9362b2b0eaf748e2",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/receipts/main.json": "dbdca944431bd2f3a4549fab69d3225ba19c9159f0790aa0084dcc417ace1829",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/receipts/main.process.json": "c66ee488693ee7a7f08cae13c9a7d76918a4199b8c7e06c0a52d07b5c6f9548e",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/receipts/main.result.json": "4eba163c5938dd58925a2b16fb7acc82bad907b5e87de33d69ae49b749700c23",
-        "history/seed/source/executions/2105c65bebe3a6f235910735e24ced54/result.json": "24d195f695e71373803611c38afb71587bc50f8f6188d4b2793efb3588e731d2",
-        "history/seed/source/material/history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-24-56-01a1d16f-540c-7f70-8cef-b56a7b6cc4d1.jsonl": "6f3565d51e6ee170f0e95fcca172d48b5e44e34e2d41bfb252df3d7fa2c920fb",
-        "history/seed/source/material/history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-25-03-01a1d16f-6edb-7ad1-9afc-9c9867c0c040.jsonl": "cc07681a94ceebdba3c9a007252571bcbe5f6b39582a6440ed28fb441b3b5c76",
-        "history/seed/source/material/manifest.json": "9a080b78dbba3022ce2f8d8cff0de9b577d3d4ace20b1c86f81c609729c51b89",
-        "history/seed/source/material/material.json": "556051315855a9a1408110f143562b48df78f626f7350710622231c4abefb5fd",
-        "history/seed/source/material/official-origin.json": "49ab3efe7f9f3915070fa391a77993b3be876b2fdab301149ef4a447c06f5bb3",
-        "history/seed/source/material/origin/main.json": "05d528868126edcd17f3c39211e8a16cf2ca58093709b1555a01dbf86e0b9b33",
-        "history/seed/source/material/plan.json": "c96b63797ccb08748ae0d8748efee7e28915dccd77382b3da2d14971e296486b",
-        "history/seed/source/material/raw/manifest.json": "eab7508d5e58de2f00d318c140957f889ace93df18a7dd47fbef908769fbf43c",
-        "history/seed/source/material/raw/raw.jsonl": "4d248f0446f0289335c991db6ae985d312dd9ccfef420d90ab2caa8aec820a0c",
-        "history/seed/source/material/raw/stderr.raw": "bc2ee20fbc17fde9ebcf7c696dbb98fcc56f41f85ae77a10ec1a93d6ccaa489a",
-        "history/seed/source/material/raw/transport.json": "2a938bd4cdd35602754f975c1653c11c5092aebdc76a312afb16525e4068171a",
-        "history/seed/source/material/report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
-        "history/seed/source/material/source-plan.json": "4951224e7a95bb859407d5dbc8cb5db3126219a7c94ae27b48639eaafdd66d08",
-        "history/seed/source/record/484946a15354740677f173cb617f004e/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
-        "history/seed/source/record/484946a15354740677f173cb617f004e/peers/main.json": "4cb997c524054e61d891d5f73fe253b6316a5e70e9c14261dc571d3518b25bc3",
-        "history/seed/source/record/484946a15354740677f173cb617f004e/report.json": "38ac831cb02b02868ef2f39b9d70ab3eb03bae383458f9272209218eeab75ee3",
-        "history/seed/source/record/484946a15354740677f173cb617f004e/result.json": "f83d48d136f2c63676725473884d1d3d9c5981f27685dd85ce8cf7ea4a40d202",
-        "history/seed/source/record/484946a15354740677f173cb617f004e/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/record/484946a15354740677f173cb617f004e/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/review.json": "e05b291d2592146d6842bc25ff92e87918d599aa3365fe02346a1bc5dcafeaa4",
-        "history/seed/source/verify/61464e0341a8c02188cd4159bd90e9a6/driver-result.json": "b13ec300d7494821c34439449bc9f27fc05f54aafb902c30bb9056556edfd67c",
-        "history/seed/source/verify/61464e0341a8c02188cd4159bd90e9a6/peers/main.json": "1c4ea20e45b4bc09a333ca1e4d092f07491e28b3fbe39355e82c886bca3342c2",
-        "history/seed/source/verify/61464e0341a8c02188cd4159bd90e9a6/replay-report.json": "51e9dc4b13a5d5b979297f6e17445cb73daf9d6143954521cadf31cc91c512c8",
-        "history/seed/source/verify/61464e0341a8c02188cd4159bd90e9a6/result.json": "749025d17f2cf8a0b7bb0be76c57f7461c7d04557654e839ad9f0ae83648a28c",
-        "history/seed/source/verify/61464e0341a8c02188cd4159bd90e9a6/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/verify/61464e0341a8c02188cd4159bd90e9a6/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "history/seed/source/verify/61464e0341a8c02188cd4159bd90e9a6/verification.json": "80628659e01c8810a655e2792628bc8dc83aab5eb37daabda9acb0fae9a96016",
-        "manifest.json": "34efa74ffc572e686fecd2a6997608d658a040ed42de04df69e8dc4e12f358f0",
-        "material.json": "30189daad76635d184955bb5cf343b919d12e7d0b2a1bba4828a632039f82f36",
-        "official-origin.json": "fe09f9b8622f860d116fba46d60647c24de18d6d99e8c6190b6ed20084923e3c",
-        "origin/main.json": "89f2840644449f16d7da0ab370559b68868a48094195e623be351b9980b468f7",
-        "plan.json": "3c33cd48b863e05728469ab7cd9b6f4bbe5dea5abc73b9e6b8983d0f01909214",
-        "raw/manifest.json": "af46dfacf8d69d6a2952d96c4f012b29f823b63a3b32d94e910a88e880c74957",
-        "raw/raw.jsonl": "9b0d4f6dbb3964fcfab73a16178d71ede760961fbab3bf2bb63e14280e0d2cef",
-        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "raw/transport.json": "136100c9b2f91c745d595a065a01dfe9260cc3bd6fa50257e70c77139ec12dc9",
+        "existing-children/observation.json": "01c3bf01abcdeb12f6c9e8acbb9f9c7c5b73918ee3f6c1bf779e9bcaa3842593",
+        "existing-children/setup.json": "d7b1b9ce84f414bcb23838e3ca6555f0252727f3addf9d0552e472b2b42fe07d",
+        "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl": "6770c00c08069d7c201a4769becd9c18e561652c3917a031adf56a504c2dd1d8",
+        "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl": "81a56a070d6c002d6b421e3c1ff684200ad6739fc7ce1ee6d2456923f88f8849",
+        "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl": "971fda679b58ed2a7f6f7be74ae8e3690ed3d0d48ff11e87719242d0b3152a91",
+        "manifest.json": "110e75a29ce88a6c97a24f5e97e067683ab57ef3432e984fd9c592e6f7f174c3",
+        "material.json": "ddb40f35a5823b61077c261201f142b15095fcc459a1eef0f6174de2de937f8e",
+        "official-origin.json": "c326808de9a296c5092700759a37476f8dfaba31bd364062a0f1b7578cad22cc",
+        "origin/main.json": "413b2e48d4bdaafd09514738a6fdef528cc2e3a37a7a96c4db5be59d6d19c796",
+        "origin/probe.json": "9536578eba2258dbcae8ca6059d41a3a2a296a84ea19a24111e5bac117af809e",
+        "plan.json": "a93b7b6ced29631e69c824e5789e06ff598314bab37f9dc836dc61a2c2f349f1",
+        "raw/manifest.json": "24ac556b303f84b825a1428505a5637f46aff406fb812cfe6b7d6b398eea60bb",
+        "raw/raw.jsonl": "ed050cf23099d2ed876103f82240b0fd7557978171bc6724c0ee44b9d7c3a5ce",
+        "raw/stderr.raw": "b547e38efe3baa73f8ebc47944fab801923f4414e033ff4dadf42a6307c2bbc3",
+        "raw/transport.json": "a6c687ee3599d7b470bdbd238e212151bbbdd02c032113f6d99ab16a7b9c9d05",
+        "remote-probe/raw/manifest.json": "49c1159c0a01bd17a0bb7d19760914174803ce9b621a7be052f56b489405c305",
+        "remote-probe/raw/raw.jsonl": "803345bb15c9453aca423a9d0d1986e70003ee234254520c2e5a06569d78cd51",
+        "remote-probe/raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "remote-probe/raw/transport.json": "40e0417b9e504f7e204e777d2edb4993aa0ffcfe3ce814f8b6319222f95c4dd7",
         "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
-        "source-plan.json": "61e196fe077196f6a7f7e98d4cf19adafbfee5dcdcbd97eb34579075018d1577"
+        "source-plan.json": "550100ceb77ba398ab3f93150cb81d92fba849d5eee7f0198e1f47d89f8fda70"
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
@@ -8856,7 +8800,7 @@
       },
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:26:12.645Z"
+        "qualifiedAt": "2026-11-13T04:29:59.755087Z"
       },
       "plan": {
         "args": [
@@ -8865,6 +8809,10 @@
           "stdio://",
           "-c",
           "features.default_mode_request_user_input=true",
+          "-c",
+          "agents.enabled=true",
+          "-c",
+          "features.multi_agent=true",
           "-c",
           "project_root_markers=[]",
           "-c",
@@ -8883,41 +8831,59 @@
         "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
         "cliVersion": "codex-cli 0.166.0",
         "driverProfile": "existing-children",
+        "existingChildrenSetup": {
+          "agentIds": [
+            "01a1d329-9e74-79a1-880e-62541e3bc036"
+          ],
+          "completedAt": "2026-11-13T04:28:07.441706Z",
+          "historyBindings": [
+            {
+              "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+              "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+              "role": "seed",
+              "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+              "sha256": "81a56a070d6c002d6b421e3c1ff684200ad6739fc7ce1ee6d2456923f88f8849",
+              "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl"
+            },
+            {
+              "childSessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+              "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+              "parentSessionId": "01a1d329-557e-7913-986d-f583d2216487",
+              "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+              "role": "seed",
+              "sessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+              "sha256": "971fda679b58ed2a7f6f7be74ae8e3690ed3d0d48ff11e87719242d0b3152a91",
+              "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl"
+            }
+          ],
+          "provider": "codex",
+          "rawSHA256": "ed050cf23099d2ed876103f82240b0fd7557978171bc6724c0ee44b9d7c3a5ce",
+          "schemaVersion": 1,
+          "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+          "transportSHA256": "a6c687ee3599d7b470bdbd238e212151bbbdd02c032113f6d99ab16a7b9c9d05"
+        },
         "historyBindings": [
           {
             "role": "runtime",
-            "sessionId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
-            "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace",
-            "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T04-24-56-01a1d16f-540c-7f70-8cef-b56a7b6cc4d1.jsonl",
-            "source": "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-24-56-01a1d16f-540c-7f70-8cef-b56a7b6cc4d1.jsonl",
-            "sha256": "3c3e40c3d96b552622109f7752ac020fa26930030bab83183bcaba8db493b077"
+            "sessionId": "01a1d329-557e-7913-986d-f583d2216487",
+            "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+            "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+            "source": "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T12-27-43-01a1d329-557e-7913-986d-f583d2216487.jsonl",
+            "sha256": "6770c00c08069d7c201a4769becd9c18e561652c3917a031adf56a504c2dd1d8"
           },
           {
             "role": "seed",
-            "sessionId": "01a1d16f-6edb-7ad1-9afc-9c9867c0c040",
-            "parentSessionId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
-            "childSessionId": "01a1d16f-6edb-7ad1-9afc-9c9867c0c040",
-            "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace",
-            "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T04-25-03-01a1d16f-6edb-7ad1-9afc-9c9867c0c040.jsonl",
-            "source": "history/seed/source/material/history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-25-03-01a1d16f-6edb-7ad1-9afc-9c9867c0c040.jsonl",
-            "sha256": "cc07681a94ceebdba3c9a007252571bcbe5f6b39582a6440ed28fb441b3b5c76"
+            "sessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+            "parentSessionId": "01a1d329-557e-7913-986d-f583d2216487",
+            "childSessionId": "01a1d329-9e74-79a1-880e-62541e3bc036",
+            "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
+            "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+            "source": "history/seed/config/sessions/2026/11/13/rollout-2026-11-13T12-28-02-01a1d329-9e74-79a1-880e-62541e3bc036.jsonl",
+            "sha256": "971fda679b58ed2a7f6f7be74ae8e3690ed3d0d48ff11e87719242d0b3152a91"
           }
         ],
-        "historyProject": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace",
-        "historySeed": {
-          "agentIds": [
-            "01a1d16f-6edb-7ad1-9afc-9c9867c0c040"
-          ],
-          "materialPlan": {
-            "path": "history/seed/source/material/plan.json",
-            "sha256": "c96b63797ccb08748ae0d8748efee7e28915dccd77382b3da2d14971e296486b"
-          },
-          "provider": "codex",
-          "sessionId": "01a1d16f-540c-7f70-8cef-b56a7b6cc4d1",
-          "sourceProject": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/routes/record/workspace"
-        },
         "model": "auto/deepseek-v4.1-flash-1017",
-        "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-035/fixture/runtime/routes/record/workspace",
+        "project": "/Users/jim/.local/share/agent-sdk-testify/035-self-seed-20261113/codex-01/runtime/routes/record/workspace",
         "prompts": [],
         "provider": "codex",
         "recordingIsolation": "personal-skills-v1",
@@ -8937,14 +8903,17 @@
           "driverProfile": "existing-children",
           "files": {},
           "mode": "live-selected-path",
-          "parameters": {},
+          "parameters": {
+            "selfSeed": true,
+            "setupPrompt": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_EXISTING_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+          },
           "prompts": [],
           "provider": "codex",
           "reason": "",
           "requiredRequests": [],
           "storyId": "SDK-US-008"
         },
-        "sourcePlanSHA256": "61e196fe077196f6a7f7e98d4cf19adafbfee5dcdcbd97eb34579075018d1577",
+        "sourcePlanSHA256": "550100ceb77ba398ab3f93150cb81d92fba849d5eee7f0198e1f47d89f8fda70",
         "stdinEOFAction": "close",
         "story": "SDK-US-008",
         "storyId": "SDK-US-008"
