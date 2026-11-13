@@ -74,7 +74,7 @@ func refreshPreparedRoutes(fixture *Fixture, publishedDir string) error {
 			if err := os.MkdirAll(filepath.Join(template, "history-seed"), 0o700); err != nil {
 				return err
 			}
-			historyFiles, err = history.MaterializeStartup(source, template)
+			historyFiles, err = history.MaterializeStartup(source, template, RouteWorkspace(publishedDir, action))
 			if err != nil {
 				return err
 			}

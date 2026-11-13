@@ -265,6 +265,10 @@ func VerifyTree(root string, bindings map[string]string) error {
 // Materialize copies only independently bound history files and verifies both
 // the source and destination bytes.
 func Materialize(source, target string) (map[string]string, error) {
+	return materialize(source, target, filepath.Join(target, "workspace"))
+}
+
+func materialize(source, target, workspace string) (map[string]string, error) {
 	var canonicalPlan, canonicalManifest tool.Object
 	if err := tool.ReadJSON(filepath.Join(source, "manifest.json"), &canonicalManifest); err != nil {
 		return nil, err
@@ -273,7 +277,7 @@ func Materialize(source, target string) (map[string]string, error) {
 		if err := tool.ReadJSON(filepath.Join(source, "plan.json"), &canonicalPlan); err != nil {
 			return nil, err
 		}
-		return materializeCanonical(source, target, canonicalPlan, canonicalManifest)
+		return materializeCanonical(source, target, workspace, canonicalPlan, canonicalManifest)
 	}
 	bindings, err := Bindings(source)
 	if err != nil {
@@ -304,7 +308,7 @@ func Materialize(source, target string) (map[string]string, error) {
 		return nil, err
 	}
 	if plan["provider"] == "claude" || plan["agentType"] == "claude" {
-		if err := MaterializeClaude(source, target, filepath.Join(target, "workspace"), plan); err != nil {
+		if err := MaterializeClaude(source, target, workspace, plan); err != nil {
 			return nil, err
 		}
 		var materialization tool.Object
@@ -323,10 +327,11 @@ func Materialize(source, target string) (map[string]string, error) {
 }
 
 // MaterializeStartup retains the complete writable native startup environment.
+// Workspace is the published route identity, independent of the staging target.
 // Templates have no execution envelope and therefore keep no sealed derivatives
 // or materialization receipt; an execution creates its own independent evidence.
-func MaterializeStartup(source, target string) (map[string]string, error) {
-	files, err := Materialize(source, target)
+func MaterializeStartup(source, target, workspace string) (map[string]string, error) {
+	files, err := materialize(source, target, workspace)
 	if err != nil {
 		return nil, err
 	}

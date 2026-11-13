@@ -126,7 +126,7 @@ func TestCanonicalClaudeDerivationSealsOnlyChangedBytes(t *testing.T) {
 	binding := Binding{Role: "runtime", SessionID: "session", Project: "/original", NativeTarget: target, Source: source, SHA256: tool.DigestBytes([]byte(data))}
 	plan, manifest := canonicalObjects(t, core, []Binding{binding})
 	plan["provider"] = "claude"
-	files, err := materializeCanonical(core, overlay, plan, manifest)
+	files, err := materializeCanonical(core, overlay, filepath.Join(overlay, "workspace"), plan, manifest)
 	require.NoError(t, err)
 	require.Len(t, files, 2)
 	require.NoError(t, SealMaterialization(overlay, execution, "material"))
@@ -150,7 +150,7 @@ func TestCanonicalClaudeDerivationSealsOnlyChangedBytes(t *testing.T) {
 	require.NoError(t, tool.WriteJSON(filepath.Join(core, "plan.json"), plan))
 	require.NoError(t, tool.WriteJSON(filepath.Join(core, "manifest.json"), manifest))
 	startup := t.TempDir()
-	startupFiles, err := MaterializeStartup(core, startup)
+	startupFiles, err := MaterializeStartup(core, startup, filepath.Join(startup, "workspace"))
 	require.NoError(t, err)
 	require.Len(t, startupFiles, 2)
 	require.NoFileExists(t, filepath.Join(startup, "materialization.json"))
@@ -178,7 +178,7 @@ func TestCanonicalClaudeUpdatedSeedUsesRuntimeDerivation(t *testing.T) {
 	writeHistory(t, core, bindings[1].Source, runtime)
 	plan, manifest := canonicalObjects(t, core, bindings)
 	plan["provider"] = "claude"
-	files, err := materializeCanonical(core, overlay, plan, manifest)
+	files, err := materializeCanonical(core, overlay, filepath.Join(overlay, "workspace"), plan, manifest)
 	require.NoError(t, err)
 	require.Len(t, files, 3)
 	require.NoError(t, Check(overlay, files))
@@ -196,7 +196,7 @@ func TestCanonicalClaudeUpdatedSeedUsesRuntimeDerivation(t *testing.T) {
 	plan, manifest = canonicalObjects(t, core, []Binding{bindings[1], bindings[0]})
 	plan["provider"] = "claude"
 	reversed := t.TempDir()
-	_, err = materializeCanonical(core, reversed, plan, manifest)
+	_, err = materializeCanonical(core, reversed, filepath.Join(reversed, "workspace"), plan, manifest)
 	require.NoError(t, err)
 	require.NoError(t, tool.ReadJSON(filepath.Join(reversed, "materialization.json"), &receipt))
 	require.Equal(t, bindings[1].Source, tool.Obj(tool.Array(receipt["transformations"])[0])["source"])
@@ -216,7 +216,8 @@ func TestCanonicalClaudeRejectsAmbiguousProjectDerivations(t *testing.T) {
 			}
 			plan, manifest := canonicalObjects(t, core, bindings)
 			plan["provider"] = "claude"
-			_, err := materializeCanonical(core, t.TempDir(), plan, manifest)
+			target := t.TempDir()
+			_, err := materializeCanonical(core, target, filepath.Join(target, "workspace"), plan, manifest)
 			require.ErrorContains(t, err, "ambiguous Claude history derivation target")
 		})
 	}

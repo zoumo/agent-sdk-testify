@@ -79,6 +79,32 @@ func TestMaterializeClaudeExecutionHistory(t *testing.T) {
 	require.Error(t, Check(target, bindings))
 }
 
+func TestMaterializeLegacyStartupUsesPublishedWorkspace(t *testing.T) {
+	source, staging := t.TempDir(), t.TempDir()
+	workspace := filepath.Join(t.TempDir(), "published", "runtime", "routes", "record", "workspace")
+	name := "config/projects/-original/session.jsonl"
+	original := "{\"cwd\":\"/original\",\"sessionId\":\"session\",\"future\":1.2500}\n"
+	digest := writeHistoryFile(t, source, name, original)
+	writeHistoryJSON(t, source, "plan.json", tool.Object{"provider": "claude", "project": "/original"})
+	writeHistoryJSON(t, source, "manifest.json", tool.Object{"savedFiles": tool.Object{name: digest}})
+	files, err := MaterializeStartup(source, staging, workspace)
+	require.NoError(t, err)
+	key := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(workspace, "-")
+	derived := filepath.Join("config", "projects", key, "session.jsonl")
+	require.Contains(t, files, derived)
+	var row tool.Object
+	require.NoError(t, tool.ReadJSON(filepath.Join(staging, derived), &row))
+	require.Equal(t, workspace, row["cwd"])
+	data, err := os.ReadFile(filepath.Join(staging, derived))
+	require.NoError(t, err)
+	require.Contains(t, string(data), "1.2500")
+	data, err = os.ReadFile(filepath.Join(source, name))
+	require.NoError(t, err)
+	require.Equal(t, original, string(data))
+	require.NoError(t, Check(staging, files))
+	require.NoFileExists(t, filepath.Join(staging, "materialization.json"))
+}
+
 func writeHistoryFile(t *testing.T, root, name, content string) string {
 	t.Helper()
 	path := filepath.Join(root, filepath.FromSlash(name))

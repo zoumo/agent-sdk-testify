@@ -367,7 +367,7 @@ func historyProject(plan tool.Object) string {
 	return ""
 }
 
-func materializeCanonical(source, target string, plan, manifest tool.Object) (map[string]string, error) {
+func materializeCanonical(source, target, workspace string, plan, manifest tool.Object) (map[string]string, error) {
 	bindings, err := CanonicalBindings(source, plan, manifest)
 	if err != nil {
 		return nil, err
@@ -387,12 +387,12 @@ func materializeCanonical(source, target string, plan, manifest tool.Object) (ma
 	// Canonical Claude derivations are implemented separately; the sealed bytes
 	// belong to the execution, while native targets remain disposable copies.
 	if plan["provider"] == "claude" || plan["agentType"] == "claude" {
-		derivedBindings, err := claudeBindingsForWorkspace(bindings, filepath.Join(target, "workspace"))
+		derivedBindings, err := claudeBindingsForWorkspace(bindings, workspace)
 		if err != nil {
 			return nil, err
 		}
 		for _, b := range derivedBindings {
-			tr, err := deriveCanonicalClaude(source, target, filepath.Join(target, "workspace"), b)
+			tr, err := deriveCanonicalClaude(source, target, workspace, b)
 			if err != nil {
 				return nil, err
 			}
