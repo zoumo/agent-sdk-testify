@@ -32,7 +32,7 @@ func (s *corpusSuite) SetupTest() {
 	index := s.read(repository, "data/index.json")
 	for _, value := range tool.Array(index["cases"]) {
 		e := tool.Obj(value)
-		for _, key := range []string{"materials", "adoptionSHA256"} {
+		for _, key := range []string{"materials", "adoptionSHA256", "materialSHA256", "officialSDK", "qualification"} {
 			delete(e, key)
 		}
 		e["adoption"] = "missing"

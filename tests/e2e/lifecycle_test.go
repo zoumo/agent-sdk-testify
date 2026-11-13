@@ -194,7 +194,8 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	assertFileHashes(t, filepath.Dir(captureRoot), obj(evidence["files"]))
 	admitted := admissionSummary(t, fixtureDir, verificationRoot)
 	require.Equal(t, "admitted", admitted["status"])
-	require.FileExists(t, filepath.Join(str(admitted["materials"]), "adoption.json"))
+	require.FileExists(t, filepath.Join(str(admitted["materials"]), "material.json"))
+	require.NoFileExists(t, filepath.Join(str(admitted["materials"]), "adoption.json"))
 	adopted := object(nil)
 	for _, item := range array(readJSON(t, corpus.index)["cases"]) {
 		row := obj(item)

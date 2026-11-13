@@ -1,6 +1,7 @@
 package builtin
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,4 +27,21 @@ func TestBuiltinCatalogCoverage(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 68, available)
+}
+
+func TestBuiltinContainsOnlyPublishedReplayCores(t *testing.T) {
+	manifest, _, err := Read()
+	require.NoError(t, err)
+	for _, material := range manifest.Materials {
+		t.Run(material.Provider+"/"+material.CaseID, func(t *testing.T) {
+			require.Contains(t, material.Files, "material.json")
+			require.Contains(t, material.Files, "raw/raw.jsonl")
+			for name := range material.Files {
+				for _, prefix := range []string{"executions/", "record/", "verify/", "material/"} {
+					assert.False(t, strings.HasPrefix(name, prefix), name)
+				}
+				assert.NotContains(t, []string{"review.json", "adoption.json"}, name)
+			}
+		})
+	}
 }

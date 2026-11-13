@@ -494,6 +494,9 @@ func newSyntheticCorpus(t *testing.T) syntheticCorpus {
 		row := obj(value)
 		delete(row, "materials")
 		delete(row, "adoptionSHA256")
+		delete(row, "materialSHA256")
+		delete(row, "officialSDK")
+		delete(row, "qualification")
 		row["adoption"] = "missing"
 		row["verification"] = "unverified"
 		row["verificationReason"] = "synthetic conformance suite has no admitted evidence"

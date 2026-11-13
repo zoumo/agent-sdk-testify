@@ -363,7 +363,7 @@ func (c *Corpus) adoptPackage(source, replay, reviewPath string, replace func(st
 		}
 	}
 	if _, err := os.Stat(target); os.IsNotExist(err) {
-		if err := os.Rename(stage, target); err != nil {
+		if err := os.Rename(filepath.Join(stage, "material"), target); err != nil {
 			return "", err
 		}
 	} else if err != nil {
@@ -373,7 +373,7 @@ func (c *Corpus) adoptPackage(source, replay, reviewPath string, replace func(st
 		if e != nil {
 			return "", e
 		}
-		after, e := Inventory(stage, false)
+		after, e := Inventory(filepath.Join(stage, "material"), false)
 		if e != nil {
 			return "", e
 		}
@@ -381,11 +381,27 @@ func (c *Corpus) adoptPackage(source, replay, reviewPath string, replace func(st
 			return "", errors.New("attempt identity collision")
 		}
 	}
-	hash, err := tool.FileDigest(filepath.Join(target, "adoption.json"))
+	hash, err := tool.FileDigest(filepath.Join(saved, "adoption.json"))
 	if err != nil {
 		return target, err
 	}
 	entry["adoption"], entry["materials"], entry["adoptionSHA256"], entry["verification"] = "admitted", name, hash, "passed"
+	entry["materialSHA256"], err = tool.FileDigest(filepath.Join(target, "material.json"))
+	if err != nil {
+		return target, err
+	}
+	var report tool.Object
+	reportPath := filepath.Join(saved, filepath.Dir(selection.Record.Path), "report.json")
+	if selection.Record.Path == "" {
+		reportPath = filepath.Join(saved, "material", "report.json")
+	}
+	if err := tool.ReadJSON(reportPath, &report); err != nil {
+		return target, err
+	}
+	entry["officialSDK"], entry["qualification"] = report["officialSDK"], review["qualification"]
+	if err := c.verifyPublishedMaterial(target, entry); err != nil {
+		return target, err
+	}
 	delete(entry, "verificationReason")
 	temp, err := os.CreateTemp(filepath.Dir(c.Index), ".index-*")
 	if err != nil {

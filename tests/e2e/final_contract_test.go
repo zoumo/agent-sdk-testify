@@ -171,38 +171,43 @@ out = pathlib.Path(runtime['output'])
 	}
 	require.NotEmpty(t, attempt)
 	seedBefore := officialInventory(t, attempt)
-	seedFixture := prepareFixture(t, env, "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", attempt)
+	archivedSeed := filepath.Join(corpus.archive, filepath.Base(attempt))
+	seedFixture := prepareFixture(t, env, "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", archivedSeed)
 	sourceBytes := readFile(t, filepath.Join(seedFixture, "source", "plan.json"))
 	require.NotContains(t, string(sourceBytes), "historySeed")
 	require.Equal(t, seedBefore, officialInventory(t, attempt))
-	seedPlan := readJSON(t, filepath.Join(attempt, "material", "plan.json"))
+	seedPlan := readJSON(t, filepath.Join(attempt, "plan.json"))
 	for _, value := range array(seedPlan["historyBindings"]) {
 		binding := obj(value)
 		if provider == "codex" {
 			for _, location := range []string{"baseline", filepath.Join("templates", "record")} {
-				require.Equal(t, readFile(t, filepath.Join(attempt, "material", str(binding["source"]))), readFile(t, filepath.Join(seedFixture, "runtime", location, str(binding["nativeTarget"]))))
+				require.Equal(t, readFile(t, filepath.Join(attempt, str(binding["source"]))), readFile(t, filepath.Join(seedFixture, "runtime", location, str(binding["nativeTarget"]))))
 			}
 		}
 	}
 
-	require.Equal(t, "captured", readJSON(t, filepath.Join(attempt, "material", "report.json"))["status"])
+	require.Equal(t, "captured", readJSON(t, filepath.Join(attempt, "report.json"))["status"])
 	// Standalone exported core has no selected business facts, even though its
 	// native history, source plan and capture inventory are complete.
 	rejected := runTool(t, env, t.TempDir(), "", "prepare", "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", core, "--fixture-dir", filepath.Join(t.TempDir(), "rejected"))
 	require.Equal(t, 1, rejected.code)
 	require.Contains(t, rejected.stderr, "qualified complete package")
-	reviewPath := filepath.Join(attempt, "review.json")
+	rejected = runTool(t, env, t.TempDir(), "", "prepare", "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", attempt, "--fixture-dir", filepath.Join(t.TempDir(), "published-core"))
+	require.Equal(t, 1, rejected.code)
+	require.Contains(t, rejected.stderr, "qualified complete package")
+	reviewPath := filepath.Join(archivedSeed, "review.json")
 	oldReview := readFile(t, reviewPath)
 	review := readJSON(t, reviewPath)
 	obj(review["record"])["path"] = "record/unrelated/result.json"
 	writeJSON(t, reviewPath, review)
-	rejected = runTool(t, env, t.TempDir(), "", "prepare", "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", attempt, "--fixture-dir", filepath.Join(t.TempDir(), "wrong-selection"))
+	rejected = runTool(t, env, t.TempDir(), "", "prepare", "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", archivedSeed, "--fixture-dir", filepath.Join(t.TempDir(), "wrong-selection"))
 	require.Equal(t, 1, rejected.code)
 	require.NoError(t, os.WriteFile(reviewPath, oldReview, 0o600))
 	// Delete every external source. Both source closure and route history remain
 	// available from the new fixture; a new record uses only the frozen seed.
 	require.NoError(t, os.RemoveAll(producer))
 	require.NoError(t, os.RemoveAll(attempt))
+	require.NoError(t, os.RemoveAll(corpus.archive))
 	mustRun(t, env, t.TempDir(), "", append([]string{"official", "record", "--fixture-dir", seedFixture, "--cmd", agent, "--"}, nativeArgs...)...)
 	require.Equal(t, sourceBytes, readFile(t, filepath.Join(seedFixture, "source", "plan.json")))
 	recordRoots, err := filepath.Glob(filepath.Join(seedFixture, "packages", "*", "record", "*", "parent-seed-validated.json"))

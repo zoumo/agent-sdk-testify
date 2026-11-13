@@ -91,6 +91,8 @@ official 编排、driver 和公开 agent 命令的职责以
 
 原件及失败尝试保存在 Git 外私有归档。已跟踪材料按 agentType/story/case/attempt 归属；
 固定索引保留所有要求、失败和缺口。移动不改变原始 plan/raw、attempt 身份或来源哈希。
+新采用的 attempt 根只包含原字节 material；完整 execution、record、verify 和采用
+证明留在私有归档。内置快照从固定索引的材料哈希和资格摘要生成，不读取外部归档。
 派生运行副本须保留原/派生路径及双向哈希关联，不改写原件或放宽协议字段。
 consumer material 保持在消费者私有目录，不登记固定索引、不进入内置快照。
 材料发布须遵守[工具设计](design.md#信任与入仓)。

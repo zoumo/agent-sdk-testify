@@ -126,19 +126,23 @@ func Generate(o GenerateOptions) error {
 		if e != nil {
 			return e
 		}
-		review, e := corpus.Read(filepath.Join(source, "review.json"))
-		if e != nil {
-			return e
+		sdk, qualification := tool.Obj(row["officialSDK"]), tool.Obj(row["qualification"])
+		if _, reduced := row["materialSHA256"]; !reduced {
+			review, e := corpus.Read(filepath.Join(source, "review.json"))
+			if e != nil {
+				return e
+			}
+			reportPath := filepath.Join(core, "report.json")
+			if selected := tool.Str(tool.Obj(review["record"])["path"]); selected != "" {
+				reportPath = filepath.Join(source, filepath.Dir(selected), "report.json")
+			}
+			report, e := corpus.Read(reportPath)
+			if e != nil {
+				return e
+			}
+			sdk, qualification = tool.Obj(report["officialSDK"]), tool.Obj(review["qualification"])
 		}
-		reportPath := filepath.Join(core, "report.json")
-		if selected := tool.Str(tool.Obj(review["record"])["path"]); selected != "" {
-			reportPath = filepath.Join(source, filepath.Dir(selected), "report.json")
-		}
-		report, e := corpus.Read(reportPath)
-		if e != nil {
-			return e
-		}
-		material := Material{Provider: tool.Str(row["provider"]), CaseID: tool.Str(row["caseId"]), StoryID: tool.Str(row["storyId"]), Attempt: filepath.Base(source), Path: tool.Str(row["materials"]), Files: inventory, OfficialSDK: tool.Obj(report["officialSDK"]), Qualification: tool.Obj(review["qualification"]), Contracts: map[string]string{}, Plan: plan}
+		material := Material{Provider: tool.Str(row["provider"]), CaseID: tool.Str(row["caseId"]), StoryID: tool.Str(row["storyId"]), Attempt: filepath.Base(source), Path: tool.Str(row["materials"]), Files: inventory, OfficialSDK: sdk, Qualification: qualification, Contracts: map[string]string{}, Plan: plan}
 		for _, name := range []string{material.StoryID + ".json", "bindings/" + material.Provider + ".json"} {
 			material.Contracts[name] = m.Catalog[name]
 		}

@@ -154,20 +154,19 @@ case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios
 
 ```text
 data/<agentType>/<story>/<case>/<attempt>/
-  material/...
-  executions/<executionId>/...
-  record/<runId>/...
-  verify/<verificationId>/...
-  review.json
-  adoption.json
+  material.json
+  manifest.json
+  plan.json
+  raw/...
+  history/...
+  ...
 ```
 
-最终 attempt 与 fixture package 使用相同的 `material/executions/record/verify`
-相对布局。采用只复制 review 明确选择的 material、全部所需 execution（多连接共享一份）、
-record run 和 verification 的精确闭包与原字节，不重排目录，也不复制整个 fixture、
-control、runtime、fixture source seed、未选 package 或整棵 record 树。material 内
-为自包含复验保存的完整来源闭包必须随 core 保留。review/adoption 的选择、哈希与版本统一见工具设计，不另维护 package 总库存。失败与未触发 attempt 保留
-诊断，但不伪装成采用闭包。
+attempt 根就是 material 根，保留原始 plan/raw、来源和历史绑定字节。完整证据包在
+采用前完成资格校验，所选 execution、record、verify 和 review/adoption 只留在
+私有归档，不进入仓库或内置快照。固定索引保存材料哈希与资格摘要；消费者 mock 不
+依赖外部归档。失败与未触发 attempt 留在私有诊断中，不作为成功材料发布。
+完整证据闭包和采用规则见[信任与入仓](../docs/design.md#信任与入仓)。
 
 公开 `agent record` 的材料报告保持 `captured`，最终官方业务报告保存在同一
 package 的 `record/<runId>/`。显式采用时，工具选择已核验的原编排、
@@ -177,6 +176,8 @@ package 的 `record/<runId>/`。显式采用时，工具选择已核验的原编
 实际文件与哈希，export 仍只复制封闭 material，不携带 package 编排事实或原 fixture
 路径。
 旧材料继续读取原有来源和业务证据布局。
+`--history-seed` 用于新的真实录制时仍须提供外部完整合格证据包，不能用精简后的
+standalone core 代替原录制业务证明。
 
 以下输入不得混用：
 

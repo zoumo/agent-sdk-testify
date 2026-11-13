@@ -228,7 +228,7 @@ func checkMaterial(root string, material *Material, materialDescriptor bool) err
 	if err != nil {
 		return err
 	}
-	if materialDescriptor {
+	if materialDescriptor && material.Files["material.json"] == nil {
 		delete(files, "material.json")
 	}
 	if len(files) != len(material.Files) {
@@ -253,16 +253,17 @@ func checkRoot(root string, materialDescriptor bool) (*Material, error) {
 	if err != nil {
 		return nil, err
 	}
-	if materialDescriptor {
-		delete(files, "material.json")
-	}
 	m, _, err := Read()
 	if err != nil {
 		return nil, err
 	}
 	for i := range m.Materials {
 		material := &m.Materials[i]
-		if len(files) != len(material.Files) {
+		count := len(files)
+		if materialDescriptor && material.Files["material.json"] == nil && files["material.json"] != nil {
+			count--
+		}
+		if count != len(material.Files) {
 			continue
 		}
 		matches := true

@@ -86,7 +86,7 @@ prepare 创建 fixture，export 只读导出 current。agent record/mock
 | Admission | 把具备资格的材料显式归档并写入默认 case 库的动作。 |
 | Export | 把 current recording 中封闭 material 的原字节复制到 fixture 外的只读导出动作。 |
 
-Recording package 是 fixture 与最终 case 仓库共用的持久结构。material 封闭后，
+Recording package 是 fixture 与私有归档共用的持久结构，最终 case 只发布 material。material 封闭后，
 后续 execution、record 和 verification 只在该 package 内追加自己的证据域；
 每个文件只有一个 owner，material 不记录派生证据或运行目录。
 
@@ -405,24 +405,24 @@ verification 以独立 ID 并存；record run 与实际采集的关系遵循 exe
 material 发布和 current 切换遵循[封存、发布与恢复](#封存发布与恢复)。
 旧 package 和旧 verification 保留，但不会被后续动作自动选择。
 
-最终入仓 case 与 fixture package 使用同一包根和相对路径：
+最终入仓 case 只保存独立 material，attempt 根就是 material 根：
 
 ```text
 data/<agent>/<story>/<case>/<attempt>/
-  material/...
-  executions/<executionId>/...
-  record/<runId>/...
-  verify/<verificationId>/...
-  review.json
-  adoption.json
+  material.json
+  manifest.json
+  plan.json
+  raw/...
+  history/...
+  ...
 ```
 
-`review.json` 与 `adoption.json` 是入仓证明，在最终 case 的 attempt 根创建；
-fixture package 只可能从完整已采用包原字节导入它们，不能自行伪造。入仓只从所选 `packages/<materialId>/`
-复制精确的 material、execution、record 和 verification 闭包到 attempt 根，
-保留相同相对路径和原字节，不重排为另一套目录，也不复制整个 fixture、control、
-runtime 或其他 package。`review.json` 明确选择 package、record run、
-verification 及被引用的 execution，不按 latest 推测。
+采用前校验完整 package；私有归档保存 review 选择的 material、execution、record、
+verification 精确闭包及 `review.json`、`adoption.json`，维持 package 相对路径和原字节。
+仓库只复制其中 material 的原字节，不发布旧 execution、record、verify 或证明文件。
+固定索引绑定 `materialSHA256`，并记录外部 `adoptionSHA256`、官方 SDK 身份和资格摘要；
+材料检查和内置生成只校验索引绑定的本地 core，不依赖归档路径。完整证据只在采用前
+作资格判断；摘要不使缺少原录制业务证据的 standalone core 获得再次采用资格。
 
 ### 文件 owner 与校验闭包
 
@@ -546,8 +546,8 @@ runtime 的私有配置与可写宿主环境可在全部进程退出后删除；
 
 文件引用按 owner 域使用固定基准：fixture 控制文件相对 fixture 根目录，package
 内的 execution、record 和 verification 证据相对 package 根目录，material 内部
-引用相对 material 根目录。fixture 和最终入仓 case 都以相同 package 根解释
-`material/`、`executions/`、`record/` 和 `verify/`，不因搬到 `data/` 而重写引用。
+引用相对 material 根目录。fixture 和私有归档维持相同 package 布局；最终 case 直接
+发布 material 根，其内部引用和字节不变，不携带 package 证据域。
 固定布局由 ID 推导，不重复保存路径；其余文件引用使用规范的 `/` 分隔相对路径。
 读取前拒绝空引用、绝对引用、反斜杠、`.`/`..`、重复分隔符、非规范路径，
 并逐级拒绝符号链接或非普通文件，防止逃逸声明根目录；不能先 clean 再接受。
@@ -557,12 +557,12 @@ locator、路径占位符或对任意 JSON 字符串的替换机制。
 
 | 字段或内容 | 持久化规则 | 运行时规则 |
 | --- | --- | --- |
-| material 的 `path`，connection/result 中的 material 路径 | 新材料不保存；控制面只保存 material ID 和内容哈希 | 从 fixture 的 `packages/<materialId>/material` 或最终 case 的 `material` 定位 |
+| material 的 `path`，connection/result 中的 material 路径 | 新材料不保存；控制面只保存 material ID 和内容哈希 | 从 fixture 的 `packages/<materialId>/material` 或最终 case 的 attempt 根定位 |
 | fixture 的 `resourceRoot/workspace/home/config/tmp`，route 的 workspace | 固定布局不重复保存 | 根据当前 fixture 和 action 计算 |
 | execution 的 `workspace/home/config/tmp/artifactRoot` | 固定布局不重复保存 | 根据当前 fixture、material ID、execution ID 和 action 计算 |
 | fixture source seed 和非固定控制文件 | 保存 fixture 根相对引用及来源哈希 | 只访问 prepare 已复制并验证的 source 副本 |
 | material 内的 history 和来源文件 | 保存 material 根相对引用及固定绑定映射 | 从所选 material 根读取，不查找原 seed 或旧 fixture |
-| package 内的 record、verify、receipt 和 descriptor 引用 | 保存 package 根相对路径；文件哈希表使用同一基准 | 根据本次 fixture 的 package 根或最终 case 的 attempt 根读取 |
+| package 内的 record、verify、receipt 和 descriptor 引用 | 保存 package 根相对路径；文件哈希表使用同一基准 | 根据本次 fixture 或外部归档的 package 根读取 |
 | launcher、框架命令中的 fixture 参数和目录环境变量 | 不保存可推导的本机位置 | 在启动前构造；工具身份仍须匹配 |
 | `project/historyProject/_fixtureProject`、`native.cwd` 和原始参数 | 保留解释录制所需的身份与事实 | 不作为旧目录的文件读取入口，不替换为当前 workspace |
 
@@ -708,8 +708,8 @@ CLI 结果通知与落盘 result 使用同一对象、同一 package 相对引�
 不在通知端与落盘端做两套路径转换。running 通知同时给出 material ID，
 因此 execution 创建后即可定位 `<fixture>/packages/<materialId>/`；消费者把
 package 相对引用解析到该包根。fixture control 的包选择仍由 fixture 根和
-material ID 推导，material 内部引用仍相对 material 根。最终入仓 package 使用同一
-相对引用，调用方只需把根从 fixture package 换成 attempt 根。
+material ID 推导，material 内部引用仍相对 material 根。私有归档使用相同 package
+相对引用；最终入仓 material 不包含旧 execution 或编排结果引用。
 公开 Go 运行时对象中的路径字段继续返回当前解析后的绝对值，字段含义不变；
 这些对象不作为原始持久证据重新序列化或参与原字节哈希比较。
 
@@ -970,8 +970,8 @@ export 把 current recording 中封闭的 material 核心原字节复制到 fixt
 只要 fixture 中的材料仍存在且哈希有效，就可以重复 export。legacy 的“core”就是
 按原合同导入的完整旧树；其中原有内嵌 official-replay/review/adoption 不被剥离或
 重排。export 不添加新 package 的旁挂证据，也不以删除旧证据来伪造更小的新 core。
-完整证据包的保存/入仓与 core export 是不同边界：前者依 review 选择完整已封存域，
-后者只选择 current core。只导入 standalone core 缺少原 record 业务证据时可以
+完整证据包的私有归档与 material 发布、core export 是不同边界：归档依 review 选择
+完整已封存域，发布和导出只复制 core。只导入 standalone core 缺少原 record 业务证据时可以
 mock/export，不能仅凭新的 verify 重建原采集通过或取得采用资格。
 
 ## 信任与入仓
@@ -1005,11 +1005,13 @@ mock/export，不能仅凭新的 verify 重建原采集通过或取得采用资�
 
 资格判断和采用都不能由 record、mock 或 export 隐式触发。采用是显式、
 原子、可重试的仓库写入；写入前保留旧索引，写入失败不删除已验证材料。
-采用只把 review 选择的 `material/`、`executions/`、`record/` 和 `verify/`
-精确闭包复制到最终 attempt 根，保留 package 内相对路径与原字节，再写当前版本的
-`review.json` 和 `adoption.json`。最终 attempt 不包含 control、runtime、fixture source
-seed 或其他未选 package；material 自包含的来源闭包与证据中的旧 cwd 等观察事实保留，
-不能当作可重开的旧路径。
+采用先把 review 选择的完整封存闭包及证明文件保存到私有归档，再把 material 原字节
+原子发布到最终 attempt 根并写回索引。最终 attempt 不包含旧 execution、record、
+verify、review、adoption、control 或 runtime。索引保存材料描述文件哈希、归档采用
+证明哈希、官方 SDK 身份和资格方法/时间；内置生成检查材料完整性与身份，不重新打开
+外部证据。归档失败、证据缺失或资格检查失败不能发布。原始 plan/raw、material 内
+来源与历史绑定保持不变。用于后续真实录制的已合格历史种子仍须来自完整证据包，
+不能仅凭已发布 core 或索引摘要推断录制业务通过。
 
 consumer material 和外部用户自行保存的录制可以进入自己的 fixture、由用户自己的
 验证流程评价并通过 export 保存，但不能冒充官方 case 验证，也不进入默认 case
@@ -1031,8 +1033,8 @@ consumer material 和外部用户自行保存的录制可以进入自己的 fixt
   保持为空；package 只以 material id 命名，不存在第二个持久别名。
 - material core 封闭后不可变；后续 record run 和 verification 只在 package 的
   独立证据域新增文件，不修改 material manifest 或历史绑定。
-- fixture package 与最终入仓 case 使用相同的 `material/executions/record/verify`
-  相对布局；入仓只复制明确选择的闭包和原字节，不重排目录。
+- fixture package 与私有归档使用相同的证据域布局；仓库和内置快照只发布原字节
+  material，回放不读取外部归档。
 - verify 只读 current package 的 material，不修改材料；verification 绑定精确
   material 哈希和本次 mock execution。
 - 新 record 不继承旧 verification，旧 verification 不自动适用于新 current。
@@ -1168,8 +1170,8 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 调用 lifecycle 函数；测试分层和目录遵循[开发规范](development.md#测试)。至少覆盖：
 
 - prepare 完整复制材料后，删除原始路径仍可 verify、mock 和 export。
-- 重构前后对同一受控场景比较 package 结构和外部行为；fixture 与最终 case 使用
-  同一 `material/executions/record/verify` 相对布局，不靠 corpus 精确数量判断。
+- 对同一受控场景比较完整归档与 fixture 的所选证据域原字节，以及已发布 material
+  与原 core 的完整哈希清单；删除外部归档后，入库材料仍可独立 prepare/mock/export。
 - export 后删除原 fixture、fixture source seed 和外部 seed，在新目录 prepare 后
   仍可 mock、适用的 official verify 和再次 export；不以直接移动 fixture 替代。
 - 导入、验证和导出保持旧材料全部原文件的字节及哈希，不为修正路径重写元数据。

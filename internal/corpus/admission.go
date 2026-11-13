@@ -304,6 +304,13 @@ func (c *Corpus) VerifyAdopted(entry tool.Object) (string, error) {
 		return "", errors.New("material ownership path differs")
 	}
 	base := filepath.Dir(c.Index)
+	if _, reduced := entry["materialSHA256"]; reduced {
+		root := filepath.Join(base, name)
+		if err := c.verifyPublishedMaterial(root, entry); err != nil {
+			return "", err
+		}
+		return root, nil
+	}
 	v := &Validation{}
 	v.Check(v.Digest(base, name+"/adoption.json") == entry["adoptionSHA256"], "adoption hash drift")
 	root := filepath.Join(base, name)
@@ -358,6 +365,47 @@ func (c *Corpus) VerifyAdopted(entry tool.Object) (string, error) {
 		return "", errors.New("adopted identity differs")
 	}
 	return root, nil
+}
+
+// Publication retains the immutable replay core and a hash-bound index receipt.
+// Full official evidence is checked before publication and lives in the archive.
+func (c *Corpus) verifyPublishedMaterial(root string, entry tool.Object) error {
+	v := &Validation{}
+	v.Check(entry["adoption"] == "admitted" && entry["verification"] == "passed", "material is not admitted")
+	v.Check(regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(tool.Str(entry["adoptionSHA256"])), "publication omits archived adoption identity")
+	v.Check(v.Digest(root, "material.json") == entry["materialSHA256"], "published material hash drift")
+	qualification := tool.Obj(entry["qualification"])
+	_, err := time.Parse(time.RFC3339Nano, tool.Str(qualification["qualifiedAt"]))
+	v.Check(qualification["method"] == "official-sdk" && err == nil, "publication omits official qualification")
+	sdk := tool.Obj(entry["officialSDK"])
+	v.Check(sdk["package"] == map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(entry["provider"])] && tool.Str(sdk["version"]) != "", "publication omits official SDK identity")
+	if v.Err != nil {
+		return v.Err
+	}
+	material, err := ReadMaterialDescriptor(root)
+	if err != nil {
+		return err
+	}
+	if material == nil {
+		return errors.New("published material requires a descriptor")
+	}
+	inspection, err := InspectMaterial(*material)
+	if err != nil {
+		return err
+	}
+	plan := inspection.Plan
+	if material.Provenance != "official" || plan["provider"] != entry["provider"] || plan["caseId"] != entry["caseId"] || plan["storyId"] != entry["storyId"] {
+		return errors.New("published material identity differs")
+	}
+	catalog, err := c.Catalog()
+	if err != nil {
+		return err
+	}
+	definition := tool.Obj(catalog[tool.Str(entry["provider"])+"/"+tool.Str(entry["caseId"])])
+	if definition["story"] != entry["storyId"] || definition["requirement"] != entry["requirement"] || definition["route"] != "live-selected-path" || definition["driverProfile"] != plan["driverProfile"] {
+		return errors.New("published material differs from current case binding")
+	}
+	return nil
 }
 
 func (c *Corpus) archiveRoot() (string, error) {

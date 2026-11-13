@@ -371,12 +371,13 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 				require.Equal(t, "admitted", admission["status"])
 				assertFileHashes(t, packageRoot, obj(verification["files"]))
 				adopted := str(admission["materials"])
-				require.Equal(t, readFile(t, filepath.Join(materialRoot, "report.json")), readFile(t, filepath.Join(adopted, "material", "report.json")))
-				require.Equal(t, readFile(t, filepath.Join(materialRoot, "source-plan.json")), readFile(t, filepath.Join(adopted, "material", "source-plan.json")))
-				require.FileExists(t, filepath.Join(adopted, "executions", str(execution["executionId"]), "isolation.json"))
+				require.Equal(t, readFile(t, filepath.Join(materialRoot, "report.json")), readFile(t, filepath.Join(adopted, "report.json")))
+				require.Equal(t, readFile(t, filepath.Join(materialRoot, "source-plan.json")), readFile(t, filepath.Join(adopted, "source-plan.json")))
+				require.NoDirExists(t, filepath.Join(adopted, "executions"))
+				require.FileExists(t, filepath.Join(corpus.archive, filepath.Base(adopted), "executions", str(execution["executionId"]), "isolation.json"))
 				require.NotEqual(t, oldIndex, readFile(t, corpus.index))
-				// Replacement revalidates the previous admitted view using only its
-				// portable original record, isolation and replay evidence.
+				// Replacement checks the previous publication's bound replay core;
+				// the new candidate still needs complete official qualification.
 				mustRun(t, env, t.TempDir(), "", args...)
 				retriedRoot, _ := latestOfficialVerification(t, fixtureDir)
 				require.Equal(t, "admitted", admissionSummary(t, fixtureDir, retriedRoot)["status"])

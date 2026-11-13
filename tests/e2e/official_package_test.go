@@ -64,13 +64,16 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	}
 	require.Equal(t, "admitted", admitted["adoption"])
 	attempt := filepath.Join(filepath.Dir(corpus.index), str(admitted["materials"]))
-	review := readJSON(t, filepath.Join(attempt, "review.json"))
+	archived := filepath.Join(corpus.archive, filepath.Base(attempt))
+	review := readJSON(t, filepath.Join(archived, "review.json"))
 	require.EqualValues(t, 2, review["schemaVersion"])
-	require.EqualValues(t, 2, readJSON(t, filepath.Join(attempt, "adoption.json"))["schemaVersion"])
+	require.EqualValues(t, 2, readJSON(t, filepath.Join(archived, "adoption.json"))["schemaVersion"])
+	require.Equal(t, digestFile(t, filepath.Join(archived, "adoption.json")), admitted["adoptionSHA256"])
+	require.Equal(t, digestFile(t, filepath.Join(attempt, "material.json")), admitted["materialSHA256"])
 	for _, key := range []string{"files", "captureFiles", "replayFiles"} {
 		require.NotContains(t, review, key)
 	}
-	require.Equal(t, before, officialInventory(t, filepath.Join(attempt, "material")))
+	require.Equal(t, before, officialInventory(t, attempt))
 	selectedFiles := map[string]string{}
 	domains := []string{"material", filepath.Dir(str(obj(review["record"])["path"])), filepath.Dir(str(obj(review["verification"])["path"]))}
 	for _, value := range array(review["executions"]) {
@@ -80,35 +83,41 @@ func TestOfficialPackageSettlement(t *testing.T) {
 		for name, hash := range officialInventory(t, filepath.Join(packageRoot, domain)) {
 			path := filepath.ToSlash(filepath.Join(domain, name))
 			selectedFiles[path] = hash
-			require.Equal(t, readFile(t, filepath.Join(packageRoot, path)), readFile(t, filepath.Join(attempt, path)), path)
+			require.Equal(t, readFile(t, filepath.Join(packageRoot, path)), readFile(t, filepath.Join(archived, path)), path)
 		}
 	}
-	adoptedFiles := officialInventory(t, attempt)
+	adoptedFiles := officialInventory(t, archived)
 	delete(adoptedFiles, "review.json")
 	delete(adoptedFiles, "adoption.json")
 	require.Equal(t, selectedFiles, adoptedFiles)
 	// Each output domain remains independently hashed even when another domain
 	// has a file of the same name. A changed owned file must reject re-import.
 	for _, kind := range []string{"record", "verification"} {
-		path := filepath.Join(attempt, filepath.Dir(str(obj(review[kind])["path"])), "driver-result.json")
+		path := filepath.Join(archived, filepath.Dir(str(obj(review[kind])["path"])), "driver-result.json")
 		original := readFile(t, path)
 		require.NoError(t, os.WriteFile(path, []byte("{}\n"), 0o600))
-		rejected := runTool(t, env, t.TempDir(), "", "prepare", "--recording", attempt, "--fixture-dir", filepath.Join(t.TempDir(), "rejected"))
+		rejected := runTool(t, env, t.TempDir(), "", "prepare", "--recording", archived, "--fixture-dir", filepath.Join(t.TempDir(), "rejected"))
 		require.NotZero(t, rejected.code)
 		require.Contains(t, strings.ToLower(rejected.stderr), "hash")
 		require.NoError(t, os.WriteFile(path, original, 0o600))
 	}
 	require.NoDirExists(t, filepath.Join(attempt, "runtime"))
 	require.NoFileExists(t, filepath.Join(attempt, "fixture.json"))
-	selected, err := filepath.Glob(filepath.Join(attempt, "verify", "*"))
-	require.NoError(t, err)
-	require.Len(t, selected, 1)
+	for _, name := range []string{"executions", "record", "verify", "review.json", "adoption.json"} {
+		require.NoFileExists(t, filepath.Join(attempt, name))
+		require.NoDirExists(t, filepath.Join(attempt, name))
+	}
+	rawPath := filepath.Join(attempt, "raw", "raw.jsonl")
+	raw := readFile(t, rawPath)
+	require.NoError(t, os.WriteFile(rawPath, []byte("{}\n"), 0o600))
+	rejected := runTool(t, env, t.TempDir(), "", "prepare", "--recording", attempt, "--fixture-dir", filepath.Join(t.TempDir(), "changed-core"))
+	require.NotZero(t, rejected.code)
+	require.NoError(t, os.WriteFile(rawPath, raw, 0o600))
 	imported := prepareFixture(t, env, "--recording", attempt)
 	importedPackage := filepath.Join(imported, "packages", str(material["id"]))
-	require.Equal(t, officialInventory(t, attempt), officialInventory(t, importedPackage))
+	require.Equal(t, officialInventory(t, attempt), officialInventory(t, filepath.Join(importedPackage, "material")))
 	require.Empty(t, array(fixtureIndex(t, imported)["executions"]), "archived executions do not join the new fixture schedule")
-	// Core export transfers replay inputs, while the full package above retains
-	// the independently selected official/adoption facts at identical paths.
+	// Corpus publication and export transfer the same original replay core.
 	exported := filepath.Join(t.TempDir(), "core")
 	mustRun(t, env, t.TempDir(), "", "export", "--fixture-dir", fixture, "--output", exported)
 	require.Equal(t, before, officialInventory(t, exported))
@@ -117,6 +126,7 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	}
 	require.NoError(t, os.RemoveAll(fixture))
 	require.NoError(t, os.RemoveAll(attempt))
+	require.NoError(t, os.RemoveAll(corpus.archive))
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", imported)
 	standalone := prepareFixture(t, env, "--recording", exported)
 	require.NoError(t, os.RemoveAll(exported))

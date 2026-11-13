@@ -16,13 +16,13 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-func TestPrepareImportsBuiltinPackageWithoutChangingRecordingIdentity(t *testing.T) {
+func TestPrepareImportsBuiltinCoreWithoutChangingRecordingIdentity(t *testing.T) {
 	selected, _, err := builtin.Select("codex", "SDK-CASE-001")
 	require.NoError(t, err)
 	source, err := builtin.Extract(selected)
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, os.RemoveAll(source)) })
-	original, err := corpus.ReadMaterialDescriptor(filepath.Join(source, "material"))
+	original, err := corpus.ReadMaterialDescriptor(source)
 	require.NoError(t, err)
 	require.NotNil(t, original)
 	require.Equal(t, 3, original.FormatVersion)
@@ -35,7 +35,10 @@ func TestPrepareImportsBuiltinPackageWithoutChangingRecordingIdentity(t *testing
 	require.True(t, present)
 	require.Equal(t, original.ID, current.ID)
 	require.Equal(t, original.FormatVersion, current.FormatVersion)
-	require.NoError(t, builtin.CheckMaterial(PackageRoot(target, current.ID), selected))
+	require.NoError(t, builtin.CheckMaterial(MaterialRoot(target, current.ID), selected))
+	for _, name := range []string{"executions", "record", "verify"} {
+		require.NoDirExists(t, filepath.Join(PackageRoot(target, current.ID), name))
+	}
 }
 
 func TestPreparePublishesOnlyCompleteFixture(t *testing.T) {

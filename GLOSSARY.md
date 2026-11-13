@@ -139,8 +139,8 @@ fixture 当前选中的唯一 materialId 及封存 core 哈希；由它定位 re
 某个 agent type 对一个 case 的一次实际录制，包含 plan、raw、业务报告和收尾证据。
 
 **Recording package（录制证据包）**:
-以唯一 materialId 标识、由 fixture 与最终 case 共用布局的持久包，包含 material core
-及独立 execution、record、verify 证据域；没有同值 recordingId 或 packageId 别名。
+以唯一 materialId 标识的持久证据包，包含 material 及独立的录制、执行和验证事实。
+完整证据包供资格检查和私有归档；发布的 case 只保留 material。
 
 **Material（材料 / material core）**:
 录制证据包内完整、不可变的回放输入，包含唯一派生 plan、原始 source plan、manifest、raw、绑定历史和来源闭包。Material 可以
