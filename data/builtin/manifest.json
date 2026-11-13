@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "toolVersion": "v0.1.3-portable-recordings.2",
-  "sourceRevision": "7cc69cc13d2b47f7de29159479795b890fe036be",
+  "toolVersion": "v0.1.3-portable-recordings.4",
+  "sourceRevision": "77c1afbaa305616ed8463ddad181f8ac9e8a0c83",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "5991811fe34e44f98b45eb5b547962447cc8d2e5215484a60e6e5f8187190d8e",
+  "indexSHA256": "814e9cfc8e6db4f5afd6d4d492271b12d7ff8f5a5ae7b5db7f4437fc80c03511",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -14,7 +14,7 @@
     "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
     "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
     "bindings.schema.json": "3aacaf0924c4508d4dd9274e4c5390bb64e96ce700179dcf1619748196f344a9",
-    "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1",
+    "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47",
     "bindings/codex.json": "d86328ec881180ebdf87cbe8e1157a87d85376b53910b910cc7a55241913fb9f",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
@@ -48,12 +48,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-003",
-      "missingReason": "DeepSeek document input was sent, but the native answer did not establish the supplied content: synthetic document 42; the official recording report remained untriggered.",
+      "missingReason": "当前配置的 Claude 网关路径尚未验证 document 内容支持：DeepSeek 的 PDF 录制未读取文档；GPT 路径在 PDF 和 text/plain document 输入下均回答未提供文档，而内联文本对照通过。原生 CLI 已确认向 API 保留 document 块；GLM-5.3 的对照超时，不能作为支持证据。当前 driver 将该 case 报为 unsupported，不启动原生 Agent。保留原生文档输入和内容断言，不以普通 text 块替代 document；该结论不表示 Claude 或所有模型均不支持文档。",
       "provider": "claude",
       "requirement": "optional",
       "storyId": "SDK-US-001",
-      "verification": "failed",
-      "verificationReason": "DeepSeek document input was sent, but the native answer did not establish the supplied content: synthetic document 42; the official recording report remained untriggered."
+      "verification": "unsupported",
+      "verificationReason": "当前配置的 Claude 网关路径尚未验证 document 内容支持：DeepSeek 的 PDF 录制未读取文档；GPT 路径在 PDF 和 text/plain document 输入下均回答未提供文档，而内联文本对照通过。原生 CLI 已确认向 API 保留 document 块；GLM-5.3 的对照超时，不能作为支持证据。当前 driver 将该 case 报为 unsupported，不启动原生 Agent。保留原生文档输入和内容断言，不以普通 text 块替代 document；该结论不表示 Claude 或所有模型均不支持文档。"
     },
     {
       "adoption": "admitted",
@@ -914,7 +914,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1058,7 +1058,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1199,7 +1199,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1340,7 +1340,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1481,7 +1481,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1625,7 +1625,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1772,7 +1772,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1918,7 +1918,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2064,7 +2064,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2210,7 +2210,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2356,7 +2356,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2501,7 +2501,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2652,7 +2652,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2800,7 +2800,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2953,7 +2953,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3111,7 +3111,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3274,7 +3274,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3436,7 +3436,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3604,7 +3604,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3746,7 +3746,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3893,7 +3893,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4038,7 +4038,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4181,7 +4181,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4325,7 +4325,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4475,7 +4475,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4625,7 +4625,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4793,7 +4793,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4932,7 +4932,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5073,7 +5073,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5228,7 +5228,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5452,7 +5452,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5639,7 +5639,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "86d8aa10a2cd114d4b1185acdb9718cba175a0ef3b846e3b1fc9ee9b5b5383b6",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5790,7 +5790,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5934,7 +5934,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "959f0b7b59b937e39fda1eb5ce08087de56c9892163e043714d26ab92c5892d1"
+        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
