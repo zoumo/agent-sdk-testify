@@ -68,13 +68,6 @@ func LoadPlan(fixture *Fixture) (tool.Object, error) {
 		if err := VerifyHistorySeed(fixture); err != nil {
 			return nil, err
 		}
-		if corpus.SelfSeededChildren(plan) {
-			if _, err := os.Lstat(filepath.Join(history.SeedSource(fixture.HistorySeed), "plan.json")); os.IsNotExist(err) {
-				return plan, nil
-			} else if err != nil {
-				return nil, err
-			}
-		}
 		if err := native.ReadHistorySeed(fixture.HistorySeed, plan); err != nil {
 			return nil, err
 		}

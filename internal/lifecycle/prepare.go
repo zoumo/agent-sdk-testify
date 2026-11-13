@@ -505,7 +505,7 @@ func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (
 		fixture.Source.Path = sourcePath
 		fixture.Source.SHA256 = tool.DigestBytes(rawSource)
 		seedPath := filepath.Join(materialRoot, "history", "seed")
-		if info, err := os.Lstat(seedPath); err == nil && info.IsDir() {
+		if info, err := os.Lstat(seedPath); err == nil && info.IsDir() && !corpus.SelfSeededChildren(spec.plan) {
 			fixture.HistorySeed = SourceSeedPath(fixtureDir)
 			if err := copyMaterial(seedPath, fixture.HistorySeed); err != nil {
 				return nil, err
