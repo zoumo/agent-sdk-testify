@@ -1,8 +1,0 @@
-{
-  "status": "passed",
-  "message": "",
-  "sdk": {
-    "package": "claude-agent-sdk",
-    "version": "0.2.174"
-  }
-}

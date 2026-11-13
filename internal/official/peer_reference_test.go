@@ -12,6 +12,7 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
+	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
 
 func TestReadPeerReferenceAcceptsCompleteEvidence(t *testing.T) {
@@ -37,7 +38,8 @@ func TestReadPeerReferenceRejectsInvalidNotificationFraming(t *testing.T) {
 		data string
 		ref  bool
 	}{
-		{"missing final notification", started, true},
+		{"missing final notification", started + "\n", true},
+		{"unterminated first notification", started, false},
 		{"malformed first notification", `{"status":`, false},
 		{"malformed final notification", started + "\n{\"status\":", true},
 		{"null first notification", "null\n" + finished, false},
@@ -155,8 +157,12 @@ func TestReadPeerReferenceRequiresExactDescriptorAndDurableResult(t *testing.T) 
 		f := newPeerReferenceFixture(t)
 		f.command = "mock"
 		f.execution.Command = "mock"
+		f.execution.ProgressFD = -1
 		f.started["command"], f.finished["command"] = "mock", "mock"
 		f.execution.Artifact.Files = map[string]string{"plan.json": strings.Repeat("a", 64)}
+		f.execution.Artifact.RecordingSHA256 = strings.Repeat("c", 64)
+		f.execution.Connections[0].MaterialID = f.execution.Artifact.ID
+		f.execution.Connections[0].RecordingSHA256 = f.execution.Artifact.RecordingSHA256
 		f.writeExecution()
 		f.refreshNotificationDigest()
 		f.finished["material"] = tool.Object{"id": "material"}
@@ -240,15 +246,25 @@ func TestReadPeerReferenceRequiresMatchingDescriptorIdentityAndValidator(t *test
 
 func TestReadPeerReferenceRequiresOneDeclaredConnection(t *testing.T) {
 	for _, tc := range []struct {
-		name        string
-		connections []lifecycle.ExecutionConnection
+		name   string
+		mutate func(*peerReferenceFixture)
 	}{
-		{"absent connection", nil},
-		{"duplicate connection", []lifecycle.ExecutionConnection{{ID: "main"}, {ID: "main"}}},
+		{"absent connection", func(f *peerReferenceFixture) {
+			f.execution.Connections = nil
+		}},
+		{"duplicate connection", func(f *peerReferenceFixture) {
+			canonical, err := filepath.EvalSymlinks(f.fixtureDir)
+			require.NoError(f.t, err)
+			receipt := filepath.Join(lifecycle.PackageExecutionRoot(canonical, "material", "execution"), "receipts", "main.json")
+			f.execution.Connections = []lifecycle.ExecutionConnection{
+				{ID: "main", Receipt: receipt},
+				{ID: "main", Receipt: receipt},
+			}
+		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			f := newPeerReferenceFixture(t)
-			f.execution.Connections = tc.connections
+			tc.mutate(f)
 			f.writeExecution()
 			f.refreshNotificationDigest()
 			f.write()
@@ -299,23 +315,83 @@ type peerReferenceFixture struct {
 func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 	t.Helper()
 	fixtureDir := filepath.Join(t.TempDir(), "fixture")
-	root := filepath.Join(fixtureDir, "official-records", "run", "driver")
-	executionDir := filepath.Join(fixtureDir, "executions", "execution")
+	root := filepath.Join(fixtureDir, "runtime", "official", "run", "staging")
+	executionDir := lifecycle.PackageExecutionRoot(fixtureDir, "material", "execution")
+	require.NoError(t, os.MkdirAll(filepath.Join(fixtureDir, "source"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(fixtureDir, "executions"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(fixtureDir, "packages"), 0o700))
 	require.NoError(t, os.MkdirAll(filepath.Join(executionDir, "receipts"), 0o700))
 	require.NoError(t, os.MkdirAll(root, 0o700))
 
-	fixture := &lifecycle.Fixture{FixtureID: "fixture"}
-	receipt := filepath.Join(executionDir, "receipts", "main.json")
-	execution := &lifecycle.Execution{
-		SchemaVersion: lifecycle.SchemaVersion,
-		ExecutionID:   "execution",
-		FixtureID:     "fixture",
-		Command:       "record",
-		Connections:   []lifecycle.ExecutionConnection{{ID: "main", Receipt: receipt}},
+	sourceSHA256 := strings.Repeat("a", 64)
+	fixtureSpec := tool.Object{
+		"schemaVersion": lifecycle.SchemaVersion,
+		"fixtureId":     "fixture",
+		"tool": tool.Object{
+			"source":         string(lifecycle.ToolSourceEmbedded),
+			"version":        "(devel)",
+			"module":         version.Module,
+			"moduleRevision": strings.Repeat("b", 40),
+			"goVersion":      "go1.26.10",
+		},
+		"agentType": "codex",
+		"source": tool.Object{
+			"kind":       "plan",
+			"path":       "source/plan.json",
+			"sha256":     sourceSHA256,
+			"provenance": "consumer",
+		},
+		"routes": tool.Object{
+			"record": peerReferenceRoute("record"),
+			"mock":   peerReferenceRoute("mock"),
+		},
+		"limits": tool.Object{},
 	}
+	require.NoError(t, tool.WriteJSON(lifecycle.FixturePath(fixtureDir), fixtureSpec))
+	fixtureDigest, err := tool.FileDigest(lifecycle.FixturePath(fixtureDir))
+	require.NoError(t, err)
+	require.NoError(t, tool.WriteJSON(lifecycle.IndexPath(fixtureDir), tool.Object{
+		"schemaVersion": lifecycle.SchemaVersion,
+		"fixtureId":     "fixture",
+		"fixtureSha256": fixtureDigest,
+		"executions":    []any{},
+	}))
+	require.NoError(t, tool.WriteJSON(lifecycle.MaterialIndexPath(fixtureDir), tool.Object{
+		"schemaVersion": lifecycle.SchemaVersion,
+		"fixtureId":     "fixture",
+		"materials":     []any{},
+	}))
+	require.NoError(t, tool.WriteJSON(filepath.Join(fixtureDir, "current.json"), tool.Object{
+		"schemaVersion": lifecycle.SchemaVersion,
+		"fixtureId":     "fixture",
+	}))
+	fixture, err := lifecycle.OpenFixture(fixtureDir)
+	require.NoError(t, err)
+
 	executionPath := filepath.Join(executionDir, "execution.json")
 	resultPath := filepath.Join(executionDir, "receipts", "main.result.json")
-	require.NoError(t, tool.WriteJSON(executionPath, execution))
+	executionSpec := tool.Object{
+		"schemaVersion": lifecycle.SchemaVersion,
+		"executionId":   "execution",
+		"fixtureId":     "fixture",
+		"command":       "record",
+		"source": tool.Object{
+			"kind": "plan", "path": "source/plan.json", "sha256": sourceSHA256, "provenance": "consumer",
+		},
+		"executor":   "external-sdk",
+		"target":     "native-agent",
+		"provenance": "consumer",
+		"connections": []any{tool.Object{
+			"id": "main", "transport": lifecycle.ConnectionTransportInProcess,
+			"receipt": "executions/execution/receipts/main.json",
+		}},
+		"artifact":  tool.Object{"formatVersion": 2, "id": "material"},
+		"limits":    tool.Object{},
+		"startedAt": "2026-11-12T00:00:00Z",
+	}
+	require.NoError(t, tool.WriteJSON(executionPath, executionSpec))
+	execution, err := lifecycle.ReadExecution(fixtureDir, fixture, executionPath)
+	require.NoError(t, err)
 	digest, err := tool.FileDigest(executionPath)
 	require.NoError(t, err)
 
@@ -324,15 +400,19 @@ func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 		"exitCode": float64(0), "reaped": true, "cleanupComplete": true,
 	}
 	started := tool.Object{
-		"status": "running", "fixtureId": "fixture", "processId": float64(42),
+		"schemaVersion": float64(3), "materialId": "material", "status": "running", "fixtureId": "fixture", "processId": float64(42),
 		"executionId": "execution", "connectionId": "main", "command": "record",
-		"execution": executionPath, "result": resultPath, "receipt": receipt,
+		"execution":       "executions/execution/execution.json",
+		"result":          "executions/execution/receipts/main.result.json",
+		"receipt":         "executions/execution/receipts/main.json",
 		"executionSHA256": digest,
 	}
 	finished := tool.Object{
-		"status": "passed", "fixtureId": "fixture", "processId": float64(42),
+		"schemaVersion": float64(3), "materialId": "material", "status": "passed", "fixtureId": "fixture", "processId": float64(42),
 		"executionId": "execution", "connectionId": "main", "command": "record",
-		"execution": executionPath, "result": resultPath, "receipt": receipt,
+		"execution":       "executions/execution/execution.json",
+		"result":          "executions/execution/receipts/main.result.json",
+		"receipt":         "executions/execution/receipts/main.json",
 		"executionSHA256": digest,
 	}
 	f := &peerReferenceFixture{
@@ -344,6 +424,16 @@ func newPeerReferenceFixture(t *testing.T) *peerReferenceFixture {
 	}
 	f.write()
 	return f
+}
+
+func peerReferenceRoute(action string) tool.Object {
+	return tool.Object{
+		"enabled": true, "executor": "external-sdk", "target": "native-agent",
+		"provenance": "consumer",
+		"connections": []any{tool.Object{
+			"id": "main", "transport": lifecycle.ConnectionTransportInProcess,
+		}},
+	}
 }
 
 func (f *peerReferenceFixture) write() {
@@ -359,6 +449,9 @@ func (f *peerReferenceFixture) writeExecution() {
 	digest, err := tool.FileDigest(f.executionPath)
 	require.NoError(f.t, err)
 	f.executionDigest = digest
+	if resolved, err := lifecycle.ReadExecution(f.fixtureDir, f.fixture, f.executionPath); err == nil {
+		*f.execution = *resolved
+	}
 }
 
 func (f *peerReferenceFixture) refreshNotificationDigest() {

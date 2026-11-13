@@ -79,8 +79,6 @@ def mock_command(provider, source, *args, binary=None):
     if result.returncode:
         # Return the actual failing public invocation for exit-code assertions.
         return prepare
-    descriptor = json.loads((fixture / 'fixture.json').read_text())
-    atexit.register(shutil.rmtree, descriptor['resourceRoot'], ignore_errors=True)
     command = [binary, 'agent', 'mock', '--fixture-dir', str(fixture), *invocation]
     _mock_runs[tuple(command)] = (fixture, receipt)
     return command
@@ -92,19 +90,20 @@ def run_mock(command, **kwargs):
     fixture, receipt = _mock_runs.get(tuple(command), (None, None))
     if result.returncode == 0 and receipt is not None:
         index = json.loads((fixture / 'executions/index.json').read_text())
-        execution = json.loads((fixture / 'executions' / index['executions'][-1]['id'] / 'execution.json').read_text())
+        row = index['executions'][-1]
+        package = fixture / 'packages' / row['materialId']
+        execution = json.loads((package / 'executions' / row['id'] / 'execution.json').read_text())
         actual = execution['connections'][0]['receipt']
+        actual = Path(actual) if Path(actual).is_absolute() else package / actual
         # A test convenience copy of the actual public execution receipt.
         with receipt.open('xb') as target:
-            target.write(Path(actual).read_bytes())
+            target.write(actual.read_bytes())
     return result
 
 
 
 def prepare_fixture(root, plan, binary=None):
     import json
-    import atexit
-    import shutil
     binary = binary or identity()['path']
     source = root / 'consumer-plan.json'
     source.write_text(json.dumps({'version': 1, 'agentType': plan['provider'],
@@ -115,13 +114,10 @@ def prepare_fixture(root, plan, binary=None):
                             capture_output=True, timeout=5)
     if result.returncode:
         raise ValueError(result.stderr.decode())
-    descriptor = json.loads((fixture / 'fixture.json').read_text())
-    atexit.register(shutil.rmtree, descriptor['resourceRoot'], ignore_errors=True)
     return fixture
 
 
 def current_capture(fixture):
     import json
     current = json.loads((fixture / 'current.json').read_text())
-    index = json.loads((fixture / 'materials/index.json').read_text())
-    return Path(next(item['path'] for item in index['materials'] if item['id'] == current['materialId']))
+    return Path(fixture) / 'packages' / current['materialId'] / 'material'

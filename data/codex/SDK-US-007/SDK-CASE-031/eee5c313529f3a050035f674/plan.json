@@ -1,0 +1,65 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-031",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "关闭拥有的会话并确认交互与进程结束。",
+    "storyId": "SDK-US-007"
+  },
+  "caseId": "SDK-CASE-031",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "session-close",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-031/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply Ready."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-031",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "关闭拥有的会话并确认交互与进程结束。",
+      "storyId": "SDK-US-007"
+    },
+    "caseId": "SDK-CASE-031",
+    "configuration": {},
+    "driverProfile": "session-close",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Reply Ready."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-007"
+  },
+  "sourcePlanSHA256": "b367a09f0690c698d2c67b5667811c25e733a1bdc663b6b8b0c2c730c2b26613",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-007",
+  "storyId": "SDK-US-007"
+}

@@ -1,0 +1,58 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-016-fixture-runtime-executions-15fc6a3a6398e1cf2c3e0db7033d6348-workspace/808efb54-bcb5-4985-8b55-314bb0fd7c6f/subagents/agent-aaa612eebb3c82480.meta.json": "add04d4038f309f30bc0477007f70402325e94183d4fee21f4897615c55908de",
+    "official-origin.json": "c645538c7389626d527b347e3e09417eb7382bf18f0c547405cf67b3a781f0c8",
+    "origin/main.json": "67c9e676232c4ba94f06795097023f7df4e13fbf3c0186cc2d8b44190421208d",
+    "plan.json": "a5a02e63b82a51193b2d92020fd60c0fb4fa71b84bbf6d43987d82a64bbf772b",
+    "raw/manifest.json": "34b5b88d2f0cbe7b604fcd3df4c44f601d7ba19445dd64f75fdc8ea675283846",
+    "raw/raw.jsonl": "0157e98e2d1c0a82b43545d2a7180367f424e9388c203af83375b8d7d1bd95f0",
+    "raw/stderr.raw": "87adb7e2a99d597ca97ba3b110ff5ed98caef5cf68faef79e6d51e10131c8104",
+    "raw/transport.json": "ece995944c71965ea4399920eaa17a68a30d019bddffa5db8bb5cd3f1bc37f75",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "e409b4393c6f1100d0438ede1b27a0137df79b1672f933804ca676970a975384"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--forward-subagent-text",
+      "--settings",
+      "{\"permissions\":{\"ask\":[\"Agent\",\"Read\"]}}",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-016/fixture/runtime/executions/15fc6a3a6398e1cf2c3e0db7033d6348/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "a5a02e63b82a51193b2d92020fd60c0fb4fa71b84bbf6d43987d82a64bbf772b",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "ece995944c71965ea4399920eaa17a68a30d019bddffa5db8bb5cd3f1bc37f75",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "e409b4393c6f1100d0438ede1b27a0137df79b1672f933804ca676970a975384",
+  "status": "captured"
+}

@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/lifecycle"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -20,7 +19,8 @@ type driverRunOptions struct {
 	Workspace  string
 	Root       string
 	PrivateDir string
-	Plan       tool.Object
+	Material   tool.Object
+	Runtime    tool.Object
 	Peers      map[string]tool.Command
 	ReportFile string
 	// Inspect may add policy-owned evidence after the process and reports are
@@ -32,12 +32,13 @@ type driverRunResult struct {
 	Process            tool.Object
 	Outcome            tool.Object
 	Report             tool.Object
-	Files              map[string]string
-	FileHashesComplete bool
 	ProcessGroupFailed bool
 }
 
 func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error) {
+	if err := validateDriverRuntime(o.Runtime); err != nil {
+		return nil, err
+	}
 	if err := os.MkdirAll(o.Root, 0o700); err != nil {
 		return nil, err
 	}
@@ -75,16 +76,22 @@ func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error
 			return nil, fmt.Errorf("unsupported driver connection %s", id)
 		}
 	}
-	o.Plan["_agentResults"] = results
-	materials := filepath.Join(o.Root, "materials")
+	o.Runtime["fixtureDir"] = o.Activity.FixtureDir
+	o.Runtime["agentResults"] = results
+	o.Runtime["peer"] = peer
+	runtimePath := filepath.Join(o.PrivateDir, "runtime.json")
+	if err := tool.WriteJSON(runtimePath, o.Runtime); err != nil {
+		return nil, err
+	}
+	materials := filepath.Join(o.PrivateDir, "materials")
 	if err := os.MkdirAll(materials, 0o700); err != nil {
 		return nil, err
 	}
-	if err := tool.WriteJSON(filepath.Join(materials, "case.json"), o.Plan); err != nil {
+	if err := tool.WriteJSON(filepath.Join(materials, "case.json"), o.Material); err != nil {
 		return nil, err
 	}
-	requestPath := filepath.Join(o.Root, "request.json")
-	if err := tool.WriteJSON(requestPath, Request{Case: tool.Str(o.Plan["caseId"]), Materials: materials, Workspace: o.Workspace, Peer: peer, Output: o.Root}); err != nil {
+	requestPath := filepath.Join(o.PrivateDir, "request.json")
+	if err := tool.WriteJSON(requestPath, Request{Case: tool.Str(o.Material["caseId"]), Materials: materials, Runtime: runtimePath}); err != nil {
 		return nil, err
 	}
 	stdout, err := os.OpenFile(filepath.Join(o.Root, "stdout.log"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
@@ -98,8 +105,7 @@ func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error
 	cmd := exec.CommandContext(context.WithoutCancel(ctx), o.Driver, "--request", requestPath)
 	cmd.Env, cmd.Dir, cmd.Stdout, cmd.Stderr = environment(o.Env), o.Workspace, stdout, stderr
 	runErr := o.Activity.WaitDriver(ctx, cmd)
-	_ = stdout.Close()
-	_ = stderr.Close()
+	runErr = errors.Join(runErr, stdout.Close(), stderr.Close())
 	result := &driverRunResult{
 		Process: tool.Object{"started": cmd.Process != nil, "reaped": cmd.ProcessState != nil, "cleanupComplete": cmd.ProcessState != nil},
 	}
@@ -123,8 +129,16 @@ func runDriver(ctx context.Context, o driverRunOptions) (*driverRunResult, error
 	if o.Inspect != nil {
 		runErr = errors.Join(runErr, o.Inspect(result.Outcome, result.Report, runErr))
 	}
-	var hashErr error
-	result.Files, hashErr = history.HashTree(o.Root)
-	result.FileHashesComplete = hashErr == nil
-	return result, errors.Join(runErr, hashErr)
+	// Each output has a single final owner; launch inputs stay in runtime.
+	if _, err := os.Stat(filepath.Join(o.Root, "result.json")); err == nil {
+		runErr = errors.Join(runErr, os.Rename(filepath.Join(o.Root, "result.json"), filepath.Join(o.Root, "driver-result.json")))
+	}
+	if !result.ProcessGroupFailed {
+		if err := sealPeerEvidence(o.Activity, o.Root, o.Peers); err != nil {
+			result.ProcessGroupFailed = true
+			runErr = errors.Join(runErr, err)
+		}
+	}
+	_ = os.Remove(filepath.Join(o.Root, "origin.json"))
+	return result, runErr
 }

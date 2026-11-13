@@ -1,0 +1,54 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-29-49-01a1d173-c9da-7971-bc35-fe47de802668.jsonl": "be7a69bfba950ad5cb8d989ac29d9b1eb8c12dc6db8b8f6b9b282226004987a3",
+    "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-29-54-01a1d173-de43-7173-9d49-331579ef7c1b.jsonl": "f0caad4f2a9e644cb327d363c9d673ebcb03d31887df1db9901deff4cbe99875",
+    "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T04-29-54-01a1d173-dfb2-7420-bf22-c9548639ccc0.jsonl": "8d021c7654dfc862886a9d74dc1fdc0a42a318f2f639359549c7070ceafc972b",
+    "official-origin.json": "c173ff8d7126813e84ea58d89e5e1705a35117640a08d9ee4e7b5e10d6af1827",
+    "origin/main.json": "f17bd63cb7b30bf8eed65d2a27d786037d302e6c80087597dbc80f43ef1d3960",
+    "plan.json": "9e2bb874c3e0f6f2955cf94a1eee262577c456f93886d63e6c508ad9982022d5",
+    "raw/manifest.json": "01ae9e948d3955dc5d6216848f3264bf22f323a5660b2671c6630c5ecdfe5c12",
+    "raw/raw.jsonl": "9b94373abdcbd7ab1251f2a3d64dc6e9233c1aa20b5a0ab3436b8066557734c0",
+    "raw/stderr.raw": "c0465fc253addd0aa18b3b6acaf56f088d42ca2b868c787a74f1f80482acbca1",
+    "raw/transport.json": "959036febfd7884bdf496dfb382eeb8d85848e0d8150269c33fb9f5dbd751e35",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "3446c3237bd3137d6303feca26863ba15ccc55f027b7ca788796c42a297b0823"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "agents.enabled=true",
+      "-c",
+      "features.multi_agent=true",
+      "-c",
+      "agents.max_depth=2",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/codex/SDK-CASE-018/fixture/runtime/executions/2f814c487f92448ab69c9c01add92031/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "9e2bb874c3e0f6f2955cf94a1eee262577c456f93886d63e6c508ad9982022d5",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "959036febfd7884bdf496dfb382eeb8d85848e0d8150269c33fb9f5dbd751e35",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "3446c3237bd3137d6303feca26863ba15ccc55f027b7ca788796c42a297b0823",
+  "status": "captured"
+}

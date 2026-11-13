@@ -1,0 +1,52 @@
+{
+  "case": {
+    "id": "SDK-CASE-010",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "批准命令审批并观察后续结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-010",
+  "driverProfile": "approval",
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "prompts": [
+    "Run the shell command printf SYNTHETIC_COMMAND exactly once. Request execution outside the sandbox so the application can approve it. Do not retry if permission is denied."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-010",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "批准命令审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-010",
+    "configuration": {},
+    "driverProfile": "approval",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalDecision": "allow",
+      "approvalKind": "command"
+    },
+    "prompts": [
+      "Run the shell command printf SYNTHETIC_COMMAND exactly once. Request execution outside the sandbox so the application can approve it. Do not retry if permission is denied."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "approval_answer"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

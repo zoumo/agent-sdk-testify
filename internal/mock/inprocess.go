@@ -75,7 +75,10 @@ func (p inProcessReplayPolicy) Replay(ctx context.Context, run lifecycle.MockCon
 func replayInProcessConnection(ctx context.Context, policy inProcessReplayPolicy, run lifecycle.MockContext) (err error) {
 	reportPath := run.ConnectionReceipt()
 	outcome, openErr := openReplayOutcome(reportPath, tool.Object{
-		"schemaVersion":   1,
+		"schemaVersion":   2,
+		"materialId":      run.Artifact().ID,
+		"executionId":     run.Execution().ExecutionID,
+		"connectionId":    run.Connection(),
 		"version":         1,
 		"status":          "failed",
 		"peer":            "Go in-process mock",
@@ -84,7 +87,7 @@ func replayInProcessConnection(ctx context.Context, policy inProcessReplayPolicy
 		"fullConsumption": false,
 		"clientEOF":       false,
 		"cleanupComplete": true,
-		"recording":       run.Artifact().Path,
+		"recording":       run.MaterialReference(),
 		"toolVersion":     version.String(),
 	})
 	if openErr != nil {

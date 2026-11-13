@@ -9,6 +9,7 @@ from pathlib import Path
 
 from record_user_story.adapters.common import serial
 from record_user_story.environment import read_regular
+from record_user_story.runtime_config import execution_workspace
 
 REQUIRED_PHASE_FILES = frozenset(('remote-service.json', 'remote-probe/raw/raw.jsonl',
     'remote-probe/raw/manifest.json', 'remote-probe/raw/transport.json', 'remote-probe/raw/stderr.raw'))
@@ -39,7 +40,7 @@ def codex(plan, report, flow):
         peer = plan['_peer'] if phase == 'main' else plan['_peer']['probe']
         return CodexClient(config=CodexConfig(
             launch_args_override=tuple([peer['command'], *peer.get('args', [])]),
-            cwd=plan.get('_fixtureProject', plan['project']), client_name='official-python-remote-case',
+            cwd=str(execution_workspace(plan)), client_name='official-python-remote-case',
             client_title='Remote connection close'))
 
     with client('main') as first:

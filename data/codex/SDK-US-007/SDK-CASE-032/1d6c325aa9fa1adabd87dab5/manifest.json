@@ -1,0 +1,41 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T03-54-11-01a1d153-2c6b-7561-983e-e571eb9ab899.jsonl": "da57075e9d4070d5bdf6b877c382d82e4024cc5ad5ec8bb09e1938451e114f95",
+    "official-origin.json": "1f981edf5537372c8a6e93fb9e14ad6065098efe9d4d4ffb10f353fc45cfd379",
+    "origin/main.json": "126e0877abc7ea86bdadd86ead4ab8275ca27eef05b6688f6c2148a4a3934cdf",
+    "origin/probe.json": "752d57b700e5bd89f6aee2a21b75c24f8e0716529c50184ab3876cf1080cbc7f",
+    "plan.json": "54bc7402aebae87197a0c18e474b4f8938322b74ccaa1fba332e81a6da693de0",
+    "raw/manifest.json": "d7293f16927978821b9fbe6c979fdeaee1e26ec88aadcccd330c90c5ad58fe13",
+    "raw/raw.jsonl": "8720777a403eab547da4010c3c5d38c768e66c7a751cb66cebf047c536242f48",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "56b3db3431ed1addd5b4a979b2b76e825da3963148959ea2e60c591710439761",
+    "remote-probe/raw/manifest.json": "8bc617063edddf594e6df55f047b2422d5b7a4f9b71ee2948f2e8b4621ab2b88",
+    "remote-probe/raw/raw.jsonl": "02bb2dd3296374405d54eb12e08f0917df7006ba521ad212da974baabad5da43",
+    "remote-probe/raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "remote-probe/raw/transport.json": "dc4d32b40a0071be45fbe5482e7ab57541fa503ab1514eabc8308f5834b46779",
+    "report.json": "d9aa19fbc55ea3ad24bc816c3bdae96fcc0206f1664f59299da9a8b38f33f61b",
+    "source-plan.json": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": null,
+    "cwd": "",
+    "executable": "",
+    "sha256": "",
+    "transport": "websocket"
+  },
+  "planSHA256": "54bc7402aebae87197a0c18e474b4f8938322b74ccaa1fba332e81a6da693de0",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "56b3db3431ed1addd5b4a979b2b76e825da3963148959ea2e60c591710439761",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3",
+  "status": "captured"
+}

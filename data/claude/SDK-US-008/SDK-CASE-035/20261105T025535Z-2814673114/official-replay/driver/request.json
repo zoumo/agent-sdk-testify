@@ -1,9 +1,0 @@
-{
-  "case": "SDK-CASE-035",
-  "materials": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/verifications/f3fbc068338d634413a5eb8602cc40c3/driver/materials",
-  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/routes/mock/workspace",
-  "peer": {
-    "command": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-2783316625/official/f3fbc068338d634413a5eb8602cc40c3/peer-main"
-  },
-  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-seed-remote-fix/claude-SDK-CASE-035/verifications/f3fbc068338d634413a5eb8602cc40c3/driver"
-}

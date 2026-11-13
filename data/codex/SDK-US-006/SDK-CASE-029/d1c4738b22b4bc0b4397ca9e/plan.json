@@ -1,0 +1,89 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "agents.enabled=true",
+    "-c",
+    "features.multi_agent=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-029",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-029",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "history",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+      "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T03-54-05-01a1d153-14f6-78d1-b7a6-311d78c422d0.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T03-54-05-01a1d153-14f6-78d1-b7a6-311d78c422d0.jsonl",
+      "sha256": "2b1252de753c93ab78039952b444fd47f00ae9b52d7cfaf5e051c8bd33ed2d1b"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "01a1d153-34d6-7b61-9487-b70268330c62",
+      "parentSessionId": "01a1d153-14f6-78d1-b7a6-311d78c422d0",
+      "childSessionId": "01a1d153-34d6-7b61-9487-b70268330c62",
+      "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T03-54-13-01a1d153-34d6-7b61-9487-b70268330c62.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T03-54-13-01a1d153-34d6-7b61-9487-b70268330c62.jsonl",
+      "sha256": "eec8fd90fff91a078e0963fc28eb8f11838187c7a5ac2fc53dde9acea8d4806f"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-029/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-029",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-029",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "childConfiguration": "model",
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "sourcePlanSHA256": "b4c214dbf597cedcfe2847503fe15bfe510fc427a88fb898c2c6f08e0548b288",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

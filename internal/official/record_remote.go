@@ -26,14 +26,11 @@ func waitRecordStart(ctx context.Context, fixtureDir string, fixture *lifecycle.
 				if id == "" || filepath.Base(id) != id || !filepath.IsLocal(id) || started["status"] != "running" || started["fixtureId"] != fixture.FixtureID || started["command"] != "record" || started["connectionId"] != "main" {
 					return nil, errors.New("owned service received an invalid execution start")
 				}
-				var execution lifecycle.Execution
-				if err := tool.ReadJSON(filepath.Join(fixtureDir, "executions", id, "execution.json"), &execution); err != nil {
+				execution, err := lifecycle.ReadExecution(fixtureDir, fixture, filepath.Join(lifecycle.PackageExecutionRoot(fixtureDir, tool.Str(started["materialId"]), id), "execution.json"))
+				if err != nil {
 					return nil, err
 				}
-				if err := execution.Validate(*fixture); err != nil {
-					return nil, err
-				}
-				return &execution, nil
+				return execution, nil
 			}
 		}
 		select {

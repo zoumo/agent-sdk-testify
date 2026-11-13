@@ -1,9 +1,0 @@
-{
-  "case": "SDK-CASE-006",
-  "materials": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/verifications/ef038e13d9c88405bfcec61d6cd75ec8/driver/materials",
-  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/routes/mock/workspace",
-  "peer": {
-    "command": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-637601898/official/ef038e13d9c88405bfcec61d6cd75ec8/peer-main"
-  },
-  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-claude-document-tools/isolated/claude-SDK-CASE-006/verifications/ef038e13d9c88405bfcec61d6cd75ec8/driver"
-}

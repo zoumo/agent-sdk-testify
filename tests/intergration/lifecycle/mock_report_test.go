@@ -78,8 +78,8 @@ func checkMockFinalizeFailure(t *testing.T, fault string) {
 	require.NoError(t, tool.ReadJSON(lifecycle.IndexPath(dir), &index))
 	require.Len(t, index.Executions, 1)
 	executionDir := lifecycle.ExecutionDir(dir, index.Executions[0].ID)
-	var execution lifecycle.Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "execution.json"), &execution))
+	execution, err := lifecycle.ReadExecution(dir, fixture, filepath.Join(executionDir, "execution.json"))
+	require.NoError(t, err)
 	wantStatus := lifecycle.ConnectionStatusPassed
 	wantError := ""
 	switch fault {
@@ -100,7 +100,7 @@ func checkMockFinalizeFailure(t *testing.T, fault string) {
 		})
 		wantError = "too many levels of symbolic links"
 	case "finalize lock":
-		require.NoError(t, os.Mkdir(filepath.Join(executionDir, "mock-finalize.lock"), 0o700))
+		require.NoError(t, os.Mkdir(filepath.Join(lifecycle.ExecutionOverlayRoot(dir, execution.ExecutionID), "mock-finalize.lock"), 0o700))
 		wantStatus = lifecycle.ConnectionStatusFailed
 		wantError = "is a directory"
 	}
@@ -145,8 +145,8 @@ func checkMockFinalizeFailure(t *testing.T, fault string) {
 		require.Equal(t, "cleanup", durable["failureClass"])
 		require.Equal(t, lifecycle.FailureClassCleanup, lifecycle.FailureClassOf(completed.err))
 	}
-	require.Error(t, lifecycle.ValidateMockConnection("codex", execution, execution.Connections[0]))
-	require.Error(t, lifecycle.ValidateMockExecution(dir, fixture, execution))
+	require.Error(t, lifecycle.ValidateMockConnection("codex", *execution, execution.Connections[0]))
+	require.Error(t, lifecycle.ValidateMockExecution(dir, fixture, *execution))
 	require.Equal(t, before, evidenceBytes(t, paths), "readers must preserve all evidence bytes")
 	if fault == "route" {
 		// Representative corrupt facts reach both adapters through their real
@@ -167,7 +167,7 @@ func checkMockFinalizeFailure(t *testing.T, fault string) {
 				require.NoError(t, tool.WriteJSON(path, value))
 				t.Cleanup(func() { require.NoError(t, os.WriteFile(path, before[path], 0o600)) })
 				corrupt := evidenceBytes(t, paths)
-				officialErr := lifecycle.ValidateMockConnection("codex", execution, execution.Connections[0])
+				officialErr := lifecycle.ValidateMockConnection("codex", *execution, execution.Connections[0])
 				require.Error(t, officialErr)
 				rejected, readErr := lifecycle.ReadMockExecutionReport(dir, result.ExecutionID)
 				require.EqualError(t, readErr, officialErr.Error())

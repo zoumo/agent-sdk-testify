@@ -1,0 +1,49 @@
+{
+  "case": {
+    "id": "SDK-CASE-002",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "提交图片并读取结果。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-002",
+  "driverProfile": "structured-input",
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "prompts": [
+    "Reply with only the dominant color name of the supplied image. Do not use tools."
+  ],
+  "provider": "codex",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-002",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "提交图片并读取结果。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-002",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "inputKind": "image"
+    },
+    "prompts": [
+      "Reply with only the dominant color name of the supplied image. Do not use tools."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

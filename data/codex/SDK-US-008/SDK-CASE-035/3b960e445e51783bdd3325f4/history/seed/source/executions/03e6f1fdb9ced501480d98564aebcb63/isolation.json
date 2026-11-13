@@ -1,0 +1,50 @@
+{
+  "configuration": {
+    "config.toml": "b88d815f66f9131629a388389a7d1eb61ef86bae793a416182ff1a4f84ad13ef"
+  },
+  "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/executions/03e6f1fdb9ced501480d98564aebcb63/workspace",
+  "environment": {
+    "CODEX_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/executions/03e6f1fdb9ced501480d98564aebcb63/config",
+    "HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/executions/03e6f1fdb9ced501480d98564aebcb63/home",
+    "TMPDIR": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/executions/03e6f1fdb9ced501480d98564aebcb63/tmp",
+    "XDG_CACHE_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/executions/03e6f1fdb9ced501480d98564aebcb63/home/.cache",
+    "XDG_CONFIG_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/executions/03e6f1fdb9ced501480d98564aebcb63/home/.config",
+    "XDG_DATA_HOME": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r3/codex/SDK-CASE-034/fixture/runtime/executions/03e6f1fdb9ced501480d98564aebcb63/home/.local/share"
+  },
+  "execution": {
+    "path": "executions/03e6f1fdb9ced501480d98564aebcb63/execution.json",
+    "sha256": "fd55cb31206fd5290a2778b646a69e3b9dd4d9411910a294cb1db86788c61687"
+  },
+  "executionId": "03e6f1fdb9ced501480d98564aebcb63",
+  "fixtureId": "eb8f6368270ddc499013080adafd1980",
+  "manifestSHA256": "9a080b78dbba3022ce2f8d8cff0de9b577d3d4ace20b1c86f81c609729c51b89",
+  "materialId": "275eeb775ef2cacba024a377fa760b50",
+  "method": "native-preparation",
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "agents.enabled=true",
+      "-c",
+      "features.multi_agent=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af"
+  },
+  "planSHA256": "c96b63797ccb08748ae0d8748efee7e28915dccd77382b3da2d14971e296486b",
+  "policy": "personal-skills-v1",
+  "preparedPlan": {
+    "path": "executions/03e6f1fdb9ced501480d98564aebcb63/prepared-plan.json",
+    "sha256": "93acf92a1ec5a3938d43e9fae40372a84493442315ff5d50fd844e440ab3f186"
+  },
+  "schemaVersion": 3,
+  "sourcePlanSHA256": "4951224e7a95bb859407d5dbc8cb5db3126219a7c94ae27b48639eaafdd66d08",
+  "toolSHA256": "fef1b22475a4992019caff810e904978978fe67fe471d1888e5beb66164de8db"
+}

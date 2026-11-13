@@ -23,7 +23,7 @@ import (
 )
 
 // Controlled processes exercise the actual replay kernel, independently of SDKs.
-// Public installed CLI coverage belongs to test/e2e.
+// Public installed CLI coverage belongs to tests/e2e.
 func TestReplayKernelProcesses(t *testing.T) {
 	for _, provider := range []string{"codex", "claude"} {
 		t.Run(provider, func(t *testing.T) {

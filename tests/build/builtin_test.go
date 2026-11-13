@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zoumo/agent-sdk-testify/internal/testutil"
+	"github.com/zoumo/agent-sdk-testify/internal/testutil/builtintest"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
@@ -40,7 +41,7 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 		return cmd.CombinedOutput()
 	}
 	// A selected missing file must fail, even though the generated bundle exists.
-	_, source := testutil.BuiltinTranscript(t, "codex", "SDK-CASE-001", "main")
+	_, source := builtintest.BuiltinTranscript(t, "codex", "SDK-CASE-001", "main")
 	relativeSource, err := filepath.Rel(repository, source)
 	require.NoError(t, err)
 	raw := filepath.Join(root, relativeSource, "raw", "raw.jsonl")
@@ -49,11 +50,11 @@ func TestBuiltinGeneratorArtifactContract(t *testing.T) {
 	require.NoError(t, os.Remove(raw))
 	data, err = invoke()
 	require.Error(t, err)
-	assert.Contains(t, string(data), "inventory drift")
+	assert.Contains(t, string(data), "material core inventory is incomplete or contains extra files")
 	require.NoError(t, os.WriteFile(raw, append(original, 10), 0o600))
 	data, err = invoke()
 	require.Error(t, err)
-	assert.Contains(t, string(data), "inventory drift")
+	assert.Contains(t, string(data), "material core inventory hash mismatch: raw/raw.jsonl")
 	require.NoError(t, os.WriteFile(raw, original, 0o600))
 	// Changes in the authoritative contract invalidate the generated snapshot.
 	contract := filepath.Join(root, "data", "scenarios", "SDK-US-001.json")

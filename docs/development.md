@@ -38,7 +38,7 @@ agent-sdk-testify/
     index.json              # 固定索引
     builtin/                # 生成的发布快照
   tests/intergration/       # 多模块集成测试
-  test/e2e/                 # installed CLI 的完整流程测试
+  tests/e2e/                # installed CLI 的完整流程测试
   tests/build/              # 生成器、入口一致性与独立构建检查
   drivers/                  # 官方 driver 与 Python wheel
   docs/ / scripts/ / README.md / LICENSE
@@ -91,6 +91,8 @@ official 编排、driver 和公开 agent 命令的职责以
 
 原件及失败尝试保存在 Git 外私有归档。已跟踪材料按 agentType/story/case/attempt 归属；
 固定索引保留所有要求、失败和缺口。移动不改变原始 plan/raw、attempt 身份或来源哈希。
+新采用的 attempt 根只包含原字节 material；完整 execution、record、verify 和采用
+证明留在私有归档。内置快照从固定索引的材料哈希和资格摘要生成，不读取外部归档。
 派生运行副本须保留原/派生路径及双向哈希关联，不改写原件或放宽协议字段。
 consumer material 保持在消费者私有目录，不登记固定索引、不进入内置快照。
 材料发布须遵守[工具设计](design.md#信任与入仓)。
@@ -130,13 +132,20 @@ required/optional、planned/unsupported 及原因必须保留。
 |---|---|---|---|
 | 单元测试 | 与被测代码放在一起的 `*_test.go` | 单个模块的规则，如协议匹配、哈希、字段校验、配置和历史派生 | 直接调用函数，不启动 CLI、SDK、Agent 或子进程，不访问网络 |
 | 集成测试 | `tests/intergration/` | 多个真实模块之间的协作，如材料加载与校验、采集与回放、状态与回执 | 可以使用临时文件、本地管道和回环连接，必要时 mock 外部依赖；不走完整 CLI 流程 |
-| 端到端测试 | `test/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
+| 端到端测试 | `tests/e2e/` | 消费者实际使用的完整流程，如 prepare → record → mock | 使用实际构建的 CLI，通过 argv、stdio、退出码、descriptor、文件和哈希检查结果，不直接调用 lifecycle 函数 |
 
 根目录 `library*_test.go` 是公开库能力的最高验收接缝：测试包固定为
 `agenttestify_test`，只导入模块公开路径，不调用 CLI；可以使用临时文件、受控子进程
 和本地回环连接。这些测试由 `make test` 和 `make test-race` 纳入默认门禁。
-embedded prepare 读取 Go build info 中的精确 VCS 身份，因此根库测试必须以
-`-buildvcs=true` 在干净工作树上运行；`Makefile` 和离线门禁已固定该参数。
+embedded prepare 读取 Go build info 中的精确 VCS 身份。Go 1.26.10 在 `.git` 为文件的
+linked worktree 中不写入 VCS 信息，因此使用标准 `make` 测试/构建命令或
+`scripts/check-offline.sh`：入口从干净源码的精确 HEAD 创建本地独立 checkout，核对
+HEAD/tree 后以 `-buildvcs=true` 执行测试。dirty 源码必须先提交，不能测试旧 HEAD
+代替未提交内容。已有 `.git` 目录的 checkout 原地运行，不重复复制。
+聚焦命令可以使用 `bash scripts/with-build-checkout.sh go test -buildvcs=true ...`。
+wrapper 不修改构建身份或产品校验，也不获取网络依赖；失败保留临时 checkout 与命令日志
+并输出位置，成功清理临时目录。标准入口的构建产物和门禁日志仍输出到调用方仓库的
+`bin/`、`.artifacts/` 或显式输出目录；自行传给 wrapper 的输出路径须使用绝对路径。
 `tests/build/` 比较公开库 fixture 与 installed CLI fixture 的 layout、descriptor 形状、
 material 字节和哈希，不复制 CLI 用例集。
 
@@ -173,7 +182,7 @@ race 是检查方式，不是第四层测试。单元和集成测试使用 `go t
 完整门禁中的同一套 CLI 流程只需用 race CLI 跑一次；普通发布二进制另做少量启动和打包检查。
 
 默认三层测试均离线，不启动真实 Agent、不需要认证、不安装官方 SDK、不新增录制。
-端到端不等于真实 Agent 测试；需要真实 Agent 的场景仍放在 `test/e2e/`，仅显式授权执行，
+端到端不等于真实 Agent 测试；需要真实 Agent 的场景仍放在 `tests/e2e/`，仅显式授权执行，
 保留 opt-in 门禁和默认 skip。合同和材料存在不证明当前 SDK 通过，合成材料必须保持
 synthetic 身份。官方验证、SDK 仿真和真实 E2E 分别报告，不互相背书。
 

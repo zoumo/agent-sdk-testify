@@ -1,9 +1,0 @@
-{
-  "case": "SDK-CASE-037",
-  "materials": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/official-records/3125946fcdc5f73e389c5fcc6b56f8bd/driver/materials",
-  "workspace": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/routes/record/workspace",
-  "peer": {
-    "command": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/runtime/official/3125946fcdc5f73e389c5fcc6b56f8bd/peer-main"
-  },
-  "output": "/Users/jim/code/zoumo/agent-sdk-testify/.artifacts/context-inject/claude-idle-1/official-records/3125946fcdc5f73e389c5fcc6b56f8bd/driver"
-}

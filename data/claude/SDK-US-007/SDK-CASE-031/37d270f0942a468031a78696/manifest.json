@@ -1,0 +1,54 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "e861e466b1e11e0683dc629c16174bbe3a3ef54556ffdd4c7a7d3643da91e92e",
+    "origin/main.json": "d0f983306096da7a1006570ea77d4eac95137573be1eab1c6def336483045a53",
+    "plan.json": "d8a070f39a649d2691161f0e724a0a61f960892004885821b23038a6b95f4ccf",
+    "raw/manifest.json": "8ec36303ba7143d411819e9d3ef454d736742f43af33a3f25cd2a2acf257381c",
+    "raw/raw.jsonl": "1a5ed4e03c48ec85a809a656dc05c526002eb7bb1cc157ac740ac35f6eea3a5c",
+    "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+    "raw/transport.json": "6b13234985a18680095c7797fb3c51a9359db8de215f33e1ada720e161f830d3",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "b2cfff5387944734fce07472b54b8daa9e3cacdc7a4eca155bc9fd37b94deb85"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-031/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-031/fixture/runtime/executions/a2da020658979ab1d5b2bae2d6a1b309/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "d8a070f39a649d2691161f0e724a0a61f960892004885821b23038a6b95f4ccf",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "6b13234985a18680095c7797fb3c51a9359db8de215f33e1ada720e161f830d3",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "b2cfff5387944734fce07472b54b8daa9e3cacdc7a4eca155bc9fd37b94deb85",
+  "status": "captured"
+}

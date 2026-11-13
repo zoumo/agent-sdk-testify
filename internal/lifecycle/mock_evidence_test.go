@@ -21,7 +21,7 @@ func TestMockEvidenceReadersRejectTampering(t *testing.T) {
 		mutate     func(tool.Object)
 	}{
 		{"replay missing schema", "replay", func(v tool.Object) { delete(v, "schemaVersion") }},
-		{"replay wrong schema", "replay", func(v tool.Object) { v["schemaVersion"] = 2 }},
+		{"replay wrong schema", "replay", func(v tool.Object) { v["schemaVersion"] = 1 }},
 		{"replay wrong version", "replay", func(v tool.Object) { v["version"] = 2 }},
 		{"replay failed status", "replay", func(v tool.Object) { v["status"] = "failed" }},
 		{"replay schema type", "replay", func(v tool.Object) { v["schemaVersion"] = "1" }},
@@ -226,7 +226,7 @@ func TestMockEvidenceReadersRejectUnreadableFiles(t *testing.T) {
 func mockEvidenceFiles(t *testing.T) (Execution, string) {
 	t.Helper()
 	root := t.TempDir()
-	materialRoot := filepath.Join(root, "material")
+	materialRoot := MaterialRoot(root, "material")
 	require.NoError(t, os.MkdirAll(filepath.Join(materialRoot, "raw"), 0o700))
 	planPath := filepath.Join(materialRoot, "plan.json")
 	rawPath := filepath.Join(materialRoot, "raw", "raw.jsonl")
@@ -245,7 +245,7 @@ func mockEvidenceFiles(t *testing.T) (Execution, string) {
 	}))
 	manifestHash, err := tool.FileDigest(manifestPath)
 	require.NoError(t, err)
-	dir := filepath.Join(root, "executions", "execution")
+	dir := PackageExecutionRoot(root, "material", "execution")
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "receipts"), 0o700))
 	connection := ExecutionConnection{
 		ID: "main", Transport: ConnectionTransportProcess, RecordingSHA256: rawHash,
@@ -254,7 +254,8 @@ func mockEvidenceFiles(t *testing.T) (Execution, string) {
 	}
 	execution := Execution{
 		SchemaVersion: SchemaVersion, FixtureID: "fixture", ExecutionID: "execution", Command: "mock", ArtifactRoot: filepath.Join(dir, "mock"),
-		Connections: []ExecutionConnection{connection},
+		Connections: []ExecutionConnection{connection}, dir: root,
+		Args: []string{"--fixture-dir", root}, Source: Source{Path: planPath},
 		Artifact: corpus.Material{
 			ID: "material", Path: materialRoot, Provenance: "synthetic", Connections: []string{"main"},
 			PlanSHA256: planHash, ManifestSHA256: manifestHash, RecordingSHA256: rawHash,
@@ -265,8 +266,8 @@ func mockEvidenceFiles(t *testing.T) (Execution, string) {
 	descriptorHash, err := tool.FileDigest(descriptorPath)
 	require.NoError(t, err)
 	require.NoError(t, tool.WriteJSON(connection.Receipt, tool.Object{
-		"schemaVersion": 1, "version": 1, "status": "passed", "provider": "codex", "exitCode": 0,
-		"recording": materialRoot, "recordingSHA256": rawHash, "planSHA256": planHash, "frames": 2,
+		"schemaVersion": 2, "materialId": "material", "executionId": "execution", "connectionId": "main", "version": 1, "status": "passed", "provider": "codex", "exitCode": 0,
+		"recording": "material", "recordingSHA256": rawHash, "planSHA256": planHash, "frames": 2,
 		"nativeLaunched": false, "fullConsumption": true, "clientEOF": true, "cleanupComplete": true,
 		"unknown": tool.Object{"retained": true},
 	}))
@@ -276,12 +277,12 @@ func mockEvidenceFiles(t *testing.T) (Execution, string) {
 	}))
 	resultPath := filepath.Join(dir, "receipts", "main.result.json")
 	require.NoError(t, tool.WriteJSON(resultPath, tool.Object{
-		"schemaVersion": 1, "fixtureId": "fixture", "executionId": "execution", "connectionId": "main", "status": "passed",
-		"execution": descriptorPath, "executionSHA256": descriptorHash, "result": resultPath,
-		"receipt": connection.Receipt, "processReceipt": connection.ProcessReceipt, "processId": 42, "command": "mock",
+		"schemaVersion": 3, "materialId": "material", "fixtureId": "fixture", "executionId": "execution", "connectionId": "main", "status": "passed",
+		"execution": "executions/execution/execution.json", "executionSHA256": descriptorHash, "result": "executions/execution/receipts/main.result.json",
+		"receipt": "executions/execution/receipts/main.json", "processReceipt": "executions/execution/receipts/main.process.json", "processId": 42, "command": "mock",
 		"unknown": []string{"retained"},
 		"material": tool.Object{
-			"id": "material", "path": materialRoot, "provenance": "synthetic",
+			"id": "material", "provenance": "synthetic",
 			"planSHA256": planHash, "manifestSHA256": manifestHash, "recordingSHA256": rawHash,
 		},
 	}))

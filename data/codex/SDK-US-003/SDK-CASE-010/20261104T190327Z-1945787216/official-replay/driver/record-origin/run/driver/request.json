@@ -1,9 +1,0 @@
-{
-  "case": "SDK-CASE-010",
-  "materials": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-010/official-records/bea92dd0a849daa38b47aec5c8630100/driver/materials",
-  "workspace": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/routes/record/workspace",
-  "peer": {
-    "command": "/private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-399923858/official/bea92dd0a849daa38b47aec5c8630100/peer-main"
-  },
-  "output": "/Users/jim/.local/share/agent-sdk-testify/campaigns/2026-11-05-deepseek-v41-refresh/final/codex-SDK-CASE-010/official-records/bea92dd0a849daa38b47aec5c8630100/driver"
-}

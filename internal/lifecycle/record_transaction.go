@@ -2,6 +2,7 @@ package lifecycle
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -69,6 +70,7 @@ func (r *recordTransaction) result() *RecordResult {
 	result := &RecordResult{
 		ActionResult: ActionResult{
 			FixtureID:          r.fixture.FixtureID,
+			MaterialID:         r.execution.Artifact.ID,
 			ExecutionID:        r.execution.ExecutionID,
 			ConnectionID:       id,
 			ConnectionStatus:   ConnectionStatusUnknown,
@@ -90,16 +92,25 @@ func (r *recordTransaction) result() *RecordResult {
 	return result
 }
 
-func (r *recordTransaction) attachPublishedMaterial(result *RecordResult, runErr error) {
-	if result == nil || runErr != nil || r.execution.Artifact.ManifestSHA256 == "" {
+func (r *recordTransaction) attachPublishedMaterial(result *RecordResult) {
+	if result == nil {
 		return
 	}
+	stable := filepath.Join(r.dir, "receipts", r.connection+".transport.json")
+	if info, err := os.Lstat(stable); err == nil && info.Mode().IsRegular() {
+		result.ReceiptPath = stable
+	}
+	if !r.publicationCommitted {
+		return
+	}
+	result.PublicationCommitted = true
+	result.MaterialID = r.execution.Artifact.ID
 	material := cloneTransactionMaterial(r.execution.Artifact)
 	result.Material = &material
 }
 
 func (r *recordTransaction) prepare(ctx context.Context, policy RecordPolicy) (plan tool.Object, err error) {
-	lock, err := lockFile(filepath.Join(r.dir, "record-finalize.lock"), true, true)
+	lock, err := lockFile(filepath.Join(r.overlayRoot, "record-finalize.lock"), true, true)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +132,7 @@ func (r *recordTransaction) trackNativeProbe(state string, pid int) error {
 // finalize serializes completion across declared connections and owns every
 // state transition from connection outcome through result delivery.
 func (r *recordTransaction) finalize(ctx context.Context, policy RecordPolicy, stream *os.File, runErr error) (err error) {
-	lock, lockErr := lockFile(filepath.Join(r.dir, "record-finalize.lock"), true, true)
+	lock, lockErr := lockFile(filepath.Join(r.overlayRoot, "record-finalize.lock"), true, true)
 	if lockErr != nil {
 		// Without the finalization gate, close the execution with one terminal
 		// index transition and do not attempt success or publication.
@@ -132,6 +143,12 @@ func (r *recordTransaction) finalize(ctx context.Context, policy RecordPolicy, s
 }
 
 func (r *recordTransaction) finalizeOutcome(ctx context.Context, policy RecordPolicy, stream *os.File, runErr error) error {
+	// A connection can return before its peers publish the capture. Keep its
+	// protocol receipt in the execution so that its immutable result survives
+	// both a later capture move and a peer failure.
+	if err := r.preserveConnectionReceipt(); err != nil {
+		runErr = errors.Join(runErr, err)
+	}
 	status := recordStatus(runErr)
 	ready, allPassed, settleErr := r.settleConnection(status)
 	if settleErr != nil {
@@ -151,20 +168,13 @@ func (r *recordTransaction) finalizeOutcome(ctx context.Context, policy RecordPo
 	if artifact == nil {
 		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, errors.New("record policy produced no material"))
 	}
-	current, err := readCurrent(r.fixtureDir, r.fixture.FixtureID)
-	if err != nil {
-		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, err)
-	}
 	if err := r.publish(*artifact); err != nil {
-		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, err)
+		if !r.publicationCommitted {
+			return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, runErr, err)
+		}
+		return errors.Join(err, writeTransactionResult(ctx, &r.transactionContext, stream, err))
 	}
-	if err := writeTransactionResult(ctx, &r.transactionContext, stream, nil); err != nil {
-		// The selection switch precedes final notification. Restore the previous
-		// selection when the caller cannot observe the committed result.
-		restoreErr := writeCurrent(r.fixtureDir, r.fixture, current.MaterialID)
-		return finishTransactionFailure(ctx, &r.transactionContext, stream, r.fail, err, restoreErr)
-	}
-	return nil
+	return writeTransactionResult(ctx, &r.transactionContext, stream, nil)
 }
 
 func (r *recordTransaction) settleConnection(status string) (ready, passed bool, err error) {
@@ -172,7 +182,25 @@ func (r *recordTransaction) settleConnection(status string) (ready, passed bool,
 }
 
 func (r *recordTransaction) fail() error {
-	return failTransaction(r.fixture, r.fixtureDir, "record", r.execution.ExecutionID, r.overlayRoot, r.restoreRoutes)
+	var sourceErr error
+	seed := filepath.Join(r.artifactRoot, "history", "seed")
+	staging := filepath.Join(r.artifactRoot, "history-source")
+	if _, err := os.Lstat(seed); err == nil {
+		if _, err := os.Lstat(staging); os.IsNotExist(err) {
+			sourceErr = os.Rename(seed, staging)
+		} else if err == nil {
+			sourceErr = os.RemoveAll(seed)
+		} else {
+			sourceErr = err
+		}
+		if sourceErr == nil {
+			prefix := "executions/" + r.execution.ExecutionID + "/capture"
+			sourceErr = history.RebindMaterialization(PackageRoot(r.fixtureDir, r.execution.Artifact.ID), r.dir, prefix+"/history/seed", prefix+"/history-source")
+		}
+	} else if !os.IsNotExist(err) {
+		sourceErr = err
+	}
+	return errors.Join(sourceErr, failTransaction(r.fixture, r.fixtureDir, "record", r.execution.ExecutionID, r.overlayRoot, r.restoreRoutes))
 }
 
 func (r *recordTransaction) restoreRoutes() error {
@@ -189,6 +217,34 @@ func (r *recordTransaction) restoreRoutes() error {
 }
 
 func (r *recordTransaction) publish(artifact corpus.Material) error {
+	if err := r.commitPublication(artifact); err != nil {
+		return err
+	}
+	return r.finishPublication()
+}
+
+func (r *recordTransaction) preserveConnectionReceipt() error {
+	for _, c := range r.execution.Connections {
+		if c.ID != r.connection {
+			continue
+		}
+		data, err := os.ReadFile(c.Receipt)
+		if os.IsNotExist(err) {
+			return nil // failures before capture have no protocol receipt
+		}
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(filepath.Join(r.dir, "receipts", c.ID+".transport.json"), data, 0o600)
+	}
+	return errors.New("record connection absent from execution")
+}
+
+func (r *recordTransaction) commitPublication(artifact corpus.Material) error {
+	if artifact.ID != r.execution.Artifact.ID || artifact.Path != r.artifactRoot {
+		return errors.New("record material differs from its allocated package")
+	}
+
 	if _, err := inspectMaterial(r.fixture, artifact); err != nil {
 		return err
 	}
@@ -200,45 +256,63 @@ func (r *recordTransaction) publish(artifact corpus.Material) error {
 			return fmt.Errorf("connection %s: %w", connection.ID, err)
 		}
 	}
-	if err := r.restoreRoutes(); err != nil {
-		return err
+	materialRoot := MaterialRoot(r.fixtureDir, artifact.ID)
+	packageRoot := PackageRoot(r.fixtureDir, artifact.ID)
+	stage := filepath.Join(packageRoot, ".material-staging")
+	if _, err := os.Lstat(materialRoot); !os.IsNotExist(err) {
+		return errors.New("material identity already exists")
 	}
-	if err := scrubExecutionAuthentication(r.fixture, r.overlayRoot); err != nil {
-		return err
-	}
-	materialRoot := filepath.Join(r.fixtureDir, "materials", artifact.ID)
-	stage, err := os.MkdirTemp(filepath.Join(r.fixtureDir, "materials"), ".record-")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(stage)
-	if err := copyMaterial(artifact.Path, stage); err != nil {
-		return err
-	}
-	files, err := history.HashTree(stage)
+	captureRoot := artifact.Path
+	files, err := history.HashTree(captureRoot)
 	if err != nil {
 		return err
 	}
 	delete(files, "material.json")
 	artifact.Path = materialRoot
-	artifact.Files = files
-	if err := writeExclusive(filepath.Join(stage, "material.json"), artifact); err != nil {
+	if artifact.FormatVersion == 3 {
+		artifact.Files = nil
+	} else {
+		artifact.Files = files
+		artifact.FormatVersion = 2
+	}
+	if err := writeExclusive(filepath.Join(captureRoot, "material.json"), artifact); err != nil {
 		return err
 	}
-	if _, err := os.Lstat(materialRoot); !os.IsNotExist(err) {
-		return errors.New("material identity already exists")
+	current, err := readCurrent(r.fixtureDir, r.fixture.FixtureID)
+	if err != nil {
+		return err
+	}
+	materialHash, err := tool.FileDigest(filepath.Join(captureRoot, "material.json"))
+	if err != nil {
+		return err
+	}
+	publication := &Publication{MaterialID: artifact.ID, ExecutionID: r.execution.ExecutionID, PreviousMaterialID: current.MaterialID, MaterialSHA256: materialHash, ManifestSHA256: artifact.ManifestSHA256, Source: "executions/" + r.execution.ExecutionID + "/capture", Staging: ".material-staging", Target: "material"}
+	if err := updateIndex(r.fixtureDir, func(index *Index) error {
+		for i := range index.Executions {
+			if index.Executions[i].ID == r.execution.ExecutionID {
+				index.Executions[i].Publishing = publication
+				return nil
+			}
+		}
+		return errors.New("record execution absent from index")
+	}); err != nil {
+		return err
+	}
+	// Register all locations and sealed hashes before moving the only capture.
+	if err := os.Rename(captureRoot, stage); err != nil {
+		return err
 	}
 	if err := os.Rename(stage, materialRoot); err != nil {
+		return err
+	}
+	if err := history.RebindMaterialization(packageRoot, r.dir, "executions/"+r.execution.ExecutionID+"/capture/history/seed", "material/history/seed"); err != nil {
 		return err
 	}
 	if _, err := inspectMaterial(r.fixture, artifact); err != nil {
 		return err
 	}
-	execution, descriptorSHA256, err := bindRecordCapture(r.fixture, r.execution, r.artifactRoot, artifact)
-	if err != nil {
-		return err
-	}
-	// All fallible finalization precedes the atomic selection change.
+	// Register the sealed core before selection. The publication journal retains
+	// ownership if a later control write fails.
 	if err := updateIndex(r.fixtureDir, func(index *Index) error {
 		for _, existing := range index.Artifacts {
 			if existing.ID == artifact.ID {
@@ -246,54 +320,47 @@ func (r *recordTransaction) publish(artifact corpus.Material) error {
 			}
 		}
 		index.Artifacts = append(index.Artifacts, artifact)
-		for i := range index.Executions {
-			indexed := &index.Executions[i]
-			if indexed.ID != execution.ExecutionID {
-				continue
-			}
-			indexed.ArtifactID = artifact.ID
-			indexed.DescriptorSHA256 = descriptorSHA256
-			indexed.Status = "passed"
-			indexed.UpdatedAt = now()
-			for j := range indexed.Connections {
-				indexed.Connections[j].Status = "passed"
-			}
-			return nil
-		}
-		return errors.New("record execution absent from index")
+		return nil
 	}); err != nil {
 		return err
 	}
 	if err := writeCurrent(r.fixtureDir, r.fixture, artifact.ID); err != nil {
 		return err
 	}
-	r.execution = execution
+	r.publicationCommitted = true
+	r.execution.Artifact = artifact
+	for i := range r.execution.Connections {
+		c := &r.execution.Connections[i]
+		c.Material, c.MaterialID = artifact.Path, artifact.ID
+		c.PlanSHA256, c.ManifestSHA256 = artifact.PlanSHA256, artifact.ManifestSHA256
+		recording, err := connectionRecordingPath(artifact.Path, c.ID)
+		if err != nil {
+			return err
+		}
+		c.RecordingSHA256, err = tool.FileDigest(recording)
+		if err != nil {
+			return err
+		}
+		c.Receipt = filepath.Join(filepath.Dir(recording), "transport.json")
+	}
 	return nil
 }
 
-func bindRecordCapture(fixture *Fixture, execution Execution, artifactRoot string, artifact corpus.Material) (Execution, string, error) {
-	ids := make([]string, 0, len(execution.Connections))
-	for _, connection := range execution.Connections {
-		ids = append(ids, connection.ID)
-	}
-	connections, err := executionConnections(artifactRoot, "record", ids, &artifact, fixture.Routes["record"])
-	if err != nil {
-		return Execution{}, "", err
-	}
-	execution.Connections = connections
-	execution.Artifact = artifact
-	if err := execution.Validate(*fixture); err != nil {
-		return Execution{}, "", err
-	}
-	path := filepath.Join(filepath.Dir(artifactRoot), "execution.json")
-	if err := writeAtomic(path, execution); err != nil {
-		return Execution{}, "", err
-	}
-	digest, err := tool.FileDigest(path)
-	if err != nil {
-		return Execution{}, "", err
-	}
-	return execution, digest, nil
+func (r *recordTransaction) finishPublication() error {
+	// Cleanup and delivery failures after selection retain the new current and
+	// its exact identity. Never route them through the pre-publication failure path.
+	return errors.Join(updateIndex(r.fixtureDir, func(index *Index) error {
+		for i := range index.Executions {
+			e := &index.Executions[i]
+			if e.ID == r.execution.ExecutionID {
+				e.ArtifactID = r.execution.Artifact.ID
+				e.Status = "passed"
+				e.UpdatedAt = now()
+				return nil
+			}
+		}
+		return errors.New("record execution absent from index")
+	}), r.restoreRoutes(), scrubExecutionAuthentication(r.fixture, r.overlayRoot), RefreshRoutes(r.fixture))
 }
 
 // RunRecord owns one record connection from allocation or join through result
@@ -325,8 +392,13 @@ func RunRecord(ctx context.Context, request RecordRequest, policy RecordPolicy) 
 			finalErr = errors.New("record transaction aborted")
 		}
 		runErr = errors.Join(runErr, run.finalize(ctx, policy, resultStream, finalErr))
-		run.attachPublishedMaterial(callResult, runErr)
+		run.attachPublishedMaterial(callResult)
 		callResult.refresh(run.fixtureDir)
+		if run.publicationCommitted {
+			callResult.ExecutionStatus = ExecutionStatusPassed
+			callResult.ExecutionComplete = true
+			callResult.ConnectionStatus = ConnectionStatusPassed
+		}
 	}()
 
 	if err := notifyActionStarted(ctx, &run.transactionContext, resultStream); err != nil {
@@ -356,6 +428,7 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	if err != nil {
 		return nil, err
 	}
+	request.Args = normalizeFixtureArgs(fixtureDir, request.Args)
 	allocation, err := lockFile(filepath.Join(fixtureDir, "locks", "record-start.lock"), true, true)
 	if err != nil {
 		return nil, err
@@ -416,11 +489,8 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 			return nil, ErrBusy
 		}
 		dir := ExecutionDir(fixtureDir, pending.ID)
-		var execution Execution
-		if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
-			return nil, err
-		}
-		if err := execution.Validate(*fixture); err != nil {
+		execution, err := ReadExecution(fixtureDir, fixture, filepath.Join(dir, "execution.json"))
+		if err != nil {
 			return nil, err
 		}
 		if hash, err := tool.FileDigest(filepath.Join(dir, "execution.json")); err != nil || hash != pending.DescriptorSHA256 {
@@ -433,7 +503,7 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		if err != nil {
 			return nil, err
 		}
-		run = newTransactionContext(fixture, plan, execution, fixtureDir)
+		run = newTransactionContext(fixture, plan, *execution, fixtureDir)
 	} else {
 		if !exclusive {
 			return nil, ErrBusy
@@ -473,7 +543,12 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 	}()
 	if origin != nil {
 		path := filepath.Join(run.dir, "receipts", request.Connection+".origin.json")
-		proof := tool.Object{"schemaVersion": 1, "origin": origin, "connectionId": request.Connection, "executionId": run.execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid()}
+		originBytes, err := json.MarshalIndent(origin, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+		originHash := tool.DigestBytes(append(originBytes, '\n'))
+		proof := tool.Object{"schemaVersion": 2, "originSHA256": originHash, "runId": run.execution.Artifact.OfficialOrigin.RunID, "connectionId": request.Connection, "executionId": run.execution.ExecutionID, "protocolPid": os.Getpid(), "supervisorPid": os.Getppid()}
 		fixture.Tool.bindSHA256(proof)
 		if err := writeExclusive(path, proof); err != nil {
 			return nil, err

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-005/fixture/runtime/executions/f31b8be0da495fe23a9119ef07736d3f/workspace",
+    "version": "codex-cli 0.166.0"
+  },
+  "files": {
+    "raw.jsonl": "e4a775b191e0f6f1bc811805663a08be9e3f89e32e12427e88a392d5161b8b25",
+    "stderr.raw": "0fb6399c7ecfd148b2270f42ca9024455ca20abeedbac8dfb76915e4222d8618",
+    "transport.json": "51e92fe85fd4c0d9b1e48f64f4c1c07c4b35492aad9df50fe9444694e7bd17d8"
+  }
+}

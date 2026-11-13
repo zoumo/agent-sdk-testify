@@ -1,0 +1,46 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T03-54-27-01a1d153-6a8c-7c62-a04a-76ff66367515.jsonl": "28fa37320e17130746bce5c43f76da610a683bf87ebb59bb933c458cd5f1d1f6",
+    "official-origin.json": "854c020be2a8a3e7676d7d6c809b0b2dcc35189f310ff23ffa1768e57040c6d5",
+    "origin/main.json": "0da43520fff00a1381cedf5af2df8e868933d162c66f1cc14973327a79a8fc5c",
+    "plan.json": "e427d50e00631e13c676bdbb4b93e6dea291724e0eb9fc251fe41d6330313526",
+    "raw/manifest.json": "a0c9a18b33118c7ef63d356f968da77e391222046e06f8f21ec5b9d6cf8b361f",
+    "raw/raw.jsonl": "3277221e506dc1e95191e7feae2c33ea88f54620fedacdc03a0c5e465829baf0",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "169b0fc68ab2ce5a91da7ce5272066ac60cea896f56e0400358ded70c78127d1",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "88882b92a3e2a4e6a321dbb1281909a205e13752fa732037468b86e4cb0bb08c"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-036/fixture/runtime/executions/43370f2796bf1543c78b51b8759b0d0d/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "e427d50e00631e13c676bdbb4b93e6dea291724e0eb9fc251fe41d6330313526",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "169b0fc68ab2ce5a91da7ce5272066ac60cea896f56e0400358ded70c78127d1",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "88882b92a3e2a4e6a321dbb1281909a205e13752fa732037468b86e4cb0bb08c",
+  "status": "captured"
+}

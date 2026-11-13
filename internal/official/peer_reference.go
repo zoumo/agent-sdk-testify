@@ -25,6 +25,11 @@ func readPeerReference(
 	root, connectionID, command string,
 	validate func(lifecycle.Execution) error,
 ) (tool.Object, *lifecycle.Execution, *lifecycle.ExecutionConnection, error) {
+	canonicalFixtureDir, err := lifecycle.CanonicalFixtureDir(fixtureDir)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	fixtureDir = canonicalFixtureDir
 	var process tool.Object
 	processPath := filepath.Join(root, "peer-"+connectionID+".process.json")
 	if err := tool.ReadJSON(processPath, &process); err != nil {
@@ -47,16 +52,28 @@ func readPeerReference(
 		return ref, nil, nil, err
 	}
 	ref["executionId"], ref["connectionId"] = executionID, connectionID
-	executionDir := filepath.Join(fixtureDir, "executions", executionID)
+	materialID := tool.Str(started["materialId"])
+	if validateExecutionName(materialID) != nil {
+		return ref, nil, nil, errors.New("notification material identity is missing")
+	}
+	executionDir := lifecycle.PackageExecutionRoot(fixtureDir, materialID, executionID)
 	executionPath := filepath.Join(executionDir, "execution.json")
 	resultPath := filepath.Join(executionDir, "receipts", connectionID+".result.json")
+	executionReference, err := lifecycle.PackageReference(fixtureDir, materialID, executionPath)
+	if err != nil {
+		return ref, nil, nil, err
+	}
+	resultReference, err := lifecycle.PackageReference(fixtureDir, materialID, resultPath)
+	if err != nil {
+		return ref, nil, nil, err
+	}
 	pid, ok := process["pid"].(float64)
 	if !ok || pid <= 0 {
 		return ref, nil, nil, errors.New("protocol process omitted its process ID")
 	}
 	binding := peerNotificationBinding{
 		fixtureID: fixture.FixtureID, processID: pid, connectionID: connectionID,
-		command: command, executionID: executionID, executionPath: executionPath, resultPath: resultPath,
+		command: command, executionID: executionID, executionPath: executionReference, resultPath: resultReference,
 		process: process,
 	}
 	if err := validatePeerNotifications(started, finished, binding); err != nil {
@@ -71,7 +88,11 @@ func readPeerReference(
 		return ref, nil, nil, errors.New("notification differs from durable result")
 	}
 
-	execution, digest, err := loadPeerExecution(executionPath)
+	execution, err := lifecycle.ReadExecution(fixtureDir, fixture, executionPath)
+	if err != nil {
+		return ref, nil, nil, err
+	}
+	digest, err := tool.FileDigest(executionPath)
 	if err != nil {
 		return ref, nil, nil, err
 	}
@@ -98,7 +119,7 @@ func readPeerReference(
 	} else if finishedDigest != digest || (startedDigest != digest && !publishedRecord) {
 		return ref, nil, nil, errors.New("execution descriptor digest mismatch")
 	}
-	if err := validate(execution); err != nil {
+	if err := validate(*execution); err != nil {
 		return ref, nil, nil, err
 	}
 
@@ -115,13 +136,32 @@ func readPeerReference(
 	if connection == nil {
 		return ref, nil, nil, fmt.Errorf("connection %s is absent from the execution", connectionID)
 	}
-	for _, notification := range []tool.Object{started, finished} {
-		if notification["receipt"] != connection.Receipt {
-			return ref, nil, nil, errors.New("connection receipt reference mismatch")
+	receiptReference, err := lifecycle.PackageReference(fixtureDir, materialID, connection.Receipt)
+	if err != nil {
+		return ref, nil, nil, err
+	}
+	if started["receipt"] != receiptReference {
+		return ref, nil, nil, errors.New("running connection receipt reference mismatch")
+	}
+	finalReceipt := receiptReference
+	if command == "record" && connection.Transport != lifecycle.ConnectionTransportInProcess {
+		finalReceipt = "executions/" + executionID + "/receipts/" + connectionID + ".transport.json"
+	}
+	if finished["receipt"] != finalReceipt {
+		return ref, nil, nil, errors.New("final connection receipt reference mismatch")
+	}
+
+	persisted := *connection
+	persisted.Command, persisted.Args, persisted.Launcher, persisted.Material = "", nil, "", ""
+	persisted.Receipt = receiptReference
+	if connection.ProcessReceipt != "" {
+		persisted.ProcessReceipt, err = lifecycle.PackageReference(fixtureDir, materialID, connection.ProcessReceipt)
+		if err != nil {
+			return ref, nil, nil, err
 		}
 	}
-	ref["executionSHA256"], ref["connection"] = digest, *connection
-	return ref, &execution, connection, nil
+	ref["executionSHA256"], ref["connection"] = digest, persisted
+	return ref, execution, connection, nil
 }
 
 func readPeerNotifications(path string) (tool.Object, tool.Object, error) {
@@ -137,24 +177,29 @@ func readPeerNotifications(path string) (tool.Object, tool.Object, error) {
 	if len(data) > peerNotificationLimit {
 		return nil, nil, fmt.Errorf("notification file exceeds %d bytes", peerNotificationLimit)
 	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
+	rows := bytes.Split(data, []byte{'\n'})
+	if len(rows) < 2 {
+		return nil, nil, errors.New("partial execution notification line")
+	}
 	var started tool.Object
-	if err := decoder.Decode(&started); err != nil {
+	if err := json.Unmarshal(rows[0], &started); err != nil {
 		return nil, nil, fmt.Errorf("invalid first notification: %w", err)
 	}
 	if started == nil {
 		return nil, nil, errors.New("first notification is null")
 	}
+	if len(rows) < 3 || len(rows[len(rows)-1]) != 0 {
+		return started, nil, errors.New("partial execution notification line")
+	}
+	if len(rows) != 3 {
+		return started, nil, errors.New("unexpected execution notifications")
+	}
 	var finished tool.Object
-	if err := decoder.Decode(&finished); err != nil {
+	if err := json.Unmarshal(rows[1], &finished); err != nil {
 		return started, nil, fmt.Errorf("invalid second notification: %w", err)
 	}
 	if finished == nil {
 		return started, nil, errors.New("second notification is null")
-	}
-	var extra any
-	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
-		return started, finished, errors.New("unexpected execution notifications")
 	}
 	return started, finished, nil
 }
@@ -169,7 +214,7 @@ type peerNotificationBinding struct {
 
 func validatePeerNotifications(started, finished tool.Object, binding peerNotificationBinding) error {
 	for _, notification := range []tool.Object{started, finished} {
-		if notification["processId"] != binding.processID ||
+		if notification["schemaVersion"] != float64(3) || notification["processId"] != binding.processID ||
 			notification["fixtureId"] != binding.fixtureID ||
 			notification["connectionId"] != binding.connectionID ||
 			notification["executionId"] != binding.executionID ||
@@ -206,25 +251,6 @@ func validDigest(value string) bool {
 	}
 	_, err := hex.DecodeString(value)
 	return err == nil
-}
-
-func loadPeerExecution(path string) (lifecycle.Execution, string, error) {
-	var execution lifecycle.Execution
-	info, err := os.Lstat(path)
-	if err != nil {
-		return execution, "", err
-	}
-	if !info.Mode().IsRegular() {
-		return execution, "", fmt.Errorf("execution descriptor is not a regular file: %s", path)
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return execution, "", err
-	}
-	if err := json.Unmarshal(data, &execution); err != nil {
-		return execution, "", err
-	}
-	return execution, tool.DigestBytes(data), nil
 }
 
 func collectPeerReferences(ids []string, read func(string) (tool.Object, error)) ([]tool.Object, error) {

@@ -6,6 +6,7 @@ from record_user_story.adapters.common import proxy_command, serial
 from record_user_story.environment import capture_root, read_regular, recording_temp_root
 from record_user_story.existing_children import sha, project_files, verify_seed
 from record_user_story.history import pages
+from record_user_story.runtime_config import execution_workspace
 
 
 
@@ -66,7 +67,7 @@ def observe(plan, report):
         model_config = ConfigDict(extra='allow')
     check_source = not bool(plan.get('_replay'))
     seed = verify_seed(plan, check_source=check_source)
-    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=(plan.get('_fixtureProject', plan['historyProject']) if plan.get('_fixtureProject') else plan['historyProject']),
+    config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=str(execution_workspace(plan)),
                          client_name='official-python-story-recorder', client_title='Protocol recording')
     def reject(method, params):
         raise ValueError('unexpected live request in zero-input existing-child observation')

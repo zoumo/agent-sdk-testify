@@ -118,19 +118,31 @@ func Generate(o GenerateOptions) error {
 		if e != nil {
 			return e
 		}
-		plan, e := os.ReadFile(filepath.Join(source, "plan.json"))
+		core, _, e := corpus.RecordingRoot(source)
 		if e != nil {
 			return e
 		}
-		report, e := corpus.Read(filepath.Join(source, "report.json"))
+		plan, e := os.ReadFile(filepath.Join(core, "plan.json"))
 		if e != nil {
 			return e
 		}
-		review, e := corpus.Read(filepath.Join(source, "review.json"))
-		if e != nil {
-			return e
+		sdk, qualification := tool.Obj(row["officialSDK"]), tool.Obj(row["qualification"])
+		if _, reduced := row["materialSHA256"]; !reduced {
+			review, e := corpus.Read(filepath.Join(source, "review.json"))
+			if e != nil {
+				return e
+			}
+			reportPath := filepath.Join(core, "report.json")
+			if selected := tool.Str(tool.Obj(review["record"])["path"]); selected != "" {
+				reportPath = filepath.Join(source, filepath.Dir(selected), "report.json")
+			}
+			report, e := corpus.Read(reportPath)
+			if e != nil {
+				return e
+			}
+			sdk, qualification = tool.Obj(report["officialSDK"]), tool.Obj(review["qualification"])
 		}
-		material := Material{Provider: tool.Str(row["provider"]), CaseID: tool.Str(row["caseId"]), StoryID: tool.Str(row["storyId"]), Attempt: filepath.Base(source), Path: tool.Str(row["materials"]), Files: inventory, OfficialSDK: tool.Obj(report["officialSDK"]), Qualification: tool.Obj(review["qualification"]), Contracts: map[string]string{}, Plan: plan}
+		material := Material{Provider: tool.Str(row["provider"]), CaseID: tool.Str(row["caseId"]), StoryID: tool.Str(row["storyId"]), Attempt: filepath.Base(source), Path: tool.Str(row["materials"]), Files: inventory, OfficialSDK: sdk, Qualification: qualification, Contracts: map[string]string{}, Plan: plan}
 		for _, name := range []string{material.StoryID + ".json", "bindings/" + material.Provider + ".json"} {
 			material.Contracts[name] = m.Catalog[name]
 		}
@@ -142,8 +154,8 @@ func Generate(o GenerateOptions) error {
 			if tool.DigestBytes(data) != inventory[name] {
 				return fmt.Errorf("material changed while generating: %s", name)
 			}
-			if e := tw.WriteHeader(&tar.Header{Name: material.Path + "/" + name, Mode: 0o600, Size: int64(len(data)), Format: tar.FormatPAX}); e != nil {
-				return e
+			if writeErr := tw.WriteHeader(&tar.Header{Name: material.Path + "/" + name, Mode: 0o600, Size: int64(len(data)), Format: tar.FormatPAX}); writeErr != nil {
+				return writeErr
 			}
 			if _, e = tw.Write(data); e != nil {
 				return e

@@ -101,6 +101,7 @@ for line in sys.stdin:
             with patch.dict(sys.modules, modules), patch('record_user_story.drivers.sdk_identity', return_value=plan['officialSDK']):
                 binary = identity()['path']
                 fixture = prepare_fixture(root, plan)
+                plan['_fixtureDir'] = str(fixture)
                 launcher = root/'record-peer'
                 command_file = root/'record-command.json'
                 command_file.write_text(json.dumps({'command': binary, 'args': ['agent', 'record', '--fixture-dir', str(fixture), '--cmd', plan['cli'], '--', 'app-server']}))
@@ -136,8 +137,12 @@ for line in sys.stdin:
                 replay_report = next(replay_root.glob('*report.json'))
                 self.assertEqual(json.loads(replay_report.read_bytes())['status'], 'passed')
                 index = json.loads((fixture/'executions/index.json').read_text())
-                execution = json.loads((fixture/'executions'/index['executions'][-1]['id']/'execution.json').read_text())
-                completion = json.loads(Path(execution['connections'][0]['receipt']).read_text())
+                row = index['executions'][-1]
+                package = fixture/'packages'/row['materialId']
+                execution = json.loads((package/'executions'/row['id']/'execution.json').read_text())
+                receipt = Path(execution['connections'][0]['receipt'])
+                receipt = receipt if receipt.is_absolute() else package / receipt
+                completion = json.loads(receipt.read_text())
                 self.assertTrue(completion['fullConsumption'])
                 self.assertTrue(completion['clientEOF'])
                 self.assertFalse(completion['nativeLaunched'])

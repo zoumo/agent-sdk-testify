@@ -318,7 +318,7 @@
       "progressBarrier": null,
       "execution": {
         "mode": "unsupported",
-        "reason": "Codex exposes reasoning effort, not an independent thinking mode; effort is required and verified by SDK-CASE-027. The old SDK-CASE-025 recording remains retained as effort evidence only."
+        "reason": "Codex exposes reasoning effort, not an independent thinking mode; effort is required and verified by SDK-CASE-027. SDK-CASE-025 has no current recording; effort evidence belongs to SDK-CASE-027."
       }
     },
     "SDK-CASE-026": {

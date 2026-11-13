@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/protocol/recording"
@@ -13,7 +14,7 @@ import (
 )
 
 func validateExecutionID(id string) error {
-	if id == "" || filepath.Base(id) != id || !filepath.IsLocal(id) {
+	if id == "" || id == "." || strings.ContainsAny(id, "\\/\x00") || filepath.Base(id) != id || !filepath.IsLocal(id) {
 		return errors.New("execution identity is not a local directory name")
 	}
 	return nil
@@ -42,7 +43,10 @@ func validateIndexedConnections(indexed IndexExecution, execution Execution) err
 	return nil
 }
 
-func validateConnectionInventory(execution Execution, artifact *corpus.Material, route Route) error {
+func validateConnectionInventory(fixtureDir string, execution Execution, artifact *corpus.Material, route Route) error {
+	if canonical, err := CanonicalFixtureDir(fixtureDir); err == nil {
+		fixtureDir = canonical
+	}
 	var ids []string
 	if execution.Command == "record" {
 		for _, connection := range route.Connections {
@@ -51,11 +55,28 @@ func validateConnectionInventory(execution Execution, artifact *corpus.Material,
 	} else if artifact != nil {
 		ids = append([]string(nil), artifact.Connections...)
 	}
-	connections, err := executionConnections(execution.ArtifactRoot, execution.Command, ids, artifact, route)
+	connections, err := executionConnections(fixtureDir, execution.ExecutionID, execution.Artifact.ID, execution.Command, ids, artifact, route)
 	if err != nil {
 		return err
 	}
-	if !reflect.DeepEqual(connections, execution.Connections) {
+	actual := make([]ExecutionConnection, len(execution.Connections))
+	for i, connection := range execution.Connections {
+		connection.Command, connection.Args, connection.Launcher, connection.Material = "", nil, "", ""
+		reference, err := PackageReference(fixtureDir, execution.Artifact.ID, connection.Receipt)
+		if err != nil {
+			return err
+		}
+		connection.Receipt = reference
+		if connection.ProcessReceipt != "" {
+			processReference, err := PackageReference(fixtureDir, execution.Artifact.ID, connection.ProcessReceipt)
+			if err != nil {
+				return err
+			}
+			connection.ProcessReceipt = processReference
+		}
+		actual[i] = connection
+	}
+	if !reflect.DeepEqual(connections, actual) {
 		return errors.New("execution connections differ from their route or material")
 	}
 	return nil
@@ -151,17 +172,17 @@ func ValidateMockExecution(fixtureDir string, fixture *Fixture, execution Execut
 	if err := execution.Validate(*fixture); err != nil {
 		return err
 	}
-	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(fixtureDir, "executions", execution.ExecutionID, "mock") {
+	if execution.Command != "mock" || execution.ArtifactRoot != filepath.Join(PackageExecutionRoot(fixtureDir, execution.Artifact.ID, execution.ExecutionID), "mock") {
 		return errors.New("unexpected mock execution layout")
 	}
-	if err := validateConnectionInventory(execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
+	if err := validateConnectionInventory(fixtureDir, execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
 		return err
 	}
 	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
 		return err
 	}
-	digest, err := tool.FileDigest(filepath.Join(fixtureDir, "executions", execution.ExecutionID, "execution.json"))
+	digest, err := tool.FileDigest(filepath.Join(PackageExecutionRoot(fixtureDir, execution.Artifact.ID, execution.ExecutionID), "execution.json"))
 	if err != nil {
 		return err
 	}

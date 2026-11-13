@@ -106,6 +106,72 @@ class RecordingTests(unittest.TestCase):
                     capture_root(plan)
 
 
+    def test_schema_three_results_bind_explicit_package_and_durable_result(self):
+        for fault in ('none', 'missing fixture', 'other fixture', 'other material',
+                      'other execution', 'wrong hash', 'absolute reference',
+                      'escaping reference', 'changed durable', 'partial notice', 'unknown version',
+                      'symlink escape', 'wrong running hash'):
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
+                fixture = Path(temporary).resolve()
+                package = fixture / 'packages' / 'material'
+                execution = package / 'executions' / 'execution'
+                receipts = execution / 'receipts'
+                receipts.mkdir(parents=True)
+                (package / 'material').mkdir()
+                (fixture / 'fixture.json').write_text(json.dumps({'schemaVersion': 7, 'fixtureId': 'fixture'}))
+                declaration = {'schemaVersion': 7, 'fixtureId': 'fixture', 'executionId': 'execution',
+                               'command': 'mock', 'artifact': {'id': 'material'}}
+                declaration_path = execution / 'execution.json'
+                declaration_path.write_text(json.dumps(declaration))
+                notice = {'schemaVersion': 3, 'status': 'running', 'fixtureId': 'fixture',
+                          'materialId': 'material', 'executionId': 'execution', 'command': 'mock',
+                          'connectionId': 'main', 'processId': 42,
+                          'execution': 'executions/execution/execution.json',
+                          'executionSHA256': hashlib.sha256(declaration_path.read_bytes()).hexdigest(),
+                          'result': 'executions/execution/receipts/main.result.json',
+                          'receipt': 'executions/execution/receipts/main.json'}
+                finished = dict(notice, status='passed', material={'id': 'material'})
+                result_path = receipts / 'main.result.json'
+                result_path.write_text(json.dumps(finished))
+                receipt = {'fullConsumption': True, 'nativeLaunched': False}
+                (receipts / 'main.json').write_text(json.dumps(receipt))
+                notices = fixture / 'notices.jsonl'
+                plan = {'_agentResults': {'main': str(notices)}, '_fixtureDir': str(fixture)}
+                if fault == 'missing fixture':
+                    del plan['_fixtureDir']
+                elif fault in ('other fixture', 'other material', 'other execution'):
+                    key = {'other fixture': 'fixtureId', 'other material': 'materialId', 'other execution': 'executionId'}[fault]
+                    notice[key] = finished[key] = 'other'
+                elif fault == 'symlink escape':
+                    outside = fixture.parent / (fixture.name + '-outside.json')
+                    self.addCleanup(lambda path=outside: path.unlink(missing_ok=True))
+                    outside.write_bytes(declaration_path.read_bytes())
+                    declaration_path.unlink()
+                    declaration_path.symlink_to(outside)
+                elif fault == 'wrong running hash':
+                    notice['executionSHA256'] = 'wrong'
+                elif fault == 'wrong hash':
+                    finished['executionSHA256'] = 'wrong'
+                elif fault == 'absolute reference':
+                    notice['execution'] = finished['execution'] = str(declaration_path)
+                elif fault == 'escaping reference':
+                    notice['result'] = finished['result'] = '../other.json'
+                elif fault == 'changed durable':
+                    result_path.write_text('{}')
+                elif fault == 'unknown version':
+                    notice['schemaVersion'] = finished['schemaVersion'] = 99
+                data = json.dumps(notice) + '\n' + json.dumps(finished) + '\n'
+                if fault == 'partial notice':
+                    data = data.rstrip('\n')
+                notices.write_text(data)
+                if fault == 'none':
+                    self.assertEqual(capture_root(plan), package / 'material')
+                    self.assertEqual(replay_receipt(plan), receipt)
+                else:
+                    with self.assertRaises((ValueError, FileNotFoundError)):
+                        capture_root(plan)
+
+
     def test_default_catalog_has_no_go_story_identity(self):
         with patch.dict(os.environ, {}, clear=True):
             for provider in ('codex', 'claude'):

@@ -159,8 +159,9 @@ func Load(catalog fs.FS, selection Selection) (tool.Object, error) {
 // CheckVerifierPlan requires the exact official case and agent binding. Runtime
 // paths and native launch options are deliberately outside the case contract.
 func CheckVerifierPlan(plan, bound tool.Object) error {
-	if tool.Str(tool.Obj(bound["scenario"])["mode"]) != "live-selected-path" {
-		return errors.New("official case binding has no applicable verifier")
+	scenario := tool.Obj(bound["scenario"])
+	if mode := tool.Str(scenario["mode"]); mode != "live-selected-path" {
+		return fmt.Errorf("official case binding is %s: %s", mode, tool.Str(scenario["reason"]))
 	}
 	for _, key := range []string{"provider", "storyId", "caseId", "driverProfile", "case", "prompts", "scenario"} {
 		if !reflect.DeepEqual(plan[key], bound[key]) {

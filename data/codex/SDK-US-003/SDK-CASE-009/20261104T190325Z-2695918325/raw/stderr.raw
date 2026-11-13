@@ -1,5 +1,0 @@
-[2m2026-11-04T18:57:51.488949Z[0m [31mERROR[0m [2mcodex_core::tools::router[0m[2m:[0m [3merror[0m[2m=[0mExit code: 1
-Wall time: 0 seconds
-Output:
-Failed to write file /private/var/folders/v7/hcm12_5x49lf7szbrsz4p_p80000gp/T/agent-sdk-testify-session-787662143/routes/record/workspace/approved.txt
-

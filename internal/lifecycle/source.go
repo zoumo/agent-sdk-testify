@@ -7,13 +7,36 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/data"
 	"github.com/zoumo/agent-sdk-testify/internal/catalog"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 	"github.com/zoumo/agent-sdk-testify/internal/version"
 )
+
+// VerifyHistorySeed checks the entire frozen source closure, including added
+// files. Native runtime history is intentionally outside this inventory.
+func VerifyHistorySeed(fixture *Fixture) error {
+	if fixture.HistorySeed == "" {
+		return nil
+	}
+	files, err := history.HashTree(fixture.HistorySeed)
+	if err != nil {
+		return err
+	}
+	expected := map[string]string{}
+	for name, hash := range fixture.HistorySeedFiles {
+		expected[strings.TrimPrefix(name, fixtureSourceSeed+"/")] = hash
+	}
+	if !reflect.DeepEqual(files, expected) {
+		return errors.New("frozen history seed closure differs from fixture source")
+	}
+	return nil
+}
 
 type PrepareOptions struct {
 	FixtureDir       string
@@ -33,12 +56,13 @@ type PrepareOptions struct {
 }
 
 type sourceSpec struct {
-	material  *corpus.Material
-	source    Source
-	plan      tool.Object
-	planBytes []byte
-	agentType string
-	routes    map[string]bool
+	packageRoot string
+	material    *corpus.Material
+	source      Source
+	plan        tool.Object
+	planBytes   []byte
+	agentType   string
+	routes      map[string]bool
 }
 
 func resolveSource(o PrepareOptions) (*sourceSpec, error) {
@@ -183,24 +207,23 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err != nil {
 		return nil, err
 	}
+	core, complete, err := corpus.RecordingRoot(path)
+	if err != nil {
+		return nil, err
+	}
+	packageRoot := ""
+	if complete {
+		packageRoot = path
+	}
+	path = core
 	if err := corpus.VerifyMaterials(path, true); err != nil {
 		return nil, err
 	}
-	// Fixture/export packages carry a complete payload inventory in addition
-	// to the legacy protocol manifest. Validate it before making a fresh copy.
-	var material corpus.Material
-	metadata := filepath.Join(path, "material.json")
-	if _, err := os.Lstat(metadata); err == nil {
-		if err := tool.ReadJSON(metadata, &material); err != nil {
-			return nil, err
-		}
-		if len(material.Files) == 0 {
-			return nil, errors.New("material closure hash mismatch")
-		}
-		if err := corpus.CheckMaterialInventory(path, material); err != nil {
-			return nil, err
-		}
-	} else if !os.IsNotExist(err) {
+	// Fixture/export packages may carry a complete payload inventory in
+	// addition to the legacy protocol manifest. The current root is the only
+	// file-access base; a stored legacy path remains evidence in the bytes.
+	imported, err := corpus.ReadMaterialDescriptor(path)
+	if err != nil {
 		return nil, err
 	}
 	var plan tool.Object
@@ -226,15 +249,13 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 	if err != nil {
 		return nil, err
 	}
-	var imported *corpus.Material
-	if len(material.Files) > 0 {
-		if material.ID == "" || (material.Kind != "material" && material.Kind != "capture") {
+	if imported != nil {
+		if imported.ID == "" || (imported.Kind != "material" && imported.Kind != "capture") {
 			return nil, errors.New("invalid imported material identity")
 		}
 		// Capture manifests retain their original provenance. Only complete
 		// metadata can carry the official identity of a fixture-produced capture.
-		provenance = material.Provenance
-		imported = &material
+		provenance = imported.Provenance
 	}
 	planHash, err := tool.FileDigest(filepath.Join(path, "plan.json"))
 	if err != nil {
@@ -253,7 +274,7 @@ func resolveRecording(o PrepareOptions) (*sourceSpec, error) {
 		Provenance:    provenance,
 		DriverProfile: tool.Str(plan["driverProfile"]),
 	}
-	return &sourceSpec{material: imported, source: source, plan: plan, agentType: agent, routes: map[string]bool{"record": recordingExecutor(plan, agent, provenance) != "", "mock": true}}, nil
+	return &sourceSpec{packageRoot: packageRoot, material: imported, source: source, plan: plan, agentType: agent, routes: map[string]bool{"record": recordingExecutor(plan, agent, provenance) != "", "mock": true}}, nil
 }
 
 func planProtocolCwd(plan tool.Object, workspace string) string {

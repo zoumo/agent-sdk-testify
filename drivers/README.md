@@ -99,31 +99,47 @@ git -C /absolute/codex-source rev-parse HEAD
 | 请求字段 | 含义 |
 | --- | --- |
 | `case` | 本次执行的 case 身份 |
-| `materials` | 已释放的 case 材料和合同 |
-| `workspace` | 本次运行的可写工作区 |
-| `peer` | 公开 agent record 或 agent mock 进程入口；远端 case 可带 `probe` |
-| `output` | driver 结果、诊断和业务证据目录 |
+| `materials` | 本次 runtime 下的输入目录，driver 从其中 case.json 读取 canonical plan 的运行投影；不是 package/material 根 |
+| `runtime` | 版本化运行配置的绝对路径，包含本次 workspace、HOME、config、raw、tmp、output、可选 seed root、peer/agentResults 和 replay 状态 |
 
 `result.json` 至少包含 `status` 和可选 `message`。状态为 `passed`、`failed`、
 `untriggered` 或 `unsupported`。driver 自己保存详细业务回执；stdout 不承载
 业务协议，原生 SDK 进程使用独立管道。
 
-官方录制和验证的 driver 都须报告实际启动的 agent execution/连接身份，以及 SDK
-关闭和 agent 进程退出事实。official 命令据此核验结果；协议回执由 agent 命令自行
+material plan 只提供回放与资格所需的协议身份和历史绑定；`root/home/config/raw/tmp`、
+driver workspace、seed root、结果位置和公开 peer 命令只由 runtime 配置提供。
+driver 必须分别校验这两个输入。runtime 配置当前为 schema 1；未知、缺失或混合版本
+在启动 SDK 前失败，不能从 material plan 猜测运行字段。request、runtime 和 case
+派生的运行时输入默认只存在于 runtime，不进入持久 package。
+
+官方 driver 与外层调用方的宿主串行责任遵循
+[SDK 宿主的运行时入口](../docs/design.md#sdk-宿主的运行时入口)，不能把 agent claim
+锁当作 driver 启动前的互斥。官方录制和验证的 driver 都须报告实际启动的 agent
+execution/连接身份，以及 SDK 关闭和 agent 进程退出事实。official 命令据此核验结果；协议回执由 agent 命令自行
 保存，不由 driver 或 official 命令代写。录制业务报告在采集结束后单独保存并关联
 material，不回写不可变录制。职责和证据归属见[工具设计](../docs/design.md#official-verify)。
 
 `official record` 提供的 `peer` 是现有进程监督器生成的 launcher。监督器为公开
 `agent record` 接出普通 `--result-fd`，保存开始与最终通知；SDK 不需要继承该 FD。
-运行 plan 的 `_agentResults` 按连接给出这些通知文件，driver 读取本次实际 execution
-的采集证据，不查找最新目录。`main`、`probe` 共享一次 record execution，全部连接
+`runtime.agentResults` 按连接给出通知文件；driver 的兼容运行视图映射为 `_agentResults`，仅存于内存，driver 读取本次实际 execution
+的采集证据，不查找最新目录。schema 3 的通知引用以 package 为根；runtime 的
+`fixtureDir` 显式提供当前 fixture，driver 核对 fixture/material/execution 身份、
+execution 哈希及持久 result 后解析引用，不从通知路径推测 fixture。`main`、`probe` 共享一次 record execution，全部连接
 完成后才发布材料。
 
-官方采集材料保存 `source-plan.json` 原字节、派生 `plan.json` 的来源哈希、
-`official-origin.json` 及逐连接启动证明；派生 plan 保留 SDK 实际发送的协议 cwd。
-这些文件证明采集来源，随 export 携带，不证明父 driver 的业务通过。最终业务报告、
-SDK 身份和进程结果保存在独立的 `official-records/<runId>/`，关联精确材料及哈希。
-后续官方验证仍须产生自己的业务与协议证据，不能把采集来源当成业务成功。
+agent record 领取 execution 时创建 `packages/<materialId>/`；成功的 material core
+位于该 package 的 `material/`，并保存 `source-plan.json` 原字节、唯一派生 `plan.json`、
+`official-origin.json` 及逐连接 `origin/<connectionId>.json` 启动证明。派生 plan
+保留 SDK 实际发送的协议 cwd；这些文件证明采集来源，随 material export 携带，
+不证明父 driver 的业务通过。
+
+official record 通过普通 result fd 取得精确 material、execution 和 connection ID，
+只把 runtime staging 中本次 `record/<runId>/` 结算到该 package。official verify
+通过公开 mock 在同一 package 产生 execution，再新增独立
+`verify/<verificationId>/`。两者都不扫描最新目录，不创建 official 专用协议执行，
+也不在 material 或 record 域复制第二份 receipt。材料提交后父 driver 失败只使
+record run 失败，不回写 material 或回滚 current。未领取 execution 的失败、输出结算和
+崩溃恢复统一遵循[封存、发布与恢复](../docs/design.md#封存发布与恢复)。
 
 driver 只执行一个请求，不实现 registry、双向命令、步骤 DSL 或 SDK 覆盖门禁。
 case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios) 与
@@ -133,23 +149,35 @@ case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios
 
 ## 录制与测试输入
 
-`agent record` 的原始尝试保存在私有输出目录；经 `official verify`、资格审核和采用后，材料进入：
+`agent record` 的原始尝试保存在 package 的 execution 证据域；经 `official record`、
+`official verify`、资格审核和显式采用后，case 进入：
 
 ```text
 data/<agentType>/<story>/<case>/<attempt>/
+  material.json
+  manifest.json
+  plan.json
+  raw/...
+  history/...
+  ...
 ```
 
-每个采用目录保留原始 `plan.json`、`manifest.json`、`raw/raw.jsonl`、业务报告、
-官方验证证据、`review.json`、`adoption.json` 和必要的历史派生记录。原始字节和
-attempt 身份不可改写；失败与未触发结果不伪装成通过。
+attempt 根就是 material 根，保留原始 plan/raw、来源和历史绑定字节。完整证据包在
+采用前完成资格校验，所选 execution、record、verify 和 review/adoption 只留在
+私有归档，不进入仓库或内置快照。固定索引保存材料哈希与资格摘要；消费者 mock 不
+依赖外部归档。失败与未触发 attempt 留在私有诊断中，不作为成功材料发布。
+完整证据闭包和采用规则见[信任与入仓](../docs/design.md#信任与入仓)。
 
-公开 `agent record` 的材料报告保持 `captured`，最终官方业务报告保存在
-`official-records`。显式采用时，`official verify` 将已核验的原编排、正常 record
-execution、原生隔离准备回执及业务报告携带到验证证据和归档中；资格检查读取这些
-实际事实，不补写材料中的旧 `summary.json` 或业务通过状态。采用前提见
+公开 `agent record` 的材料报告保持 `captured`，最终官方业务报告保存在同一
+package 的 `record/<runId>/`。显式采用时，工具选择已核验的原编排、
+正常 record execution、原生隔离准备回执及业务报告所在的独立证据域；资格检查
+读取这些实际事实，不补写 material 中的旧 `summary.json` 或业务通过状态。采用前提见
 [信任与入仓](../docs/design.md#信任与入仓)。归档保留隔离准备和最终业务事实的
-实际文件与哈希，导出包仍只包含封闭材料，不携带原 fixture 的编排事实。
+实际文件与哈希，export 仍只复制封闭 material，不携带 package 编排事实或原 fixture
+路径。
 旧材料继续读取原有来源和业务证据布局。
+`--history-seed` 用于新的真实录制时仍须提供外部完整合格证据包，不能用精简后的
+standalone core 代替原录制业务证明。
 
 以下输入不得混用：
 

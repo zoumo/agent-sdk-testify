@@ -1,0 +1,96 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-018/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--forward-subagent-text",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-018",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察并行子 Agent 的独立输出。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-018",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "topology",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "a9d35775156cba96a",
+      "parentSessionId": "1536b180-1220-48b7-92b0-5c92713bf1e3",
+      "childSessionId": "a9d35775156cba96a",
+      "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-018/fixture/runtime/executions/1b43cae5d1df03701116d36cb661ae90/workspace",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-a9d35775156cba96a.meta.json",
+      "source": "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-a9d35775156cba96a.meta.json",
+      "sha256": "eae00a2e0245483ff18bb3733f4f8ef4a0f72c67ac97b3ed7c06f126caa24691"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "af8451e48526c39af",
+      "parentSessionId": "1536b180-1220-48b7-92b0-5c92713bf1e3",
+      "childSessionId": "af8451e48526c39af",
+      "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-018/fixture/runtime/executions/1b43cae5d1df03701116d36cb661ae90/workspace",
+      "nativeTarget": "config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-af8451e48526c39af.meta.json",
+      "source": "history/runtime/config/projects/-Users-jim--worktrees-agent-sdk-testify-portable-framework-paths-integration--scratch-r4-claude-SDK-CASE-018-fixture-runtime-executions-1b43cae5d1df03701116d36cb661ae90-workspace/1536b180-1220-48b7-92b0-5c92713bf1e3/subagents/agent-af8451e48526c39af.meta.json",
+      "sha256": "65a6706f9def8c8fb4febca5a351863f7838ca2b8c81424b4420bd34d56555de"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/r4/claude/SDK-CASE-018/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Launch two child agents before waiting for either. Each child must explain addition in three sentences, then end with its distinct marker SYNTHETIC_ALPHA or SYNTHETIC_BETA. Use only native spawn_agent or Agent and wait tools. No files, shell or network. Wait for both results and report both markers."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-018",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察并行子 Agent 的独立输出。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-018",
+    "configuration": {},
+    "driverProfile": "topology",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "topology": "parallel"
+    },
+    "prompts": [
+      "Launch two child agents before waiting for either. Each child must explain addition in three sentences, then end with its distinct marker SYNTHETIC_ALPHA or SYNTHETIC_BETA. Use only native spawn_agent or Agent and wait tools. No files, shell or network. Wait for both results and report both markers."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "sourcePlanSHA256": "cf105dd803bc95332597d1328cfe2409cc6000250c160b2eb43608691d6176b0",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

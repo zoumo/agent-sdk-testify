@@ -12,6 +12,7 @@ if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from record_user_story.native_cases import prepare_case
+from record_user_story.runtime_config import apply_runtime
 
 
 def main(argv=None, expected_provider=None, case_registry=None):
@@ -19,21 +20,20 @@ def main(argv=None, expected_provider=None, case_registry=None):
     parser.add_argument('--request', required=True, type=Path)
     args = parser.parse_args(argv)
     request = json.loads(args.request.read_text())
-    output = Path(request['output'])
     result = {'status': 'failed', 'message': ''}
+    output = None
     try:
         plan = json.loads((Path(request['materials']) / 'case.json').read_text())
+        runtime = apply_runtime(plan, request)
+        output = Path(runtime['output'])
         if expected_provider and plan.get('provider') != expected_provider:
             raise ValueError('request provider differs from selected Agent driver')
         if plan['caseId'] != request['case']:
             raise ValueError('requested case differs from supplied materials')
-        plan['_peer'] = request['peer']
-        plan['_fixtureProject'] = request['workspace']
         plan['_nativeCase'] = True
         prepare_case(plan, case_registry or {})
         # Read-only evidence distinguishes saved inputs from a fresh capture;
         # process commands and configuration come exclusively from request.peer.
-        plan['_replay'] = bool(plan.get('_replay')) or (output / 'raw/raw.jsonl').exists()
         from record_user_story.drivers import run
         run(plan)
         report_path = output / ('replay-report.json' if plan['_replay'] else 'report.json')
@@ -49,6 +49,11 @@ def main(argv=None, expected_provider=None, case_registry=None):
         result = {'status': 'unsupported', 'message': str(exc)}
     except Exception as exc:
         result = {'status': 'failed', 'message': f'{type(exc).__name__}: {exc}'}
+    if output is None:
+        try:
+            output = Path(request['runtime']).parent
+        except (KeyError, TypeError):
+            return 2
     temporary = output / 'result.json.tmp'
     temporary.write_text(json.dumps(result, indent=2) + '\n')
     temporary.replace(output / 'result.json')

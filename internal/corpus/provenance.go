@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -15,6 +16,21 @@ import (
 // peer binaries remain freely selectable. Shared/synthetic materials need no
 // recording manifest. Existing manifests, when present, must remain truthful.
 func VerifyMaterials(root string, requireComplete bool) error {
+	var descriptor Material
+	if err := tool.ReadJSON(filepath.Join(root, "material.json"), &descriptor); err == nil {
+		descriptor.Path = root
+		if descriptor.FormatVersion == 3 {
+			if err := ValidateCore(root, descriptor); err != nil {
+				return err
+			}
+		} else if descriptor.FormatVersion == 2 || len(descriptor.Files) > 0 {
+			if err := CheckMaterialInventory(root, descriptor); err != nil {
+				return err
+			}
+		}
+	} else if err != nil && !os.IsNotExist(err) {
+		return err
+	}
 	for _, phase := range []string{"", "remote-probe"} {
 		if err := VerifySourcePhase(filepath.Join(root, phase), requireComplete); err != nil {
 			return err
@@ -58,8 +74,15 @@ func VerifySourcePhase(root string, requireComplete bool) error {
 				}
 			}
 		}
+		base := filepath.Join(root, "raw")
+		if name == "manifest.json" && m["materialFormatVersion"] != nil {
+			if m["materialFormatVersion"] != float64(3) {
+				return errors.New("unsupported material manifest version")
+			}
+			base = root
+		}
 		for path, digest := range tool.Obj(m["files"]) {
-			if err := VerifyFile(filepath.Join(root, "raw"), path, tool.Str(digest)); err != nil {
+			if err := VerifyFile(base, path, tool.Str(digest)); err != nil {
 				return err
 			}
 		}
@@ -78,8 +101,19 @@ func VerifySourcePhase(root string, requireComplete bool) error {
 }
 
 func VerifyFile(root, path, digest string) error {
-	if !filepath.IsLocal(path) {
+	if path == "" || filepath.ToSlash(filepath.Clean(path)) != path || strings.ContainsAny(path, "\\\x00") || !filepath.IsLocal(path) {
 		return fmt.Errorf("source path escapes material directory: %s", path)
+	}
+	current := root
+	for part := range strings.SplitSeq(path, "/") {
+		current = filepath.Join(current, part)
+		info, err := os.Lstat(current)
+		if err != nil {
+			return err
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return errors.New("source reference traverses symlink")
+		}
 	}
 	info, err := os.Lstat(filepath.Join(root, path))
 	if err != nil {

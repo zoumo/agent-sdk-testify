@@ -26,9 +26,7 @@ func (r *OfficialRun) AuthorizeRecord(driverHash string, ids []string) (map[stri
 		return nil, err
 	}
 	planPath := r.Fixture.Source.Path
-	if r.Fixture.Source.Kind == "recording" {
-		planPath = filepath.Join(planPath, "plan.json")
-	}
+
 	sourcePlanHash, err := tool.FileDigest(planPath)
 	if err != nil {
 		return nil, err
@@ -39,7 +37,7 @@ func (r *OfficialRun) AuthorizeRecord(driverHash string, ids []string) (map[stri
 	}
 	claim := recordClaim{Origin: origin, Token: token, Receipts: map[string]string{}}
 	for _, id := range ids {
-		claim.Receipts[id] = filepath.Join(r.Dir, "driver", "peer-"+id+".process.json")
+		claim.Receipts[id] = filepath.Join(r.Dir, "peer-"+id+".process.json")
 	}
 	path := filepath.Join(r.Fixture.ResourceRoot, "official", r.ID, "claim.private.json")
 	if err := writeExclusive(path, claim); err != nil {
@@ -65,7 +63,10 @@ func recordOrigin(fixtureDir string, fixture *Fixture, connection string) (*corp
 		return nil, errors.New("official launch does not declare connection")
 	}
 	var active tool.Object
-	if err := tool.ReadJSON(filepath.Join(fixtureDir, "official-active.json"), &active); err != nil {
+	if err := persistedSchema(filepath.Join(fixtureDir, "official.json"), "official activity"); err != nil {
+		return nil, err
+	}
+	if err := tool.ReadJSON(filepath.Join(fixtureDir, "official.json"), &active); err != nil {
 		return nil, err
 	}
 	if active["id"] != origin.RunID || active["fixtureId"] != fixture.FixtureID || active["mode"] != "record" || active["status"] != "running" {
@@ -89,7 +90,7 @@ func validateOfficialOrigin(fixtureDir string, fixture *Fixture, origin *corpus.
 		return errors.New("official capture origin differs from fixture")
 	}
 	var registered corpus.OfficialOrigin
-	if err := tool.ReadJSON(filepath.Join(fixtureDir, "official-records", origin.RunID, "origin.json"), &registered); err != nil {
+	if err := tool.ReadJSON(filepath.Join(ResourceRoot(fixtureDir), "official", origin.RunID, "staging", "origin.json"), &registered); err != nil {
 		return err
 	}
 	if !reflect.DeepEqual(*origin, registered) {

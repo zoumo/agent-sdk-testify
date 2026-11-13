@@ -10,14 +10,15 @@ import (
 )
 
 type transactionContext struct {
-	fixture      *Fixture
-	plan         tool.Object
-	execution    Execution
-	connection   string
-	fixtureDir   string
-	dir          string
-	overlayRoot  string
-	artifactRoot string
+	fixture              *Fixture
+	plan                 tool.Object
+	execution            Execution
+	connection           string
+	fixtureDir           string
+	dir                  string
+	overlayRoot          string
+	artifactRoot         string
+	publicationCommitted bool
 }
 
 func newTransactionContext(fixture *Fixture, plan tool.Object, execution Execution, fixtureDir string) *transactionContext {
@@ -26,7 +27,7 @@ func newTransactionContext(fixture *Fixture, plan tool.Object, execution Executi
 		plan:         plan,
 		execution:    execution,
 		fixtureDir:   fixtureDir,
-		dir:          ExecutionDir(fixtureDir, execution.ExecutionID),
+		dir:          PackageExecutionRoot(fixtureDir, execution.Artifact.ID, execution.ExecutionID),
 		overlayRoot:  filepath.Dir(execution.Home),
 		artifactRoot: execution.ArtifactRoot,
 	}
@@ -62,6 +63,11 @@ func (c transactionContext) Execution() Execution {
 
 func (c transactionContext) Artifact() corpus.Material {
 	return cloneTransactionMaterial(c.execution.Artifact)
+}
+
+// MaterialReference is relative to the owning package.
+func (c transactionContext) MaterialReference() string {
+	return "material"
 }
 
 func (c transactionContext) Connection() string {

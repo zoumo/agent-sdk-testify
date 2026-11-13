@@ -60,9 +60,9 @@ func replayConnection(ctx context.Context, prepared Prepared, run lifecycle.Mock
 		defer notification.Close()
 	}
 	outcome, openErr := openReplayOutcome(run.ConnectionReceipt(), tool.Object{
-		"schemaVersion": 1, "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
+		"schemaVersion": 2, "materialId": run.Artifact().ID, "executionId": run.Execution().ExecutionID, "connectionId": run.Connection(), "version": 1, "status": "failed", "peer": "Go native mock", "nativeLaunched": false,
 		"exitCode": 0, "fullConsumption": false, "clientEOF": false, "cleanupComplete": true,
-		"recording": run.Artifact().Path, "toolVersion": version.String(),
+		"recording": run.MaterialReference(), "toolVersion": version.String(),
 	})
 	if openErr != nil {
 		return lifecycle.ClassifyFailure(lifecycle.FailureClassCleanup, openErr)
@@ -129,7 +129,11 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, *recording.
 	if readErr := tool.ReadJSON(filepath.Join(sourceRoot, "manifest.json"), &manifest); readErr != nil {
 		return nil, nil, readErr
 	}
-	if tool.Str(manifest["planSHA256"]) == "" || tool.Str(tool.Obj(manifest["files"])["raw.jsonl"]) == "" {
+	rawName := "raw.jsonl"
+	if manifest["materialFormatVersion"] == float64(3) {
+		rawName = "raw/raw.jsonl"
+	}
+	if tool.Str(manifest["planSHA256"]) == "" || tool.Str(tool.Obj(manifest["files"])[rawName]) == "" {
 		return nil, nil, errors.New("source manifest requires planSHA256 and files.raw.jsonl")
 	}
 	if err := corpus.VerifySourcePhase(sourceRoot, true); err != nil {
@@ -148,10 +152,13 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, *recording.
 		return nil, nil, errors.New("agent type differs from selected recording")
 	}
 	rawRoot := filepath.Join(sourceRoot, "raw")
-	expected := tool.Str(tool.Obj(manifest["files"])["raw.jsonl"])
+	expected := tool.Str(tool.Obj(manifest["files"])[rawName])
 	if phase == "probe" && plan["driverProfile"] == "remote-close" {
 		rawRoot = filepath.Join(sourceRoot, "remote-probe", "raw")
 		expected = tool.Str(tool.Obj(manifest["remotePhaseFiles"])["remote-probe/raw/raw.jsonl"])
+		if manifest["materialFormatVersion"] == float64(3) {
+			expected = tool.Str(tool.Obj(manifest["files"])["remote-probe/raw/raw.jsonl"])
+		}
 		if expected == "" {
 			return nil, nil, errors.New("source manifest must bind selected probe stream")
 		}
@@ -186,7 +193,7 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, *recording.
 		if err := json.Unmarshal(data, &metadata); err != nil {
 			return nil, nil, err
 		}
-		if _, present := metadata["recordingFormat"]; present {
+		if _, present := metadata["recordingFormat"]; present && metadata["materialFormatVersion"] != float64(3) {
 			content := document.Original
 			// The top manifest's files.raw.jsonl binds main. Probe bytes are bound by
 			// remotePhaseFiles and their own raw manifest; validate each against its file.

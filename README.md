@@ -86,7 +86,14 @@ if result.ConnectionStatus == agenttestify.ConnectionStatusPassed &&
 
 使用 Go 1.26.10 和 golangci-lint 2.12.2，不需要 Go SDK checkout、Go driver 或官方 SDK。
 CLI 也可以用 `go build ./cmd/agent-sdk-testify` 独立构建。
-`make test` 运行根目录公开库测试和内部单元测试，不构建 CLI。集成和完整流程分别运行：
+`make test` 运行根目录公开库测试和内部单元测试，不构建 CLI。
+
+Go 1.26.10 的 linked worktree 构建请使用这些标准入口：先提交源码，入口会从精确 HEAD
+创建本地独立构建 checkout，以保留 Go 的 VCS 身份。dirty 输入会被拒绝；失败时输出
+保留的 checkout/日志位置，产物仍写入调用方目录。聚焦测试可运行
+`bash scripts/with-build-checkout.sh go test -buildvcs=true -run 'TEST' .`。
+
+构建、集成和完整流程分别运行：
 
 ```sh
 make build
@@ -102,7 +109,7 @@ make fmt
 ```
 
 `go test ./...` 会选择全部层，并非快速入口。直接运行 E2E 时，用
-`bash scripts/with-agent-sdk-testify.sh --race go test -race ./test/e2e/...`；
+`bash scripts/with-agent-sdk-testify.sh --race go test -race ./tests/e2e/...`；
 也可传绝对路径 `AGENT_SDK_TESTIFY_BIN` 复用产物，构建模式必须与测试一致。
 测试包不自行构建 CLI。测试分层规则见[开发规范](docs/development.md#测试)。
 
@@ -141,7 +148,7 @@ case 与 binding 随二进制嵌入，可离开源码目录使用；不需要 `-
 
 外部消费者可以 `prepare --plan`，再用 record 让自身 SDK 驱动真实 Agent。工具准备
 隔离环境、workspace、配置和历史种子，消费者只提供真实 Agent 启动命令/参数并在 SDK
-宿主应用 route descriptor；record 产物可在同一 fixture 中直接 mock。该路径不经过官方
+宿主应用公开 Go 运行时 route 或 CLI runtime route 快照；record 产物可在同一 fixture 中直接 mock。该路径不经过官方
 driver，也不进入官方 case、验证、采用或内置快照；合同和用法见
 [消费者录制](docs/consumer-recording.md)。
 
@@ -172,7 +179,7 @@ agent-sdk-testify official verify --fixture-dir /private/fixture --timeout 2m
 agent type/case 从录制身份确定，只选择本工具的官方 driver；不接受 `--driver`、
 `--driver-arg`、`--peer` 或 SDK 仿真 driver。不会启动真实 Agent 或自动安装依赖。
 原件与已有 replay 证据保持不变；official verify 驱动官方 driver，由 driver 启动公开 agent mock。
-业务报告、driver 退出与失败诊断保存在 `verifications/<verificationId>/`，协议与
+业务报告、driver 退出与失败诊断保存在 `packages/<materialId>/verify/<verificationId>/`，协议与
 连接退出回执由 mock execution 保存，`verification.json` 引用实际参与的 execution。
 验证证据绑定原件、合同、工具及 driver 哈希，
 记录实际安装的官方 SDK 包和版本；版本不兼容须报告失败。

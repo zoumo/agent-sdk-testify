@@ -89,17 +89,14 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 	if indexed.DescriptorSHA256 != descriptorSHA256 {
 		return nil, errors.New("mock execution descriptor differs from index")
 	}
-	var execution Execution
-	if err := tool.ReadJSON(descriptorPath, &execution); err != nil {
+	execution, err := ReadExecution(fixtureDir, fixture, descriptorPath)
+	if err != nil {
 		return nil, err
 	}
-	if err := execution.Validate(*fixture); err != nil {
+	if err := validateMockExecutionContract(fixture, fixtureDir, index, *indexed, *execution); err != nil {
 		return nil, err
 	}
-	if err := validateMockExecutionContract(fixture, fixtureDir, index, *indexed, execution); err != nil {
-		return nil, err
-	}
-	statuses, err := reportConnectionStatuses(*indexed, execution)
+	statuses, err := reportConnectionStatuses(*indexed, *execution)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +123,7 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 			ResultPath:         filepath.Join(dir, "receipts", connection.ID+".result.json"),
 		}
 		if item.Status == ConnectionStatusPassed || item.Status == ConnectionStatusFailed {
-			facts, err := readMockConnectionEvidence(fixture.AgentType, execution, connection)
+			facts, err := readMockConnectionEvidence(fixture.AgentType, *execution, connection)
 			if err != nil {
 				return nil, err
 			}
@@ -159,6 +156,11 @@ func ReadMockExecutionReport(fixtureDir, executionID string) (*ExecutionReport, 
 	if err := validateExecutionStatus(status, statuses, hasResultFailure, hasExecutionFailure); err != nil {
 		return nil, err
 	}
+	if report.Complete {
+		if err := validateExecutionAggregate(fixtureDir, execution.Artifact.ID, execution.ExecutionID, descriptorSHA256); err != nil {
+			return nil, err
+		}
+	}
 	return report, nil
 }
 
@@ -180,7 +182,7 @@ func validateMockExecutionContract(fixture *Fixture, fixtureDir string, index *I
 	if _, err := inspectMaterial(fixture, execution.Artifact); err != nil {
 		return fmt.Errorf("mock execution material: %w", err)
 	}
-	if err := validateConnectionInventory(execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
+	if err := validateConnectionInventory(fixtureDir, execution, &execution.Artifact, fixture.Routes["mock"]); err != nil {
 		return fmt.Errorf("mock execution connection inventory: %w", err)
 	}
 	return nil

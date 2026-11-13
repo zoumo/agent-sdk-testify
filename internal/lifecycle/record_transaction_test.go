@@ -100,7 +100,7 @@ func prepareOfficialRecordTransactionFixture(t *testing.T) (fixtureDir, mockTemp
 	})
 	launch, err := activity.AuthorizeRecord(strings.Repeat("a", 64), []string{"main"})
 	require.NoError(t, err)
-	require.NoError(t, tool.WriteJSON(filepath.Join(activity.Dir, "driver", "peer-main.process.json"), tool.Object{
+	require.NoError(t, tool.WriteJSON(filepath.Join(activity.Dir, "peer-main.process.json"), tool.Object{
 		"supervisorPid": os.Getppid(),
 	}))
 	for key, value := range launch {
@@ -123,14 +123,24 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			return run.Plan(), nil
 		},
 		capture: func(_ context.Context, run RecordContext) error {
-			require.NoError(t, os.MkdirAll(filepath.Join(run.ArtifactRoot(), "raw"), 0o700))
-			if run.Connection() == "main" {
-				require.NoError(t, os.WriteFile(filepath.Join(run.ArtifactRoot(), "raw", "raw.jsonl"), []byte("{\"frame\":1}\n"), 0o600))
-			} else {
-				require.NoError(t, os.MkdirAll(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw"), 0o700))
-				require.NoError(t, os.WriteFile(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw", "raw.jsonl"), []byte("{\"probe\":1}\n"), 0o600))
+			if err := os.MkdirAll(filepath.Join(run.ArtifactRoot(), "raw"), 0o700); err != nil {
+				return err
 			}
-			require.NoError(t, os.MkdirAll(filepath.Dir(run.ConnectionReceipt()), 0o700))
+			if run.Connection() == "main" {
+				if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "raw", "raw.jsonl"), []byte("{\"frame\":1}\n"), 0o600); err != nil {
+					return err
+				}
+			} else {
+				if err := os.MkdirAll(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw"), 0o700); err != nil {
+					return err
+				}
+				if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "remote-probe", "raw", "raw.jsonl"), []byte("{\"probe\":1}\n"), 0o600); err != nil {
+					return err
+				}
+			}
+			if err := os.MkdirAll(filepath.Dir(run.ConnectionReceipt()), 0o700); err != nil {
+				return err
+			}
 			return tool.WriteJSON(run.ConnectionReceipt(), tool.Object{
 				"captureStatus": "complete", "cleanupComplete": true, "clientEOF": true,
 				"nativeLaunched": true, "reaped": true, "nativeExitCode": 0, "frames": 0,
@@ -143,27 +153,43 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			execution := run.Execution()
 			if execution.Artifact.OfficialOrigin != nil {
 				sourcePlan, err := os.ReadFile(run.Fixture().Source.Path)
-				require.NoError(t, err)
-				require.NoError(t, os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), sourcePlan, 0o600))
+				if err := err; err != nil {
+					return nil, err
+				}
+				if err := os.WriteFile(filepath.Join(run.ArtifactRoot(), "source-plan.json"), sourcePlan, 0o600); err != nil {
+					return nil, err
+				}
 				sourcePlanSHA256 = tool.DigestBytes(sourcePlan)
 				plan["sourcePlanSHA256"] = sourcePlanSHA256
 				plan["caseId"] = execution.Artifact.OfficialOrigin.CaseID
 				plan["provider"] = execution.Artifact.OfficialOrigin.AgentType
-				require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "official-origin.json"), execution.Artifact.OfficialOrigin))
+				if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "official-origin.json"), execution.Artifact.OfficialOrigin); err != nil {
+					return nil, err
+				}
 				for _, connection := range execution.Connections {
-					require.NoError(t, tool.CopyFile(
+					if err := tool.CopyFile(
 						filepath.Join(run.ExecutionDir(), "receipts", connection.ID+".origin.json"),
 						filepath.Join(run.ArtifactRoot(), "origin", connection.ID+".json"),
-					))
+					); err != nil {
+						return nil, err
+					}
 				}
 			}
-			require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "plan.json"), plan))
+			if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "plan.json"), plan); err != nil {
+				return nil, err
+			}
 			planHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "plan.json"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			rawHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "raw", "raw.jsonl"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			transportHash, err := tool.FileDigest(filepath.Join(run.ArtifactRoot(), "raw", "transport.json"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			connections := make([]string, 0, len(execution.Connections))
 			for _, connection := range execution.Connections {
 				connections = append(connections, connection.ID)
@@ -180,10 +206,14 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			if sourcePlanSHA256 != "" {
 				manifest["sourcePlanSHA256"] = sourcePlanSHA256
 			}
-			require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "manifest.json"), manifest))
-			require.NoError(t, tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "report.json"), tool.Object{
+			if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "manifest.json"), manifest); err != nil {
+				return nil, err
+			}
+			if err := tool.WriteJSON(filepath.Join(run.ArtifactRoot(), "report.json"), tool.Object{
 				"schemaVersion": 1, "status": "captured", "captureStatus": "complete",
-			}))
+			}); err != nil {
+				return nil, err
+			}
 			artifact := execution.Artifact
 			artifact.Kind, artifact.Action = "capture", "record"
 			artifact.Provenance = execution.Provenance
@@ -191,7 +221,9 @@ func successfulRecordPolicy(t *testing.T, packages *int) recordPolicyFunc {
 			artifact.Connections = connections
 			artifact.PlanSHA256 = planHash
 			artifact.ManifestSHA256, err = tool.FileDigest(filepath.Join(run.ArtifactRoot(), "manifest.json"))
-			require.NoError(t, err)
+			if err := err; err != nil {
+				return nil, err
+			}
 			artifact.RecordingSHA256 = rawHash
 			return &artifact, nil
 		},
@@ -301,9 +333,11 @@ func bindRecordMockRoute(t *testing.T, fixtureDir string) string {
 
 func readRecordExecution(t *testing.T, fixtureDir, executionID string) Execution {
 	t.Helper()
-	var execution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, executionID), "execution.json"), &execution))
-	return execution
+	fixture, err := OpenFixture(fixtureDir)
+	require.NoError(t, err)
+	execution, err := ReadExecution(fixtureDir, fixture, filepath.Join(ExecutionDir(fixtureDir, executionID), "execution.json"))
+	require.NoError(t, err)
+	return *execution
 }
 
 func TestRecordTransactionKeepsOfficialRecordRouteAndRestoresMockRoute(t *testing.T) {
@@ -389,6 +423,18 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	require.Equal(t, "passed", results[1]["status"])
 	require.Equal(t, results[0]["executionId"], results[1]["executionId"])
 	require.NotNil(t, results[1]["material"])
+	for _, value := range results {
+		require.EqualValues(t, 3, value["schemaVersion"])
+		for _, reference := range []string{"execution", "result", "receipt", "processReceipt"} {
+			if item, ok := value[reference]; ok {
+				require.False(t, filepath.IsAbs(tool.Str(item)), reference)
+			}
+		}
+	}
+	require.NotContains(t, tool.Obj(results[1]["material"]), "path")
+	durable := tool.Object{}
+	require.NoError(t, tool.ReadJSON(filepath.Join(PackageRoot(fixtureDir, tool.Str(results[1]["materialId"])), filepath.FromSlash(tool.Str(results[1]["result"]))), &durable))
+	require.Equal(t, results[1], durable)
 
 	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
@@ -407,9 +453,10 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
-	execution := Execution{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[0].ID), "execution.json"), &execution))
-	require.Equal(t, material, execution.Artifact)
+	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
+	require.Equal(t, material.ID, execution.Artifact.ID)
+	require.Empty(t, execution.Artifact.ManifestSHA256)
+	require.Equal(t, results[0]["executionSHA256"], results[1]["executionSHA256"])
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
 	assertRecordLockAvailable(t, fixtureDir)
 }
@@ -627,19 +674,18 @@ func TestRecordTransactionFinalResultDeliveryFailurePreservesCurrentAndReleasesL
 
 	currentAfter, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
-	require.Equal(t, stateBefore.current, currentAfter)
+	require.NotEqual(t, stateBefore.current, currentAfter)
 	index, err := readIndex(IndexPath(fixtureDir))
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 2)
-	require.Equal(t, "failed", index.Executions[1].Status)
-	require.Empty(t, index.Executions[1].ArtifactID)
+	require.Equal(t, "passed", index.Executions[1].Status)
+	require.Equal(t, index.Executions[1].MaterialID, index.Executions[1].ArtifactID)
 	executionDir := ExecutionDir(fixtureDir, index.Executions[1].ID)
 	result := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.result.json"), &result))
-	require.Equal(t, "failed", result["status"])
-	failure := tool.Object{}
-	require.NoError(t, tool.ReadJSON(filepath.Join(executionDir, "receipts", "main.failure.json"), &failure))
-	require.Contains(t, failure["error"], "broken pipe")
+	require.Equal(t, "passed", result["status"])
+	require.Equal(t, true, result["publicationCommitted"])
+	require.Contains(t, result["deliveryError"], "broken pipe")
 	execution := readRecordExecution(t, fixtureDir, index.Executions[1].ID)
 	require.NoFileExists(t, filepath.Join(execution.Config, "auth.json"))
 	assertRecordLockAvailable(t, fixtureDir)
@@ -692,7 +738,7 @@ func TestRecordTransactionLatePublicationFailurePreservesCurrentAndReleasesLock(
 		if err != nil {
 			return nil, err
 		}
-		materialRoot := filepath.Join(fixtureDir, "materials", artifact.ID)
+		materialRoot := MaterialRoot(fixtureDir, artifact.ID)
 		require.NoError(t, os.Mkdir(materialRoot, 0o700))
 		t.Cleanup(func() { _ = os.RemoveAll(materialRoot) })
 		return artifact, nil
@@ -730,8 +776,8 @@ func TestRecordTransactionClosesWhenFinalizationLockCannotOpen(t *testing.T) {
 	capture := policy.capture
 	policy.capture = func(ctx context.Context, run RecordContext) error {
 		require.NoError(t, capture(ctx, run))
-		require.NoError(t, os.Remove(filepath.Join(run.ExecutionDir(), "record-finalize.lock")))
-		return os.Mkdir(filepath.Join(run.ExecutionDir(), "record-finalize.lock"), 0o700)
+		require.NoError(t, os.Remove(filepath.Join(run.OverlayRoot(), "record-finalize.lock")))
+		return os.Mkdir(filepath.Join(run.OverlayRoot(), "record-finalize.lock"), 0o700)
 	}
 	result, fd := recordResultFile(t)
 	err := runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), policy)
@@ -817,8 +863,7 @@ func TestRecordTransactionNonFinalFailureWaitsForFinalConnection(t *testing.T) {
 	require.Equal(t, "pending", openIndex.Executions[0].Connections[1].Status)
 	require.Len(t, openIndex.Artifacts, 1)
 	stateBefore.requireUnchanged(t, fixtureDir)
-	var openExecution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, openIndex.Executions[0].ID), "execution.json"), &openExecution))
+	openExecution := readRecordExecution(t, fixtureDir, openIndex.Executions[0].ID)
 	require.FileExists(t, filepath.Join(openExecution.Config, "auth.json"))
 
 	var packages int

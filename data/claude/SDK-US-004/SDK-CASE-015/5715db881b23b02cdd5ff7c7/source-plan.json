@@ -1,0 +1,59 @@
+{
+  "case": {
+    "id": "SDK-CASE-015",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "回答一个请求中的多道问题。",
+    "storyId": "SDK-US-004"
+  },
+  "caseId": "SDK-CASE-015",
+  "driverProfile": "questions",
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "prompts": [
+    "Use the native question tool exactly once with 2 question(s). Ask which color and which second color; each question offers Amber and Indigo. Report the answers and finish. Do not use other tools."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {
+      "choice": "Amber",
+      "options": [
+        "Amber",
+        "Indigo"
+      ],
+      "question": "Which synthetic color?"
+    },
+    "case": {
+      "id": "SDK-CASE-015",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "回答一个请求中的多道问题。",
+      "storyId": "SDK-US-004"
+    },
+    "caseId": "SDK-CASE-015",
+    "configuration": {},
+    "driverProfile": "questions",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "freeText": false,
+      "questionCount": 2
+    },
+    "prompts": [
+      "Use the native question tool exactly once with 2 question(s). Ask which color and which second color; each question offers Amber and Indigo. Report the answers and finish. Do not use other tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "question"
+    ],
+    "storyId": "SDK-US-004"
+  },
+  "story": "SDK-US-004",
+  "storyId": "SDK-US-004"
+}

@@ -2,6 +2,7 @@ package corpus
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,7 +37,7 @@ func (s *corpusSuite) SetupTest() {
 	index := s.read(repository, "data/index.json")
 	for _, value := range tool.Array(index["cases"]) {
 		e := tool.Obj(value)
-		for _, key := range []string{"materials", "adoptionSHA256"} {
+		for _, key := range []string{"materials", "adoptionSHA256", "materialSHA256", "officialSDK", "qualification"} {
 			delete(e, key)
 		}
 		e["adoption"] = "missing"
@@ -468,6 +469,83 @@ func (s *corpusSuite) TestReplacementArchivesPreviousAndRetainsNewOnFailure() {
 	s.Require().Error(err)
 	s.Equal(before, s.hash(filepath.Dir(s.c.Index), "index.json"))
 	s.DirExists(second)
+}
+
+func (s *corpusSuite) TestLegacyReplacementClearsPublishedMaterialReceipt() {
+	s.evidence()
+	repository, err := testutil.RepositoryRoot()
+	s.Require().NoError(err)
+	index := s.read(filepath.Dir(s.c.Index), "index.json")
+	for _, value := range tool.Array(s.read(repository, "data/index.json")["cases"]) {
+		published := tool.Obj(value)
+		if published["provider"] != "codex" || published["caseId"] != "SDK-CASE-001" {
+			continue
+		}
+		for _, row := range tool.Array(index["cases"]) {
+			entry := tool.Obj(row)
+			if entry["provider"] == published["provider"] && entry["caseId"] == published["caseId"] {
+				maps.Copy(entry, published)
+				source := filepath.Join(repository, "data", tool.Str(published["materials"]))
+				target := filepath.Join(filepath.Dir(s.c.Index), tool.Str(published["materials"]))
+				s.Require().NoError(tool.CopyTree(source, target))
+			}
+		}
+	}
+	s.write(filepath.Dir(s.c.Index), "index.json", index)
+	s.Require().NotEmpty(s.entry()["materialSHA256"])
+	_, err = s.c.VerifyAdopted(s.entry())
+	s.Require().NoError(err)
+
+	target := s.adopt(s.qualify())
+	for _, key := range []string{"materialSHA256", "officialSDK", "qualification"} {
+		s.NotContains(s.entry(), key)
+	}
+	actual, err := s.c.VerifyAdopted(s.entry())
+	s.Require().NoError(err)
+	s.Equal(target, actual)
+}
+
+func (s *corpusSuite) TestPublishedLegacyMaterialPreservesStoryAlias() {
+	s.evidence()
+	plan := s.read(s.source, "plan.json")
+	plan["story"] = plan["storyId"]
+	delete(plan, "storyId")
+	s.write(s.source, "plan.json", plan)
+	manifest := s.read(s.source, "manifest.json")
+	manifest["planSHA256"] = s.hash(s.source, "plan.json")
+	s.write(s.source, "manifest.json", manifest)
+	s.write(s.source, "material.json", tool.Object{
+		"formatVersion": 2, "id": "synthetic-legacy", "kind": "capture", "action": "record", "provenance": "official",
+		"planSHA256": s.hash(s.source, "plan.json"), "manifestSHA256": s.hash(s.source, "manifest.json"),
+		"recordingSHA256": s.hash(s.source, "raw/raw.jsonl"), "connections": []string{"main"}, "files": s.inventory(s.source),
+	})
+	entry := tool.Object{
+		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "requirement": "required",
+		"adoption": "admitted", "verification": "passed", "adoptionSHA256": strings.Repeat("a", 64),
+		"materialSHA256": s.hash(s.source, "material.json"),
+		"officialSDK":    tool.Object{"package": "openai-codex", "version": "synthetic-legacy"},
+		"qualification":  tool.Object{"method": "official-sdk", "qualifiedAt": "2026-11-13T00:00:00Z"},
+	}
+	s.Require().NoError(s.c.verifyPublishedMaterial(s.source, entry))
+	entry["storyId"] = "SDK-US-002"
+	s.Require().ErrorContains(s.c.verifyPublishedMaterial(s.source, entry), "identity differs")
+}
+
+func (s *corpusSuite) TestPublishedMaterialRejectsLinkedOwnerDirectory() {
+	repository, err := testutil.RepositoryRoot()
+	s.Require().NoError(err)
+	for _, value := range tool.Array(s.read(repository, "data/index.json")["cases"]) {
+		entry := tool.Obj(value)
+		if entry["provider"] != "codex" || entry["caseId"] != "SDK-CASE-001" {
+			continue
+		}
+		link := filepath.Join(filepath.Dir(s.c.Index), "codex")
+		s.Require().NoError(os.Symlink(filepath.Join(repository, "data", "codex"), link))
+		_, err := s.c.VerifyAdopted(entry)
+		s.Require().ErrorContains(err, "material symlink is forbidden")
+		return
+	}
+	s.FailNow("missing published test material")
 }
 
 func (s *corpusSuite) TestIndexLockFailureRetainsExistingSample() {

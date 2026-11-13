@@ -85,7 +85,7 @@ func TestLibraryRecordWithoutCLI(t *testing.T) {
 	receipt := readLibraryJSON(t, result.ReceiptPath)
 	require.Equal(t, "complete", receipt["captureStatus"])
 	require.Equal(t, true, receipt["cleanupComplete"])
-	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(result.ReceiptPath), "stderr.raw"))), "synthetic library record peer")
+	require.Contains(t, string(readFile(t, filepath.Join(result.Material.Path, "raw", "stderr.raw"))), "synthetic library record peer")
 
 	opened, err := agenttestify.Open(fixtureDir)
 	require.NoError(t, err)
@@ -138,7 +138,9 @@ func TestLibraryRecordFailureRetainsEvidenceAndCurrent(t *testing.T) {
 	require.FileExists(t, failed.ReceiptPath)
 	require.FileExists(t, failed.ProcessReceiptPath)
 	require.FileExists(t, failed.ResultPath)
-	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(failed.ReceiptPath), "stderr.raw"))), "synthetic library record failure")
+	// Failed capture retains its native raw evidence in the execution domain;
+	// the stable protocol receipt is a separate connection-owned file.
+	require.Contains(t, string(readFile(t, filepath.Join(filepath.Dir(failed.ExecutionPath), "capture", "raw", "stderr.raw"))), "synthetic library record failure")
 
 	resultReference := readLibraryJSON(t, failed.ResultPath)
 	require.Equal(t, "failed", resultReference["status"])
@@ -284,7 +286,7 @@ func assertPublishedLibraryRecord(t *testing.T, prepared *agenttestify.Fixture, 
 	require.Len(t, result.Material.PlanSHA256, 64)
 	require.Len(t, result.Material.ManifestSHA256, 64)
 	require.Len(t, result.Material.RecordingSHA256, 64)
-	require.Equal(t, filepath.Join(prepared.FixtureDir, "materials", result.Material.ID), result.Material.Path)
+	require.Equal(t, filepath.Join(prepared.FixtureDir, "packages", result.Material.ID, "material"), result.Material.Path)
 	require.FileExists(t, result.ExecutionPath)
 	require.FileExists(t, result.ReceiptPath)
 	require.FileExists(t, result.ResultPath)

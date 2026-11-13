@@ -1,0 +1,45 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "77c02db8a9193b348d85185cf4b7ec102b89bfa71339e09a3ae11ebd73b0431b",
+    "origin/main.json": "cef421817341322135eb638d3a7631420e30ccaf9d00fe1dbd2cdb77cf1f5ee6",
+    "plan.json": "c9394c6087cd38ba9562c1dddcfc8764c8fa337422bec2914a826d2204f001a0",
+    "raw/manifest.json": "159a1dcf9f07bed0f4fb9560af93c0517d4d041c083971e2c2b75f32eca74600",
+    "raw/raw.jsonl": "4f206676f3aa0dadab5f6d88acd2611ede9e8fc381b648bbe1fe87ffecf4282d",
+    "raw/stderr.raw": "3b2c0de85fd29afbec27be6af9599bb6059e599e63c12fbd1072322514f358ac",
+    "raw/transport.json": "1c0b829e4ef2d867c0c2b17618755f97cda1b1cdec768a271be01ea605e7f560",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "01ab6dbc796eea5b9eef1b3f62fcfcf89167e286dd4dc59a310dfd5501b42e13"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-006/fixture/runtime/executions/c3815ec7707c5a3a878158b1daf27e07/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "c9394c6087cd38ba9562c1dddcfc8764c8fa337422bec2914a826d2204f001a0",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "1c0b829e4ef2d867c0c2b17618755f97cda1b1cdec768a271be01ea605e7f560",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "01ab6dbc796eea5b9eef1b3f62fcfcf89167e286dd4dc59a310dfd5501b42e13",
+  "status": "captured"
+}

@@ -1,0 +1,82 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-007/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--settings",
+    "{\"permissions\":{\"ask\":[\"Read\",\"Write\"]}}",
+    "--mcp-config",
+    "{\"mcpServers\":{\"fixture\":{\"type\":\"sdk\",\"name\":\"fixture\"}}}",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-007",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "处理应用工具请求并等待任务完成。",
+    "storyId": "SDK-US-002"
+  },
+  "caseId": "SDK-CASE-007",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "fixture-tools",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-007/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Use mcp__fixture__fixture_read exactly once to read numbers.txt, then report those numbers. Use no other tools."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-007",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "处理应用工具请求并等待任务完成。",
+      "storyId": "SDK-US-002"
+    },
+    "caseId": "SDK-CASE-007",
+    "configuration": {},
+    "driverProfile": "fixture-tools",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "applicationTool": true
+    },
+    "prompts": [
+      "Use mcp__fixture__fixture_read exactly once to read numbers.txt, then report those numbers. Use no other tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "fixture_read"
+    ],
+    "storyId": "SDK-US-002"
+  },
+  "sourcePlanSHA256": "7e489f38babc0d1e58dfe0ced0d73214d1334c1ed7ab296d1713629eceb68949",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-002",
+  "storyId": "SDK-US-002"
+}

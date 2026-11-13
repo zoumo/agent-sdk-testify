@@ -233,7 +233,7 @@ func TestLibraryStartMockAgentRejectsCorruptJoinEvidence(t *testing.T) {
 	}{
 		{
 			name: "duplicate execution",
-			want: "duplicate execution identity",
+			want: "duplicate execution/material identity",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, _ string) {
 				mutateLibraryJSON(t, filepath.Join(fixture.FixtureDir, "executions", "index.json"), func(value map[string]any) {
 					executions := value["executions"].([]any)
@@ -243,7 +243,7 @@ func TestLibraryStartMockAgentRejectsCorruptJoinEvidence(t *testing.T) {
 		},
 		{
 			name: "descriptor execution identity",
-			want: "descriptor identity",
+			want: "execution path differs from package identity",
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, executionID string) {
 				rewriteLibraryDescriptor(t, fixture.FixtureDir, executionID, func(value map[string]any) {
 					value["executionId"] = "other"
@@ -275,7 +275,7 @@ func TestLibraryStartMockAgentRejectsCorruptJoinEvidence(t *testing.T) {
 		},
 		{
 			name:       "material bytes",
-			want:       "hash",
+			want:       "material core inventory hash mismatch: remote-probe/raw/raw.jsonl",
 			finishMain: true,
 			mutate: func(t *testing.T, fixture *agenttestify.Fixture, _ string) {
 				appendFile(t, filepath.Join(fixture.Current.Path, "remote-probe", "raw", "raw.jsonl"), "\n")
@@ -454,11 +454,13 @@ func requireConnectionStatus(t *testing.T, report *agenttestify.ExecutionReport,
 
 func executionDirectoryCount(t *testing.T, fixtureDir string) int {
 	t.Helper()
-	entries, err := os.ReadDir(filepath.Join(fixtureDir, "executions"))
+	entries, err := filepath.Glob(filepath.Join(fixtureDir, "packages", "*", "executions", "*"))
 	require.NoError(t, err)
 	count := 0
 	for _, entry := range entries {
-		if entry.IsDir() {
+		info, err := os.Stat(entry)
+		require.NoError(t, err)
+		if info.IsDir() {
 			count++
 		}
 	}

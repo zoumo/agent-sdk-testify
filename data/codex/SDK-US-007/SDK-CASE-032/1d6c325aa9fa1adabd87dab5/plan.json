@@ -1,0 +1,74 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-032",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "关闭远端连接并保持远端服务可用。",
+    "storyId": "SDK-US-007"
+  },
+  "caseId": "SDK-CASE-032",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "remote-close",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a1d153-2c6b-7561-983e-e571eb9ab899",
+      "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-032/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/13/rollout-2026-11-13T03-54-11-01a1d153-2c6b-7561-983e-e571eb9ab899.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/13/rollout-2026-11-13T03-54-11-01a1d153-2c6b-7561-983e-e571eb9ab899.jsonl",
+      "sha256": "da57075e9d4070d5bdf6b877c382d82e4024cc5ad5ec8bb09e1938451e114f95"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-032/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply Ready."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-032",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "关闭远端连接并保持远端服务可用。",
+      "storyId": "SDK-US-007"
+    },
+    "caseId": "SDK-CASE-032",
+    "configuration": {},
+    "driverProfile": "remote-close",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Reply Ready."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-007"
+  },
+  "sourcePlanSHA256": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-007",
+  "storyId": "SDK-US-007"
+}

@@ -1,0 +1,5 @@
+[2m2026-11-12T19:52:53.100809Z[0m [31mERROR[0m [2mcodex_core::tools::router[0m[2m:[0m [3merror[0m[2m=[0mExit code: 1
+Wall time: 0 seconds
+Output:
+Failed to write file /Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-009/fixture/runtime/routes/record/workspace/approved.txt
+

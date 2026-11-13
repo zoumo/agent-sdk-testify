@@ -65,6 +65,7 @@ func (m *mockTransaction) result() *MockResult {
 	result := &MockResult{
 		ActionResult: ActionResult{
 			FixtureID:        m.fixture.FixtureID,
+			MaterialID:       m.execution.Artifact.ID,
 			ExecutionID:      m.execution.ExecutionID,
 			ConnectionID:     id,
 			ConnectionStatus: ConnectionStatusUnknown,
@@ -88,7 +89,7 @@ func (m *mockTransaction) result() *MockResult {
 // finalize serializes completion across declared connections and owns every
 // state transition from process evidence through result delivery.
 func (m *mockTransaction) finalize(ctx context.Context, stream *os.File, replayErr error) (err error) {
-	lock, lockErr := lockFile(filepath.Join(m.dir, "mock-finalize.lock"), true, true)
+	lock, lockErr := lockFile(filepath.Join(m.overlayRoot, "mock-finalize.lock"), true, true)
 	if lockErr != nil {
 		processErr := m.writeProcessReceipt(replayErr)
 		return finishTransactionFailure(ctx, &m.transactionContext, stream, m.fail, replayErr, processErr, lockErr)
@@ -191,7 +192,7 @@ func (m *mockTransaction) fail() error {
 
 func (m *mockTransaction) restoreRoutes() error {
 	var active tool.Object
-	err := tool.ReadJSON(filepath.Join(m.fixtureDir, "official-active.json"), &active)
+	err := tool.ReadJSON(filepath.Join(m.fixtureDir, "official.json"), &active)
 	if err == nil {
 		if active["fixtureId"] == m.fixture.FixtureID && active["mode"] == "verify" {
 			return nil
@@ -199,7 +200,7 @@ func (m *mockTransaction) restoreRoutes() error {
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	return restoreRouteSlots(m.fixture, "mock")
+	return errors.Join(restoreRouteSlots(m.fixture, "mock"), RefreshRoutes(m.fixture))
 }
 
 // RunMock owns one mock connection from allocation or join through result
@@ -303,8 +304,10 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 	if _, err := inspectMaterial(fixture, *current); err != nil {
 		return nil, err
 	}
-	if _, err := executionConnections(fixtureDir, "mock", current.Connections, current, route); err != nil {
-		return nil, err
+	for _, id := range current.Connections {
+		if _, declared := connectionTemplate(route, id); !declared {
+			return nil, fmt.Errorf("route does not declare connection %s", id)
+		}
 	}
 	index, err := readIndex(IndexPath(fixtureDir))
 	if err != nil {
@@ -353,20 +356,17 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 			return nil, ErrBusy
 		}
 		dir := ExecutionDir(fixtureDir, pending.ID)
-		var execution Execution
-		if err := tool.ReadJSON(filepath.Join(dir, "execution.json"), &execution); err != nil {
+		execution, err := ReadExecution(fixtureDir, fixture, filepath.Join(dir, "execution.json"))
+		if err != nil {
 			return nil, err
 		}
-		if err := execution.Validate(*fixture); err != nil {
-			return nil, err
-		}
-		if err := validateMockExecutionContract(fixture, fixtureDir, index, *pending, execution); err != nil {
+		if err := validateMockExecutionContract(fixture, fixtureDir, index, *pending, *execution); err != nil {
 			return nil, err
 		}
 		if hash, err := tool.FileDigest(filepath.Join(dir, "execution.json")); err != nil || hash != pending.DescriptorSHA256 {
 			return nil, errors.New("mock descriptor changed")
 		}
-		statuses, err := reportConnectionStatuses(*pending, execution)
+		statuses, err := reportConnectionStatuses(*pending, *execution)
 		if err != nil {
 			return nil, err
 		}
@@ -376,14 +376,14 @@ func beginMockTransaction(request MockRequest) (transaction *mockTransaction, er
 		if connectionStarted(pending, request.Connection) {
 			return nil, fmt.Errorf("mock connection %s already started for execution %s", request.Connection, pending.ID)
 		}
-		if err := validateMockJoin(execution, request.NativeArgs, request.Timeout, request.ProgressFD, &request.Artifact); err != nil {
+		if err := validateMockJoin(*execution, request.NativeArgs, request.Timeout, request.ProgressFD, &request.Artifact); err != nil {
 			return nil, err
 		}
 		plan, err := LoadPlan(fixture)
 		if err != nil {
 			return nil, err
 		}
-		run = newTransactionContext(fixture, plan, execution, fixtureDir)
+		run = newTransactionContext(fixture, plan, *execution, fixtureDir)
 	} else {
 		if !exclusive {
 			return nil, ErrBusy

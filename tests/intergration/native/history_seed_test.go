@@ -59,18 +59,41 @@ func TestHistorySeedUsesCaptureWithoutReplay(t *testing.T) {
 			require.NotContains(t, tool.Obj(seed["sourceFiles"]), "replay-validation.json")
 			require.NoFileExists(t, filepath.Join(source, "replay-validation.json"))
 			require.Equal(t, "synthetic-model", target["model"])
+			require.NotContains(t, seed, "sourceRoot")
+			require.Equal(t, "history/seed", seed["sourceRootRef"])
+			for _, name := range []string{"plan.json", "manifest.json", "report.json", "raw/raw.jsonl"} {
+				require.Contains(t, tool.Obj(seed["sourceFiles"]), name)
+			}
+
+			// Native preparation owns writable startup files. A separately frozen
+			// source closure keeps its original bytes after resume appends metadata.
+			material := t.TempDir()
+			frozenRoot := filepath.Join(material, "history", "seed")
+			require.NoError(t, tool.CopyTree(source, frozenRoot))
+			require.NoError(t, corpus.VerifyMaterials(frozenRoot, true))
+			bindings := map[string]string{}
+			for name, digest := range tool.Obj(seed["sourceFiles"]) {
+				bindings["history/seed/"+name] = tool.Str(digest)
+				require.NoError(t, corpus.VerifyFile(material, "history/seed/"+name, tool.Str(digest)))
+			}
 			for name, value := range tool.Obj(seed["files"]) {
-				require.FileExists(t, filepath.Join(root, name))
+				require.Equal(t, "history/seed/"+name, tool.Obj(value)["source"])
+				writable := filepath.Join(root, name)
 				require.NoError(t, corpus.VerifyFile(root, name, tool.Str(tool.Obj(value)["sha256"])))
-				// Native resume may append mode metadata to its writable copy.
-				writable := filepath.Join(root, tool.Str(tool.Obj(value)["source"]))
 				f, e := os.OpenFile(writable, os.O_APPEND|os.O_WRONLY, 0o600)
 				require.NoError(t, e)
 				_, e = f.WriteString("{\"type\":\"system\",\"subtype\":\"mode\"}\n")
 				require.NoError(t, e)
 				require.NoError(t, f.Close())
-				require.NoError(t, corpus.VerifyFile(root, name, tool.Str(tool.Obj(value)["sha256"])))
+				require.NoError(t, corpus.VerifyFile(material, tool.Str(tool.Obj(value)["source"]), tool.Str(tool.Obj(value)["sha256"])))
 			}
+			require.NoError(t, os.RemoveAll(source))
+			for name, digest := range bindings {
+				require.NoError(t, corpus.VerifyFile(material, name, digest))
+			}
+			require.NoError(t, corpus.VerifyMaterials(frozenRoot, true))
+			require.NoError(t, os.WriteFile(filepath.Join(frozenRoot, "raw", "raw.jsonl"), []byte("{}\n{}\n"), 0o600))
+			require.ErrorContains(t, corpus.VerifyFile(material, "history/seed/raw/raw.jsonl", bindings["history/seed/raw/raw.jsonl"]), "source hash mismatch")
 		})
 	}
 }

@@ -1,0 +1,75 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "features.shell_tool=false",
+    "-c",
+    "model_catalog_json=\"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-008/fixture/runtime/executions/30cbf4c09bbb3b06ce56521df24feca6/config/file-tool-model.json\"",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-008",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "拒绝文件写入审批并观察后续结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-008",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "approval",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-008/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Use apply_patch exactly once to add denied.txt with content denied followed by a newline in the working directory. The native file change approval will be denied. Report the decision without retrying or using shell or another tool."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-008",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "拒绝文件写入审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-008",
+    "configuration": {},
+    "driverProfile": "approval",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalDecision": "deny",
+      "approvalKind": "file",
+      "nativeFileTool": "apply_patch"
+    },
+    "prompts": [
+      "Use apply_patch exactly once to add denied.txt with content denied followed by a newline in the working directory. The native file change approval will be denied. Report the decision without retrying or using shell or another tool."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "approval_answer"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "sourcePlanSHA256": "a69969e4f2e4b6968b131668b76bf32103a58e4bec3bf720c70c85a28812fe21",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

@@ -3,13 +3,13 @@ package lifecycle
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
@@ -74,6 +74,11 @@ func baseEnvironment(provider, root string) map[string]string {
 var routeEnvironmentEntries = []string{"workspace", "home", "config", "tmp", "history-seed"}
 
 func bindRouteSlots(routeRoot, targetRoot string) error {
+	return bindPreparedRouteSlots(routeRoot, targetRoot, targetRoot)
+}
+
+// Validation uses the physical tree; links name its final published location.
+func bindPreparedRouteSlots(routeRoot, targetRoot, publishedTarget string) error {
 	info, err := os.Lstat(targetRoot)
 	if err != nil {
 		return err
@@ -98,7 +103,7 @@ func bindRouteSlots(routeRoot, targetRoot string) error {
 			return err
 		}
 		temp := filepath.Join(routeRoot, "."+name+"-"+id)
-		if err := os.Symlink(target, temp); err != nil {
+		if err := os.Symlink(filepath.Join(publishedTarget, name), temp); err != nil {
 			return err
 		}
 		if err := os.Rename(temp, filepath.Join(routeRoot, name)); err != nil {
@@ -124,15 +129,14 @@ func cleanMockConfig(root string, plan tool.Object, provider string) error {
 	return profile.writeConfig(root, plan)
 }
 
-func writeConnectionLauncher(root, id, self, fixtureDir string) (string, error) {
+func writeConnectionLauncher(path, id, self, fixtureDir string) error {
 	quote := func(value string) string { return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'" }
 	invocation := strings.Join([]string{quote(self), quote("agent"), quote("mock"), quote("--fixture-dir"), quote(fixtureDir), quote("--connection"), quote(id)}, " ")
-	path := filepath.Join(root, "peer-"+id)
 	script := "#!/bin/sh\nexec " + invocation + " -- \"$@\"\n"
-	if err := os.MkdirAll(root, 0o700); err != nil {
-		return "", err
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return err
 	}
-	return path, os.WriteFile(path, []byte(script), 0o700)
+	return os.WriteFile(path, []byte(script), 0o700)
 }
 
 func ConnectionIDs(source Source, plan tool.Object) []string {
@@ -161,7 +165,7 @@ func writePlanSnapshot(fixtureDir string, raw []byte) (string, error) {
 	return path, nil
 }
 
-func initialBuiltin(fixture *Fixture, materialRoot string) (*builtin.Material, error) {
+func initialBuiltin(fixture *Fixture, fixtureDir, materialID string, ids []string) (*corpus.Material, error) {
 	if fixture.Source.Kind != "case" {
 		return nil, nil
 	}
@@ -177,15 +181,49 @@ func initialBuiltin(fixture *Fixture, materialRoot string) (*builtin.Material, e
 	if err := builtin.CheckMaterial(extracted, material); err != nil {
 		return nil, err
 	}
-	if err := copyMaterial(extracted, materialRoot); err != nil {
+	core, completePackage, err := corpus.RecordingRoot(extracted)
+	if err != nil {
 		return nil, err
 	}
-	return material, nil
+	descriptor, err := corpus.ReadMaterialDescriptor(core)
+	if err != nil {
+		return nil, err
+	}
+	if descriptor != nil {
+		if err := validateExecutionID(descriptor.ID); err != nil {
+			return nil, err
+		}
+		materialID = descriptor.ID
+	}
+	materialRoot := MaterialRoot(fixtureDir, materialID)
+	target := materialRoot
+	if completePackage {
+		target = PackageRoot(fixtureDir, materialID)
+	}
+	if err := copyMaterial(extracted, target); err != nil {
+		return nil, err
+	}
+	if descriptor != nil {
+		descriptor.Path = materialRoot
+		return descriptor, nil
+	}
+	artifact, err := artifactForMaterial(materialRoot, "builtin", ids)
+	if err != nil {
+		return nil, err
+	}
+	artifact.ID = materialID
+	return artifact, nil
 }
 
 // Prepare creates a caller-owned fixture directory containing its runtime
 // baseline. It never starts a client, SDK, driver or native Agent.
-func Prepare(o PrepareOptions) (result *Fixture, err error) {
+func Prepare(o PrepareOptions) (*Fixture, error) {
+	return prepare(o, nil)
+}
+
+// beforePublish is an internal fault boundary; all preparation has completed
+// when invoked, and only the final no-replace rename remains.
+func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (result *Fixture, err error) {
 	spec, err := resolveSource(o)
 	if err != nil {
 		return nil, err
@@ -198,27 +236,34 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := os.Mkdir(fixtureDir, 0o700); err != nil {
+	publishedDir := fixtureDir
+	fixtureDir, err = os.MkdirTemp(filepath.Dir(publishedDir), ".agent-sdk-testify-prepare-*")
+	if err != nil {
 		return nil, err
 	}
+	defer os.RemoveAll(fixtureDir)
 	var root string
 	defer func() {
 		if err != nil {
-			_ = os.Remove(FixturePath(fixtureDir))
-			diagnostic := map[string]any{"schemaVersion": SchemaVersion, "status": "failed", "error": err.Error(), "resourceRoot": root}
-			if root != "" {
-				cleanup := os.RemoveAll(root)
-				diagnostic["cleanupComplete"] = cleanup == nil
-				if cleanup != nil {
-					diagnostic["cleanupError"] = cleanup.Error()
-				}
+			diagnostic, createErr := os.CreateTemp(filepath.Dir(publishedDir), ".agent-sdk-testify-prepare-failed-*.json")
+			if createErr == nil {
+				name := diagnostic.Name()
+				_ = diagnostic.Close()
+				_ = tool.WriteJSON(name, tool.Object{"schemaVersion": SchemaVersion, "status": "failed", "error": err.Error()})
 			}
-			_ = writeAtomic(filepath.Join(fixtureDir, "prepare.json"), diagnostic)
 		}
 	}()
 	root = filepath.Join(fixtureDir, "runtime")
 	if err := os.Mkdir(root, 0o700); err != nil {
 		return nil, err
+	}
+	if toolIdentity.Source == ToolSourceExecutable {
+		if err := tool.WriteJSON(ToolBindingPath(fixtureDir), Command{
+			Command: toolIdentity.Command,
+			Args:    slices.Clone(toolIdentity.Args),
+		}); err != nil {
+			return nil, err
+		}
 	}
 	baseline := filepath.Join(root, "baseline")
 	for _, name := range []string{"workspace", "home", "config", "tmp", "history-seed"} {
@@ -236,7 +281,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	}
 	baselineEnv := baseEnvironment(agentType, baseline)
 	privateEnv := map[string]string{}
-	if err := native.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), filepath.Join(root, "private-config"), privateEnv); err != nil {
+	if err := native.CopyNativeConfig(agentType, filepath.Join(baseline, "config"), filepath.Join(BaselineRoot(publishedDir), "config"), filepath.Join(root, "private-config"), privateEnv); err != nil {
 		return nil, err
 	}
 	files, err := catalog.PlanFiles(spec.plan)
@@ -270,32 +315,46 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		if err != nil || filepath.IsLocal(rel) {
 			return nil, errors.New("--fixture-dir must be outside the history seed")
 		}
-		historySeed = filepath.Join(fixtureDir, "source", "history-seed")
-		if err := copyMaterial(sourceSeed, historySeed); err != nil {
+		historySeed = SourceSeedPath(fixtureDir)
+		seedCore, _, err := corpus.RecordingRoot(sourceSeed)
+		if err != nil {
+			return nil, err
+		}
+		if err := corpus.VerifyMaterials(seedCore, true); err != nil {
+			return nil, err
+		}
+		if err := copyMaterial(sourceSeed, filepath.Join(historySeed, "source")); err != nil {
+			return nil, err
+		}
+		var seedPlan tool.Object
+		if err := tool.ReadJSON(filepath.Join(history.SeedSource(historySeed), "plan.json"), &seedPlan); err != nil {
+			return nil, err
+		}
+		if err := os.MkdirAll(filepath.Join(historySeed, "project"), 0o700); err != nil {
+			return nil, err
+		}
+		if err := tool.WriteFiles(filepath.Join(historySeed, "project"), tool.Obj(tool.Obj(seedPlan["scenario"])["files"])); err != nil {
 			return nil, err
 		}
 		files, err := history.HashTree(historySeed)
 		if err != nil {
 			return nil, err
 		}
-		historySeedFiles = make(map[string]string, len(files))
+		historySeedFiles = map[string]string{}
 		for name, digest := range files {
-			historySeedFiles["history-seed/"+name] = digest
+			historySeedFiles[fixtureSourceSeed+"/"+name] = digest
+		}
+		if spec.source.Kind == "plan" {
+			if _, err := history.MaterializeSeed(historySeed, baseline, spec.plan); err != nil {
+				return nil, err
+			}
 		}
 		if spec.source.Kind == "case" && spec.plan["driverProfile"] == "existing-children" {
 			if err := native.PrepareHistorySeed(historySeed, baseline, spec.plan); err != nil {
 				return nil, err
 			}
-			spec.planBytes, err = json.MarshalIndent(spec.plan, "", "  ")
-			if err != nil {
-				return nil, err
-			}
-			spec.planBytes = append(spec.planBytes, '\n')
-			spec.source.SHA256 = tool.DigestBytes(spec.planBytes)
 		}
-		if spec.source.Kind == "plan" {
-			err = tool.CopyTree(historySeed, filepath.Join(baseline, "history-seed"))
-		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -323,6 +382,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			MaxFrameBytes: o.MaxFrameBytes,
 		},
 	}
+	fixture.dir = fixtureDir
 	if err := writePrivateEnvironment(root, privateEnv); err != nil {
 		return nil, err
 	}
@@ -339,11 +399,11 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			fixture.Routes[action] = Route{Enabled: false}
 			continue
 		}
-		routeRoot := filepath.Join(root, "routes", action)
+		routeRoot := RouteRoot(fixtureDir, action)
 		if err := os.MkdirAll(routeRoot, 0o700); err != nil {
 			return nil, err
 		}
-		templateRoot := filepath.Join(root, "templates", action)
+		templateRoot := TemplateRoot(fixtureDir, action)
 		if err := tool.CopyTree(baseline, templateRoot); err != nil {
 			return nil, err
 		}
@@ -352,7 +412,7 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 				return nil, err
 			}
 		}
-		if err := bindRouteSlots(routeRoot, templateRoot); err != nil {
+		if err := bindPreparedRouteSlots(routeRoot, templateRoot, TemplateRoot(publishedDir, action)); err != nil {
 			return nil, err
 		}
 		route := Route{
@@ -360,8 +420,8 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 			Executor:    map[string]string{"record": "external-sdk", "mock": "external-sdk"}[action],
 			Target:      map[string]string{"record": "native-agent", "mock": "replay"}[action],
 			Provenance:  fixture.Source.Provenance,
-			Workspace:   filepath.Join(routeRoot, "workspace"),
-			ProtocolCwd: planProtocolCwd(spec.plan, filepath.Join(routeRoot, "workspace")),
+			Workspace:   RouteWorkspace(fixtureDir, action),
+			ProtocolCwd: planProtocolCwd(spec.plan, RouteWorkspace(fixtureDir, action)),
 			Env:         baseEnvironment(agentType, routeRoot),
 		}
 		if action == "record" {
@@ -378,11 +438,11 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 				template.Command = toolIdentity.Command
 				switch action {
 				case "record":
-					template.Args = []string{"agent", "record", "--fixture-dir", fixtureDir, "--cmd"}
+					template.Args = []string{"agent", "record", "--cmd"}
 				case "mock":
-					template.Args = []string{"agent", "mock", "--fixture-dir", fixtureDir, "--connection", id}
-					template.Launcher, err = writeConnectionLauncher(filepath.Join(root, "launchers"), id, toolIdentity.Command, fixtureDir)
-					if err != nil {
+					template.Args = []string{"agent", "mock", "--connection", id}
+					template.Launcher = LauncherPath(fixtureDir, id)
+					if err := writeConnectionLauncher(template.Launcher, id, toolIdentity.Command, publishedDir); err != nil {
 						return nil, err
 					}
 				}
@@ -401,26 +461,67 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		}
 		materialID = spec.material.ID
 	}
-	materialRoot := filepath.Join(fixtureDir, "materials", materialID)
+	materialRoot := MaterialRoot(fixtureDir, materialID)
 	var materialArtifact *corpus.Material
+	descriptorlessImport := fixture.Source.Kind == "recording" && spec.material == nil
 	switch fixture.Source.Kind {
 	case "case":
-		material, err := initialBuiltin(fixture, materialRoot)
+		artifact, err := initialBuiltin(fixture, fixtureDir, materialID, ids)
 		if err != nil {
 			return nil, err
 		}
-		if material != nil {
-			artifact, err := artifactForMaterial(materialRoot, "builtin", ids)
-			if err != nil {
-				return nil, err
+		if artifact != nil {
+			materialID = artifact.ID
+			materialRoot = MaterialRoot(fixtureDir, materialID)
+			_, statErr := os.Lstat(filepath.Join(materialRoot, "material.json"))
+			descriptorlessImport = os.IsNotExist(statErr)
+			if !descriptorlessImport {
+				spec.material = artifact
 			}
 			materialArtifact = artifact
 		}
 	case "recording":
-		if err := copyMaterial(fixture.Source.Path, materialRoot); err != nil {
+		importRoot := spec.source.Path
+		if spec.packageRoot != "" {
+			importRoot = spec.packageRoot
+			if err := copyMaterial(importRoot, PackageRoot(fixtureDir, materialID)); err != nil {
+				return nil, err
+			}
+		} else if err := copyMaterial(importRoot, materialRoot); err != nil {
 			return nil, err
 		}
-		fixture.Source.Path = materialRoot
+
+		rawSource, err := os.ReadFile(filepath.Join(materialRoot, "source-plan.json"))
+		if os.IsNotExist(err) {
+			rawSource, err = os.ReadFile(filepath.Join(materialRoot, "plan.json"))
+		}
+		if err != nil {
+			return nil, err
+		}
+		sourcePath, err := writePlanSnapshot(fixtureDir, rawSource)
+		if err != nil {
+			return nil, err
+		}
+		fixture.Source.Path = sourcePath
+		fixture.Source.SHA256 = tool.DigestBytes(rawSource)
+		seedPath := filepath.Join(materialRoot, "history", "seed")
+		if info, err := os.Lstat(seedPath); err == nil && info.IsDir() {
+			fixture.HistorySeed = SourceSeedPath(fixtureDir)
+			if err := copyMaterial(seedPath, fixture.HistorySeed); err != nil {
+				return nil, err
+			}
+			hashes, err := history.HashTree(fixture.HistorySeed)
+			if err != nil {
+				return nil, err
+			}
+			fixture.HistorySeedFiles = map[string]string{}
+			for name, hash := range hashes {
+				fixture.HistorySeedFiles[fixtureSourceSeed+"/"+name] = hash
+			}
+		} else if err != nil && !os.IsNotExist(err) {
+			return nil, err
+		}
+
 		if spec.material != nil {
 			imported := *spec.material
 			imported.Path = materialRoot
@@ -437,17 +538,33 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 		if spec.material == nil {
 			materialArtifact.ID = materialID
 			materialArtifact.Action = "mock"
+			if descriptorlessImport {
+				materialArtifact.FormatVersion = 0
+			} else {
+				materialArtifact.FormatVersion = 2
+			}
 		}
 		files, err := history.HashTree(materialRoot)
 		if err != nil {
 			return nil, err
 		}
 		delete(files, "material.json")
-		materialArtifact.Files = files
-		if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
-			return nil, err
+		if materialArtifact.FormatVersion == 3 {
+			materialArtifact.Files = nil
+		} else if len(materialArtifact.Files) == 0 {
+			materialArtifact.Files = files
+			if descriptorlessImport {
+				materialArtifact.LegacyInventorySHA256 = history.InventoryDigest(files)
+			}
+		} else if !reflect.DeepEqual(materialArtifact.Files, files) {
+			return nil, errors.New("imported material closure differs from its descriptor")
 		}
-		if _, err := inspectMaterial(fixture, *materialArtifact); err != nil {
+		if spec.material == nil && !descriptorlessImport {
+			if err := writeAtomic(filepath.Join(materialRoot, "material.json"), materialArtifact); err != nil {
+				return nil, err
+			}
+		}
+		if _, err := inspectMaterialWithDescriptor(fixture, *materialArtifact, !descriptorlessImport); err != nil {
 			return nil, err
 		}
 	}
@@ -465,11 +582,14 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err != nil {
 		return nil, err
 	}
-	index := &Index{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, FixtureSHA256: fixtureHash, LastUpdatedUTC: now()}
+	index := &Index{SchemaVersion: SchemaVersion, FixtureID: fixture.FixtureID, FixtureSHA256: fixtureHash, Descriptorless: map[string]bool{}, LastUpdatedUTC: now()}
 	if materialArtifact != nil {
 		index.Artifacts = append(index.Artifacts, *materialArtifact)
+		if descriptorlessImport {
+			index.Descriptorless[materialArtifact.ID] = true
+		}
 	}
-	if err := os.MkdirAll(filepath.Join(fixtureDir, "materials"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(fixtureDir, "packages"), 0o700); err != nil {
 		return nil, err
 	}
 	if err := writeMaterialIndex(fixtureDir, index); err != nil {
@@ -485,6 +605,9 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err := writeCurrent(fixtureDir, fixture, currentID); err != nil {
 		return nil, err
 	}
+	if err := refreshPreparedRoutes(fixture, publishedDir); err != nil {
+		return nil, err
+	}
 	if err := os.Chmod(fixturePath, 0o400); err != nil {
 		return nil, err
 	}
@@ -495,7 +618,17 @@ func Prepare(o PrepareOptions) (result *Fixture, err error) {
 	if err := lock.Close(); err != nil {
 		return nil, err
 	}
-	return fixture, nil
+	if beforePublish != nil {
+		if err := beforePublish(fixtureDir, publishedDir); err != nil {
+			return nil, err
+		}
+	}
+	if err := renameExport(fixtureDir, publishedDir); err != nil {
+		return nil, err
+	}
+	// Resolve from the committed descriptor, so the returned object has exactly
+	// the same final runtime bindings as every subsequent Open.
+	return OpenFixture(publishedDir)
 }
 
 func prepareToolIdentity(embedded bool, provided *version.EmbeddedIdentity) (ToolIdentity, error) {

@@ -1,0 +1,47 @@
+{
+  "case": {
+    "id": "SDK-CASE-031",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "关闭拥有的会话并确认交互与进程结束。",
+    "storyId": "SDK-US-007"
+  },
+  "caseId": "SDK-CASE-031",
+  "driverProfile": "session-close",
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "prompts": [
+    "Reply Ready."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-031",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "关闭拥有的会话并确认交互与进程结束。",
+      "storyId": "SDK-US-007"
+    },
+    "caseId": "SDK-CASE-031",
+    "configuration": {},
+    "driverProfile": "session-close",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Reply Ready."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-007"
+  },
+  "story": "SDK-US-007",
+  "storyId": "SDK-US-007"
+}

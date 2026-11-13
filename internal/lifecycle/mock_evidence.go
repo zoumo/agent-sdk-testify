@@ -34,7 +34,7 @@ func readMockConnectionEvidence(provider string, execution Execution, connection
 	if transport != MockTransportProcess && transport != MockTransportInProcess {
 		return nil, fmt.Errorf("mock connection transport %q is invalid", transport)
 	}
-	replay, err := readMockReplayReceipt(connection.Receipt, transport, provider, execution.Artifact, connection)
+	replay, err := readMockReplayReceipt(execution.dir, connection.Receipt, transport, provider, execution.Artifact, connection)
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +103,16 @@ func validateMockDiagnostics(value tool.Object, label string) error {
 	return nil
 }
 
-func readMockReplayReceipt(path string, transport MockTransport, provider string, artifact corpus.Material, connection ExecutionConnection) (tool.Object, error) {
+func readMockReplayReceipt(fixtureDir, path string, transport MockTransport, provider string, artifact corpus.Material, connection ExecutionConnection) (tool.Object, error) {
 	receipt, err := readEvidenceObject(path, "mock replay receipt")
 	if err != nil {
 		return nil, fmt.Errorf("mock replay receipt: %w", err)
 	}
-	if receipt["schemaVersion"] != float64(1) || receipt["version"] != float64(1) {
+	if receipt["schemaVersion"] != float64(2) || receipt["version"] != float64(1) {
 		return nil, errors.New("mock replay receipt schema or version differs from the contract")
+	}
+	if receipt["materialId"] != artifact.ID || receipt["connectionId"] != connection.ID || receipt["executionId"] != filepath.Base(filepath.Dir(filepath.Dir(path))) {
+		return nil, errors.New("mock replay receipt identity differs from execution")
 	}
 	for _, field := range []string{"nativeLaunched", "fullConsumption", "clientEOF", "cleanupComplete"} {
 		if _, ok := receipt[field].(bool); !ok {
@@ -126,8 +129,9 @@ func readMockReplayReceipt(path string, transport MockTransport, provider string
 	if tool.Str(receipt["provider"]) != provider {
 		return nil, fmt.Errorf("mock replay receipt provider %q differs from fixture agent %q", tool.Str(receipt["provider"]), provider)
 	}
-	if filepath.Clean(tool.Str(receipt["recording"])) != artifact.Path {
-		return nil, errors.New("mock replay receipt recording path differs from execution material")
+	recordingRoot, err := ResolvePackageReference(fixtureDir, artifact.ID, tool.Str(receipt["recording"]))
+	if err != nil || recordingRoot != artifact.Path {
+		return nil, errors.New("mock replay receipt recording reference differs from execution material")
 	}
 	if tool.Str(receipt["planSHA256"]) != artifact.PlanSHA256 {
 		return nil, errors.New("mock replay receipt plan differs from execution material")
@@ -186,12 +190,12 @@ func readMockResult(path string, execution Execution, connection ExecutionConnec
 	if err != nil {
 		return nil, fmt.Errorf("mock result: %w", err)
 	}
-	if result["schemaVersion"] != float64(1) ||
+	if result["schemaVersion"] != float64(3) ||
 		result["fixtureId"] != execution.FixtureID ||
 		result["executionId"] != execution.ExecutionID {
 		return nil, errors.New("mock result execution identity differs from execution")
 	}
-	if result["connectionId"] != connection.ID {
+	if result["materialId"] != execution.Artifact.ID || result["connectionId"] != connection.ID {
 		return nil, errors.New("mock result connection identity differs from execution")
 	}
 	if resultStatus := tool.Str(result["status"]); resultStatus != "passed" && resultStatus != "failed" {
@@ -201,7 +205,8 @@ func readMockResult(path string, execution Execution, connection ExecutionConnec
 		return nil, err
 	}
 	expectedExecution := filepath.Join(filepath.Dir(filepath.Dir(path)), "execution.json")
-	if filepath.Clean(tool.Str(result["execution"])) != expectedExecution {
+	declaredExecution, err := ResolvePackageReference(execution.dir, execution.Artifact.ID, tool.Str(result["execution"]))
+	if err != nil || declaredExecution != expectedExecution {
 		return nil, errors.New("mock result execution path differs from execution")
 	}
 	digest, err := tool.FileDigest(expectedExecution)
@@ -211,10 +216,12 @@ func readMockResult(path string, execution Execution, connection ExecutionConnec
 	if result["executionSHA256"] != digest {
 		return nil, errors.New("mock result execution hash differs from execution")
 	}
-	if filepath.Clean(tool.Str(result["result"])) != path {
+	declaredResult, err := ResolvePackageReference(execution.dir, execution.Artifact.ID, tool.Str(result["result"]))
+	if err != nil || declaredResult != path {
 		return nil, errors.New("mock result path differs from execution")
 	}
-	if filepath.Clean(tool.Str(result["receipt"])) != connection.Receipt {
+	declaredReceipt, err := ResolvePackageReference(execution.dir, execution.Artifact.ID, tool.Str(result["receipt"]))
+	if err != nil || declaredReceipt != connection.Receipt {
 		return nil, errors.New("mock result receipt path differs from execution")
 	}
 	if err := validateMockTransport(result, transport, "mock result"); err != nil {
@@ -242,13 +249,13 @@ func readMockResult(path string, execution Execution, connection ExecutionConnec
 		if tool.Str(result["command"]) != execution.Command {
 			return nil, errors.New("process mock result command differs from execution")
 		}
-		if connection.ProcessReceipt == "" || filepath.Clean(tool.Str(result["processReceipt"])) != connection.ProcessReceipt {
+		declaredProcess, err := ResolvePackageReference(execution.dir, execution.Artifact.ID, tool.Str(result["processReceipt"]))
+		if connection.ProcessReceipt == "" || err != nil || declaredProcess != connection.ProcessReceipt {
 			return nil, errors.New("process mock result receipt differs from execution")
 		}
 	}
 	material := tool.Obj(result["material"])
 	if material["id"] != execution.Artifact.ID ||
-		material["path"] != execution.Artifact.Path ||
 		material["provenance"] != execution.Artifact.Provenance ||
 		material["planSHA256"] != execution.Artifact.PlanSHA256 ||
 		material["manifestSHA256"] != execution.Artifact.ManifestSHA256 ||

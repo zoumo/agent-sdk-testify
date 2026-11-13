@@ -1,0 +1,81 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-010/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--settings",
+    "{\"permissions\":{\"ask\":[\"Bash\"]}}",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-010",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "批准命令审批并观察后续结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-010",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "approval",
+  "historyBindings": [],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/claude/SDK-CASE-010/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Run the shell command printf SYNTHETIC_COMMAND exactly once. Request execution outside the sandbox so the application can approve it. Do not retry if permission is denied."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-010",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "批准命令审批并观察后续结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-010",
+    "configuration": {},
+    "driverProfile": "approval",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalDecision": "allow",
+      "approvalKind": "command"
+    },
+    "prompts": [
+      "Run the shell command printf SYNTHETIC_COMMAND exactly once. Request execution outside the sandbox so the application can approve it. Do not retry if permission is denied."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "approval_answer"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "sourcePlanSHA256": "32d66a91df6ebec878ab0b5559ad5791acd1014a3424f5e11d63f56bb5147029",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}
