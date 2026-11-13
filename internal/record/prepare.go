@@ -17,6 +17,11 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 	path := filepath.Join(run.OverlayRoot(), "record-plan.json")
 	var plan tool.Object
 	if err := tool.ReadJSON(path, &plan); err == nil {
+		if corpus.SelfSeededChildren(plan) && run.Connection() == "probe" {
+			if err := prepareChildObservation(run, plan); err != nil {
+				return nil, err
+			}
+		}
 		materialPlanPath := filepath.Join(run.OverlayRoot(), "material-plan.json")
 		if _, statErr := os.Stat(materialPlanPath); os.IsNotExist(statErr) {
 			if err := tool.WriteJSON(materialPlanPath, corpus.MaterialPlanFromRuntime(plan)); err != nil {
@@ -65,7 +70,7 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 			return nil, err
 		}
 	}
-	if plan["driverProfile"] == "existing-children" && plan["historySeed"] == nil {
+	if plan["driverProfile"] == "existing-children" && plan["historySeed"] == nil && !corpus.SelfSeededChildren(plan) {
 		if fixture.HistorySeed == "" {
 			return nil, errors.New("existing-child recording requires saved history")
 		}

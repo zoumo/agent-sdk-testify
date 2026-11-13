@@ -415,7 +415,10 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null
+      "progressBarrier": null,
+      "parameters": {
+        "setupPrompt": "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_EXISTING_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+      }
     },
     "SDK-CASE-036": {
       "files": {},

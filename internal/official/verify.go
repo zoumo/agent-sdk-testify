@@ -172,7 +172,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	route := fixture.Routes["mock"]
 	env := route.Env
 	seedRoot := filepath.Dir(route.Workspace)
-	if plan["driverProfile"] == "existing-children" && tool.Obj(plan["historySeed"])["materialPlan"] != nil {
+	if corpus.SelfSeededChildren(plan) || (plan["driverProfile"] == "existing-children" && tool.Obj(plan["historySeed"])["materialPlan"] != nil) {
 		seedRoot = material.Path
 	}
 	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(material.Path, "raw"), env["TMPDIR"], seedRoot, true)

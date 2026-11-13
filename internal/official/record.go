@@ -123,7 +123,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 		plan["stdinEOFAction"] = "interrupt"
 	}
 	seedRoot := ""
-	if plan["driverProfile"] == "existing-children" {
+	if plan["driverProfile"] == "existing-children" && !corpus.SelfSeededChildren(plan) {
 		seedRoot = fixture.HistorySeed
 		if fixture.AgentType == "claude" {
 			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))

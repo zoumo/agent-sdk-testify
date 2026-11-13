@@ -158,7 +158,10 @@
         "stderrBytes": 0
       },
       "driverProfile": "existing-children",
-      "parameters": {}
+      "parameters": {
+        "selfSeed": true,
+        "setupPrompt": "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_EXISTING_CHILD and no tool calls. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+      }
     },
     {
       "id": "SDK-CASE-036",

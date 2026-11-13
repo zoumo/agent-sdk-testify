@@ -96,6 +96,10 @@
           "parameters": {
             "type": "object",
             "properties": {
+              "setupPrompt": {
+                "type": "string",
+                "minLength": 1
+              },
               "requirePostResultEvent": {
                 "type": "boolean"
               },

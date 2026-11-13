@@ -143,7 +143,7 @@ func ConnectionIDs(source Source, plan tool.Object) []string {
 	if source.Kind == "plan" {
 		return []string{"main"}
 	}
-	if tool.Str(plan["driverProfile"]) == "remote-close" && source.Provenance != "consumer" {
+	if (tool.Str(plan["driverProfile"]) == "remote-close" || corpus.SelfSeededChildren(plan)) && source.Provenance != "consumer" {
 		return []string{"main", "probe"}
 	}
 	return []string{"main"}

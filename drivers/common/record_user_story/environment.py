@@ -107,7 +107,12 @@ def _current_public_result(plan):
         receipt_name = execution + '/receipts/main.transport.json'
     receipt = reference(finished['receipt'], receipt_name)
     core = package / 'material'
-    captured = core if finished['command'] == 'mock' or finished.get('material') else package / execution / 'capture'
+    published = core / 'material.json'
+    if published.is_file():
+        descriptor = json.loads(read_regular(published))
+        if descriptor.get('id') != finished['materialId']:
+            raise ValueError('published material differs from reserved execution identity')
+    captured = core if finished['command'] == 'mock' or finished.get('material') or published.is_file() else package / execution / 'capture'
     if not captured.resolve().is_relative_to(package.resolve()):
         raise ValueError('public command capture reference escapes')
     return captured, receipt

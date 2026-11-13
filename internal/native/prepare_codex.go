@@ -108,7 +108,7 @@ func codexNativeArgs(profile string, params tool.Object) []string {
 
 func codexCaseArgs(profile string, params tool.Object) []string {
 	args := []string{"-c", "features.default_mode_request_user_input=true"}
-	if profile == "children" || profile == "background-children" || params["historyTarget"] == "child-messages" || params["topology"] != nil {
+	if profile == "children" || profile == "background-children" || params["selfSeed"] == true || params["historyTarget"] == "child-messages" || params["topology"] != nil {
 		args = append(args, "-c", "agents.enabled=true", "-c", "features.multi_agent=true")
 	}
 	if params["topology"] != nil {

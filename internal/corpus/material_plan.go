@@ -29,7 +29,7 @@ func MaterialPlanBytes(source []byte, runtime tool.Object) ([]byte, error) {
 	if err := json.Unmarshal(source, &plan); err != nil {
 		return nil, err
 	}
-	for _, key := range []string{"provider", "project", "_fixtureProject", "historyProject", "model", "initialModel", "args", "cliVersion", "cliSHA256", "stdinEOFAction", "recordingIsolation", "historySeed", "historyBindings", "sourcePlanSHA256"} {
+	for _, key := range []string{"provider", "project", "_fixtureProject", "historyProject", "model", "initialModel", "args", "cliVersion", "cliSHA256", "stdinEOFAction", "recordingIsolation", "historySeed", "historyBindings", "existingChildrenSetup", "sourcePlanSHA256"} {
 		if value, ok := runtime[key]; ok {
 			encoded, err := json.Marshal(value)
 			if err != nil {

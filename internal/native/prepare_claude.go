@@ -163,7 +163,10 @@ func prepareClaudeArgs(plan tool.Object, args []string, profile string) ([]strin
 		args = append(args, "--model", model)
 	}
 	if profile == "existing-children" {
-		args = append(args, "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]), "--forward-subagent-text")
+		if plan["historySeed"] != nil {
+			args = append(args, "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
+		}
+		args = append(args, "--forward-subagent-text")
 	}
 	return append(args, positional...), nil
 }

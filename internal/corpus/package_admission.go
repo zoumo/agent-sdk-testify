@@ -215,7 +215,14 @@ func (c *Corpus) validatePackageAdmission(source, replay string, review tool.Obj
 			v.Check(reflect.DeepEqual(tool.Strings(native["args"]), expectedArgs) && native["transport"] == "websocket" && regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(tool.Str(native["privateArgumentsSHA256"])), "owned remote native launch differs")
 			v.Check(transport["nativeLaunched"] == false && transport["remoteConnected"] == true && transport["remoteClosed"] == true, "remote connection did not settle")
 		} else {
-			v.Check(reflect.DeepEqual(native["args"], plan["args"]) && transport["nativeLaunched"] == true && transport["reaped"] == true && transport["nativeExitCode"] == float64(0), "native invocation or exit differs")
+			expectedArgs := tool.Strings(plan["args"])
+			if SelfSeededChildren(plan) && phase[0] != "" {
+				expectedArgs, err = ChildObservationArgs(plan)
+				if err != nil {
+					return nil, err
+				}
+			}
+			v.Check(reflect.DeepEqual(tool.Strings(native["args"]), expectedArgs) && transport["nativeLaunched"] == true && transport["reaped"] == true && transport["nativeExitCode"] == float64(0), "native invocation or exit differs")
 		}
 		v.Check(native["sha256"] == plan["cliSHA256"] && native["cwd"] == preparation["cwd"] && tool.Str(native["executable"]) != "", "observed native identity differs")
 		v.Check(transport["captureStatus"] == "complete" && transport["cleanupComplete"] == true && transport["clientEOF"] == true && transport["error"] == nil, "capture or cleanup incomplete")

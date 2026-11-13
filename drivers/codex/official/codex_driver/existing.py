@@ -6,7 +6,7 @@ from record_user_story.adapters.common import proxy_command, serial
 from record_user_story.environment import capture_root, read_regular, recording_temp_root
 from record_user_story.existing_children import sha, project_files, verify_seed
 from record_user_story.history import pages
-from record_user_story.runtime_config import execution_workspace
+from record_user_story.runtime_config import execution_workspace, protocol_project
 
 
 
@@ -32,7 +32,7 @@ def require_wire(plan, frames):
                    and f['wire'].get('id') == request['id'] and 'result' in f['wire']]
         if len(replies) != 1 or not position < replies[0] < following:
             raise ValueError('query or close precedes its native prerequisite response')
-    seed = plan['historySeed']
+    seed = plan.get('_selfSetup') or plan['historySeed']
     resumed = responses.get(json.dumps(requests[2]['id'])) or {}
     if (requests[2]['params'].get('threadId') != seed['sessionId']
             or requests[2]['params'].get('model') != plan['model']
@@ -66,7 +66,7 @@ def observe(plan, report):
     class NativeResponse(BaseModel):
         model_config = ConfigDict(extra='allow')
     check_source = not bool(plan.get('_replay'))
-    seed = verify_seed(plan, check_source=check_source)
+    seed = plan.get('_selfSetup') or verify_seed(plan, check_source=check_source)
     config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=str(execution_workspace(plan)),
                          client_name='official-python-story-recorder', client_title='Protocol recording')
     def reject(method, params):
@@ -78,7 +78,7 @@ def observe(plan, report):
             report['receipts'].append({'existing-query': {'method': method, 'params': dict(params), 'response': response}})
             return response
         response = request('thread/resume', {'threadId': seed['sessionId'], 'model': plan['model'],
-                                             'cwd': plan['historyProject']})
+                                             'cwd': plan.get('historyProject') or str(protocol_project(plan))})
         if response.get('thread', {}).get('id') != seed['sessionId'] or response.get('model') != plan['model']:
             raise ValueError('native resume selected a different identity or model')
         children = pages(request, 'thread/list', {'ancestorThreadId': seed['sessionId'],
@@ -86,6 +86,8 @@ def observe(plan, report):
         if sorted(x['id'] for x in children) != sorted(seed['agentIds']):
             raise ValueError('resumed Session did not discover its pre-existing children')
         request('thread/unsubscribe', {'threadId': seed['sessionId']})
-    verify_seed(plan, check_source=check_source)
-    frames = [json.loads(line) for line in read_regular(capture_root(plan) / 'raw/raw.jsonl', None).splitlines()]
+    if not plan.get('_selfSetup'):
+        verify_seed(plan, check_source=check_source)
+    raw = 'remote-probe/raw/raw.jsonl' if plan.get('_selfSetup') else 'raw/raw.jsonl'
+    frames = [json.loads(line) for line in read_regular(capture_root(plan) / raw, None).splitlines()]
     require_wire(plan, frames)
