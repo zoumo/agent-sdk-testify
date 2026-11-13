@@ -505,6 +505,32 @@ func (s *corpusSuite) TestLegacyReplacementClearsPublishedMaterialReceipt() {
 	s.Equal(target, actual)
 }
 
+func (s *corpusSuite) TestPublishedLegacyMaterialPreservesStoryAlias() {
+	s.evidence()
+	plan := s.read(s.source, "plan.json")
+	plan["story"] = plan["storyId"]
+	delete(plan, "storyId")
+	s.write(s.source, "plan.json", plan)
+	manifest := s.read(s.source, "manifest.json")
+	manifest["planSHA256"] = s.hash(s.source, "plan.json")
+	s.write(s.source, "manifest.json", manifest)
+	s.write(s.source, "material.json", tool.Object{
+		"formatVersion": 2, "id": "synthetic-legacy", "kind": "capture", "action": "record", "provenance": "official",
+		"planSHA256": s.hash(s.source, "plan.json"), "manifestSHA256": s.hash(s.source, "manifest.json"),
+		"recordingSHA256": s.hash(s.source, "raw/raw.jsonl"), "connections": []string{"main"}, "files": s.inventory(s.source),
+	})
+	entry := tool.Object{
+		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "requirement": "required",
+		"adoption": "admitted", "verification": "passed", "adoptionSHA256": strings.Repeat("a", 64),
+		"materialSHA256": s.hash(s.source, "material.json"),
+		"officialSDK":    tool.Object{"package": "openai-codex", "version": "synthetic-legacy"},
+		"qualification":  tool.Object{"method": "official-sdk", "qualifiedAt": "2026-11-13T00:00:00Z"},
+	}
+	s.Require().NoError(s.c.verifyPublishedMaterial(s.source, entry))
+	entry["storyId"] = "SDK-US-002"
+	s.Require().ErrorContains(s.c.verifyPublishedMaterial(s.source, entry), "identity differs")
+}
+
 func (s *corpusSuite) TestIndexLockFailureRetainsExistingSample() {
 	s.evidence()
 	target := s.adopt(s.qualify())

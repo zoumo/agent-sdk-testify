@@ -398,7 +398,11 @@ func (c *Corpus) verifyPublishedMaterial(root string, entry tool.Object) error {
 		return err
 	}
 	plan := inspection.Plan
-	if material.Provenance != "official" || plan["provider"] != entry["provider"] || plan["caseId"] != entry["caseId"] || plan["storyId"] != entry["storyId"] {
+	story := plan["storyId"]
+	if story == nil {
+		story = plan["story"]
+	}
+	if material.Provenance != "official" || plan["provider"] != entry["provider"] || plan["caseId"] != entry["caseId"] || story != entry["storyId"] {
 		return errors.New("published material identity differs")
 	}
 	catalog, err := c.Catalog()
