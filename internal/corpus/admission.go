@@ -370,12 +370,16 @@ func (c *Corpus) VerifyAdopted(entry tool.Object) (string, error) {
 // Publication retains the immutable replay core and a hash-bound index receipt.
 // Full official evidence is checked before publication and lives in the archive.
 func (c *Corpus) verifyPublishedMaterial(root string, entry tool.Object) error {
+	root, err := filepath.Abs(root)
+	if err != nil {
+		return err
+	}
 	v := &Validation{}
 	v.Check(entry["adoption"] == "admitted" && entry["verification"] == "passed", "material is not admitted")
 	v.Check(regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(tool.Str(entry["adoptionSHA256"])), "publication omits archived adoption identity")
 	v.Check(v.Digest(root, "material.json") == entry["materialSHA256"], "published material hash drift")
 	qualification := tool.Obj(entry["qualification"])
-	_, err := time.Parse(time.RFC3339Nano, tool.Str(qualification["qualifiedAt"]))
+	_, err = time.Parse(time.RFC3339Nano, tool.Str(qualification["qualifiedAt"]))
 	v.Check(qualification["method"] == "official-sdk" && err == nil, "publication omits official qualification")
 	sdk := tool.Obj(entry["officialSDK"])
 	v.Check(sdk["package"] == map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(entry["provider"])] && tool.Str(sdk["version"]) != "", "publication omits official SDK identity")
