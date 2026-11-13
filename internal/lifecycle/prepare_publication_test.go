@@ -26,7 +26,7 @@ func TestPrepareClaudeStartupHistoryUsesPublishedRoute(t *testing.T) {
 	t.Setenv("CLAUDE_CONFIG_DIR", t.TempDir())
 	target := filepath.Join(t.TempDir(), "fixture")
 	var staging string
-	fixture, err := prepare(PrepareOptions{FixtureDir: target, Agent: "claude", Case: "SDK-CASE-018"}, func(stage, _ string) error {
+	fixture, err := prepare(PrepareOptions{FixtureDir: target, Agent: "claude", Case: "SDK-CASE-033"}, func(stage, _ string) error {
 		staging = stage
 		return nil
 	})
