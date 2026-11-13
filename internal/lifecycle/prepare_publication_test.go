@@ -1,10 +1,14 @@
 package lifecycle
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 	"time"
 
@@ -13,8 +17,67 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/builtin"
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
+	"github.com/zoumo/agent-sdk-testify/internal/history"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
+
+func TestPrepareClaudeStartupHistoryUsesPublishedRoute(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("CLAUDE_CONFIG_DIR", t.TempDir())
+	target := filepath.Join(t.TempDir(), "fixture")
+	var staging string
+	fixture, err := prepare(PrepareOptions{FixtureDir: target, Agent: "claude", Case: "SDK-CASE-018"}, func(stage, _ string) error {
+		staging = stage
+		return nil
+	})
+	require.NoError(t, err)
+	current, present, err := CurrentArtifact(fixture.dir, fixture)
+	require.NoError(t, err)
+	require.True(t, present)
+	before, err := history.HashTree(current.Path)
+	require.NoError(t, err)
+
+	for _, phase := range []string{"published", "refreshed"} {
+		t.Run(phase, func(t *testing.T) {
+			if phase == "refreshed" {
+				require.NoError(t, RefreshRoutes(fixture))
+			}
+			route, err := ResolveRoute(fixture, "mock")
+			require.NoError(t, err)
+			key := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(route.Workspace, "-")
+			project := filepath.Join(route.Env["CLAUDE_CONFIG_DIR"], "projects", key)
+			require.DirExists(t, project, "the published route must discover history before claiming an execution")
+			files, err := filepath.Glob(filepath.Join(project, "*.jsonl"))
+			require.NoError(t, err)
+			require.NotEmpty(t, files)
+			var cwdRows int
+			for _, name := range files {
+				data, err := os.ReadFile(name)
+				require.NoError(t, err)
+				require.NotContains(t, string(data), staging)
+				scanner := bufio.NewScanner(bytes.NewReader(data))
+				for scanner.Scan() {
+					var row tool.Object
+					require.NoError(t, json.Unmarshal(scanner.Bytes(), &row))
+					if cwd := tool.Str(row["cwd"]); cwd != "" {
+						require.Equal(t, route.Workspace, cwd)
+						cwdRows++
+					}
+				}
+				require.NoError(t, scanner.Err())
+			}
+			require.Positive(t, cwdRows)
+			var snapshot struct {
+				HistoryFiles map[string]string `json:"historyFiles"`
+			}
+			require.NoError(t, tool.ReadJSON(filepath.Join(ResourceRoot(fixture.dir), "routes", "mock.json"), &snapshot))
+			require.NoError(t, history.Check(TemplateRoot(fixture.dir, "mock"), snapshot.HistoryFiles))
+		})
+	}
+	after, err := history.HashTree(current.Path)
+	require.NoError(t, err)
+	require.Equal(t, before, after)
+}
 
 func TestPrepareImportsBuiltinCoreWithoutChangingRecordingIdentity(t *testing.T) {
 	selected, _, err := builtin.Select("codex", "SDK-CASE-001")
