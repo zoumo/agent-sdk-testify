@@ -187,7 +187,7 @@ v1 复用 `agent mock` 的原生启动参数白名单，避免录出一份无法
 - Codex：`app-server`、`--listen stdio://`。
 - Claude：`--output-format stream-json`、`--input-format stream-json`、
   `--permission-prompt-tool stdio`，可选 `--verbose`、
-  `--include-partial-messages`、`--model=...`、`--resume=...`。
+  `--include-partial-messages`、`--model=...`、`--resume=...`、`--await-claim`。
 
 重复参数、未知参数和空格形式的 `--model VALUE`/`--resume VALUE` 在 record 启动前失败。
 需要其他原生启动参数时，先扩展回放 adapter 和白名单；不能只放宽录制侧。

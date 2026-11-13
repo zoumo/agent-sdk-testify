@@ -4,6 +4,7 @@ var claudeNativeArguments = nativeArgumentSpec{
 	flags: map[string]bool{
 		"--verbose":                  true,
 		"--include-partial-messages": true,
+		"--await-claim":              true,
 	},
 	values: map[string]string{
 		"--output-format":          "stream-json",
