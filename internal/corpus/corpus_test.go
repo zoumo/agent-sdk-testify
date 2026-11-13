@@ -531,6 +531,23 @@ func (s *corpusSuite) TestPublishedLegacyMaterialPreservesStoryAlias() {
 	s.Require().ErrorContains(s.c.verifyPublishedMaterial(s.source, entry), "identity differs")
 }
 
+func (s *corpusSuite) TestPublishedMaterialRejectsLinkedOwnerDirectory() {
+	repository, err := testutil.RepositoryRoot()
+	s.Require().NoError(err)
+	for _, value := range tool.Array(s.read(repository, "data/index.json")["cases"]) {
+		entry := tool.Obj(value)
+		if entry["provider"] != "codex" || entry["caseId"] != "SDK-CASE-001" {
+			continue
+		}
+		link := filepath.Join(filepath.Dir(s.c.Index), "codex")
+		s.Require().NoError(os.Symlink(filepath.Join(repository, "data", "codex"), link))
+		_, err := s.c.VerifyAdopted(entry)
+		s.Require().ErrorContains(err, "material symlink is forbidden")
+		return
+	}
+	s.FailNow("missing published test material")
+}
+
 func (s *corpusSuite) TestIndexLockFailureRetainsExistingSample() {
 	s.evidence()
 	target := s.adopt(s.qualify())

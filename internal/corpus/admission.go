@@ -305,6 +305,9 @@ func (c *Corpus) VerifyAdopted(entry tool.Object) (string, error) {
 	}
 	base := filepath.Dir(c.Index)
 	if _, reduced := entry["materialSHA256"]; reduced {
+		if _, err := Regular(base, name+"/material.json"); err != nil {
+			return "", err
+		}
 		root := filepath.Join(base, name)
 		if err := c.verifyPublishedMaterial(root, entry); err != nil {
 			return "", err
