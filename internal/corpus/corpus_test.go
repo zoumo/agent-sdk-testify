@@ -470,6 +470,42 @@ func (s *corpusSuite) TestReplacementArchivesPreviousAndRetainsNewOnFailure() {
 	s.DirExists(second)
 }
 
+func (s *corpusSuite) TestLegacyReplacementClearsPublishedMaterialReceipt() {
+	s.evidence()
+	repository, err := testutil.RepositoryRoot()
+	s.Require().NoError(err)
+	index := s.read(filepath.Dir(s.c.Index), "index.json")
+	for _, value := range tool.Array(s.read(repository, "data/index.json")["cases"]) {
+		published := tool.Obj(value)
+		if published["provider"] != "codex" || published["caseId"] != "SDK-CASE-001" {
+			continue
+		}
+		for _, row := range tool.Array(index["cases"]) {
+			entry := tool.Obj(row)
+			if entry["provider"] == published["provider"] && entry["caseId"] == published["caseId"] {
+				for key, value := range published {
+					entry[key] = value
+				}
+				source := filepath.Join(repository, "data", tool.Str(published["materials"]))
+				target := filepath.Join(filepath.Dir(s.c.Index), tool.Str(published["materials"]))
+				s.Require().NoError(tool.CopyTree(source, target))
+			}
+		}
+	}
+	s.write(filepath.Dir(s.c.Index), "index.json", index)
+	s.Require().NotEmpty(s.entry()["materialSHA256"])
+	_, err = s.c.VerifyAdopted(s.entry())
+	s.Require().NoError(err)
+
+	target := s.adopt(s.qualify())
+	for _, key := range []string{"materialSHA256", "officialSDK", "qualification"} {
+		s.NotContains(s.entry(), key)
+	}
+	actual, err := s.c.VerifyAdopted(s.entry())
+	s.Require().NoError(err)
+	s.Equal(target, actual)
+}
+
 func (s *corpusSuite) TestIndexLockFailureRetainsExistingSample() {
 	s.evidence()
 	target := s.adopt(s.qualify())

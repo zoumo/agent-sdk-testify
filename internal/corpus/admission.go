@@ -613,6 +613,9 @@ func (c *Corpus) AdoptWithIndexReplacement(source, replay, reviewPath string, re
 	entry["adoption"] = "admitted"
 	entry["materials"] = name
 	entry["adoptionSHA256"] = hash
+	for _, key := range []string{"materialSHA256", "officialSDK", "qualification"} {
+		delete(entry, key)
+	}
 	// Re-adopting identical frames cannot clear a known business evidence gap.
 	if previous == "" || previousHashes["raw/raw.jsonl"] != files["raw/raw.jsonl"] || entry["verification"] == "passed" {
 		entry["verification"] = "passed"
