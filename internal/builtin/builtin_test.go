@@ -19,8 +19,9 @@ func TestBuiltinCatalogCoverage(t *testing.T) {
 		} else {
 			assert.NotEmpty(t, row["missingReason"])
 		}
-		if row["provider"] == "claude" && row["caseId"] == "SDK-CASE-003" {
-			assert.Equal(t, "failed", row["verification"])
+		if row["caseId"] == "SDK-CASE-003" || row["caseId"] == "SDK-CASE-026" {
+			assert.Equal(t, "optional", row["requirement"])
+			assert.Equal(t, "unsupported", row["verification"])
 			assert.Equal(t, false, row["available"])
 		}
 	}
