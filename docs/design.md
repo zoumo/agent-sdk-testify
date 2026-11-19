@@ -970,20 +970,9 @@ mock 不执行录制中的 shell、文件编辑、hooks 或模型调用，也不
 它不模拟 Agent CLI 的版本、帮助或其他元命令。消费者负责启动 SDK 宿主、应用
 prepare 返回的环境和 workspace，并自行执行与报告业务断言。
 
-库消费者使用 `StartMockAgentStreams` 提供 `Reader`、`Writer` 和诊断 `Stderr`。
-`Reader` 是 SDK 到 mock 的读取端，`Writer` 是 mock 到 SDK 的写入端；关闭任一端都必须
-解除相应的并发阻塞 I/O。正常完成时 mock 在最终检查后关闭 `Writer`；abort 或
-transport failure 时关闭相关方向。`Stderr` 只承载诊断，不参与协议、完成或取消。
-
 每次 mock 创建新 execution。普通流程只有 `main` 连接；只有 case 确实声明多个独立
 原生客户端生命周期时才允许多连接。同一 execution 的连接可以并发，但每个声明连接
 最多启动一次，并分别完成严格匹配、完整消费、EOF、退出和清理。
-
-replay 在服务端帧、pending request 检查和握手 barrier 之后、额外客户端字节和 EOF
-检查之前触发完整消费事件。该事件只允许 SDK 半关闭输入，不表示成功；完整消费到达前
-失败时事件不触发，但 `Done`/`Wait` 必须结束。正常完成、canceled、aborted、transport、
-strict-replay、timeout 和 cleanup 使用不同终态；`Wait` 是权威完成结果，提前收到
-`Writer` EOF 不能替代它。
 
 mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
 连接已经完成。mock 进程 receipt 不记录 `cwd` 或 `workspace`；执行位置和协议项目
@@ -994,8 +983,8 @@ mock 结果分别给出本次连接状态和整个 execution 状态；连接 `pa
 库 mock 的 `ExecutionReport` 覆盖 execution 声明的全部连接，并从 descriptor、
 index、receipt 和 result 重新校验生成。进程内连接记录 `transport=in-process`、
 `nativeLaunched=false` 和空 `exitCode`，不得伪造 PID、executable 或进程退出。
-报告依赖的事实缺失或哈希不一致时 fail closed。完整 API 见
-[可导入 Go 库入口规格](library-entry-spec.md#启动-handle)。
+报告依赖的事实缺失或哈希不一致时 fail closed。流归属、半关闭和收尾顺序见
+[Go 库回放合同](library-entry-spec.md)。
 
 官方 driver 和 CLI 消费者使用公开 agent mock 进程接口，库消费者使用
 `StartMockAgent`；两者共用同一 execution、回放和 receipt 合同。official verify
@@ -1201,9 +1190,8 @@ recording 从 manifest 推断，case 只有在只有一个可用 binding 时才�
 外部 plan 的 caseId 是消费者自定义身份，不是官方 catalog case。它参与自身 fixture
 的 plan 和 manifest 绑定，但不参与官方 case、资格或内置材料选择。
 
-新增 case 同时更新场景、agent binding、验收规范、测试和固定索引要求；不能只增加
-一条成功录制或降低现有 required 集合。全部用户目标和通过边界见
-[共同验收](cases.md)。
+新增 case 时更新场景、agent binding、测试和固定索引要求，保留已有 case 的能力要求。
+若新增判定边界，在[共同验收](cases.md)记录所需证据。
 
 ## 严格回放
 

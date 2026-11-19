@@ -9,7 +9,7 @@
 
 CLI 消费者通过 `prepare --plan` 和 record 采集、mock 进程、fixture/运行描述与独立
 回执接入。模块根包是可导入库包，入口职责以[工具设计](design.md#入口与职责)为准，
-公开 API 以[可导入 Go 库入口规格](library-entry-spec.md)为准。
+公开 API 见[根包源码](../library.go)。进程内回放的调用顺序见[Go 库回放合同](library-entry-spec.md)。
 公开 CLI 结构和职责以[工具设计](design.md)为准。agent record/mock 不依赖官方
 SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命令。
 材料资格、归档、采用和远程传输为内部能力，不提供独立 internal-protocol 入口。
@@ -123,8 +123,8 @@ go run -tags builtin_generate ./cmd/agent-sdk-testify --check
 
 测试分为三层，按测试范围和目录归类。单元测试和集成测试应快速完成，适合开发时频繁运行；
 完整流程只在端到端测试中验证。
-[共同验收](cases.md)定义 8 个用户故事、42 个 case；agent binding 的
-required/optional、planned/unsupported 及原因必须保留。
+SDK 用户故事、case 和各 agent type 的能力要求由[场景目录](../data/scenarios)与 binding 定义。
+业务证据和通过标准见[共同验收](cases.md)。
 
 | 层级 | 位置 | 测什么 | 执行边界 |
 |---|---|---|---|

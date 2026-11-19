@@ -99,7 +99,7 @@ npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @an
 
 1. 选择 agent type 和 case，创建 fixture。`--model`、`--initial-model` 和 `--history-seed`
    属于准备步骤。Testify 从该 agent type 的原生配置位置发现允许的配置和认证。
-   [共同验收](../docs/cases.md)、[环境与隔离](../docs/design.md#环境与隔离)
+   [场景目录](../data/scenarios)、[环境与隔离](../docs/design.md#环境与隔离)
 
 	```sh
 	agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
@@ -122,7 +122,7 @@ npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @an
 
 上下文注入使用 `SDK-CASE-037` 检查空闲状态，使用 `SDK-CASE-038` 检查执行中状态。
 Codex 和 Claude driver 都从原始录制核对注入与后续查询的边界。下面的命令录制 Claude 的空闲场景。
-[上下文注入验收](../docs/cases.md)
+[上下文注入验收](../docs/cases.md#上下文注入)
 
 ```sh
 agent-sdk-testify prepare --agent claude --case SDK-CASE-037 \
@@ -223,7 +223,7 @@ record run 失败，不回写 material 或回滚 current。未领取 execution �
 
 driver 只执行一个请求，不实现 registry、双向命令、步骤 DSL 或 SDK 覆盖门禁。
 case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios) 与
-[case 规范](../docs/cases.md)。
+[共同验收](../docs/cases.md)。
 
 <a id="fixtures-仿真录制与测试输入"></a>
 
