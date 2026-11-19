@@ -1,6 +1,18 @@
 ---
 type: Specification
 title: Go 库回放合同
+description: "定义 Go 进程内回放的流归属、启动与关闭顺序、执行报告和通过条件。"
+tags: [go-library, replay, acceptance]
+sources:
+  - id: document
+    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/docs/library-entry-spec.md"
+    title: "Go 库回放合同"
+  - id: library
+    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/library.go"
+    title: "Testify Go 库入口"
+  - id: library-tests
+    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/library_test.go"
+    title: "公开 Go 库测试"
 ---
 
 # Go 库回放合同

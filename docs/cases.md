@@ -1,6 +1,15 @@
 ---
 type: Specification
 title: SDK 共同验收
+description: "定义 SDK 用户故事、可录制回放的 case、流程语义和验收边界。"
+tags: [acceptance, cases, replay]
+sources:
+  - id: document
+    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/docs/cases.md"
+    title: "SDK 共同验收"
+  - id: scenarios
+    resource: "https://github.com/zoumo/agent-sdk-testify/tree/43edbad698fd1fc29f45b9f4100057a3107b4be5/data/scenarios"
+    title: "内置场景定义"
 ---
 
 # SDK 共同验收
