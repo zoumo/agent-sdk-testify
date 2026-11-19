@@ -1,3 +1,10 @@
+---
+type: Development Standard
+title: 开发规范
+description: "规定 Testify 的模块依赖、代码布局、录制材料与测试边界，以及构建和发布要求。"
+tags: [development, testing, release]
+---
+
 # 开发规范
 
 ## Module 与依赖
@@ -9,7 +16,7 @@
 
 CLI 消费者通过 `prepare --plan` 和 record 采集、mock 进程、fixture/运行描述与独立
 回执接入。模块根包是可导入库包，入口职责以[工具设计](design.md#入口与职责)为准，
-公开 API 以[可导入 Go 库入口规格](library-entry-spec.md)为准。
+公开 API 见[根包源码](../library.go)。进程内回放的调用顺序见[Go 库回放合同](library-entry-spec.md)。
 公开 CLI 结构和职责以[工具设计](design.md)为准。agent record/mock 不依赖官方
 SDK；official record/verify 通过官方 driver 调用同一套公开 agent 命令。
 材料资格、归档、采用和远程传输为内部能力，不提供独立 internal-protocol 入口。
@@ -123,8 +130,8 @@ go run -tags builtin_generate ./cmd/agent-sdk-testify --check
 
 测试分为三层，按测试范围和目录归类。单元测试和集成测试应快速完成，适合开发时频繁运行；
 完整流程只在端到端测试中验证。
-[共同验收](cases.md)定义 8 个用户故事、42 个 case；agent binding 的
-required/optional、planned/unsupported 及原因必须保留。
+SDK 用户故事、case 和各 agent type 的能力要求由[场景目录](../data/scenarios)与 binding 定义。
+业务证据和通过标准见[共同验收](cases.md)。
 
 | 层级 | 位置 | 测什么 | 执行边界 |
 |---|---|---|---|
@@ -213,3 +220,49 @@ case/索引身份、全部录制字节、来源哈希和政策检查不得弱化
 认证来自外部配置，日志和证据移除秘密。前置条件缺失或场景为空时报告未执行。
 结果绑定实际源码、产物、环境和执行范围，保留失败证据；执行期间源码变化须说明。
 通过、失败、未验证分别报告，筛选或局部通过不能代表全部通过，命令启动不代表完成。
+
+## 从源码构建与验证
+
+在仓库根目录运行命令。使用 Go 1.26.10 和 golangci-lint 2.12.2。脚本测试和 wheel 构建还需要 Python 3.11 或更新版本、pip 和 `setuptools>=68`。先准备 Go module 及构建依赖。常规验证使用受控进程，覆盖离线流程。
+
+| 任务 | 命令 | 结果 |
+| --- | --- | --- |
+| 构建 CLI | `make build` | `bin/agent-sdk-testify` |
+| 测试 Go 库和内部包 | `make test` | 公开库和单元测试结果 |
+| 测试模块协作 | `make test-integration` | 集成测试结果 |
+| 检查数据竞争 | `make test-race` | 公开库、单元和集成测试结果 |
+| 测试 CLI 流程 | `make test-e2e` | 一次 race 构建和端到端测试结果 |
+| 验证构建和打包 | `make test-build` | 生成器、产物和发布冒烟检查 |
+| 执行完整离线门禁 | `make check` | 格式、lint、构建、测试和打包检查 |
+| 单独执行格式、lint 或 vet | `make fmt`、`make lint`、`make vet` | 对应命令的检查结果 |
+| 构建 CLI 与官方 driver wheel | `make bundle` | `.artifacts/build/` 中的 CLI 和 wheel |
+
+`go test ./...` 选择全部 Go 测试层。聚焦 CLI 测试时，可让包装脚本构建一次 race CLI。
+
+```sh
+bash scripts/with-agent-sdk-testify.sh --race go test -race ./tests/e2e/...
+```
+
+若已有 CLI 产物，设 `AGENT_SDK_TESTIFY_BIN` 为可执行文件的绝对路径。产物的 race 构建模式必须与测试匹配。测试包使用包装脚本提供的 CLI。`agent-sdk-go` 的测试和仿真通过 `go.mod` 中的固定版本链接 Testify Go 库。[构建身份与测试分层](#测试)
+
+### 构建发布产物
+
+1. 在已通过 `make check` 的 main 提交上创建精确 Git 版本 tag。下例使用 `v0.2.0` 说明格式。
+
+	```sh
+	git tag -a v0.2.0 -m 'v0.2.0'
+	```
+
+2. 如需在本地打包，指定尚不存在的输出目录。发布归档覆盖 Linux 和 macOS 的 amd64 与 arm64，另有官方 driver wheel、`manifest.json` 和 `SHA256SUMS`。
+
+	```sh
+	make release OUTPUT=/absolute/new-dist
+	```
+
+3. 推送发布 tag。匹配 `v*.*.*` 的 tag 触发 Release 工作流。离线门禁通过后，工作流发布同一组产物。带预发布后缀的 tag 创建 prerelease。
+
+	```sh
+	git push origin v0.2.0
+	```
+
+构建分别记录工具版本、工具源码 revision、内置材料 revision 与哈希，以及逐产物校验和。工具发版沿用现有内置快照。无精确 tag 时，普通构建显示 `devel`。[发布工作流](../.github/workflows/release.yml)

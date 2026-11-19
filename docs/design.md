@@ -1,3 +1,10 @@
+---
+type: Design
+title: agent-sdk-testify 工具设计
+description: "定义 Testify 的 CLI 与 Go 库职责、fixture 生命周期、材料所有权和录制验收条件。"
+tags: [architecture, fixture, recording, replay]
+---
+
 # agent-sdk-testify 工具设计
 
 `agent-sdk-testify` 是面向多语言 SDK 的独立录制与回放工具。它维护 case、
@@ -17,11 +24,9 @@ agent-sdk-testify
   export
 ```
 
-prepare 创建 fixture，export 只读导出 current。agent record/mock
-是 SDK 启动的协议对端；official record/verify 编排官方 SDK driver 并保存业务事实。
-本文单独使用 record、mock 时指 agent record、agent mock，验证指 official verify；
-涉及官方录制编排时使用完整名称 official record。仓库路径、编码和测试规则见
-[开发规范](development.md)。
+`prepare` 创建 fixture。`export` 导出 current recording。SDK 启动 `agent record` 采集协议，或启动 `agent mock` 回放协议。`official record` 和 `official verify` 运行官方 SDK driver，并保存业务事实。
+
+本文用 record 指 `agent record`，用 mock 指 `agent mock`，用官方验证指 `official verify`。仓库路径、编码和测试规则见[开发规范](development.md)。
 
 ## 入口与职责
 
@@ -95,21 +100,9 @@ Material 是回放输入，不必先经过 verify。Verified 是精确 material 
 
 ## Fixture 生命周期
 
-规范流程是：
+`--fixture-dir` 指向 fixture 的绝对路径。`prepare` 创建目录，后续命令读取同一目录。Testify 管理内部 descriptor `fixture.json`。调用方通过 CLI 或公开 Go API 使用 fixture。
 
-```sh
-agent-sdk-testify prepare --case SDK-CASE-001 --fixture-dir /private/fixture
-agent-sdk-testify official record --fixture-dir /private/fixture \
-  --cmd /absolute/agent -- <native-args>
-agent-sdk-testify official verify --fixture-dir /private/fixture
-agent-sdk-testify agent mock --fixture-dir /private/fixture
-agent-sdk-testify export --fixture-dir /private/fixture \
-  --output /private/exported-recording
-```
-
-`--fixture-dir` 在所有命令中表示同一个绝对目录。prepare 创建该目录；agent record/mock、
-official record/verify 和 export 打开该目录。`fixture.json` 是工具拥有的内部
-descriptor，调用方只传目录，不定位或修改其中的文件。
+已有材料的 SDK 测试使用 `prepare` 创建 fixture，随后启动 mock。消费者录制在 `prepare` 和 mock 之间执行 `agent record`。官方录制和验证使用官方 driver。`export` 导出 current recording 中的材料。[mock 指南](using-mock.md)、[消费者录制指南](consumer-recording.md)、[官方录制指南](../drivers/README.md#按-case-录制)
 
 ### prepare
 
@@ -731,6 +724,33 @@ material ID 推导，material 内部引用仍相对 material 根。私有归档�
 并继续运行不属于此合同；route 符号链接、launcher 和活动执行不因此获得搬迁保证。
 原始回放 `init.cwd` 不变，SDK 对旧 cwd 与当前物理目录的身份校验不在此设计中改写。
 
+### CLI 结果与通知
+
+`agent record` 和 `agent mock` 通过 `--result-fd` 向调用方提供 JSONL 通知。调用方传入
+独立的可写文件或管道描述符，编号至少为 `3`。协议 stdout 仍承载 Agent 协议。
+launcher 转发原生参数。需要通知时，调用方用 route 的 `command` 与 `args` 直接启动进程，
+并在原生参数分隔符前加入 `--result-fd`。
+
+领取 execution 后，命令先写 `running`，结算时写 `passed` 或 `failed`。
+领取前失败通过退出码和 stderr 报告。持久结果与通知使用同一 schema 3 数据对象。
+持久路径为 `packages/<materialId>/executions/<executionId>/receipts/<connectionId>.result.json`。
+无通知描述符时，Testify 仍写入持久结果。
+
+结果用 `fixtureId`、`materialId`、`executionId`、`connectionId` 和 `command` 标识执行。
+`executionSHA256` 绑定不可变 descriptor。`execution`、`receipt`、`result` 及 mock 的
+`processReceipt` 是 package 相对引用。调用方用 fixture 根和 `materialId` 算出 package 根，
+再解析这些引用。成功 record 的最终通知及 mock 通知还包含 material 身份和 plan、manifest、
+raw 哈希。调用方使用本次通知明确标识的 execution。多连接各自使用独立通知描述符，
+整体成功由 execution 汇总状态确认。
+
+每条通知最多等待 1 秒，包括取消后尝试发送的最终通知。若管道关闭或无人读取，
+命令报告交付失败，持久结果仍可读取。record 的 `publicationCommitted` 记录 current
+是否已更新。[结算与发布](#封存发布与恢复)
+
+`agent mock --progress-fd` 使用另一个编号至少为 `3` 的描述符。到达完整消费点时，
+Testify 写入字节 `1`。SDK 此时可关闭写往 mock 的一端，继续读取回放输出。
+最终回执还校验客户端 EOF、额外字节和清理。[严格回放](#严格回放)
+
 ## schema 版本与兼容
 
 `fixture.json`、`execution.json`、execution index 和 `current.json`
@@ -826,6 +846,44 @@ record source 与 current recording 分离：每次 record 使用 prepare 固化
 plan、协议 cwd 和来源身份。缺少 plan、协议 cwd、目标或必要参数时，在领取
 execution 前失败。plan source 的消费者流程见[消费者录制](consumer-recording.md)。
 
+#### Consumer plan
+
+`prepare --plan` 读取 version 1 的 JSON 文件。v1 消费者录制声明一条 `main` 连接。
+
+| 字段 | 要求 | 用途 |
+| --- | --- | --- |
+| `version` | `1` | plan 格式版本 |
+| `agentType` | `codex` 或 `claude` | 与显式 `--agent` 或推断值一致 |
+| `caseId` | 非空字符串 | 消费者定义的身份 |
+| `driverProfile` | `consumer` | 消费者录制 |
+| `project` | 绝对路径 | SDK 发给 Agent 的原始协议项目路径 |
+| `model` | 可选字符串 | 隔离环境中的模型名 |
+| `cliVersion` | 可选字符串 | 原生 CLI 版本证据 |
+| `scenario.files` | 可选对象 | 相对路径与文本内容的映射 |
+| `scenario.parameters` | 可选对象 | 消费者解释的参数 |
+
+工具保存 source plan 原字节，在 material plan 中保留未知字段。
+历史种子通过 `--history-seed` 导入。`scenario.files` 仅接受文本文件内容。
+认证和配置来自原生允许项。
+[材料计划与运行配置](#材料计划与运行配置)、[环境与隔离](#环境与隔离)
+
+消费者保管并发布自己的材料。消费者材料保留 `consumer` 来源，导入与导出沿用该来源。
+`official verify` 在查不到适用 verifier 时失败。官方采用需要从官方 case 重新录制。
+[信任与入仓](#信任与入仓)
+
+#### 原生启动参数
+
+消费者使用本地 CLI 录制时，`--cmd` 接收可执行文件的绝对路径。`--` 后的参数直接传给
+原生 Agent，使用 mock 的参数白名单。消费方只为本次 execution 提供参数。
+
+- Codex 支持 `app-server` 和 `--listen stdio://`。
+- Claude 支持 `--output-format stream-json`、`--input-format stream-json` 和
+  `--permission-prompt-tool stdio`。可选参数包括 `--verbose`、`--include-partial-messages`、
+  `--model=...`、`--resume=...` 和 `--await-claim`。
+
+Testify 拒绝重复参数、未知参数、`--model VALUE` 和 `--resume VALUE`。增加消费者支持的
+原生参数需要同时维护录制和回放的 adapter。
+
 ### official record
 
 official record 选择当前 fixture 的精确官方 case/binding 和 driver，准备 SDK
@@ -919,20 +977,9 @@ mock 不执行录制中的 shell、文件编辑、hooks 或模型调用，也不
 它不模拟 Agent CLI 的版本、帮助或其他元命令。消费者负责启动 SDK 宿主、应用
 prepare 返回的环境和 workspace，并自行执行与报告业务断言。
 
-库消费者使用 `StartMockAgentStreams` 提供 `Reader`、`Writer` 和诊断 `Stderr`。
-`Reader` 是 SDK 到 mock 的读取端，`Writer` 是 mock 到 SDK 的写入端；关闭任一端都必须
-解除相应的并发阻塞 I/O。正常完成时 mock 在最终检查后关闭 `Writer`；abort 或
-transport failure 时关闭相关方向。`Stderr` 只承载诊断，不参与协议、完成或取消。
-
 每次 mock 创建新 execution。普通流程只有 `main` 连接；只有 case 确实声明多个独立
 原生客户端生命周期时才允许多连接。同一 execution 的连接可以并发，但每个声明连接
 最多启动一次，并分别完成严格匹配、完整消费、EOF、退出和清理。
-
-replay 在服务端帧、pending request 检查和握手 barrier 之后、额外客户端字节和 EOF
-检查之前触发完整消费事件。该事件只允许 SDK 半关闭输入，不表示成功；完整消费到达前
-失败时事件不触发，但 `Done`/`Wait` 必须结束。正常完成、canceled、aborted、transport、
-strict-replay、timeout 和 cleanup 使用不同终态；`Wait` 是权威完成结果，提前收到
-`Writer` EOF 不能替代它。
 
 mock 结果分别给出本次连接状态和整个 execution 状态；连接 `passed` 不代表其他声明
 连接已经完成。mock 进程 receipt 不记录 `cwd` 或 `workspace`；执行位置和协议项目
@@ -943,8 +990,8 @@ mock 结果分别给出本次连接状态和整个 execution 状态；连接 `pa
 库 mock 的 `ExecutionReport` 覆盖 execution 声明的全部连接，并从 descriptor、
 index、receipt 和 result 重新校验生成。进程内连接记录 `transport=in-process`、
 `nativeLaunched=false` 和空 `exitCode`，不得伪造 PID、executable 或进程退出。
-报告依赖的事实缺失或哈希不一致时 fail closed。完整 API 见
-[可导入 Go 库入口规格](library-entry-spec.md#启动-handle)。
+报告依赖的事实缺失或哈希不一致时 fail closed。流归属、半关闭和收尾顺序见
+[Go 库回放合同](library-entry-spec.md)。
 
 官方 driver 和 CLI 消费者使用公开 agent mock 进程接口，库消费者使用
 `StartMockAgent`；两者共用同一 execution、回放和 receipt 合同。official verify
@@ -1129,9 +1176,7 @@ route template。Codex transport 的 `Dir` 使用 `ProtocolCwd`，它只是逻�
 认证只来自工具允许的原生配置和当前进程中的白名单变量。工具不复制个人 skills、
 插件、记忆、项目指令或无关 session；不把完整 Agent home 当作 fixture 数据。
 
-plan source 的消费者必须在启动自己的 SDK 宿主前应用当前 route 的 env、workspace、
-历史和连接命令；库 mock 消费者则使用 `StartMockAgent` 返回的 `ExecutionStart`。
-只配置 record 或 mock 子进程不能配置父进程。消费者不能覆盖隔离路径或原生环境变量。
+plan source 的消费者在启动 SDK 宿主前应用当前 route 的 `env`、`workspace`、历史和连接命令。父 SDK 宿主和协议子进程各自使用隔离环境。进程内 mock 使用 `StartMockAgent` 返回的 `ExecutionStart`。隔离路径与原生环境由 Testify 管理。
 
 record 完成时把回放所需的原生 session/history 写入 material 的
 `history/runtime/`，把本次使用的冻结 seed 闭包写入 `history/seed/`，并由唯一
@@ -1152,9 +1197,8 @@ recording 从 manifest 推断，case 只有在只有一个可用 binding 时才�
 外部 plan 的 caseId 是消费者自定义身份，不是官方 catalog case。它参与自身 fixture
 的 plan 和 manifest 绑定，但不参与官方 case、资格或内置材料选择。
 
-新增 case 同时更新场景、agent binding、验收规范、测试和固定索引要求；不能只增加
-一条成功录制或降低现有 required 集合。全部用户目标和通过边界见
-[共同验收](cases.md)。
+新增 case 时更新场景、agent binding、测试和固定索引要求，保留已有 case 的能力要求。
+若新增判定边界，在[共同验收](cases.md)记录所需证据。
 
 ## 严格回放
 

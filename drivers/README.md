@@ -40,20 +40,6 @@ bash scripts/with-agent-sdk-testify.sh \
 `AGENT_SDK_TESTIFY_BUILD_DIR` 可指定另一个绝对目录。Python 3.11+ 需要
 `setuptools>=68`；构建和离线测试不启动 SDK、真实 Agent 或模型。
 
-上下文注入的独立流程是 `SDK-CASE-037`（空闲）和 `SDK-CASE-038`（执行中）。
-两个 driver 都通过官方 SDK 发送原生输入，并从原始录制核对注入与后续查询的边界；
-断言范围见[共同验收](../docs/cases.md)。Claude 录制显式指定可运行的本地 CLI：
-
-```sh
-agent-sdk-testify prepare --agent claude --case SDK-CASE-037 \
-  --fixture-dir /absolute/new-context-fixture
-agent-sdk-testify official record --fixture-dir /absolute/new-context-fixture \
-  --cmd "$HOME/bin/claude" -- \
-  --input-format stream-json --output-format stream-json --verbose \
-  --include-partial-messages --permission-prompt-tool stdio
-agent-sdk-testify official verify --fixture-dir /absolute/new-context-fixture
-```
-
 ## 官方 SDK 环境
 
 只有 official record/verify 需要 Python 官方 SDK；agent record/mock 只使用工具二进制。使用
@@ -105,7 +91,86 @@ Claude case 042 使用 `Claude Code 2.1.293` 和 `@anthropic-ai/claude-agent-sdk
 npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @anthropic-ai/claude-agent-sdk@0.3.293
 ```
 
+## 按 case 录制
 
+前置条件是已安装工具、官方 driver 和所选官方 SDK。将官方环境的 `bin` 加入 `PATH`。
+准备可运行的原生 CLI，以及父目录已存在的绝对 fixture 路径。`prepare` 创建 fixture。
+[官方 SDK 环境](#官方-sdk-环境)
+
+1. 选择 agent type 和 case，创建 fixture。`--model`、`--initial-model` 和 `--history-seed`
+   属于准备步骤。Testify 从该 agent type 的原生配置位置发现允许的配置和认证。
+   [场景目录](../data/scenarios)、[环境与隔离](../docs/design.md#环境与隔离)
+
+	```sh
+	agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
+		--fixture-dir /private/fixture
+	```
+
+2. 指定原生 CLI 的绝对路径。在 `--` 后附上原生启动参数。若需设置 `--timeout`，
+   将它放在 `--` 前。官方 driver 通过 SDK 启动录制代理。
+
+	```sh
+	agent-sdk-testify official record --fixture-dir /private/fixture \
+		--cmd /absolute/codex -- app-server --listen stdio://
+	```
+
+3. 检查 driver 业务报告和录制回执。录制成功后，Testify 更新 current recording。
+   官方录制结果引用实际的协议 execution。失败和未触发的尝试保留诊断。
+   [官方录制合同](../docs/design.md#official-record)
+4. 验证同一 fixture 中的 current recording。需要在另一个 fixture 使用时，先导出材料。
+   [离线验证与采用](#官方离线验证与采用)、[导出与复用](../docs/using-mock.md#导出与复用)
+
+上下文注入使用 `SDK-CASE-037` 检查空闲状态，使用 `SDK-CASE-038` 检查执行中状态。
+Codex 和 Claude driver 都从原始录制核对注入与后续查询的边界。下面的命令录制 Claude 的空闲场景。
+[上下文注入验收](../docs/cases.md#中断关闭与独立查询)
+
+```sh
+agent-sdk-testify prepare --agent claude --case SDK-CASE-037 \
+	--fixture-dir /absolute/new-context-fixture
+agent-sdk-testify official record --fixture-dir /absolute/new-context-fixture \
+	--cmd /absolute/claude -- \
+	--input-format stream-json --output-format stream-json --verbose \
+	--include-partial-messages --permission-prompt-tool stdio
+agent-sdk-testify official verify --fixture-dir /absolute/new-context-fixture
+```
+
+## 官方离线验证与采用
+
+使用匹配材料身份的官方 driver 和 SDK。`official verify` 按材料选择 driver，
+由 driver 启动 `agent mock`。验证过程使用录制回放。
+[官方验证合同](../docs/design.md#official-verify)
+
+1. 如果材料已在本次录制的 fixture 中，沿用该 fixture。如果材料来自另一目录，
+   先导入到新的 fixture。
+
+	```sh
+	agent-sdk-testify prepare --recording /private/new-capture \
+		--fixture-dir /private/imported-fixture
+	```
+
+2. 验证 current recording。示例使用导入的 fixture。
+
+	```sh
+	agent-sdk-testify official verify --fixture-dir /private/imported-fixture \
+		--timeout 2m
+	```
+
+3. 读取 `packages/<materialId>/verify/<verificationId>/verification.json` 和业务报告。
+   验证通过要求业务断言和所引用的全部 mock execution 均通过。查看连接回执，确认严格
+   匹配、完整消费、EOF、退出和清理。
+
+具备采用资格的材料可在验证时显式启用采用。`--index` 启用采用。省略 `--scenarios` 时，
+工具在 index 目录旁的 `../scenarios` 查找场景。
+[采用与发布合同](../docs/design.md#信任与入仓)
+
+```sh
+agent-sdk-testify official verify --fixture-dir /private/imported-fixture \
+	--index /absolute/data/index.json \
+	--scenarios /absolute/data/scenarios --archive /private/archives
+```
+
+读取 `admission-summary.json` 确认采用结果。采用失败时，工具保留验证证据和原索引。
+发布材料仍需满足发布要求。
 
 ## 单请求协议
 
@@ -158,7 +223,7 @@ record run 失败，不回写 material 或回滚 current。未领取 execution �
 
 driver 只执行一个请求，不实现 registry、双向命令、步骤 DSL 或 SDK 覆盖门禁。
 case 输入、agent 参数和断言边界来自 [场景目录](../data/scenarios) 与
-[case 规范](../docs/cases.md)。
+[共同验收](../docs/cases.md)。
 
 <a id="fixtures-仿真录制与测试输入"></a>
 
