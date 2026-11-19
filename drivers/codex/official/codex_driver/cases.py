@@ -1,6 +1,9 @@
 """Native case dispatch for the Codex SDK adapter."""
 
 CASES = {
+    'SDK-CASE-039': 'mcp-tool-approval',
+    'SDK-CASE-040': 'mcp-tool-approval',
+    'SDK-CASE-041': 'sandbox-permissions',
     'SDK-CASE-001': 'continuation',
     'SDK-CASE-002': 'structured-input',
     'SDK-CASE-003': 'structured-input',

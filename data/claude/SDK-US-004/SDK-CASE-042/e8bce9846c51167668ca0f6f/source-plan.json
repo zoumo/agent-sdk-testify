@@ -1,0 +1,45 @@
+{
+  "case": {
+    "id": "SDK-CASE-042",
+    "outOfScope": [
+      "外部 URL 访问"
+    ],
+    "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+    "storyId": "SDK-US-004"
+  },
+  "caseId": "SDK-CASE-042",
+  "driverProfile": "standalone-elicitation",
+  "model": "",
+  "prompts": [
+    "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-042",
+      "outOfScope": [
+        "外部 URL 访问"
+      ],
+      "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+      "storyId": "SDK-US-004"
+    },
+    "caseId": "SDK-CASE-042",
+    "configuration": {},
+    "driverProfile": "standalone-elicitation",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [
+      "standalone-elicitation"
+    ],
+    "storyId": "SDK-US-004"
+  },
+  "story": "SDK-US-004",
+  "storyId": "SDK-US-004"
+}

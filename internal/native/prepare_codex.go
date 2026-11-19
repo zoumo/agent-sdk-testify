@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	_ "embed"
+
 	"github.com/pelletier/go-toml/v2"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
@@ -108,11 +110,14 @@ func codexNativeArgs(profile string, params tool.Object) []string {
 
 func codexCaseArgs(profile string, params tool.Object) []string {
 	args := []string{"-c", "features.default_mode_request_user_input=true"}
-	if profile == "children" || profile == "background-children" || params["selfSeed"] == true || params["historyTarget"] == "child-messages" || params["topology"] != nil {
+	if profile == "children" || profile == "background-children" || params["selfSeed"] == true || params["historyTarget"] == "child-messages" || params["topology"] != nil || params["approvalThread"] == "child" {
 		args = append(args, "-c", "agents.enabled=true", "-c", "features.multi_agent=true")
 	}
 	if params["topology"] != nil {
 		args = append(args, "-c", "agents.max_depth=2")
+	}
+	if profile == "sandbox-permissions" {
+		args = append(args, "-c", "features.request_permissions_tool=true", "-c", `approvals_reviewer="user"`)
 	}
 	if params["approvalKind"] == "command" {
 		args = append(args, "-c", `sandbox_mode="read-only"`)
@@ -168,6 +173,31 @@ func prepareCodexFileTool(root string, plan tool.Object) error {
 	}
 	plan["args"] = append(tool.Strings(plan["args"]), "-c", "model_catalog_json="+string(quoted))
 	return nil
+}
+
+//go:embed codex_mcp_fixture.py
+var codexMCPFixture string
+
+func prepareCodexMCPApprovalFixture(root string) error {
+	path := filepath.Join(root, "config", "config.toml")
+	config := tool.Object{}
+	data, err := os.ReadFile(path)
+	if err == nil {
+		if err := toml.Unmarshal(data, &config); err != nil {
+			return err
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	config["mcp_servers"] = tool.Object{"approval_fixture": tool.Object{
+		"command": "python3", "args": []string{"-u", "-c", codexMCPFixture},
+		"default_tools_approval_mode": "prompt", "required": true,
+	}}
+	data, err = toml.Marshal(config)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0o600)
 }
 
 func prepareCodexChildFixture(root string) error {

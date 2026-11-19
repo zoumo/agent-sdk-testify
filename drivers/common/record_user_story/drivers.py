@@ -29,8 +29,12 @@ def run(plan):
         report['gaps'].append(definition['reason'])
     else:
         try:
-            report['officialSDK'] = sdk_identity(plan['provider'])
-            if definition['driverProfile'] == 'existing-children':
+            if definition['driverProfile'] != 'standalone-elicitation':
+                report['officialSDK'] = sdk_identity(plan['provider'])
+            if definition['driverProfile'] == 'standalone-elicitation':
+                from claude_driver.elicitation import run as run_elicitation
+                run_elicitation(plan, report, flow)
+            elif definition['driverProfile'] == 'existing-children':
                 if definition.get('parameters', {}).get('selfSeed') and not plan.get('historySeed'):
                     from .self_seeded_children import run as self_seeded
                     self_seeded(plan, report)
@@ -114,6 +118,8 @@ def observe_wire(plan, report):
     from .adapters.common import observe_configuration
     path = capture_root(plan) / 'raw/raw.jsonl'
     if not path.exists():
+        if plan.get('driverProfile') in ('mcp-tool-approval', 'sandbox-permissions', 'standalone-elicitation'):
+            raise Untriggered('native approval capture is absent')
         if plan.get('driverProfile') == 'context-injection':
             raise Untriggered('native context injection capture is absent')
         parameters = plan['scenario'].get('parameters', {})
@@ -125,6 +131,15 @@ def observe_wire(plan, report):
             raise Untriggered('native interrupt lifecycle capture is absent')
         return
     frames = [json.loads(line) for line in path.read_bytes().splitlines()]
+    if plan.get('driverProfile') == 'mcp-tool-approval':
+        from .mcp_approval_evidence import assess
+        assess(plan, frames, report)
+    if plan.get('driverProfile') == 'sandbox-permissions':
+        from .sandbox_permission_evidence import assess
+        assess(plan, frames, report)
+    if plan.get('driverProfile') == 'standalone-elicitation':
+        from .elicitation_evidence import assess
+        assess(frames, report)
     if plan.get('driverProfile') == 'context-injection':
         from .context_injection import assess
         assess(plan, frames, report)

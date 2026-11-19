@@ -1,6 +1,7 @@
 """Native case dispatch for the Claude SDK adapter."""
 
 CASES = {
+    'SDK-CASE-042': 'standalone-elicitation',
     'SDK-CASE-001': 'continuation',
     'SDK-CASE-002': 'structured-input',
     'SDK-CASE-003': 'structured-input',

@@ -341,6 +341,62 @@
       "answers": {},
       "configuration": {},
       "progressBarrier": null
+    },
+    "SDK-CASE-039": {
+      "files": {},
+      "requests": {
+        "approval.mcp": "mcp-tool-approval"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "required": false,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "本 case 使用 Codex 原生默认 MCP 工具审批。"
+      },
+      "inputs": []
+    },
+    "SDK-CASE-040": {
+      "files": {},
+      "requests": {
+        "approval.mcp": "mcp-tool-approval"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "required": false,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "本 case 使用 Codex 原生默认 MCP 工具审批。"
+      },
+      "inputs": []
+    },
+    "SDK-CASE-041": {
+      "files": {},
+      "requests": {
+        "approval.permissions-turn": "sandbox-permissions-turn",
+        "approval.permissions-session": "sandbox-permissions-session",
+        "approval.permissions-deny": "sandbox-permissions-deny"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "required": false,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "本 case 使用 Codex 原生额外沙箱权限申请。"
+      },
+      "inputs": []
+    },
+    "SDK-CASE-042": {
+      "files": {},
+      "requests": {
+        "elicitation.roundtrip": "standalone-elicitation"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
     }
   }
 }

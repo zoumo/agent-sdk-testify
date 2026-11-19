@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/bin/claude",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/claude-official-v2/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--mcp-config",
+      "{\"mcpServers\":{\"elicitation_fixture\":{\"args\":[\"-e\",\"// A single stdio MCP tool exercises both native modes and all decisions.\\nconst { createInterface } = require('node:readline');\\nconst actions = ['form', 'url'].flatMap(mode =\\u003e ['accept', 'decline', 'cancel'].map(action =\\u003e ({mode, action})));\\nconst send = message =\\u003e process.stdout.write(JSON.stringify({jsonrpc: '2.0', ...message}) + '\\\\n');\\nlet toolId;\\nlet next = 0;\\n\\nfunction requestInput() {\\n    if (next === actions.length) {\\n        send({id: toolId, result: {content: [{type: 'text', text: 'SYNTHETIC_ELICITATION_SEQUENCE_DONE'}]}});\\n        return;\\n    }\\n    const {mode, action} = actions[next];\\n    const fields = mode === 'form'\\n        ? {requestedSchema: {type: 'object', properties: {value: {type: 'string'}}, required: ['value']}}\\n        : {url: 'https://example.invalid/synthetic', elicitationId: `fixture-${next}`};\\n    send({id: `elicitation-${next}`, method: 'elicitation/create', params: {\\n        mode, message: `SYNTHETIC ${mode} ${action}`, ...fields,\\n    }});\\n}\\n\\ncreateInterface({input: process.stdin}).on('line', line =\\u003e {\\n    const message = JSON.parse(line);\\n    if (message.method === 'initialize') {\\n        send({id: message.id, result: {protocolVersion: message.params.protocolVersion, capabilities: {tools: {}},\\n            serverInfo: {name: 'elicitation_fixture', version: '1'}}});\\n    } else if (message.method === 'tools/list') {\\n        send({id: message.id, result: {tools: [{name: 'roundtrip', description: 'Run the synthetic elicitation fixture.',\\n            inputSchema: {type: 'object', properties: {}, additionalProperties: false}}]}});\\n    } else if (message.method === 'tools/call' \\u0026\\u0026 message.params?.name === 'roundtrip' \\u0026\\u0026 toolId === undefined) {\\n        toolId = message.id;\\n        requestInput();\\n    } else if (toolId !== undefined \\u0026\\u0026 next \\u003c actions.length \\u0026\\u0026 message.id === `elicitation-${next}`) {\\n        const expected = actions[next];\\n        const response = message.result;\\n        if (response?.action !== expected.action || (next === 0 \\u0026\\u0026 response.content?.value !== 'SYNTHETIC_FORM')) {\\n            send({id: toolId, error: {code: -32603, message: 'Unexpected synthetic elicitation reply'}});\\n            return;\\n        }\\n        next++;\\n        requestInput();\\n    } else if (message.method === 'ping') {\\n        send({id: message.id, result: {}});\\n    }\\n});\\n\"],\"command\":\"node\"}}}",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/claude-official-v2/fixture/runtime/executions/feb883e699e0e2919e2ec9d56e50d8df/workspace",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "files": {
+    "raw.jsonl": "ce67f8001a42405a642ce8fbc079e120c2cd326c340bacc17dce0da6e2fc7de1",
+    "stderr.raw": "87adb7e2a99d597ca97ba3b110ff5ed98caef5cf68faef79e6d51e10131c8104",
+    "transport.json": "11302667be3111955a6d4401bffe80a066528a070d7ac57dccb464de685e6d75"
+  }
+}

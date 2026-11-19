@@ -195,6 +195,16 @@
           "parameters": {
             "type": "object",
             "properties": {
+              "approvalScopes": {
+                "type": "array",
+                "items": {"enum": ["turn", "session", "deny"]},
+                "minItems": 3,
+                "maxItems": 3,
+                "uniqueItems": true
+              },
+              "approvalThread": {
+                "enum": ["root", "child"]
+              },
               "selfSeed": {
                 "type": "boolean"
               },

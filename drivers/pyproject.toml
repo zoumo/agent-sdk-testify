@@ -29,6 +29,7 @@ codex_driver = "codex/official/codex_driver"
 claude_driver = "claude/official/claude_driver"
 
 [tool.setuptools.package-data]
+claude_driver = ["*.mjs"]
 record_user_story = ["schemas/*.json", "examples/*.json", "examples/bindings/*.json"]
 
 [tool.setuptools.dynamic]

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+    "sha256": "39acf979729dd290f9a24ee38b2914e036c91b65952872e28ae2a6b88a7db7c1",
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "agents.enabled=true",
+      "-c",
+      "features.multi_agent=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/v4/codex-040/runtime/executions/cc76ddfcf85d172f378e1b3550d76447/workspace",
+    "version": "codex-cli 0.166.0"
+  },
+  "files": {
+    "raw.jsonl": "b804af7bffbfb5f1ba335e1815961bd1f8761e5895b9ed6d919ac345f1c54199",
+    "stderr.raw": "129090a4e6bdac517229b1c6d16012fe37e570bc21827ae02090e181951e5d09",
+    "transport.json": "e117eb6b5ecb364f77917f8834d54b3b44c332601bc05431086fd8c0c9aeb176"
+  }
+}

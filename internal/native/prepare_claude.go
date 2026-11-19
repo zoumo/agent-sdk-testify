@@ -8,10 +8,15 @@ import (
 	"strconv"
 	"strings"
 
+	_ "embed"
+
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
 const claudeCasePrompt = "Complete the supplied synthetic task in the working directory. Be concise."
+
+//go:embed claude_elicitation_fixture.cjs
+var claudeElicitationFixture string
 
 func claudeNativeArgs(profile string, params tool.Object) ([]string, error) {
 	args := []string{"--output-format", "stream-json", "--verbose", "--input-format", "stream-json", "--permission-prompt-tool", "stdio", "--include-partial-messages"}
@@ -48,6 +53,15 @@ func claudeCaseArgs(profile string, params tool.Object) ([]string, error) {
 			return nil, fmt.Errorf("encode claude permissions: %w", err)
 		}
 		args = append(args, "--settings", string(b))
+	}
+	if profile == "standalone-elicitation" {
+		config, err := json.Marshal(tool.Object{"mcpServers": tool.Object{"elicitation_fixture": tool.Object{
+			"command": "node", "args": []string{"-e", claudeElicitationFixture},
+		}}})
+		if err != nil {
+			return nil, fmt.Errorf("encode Claude elicitation fixture: %w", err)
+		}
+		args = append(args, "--mcp-config", string(config))
 	}
 	if params["applicationTool"] == true {
 		args = append(args, "--mcp-config", `{"mcpServers":{"fixture":{"type":"sdk","name":"fixture"}}}`)

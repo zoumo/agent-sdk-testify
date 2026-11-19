@@ -194,6 +194,11 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 		if err := prepareCodexIsolation(root, plan); err != nil {
 			return err
 		}
+		if profile == "mcp-tool-approval" {
+			if err := prepareCodexMCPApprovalFixture(root); err != nil {
+				return err
+			}
+		}
 	}
 	plan["recordingIsolation"] = isolatedRecording
 	// No arbitrary source HOME, dependency installation or SDK version probes.

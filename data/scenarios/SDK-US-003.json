@@ -300,6 +300,204 @@
         "stderrBytes": 0
       },
       "driverProfile": "deferred-approval"
+    },
+    {
+      "id": "SDK-CASE-039",
+      "storyId": "SDK-US-003",
+      "goal": "核对 Codex root Thread 的默认 MCP 工具审批和工具结果",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-039",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {
+        "input-1": "Call the approval_fixture MCP tool token exactly once. Report its returned token. Do not use any other tool."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "approval.mcp"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "确认 root Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+        "outOfScope": [
+          "持久授权"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "mcp-tool-approval",
+      "parameters": {
+        "approvalThread": "root"
+      }
+    },
+    {
+      "id": "SDK-CASE-040",
+      "storyId": "SDK-US-003",
+      "goal": "核对 Codex child Thread 的默认 MCP 工具审批和工具结果",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-040",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {
+        "input-1": "Spawn one default agent. Tell that agent to call the approval_fixture MCP tool token exactly once and report its returned token. Wait for the agent and report its token. You must not call the MCP tool yourself."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "approval.mcp"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "确认 child Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+        "outOfScope": [
+          "持久授权"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "mcp-tool-approval",
+      "parameters": {
+        "approvalThread": "child"
+      }
+    },
+    {
+      "id": "SDK-CASE-041",
+      "storyId": "SDK-US-003",
+      "goal": "回应 Codex 本轮、本会话和拒绝三种额外沙箱权限决定",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-041",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {
+          "grant-turn/fixture.txt": "SYNTHETIC\n",
+          "grant-session/fixture.txt": "SYNTHETIC\n",
+          "grant-deny/fixture.txt": "SYNTHETIC\n"
+        }
+      },
+      "inputs": {
+        "input-1": "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-turn in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+        "input-2": "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-session in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+        "input-3": "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-deny in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-2"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-3"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "approval.permissions-turn",
+          "approval.permissions-session",
+          "approval.permissions-deny"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "用原生请求 ID 核对三个额外权限决定与处理结果。",
+        "outOfScope": [
+          "跨轮执行权限效果"
+        ]
+      },
+      "limits": {
+        "inputs": 3,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "sandbox-permissions",
+      "parameters": {
+        "approvalScopes": [
+          "turn",
+          "session",
+          "deny"
+        ]
+      }
     }
   ]
 }

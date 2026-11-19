@@ -1,0 +1,69 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "agents.enabled=true",
+    "-c",
+    "features.multi_agent=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-040",
+    "outOfScope": [
+      "持久授权"
+    ],
+    "scope": "确认 child Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-040",
+  "cliSHA256": "39acf979729dd290f9a24ee38b2914e036c91b65952872e28ae2a6b88a7db7c1",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "mcp-tool-approval",
+  "historyBindings": [],
+  "model": "",
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/v4/codex-040/runtime/routes/record/workspace",
+  "prompts": [
+    "Spawn one default agent. Tell that agent to call the approval_fixture MCP tool token exactly once and report its returned token. Wait for the agent and report its token. You must not call the MCP tool yourself."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-040",
+      "outOfScope": [
+        "持久授权"
+      ],
+      "scope": "确认 child Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-040",
+    "configuration": {},
+    "driverProfile": "mcp-tool-approval",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalThread": "child"
+    },
+    "prompts": [
+      "Spawn one default agent. Tell that agent to call the approval_fixture MCP tool token exactly once and report its returned token. Wait for the agent and report its token. You must not call the MCP tool yourself."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "mcp-tool-approval"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "sourcePlanSHA256": "82377859de635c1a4fad1edce394161eea3223ea4757b91ee6ade885d0b05c24",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

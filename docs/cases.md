@@ -12,8 +12,8 @@ User story 表达完整使用目标，使用 `SDK-US-NNN`；验证 case 表达�
 |---|---|---|
 | SDK-US-001 | 在长期会话中提交输入、追加输入并观察结果 | SDK-CASE-001、002、004、005、037 |
 | SDK-US-002 | 观察工具执行并处理应用工具调用 | SDK-CASE-006～SDK-CASE-007 |
-| SDK-US-003 | 接收、等待并批准或拒绝权限请求 | SDK-CASE-008～SDK-CASE-012 |
-| SDK-US-004 | 回答 Agent 提出的选择题或文本题 | SDK-CASE-013～SDK-CASE-015 |
+| SDK-US-003 | 接收、等待并批准或拒绝权限请求 | SDK-CASE-008～SDK-CASE-012、039～041 |
+| SDK-US-004 | 回答 Agent 提出的选择题或文本题 | SDK-CASE-013～SDK-CASE-015、042 |
 | SDK-US-005 | 观察直接、嵌套、并行和后台子 Agent | SDK-CASE-016～SDK-CASE-020 |
 | SDK-US-006 | 设置模型与思考配置并观察生效情况 | SDK-CASE-021～024、027～029 |
 | SDK-US-007 | 中断执行并关闭会话或连接 | SDK-CASE-030～SDK-CASE-032 |
@@ -32,9 +32,9 @@ User story 表达完整使用目标，使用 `SDK-US-NNN`；验证 case 表达�
 
 ## 验证 case
 
-以下 38 条完整流程分为 34 条必需能力与 4 条可选能力（003、025、026、038）。能力要求由共享 case 的
+以下 42 条完整流程分为 38 条必需能力与 4 条可选能力（003、025、026、038）。能力要求由共享 case 的
 `required` 布尔字段定义；agent binding 可用同名布尔字段显式覆盖。Claude 的 017、032 可选，
-Codex 的 012 暂为可选，合计 65 个必需、11 个可选槽位。要求与实现路径、采用状态及验证状态独立。
+Codex 的 012 暂为可选。039～041 为 Codex 必需、Claude 可选。042 为 Claude 必需、Codex 可选。合计 69 个必需、15 个可选槽位。要求与实现路径、采用状态及验证状态独立。
 
 必需能力须有通过的业务证据；`planned`、`unsupported`、未触发或缺材料均不豁免。
 Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在持有审批期间继续分发控制／事件，
@@ -83,6 +83,10 @@ Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在
 | SDK-CASE-036 | SDK-US-008 | required | 按原生分页或切片浏览保存的记录与内容 |
 | SDK-CASE-037 | SDK-US-001 | required | 空闲时注入上下文，不启动执行，并在下次查询中使用 |
 | SDK-CASE-038 | SDK-US-001 | optional | 执行中注入上下文，记录实际消费边界，并在后续查询中读取 |
+| SDK-CASE-039 | SDK-US-003 | required (claude optional) | 批准根 Thread 的默认 MCP 工具调用并读取结果 |
+| SDK-CASE-040 | SDK-US-003 | required (claude optional) | 批准已确认的子 Thread 的默认 MCP 工具调用并读取结果 |
+| SDK-CASE-041 | SDK-US-003 | required (claude optional) | 回应本轮、本会话及拒绝三种额外沙箱权限决定 |
+| SDK-CASE-042 | SDK-US-004 | required (codex optional) | 回应 Claude 独立 form 和 URL elicitation 的六种决定 |
 
 ## 流程语义
 

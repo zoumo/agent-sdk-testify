@@ -29,12 +29,15 @@ class StoryCaseTests(unittest.TestCase):
     def test_provider_optional_requirements_only_override_target_provider(self):
         for provider in ('claude', 'codex'):
             cases = {case['caseId']: case for case in case_recipes(provider)}
-            self.assertEqual(sum(case['required'] for case in cases.values()), 32 if provider == 'claude' else 33)
+            self.assertEqual(sum(case['required'] for case in cases.values()), 33 if provider == 'claude' else 36)
             self.assertEqual(cases['SDK-CASE-012']['required'], provider == 'claude')
             self.assertEqual(cases['SDK-CASE-012']['mode'],
                              'live-selected-path' if provider == 'claude' else 'planned')
             for case_id in ('SDK-CASE-017', 'SDK-CASE-032'):
                 self.assertEqual(cases[case_id]['required'], provider == 'codex')
+            for case_id in ('SDK-CASE-039', 'SDK-CASE-040', 'SDK-CASE-041'):
+                self.assertEqual(cases[case_id]['required'], provider == 'codex')
+            self.assertEqual(cases['SDK-CASE-042']['required'], provider == 'claude')
             self.assertTrue(cases['SDK-CASE-028']['required'])
             self.assertIn('不作为门禁条件', cases['SDK-CASE-028']['scope'])
 
@@ -81,8 +84,8 @@ class StoryCaseTests(unittest.TestCase):
         stories = story_documents()
         self.assertEqual([item['id'] for item in stories], [f'SDK-US-{i:03}' for i in range(1, 9)])
         cases = [case for story in stories for case in story['cases']]
-        self.assertEqual(len(cases), 38)
-        self.assertEqual(sum(case['required'] for case in cases), 34)
+        self.assertEqual(len(cases), 42)
+        self.assertEqual(sum(case['required'] for case in cases), 38)
         self.assertEqual([case['id'] for case in cases if not case['required']],
                          ['SDK-CASE-003', 'SDK-CASE-038', 'SDK-CASE-025', 'SDK-CASE-026'])
         self.assertEqual(len({case['id'] for case in cases}), len(cases))
