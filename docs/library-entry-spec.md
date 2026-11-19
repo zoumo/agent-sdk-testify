@@ -3,10 +3,6 @@ type: Specification
 title: Go 库回放合同
 description: "定义 Go 进程内回放的流归属、启动与关闭顺序、执行报告和通过条件。"
 tags: [go-library, replay, acceptance]
-sources:
-  - id: document
-    resource: "library-entry-spec.md"
-    title: "Go 库回放合同"
 ---
 
 # Go 库回放合同

@@ -3,10 +3,6 @@ type: Specification
 title: SDK 共同验收
 description: "定义 SDK 用户故事、可录制回放的 case、流程语义和验收边界。"
 tags: [acceptance, cases, replay]
-sources:
-  - id: document
-    resource: "cases.md"
-    title: "SDK 共同验收"
 ---
 
 # SDK 共同验收

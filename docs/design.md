@@ -3,10 +3,6 @@ type: Design
 title: agent-sdk-testify 工具设计
 description: "定义 Testify 的 CLI 与 Go 库职责、fixture 生命周期、材料所有权和录制验收条件。"
 tags: [architecture, fixture, recording, replay]
-sources:
-  - id: document
-    resource: "design.md"
-    title: "agent-sdk-testify 工具设计"
 ---
 
 # agent-sdk-testify 工具设计

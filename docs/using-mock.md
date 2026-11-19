@@ -4,9 +4,6 @@ title: 从 SDK 测试使用 mock
 description: "说明如何从 SDK 测试准备回放材料、启动 mock、检查 execution 并清理 fixture。"
 tags: [replay, fixture, testing]
 sources:
-  - id: document
-    resource: "using-mock.md"
-    title: "从 SDK 测试使用 mock"
   - id: tool-design
     resource: "design.md"
     title: "Testify 工具设计"

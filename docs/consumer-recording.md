@@ -4,9 +4,6 @@ title: 录制并回放消费者的 SDK 交互
 description: "说明如何用 consumer plan 准备 fixture、通过 SDK 录制交互、回放 current recording 并释放资源。"
 tags: [recording, replay, fixture]
 sources:
-  - id: document
-    resource: "consumer-recording.md"
-    title: "录制并回放消费者的 SDK 交互"
   - id: tool-design
     resource: "design.md"
     title: "录制与回放合同"

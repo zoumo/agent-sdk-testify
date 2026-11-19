@@ -3,10 +3,6 @@ type: Development Standard
 title: 开发规范
 description: "规定 Testify 的模块依赖、代码布局、录制材料与测试边界，以及构建和发布要求。"
 tags: [development, testing, release]
-sources:
-  - id: document
-    resource: "development.md"
-    title: "开发规范"
 ---
 
 # 开发规范
