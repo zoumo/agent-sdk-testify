@@ -5,14 +5,8 @@ description: "规定 Testify 的模块依赖、代码布局、录制材料与测
 tags: [development, testing, release]
 sources:
   - id: document
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/docs/development.md"
+    resource: "development.md"
     title: "开发规范"
-  - id: module
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/go.mod"
-    title: "Go 模块声明"
-  - id: build
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/Makefile"
-    title: "构建和测试入口"
 ---
 
 # 开发规范

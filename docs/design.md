@@ -5,14 +5,8 @@ description: "定义 Testify 的 CLI 与 Go 库职责、fixture 生命周期、�
 tags: [architecture, fixture, recording, replay]
 sources:
   - id: document
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/docs/design.md"
+    resource: "design.md"
     title: "agent-sdk-testify 工具设计"
-  - id: cli
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/cmd/agent-sdk-testify/main.go"
-    title: "CLI 入口"
-  - id: recording-index
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/data/index.json"
-    title: "录制材料索引"
 ---
 
 # agent-sdk-testify 工具设计

@@ -5,10 +5,10 @@ description: "说明如何用 consumer plan 准备 fixture、通过 SDK 录制�
 tags: [recording, replay, fixture]
 sources:
   - id: document
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/docs/consumer-recording.md"
+    resource: "consumer-recording.md"
     title: "录制并回放消费者的 SDK 交互"
   - id: tool-design
-    resource: "/design.md"
+    resource: "design.md"
     title: "录制与回放合同"
 ---
 

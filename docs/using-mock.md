@@ -5,14 +5,11 @@ description: "说明如何从 SDK 测试准备回放材料、启动 mock、检�
 tags: [replay, fixture, testing]
 sources:
   - id: document
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/docs/using-mock.md"
+    resource: "using-mock.md"
     title: "从 SDK 测试使用 mock"
   - id: tool-design
-    resource: "/design.md"
+    resource: "design.md"
     title: "Testify 工具设计"
-  - id: recording-index
-    resource: "https://github.com/zoumo/agent-sdk-testify/blob/43edbad698fd1fc29f45b9f4100057a3107b4be5/data/index.json"
-    title: "录制材料索引"
 ---
 
 # 从 SDK 测试使用 mock
