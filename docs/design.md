@@ -1,3 +1,8 @@
+---
+type: Design
+title: agent-sdk-testify 工具设计
+---
+
 # agent-sdk-testify 工具设计
 
 `agent-sdk-testify` 是面向多语言 SDK 的独立录制与回放工具。它维护 case、

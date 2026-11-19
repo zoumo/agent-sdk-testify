@@ -1,3 +1,8 @@
+---
+type: Guide
+title: 从 SDK 测试使用 mock
+---
+
 # 从 SDK 测试使用 mock
 
 用 `agent mock` 在 SDK 测试中回放 current recording。SDK 发送原生协议请求。Testify 严格匹配请求并回放帧，你在 SDK 测试中检查业务结果。使用进程内 Go 流时，按 Go 库入口接入。[Go 库入口](../README.md#go-库入口)

@@ -1,3 +1,8 @@
+---
+type: Specification
+title: SDK 共同验收
+---
+
 # SDK 共同验收
 
 ## SDK 用户故事

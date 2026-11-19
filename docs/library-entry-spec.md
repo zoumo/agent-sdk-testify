@@ -1,3 +1,8 @@
+---
+type: Specification
+title: Go 库回放合同
+---
+
 # Go 库回放合同
 
 导入 `github.com/zoumo/agent-sdk-testify`，包名 `agenttestify`。进程内回放使用

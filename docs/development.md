@@ -1,3 +1,8 @@
+---
+type: Development Standard
+title: 开发规范
+---
+
 # 开发规范
 
 ## Module 与依赖

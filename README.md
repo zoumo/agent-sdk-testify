@@ -37,6 +37,8 @@ Testify 录制原生 Agent 协议，并用录制回放协议，供 SDK 测试使
 
 ## 参考文档
 
+[文档索引](docs/index.md)列出 `docs/` 下的指南与合同。
+
 | 查阅内容 | 文档 |
 | --- | --- |
 | CLI 职责、fixture、execution 和材料 | [工具设计](docs/design.md#命令与数据边界) |
