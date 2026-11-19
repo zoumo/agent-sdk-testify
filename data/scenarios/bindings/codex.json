@@ -426,6 +426,50 @@
       "answers": {},
       "configuration": {},
       "progressBarrier": null
+    },
+    "SDK-CASE-039": {
+      "files": {},
+      "requests": {
+        "approval.mcp": "mcp-tool-approval"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-040": {
+      "files": {},
+      "requests": {
+        "approval.mcp": "mcp-tool-approval"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-041": {
+      "files": {},
+      "requests": {
+        "approval.permissions-turn": "sandbox-permissions-turn",
+        "approval.permissions-session": "sandbox-permissions-session",
+        "approval.permissions-deny": "sandbox-permissions-deny"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-042": {
+      "files": {},
+      "requests": {
+        "elicitation.roundtrip": "standalone-elicitation"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "required": false,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "本 case 使用 Claude 原生 control_request/elicitation。"
+      },
+      "inputs": []
     }
   }
 }

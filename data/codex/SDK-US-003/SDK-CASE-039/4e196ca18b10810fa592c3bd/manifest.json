@@ -1,0 +1,45 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "0e533247abfd1576a96db6044ac3d69740edf39177302963d51d07ffd54714a3",
+    "origin/main.json": "e9f09f472869d172c6d21516815ff5ad9fc40498721610512902723d91bf869d",
+    "plan.json": "4e20d4ab78a5064ecfec37d1879652315a01199bc4a8b2e38333cea71dc08279",
+    "raw/manifest.json": "2c4cd270d5bb2ded6f861c6332c02a43bba53928d2a978e3534ec3d29d51cb50",
+    "raw/raw.jsonl": "00d9b0a7c4b68a18ff69b80ef3e41cf4e003ecfd8ba9d9b281de3ad66063144d",
+    "raw/stderr.raw": "92b998f7d0d6a6d5b9424cf699dfe39f540b4c3baa9fb043bdb37c7a990b7a5b",
+    "raw/transport.json": "7f9fa1e5993c80ab143669a303a7fb643e9fda20e5dfc940d16fa29337af075f",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "8bc6209be09a39d68149e3ccdad48497feff963ae50ab289808000dc916fba84"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/v4/codex-039/runtime/executions/f6fc20fd9e48f70977c73f1e6ac3f38f/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+    "sha256": "39acf979729dd290f9a24ee38b2914e036c91b65952872e28ae2a6b88a7db7c1",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "4e20d4ab78a5064ecfec37d1879652315a01199bc4a8b2e38333cea71dc08279",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "7f9fa1e5993c80ab143669a303a7fb643e9fda20e5dfc940d16fa29337af075f",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "8bc6209be09a39d68149e3ccdad48497feff963ae50ab289808000dc916fba84",
+  "status": "captured"
+}

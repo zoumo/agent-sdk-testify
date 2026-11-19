@@ -1363,6 +1363,118 @@
       "requirement": "required",
       "storyId": "SDK-US-008",
       "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-039",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Codex 原生默认 MCP 工具审批。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-040",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Codex 原生默认 MCP 工具审批。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "c26807afa52d3aad527dcb318f2820c2cce85d54085127e41a326cc40fde9186",
+      "caseId": "SDK-CASE-039",
+      "materialSHA256": "6cbbefecd56d4a08b10b6b352a3f4148c22f13864ff0381f25c7398792c8a225",
+      "materials": "codex/SDK-US-003/SDK-CASE-039/4e196ca18b10810fa592c3bd",
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:03:20.931555Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "97269df0dd555d522f37ef54ee6f8d12a47aea2c102afda7e0f69050789fdc10",
+      "caseId": "SDK-CASE-040",
+      "materialSHA256": "cd174afaacba21135855b574b12024409d0ea99ba65f691cb6e1ca58f1f4ddd4",
+      "materials": "codex/SDK-US-003/SDK-CASE-040/7020387a5bce6b03ea49248d",
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:03:22.769756Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-041",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Codex 原生额外沙箱权限申请。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "44a019cdd83e5cccc597e96ca828699b41bd778c7094e2af33d16e659fc9c19f",
+      "caseId": "SDK-CASE-041",
+      "materialSHA256": "7b8ab7362fa538a7a48cfe55377f5abfae8384768a285fd21bf5708994b4e46d",
+      "materials": "codex/SDK-US-003/SDK-CASE-041/953c1c75a147ab873707add3",
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:06:42.89333Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "b4aa7482eccce4dfd33fc1fc46557bb85b2f8c9b26e6b8db30b2801938a85750",
+      "caseId": "SDK-CASE-042",
+      "materialSHA256": "a90fb1e1bcf75dbf4b722dc91dbb89ffeaf6eaa20d933615d63306766101a726",
+      "materials": "claude/SDK-US-004/SDK-CASE-042/e8bce9846c51167668ca0f6f",
+      "officialSDK": {
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
+      },
+      "provider": "claude",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:28:49.32724Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-042",
+      "provider": "codex",
+      "requirement": "optional",
+      "storyId": "SDK-US-004",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Claude 原生 control_request/elicitation。"
     }
   ],
   "version": 1

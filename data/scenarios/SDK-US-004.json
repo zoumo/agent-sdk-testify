@@ -206,6 +206,60 @@
         "questionCount": 2,
         "freeText": false
       }
+    },
+    {
+      "id": "SDK-CASE-042",
+      "storyId": "SDK-US-004",
+      "goal": "回答 Claude 独立 form 和 URL elicitation 的接受、拒绝、取消",
+      "required": true,
+      "implementation": "implemented",
+      "name": "simulation-042",
+      "execution": {
+        "mode": "live-selected-path",
+        "reason": ""
+      },
+      "setup": {
+        "files": {}
+      },
+      "inputs": {
+        "input-1": "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+      },
+      "steps": [
+        {
+          "op": "session.open"
+        },
+        {
+          "op": "input.submit",
+          "input": "input-1"
+        },
+        {
+          "op": "event.wait",
+          "event": "execution.result",
+          "onMissing": "untriggered"
+        },
+        {
+          "op": "session.close"
+        }
+      ],
+      "expect": {
+        "requests": [
+          "elicitation.roundtrip"
+        ],
+        "missingEvidence": "untriggered",
+        "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+        "outOfScope": [
+          "外部 URL 访问"
+        ]
+      },
+      "limits": {
+        "inputs": 1,
+        "activitySeconds": 0,
+        "transportSeconds": 0,
+        "protocolBytes": 0,
+        "stderrBytes": 0
+      },
+      "driverProfile": "standalone-elicitation",
+      "parameters": {}
     }
   ]
 }

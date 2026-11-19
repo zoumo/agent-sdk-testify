@@ -92,6 +92,21 @@ git -C /absolute/codex-source rev-parse HEAD
 不得回落到已安装的真实 Codex 或 Claude。源码 SDK、录制中的原生 CLI 和工具自身
 是三个独立版本身份。
 
+Codex 审批 case 039～041 使用 `codex-cli 0.166.0` 及官方 SDK 源码
+`rust-v0.166.0`（`6ff1e1ca3b30fc8b914720681fcf5fe62e95f856`），其安装版本同为
+`openai-codex 0.0.0.dev0`。复录和验证这些 case 时使用该源码版本。039 和 040 的
+录制需要 `python3` 启动隔离的合成 stdio MCP 工具。
+
+Claude case 042 使用 `Claude Code 2.1.293` 和 `@anthropic-ai/claude-agent-sdk@0.3.293` 的
+`onElicitation`。在显式 Python 环境的根目录安装 npm 包，并将 Node.js 放入 PATH。
+安装无需 SDK 自带的原生 CLI，录制使用 `--cmd` 指定的独立 CLI，验证使用公开 mock。
+
+```sh
+npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @anthropic-ai/claude-agent-sdk@0.3.293
+```
+
+
+
 ## 单请求协议
 
 工具向 driver 提供一个请求文件，driver 完成后在输出目录写入 `result.json`。

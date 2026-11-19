@@ -1,25 +1,25 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "e82f752448eab225f464df54be29cbd4f93fbc2f",
+  "sourceRevision": "1dee2ab38ff6f42046d7cae6fa4796d4ed15969a",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "e09208532c5808f4e022777c8c81139fa3bce9fac3780e6b9280906dbe6f2bbd",
+  "indexSHA256": "f60fff7482458ab57647ffa31706b49f0fcbf323f6ee31975036a5971cf54358",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-    "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-    "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
+    "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+    "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
     "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
     "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
     "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
     "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
-    "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47",
-    "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753",
+    "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
+    "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
-    "scenario.schema.json": "879c098d5069ce0a1b7a732026d1727377c2cab8e76f53d7e6da7ad21e64c0a8"
+    "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
   },
-  "archiveSHA256": "f1b94c443374631bdd19af47a259f1af470e16b3b67cbe8341f4d24306c47b13",
+  "archiveSHA256": "31b3164cadab5f6310f7944d2a423a501ce8a0d05445475b016d2a70beef615e",
   "coverage": [
     {
       "adoption": "admitted",
@@ -746,6 +746,59 @@
       "verification": "passed"
     },
     {
+      "adoption": "missing",
+      "available": false,
+      "caseId": "SDK-CASE-039",
+      "missingReason": "本 case 使用 Codex 原生默认 MCP 工具审批。",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Codex 原生默认 MCP 工具审批。"
+    },
+    {
+      "adoption": "missing",
+      "available": false,
+      "caseId": "SDK-CASE-040",
+      "missingReason": "本 case 使用 Codex 原生默认 MCP 工具审批。",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Codex 原生默认 MCP 工具审批。"
+    },
+    {
+      "adoption": "missing",
+      "available": false,
+      "caseId": "SDK-CASE-041",
+      "missingReason": "本 case 使用 Codex 原生额外沙箱权限申请。",
+      "provider": "claude",
+      "requirement": "optional",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Codex 原生额外沙箱权限申请。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "b4aa7482eccce4dfd33fc1fc46557bb85b2f8c9b26e6b8db30b2801938a85750",
+      "available": true,
+      "caseId": "SDK-CASE-042",
+      "materialSHA256": "a90fb1e1bcf75dbf4b722dc91dbb89ffeaf6eaa20d933615d63306766101a726",
+      "materials": "claude/SDK-US-004/SDK-CASE-042/e8bce9846c51167668ca0f6f",
+      "officialSDK": {
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
+      },
+      "provider": "claude",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:28:49.32724Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
       "adoption": "admitted",
       "adoptionSHA256": "6074cf44aec5e35686da29c9faefc30aeda6f1b6d107511f87ba8f352c88605f",
       "available": true,
@@ -1468,6 +1521,77 @@
       "requirement": "optional",
       "storyId": "SDK-US-001",
       "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "c26807afa52d3aad527dcb318f2820c2cce85d54085127e41a326cc40fde9186",
+      "available": true,
+      "caseId": "SDK-CASE-039",
+      "materialSHA256": "6cbbefecd56d4a08b10b6b352a3f4148c22f13864ff0381f25c7398792c8a225",
+      "materials": "codex/SDK-US-003/SDK-CASE-039/4e196ca18b10810fa592c3bd",
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:03:20.931555Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "97269df0dd555d522f37ef54ee6f8d12a47aea2c102afda7e0f69050789fdc10",
+      "available": true,
+      "caseId": "SDK-CASE-040",
+      "materialSHA256": "cd174afaacba21135855b574b12024409d0ea99ba65f691cb6e1ca58f1f4ddd4",
+      "materials": "codex/SDK-US-003/SDK-CASE-040/7020387a5bce6b03ea49248d",
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:03:22.769756Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "44a019cdd83e5cccc597e96ca828699b41bd778c7094e2af33d16e659fc9c19f",
+      "available": true,
+      "caseId": "SDK-CASE-041",
+      "materialSHA256": "7b8ab7362fa538a7a48cfe55377f5abfae8384768a285fd21bf5708994b4e46d",
+      "materials": "codex/SDK-US-003/SDK-CASE-041/953c1c75a147ab873707add3",
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:06:42.89333Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "available": false,
+      "caseId": "SDK-CASE-042",
+      "missingReason": "本 case 使用 Claude 原生 control_request/elicitation。",
+      "provider": "codex",
+      "requirement": "optional",
+      "storyId": "SDK-US-004",
+      "verification": "unsupported",
+      "verificationReason": "本 case 使用 Claude 原生 control_request/elicitation。"
     }
   ],
   "materials": [
@@ -1492,7 +1616,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1603,7 +1727,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1711,7 +1835,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1819,7 +1943,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -1927,7 +2051,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2038,7 +2162,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2151,8 +2275,8 @@
         "source-plan.json": "a9c2133a98815e0a00537fac36f91b37d1b0fed5aefd9bd83a697b41307b03de"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2264,8 +2388,8 @@
         "source-plan.json": "4fc7348d18461a0d43b74aab8cfc621c5898027c221217ca56e5f01491bb3ad3"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2377,8 +2501,8 @@
         "source-plan.json": "32d66a91df6ebec878ab0b5559ad5791acd1014a3424f5e11d63f56bb5147029"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2490,8 +2614,8 @@
         "source-plan.json": "bc796c80c830568d61b68be51f0184faf3e671e8f5e6e0aef55304b8a6cef1fb"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2603,8 +2727,8 @@
         "source-plan.json": "eebd1e030e32f6ad4ed31e55d07dd58dfbde11441d05e9964e9ade01b19f814a"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2715,8 +2839,8 @@
         "source-plan.json": "edc071c60e88aca49b0f11c541b6b2835fe98f425c0d9f3bc8ec9fa133aa3144"
       },
       "contracts": {
-        "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2833,8 +2957,8 @@
         "source-plan.json": "0e8a63cc6fdb5b9575a1a61304b6e172aeea1f613e5a8e0dca94e72bfd1b4299"
       },
       "contracts": {
-        "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -2948,8 +3072,8 @@
         "source-plan.json": "648776d980374a8bdae802c9f4b48f933ed8b76730d5c82c3ce09ee42fd20cfe"
       },
       "contracts": {
-        "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3068,7 +3192,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3191,7 +3315,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3320,7 +3444,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3446,7 +3570,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3581,7 +3705,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3690,7 +3814,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3804,7 +3928,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -3916,7 +4040,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4026,7 +4150,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4137,7 +4261,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4254,7 +4378,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4368,7 +4492,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4503,7 +4627,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4609,7 +4733,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4716,7 +4840,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4835,7 +4959,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -4980,7 +5104,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5154,7 +5278,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5272,7 +5396,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5383,7 +5507,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/claude.json": "cda92a4ba9586b0f04655fd8cfc3f4b2425fcb6297e4312e69bb80acbd07fb47"
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
         "package": "claude-agent-sdk",
@@ -5474,6 +5598,110 @@
       }
     },
     {
+      "provider": "claude",
+      "caseId": "SDK-CASE-042",
+      "storyId": "SDK-US-004",
+      "attempt": "e8bce9846c51167668ca0f6f",
+      "path": "claude/SDK-US-004/SDK-CASE-042/e8bce9846c51167668ca0f6f",
+      "files": {
+        "manifest.json": "815a43e01ec378ad0ba5d5e02055eb63afffc6e52eb72c8fd41512d3dfa61911",
+        "material.json": "a90fb1e1bcf75dbf4b722dc91dbb89ffeaf6eaa20d933615d63306766101a726",
+        "official-origin.json": "a4f5c84c489450de0007f7223f4dbb37cc04cfce0e2ec8e373890ae236325faa",
+        "origin/main.json": "ba616fa6574400c1cdcb0c58043787654c69f21170844ded5acaa0e50267f6d9",
+        "plan.json": "2a3af58e258a0c5e4d01e4cedb88af9cef12068155cd68e18ca451ff9194a5bb",
+        "raw/manifest.json": "8d9457636622b8fb563b1a5e7dd5ca380d0c8137dd6b7583e77de9fae4787bbb",
+        "raw/raw.jsonl": "ce67f8001a42405a642ce8fbc079e120c2cd326c340bacc17dce0da6e2fc7de1",
+        "raw/stderr.raw": "87adb7e2a99d597ca97ba3b110ff5ed98caef5cf68faef79e6d51e10131c8104",
+        "raw/transport.json": "11302667be3111955a6d4401bffe80a066528a070d7ac57dccb464de685e6d75",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "6b3300519ab314755c788f82e4a8df2ffb8ec7503c4498f77816d61a67d3044f"
+      },
+      "contracts": {
+        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
+      },
+      "officialSDK": {
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:28:49.32724Z"
+      },
+      "plan": {
+        "args": [
+          "--input-format",
+          "stream-json",
+          "--output-format",
+          "stream-json",
+          "--verbose",
+          "--include-partial-messages",
+          "--permission-prompt-tool",
+          "stdio",
+          "--print",
+          "--system-prompt",
+          "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/claude-official-v2/fixture/runtime/routes/record/workspace\". Use paths relative to this directory.",
+          "--no-session-persistence",
+          "--mcp-config",
+          "{\"mcpServers\":{\"elicitation_fixture\":{\"args\":[\"-e\",\"// A single stdio MCP tool exercises both native modes and all decisions.\\nconst { createInterface } = require('node:readline');\\nconst actions = ['form', 'url'].flatMap(mode =\\u003e ['accept', 'decline', 'cancel'].map(action =\\u003e ({mode, action})));\\nconst send = message =\\u003e process.stdout.write(JSON.stringify({jsonrpc: '2.0', ...message}) + '\\\\n');\\nlet toolId;\\nlet next = 0;\\n\\nfunction requestInput() {\\n    if (next === actions.length) {\\n        send({id: toolId, result: {content: [{type: 'text', text: 'SYNTHETIC_ELICITATION_SEQUENCE_DONE'}]}});\\n        return;\\n    }\\n    const {mode, action} = actions[next];\\n    const fields = mode === 'form'\\n        ? {requestedSchema: {type: 'object', properties: {value: {type: 'string'}}, required: ['value']}}\\n        : {url: 'https://example.invalid/synthetic', elicitationId: `fixture-${next}`};\\n    send({id: `elicitation-${next}`, method: 'elicitation/create', params: {\\n        mode, message: `SYNTHETIC ${mode} ${action}`, ...fields,\\n    }});\\n}\\n\\ncreateInterface({input: process.stdin}).on('line', line =\\u003e {\\n    const message = JSON.parse(line);\\n    if (message.method === 'initialize') {\\n        send({id: message.id, result: {protocolVersion: message.params.protocolVersion, capabilities: {tools: {}},\\n            serverInfo: {name: 'elicitation_fixture', version: '1'}}});\\n    } else if (message.method === 'tools/list') {\\n        send({id: message.id, result: {tools: [{name: 'roundtrip', description: 'Run the synthetic elicitation fixture.',\\n            inputSchema: {type: 'object', properties: {}, additionalProperties: false}}]}});\\n    } else if (message.method === 'tools/call' \\u0026\\u0026 message.params?.name === 'roundtrip' \\u0026\\u0026 toolId === undefined) {\\n        toolId = message.id;\\n        requestInput();\\n    } else if (toolId !== undefined \\u0026\\u0026 next \\u003c actions.length \\u0026\\u0026 message.id === `elicitation-${next}`) {\\n        const expected = actions[next];\\n        const response = message.result;\\n        if (response?.action !== expected.action || (next === 0 \\u0026\\u0026 response.content?.value !== 'SYNTHETIC_FORM')) {\\n            send({id: toolId, error: {code: -32603, message: 'Unexpected synthetic elicitation reply'}});\\n            return;\\n        }\\n        next++;\\n        requestInput();\\n    } else if (message.method === 'ping') {\\n        send({id: message.id, result: {}});\\n    }\\n});\\n\"],\"command\":\"node\"}}}",
+          "--setting-sources",
+          "user",
+          "--disable-slash-commands",
+          "--strict-mcp-config"
+        ],
+        "case": {
+          "id": "SDK-CASE-042",
+          "outOfScope": [
+            "外部 URL 访问"
+          ],
+          "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+          "storyId": "SDK-US-004"
+        },
+        "caseId": "SDK-CASE-042",
+        "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+        "cliVersion": "2.1.293 (Claude Code)",
+        "driverProfile": "standalone-elicitation",
+        "historyBindings": [],
+        "model": "",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/claude-official-v2/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+        ],
+        "provider": "claude",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-042",
+            "outOfScope": [
+              "外部 URL 访问"
+            ],
+            "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+            "storyId": "SDK-US-004"
+          },
+          "caseId": "SDK-CASE-042",
+          "configuration": {},
+          "driverProfile": "standalone-elicitation",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {},
+          "prompts": [
+            "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+          ],
+          "provider": "claude",
+          "reason": "",
+          "requiredRequests": [
+            "standalone-elicitation"
+          ],
+          "storyId": "SDK-US-004"
+        },
+        "sourcePlanSHA256": "6b3300519ab314755c788f82e4a8df2ffb8ec7503c4498f77816d61a67d3044f",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-004",
+        "storyId": "SDK-US-004"
+      }
+    },
+    {
       "provider": "codex",
       "caseId": "SDK-CASE-001",
       "storyId": "SDK-US-001",
@@ -5494,7 +5722,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -5595,7 +5823,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -5694,7 +5922,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -5793,7 +6021,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -5892,7 +6120,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -5992,7 +6220,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6092,8 +6320,8 @@
         "source-plan.json": "a69969e4f2e4b6968b131668b76bf32103a58e4bec3bf720c70c85a28812fe21"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6199,8 +6427,8 @@
         "source-plan.json": "d99afdcce1fee1e6ce14bbe6a9663f7d19adb43500d6855cd821f8401fb030bd"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6306,8 +6534,8 @@
         "source-plan.json": "d7bdb99462aae1bc4e82b95c364d570d74f4ae7a4cdde4e810503923d2d9ee80"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6410,8 +6638,8 @@
         "source-plan.json": "fc69ade2f3233cf2d39f7c55f2762602353b9744b68cb986b796790fba68c3c4"
       },
       "contracts": {
-        "SDK-US-003.json": "6c649eb70f0246d04c348ec9ca5d849ae3c860acd42e0e68f641c910446dc43e",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6514,8 +6742,8 @@
         "source-plan.json": "027390e0a68b67eeb3ef041461dc3d093a692034688fc9d45623e60e604c42bc"
       },
       "contracts": {
-        "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6623,8 +6851,8 @@
         "source-plan.json": "33d20efc1173cd4b1667fe69f9bb7f77f020e2522df386d8c9514dde54b69fab"
       },
       "contracts": {
-        "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6729,8 +6957,8 @@
         "source-plan.json": "3876d2f1cd113ee62053cdd990a452bc09c1762c0f3a445e5199071960587dc1"
       },
       "contracts": {
-        "SDK-US-004.json": "2006555e977f98e74442aca72cd9a66d6a6547bc9f3e7d8f0e330783cd271ef2",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6841,7 +7069,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -6977,7 +7205,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7112,7 +7340,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7246,7 +7474,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7381,7 +7609,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7502,7 +7730,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7602,7 +7830,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7709,7 +7937,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7812,7 +8040,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -7913,7 +8141,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8019,7 +8247,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8123,7 +8351,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8244,7 +8472,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8341,7 +8569,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8444,7 +8672,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8551,7 +8779,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8661,7 +8889,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8791,7 +9019,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -8940,7 +9168,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9050,7 +9278,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9152,7 +9380,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "1d322b7d9e10990154107533ee7896306d0f1093baaf3704cd0bd908372bb753"
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
       },
       "officialSDK": {
         "package": "openai-codex",
@@ -9231,6 +9459,319 @@
         "stdinEOFAction": "close",
         "story": "SDK-US-001",
         "storyId": "SDK-US-001"
+      }
+    },
+    {
+      "provider": "codex",
+      "caseId": "SDK-CASE-039",
+      "storyId": "SDK-US-003",
+      "attempt": "4e196ca18b10810fa592c3bd",
+      "path": "codex/SDK-US-003/SDK-CASE-039/4e196ca18b10810fa592c3bd",
+      "files": {
+        "manifest.json": "ca0004facce768568342489f4d765d7842517f65663926f7445a9d4bdfb59a6a",
+        "material.json": "6cbbefecd56d4a08b10b6b352a3f4148c22f13864ff0381f25c7398792c8a225",
+        "official-origin.json": "0e533247abfd1576a96db6044ac3d69740edf39177302963d51d07ffd54714a3",
+        "origin/main.json": "e9f09f472869d172c6d21516815ff5ad9fc40498721610512902723d91bf869d",
+        "plan.json": "4e20d4ab78a5064ecfec37d1879652315a01199bc4a8b2e38333cea71dc08279",
+        "raw/manifest.json": "2c4cd270d5bb2ded6f861c6332c02a43bba53928d2a978e3534ec3d29d51cb50",
+        "raw/raw.jsonl": "00d9b0a7c4b68a18ff69b80ef3e41cf4e003ecfd8ba9d9b281de3ad66063144d",
+        "raw/stderr.raw": "92b998f7d0d6a6d5b9424cf699dfe39f540b4c3baa9fb043bdb37c7a990b7a5b",
+        "raw/transport.json": "7f9fa1e5993c80ab143669a303a7fb643e9fda20e5dfc940d16fa29337af075f",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "8bc6209be09a39d68149e3ccdad48497feff963ae50ab289808000dc916fba84"
+      },
+      "contracts": {
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+      },
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:03:20.931555Z"
+      },
+      "plan": {
+        "args": [
+          "app-server",
+          "--listen",
+          "stdio://",
+          "-c",
+          "features.default_mode_request_user_input=true",
+          "-c",
+          "project_root_markers=[]",
+          "-c",
+          "project_doc_max_bytes=0"
+        ],
+        "case": {
+          "id": "SDK-CASE-039",
+          "outOfScope": [
+            "持久授权"
+          ],
+          "scope": "确认 root Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+          "storyId": "SDK-US-003"
+        },
+        "caseId": "SDK-CASE-039",
+        "cliSHA256": "39acf979729dd290f9a24ee38b2914e036c91b65952872e28ae2a6b88a7db7c1",
+        "cliVersion": "codex-cli 0.166.0",
+        "driverProfile": "mcp-tool-approval",
+        "historyBindings": [],
+        "model": "",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/v4/codex-039/runtime/routes/record/workspace",
+        "prompts": [
+          "Call the approval_fixture MCP tool token exactly once. Report its returned token. Do not use any other tool."
+        ],
+        "provider": "codex",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-039",
+            "outOfScope": [
+              "持久授权"
+            ],
+            "scope": "确认 root Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+            "storyId": "SDK-US-003"
+          },
+          "caseId": "SDK-CASE-039",
+          "configuration": {},
+          "driverProfile": "mcp-tool-approval",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "approvalThread": "root"
+          },
+          "prompts": [
+            "Call the approval_fixture MCP tool token exactly once. Report its returned token. Do not use any other tool."
+          ],
+          "provider": "codex",
+          "reason": "",
+          "requiredRequests": [
+            "mcp-tool-approval"
+          ],
+          "storyId": "SDK-US-003"
+        },
+        "sourcePlanSHA256": "8bc6209be09a39d68149e3ccdad48497feff963ae50ab289808000dc916fba84",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-003",
+        "storyId": "SDK-US-003"
+      }
+    },
+    {
+      "provider": "codex",
+      "caseId": "SDK-CASE-040",
+      "storyId": "SDK-US-003",
+      "attempt": "7020387a5bce6b03ea49248d",
+      "path": "codex/SDK-US-003/SDK-CASE-040/7020387a5bce6b03ea49248d",
+      "files": {
+        "manifest.json": "4a7492a742a4fef1dbd01ae07f97acdf8d75a6bac12dfc197f2880db86aa20c2",
+        "material.json": "cd174afaacba21135855b574b12024409d0ea99ba65f691cb6e1ca58f1f4ddd4",
+        "official-origin.json": "5e709b0e50cad341fe26d8d869f770238b29b50a09c453d41c3215fe09287708",
+        "origin/main.json": "de0bc91571229033e39a74705c213d1b96d4eac4dcaaa4565eb67a83c59de15a",
+        "plan.json": "06420e86181c153e5f63715ec2c9d1f5aa88c97dceeed05f55ffe893f8a48a8c",
+        "raw/manifest.json": "9c6d2d1b6ccb5a713d6ed29e67e88b87c55ee758b3cc05e145ae57761a67ccf8",
+        "raw/raw.jsonl": "b804af7bffbfb5f1ba335e1815961bd1f8761e5895b9ed6d919ac345f1c54199",
+        "raw/stderr.raw": "129090a4e6bdac517229b1c6d16012fe37e570bc21827ae02090e181951e5d09",
+        "raw/transport.json": "e117eb6b5ecb364f77917f8834d54b3b44c332601bc05431086fd8c0c9aeb176",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "82377859de635c1a4fad1edce394161eea3223ea4757b91ee6ade885d0b05c24"
+      },
+      "contracts": {
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+      },
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:03:22.769756Z"
+      },
+      "plan": {
+        "args": [
+          "app-server",
+          "--listen",
+          "stdio://",
+          "-c",
+          "features.default_mode_request_user_input=true",
+          "-c",
+          "agents.enabled=true",
+          "-c",
+          "features.multi_agent=true",
+          "-c",
+          "project_root_markers=[]",
+          "-c",
+          "project_doc_max_bytes=0"
+        ],
+        "case": {
+          "id": "SDK-CASE-040",
+          "outOfScope": [
+            "持久授权"
+          ],
+          "scope": "确认 child Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+          "storyId": "SDK-US-003"
+        },
+        "caseId": "SDK-CASE-040",
+        "cliSHA256": "39acf979729dd290f9a24ee38b2914e036c91b65952872e28ae2a6b88a7db7c1",
+        "cliVersion": "codex-cli 0.166.0",
+        "driverProfile": "mcp-tool-approval",
+        "historyBindings": [],
+        "model": "",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/v4/codex-040/runtime/routes/record/workspace",
+        "prompts": [
+          "Spawn one default agent. Tell that agent to call the approval_fixture MCP tool token exactly once and report its returned token. Wait for the agent and report its token. You must not call the MCP tool yourself."
+        ],
+        "provider": "codex",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-040",
+            "outOfScope": [
+              "持久授权"
+            ],
+            "scope": "确认 child Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+            "storyId": "SDK-US-003"
+          },
+          "caseId": "SDK-CASE-040",
+          "configuration": {},
+          "driverProfile": "mcp-tool-approval",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "approvalThread": "child"
+          },
+          "prompts": [
+            "Spawn one default agent. Tell that agent to call the approval_fixture MCP tool token exactly once and report its returned token. Wait for the agent and report its token. You must not call the MCP tool yourself."
+          ],
+          "provider": "codex",
+          "reason": "",
+          "requiredRequests": [
+            "mcp-tool-approval"
+          ],
+          "storyId": "SDK-US-003"
+        },
+        "sourcePlanSHA256": "82377859de635c1a4fad1edce394161eea3223ea4757b91ee6ade885d0b05c24",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-003",
+        "storyId": "SDK-US-003"
+      }
+    },
+    {
+      "provider": "codex",
+      "caseId": "SDK-CASE-041",
+      "storyId": "SDK-US-003",
+      "attempt": "953c1c75a147ab873707add3",
+      "path": "codex/SDK-US-003/SDK-CASE-041/953c1c75a147ab873707add3",
+      "files": {
+        "manifest.json": "a1930141acc172ea20e5bf288c87caeb467039e60933ff987cd9be5a2899aa6b",
+        "material.json": "7b8ab7362fa538a7a48cfe55377f5abfae8384768a285fd21bf5708994b4e46d",
+        "official-origin.json": "c95aa76d9d3b15c2a63a0860ad14b5c96dc6b30f92f4ed8bac8267174cd9a560",
+        "origin/main.json": "42d375db0e62480364c90c286fa8695187281f52bdc6be5b251363dc8438daab",
+        "plan.json": "112df0b3c758df10b5b7f875d5d9df982fe0d7bc7d7718e98bc72aa1083787c6",
+        "raw/manifest.json": "abf82f716d2b0e3a1acc5992485ea5f48dfae8fab086b6944e3b27b235888dd7",
+        "raw/raw.jsonl": "32dbd5c260a17da9ab8d6a1e1abf5ce666d4ac7bccc6881a90e81a5f6d03675e",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "020a4537b59177c4a765de9201217a95230b6f250a7970a3f09e683ae884685a",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "28573a7b418f99e96c1d5f5bf1d5d960a784d690fd217fed0a929632118f57df"
+      },
+      "contracts": {
+        "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
+        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+      },
+      "officialSDK": {
+        "package": "openai-codex",
+        "version": "0.0.0.dev0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-19T04:06:42.89333Z"
+      },
+      "plan": {
+        "args": [
+          "app-server",
+          "--listen",
+          "stdio://",
+          "-c",
+          "features.default_mode_request_user_input=true",
+          "-c",
+          "features.request_permissions_tool=true",
+          "-c",
+          "approvals_reviewer=\"user\"",
+          "-c",
+          "project_root_markers=[]",
+          "-c",
+          "project_doc_max_bytes=0"
+        ],
+        "case": {
+          "id": "SDK-CASE-041",
+          "outOfScope": [
+            "跨轮执行权限效果"
+          ],
+          "scope": "用原生请求 ID 核对三个额外权限决定与处理结果。",
+          "storyId": "SDK-US-003"
+        },
+        "caseId": "SDK-CASE-041",
+        "cliSHA256": "39acf979729dd290f9a24ee38b2914e036c91b65952872e28ae2a6b88a7db7c1",
+        "cliVersion": "codex-cli 0.166.0",
+        "driverProfile": "sandbox-permissions",
+        "historyBindings": [],
+        "model": "",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/unified-approval-recordings-20261119/evidence/permissions-v2/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-turn in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+          "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-session in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+          "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-deny in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool."
+        ],
+        "provider": "codex",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-041",
+            "outOfScope": [
+              "跨轮执行权限效果"
+            ],
+            "scope": "用原生请求 ID 核对三个额外权限决定与处理结果。",
+            "storyId": "SDK-US-003"
+          },
+          "caseId": "SDK-CASE-041",
+          "configuration": {},
+          "driverProfile": "sandbox-permissions",
+          "files": {
+            "grant-deny/fixture.txt": "SYNTHETIC\n",
+            "grant-session/fixture.txt": "SYNTHETIC\n",
+            "grant-turn/fixture.txt": "SYNTHETIC\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "approvalScopes": [
+              "turn",
+              "session",
+              "deny"
+            ]
+          },
+          "prompts": [
+            "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-turn in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+            "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-session in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+            "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-deny in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool."
+          ],
+          "provider": "codex",
+          "reason": "",
+          "requiredRequests": [
+            "sandbox-permissions-turn",
+            "sandbox-permissions-session",
+            "sandbox-permissions-deny"
+          ],
+          "storyId": "SDK-US-003"
+        },
+        "sourcePlanSHA256": "28573a7b418f99e96c1d5f5bf1d5d960a784d690fd217fed0a929632118f57df",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-003",
+        "storyId": "SDK-US-003"
       }
     }
   ]

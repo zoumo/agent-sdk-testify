@@ -96,8 +96,7 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 			business = v.Read(item[0], item[1])
 		}
 		sdk := tool.Obj(business["officialSDK"])
-		packageName := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(plan["provider"])]
-		v.Check(business["status"] == "passed" && business["branchStatus"] == "passed" && business["captureStatus"] == "complete" && len(tool.Array(business["gaps"])) == 0 && business["provider"] == plan["provider"] && business["caseId"] == plan["caseId"] && business["storyId"] == story && sdk["package"] == packageName && tool.Str(sdk["version"]) != "", "official SDK business evidence is absent, untriggered or incomplete")
+		v.Check(business["status"] == "passed" && business["branchStatus"] == "passed" && business["captureStatus"] == "complete" && len(tool.Array(business["gaps"])) == 0 && business["provider"] == plan["provider"] && business["caseId"] == plan["caseId"] && business["storyId"] == story && OfficialSDKIdentity(tool.Str(plan["provider"]), tool.Str(plan["caseId"]), sdk), "official SDK business evidence is absent, untriggered or incomplete")
 		if item[1] == "report.json" {
 			v.Check(reflect.DeepEqual(sdk, review["officialSDK"]), "review SDK identity differs from capture")
 		}
@@ -385,7 +384,7 @@ func (c *Corpus) verifyPublishedMaterial(root string, entry tool.Object) error {
 	_, err = time.Parse(time.RFC3339Nano, tool.Str(qualification["qualifiedAt"]))
 	v.Check(qualification["method"] == "official-sdk" && err == nil, "publication omits official qualification")
 	sdk := tool.Obj(entry["officialSDK"])
-	v.Check(sdk["package"] == map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(entry["provider"])] && tool.Str(sdk["version"]) != "", "publication omits official SDK identity")
+	v.Check(OfficialSDKIdentity(tool.Str(entry["provider"]), tool.Str(entry["caseId"]), sdk), "publication omits official SDK identity")
 	if v.Err != nil {
 		return v.Err
 	}

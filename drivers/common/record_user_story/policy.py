@@ -9,7 +9,7 @@ DRIVER_PROFILES = frozenset((
     'children', 'background-children', 'approval', 'deferred-approval',
     'questions', 'configuration-timing', 'interrupt', 'session-close',
     'history', 'topology', 'existing-children', 'remote-close',
-    'context-injection'))
+    'context-injection', 'mcp-tool-approval', 'sandbox-permissions', 'standalone-elicitation'))
 
 
 def driver_profile(plan):

@@ -11,7 +11,7 @@ import (
 func TestBuiltinCatalogCoverage(t *testing.T) {
 	manifest, _, err := Read()
 	require.NoError(t, err)
-	require.Len(t, manifest.Coverage, 76)
+	require.Len(t, manifest.Coverage, 84)
 	available := 0
 	for _, row := range manifest.Coverage {
 		assert.Contains(t, []string{"required", "optional"}, row["requirement"])
@@ -26,7 +26,7 @@ func TestBuiltinCatalogCoverage(t *testing.T) {
 			assert.Equal(t, false, row["available"])
 		}
 	}
-	assert.Equal(t, 68, available)
+	assert.Equal(t, 72, available)
 }
 
 func TestBuiltinContainsOnlyPublishedReplayCores(t *testing.T) {

@@ -25,6 +25,23 @@ def codex(plan, report, flow):
     def answer(method, params):
         report['requests'] += 1
         params = params or {}
+        if method == 'mcpServer/elicitation/request' and profile == 'mcp-tool-approval':
+            metadata = params.get('_meta') or {}
+            if (params.get('serverName') != 'approval_fixture' or params.get('mode') != 'form'
+                    or metadata.get('codex_approval_kind') != 'mcp_tool_call'
+                    or metadata.get('tool_name', 'token') != 'token'
+                    or params.get('message') != 'Allow the approval_fixture MCP server to run tool "token"?'
+                    or metadata.get('tool_params') != {}):
+                raise ValueError('unexpected native MCP approval request')
+            flow.request('mcp-tool-approval')
+            return {'action': 'accept'}
+        if method == 'item/permissions/requestApproval' and profile == 'sandbox-permissions':
+            from record_user_story.sandbox_permission_evidence import answer
+            scope = parameters['approvalScopes'][len([r for r in report['receipts'] if 'sandbox-decision' in r])]
+            response = answer(plan['project'], params, scope)
+            report['receipts'].append({'sandbox-decision': {'scope': scope, 'itemId': params['itemId']}})
+            flow.request(f'sandbox-permissions-{scope}')
+            return response
         if method == 'item/tool/call':
             name, args = params.get('tool'), params.get('arguments') or {}
             project = execution_workspace(plan).resolve()
@@ -62,6 +79,8 @@ def codex(plan, report, flow):
             calls.add('question')
             return {'answers': answers}
         if method in ('item/commandExecution/requestApproval', 'item/fileChange/requestApproval'):
+            if profile in ('mcp-tool-approval', 'sandbox-permissions'):
+                raise ValueError('unexpected native command or file approval')
             if parameters.get('approvalKind'):
                 kind = 'file' if method == 'item/fileChange/requestApproval' else 'command'
                 if kind != parameters['approvalKind']:
@@ -77,7 +96,7 @@ def codex(plan, report, flow):
                          client_name='official-python-story-recorder', client_title='Protocol recording')
     with CodexClient(config=config, approval_handler=answer) as client:
         report['receipts'].append({'initialize': serial(client.initialize())})
-        params = {'cwd': plan['project'], 'sandbox': 'read-only' if profile == 'approval' else 'workspace-write', 'approvalPolicy': 'on-request',
+        params = {'cwd': plan['project'], 'sandbox': 'read-only' if profile in ('approval', 'sandbox-permissions') else 'workspace-write', 'approvalPolicy': 'on-request',
                   'ephemeral': profile != 'history' and not parameters.get('topology'), 'baseInstructions': SYSTEM,
                   'developerInstructions': 'Complete the supplied task in the synthetic project.'}
         if plan['model']:

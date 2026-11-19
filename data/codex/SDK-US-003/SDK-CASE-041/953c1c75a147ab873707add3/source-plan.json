@@ -1,0 +1,61 @@
+{
+  "case": {
+    "id": "SDK-CASE-041",
+    "outOfScope": [
+      "跨轮执行权限效果"
+    ],
+    "scope": "用原生请求 ID 核对三个额外权限决定与处理结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-041",
+  "driverProfile": "sandbox-permissions",
+  "model": "",
+  "prompts": [
+    "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-turn in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+    "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-session in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+    "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-deny in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool."
+  ],
+  "provider": "codex",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-041",
+      "outOfScope": [
+        "跨轮执行权限效果"
+      ],
+      "scope": "用原生请求 ID 核对三个额外权限决定与处理结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-041",
+    "configuration": {},
+    "driverProfile": "sandbox-permissions",
+    "files": {
+      "grant-deny/fixture.txt": "SYNTHETIC\n",
+      "grant-session/fixture.txt": "SYNTHETIC\n",
+      "grant-turn/fixture.txt": "SYNTHETIC\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalScopes": [
+        "turn",
+        "session",
+        "deny"
+      ]
+    },
+    "prompts": [
+      "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-turn in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+      "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-session in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+      "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-deny in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "sandbox-permissions-turn",
+      "sandbox-permissions-session",
+      "sandbox-permissions-deny"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}
