@@ -122,7 +122,7 @@ npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @an
 
 上下文注入使用 `SDK-CASE-037` 检查空闲状态，使用 `SDK-CASE-038` 检查执行中状态。
 Codex 和 Claude driver 都从原始录制核对注入与后续查询的边界。下面的命令录制 Claude 的空闲场景。
-[上下文注入验收](../docs/cases.md#上下文注入)
+[上下文注入验收](../docs/cases.md#中断关闭与独立查询)
 
 ```sh
 agent-sdk-testify prepare --agent claude --case SDK-CASE-037 \
