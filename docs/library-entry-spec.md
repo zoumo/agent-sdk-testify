@@ -13,12 +13,21 @@ tags: [go-library, replay, acceptance]
 
 ## 进程内流
 
-调用方创建两条独立流。`StartMockAgent` 领取连接后，mock 接管 `Reader`（SDK 发往
-mock）和 `Writer`（mock 发往 SDK），并负责关闭它们。调用方将另一侧的端点交给 SDK。
-两条流的 `Close` 必须解除对应方向的阻塞 I/O，并支持并发和重复关闭。`Stderr` 由调用方保有，可以传
-`io.Discard`。诊断写入须及时返回，以免阻塞清理。
+`Reader`、`Writer` 和 `Stderr` 都必须非 nil。`Reader` 和 `Writer` 必须是不同对象。
+参数不符合这些条件时，`StartMockAgent` 在领取连接前返回错误，端点仍归调用方。
+
+领取连接后，mock 接管并关闭 `Reader`（SDK 发往 mock）和 `Writer`（mock 发往 SDK）。
+调用方只将另一侧的端点交给 SDK。两条流的 `Close` 必须解除对应方向的阻塞 I/O，
+并支持并发和重复关闭。`Stderr` 由调用方保有，可以传 `io.Discard`。诊断写入须及时
+返回，以免阻塞清理。
 
 ## 启动 handle
+
+用 Go `Prepare` 创建 `embedded` fixture。重用已有的 `embedded` fixture 时，调用
+`Open`。对 CLI `prepare` 创建的 `executable` fixture，即使 `Open` 成功，
+`StartMockAgent` 也会在领取连接前拒绝。要复用 CLI fixture 的 current recording，
+先用 CLI `export` 导出材料，再把导出目录传给 `PrepareOptions.Recording`，用 Go
+`Prepare` 创建新 fixture。[CLI 导出步骤](using-mock.md#导出与复用)
 
 1. 调用 `StartMockAgent`。新 execution 留空 `ExecutionID`。同一 execution 的其他声明连接
    用首次启动返回的 `ExecutionID` 显式加入，并沿用同一 fixture、current material、超时和

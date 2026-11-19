@@ -18,7 +18,7 @@ Testify 录制原生 Agent 协议，并用录制回放协议，供 SDK 测试使
 ## Go 库入口
 
 导入 `github.com/zoumo/agent-sdk-testify`，用 `Fixture.StartMockAgent` 在 Go 测试中回放。
-启动、半关闭与收尾顺序见[Go 库回放合同](docs/library-entry-spec.md#启动-handle)。
+准备 fixture、启动、半关闭与收尾顺序见[Go 库回放合同](docs/library-entry-spec.md#启动-handle)。
 公开类型和函数见[根包源码](library.go)。
 
 <a id="独立构建与离线测试"></a>
