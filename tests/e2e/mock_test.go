@@ -126,13 +126,13 @@ func TestMockRejectsRemovedInputsBeforeExecution(t *testing.T) {
 	require.Contains(t, result.stderr, "mock requires --fixture-dir")
 }
 
-func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
+func TestMockLauncherRejectsMetaCommandsAndNonStdioTransport(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	fixtureDir := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001")
 	launcher := fixtureLauncher(fixtureDir, "main")
 	before := readAllFiles(t, fixtureDir)
-	for _, args := range [][]string{{"--version"}, {"-v"}, {"--help"}, {"help"}, {"--fixture-dir", "/absent/fixture"}, {"--connection", "probe"}, {"--case", "SDK-CASE-001"}, {"app-server", "--listen", "http://localhost:1"}} {
+	for _, args := range [][]string{{"--version"}, {"-v"}, {"--help"}, {"help"}, {"app-server", "--help"}, {"app-server", "--listen", "http://localhost:1"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			cmd := exec.CommandContext(t.Context(), launcher, args...)
 			cmd.Env = env
@@ -142,17 +142,24 @@ func TestMockLauncherRejectsMetaCommandsAndOverrides(t *testing.T) {
 			require.Error(t, cmd.Run())
 			require.Equal(t, 1, cmd.ProcessState.ExitCode(), stderr.String())
 			require.Empty(t, stdout.String())
-			require.True(t, bytes.Equal(before, readAllFiles(t, fixtureDir)), "launcher rejected input changed fixture files")
+			require.NotContains(t, stderr.String(), "http://localhost:1")
+			require.Equal(t, before, readAllFiles(t, fixtureDir), "launcher rejected input changed fixture files")
 		})
 	}
 	inputs := builtinInputs(t, "codex", "SDK-CASE-001")
-	cmd := exec.CommandContext(t.Context(), launcher, "app-server", "--listen", "stdio://")
+	cmd := exec.CommandContext(t.Context(), launcher, "app-server", "--listen", "stdio://", "--fixture-dir", "/absent/fixture", "--connection", "probe", "--case", "other")
 	cmd.Env = env
 	cmd.Dir = t.TempDir()
 	cmd.Stdin = strings.NewReader(inputs["main"])
 	data, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", data)
 	execution := latestExecution(t, fixtureDir, "mock")
+	require.NotContains(t, execution, "nativeArgs")
+
+	// Old launchers pass native arguments without a delimiter.
+	legacy := runTool(t, env, root, inputs["main"], "agent", "mock", "--fixture-dir", fixtureDir, "app-server", "--listen", "stdio://")
+	require.Zero(t, legacy.code, legacy.stderr)
+	execution = latestExecution(t, fixtureDir, "mock")
 	require.Equal(t, []string{"app-server", "--listen", "stdio://"}, stringsOf(execution["nativeArgs"]))
 }
 

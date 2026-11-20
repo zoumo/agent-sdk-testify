@@ -44,6 +44,7 @@ type MockOptions struct {
 	ResultFD    int
 	ProgressFD  int
 	NativeArgs  []string
+	PeerArgs    []string // CLI arguments after --, used only for stdio admission.
 }
 
 type PrepareOptions struct {

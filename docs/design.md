@@ -873,16 +873,20 @@ execution 前失败。plan source 的消费者流程见[消费者录制](consume
 
 #### 原生启动参数
 
-消费者使用本地 CLI 录制时，`--cmd` 接收可执行文件的绝对路径。`--` 后的参数直接传给
-原生 Agent，使用 mock 的参数白名单。消费方只为本次 execution 提供参数。
+消费者使用本地 CLI 录制时，`--cmd` 接收可执行文件的绝对路径。Testify 将 `--` 后的
+参数原样交给该可执行文件。Go 库的 `RecordAgentOptions.NativeArgs` 使用相同规则。
+消费者负责选择 Agent 的 stdio 启动参数。Testify 生成的执行描述、清单和回执省略
+消费者启动参数，协议流与 Agent 的 stderr 仍按原字节采集。
 
-- Codex 支持 `app-server` 和 `--listen stdio://`。
-- Claude 支持 `--output-format stream-json`、`--input-format stream-json` 和
-  `--permission-prompt-tool stdio`。可选参数包括 `--verbose`、`--include-partial-messages`、
-  `--model=...`、`--resume=...` 和 `--await-claim`。
+Mock 的 `connection.args` 和 launcher 在 Testify 选项后放置 `--`。分隔符后的 SDK
+参数可以包含新增选项，且不会写入执行证据。Mock 拒绝 Agent 帮助、版本探测及显式
+声明与 stdio 不兼容的传输或格式。回放仍按当前材料匹配协议帧。
 
-Testify 拒绝重复参数、未知参数、`--model VALUE` 和 `--resume VALUE`。增加消费者支持的
-原生参数需要同时维护录制和回放的 adapter。
+官方录制、旧版 mock CLI 参数和 Go 库的可选 `MockAgentOptions.NativeArgs` 声明
+继续使用已审查的 stdio 参数。Codex 支持 `app-server` 和 `--listen stdio://`。
+Claude 支持 `--output-format stream-json`、`--input-format stream-json`、
+`--permission-prompt-tool stdio`、`--verbose`、`--include-partial-messages`、
+`--model=...`、`--resume=...` 和 `--await-claim`。
 
 ### official record
 

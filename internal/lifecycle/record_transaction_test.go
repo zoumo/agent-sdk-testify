@@ -344,7 +344,9 @@ func TestRecordTransactionKeepsOfficialRecordRouteAndRestoresMockRoute(t *testin
 	fixtureDir, mockTemplate, mockOverlay := prepareOfficialRecordTransactionFixture(t)
 	var packages int
 	result, fd := recordResultFile(t)
-	err := runRecordTransaction(t.Context(), recordTransactionRequest(fixtureDir, fd), successfulRecordPolicy(t, &packages))
+	request := recordTransactionRequest(fixtureDir, fd)
+	request.NativeArgs = []string{"app-server", "--listen", "stdio://"}
+	err := runRecordTransaction(t.Context(), request, successfulRecordPolicy(t, &packages))
 	require.NoError(t, err)
 	require.Equal(t, 1, packages)
 	require.Equal(t, "passed", readRecordResults(t, result)[1]["status"])
@@ -362,9 +364,23 @@ func TestRecordTransactionKeepsOfficialRecordRouteAndRestoresMockRoute(t *testin
 	require.Equal(t, "passed", index.Executions[0].Status)
 	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	require.Equal(t, "official", execution.Provenance)
+	require.Equal(t, request.NativeArgs, execution.Args[len(execution.Args)-len(request.NativeArgs):])
 	recordWorkspace, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, execution.Workspace, recordWorkspace)
+	assertRecordLockAvailable(t, fixtureDir)
+}
+
+func TestOfficialRecordTransactionValidatesDriverArgsBeforeAllocation(t *testing.T) {
+	fixtureDir, _, _ := prepareOfficialRecordTransactionFixture(t)
+	indexBefore := readIndexBytes(t, fixtureDir)
+	request := recordTransactionRequest(fixtureDir, -1)
+	request.NativeArgs = []string{"app-server", "--future-option"}
+	var packages int
+	err := runRecordTransaction(t.Context(), request, successfulRecordPolicy(t, &packages))
+	require.ErrorContains(t, err, `unsupported native startup argument "--future-option"`)
+	require.Zero(t, packages)
+	require.Equal(t, indexBefore, readIndexBytes(t, fixtureDir))
 	assertRecordLockAvailable(t, fixtureDir)
 }
 
@@ -373,7 +389,7 @@ func TestRecordTransactionBeginAbortClosesAllocatedExecution(t *testing.T) {
 	stateBefore := snapshotCurrentRecording(t, fixtureDir)
 	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(fixture.ResourceRoot, "baseline", "record-target.private"), []byte("different-target"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(fixture.ResourceRoot, "baseline", recordTargetFile), []byte("different-target"), 0o600))
 	result, fd := recordResultFile(t)
 	policy := recordPolicyFunc{
 		prepare: func(context.Context, RecordContext, RecordProbeTracker) (tool.Object, error) {
@@ -401,6 +417,7 @@ func TestRecordTransactionBeginAbortClosesAllocatedExecution(t *testing.T) {
 	require.Equal(t, "failed", index.Executions[0].Connections[0].Status)
 	aborted := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
 	require.NoFileExists(t, filepath.Join(aborted.Config, "auth.json"))
+	require.NoFileExists(t, filepath.Join(filepath.Dir(aborted.Home), recordTargetFile))
 	target, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
@@ -454,6 +471,7 @@ func TestRecordTransactionCommitsFinalCapture(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(fixture.ResourceRoot, "templates", "record", "workspace"), target)
 	execution := readRecordExecution(t, fixtureDir, index.Executions[0].ID)
+	require.NoFileExists(t, filepath.Join(filepath.Dir(execution.Home), recordTargetFile))
 	require.Equal(t, material.ID, execution.Artifact.ID)
 	require.Empty(t, execution.Artifact.ManifestSHA256)
 	require.Equal(t, results[0]["executionSHA256"], results[1]["executionSHA256"])
@@ -466,6 +484,7 @@ func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *t
 	var packages int
 	policy := successfulRecordPolicy(t, &packages)
 	request := recordTransactionRequest(fixtureDir, 0)
+	request.NativeArgs = []string{"--future-option", "consumer-local-value"}
 
 	mainResult, mainFD := recordResultFile(t)
 	mainRequest := request
@@ -482,8 +501,9 @@ func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *t
 	require.Equal(t, "open", openIndex.Executions[0].Status)
 	currentBeforeFinal, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
-	var openExecution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, openIndex.Executions[0].ID), "execution.json"), &openExecution))
+	openExecution := readRecordExecution(t, fixtureDir, openIndex.Executions[0].ID)
+	targetFile := filepath.Join(filepath.Dir(openExecution.Home), recordTargetFile)
+	require.FileExists(t, targetFile)
 	fixture, err := OpenFixture(fixtureDir)
 	require.NoError(t, err)
 	openRoute, err := os.Readlink(filepath.Join(fixture.ResourceRoot, "routes", "record", "workspace"))
@@ -504,6 +524,7 @@ func TestRecordTransactionJoinsDeclaredConnectionAndPublishesAfterFinalPeer(t *t
 	require.NoError(t, err)
 	require.Len(t, closedIndex.Executions, 1)
 	require.Equal(t, "passed", closedIndex.Executions[0].Status)
+	require.NoFileExists(t, targetFile)
 	require.Len(t, closedIndex.Artifacts, len(openIndex.Artifacts)+1)
 	currentAfterFinal, err := os.ReadFile(filepath.Join(fixtureDir, "current.json"))
 	require.NoError(t, err)
@@ -553,9 +574,9 @@ func TestRecordTransactionFailurePreservesCurrentAndDurableEvidence(t *testing.T
 	require.NoError(t, err)
 	require.Len(t, index.Executions, 2)
 	require.Equal(t, "failed", index.Executions[1].Status)
-	var failedExecution Execution
-	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[1].ID), "execution.json"), &failedExecution))
+	failedExecution := readRecordExecution(t, fixtureDir, index.Executions[1].ID)
 	require.NoFileExists(t, filepath.Join(failedExecution.Config, "auth.json"))
+	require.NoFileExists(t, filepath.Join(filepath.Dir(failedExecution.Home), recordTargetFile))
 	failure := tool.Object{}
 	require.NoError(t, tool.ReadJSON(filepath.Join(ExecutionDir(fixtureDir, index.Executions[1].ID), "receipts", "main.failure.json"), &failure))
 	require.Equal(t, "failed", failure["status"])
@@ -898,6 +919,7 @@ func TestRecordTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 	policy := successfulRecordPolicy(t, &packages)
 	result, fd := recordResultFile(t)
 	request := recordTransactionRequest(fixtureDir, fd)
+	request.NativeArgs = []string{"--future-option", "value"}
 	require.NoError(t, runRecordTransaction(t.Context(), request, policy))
 	require.Equal(t, "passed", readRecordResults(t, result)[1]["status"])
 	indexBefore, err := os.ReadFile(IndexPath(fixtureDir))
@@ -917,6 +939,9 @@ func TestRecordTransactionRejectsDuplicateAndIncompatibleJoins(t *testing.T) {
 	incompatibleTarget := request
 	incompatibleTarget.Connection, incompatibleTarget.Target = "probe", "different-target"
 	require.ErrorContains(t, runRecordTransaction(t.Context(), incompatibleTarget, policy), "targets differ")
+	incompatibleArgs := request
+	incompatibleArgs.Connection, incompatibleArgs.NativeArgs = "probe", []string{"--future-option=value"}
+	require.ErrorContains(t, runRecordTransaction(t.Context(), incompatibleArgs, policy), "targets differ")
 	require.Equal(t, indexBefore, readIndexBytes(t, fixtureDir))
 	assertRecordLockAvailable(t, fixtureDir)
 }
