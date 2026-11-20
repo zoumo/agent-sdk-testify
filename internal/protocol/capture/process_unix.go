@@ -38,7 +38,10 @@ func environment(o Options) []string {
 }
 
 func prepare(ctx context.Context, o Options) (*exec.Cmd, recording.NativeIdentity, error) {
-	identity := recording.NativeIdentity{Args: append([]string{}, o.Command[1:]...), Version: o.NativeVersion}
+	identity := recording.NativeIdentity{Args: []string{}, Version: o.NativeVersion}
+	if !o.OmitNativeArgs {
+		identity.Args = append(identity.Args, o.Command[1:]...)
+	}
 	cwd := o.CWD
 	var err error
 	if cwd == "" {

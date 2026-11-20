@@ -204,10 +204,11 @@ func TestApplicationRecordPreflightOwnsTargetAndFixtureInputs(t *testing.T) {
 	resolvedExecutable, err := filepath.EvalSymlinks(executable)
 	require.NoError(t, err)
 
+	nativeArgs := []string{"app-server", "--listen", "stdio://", "--future-flag", "value with spaces"}
 	prepared, err := prepareRecord(RecordOptions{
 		FixtureDir: fixtureDir,
 		Command:    executable,
-		NativeArgs: []string{"app-server", "--listen", "stdio://"},
+		NativeArgs: nativeArgs,
 		Timeout:    time.Second,
 		ResultFD:   -1,
 	})
@@ -216,15 +217,8 @@ func TestApplicationRecordPreflightOwnsTargetAndFixtureInputs(t *testing.T) {
 	require.Equal(t, "main", prepared.Connection)
 	require.Equal(t, resolvedExecutable, prepared.Command)
 	require.Equal(t, "local", prepared.Target)
-	require.Equal(t, []string{"--fixture-dir", fixtureDir, "--cmd", resolvedExecutable, "--", "app-server", "--listen", "stdio://"}, prepared.Args)
-
-	_, err = prepareRecord(RecordOptions{
-		FixtureDir: fixtureDir,
-		Command:    executable,
-		NativeArgs: []string{"unsupported"},
-		ResultFD:   -1,
-	})
-	require.ErrorContains(t, err, `unsupported native startup argument "unsupported"`)
+	require.Equal(t, []string{"--fixture-dir", fixtureDir, "--cmd", resolvedExecutable, "--"}, prepared.Args)
+	require.Equal(t, nativeArgs, prepared.NativeArgs)
 
 	_, err = prepareRecord(RecordOptions{
 		FixtureDir: fixtureDir,

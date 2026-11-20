@@ -18,6 +18,7 @@ type Options struct {
 	ClearEnv       bool
 	Remote         *ConnectOptions
 	Command        []string
+	OmitNativeArgs bool // Keep Command's arguments out of framework metadata.
 	NativeVersion  string
 	ProxyVersion   string
 	StdinEOFAction string

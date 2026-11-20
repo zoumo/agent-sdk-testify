@@ -61,8 +61,6 @@ func prepareRecord(o RecordOptions) (record.Prepared, error) {
 		if err := validateTokenLocation(fixtureDir, remote.TokenFile); err != nil {
 			return record.Prepared{}, err
 		}
-	} else if err := protocol.ValidateNativeArgs(fixture.AgentType, o.NativeArgs); err != nil {
-		return record.Prepared{}, err
 	}
 	plan, err := lifecycle.LoadPlan(fixture)
 	if err != nil {
@@ -71,7 +69,7 @@ func prepareRecord(o RecordOptions) (record.Prepared, error) {
 	if !slices.Contains(lifecycle.ConnectionIDs(fixture.Source, plan), o.Connection) {
 		return record.Prepared{}, fmt.Errorf("undeclared record connection %s", o.Connection)
 	}
-	args := append([]string{"--fixture-dir", fixtureDir, "--cmd", executable, "--"}, o.NativeArgs...)
+	args := []string{"--fixture-dir", fixtureDir, "--cmd", executable, "--"}
 	target := "local"
 	if remote != nil {
 		// Connection location and authentication paths are invocation-only data.
@@ -118,6 +116,9 @@ func prepareMockMode(o MockOptions, inProcess bool) (mock.Prepared, error) {
 		return mock.Prepared{}, errors.New("process mock requires executable fixture")
 	}
 	if err := protocol.ValidateNativeArgs(fixture.AgentType, o.NativeArgs); err != nil {
+		return mock.Prepared{}, err
+	}
+	if err := protocol.ValidateReplayPeerArgs(fixture.AgentType, o.PeerArgs); err != nil {
 		return mock.Prepared{}, err
 	}
 	material, err := currentMaterial(fixtureDir, fixture)

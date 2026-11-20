@@ -46,14 +46,14 @@ sources:
 1. 将 SDK 的 Agent 启动命令设为 `connection.command` 和 `connection.args`。如果 SDK 只接受可执行文件，设置为 `connection.launcher`。单连接的默认 ID 为 `main`，命令形式如下。
 
 	```sh
-	agent-sdk-testify agent mock --fixture-dir /reports/replay-fixture
+	agent-sdk-testify agent mock --fixture-dir /reports/replay-fixture --
 	```
 
 2. 启动 SDK，运行测试中的业务操作。若 SDK 会探测 Agent 版本，在测试配置中处理探测。Testify 的 `--version` 报告工具版本。
 3. 对于声明多个连接的材料，给每个 SDK 客户端配置自己的连接。每条连接在同一 execution 中启动一次。材料声明 `probe` 时，在该客户端使用 `--connection probe`。[连接与 execution](design.md#多个-action-execution)
 4. 完成业务调用后，关闭 SDK 发往 mock 的协议输入并继续读出站协议帧。若 SDK 需要获知何时半关闭，使用 `--progress-fd` 提供的完整消费通知。等待 SDK 和 mock 退出。[严格回放与 EOF](design.md#严格回放)
 
-launcher 只转发白名单内的原生启动参数。传入 Testify 的动作选项时，直接使用 `connection.command` 和 `connection.args`。[CLI 结果与通知](design.md#cli-结果与通知)
+launcher 和 `connection.args` 在 Testify 选项后加 `--`，供 SDK 在末尾追加原生启动参数。添加 `--result-fd` 等 Testify 选项时，使用 `connection.command` 并在 `connection.args` 的 `--` 前插入选项。[CLI 结果与通知](design.md#cli-结果与通知)
 
 ## 持久结果
 

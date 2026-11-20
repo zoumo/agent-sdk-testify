@@ -420,7 +420,7 @@ func connectionLaunch(fixtureDir, action, id string) ([]string, string) {
 	case "record":
 		return []string{"agent", "record", "--fixture-dir", fixtureDir, "--cmd"}, ""
 	case "mock":
-		return []string{"agent", "mock", "--fixture-dir", fixtureDir, "--connection", id}, LauncherPath(fixtureDir, id)
+		return []string{"agent", "mock", "--fixture-dir", fixtureDir, "--connection", id, "--"}, LauncherPath(fixtureDir, id)
 	default:
 		return nil, ""
 	}

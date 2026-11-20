@@ -62,7 +62,7 @@ sources:
 2. 核对 route 身份和运行目录。将 route 的 `env` 应用到 SDK 宿主，将宿主工作目录设为 `workspace`。录制配置与认证来自允许的原生配置和 `runtimeEnv` 列出的变量。[环境与隔离](design.md#环境与隔离)
 3. 将 SDK 启动 Agent 的命令设为对应的 `agent record` 调用。两个命令都使用 SDK 的原生 stdio 协议来传输客户端帧。
 
-   - **本地 CLI**。提供真实 Agent 的绝对可执行路径，并将原生参数放在 `--` 后。使用 CLI route 时，`connection.args` 已含 `--cmd`，在其后追加可执行路径、`--` 与原生参数。下面是 Codex 的完整命令。Claude 参数见原生参数合同。[原生启动参数](design.md#原生启动参数)
+   - **本地 CLI**。提供真实 Agent 的绝对可执行路径，并将原生 stdio 参数放在 `--` 后。使用 CLI route 时，`connection.args` 已含 `--cmd`，在其后追加可执行路径、`--` 与原生参数。Testify 原样转发这些参数，生成的证据字段省略它们。[原生启动参数](design.md#原生启动参数)
 
 	 ```sh
 	 agent-sdk-testify agent record --fixture-dir /absolute/fixture \

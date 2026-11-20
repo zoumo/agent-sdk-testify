@@ -2,6 +2,7 @@ package lifecycle
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,8 +14,11 @@ import (
 
 	"github.com/zoumo/agent-sdk-testify/internal/corpus"
 	"github.com/zoumo/agent-sdk-testify/internal/history"
+	"github.com/zoumo/agent-sdk-testify/internal/protocol"
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
+
+const recordTargetFile = "record-target.private"
 
 // RecordRequest contains the immutable inputs shared by every connection of one
 // record execution.
@@ -22,6 +26,7 @@ type RecordRequest struct {
 	FixtureDir string
 	Connection string
 	Args       []string
+	NativeArgs []string
 	Timeout    time.Duration
 	Target     string
 	ResultFD   int
@@ -200,7 +205,9 @@ func (r *recordTransaction) fail() error {
 	} else if !os.IsNotExist(err) {
 		sourceErr = err
 	}
-	return errors.Join(sourceErr, failTransaction(r.fixture, r.fixtureDir, "record", r.execution.ExecutionID, r.overlayRoot, r.restoreRoutes))
+	return errors.Join(sourceErr,
+		failTransaction(r.fixture, r.fixtureDir, "record", r.execution.ExecutionID, r.overlayRoot, r.restoreRoutes),
+		removeFileIfExists(filepath.Join(r.overlayRoot, recordTargetFile)))
 }
 
 func (r *recordTransaction) restoreRoutes() error {
@@ -360,7 +367,8 @@ func (r *recordTransaction) finishPublication() error {
 			}
 		}
 		return errors.New("record execution absent from index")
-	}), r.restoreRoutes(), scrubExecutionAuthentication(r.fixture, r.overlayRoot), RefreshRoutes(r.fixture))
+	}), r.restoreRoutes(), scrubExecutionAuthentication(r.fixture, r.overlayRoot),
+		removeFileIfExists(filepath.Join(r.overlayRoot, recordTargetFile)), RefreshRoutes(r.fixture))
 }
 
 // RunRecord owns one record connection from allocation or join through result
@@ -458,6 +466,20 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		if err := checkOfficialIdle(fixtureDir); err != nil {
 			return nil, err
 		}
+		if len(request.NativeArgs) != 0 {
+			// Compare connection targets without retaining their local argv.
+			var identity []byte
+			for _, arg := range request.NativeArgs {
+				identity = binary.AppendUvarint(identity, uint64(len(arg)))
+				identity = append(identity, arg...)
+			}
+			request.Target += ":" + tool.DigestBytes(identity)
+		}
+	} else if len(request.NativeArgs) != 0 {
+		if err := protocol.ValidateNativeArgs(fixture.AgentType, request.NativeArgs); err != nil {
+			return nil, err
+		}
+		request.Args = append(request.Args, request.NativeArgs...)
 	}
 	plan, err := LoadPlan(fixture)
 	if err != nil {
@@ -515,7 +537,7 @@ func beginRecordTransaction(request RecordRequest) (transaction *recordTransacti
 		allocated = true
 	}
 
-	targetPath := filepath.Join(run.overlayRoot, "record-target.private")
+	targetPath := filepath.Join(run.overlayRoot, recordTargetFile)
 	if existing, err := os.ReadFile(targetPath); err == nil {
 		if string(existing) != request.Target {
 			return nil, errors.New("record connection targets differ")

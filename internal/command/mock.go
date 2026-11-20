@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 	"time"
 
@@ -19,9 +20,9 @@ func newMockCommand(streams IO) *cobra.Command {
 	var help bool
 	o.ProgressFD = -1
 	c := &cobra.Command{
-		Use:                "mock [flags] [native startup arguments]",
+		Use:                "mock [flags] [-- native startup arguments]",
 		Short:              "Replay recorded native protocol",
-		Long:               "Replay only the current recording in a prepared fixture. Native startup arguments declare protocol compatibility; Agent meta-commands are unsupported.",
+		Long:               "Replay only the current recording in a prepared fixture. Put SDK arguments after --. Only stdio replay is supported.",
 		DisableFlagParsing: true,
 	}
 	f := c.Flags()
@@ -32,6 +33,10 @@ func newMockCommand(streams IO) *cobra.Command {
 	f.IntVar(&o.ProgressFD, "progress-fd", -1, "Inherited full-consumption notification descriptor (>=3)")
 	f.BoolVarP(&help, "help", "h", false, "Help for mock")
 	c.RunE = func(c *cobra.Command, args []string) error {
+		o.PeerArgs = nil
+		if delimiter := slices.Index(args, "--"); delimiter >= 0 {
+			o.PeerArgs, args = args[delimiter+1:], args[:delimiter]
+		}
 		native, help, err := parseInterleavedFlags(f, args)
 		if err != nil {
 			return err
@@ -50,16 +55,12 @@ func newMockCommand(streams IO) *cobra.Command {
 	return c
 }
 
-// parseInterleavedFlags separates reviewed command flags from native startup
-// arguments. Unknown flags remain byte-for-byte native input.
+// parseInterleavedFlags handles Testify flags and legacy native arguments
+// before the delimiter.
 func parseInterleavedFlags(flags *pflag.FlagSet, args []string) ([]string, bool, error) {
 	var parsed, native []string
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
-		if arg == "--" {
-			native = append(native, args[i+1:]...)
-			break
-		}
 		if arg == "-h" {
 			arg = "--help"
 		}

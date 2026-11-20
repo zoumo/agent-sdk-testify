@@ -129,10 +129,13 @@ func cleanMockConfig(root string, plan tool.Object, provider string) error {
 	return profile.writeConfig(root, plan)
 }
 
-func writeConnectionLauncher(path, id, self, fixtureDir string) error {
+func writeConnectionLauncher(path, self string, args []string) error {
 	quote := func(value string) string { return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'" }
-	invocation := strings.Join([]string{quote(self), quote("agent"), quote("mock"), quote("--fixture-dir"), quote(fixtureDir), quote("--connection"), quote(id)}, " ")
-	script := "#!/bin/sh\nexec " + invocation + " -- \"$@\"\n"
+	words := []string{quote(self)}
+	for _, arg := range args {
+		words = append(words, quote(arg))
+	}
+	script := "#!/bin/sh\nexec " + strings.Join(words, " ") + " \"$@\"\n"
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
@@ -440,9 +443,9 @@ func prepare(o PrepareOptions, beforePublish func(stage, target string) error) (
 				case "record":
 					template.Args = []string{"agent", "record", "--cmd"}
 				case "mock":
-					template.Args = []string{"agent", "mock", "--connection", id}
+					template.Args, _ = connectionLaunch(publishedDir, action, id)
 					template.Launcher = LauncherPath(fixtureDir, id)
-					if err := writeConnectionLauncher(template.Launcher, id, toolIdentity.Command, publishedDir); err != nil {
+					if err := writeConnectionLauncher(template.Launcher, toolIdentity.Command, template.Args); err != nil {
 						return nil, err
 					}
 				}

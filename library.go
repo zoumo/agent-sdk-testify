@@ -133,8 +133,10 @@ type ExportOptions struct {
 
 // RecordAgentOptions selects one capture connection and its native or remote target.
 type RecordAgentOptions struct {
-	Connection     string
-	Command        string
+	Connection string
+	Command    string
+	// NativeArgs are passed verbatim to Command for local consumer capture.
+	// Testify omits them from generated metadata.
 	NativeArgs     []string
 	URL            string
 	TokenFile      string
@@ -154,7 +156,10 @@ type MockAgentOptions struct {
 	Connection  string
 	ExecutionID string
 	Timeout     time.Duration
-	NativeArgs  []string
+	// NativeArgs optionally declare reviewed stdio startup arguments and
+	// become execution metadata. All connections joining the same execution
+	// must use matching declarations.
+	NativeArgs []string
 }
 
 // MockAgentResult identifies the execution and connection completed by a mock call.

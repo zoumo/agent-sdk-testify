@@ -50,7 +50,7 @@ func TestConsumerLifecycleConformance(t *testing.T) {
 	firstMaterial := obj(firstConnection["material"])
 	agent, err := filepath.EvalSymlinks(agent)
 	require.NoError(t, err)
-	require.Equal(t, []string{"--cmd", agent, "--", "app-server", "--listen", "stdio://"}, stringsOf(firstExecution["args"]))
+	require.Equal(t, []string{"--cmd", agent, "--"}, stringsOf(firstExecution["args"]))
 	require.NotContains(t, stringsOf(firstExecution["args"]), "--fixture-dir")
 	firstConfig := executionOverlayPath(t, fixtureDir, firstExecution, "config")
 	require.NoError(t, os.WriteFile(filepath.Join(firstWorkspace, "only-first.txt"), []byte("first\n"), 0o600))

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"syscall"
 	"testing"
@@ -119,6 +120,64 @@ func TestAgentRecordSourcesDoNotLaunchDriver(t *testing.T) {
 			}
 			require.NoFileExists(t, marker)
 		})
+	}
+}
+
+func TestConsumerRecordAndMockWithSDKStartupArgs(t *testing.T) {
+	root := t.TempDir()
+	agent, _, env := isolatedCommands(t, root, "claude")
+	argvFile := filepath.Join(root, "observed-argv")
+	require.NoError(t, os.WriteFile(agent, []byte("#!/bin/sh\n"+
+		"printf '%s\\0' \"$@\" > "+shellQuote(argvFile)+"\n"+
+		"while IFS= read -r line; do printf '%s\\n' '{\"id\":1,\"result\":{\"synthetic\":true}}'; done\n"), 0o700))
+	planPath := writeConsumerPlan(t, root, "consumer-sdk-startup-args")
+	plan := readJSON(t, planPath)
+	plan["agentType"] = "claude"
+	writeJSON(t, planPath, plan)
+	fixtureDir := prepareFixture(t, env, "--plan", planPath)
+
+	const marker = "private-inline-settings-marker"
+	native := []string{
+		"--output-format", "stream-json",
+		"--input-format=stream-json",
+		"--permission-mode=auto",
+		"--settings", `{"sandbox":{"enabled":true},"tag":"` + marker + `"}`,
+		"--future-option", " leading 'quoted' argument\n", "", "--",
+	}
+	recordArgs := append([]string{"--cmd", agent, "--"}, native...)
+	result, record := runAgentResult(t, env, fixtureDir, requestOne, "record", recordArgs...)
+	require.Zero(t, result.code, result.stderr)
+	require.Equal(t, "passed", record["status"])
+	require.Equal(t, strings.Join(native, "\x00")+"\x00", string(readFile(t, argvFile)))
+	materialRoot := fixtureMaterialRoot(t, fixtureDir, obj(record["material"]))
+	manifest := readJSON(t, filepath.Join(materialRoot, "raw", "manifest.json"))
+	require.Empty(t, obj(manifest["native"])["args"])
+	sealed := readAllFiles(t, materialRoot)
+
+	route := readJSON(t, filepath.Join(fixtureDir, "runtime", "routes", "mock.json"))
+	connection := obj(array(route["connections"])[0])
+	mockArgs := stringsOf(connection["args"])
+	require.Equal(t, "--", mockArgs[len(mockArgs)-1])
+	for _, input := range []string{requestOne, requestTwo} {
+		replay := runTool(t, env, root, input, append(slices.Clone(mockArgs), native...)...)
+		if input == requestOne {
+			require.Zero(t, replay.code, replay.stderr)
+			require.Equal(t, result.stdout, replay.stdout)
+		} else {
+			require.Equal(t, 1, replay.code, replay.stderr)
+			require.Empty(t, replay.stdout)
+			execution := latestExecution(t, fixtureDir, "mock")
+			receipt := obj(array(execution["connections"])[0])["receipt"]
+			outcome := readJSON(t, resolveFixtureReference(t, executionPackageRoot(t, fixtureDir, execution), str(receipt)))
+			require.Equal(t, "strict-replay", outcome["failureClass"])
+		}
+		require.NotContains(t, replay.stderr, marker)
+	}
+	require.Equal(t, sealed, readAllFiles(t, materialRoot))
+	require.NotContains(t, result.stderr, marker)
+	evidence := string(readFixtureEvidence(t, fixtureDir))
+	for _, arg := range []string{marker, "--permission-mode=auto", "--future-option"} {
+		require.NotContains(t, evidence, arg)
 	}
 }
 
