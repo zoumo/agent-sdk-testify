@@ -147,7 +147,7 @@ linked worktree 中不写入 VCS 信息，因此使用标准 `make` 测试/构�
 `scripts/check-offline.sh`：入口从干净源码的精确 HEAD 创建本地独立 checkout，核对
 HEAD/tree 后以 `-buildvcs=true` 执行测试。dirty 源码必须先提交，不能测试旧 HEAD
 代替未提交内容。已有 `.git` 目录的 checkout 原地运行，不重复复制。
-聚焦命令可以使用 `bash scripts/with-build-checkout.sh go test -buildvcs=true ...`。
+聚焦命令见[从源码构建与验证](#从源码构建与验证)。
 wrapper 不修改构建身份或产品校验，也不获取网络依赖；失败保留临时 checkout 与命令日志
 并输出位置，成功清理临时目录。标准入口的构建产物和门禁日志仍输出到调用方仓库的
 `bin/`、`.artifacts/` 或显式输出目录；自行传给 wrapper 的输出路径须使用绝对路径。
@@ -237,11 +237,22 @@ case/索引身份、全部录制字节、来源哈希和政策检查不得弱化
 | 单独执行格式、lint 或 vet | `make fmt`、`make lint`、`make vet` | 对应命令的检查结果 |
 | 构建 CLI 与官方 driver wheel | `make bundle` | `.artifacts/build/` 中的 CLI 和 wheel |
 
-`go test ./...` 选择全部 Go 测试层。聚焦 CLI 测试时，可让包装脚本构建一次 race CLI。
+聚焦测试要求源 checkout 干净。`scripts/with-build-checkout.sh` 为测试保留 Go 构建身份。
 
-```sh
-bash scripts/with-agent-sdk-testify.sh --race go test -race ./tests/e2e/...
-```
+1. 用 `-run` 选择公开库测试。
+
+	```sh
+	bash scripts/with-build-checkout.sh go test -buildvcs=true . \
+	  -run '^TestLibraryStartMockAgentFullConsumptionAndReport$'
+	```
+
+2. 如果需要聚焦 CLI 测试，用 `scripts/with-agent-sdk-testify.sh` 构建并复用 race CLI。
+
+	```sh
+	bash scripts/with-build-checkout.sh bash scripts/with-agent-sdk-testify.sh --race \
+	  go test -buildvcs=true -race ./tests/e2e \
+	  -run '^TestLegacyMaterialFormatsPreserveBytesAcrossImportMockExport$'
+	```
 
 若已有 CLI 产物，设 `AGENT_SDK_TESTIFY_BIN` 为可执行文件的绝对路径。产物的 race 构建模式必须与测试匹配。测试包使用包装脚本提供的 CLI。`agent-sdk-go` 的测试和仿真通过 `go.mod` 中的固定版本链接 Testify Go 库。[构建身份与测试分层](#测试)
 
