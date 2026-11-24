@@ -245,8 +245,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 }
 
 func validateBusinessEvidence(agent string, plan, bound, outcome, report tool.Object) error {
-	sdk := tool.Obj(report["officialSDK"])
-	if outcome["status"] != "passed" || report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["caseId"] != plan["caseId"] || report["storyId"] != bound["storyId"] || report["provider"] != agent || !corpus.OfficialSDKIdentity(agent, tool.Str(plan["caseId"]), sdk) {
+	if outcome["status"] != "passed" || report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["caseId"] != plan["caseId"] || report["storyId"] != bound["storyId"] || report["provider"] != agent || !corpus.OfficialExecutionSDKIdentity(agent, tool.Str(plan["caseId"]), outcome, report) {
 		return errors.New("official SDK business evidence is absent, failed or untriggered")
 	}
 	return nil

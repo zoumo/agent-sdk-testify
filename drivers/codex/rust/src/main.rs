@@ -1,0 +1,437 @@
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::{ExitStatus, Stdio};
+use std::time::Duration;
+
+use anyhow::{Context, Result, bail, ensure};
+use codex_app_server_protocol::{
+    ClientInfo, InitializeCapabilities, InitializeParams, JSONRPCErrorError, JSONRPCRequest,
+    RequestId, ServerNotification, TurnStartResponse, TurnStatus,
+};
+use codex_app_server_remote_client::{
+    AppServerEvent, RemoteAppServerClient, decode_typed_response,
+};
+use serde::Deserialize;
+use serde::de::DeserializeOwned;
+use serde_json::{Value, json};
+use tokio::process::{Child, Command};
+use tokio::time::timeout;
+
+const CASE_ID: &str = "SDK-CASE-001";
+const STORY_ID: &str = "SDK-US-001";
+const REVISION: &str = include_str!("../upstream-revision");
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Request {
+    case: String,
+    materials: PathBuf,
+    runtime: PathBuf,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Runtime {
+    schema_version: u32,
+    root: PathBuf,
+    workspace: PathBuf,
+    home: PathBuf,
+    config: PathBuf,
+    raw: PathBuf,
+    tmp: PathBuf,
+    output: PathBuf,
+    seed_root: Option<PathBuf>,
+    recorded_workspace: Option<PathBuf>,
+    fixture_dir: PathBuf,
+    replay: bool,
+    peer: Peer,
+    agent_results: BTreeMap<String, PathBuf>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Peer {
+    command: PathBuf,
+    #[serde(default)]
+    args: Vec<String>,
+    #[serde(default)]
+    env: BTreeMap<String, String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Plan {
+    case_id: String,
+    story_id: String,
+    provider: String,
+    driver_profile: String,
+    project: PathBuf,
+    model: String,
+    initial_model: Option<String>,
+    prompts: [String; 2],
+    cli_version: Option<String>,
+}
+
+#[derive(Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct PeerNotice {
+    schema_version: u32,
+    fixture_id: String,
+    material_id: String,
+    execution_id: String,
+    connection_id: String,
+    command: String,
+    status: String,
+}
+
+impl Runtime {
+    fn validate(&self) -> Result<()> {
+        ensure!(
+            self.schema_version == 1,
+            "unsupported official driver runtime schema"
+        );
+        for (name, path) in [
+            ("root", &self.root),
+            ("workspace", &self.workspace),
+            ("home", &self.home),
+            ("config", &self.config),
+            ("raw", &self.raw),
+            ("tmp", &self.tmp),
+            ("output", &self.output),
+            ("fixtureDir", &self.fixture_dir),
+            ("peer command", &self.peer.command),
+        ] {
+            require_absolute(name, path)?;
+        }
+        for (name, path) in [
+            ("seedRoot", &self.seed_root),
+            ("recordedWorkspace", &self.recorded_workspace),
+        ] {
+            if let Some(path) = path {
+                require_absolute(name, path)?;
+            }
+        }
+        require_absolute("main agentResult", self.main_result()?)?;
+        ensure!(
+            self.agent_results.len() == 1,
+            "001 requires a single main connection"
+        );
+        Ok(())
+    }
+
+    fn main_result(&self) -> Result<&Path> {
+        self.agent_results
+            .get("main")
+            .map(PathBuf::as_path)
+            .context("missing main agentResult")
+    }
+
+    fn spawn_peer(&self) -> Result<Child> {
+        Command::new(&self.peer.command)
+            .args(&self.peer.args)
+            .current_dir(&self.workspace)
+            .envs(&self.peer.env)
+            .env("HOME", &self.home)
+            .env("CODEX_HOME", &self.config)
+            .env("TMPDIR", &self.tmp)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
+            .kill_on_drop(true)
+            .spawn()
+            .context("start Testify peer")
+    }
+
+    fn connection(&self) -> Result<Value> {
+        let path = self.main_result()?;
+        let data = fs::read_to_string(path).context("read Testify peer notifications")?;
+        let mut notices = data.lines();
+        let mut started: PeerNotice = serde_json::from_str(
+            notices
+                .next()
+                .context("missing running peer notification")?,
+        )?;
+        let finished: PeerNotice =
+            serde_json::from_str(notices.next().context("missing final peer notification")?)?;
+        ensure!(
+            data.ends_with('\n')
+                && notices.next().is_none()
+                && started.schema_version == 3
+                && started.connection_id == "main"
+                && started.command == if self.replay { "mock" } else { "record" }
+                && started.status == "running"
+                && finished.status == "passed"
+                && !started.fixture_id.is_empty()
+                && !started.material_id.is_empty()
+                && !started.execution_id.is_empty(),
+            "incomplete Testify peer notifications"
+        );
+        started.status = "passed".into();
+        ensure!(
+            started == finished,
+            "Testify peer notification identity changed"
+        );
+        Ok(json!({
+            "materialId": finished.material_id,
+            "executionId": finished.execution_id,
+            "connectionId": finished.connection_id,
+        }))
+    }
+}
+
+fn require_absolute(name: &str, path: &Path) -> Result<()> {
+    ensure!(path.is_absolute(), "{name} must be an absolute path");
+    Ok(())
+}
+
+fn read_json<T: DeserializeOwned>(path: &Path) -> Result<T> {
+    serde_json::from_slice(&fs::read(path).with_context(|| format!("read {}", path.display()))?)
+        .with_context(|| format!("invalid JSON in {}", path.display()))
+}
+
+fn write_json(path: &Path, value: &Value) -> Result<()> {
+    let temp = path.with_extension("json.tmp");
+    fs::write(&temp, serde_json::to_vec_pretty(value)?)?;
+    fs::rename(temp, path)?;
+    Ok(())
+}
+
+async fn request<T: DeserializeOwned>(
+    client: &RemoteAppServerClient,
+    id: i64,
+    method: &str,
+    params: Value,
+) -> Result<T> {
+    // Use the upstream raw request API for the case's native parameters.
+    let response = client
+        .request_handle()
+        .request_json_rpc(JSONRPCRequest {
+            id: RequestId::Integer(id),
+            method: method.to_owned(),
+            params: Some(params),
+            trace: None,
+        })
+        .await;
+    Ok(decode_typed_response(method, response)?)
+}
+
+async fn exercise(
+    client: &mut RemoteAppServerClient,
+    plan: Plan,
+    workspace: &Path,
+    report: &mut Value,
+) -> Result<()> {
+    let thread: Value = request(
+        client,
+        1,
+        "thread/start",
+        json!({
+            "cwd": workspace,
+            "model": plan.initial_model.as_deref().unwrap_or(&plan.model),
+            "sandbox": "workspace-write",
+            "approvalPolicy": "on-request",
+            "ephemeral": true,
+            "baseInstructions": "Complete the supplied synthetic task in the working directory. Be concise.",
+            "developerInstructions": "Complete the supplied task in the synthetic project.",
+        }),
+    )
+    .await?;
+    let thread_id = thread["thread"]["id"]
+        .as_str()
+        .filter(|id| !id.is_empty())
+        .context("missing opened thread ID")?;
+    let receipts = report["receipts"]
+        .as_array_mut()
+        .expect("initialized receipts");
+    receipts.push(json!({"thread/start": thread}));
+    let mut last_turn = String::new();
+    for (index, prompt) in plan.prompts.iter().enumerate() {
+        let accepted: TurnStartResponse = request(
+            client,
+            index as i64 + 2,
+            "turn/start",
+            json!({"threadId": thread_id, "input": [{"type": "text", "text": prompt}]}),
+        )
+        .await?;
+        let turn_id = &accepted.turn.id;
+        ensure!(
+            !turn_id.is_empty() && turn_id != &last_turn,
+            "missing or repeated turn ID"
+        );
+        receipts.push(json!({"input-submitted": accepted}));
+        loop {
+            match client.next_event().await {
+                Some(AppServerEvent::ServerNotification(event)) => {
+                    if let ServerNotification::TurnCompleted(completed) = *event {
+                        ensure!(
+                            completed.thread_id == thread_id
+                                && completed.turn.id == *turn_id
+                                && completed.turn.status == TurnStatus::Completed
+                                && completed.turn.error.is_none(),
+                            "unexpected or unsuccessful turn completion"
+                        );
+                        receipts.push(json!({"turn/completed": completed}));
+                        break;
+                    }
+                }
+                Some(AppServerEvent::ServerRequest(request)) => {
+                    client
+                        .reject_server_request(
+                            request.id().clone(),
+                            JSONRPCErrorError {
+                                code: -32601,
+                                message: "Unexpected server request in SDK-CASE-001".into(),
+                                data: None,
+                            },
+                        )
+                        .await?;
+                    bail!("unexpected server request in SDK-CASE-001");
+                }
+                Some(AppServerEvent::Disconnected { message }) => bail!("{message}"),
+                Some(_) => bail!("unexpected app-server event"),
+                None => bail!("app-server closed before turn completion"),
+            }
+        }
+        last_turn.clone_from(turn_id);
+    }
+    report["inputs"] = json!(2);
+    report["results"] = json!(2);
+    Ok(())
+}
+
+async fn reap(child: &mut Child) -> Result<ExitStatus> {
+    match timeout(Duration::from_secs(5), child.wait()).await {
+        Ok(status) => Ok(status.context("wait for Testify peer")?),
+        Err(_) => {
+            child
+                .kill()
+                .await
+                .context("kill and reap timed-out Testify peer")?;
+            bail!("Testify peer did not exit after stdin closed; killed and reaped");
+        }
+    }
+}
+
+async fn run(runtime: &Runtime, plan: Plan, report: &mut Value) -> Result<()> {
+    let workspace = runtime
+        .recorded_workspace
+        .as_deref()
+        .unwrap_or(&plan.project);
+    require_absolute("protocol workspace", workspace)?;
+    let workspace = workspace.to_path_buf();
+    let mut child = runtime.spawn_peer()?;
+    let pid = child.id();
+    let stdin = child.stdin.take().expect("piped stdin");
+    let stdout = child.stdout.take().expect("piped stdout");
+    let result = match RemoteAppServerClient::connect_stdio(
+        stdin,
+        stdout,
+        InitializeParams {
+            client_info: ClientInfo {
+                name: "agent-sdk-testify-codex".into(),
+                title: Some("Testify case driver".into()),
+                version: env!("CARGO_PKG_VERSION").into(),
+            },
+            capabilities: Some(InitializeCapabilities {
+                experimental_api: true,
+                ..Default::default()
+            }),
+        },
+        16,
+    )
+    .await
+    {
+        Ok(mut client) => {
+            let result = exercise(&mut client, plan, &workspace, report).await;
+            let shutdown = client.shutdown().await.context("close SDK connection");
+            report["sdkClosed"] = json!(shutdown.is_ok());
+            result.and(shutdown)
+        }
+        Err(error) => Err(error).context("initialize SDK connection"),
+    };
+    let status = reap(&mut child).await;
+    report["peerProcess"] = json!({
+        "pid": pid,
+        "reaped": child.id().is_none(),
+        "exitCode": status.as_ref().ok().and_then(ExitStatus::code),
+        "success": status.as_ref().is_ok_and(ExitStatus::success),
+    });
+    let connection = runtime.connection();
+    if let Ok(connection) = &connection {
+        report["connection"] = connection.clone();
+    }
+    result?;
+    let status = status?;
+    ensure!(status.success(), "Testify peer exited with {status}");
+    connection?;
+    Ok(())
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> Result<()> {
+    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    ensure!(
+        args.len() == 2 && args[0] == "--request",
+        "usage: agent-sdk-testify-codex --request FILE"
+    );
+    let request: Request = read_json(Path::new(&args[1]))?;
+    require_absolute("runtime", &request.runtime)?;
+    require_absolute("materials", &request.materials)?;
+    let runtime: Runtime = read_json(&request.runtime)?;
+    runtime.validate()?;
+
+    if request.case != CASE_ID {
+        write_json(
+            &runtime.output.join("result.json"),
+            &json!({"status": "unsupported", "message": "Rust candidate supports SDK-CASE-001"}),
+        )?;
+        return Ok(());
+    }
+    let sdk = json!({
+        "package": "codex-app-server-remote-client",
+        "version": "0.0.0",
+        "revision": REVISION.trim(),
+    });
+    let mut report = json!({
+        "provider": "codex", "storyId": STORY_ID, "caseId": CASE_ID, "officialSDK": sdk,
+        "receipts": [], "inputs": 0, "results": 0,
+    });
+    let result = async {
+        let plan: Plan = read_json(&request.materials.join("case.json"))?;
+        ensure!(
+            plan.case_id == request.case
+                && plan.story_id == STORY_ID
+                && plan.provider == "codex"
+                && plan.driver_profile == "continuation"
+                && !plan.model.is_empty()
+                && plan.prompts.iter().all(|p| !p.trim().is_empty()),
+            "invalid Codex 001 case projection"
+        );
+        report["cliVersion"] = json!(plan.cli_version);
+        run(&runtime, plan, &mut report).await
+    }
+    .await;
+    let (status, capture, message) = match result {
+        Ok(()) => ("passed", "complete", String::new()),
+        Err(error) => ("failed", "failed", format!("{error:#}")),
+    };
+    report["status"] = json!(status);
+    report["branchStatus"] = json!(status);
+    report["captureStatus"] = json!(capture);
+    report["gaps"] = if message.is_empty() {
+        json!([])
+    } else {
+        json!([message])
+    };
+    let report_file = if runtime.replay {
+        "replay-report.json"
+    } else {
+        "report.json"
+    };
+    write_json(&runtime.output.join(report_file), &report)?;
+    write_json(
+        &runtime.output.join("result.json"),
+        &json!({"status": status, "message": message, "sdk": sdk}),
+    )
+}
