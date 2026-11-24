@@ -13,6 +13,7 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 | --- | --- |
 | `codex/official/` | Codex 官方 SDK driver |
 | `claude/official/` | Claude 官方 SDK driver |
+| `claude/typescript/` | Claude TypeScript SDK driver，支持 case 042 |
 | `common/` | 场景、原生输入和共享材料读取 |
 | `tests/` | driver 的离线单元和进程测试 |
 | `pyproject.toml` | wheel 定义和两个命令入口 |
@@ -90,6 +91,21 @@ Claude case 042 使用 `Claude Code 2.1.293` 和 `@anthropic-ai/claude-agent-sdk
 ```sh
 npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @anthropic-ai/claude-agent-sdk@0.3.293
 ```
+
+### 安装独立的 Claude TypeScript driver
+
+使用 Node.js 22 或更新版本。在 `drivers/claude/typescript/` 中构建 npm tarball。
+tarball 包含官方 SDK 和运行时依赖。公开 agent 命令提供原生进程入口。
+
+```sh
+npm ci --ignore-scripts --omit=optional
+npm pack
+npm install --offline --global --ignore-scripts --omit=optional \
+  --prefix /absolute/claude-ts /absolute/agent-sdk-testify-claude-0.1.0.tgz
+```
+
+将 `/absolute/claude-ts/bin` 放在 wheel 所在路径前。使用工具的 `prepare` 创建 Claude
+case 042 fixture，再运行 `official verify`。driver 从本次安装的 SDK 读取业务报告中的版本。
 
 ## 按 case 录制
 

@@ -17,7 +17,7 @@ type Request struct {
 	Runtime   string `json:"runtime"`
 }
 
-// Resolve only the console scripts shipped by the official-driver wheel.
+// Resolve the installed entry point for the selected official driver.
 // Recorded paths and caller-selected SDK drivers are never executable inputs.
 // Shared by the record and official verification entry points.
 func ResolveDriver(provider string) (string, error) {
@@ -27,7 +27,8 @@ func ResolveDriver(provider string) (string, error) {
 	name := "agent-sdk-testify-" + provider
 	path, err := tool.AbsoluteExecutable(name)
 	if err != nil {
-		return "", fmt.Errorf("official driver %s is not available; install the driver wheel and %s SDK extra in the recording/verification environment: %w", name, provider, err)
+		return "", fmt.Errorf("official driver %s is not available; add the installed %s driver and its SDK to the recording/verification environment: %w", name, provider, err)
 	}
-	return path, nil
+	// npm links the executable into PATH. Hash and execute the same target.
+	return tool.ValidateCommand(path)
 }
