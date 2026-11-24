@@ -99,7 +99,7 @@ printf '%s\n' ` + shellQuote(command) + ` ` + shellQuote(stdout) + `
 		NativeArgs: []string{"--mode", "rpc"}, Timeout: 10 * time.Second,
 	}, agenttestify.StartMockAgentStreams{Reader: io.NopCloser(strings.NewReader(mockInput)), Writer: output})
 	require.NoError(t, err)
-	start := run.Start()
+	start := run.Start
 	result, err := run.Wait(t.Context())
 	require.NoError(t, err)
 	require.NotEqual(t, saved["project"], start.Workspace)
@@ -110,6 +110,10 @@ printf '%s\n' ` + shellQuote(command) + ` ` + shellQuote(stdout) + `
 	require.Equal(t, historyBytes, readFile(t, filepath.Join(filepath.Dir(start.Config), nativeTarget)))
 	require.True(t, result.Execution.Connections[0].FullConsumption)
 	require.Equal(t, strings.Replace(response, "record-id", "live-id", 1)+"\n"+event+"\n", output.String())
+
+	require.NoError(t, os.Remove(filepath.Join(exported, historyPath)))
+	_, err = agenttestify.Prepare(agenttestify.PrepareOptions{FixtureDir: filepath.Join(root, "no-history"), Recording: exported})
+	require.Error(t, err)
 
 	for name, badInput := range map[string]string{"changed parameter": strings.Replace(mockInput, "synthetic", "changed", 1), "early EOF": ""} {
 		t.Run(name, func(t *testing.T) {

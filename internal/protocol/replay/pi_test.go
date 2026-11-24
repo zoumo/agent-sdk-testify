@@ -70,3 +70,17 @@ func TestPiRPCRemapsBashEventsAndReplaysTimedDialog(t *testing.T) {
 		"",
 	}, "\n"), out)
 }
+
+func TestPiRPCAllowsIDReuseAfterResponse(t *testing.T) {
+	frames := []string{
+		`>{"type":"get_state","id":"same"}`,
+		`<{"type":"response","command":"get_state","id":"same","success":true}`,
+		`>{"type":"get_entries","id":"same"}`,
+		`<{"type":"response","command":"get_entries","id":"same","success":true}`,
+	}
+	input := strings.ReplaceAll(frames[0][1:]+"\n"+frames[2][1:]+"\n", "same", "live")
+	out, consumed, err := exercise(t, "pi", frames, input, "")
+	require.NoError(t, err)
+	require.True(t, consumed)
+	require.Equal(t, strings.ReplaceAll(frames[1][1:]+"\n"+frames[3][1:]+"\n", "same", "live"), out)
+}

@@ -25,7 +25,7 @@ func piID(value rawjson.Value) (id, error) {
 	if value.Kind() != rawjson.String {
 		return id{}, errors.New("pi RPC requires a string ID")
 	}
-	return identity(value, true)
+	return identity(value, false)
 }
 
 func (a *piAdapter) client(expected, actual rawjson.Value) (bool, error) {
@@ -110,6 +110,11 @@ func (a *piAdapter) server(expected rawjson.Value) (rawjson.Value, error) {
 		if a.commands[key] != cmd {
 			return rawjson.Value{}, errors.New("pi response command mismatch")
 		}
+		// Pi requires unique IDs only among outstanding commands.
+		liveKey, _ := piID(live)
+		delete(a.live, liveKey)
+		delete(a.bindings, key)
+		delete(a.commands, key)
 		return expected.Replace([]string{"id"}, live)
 	case "extension_ui_request":
 		key, err := piID(member(expected, "id"))
