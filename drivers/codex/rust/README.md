@@ -1,6 +1,7 @@
 # Codex Rust 候选入口
 
-候选实现 `SDK-CASE-001` 和 `SDK-CASE-041`。使用 Rust 1.99.1 和锁定的
+候选实现 26 个 Codex 交互 case，包括结构化输入、执行期提交和中断、fixture 工具、
+问答、审批、配置、上下文注入与本地关闭。使用 Rust 1.99.1 和锁定的
 `codex-app-server-remote-client` 0.0.0。解包固定提交后，`stdio.patch` 为上游
 client 增加子进程管道接入。上游 client 管理握手、请求关联、事件、服务端请求和
 关闭。driver 启动并等待 Testify 提供的 launcher。
@@ -25,6 +26,7 @@ agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
 agent-sdk-testify official verify --fixture-dir /tmp/testify-rust-001 --timeout 45s
 ```
 
-已采用的 001 和 041 材料保存了 Python client 的 `initialize` 帧。Rust client
-的握手字段不同，严格回放在第一帧失败。041 按原生请求 ID 应答，只允许 case
-指定目录的写权限，并分别核对本轮、会话和拒绝三种决定的处理结果。
+已采用的交互材料保存了 Python client 的 `initialize` 帧。Rust client 的握手字段
+不同，严格回放在第一帧失败。离线验证可通过 `prepare --recording` 导入各自的
+合成材料，由同一公开 mock 严格回放。候选以 case 投影和运行时环境执行业务请求，
+服务端审批通过原生请求 ID 应答。

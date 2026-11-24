@@ -24,9 +24,24 @@ func OfficialExecutionSDKIdentity(provider, caseID string, outcome, report tool.
 		return false
 	}
 	if sdk["package"] == "codex-app-server-remote-client" {
-		return present && provider == "codex" && (caseID == "SDK-CASE-001" || caseID == "SDK-CASE-041") &&
+		return present && provider == "codex" && codexRustInteractionCase(caseID) &&
 			len(sdk) == 3 && sdk["version"] == "0.0.0" &&
 			sdk["revision"] == "108730843ae4303ae79e9b6b936343f0b7c483bb"
 	}
 	return OfficialSDKIdentity(provider, caseID, sdk)
+}
+
+func codexRustInteractionCase(caseID string) bool {
+	switch caseID {
+	case "SDK-CASE-001", "SDK-CASE-002", "SDK-CASE-004", "SDK-CASE-005",
+		"SDK-CASE-006", "SDK-CASE-007", "SDK-CASE-008", "SDK-CASE-009",
+		"SDK-CASE-010", "SDK-CASE-011", "SDK-CASE-013", "SDK-CASE-014",
+		"SDK-CASE-015", "SDK-CASE-021", "SDK-CASE-022", "SDK-CASE-023",
+		"SDK-CASE-024", "SDK-CASE-027", "SDK-CASE-028", "SDK-CASE-030",
+		"SDK-CASE-031", "SDK-CASE-037", "SDK-CASE-038", "SDK-CASE-039",
+		"SDK-CASE-040", "SDK-CASE-041":
+		return true
+	default:
+		return false
+	}
 }
