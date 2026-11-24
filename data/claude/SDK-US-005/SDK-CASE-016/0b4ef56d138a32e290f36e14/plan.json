@@ -1,0 +1,89 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/016-a3/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--no-session-persistence",
+    "--forward-subagent-text",
+    "--settings",
+    "{\"permissions\":{\"ask\":[\"Agent\",\"Read\"]}}",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-016",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "观察直接子 Agent 的身份、输出与结果。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-016",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "children",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "ad3e2f67ff807b0c1",
+      "parentSessionId": "6cb05080-c5e0-4246-8669-19ed03551e2e",
+      "childSessionId": "ad3e2f67ff807b0c1",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/016-a3/runtime/executions/e07c895039b7a782b2b3c18ba4ad65ce/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-016-a3-runtime-executions-e07c895039b7a782b2b3c18ba4ad65ce-workspace/6cb05080-c5e0-4246-8669-19ed03551e2e/subagents/agent-ad3e2f67ff807b0c1.meta.json",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-016-a3-runtime-executions-e07c895039b7a782b2b3c18ba4ad65ce-workspace/6cb05080-c5e0-4246-8669-19ed03551e2e/subagents/agent-ad3e2f67ff807b0c1.meta.json",
+      "sha256": "3a9b2b8372497fa3bcd9c9fa02d5df34b7c84fa3ec003fec9f1e651c415c7b06"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/private/tmp/tq04.C2PTPG/fixtures/016-a3/runtime/routes/record/workspace",
+  "prompts": [
+    "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=false. Wait for the child result, then report it. The root must not read files, use shell/network/other tools, or create another child."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-016",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "观察直接子 Agent 的身份、输出与结果。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-016",
+    "configuration": {},
+    "driverProfile": "children",
+    "files": {
+      "child-fixture.txt": "SYNTHETIC_CHILD_TOKEN\n",
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Use Agent exactly once with subagent_type fixture_reader, prompt exactly \"Use Read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool.\", and run_in_background=false. Wait for the child result, then report it. The root must not read files, use shell/network/other tools, or create another child."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "sourcePlanSHA256": "e409b4393c6f1100d0438ede1b27a0137df79b1672f933804ca676970a975384",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

@@ -101,14 +101,14 @@ if child.returncode: sys.exit(child.returncode)
 assert json.loads(child.stdout)['result']['synthetic'] is True
 report = {'provider':plan['provider'], 'caseId':plan['caseId'], 'storyId':plan['storyId'],
           'status':'passed', 'branchStatus':'passed', 'captureStatus':'complete', 'gaps':[],
-          'officialSDK':{'package':{'codex':'openai-codex','claude':'claude-agent-sdk'}[plan['provider']], 'version':'synthetic-contract-only'},
+          'officialSDK':{'package':{'codex':'openai-codex','claude':'@anthropic-ai/claude-agent-sdk'}[plan['provider']], 'version': '0.3.293' if plan['provider']=='claude' else 'synthetic-contract-only'},
           'receipts':[{'history-query':{'method':'thread/list','params':{'parentThreadId':'parent'},
                       'response':{'data':[{'id':'child','parentThreadId':'parent'}]}}}]}
 if plan['provider']=='claude':
     report['receipts']=[{'list_subagents':{'sessionId':'parent','agentIds':['child']}}]
 out = pathlib.Path(runtime['output'])
 (out / ('replay-report.json' if runtime.get('replay') else 'report.json')).write_text(json.dumps(report))
-(out / 'result.json').write_text(json.dumps({'status':'passed'}))
+(out / 'result.json').write_text(json.dumps({'status':'passed','sdk':report['officialSDK']}))
 `), 0o700))
 	repository, err := testutil.RepositoryRoot()
 	require.NoError(t, err)

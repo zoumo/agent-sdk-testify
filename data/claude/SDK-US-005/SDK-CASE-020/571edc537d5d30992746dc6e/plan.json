@@ -1,0 +1,103 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/020-a4/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-020",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "创建 Session 时固定子详情交付策略；比较同一材料的 preserve/suppress，须实际过滤允许的详情且完整保留受保护事件。",
+    "storyId": "SDK-US-005"
+  },
+  "caseId": "SDK-CASE-020",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "history",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "ed65f550-5f4a-4195-98bb-c12ce5d440fc",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/020-a4/runtime/executions/485f9f5701b2461ba413162192c1a6ab/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc.jsonl",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc.jsonl",
+      "sha256": "b83d4a3da337da540732f3de9151209f22c02ac46b00e8e527ecfbf4115a8069"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "a191dac3797f736a1",
+      "parentSessionId": "ed65f550-5f4a-4195-98bb-c12ce5d440fc",
+      "childSessionId": "a191dac3797f736a1",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/020-a4/runtime/executions/485f9f5701b2461ba413162192c1a6ab/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc/subagents/agent-a191dac3797f736a1.jsonl",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc/subagents/agent-a191dac3797f736a1.jsonl",
+      "sha256": "95faf9a0755b5f121c8c190ed666a9f1baea35cbdf2f1743922e054ad86c2ef4"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "a191dac3797f736a1",
+      "parentSessionId": "ed65f550-5f4a-4195-98bb-c12ce5d440fc",
+      "childSessionId": "a191dac3797f736a1",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/020-a4/runtime/executions/485f9f5701b2461ba413162192c1a6ab/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc/subagents/agent-a191dac3797f736a1.meta.json",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc/subagents/agent-a191dac3797f736a1.meta.json",
+      "sha256": "3011de84beeb8186e3e6006827ebec14ca62739775890cf0f32c51f901ed46d0"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/private/tmp/tq04.C2PTPG/fixtures/020-a4/runtime/routes/record/workspace",
+  "prompts": [
+    "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-020",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "创建 Session 时固定子详情交付策略；比较同一材料的 preserve/suppress，须实际过滤允许的详情且完整保留受保护事件。",
+      "storyId": "SDK-US-005"
+    },
+    "caseId": "SDK-CASE-020",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "childDetailPolicy": "suppress",
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-005"
+  },
+  "sourcePlanSHA256": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-005",
+  "storyId": "SDK-US-005"
+}

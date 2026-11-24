@@ -151,7 +151,7 @@ function user(wire) {
         if (query === 1 && params.injectionTiming === 'during-execution') {
             progress();
         } else {
-            finish(query === 1 ? 'Ready' : context);
+            finish(query === 1 ? 'Ready' : variant === 'wrong-injected-answer' ? 'Missing' : context);
         }
     } else if (profile === 'active-input') {
         if (query === 1) {
@@ -231,7 +231,9 @@ function controlRequest(wire) {
             acknowledgeInjection();
         } else {
             assert.equal(query, 1);
-            ack(id, { applied: { effort: params.effort, ultracode: false } });
+            const applied = variant === 'missing-ultracode' ? { effort: params.effort }
+                : { effort: variant === 'wrong-creation-effort' ? params.targetEffort : params.effort, ultracode: true };
+            ack(id, { applied });
         }
         break;
     case 'set_model':

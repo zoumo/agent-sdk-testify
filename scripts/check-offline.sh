@@ -12,7 +12,7 @@ if (( $# > 1 )); then
   echo "usage: $0 [all|parallel-checks|lint|quality|test|race|e2e|build]" >&2
   exit 2
 fi
-export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off PIP_NO_INDEX=1
+export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off PIP_NO_INDEX=1 npm_config_offline=true npm_config_update_notifier=false
 export GORACE="${GORACE:-} atexit_sleep_ms=0"
 version=$(git describe --tags --exact-match 2>/dev/null || printf devel)
 ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"
@@ -78,13 +78,15 @@ build_and_package_checks() {
   }
   phase build-checks go test -buildvcs=true -json -count=1 -timeout=5m ./tests/build/... > "$artifact_dir/build.jsonl"
   export AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_NORMAL_BIN"
-  export PYTHONPATH="$PWD/drivers/common:$PWD/drivers/codex/official:$PWD/drivers/claude/official"
+  export PYTHONPATH="$PWD/drivers/common:$PWD/drivers/codex/official"
   phase scripts "$python" -m unittest discover -s scripts -p 'test_*.py'
   phase drivers "$python" -m unittest discover -s drivers/tests -p 'test_*.py'
   phase scenarios "$python" -m unittest discover -s drivers/tests/scenarios -p 'test_*.py'
   rm -rf "$artifact_dir/dist"
   phase release "$python" scripts/release.py --allow-untagged --output "$artifact_dir/dist"
-  phase wheel "$python" scripts/check-agent-sdk-testify-package.py "$artifact_dir"/dist/*.whl
+  phase claude-driver npm --prefix drivers/claude/typescript test
+  phase packages "$python" scripts/check-agent-sdk-testify-package.py \
+    "$artifact_dir"/dist/*.whl "$artifact_dir"/dist/*.tgz "$AGENT_SDK_TESTIFY_NORMAL_BIN"
 }
 
 summarize_tasks() {

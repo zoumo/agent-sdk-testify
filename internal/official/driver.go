@@ -27,7 +27,10 @@ func ResolveDriver(provider string) (string, error) {
 	name := "agent-sdk-testify-" + provider
 	path, err := tool.AbsoluteExecutable(name)
 	if err != nil {
-		return "", fmt.Errorf("official driver %s is not available; add the installed %s driver and its SDK to the recording/verification environment: %w", name, provider, err)
+		if provider == "claude" {
+			return "", fmt.Errorf("official driver %s is not available; install the Claude driver npm tarball with Node.js 22+ and add its executable directory to PATH: %w", name, err)
+		}
+		return "", fmt.Errorf("official driver %s is not available; install the Codex driver wheel and Python SDK and add the environment's bin directory to PATH: %w", name, err)
 	}
 	// npm links the executable into PATH. Hash and execute the same target.
 	return tool.ValidateCommand(path)

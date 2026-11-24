@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from record_user_story.existing_children import require_observation_wire, verify_seed
+from record_user_story.existing_children import verify_seed
 
 
 class ExistingChildrenTests(unittest.TestCase):
@@ -63,28 +63,6 @@ class ExistingChildrenTests(unittest.TestCase):
             verify_seed(target_plan, check_source=False)
             target_plan['historyProject'] = str(root / 'project')
             with self.assertRaises(ValueError): verify_seed(target_plan, check_source=False)
-
-    def test_requires_native_observed_parent_and_no_new_input(self):
-        with tempfile.TemporaryDirectory() as name:
-            root = Path(name)
-            (root / 'raw').mkdir()
-            hook = {'type': 'system', 'subtype': 'hook_started', 'hook_name': 'SessionStart:resume',
-                    'session_id': 'parent', 'uuid': 'native-hook'}
-            base = [{'direction': 'c2s', 'wire': {'type': 'control_request', 'request_id': 'init', 'request': {'subtype': 'initialize'}}},
-                    {'direction': 's2c', 'wire': hook}]
-            plan = {'root': name, 'historySeed': {'sessionId': 'parent'}}
-            report = {'receipts': [{'existing-observation': {'subtype': 'hook_started', 'data': hook}}]}
-            for failure in ('valid', 'new-user', 'wrong-parent', 'missing-hook', 'duplicate-hook'):
-                rows = json.loads(json.dumps(base))
-                if failure == 'new-user': rows.append({'direction': 'c2s', 'wire': {'type': 'user'}})
-                if failure == 'wrong-parent': rows[1]['wire']['session_id'] = 'another-parent'
-                if failure == 'missing-hook': rows.pop()
-                if failure == 'duplicate-hook': rows.append(rows[1])
-                (root / 'raw/raw.jsonl').write_text('\n'.join(json.dumps(row) for row in rows))
-                with self.subTest(failure=failure):
-                    if failure == 'valid': require_observation_wire(plan, report)
-                    else:
-                        with self.assertRaises(ValueError): require_observation_wire(plan, report)
 
     def test_seed_copy_is_immutable_and_cannot_escape(self):
         with tempfile.TemporaryDirectory() as name:

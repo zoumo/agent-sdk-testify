@@ -1,0 +1,58 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-019-a3-runtime-executions-dc79bff80d6382a3be0b245a672ed1f8-workspace/0121a3a9-ab8a-43f7-a672-68c2b80f6e70/subagents/agent-a5dcb069bb161edbd.meta.json": "5e1253638c14b3184c279d3dda499a55f3b8caebb89cf9bfcd26e379451a1528",
+    "official-origin.json": "6adf24f5ac2f907f05f972b579ab5dea40f26d7dbf4ef123be6db8342df5211e",
+    "origin/main.json": "38e4236fb737e72774caf4ad5ea0696d16f4e7ad79210e4e457c8aa5cb379282",
+    "plan.json": "0c5dab141b07223f17539815fd60082933d16ce36b8bef4efddb0c34e117805f",
+    "raw/manifest.json": "42d2be3ce9a6cd6c4c68775d36c7ce77b7b98c9b3a10efcf2de3d67dd3eae9f3",
+    "raw/raw.jsonl": "0ace096ddc31f0da16bbe722b585167f233bb94019ee08651d5304c6b7207c11",
+    "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+    "raw/transport.json": "fbc0db967170498d9256b0e39b8a0349e8f0b917053cab7a4eecbd98f899b547",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "b9de37e2a3c8ee7e7d4c9bb76291c9d6616d8ed28fbd1648186e098723e57f06"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/019-a3/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--forward-subagent-text",
+      "--settings",
+      "{\"permissions\":{\"ask\":[\"Agent\",\"Read\"]}}",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/private/tmp/tq04.C2PTPG/fixtures/019-a3/runtime/executions/dc79bff80d6382a3be0b245a672ed1f8/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "0c5dab141b07223f17539815fd60082933d16ce36b8bef4efddb0c34e117805f",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "fbc0db967170498d9256b0e39b8a0349e8f0b917053cab7a4eecbd98f899b547",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "b9de37e2a3c8ee7e7d4c9bb76291c9d6616d8ed28fbd1648186e098723e57f06",
+  "status": "captured"
+}

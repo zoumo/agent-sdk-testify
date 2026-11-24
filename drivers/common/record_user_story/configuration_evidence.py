@@ -1,8 +1,4 @@
 """Assert changed models and actual media answers, not transport acknowledgements."""
-import json
-from pathlib import Path
-
-from .adapters.common import effort_keeps_ultracode
 from .scenarios import Untriggered
 
 
@@ -11,12 +7,9 @@ def assess(plan, frames, report):
     kind = parameters.get('inputKind')
     incoming = [f['wire'] for f in frames if f['direction'] == 's2c']
     if kind in ('image', 'mixed', 'document'):
-        if plan['provider'] == 'claude':
-            text = '\n'.join(w.get('result', '') or '' for w in incoming if w.get('type') == 'result')
-        else:
-            text = '\n'.join(w.get('params', {}).get('item', {}).get('text', '') for w in incoming
-                             if w.get('method') == 'item/completed'
-                             and w.get('params', {}).get('item', {}).get('type') == 'agentMessage')
+        text = '\n'.join(w.get('params', {}).get('item', {}).get('text', '') for w in incoming
+                         if w.get('method') == 'item/completed'
+                         and w.get('params', {}).get('item', {}).get('type') == 'agentMessage')
         expected = 'synthetic document 42' if kind == 'document' else 'blue'
         if text.strip().rstrip('.').lower() != expected:
             raise Untriggered('native answer does not establish supplied media content: ' + expected)
@@ -30,7 +23,7 @@ def assess(plan, frames, report):
         report.setdefault('configurationEvidence', {})['effectiveScope'] = 'unknown'
         raise Untriggered('native thinking budget effect is not established by protocol observations')
     if setting == 'display':
-        assess_display(plan, frames, report)
+        assess_display(frames, report)
         return
     if setting == 'effort':
         assess_effort(plan, frames, report)
@@ -49,45 +42,20 @@ def assess(plan, frames, report):
     for f in frames:
         w = f['wire']
         if f['direction'] == 'c2s':
-            request = w.get('request', {}) if plan['provider'] == 'claude' else w.get('params', {})
-            if request.get('model') == target and (w.get('type') == 'control_request'
-                                                   or w.get('method') == 'thread/settings/update'):
+            if w.get('method') == 'thread/settings/update' and w.get('params', {}).get('model') == target:
                 changed = True
             continue
         if not changed:
             continue
-        if plan['provider'] == 'claude' and w.get('type') == 'assistant' and not w.get('parent_tool_use_id'):
-            model = w.get('message', {}).get('model')
-            if model:
-                observed.append(model)
-        elif plan['provider'] == 'codex' and w.get('method') == 'thread/settings/updated':
+        if w.get('method') == 'thread/settings/updated':
             model = w.get('params', {}).get('threadSettings', {}).get('model')
             if model:
                 observed.append(model)
     evidence.update(initialModel=initial, targetModel=target, observedModels=observed)
-    # The theta gateway returns the unprefixed upstream model in Claude messages.
-    # Preserve both original identities; do not substitute a different model.
-    matches = {target}
-    if plan['provider'] == 'claude' and target.startswith('theta/'):
-        matches.add(target.removeprefix('theta/'))
-    if not changed or (timing != 'during-execution' and not matches.intersection(observed)):
+    if not changed or (timing != 'during-execution' and target not in observed):
         raise Untriggered('target model effectiveness is not established by native observations')
     evidence['effectiveScope'] = ('current execution not guaranteed; observed models only' if timing == 'during-execution'
-                                  else ('assistant-message model after change; theta prefix mapping only'
-                                        if plan['provider'] == 'claude' else 'thread-settings model; execution model not independently reported'))
-
-
-def _claude_control_response(frames, index, request):
-    request_id = request.get('request_id')
-    for later in range(index + 1, len(frames)):
-        frame = frames[later]
-        wire = frame['wire']
-        if frame['direction'] != 's2c' or wire.get('type') != 'control_response':
-            continue
-        body = wire.get('response', {})
-        if body.get('request_id') == request_id:
-            return later, body
-    return None, None
+                                  else 'thread-settings model; execution model not independently reported')
 
 
 def assess_effort(plan, frames, report):
@@ -100,88 +68,7 @@ def assess_effort(plan, frames, report):
         raise Untriggered('effort change requires distinct creation and runtime values')
     evidence = report.setdefault('configurationEvidence', {
         'requests': [], 'observed': [], 'effectiveScope': 'unknown'})
-    if plan['provider'] == 'claude':
-        assess_claude_effort(plan, frames, report, evidence, initial, target)
-    elif plan['provider'] == 'codex':
-        assess_codex_effort(frames, report, evidence, initial, target)
-    else:
-        raise Untriggered('effort evidence is unsupported for provider')
-
-
-def assess_claude_effort(plan, frames, report, evidence, initial, target):
-    args = plan.get('args') or []
-    if plan.get('_agentResults') or plan.get('root'):
-        from .environment import capture_root
-        source = capture_root(plan) / 'plan.json'
-        if source.exists():
-            recorded = json.loads(source.read_bytes())
-            if (recorded.get('provider') != plan['provider']
-                    or recorded.get('caseId') != plan['scenario']['case']['id']):
-                raise Untriggered('recorded launch plan has a different case identity')
-            args = recorded.get('args') or []
-    creation = []
-    for index, value in enumerate(args):
-        if value == '--effort':
-            creation.append(args[index + 1] if index + 1 < len(args) else None)
-        elif value.startswith('--effort='):
-            creation.append(value.split('=', 1)[1])
-    if creation != [initial]:
-        raise Untriggered('Claude creation effort is not the configured --effort value')
-    inputs = [(index, frame['wire']) for index, frame in enumerate(frames)
-              if frame['direction'] == 'c2s' and frame['wire'].get('type') == 'user'
-              and frame['wire'].get('parent_tool_use_id') is None]
-    results = [(index, frame['wire']) for index, frame in enumerate(frames)
-               if frame['direction'] == 's2c' and frame['wire'].get('type') == 'result'
-               and frame['wire'].get('parent_tool_use_id') is None]
-    if len(inputs) != 2 or len(results) != 2:
-        raise Untriggered('effort change requires two root inputs and results')
-    settings = [(index, frame['wire']) for index, frame in enumerate(frames)
-                if frame['direction'] == 'c2s' and frame['wire'].get('type') == 'control_request'
-                and frame['wire'].get('request', {}).get('subtype') == 'get_settings']
-    if len(settings) != 1:
-        raise Untriggered('runtime effort requires exactly one get_settings preflight')
-    preflight_request_at, settings_request = settings[0]
-    preflight_response_at, settings_response = _claude_control_response(
-        frames, preflight_request_at, settings_request)
-    if preflight_response_at is None or settings_response.get('subtype') != 'success':
-        raise Untriggered('runtime effort preflight was not successful')
-    preflight = settings_response.get('response', {}).get('applied', {})
-    if preflight.get('effort') != initial:
-        raise Untriggered('runtime effort preflight does not report the configured creation effort')
-    current_ultracode = preflight.get('ultracode')
-    if not isinstance(current_ultracode, bool):
-        raise Untriggered('runtime effort preflight does not report applied.ultracode')
-    applies = [(index, frame['wire']) for index, frame in enumerate(frames)
-               if index > preflight_response_at and frame['direction'] == 'c2s'
-               and frame['wire'].get('type') == 'control_request'
-               and frame['wire'].get('request', {}).get('subtype') == 'apply_flag_settings']
-    if len(applies) != 1:
-        raise Untriggered('runtime effort requires exactly one apply_flag_settings request after preflight')
-    apply_at, apply = applies[0]
-    requested_settings = apply.get('request', {}).get('settings', {})
-    expected_ultracode = effort_keeps_ultracode(target, current_ultracode)
-    if requested_settings != {'effortLevel': target, 'ultracode': expected_ultracode}:
-        raise Untriggered('runtime effort request does not match the target and preflight state')
-    ack_at, ack = _claude_control_response(frames, apply_at, apply)
-    if ack_at is None or ack.get('subtype') != 'success':
-        raise Untriggered('runtime effort request was not acknowledged')
-    if any(frame['direction'] == 'c2s' and frame['wire'].get('type') == 'control_request'
-           and frame['wire'].get('request', {}).get('subtype') == 'set_max_thinking_tokens'
-           for frame in frames):
-        raise Untriggered('effort must not be represented as a thinking-token budget')
-    if not (inputs[0][0] < results[0][0] < preflight_request_at < preflight_response_at
-            < apply_at < ack_at < inputs[1][0] < results[1][0]):
-        raise Untriggered('effort preflight and update are not ordered between the two executions')
-    evidence.update(initialEffort=initial, targetEffort=target,
-                    creationOperation='claude --effort', runtimeOperation='apply_flag_settings',
-                    preflightEffort=preflight.get('effort'),
-                    preflightUltracode=current_ultracode,
-                    effectiveScope='creation argument and applied effort observed before the update; '
-                                    'runtime update acknowledged after native preflight; '
-                                    'post-update effort and per-turn use not independently reported')
-    report.setdefault('receipts', []).append({'effort-preflight': {
-        'initial': initial, 'target': target, 'source': 'get_settings.applied.ultracode',
-        'effort': preflight.get('effort'), 'ultracode': current_ultracode}})
+    assess_codex_effort(frames, report, evidence, initial, target)
 
 
 def _codex_response(frames, index, request):
@@ -264,36 +151,26 @@ def assess_codex_effort(frames, report, evidence, initial, target):
         'creationObserved': creation_observed}})
 
 
-def assess_display(plan, frames, report):
+def assess_display(frames, report):
     """Check native serialization and correlated success, not model display behavior."""
-    claude = plan['provider'] == 'claude'
-    field, expected = ('thinking_display', 'omitted') if claude else ('summary', 'none')
     evidence = report.get('configurationEvidence', {})
     requests = evidence.get('requests', [])
-    if not any(r.get('requested', {}).get(field) == expected and r.get('acknowledged') is True
+    if not any(r.get('requested', {}).get('summary') == 'none' and r.get('acknowledged') is True
                for r in requests):
         raise Untriggered('display configuration was not acknowledged by the SDK')
     for index, frame in enumerate(frames):
         wire = frame['wire']
         if frame['direction'] != 'c2s':
             continue
-        request = wire.get('request', {}) if claude else wire.get('params', {})
-        operation = (wire.get('type') == 'control_request'
-                     and request.get('subtype') == 'set_max_thinking_tokens') if claude else (
-                         wire.get('method') == 'thread/settings/update')
-        request_id = wire.get('request_id' if claude else 'id')
-        if not operation or request.get(field) != expected or request_id is None:
+        request_id = wire.get('id')
+        if wire.get('method') != 'thread/settings/update' or wire.get('params', {}).get('summary') != 'none' or request_id is None:
             continue
         replies = []
         for later in frames[index + 1:]:
             response = later['wire']
             if later['direction'] != 's2c':
                 continue
-            if claude:
-                body = response.get('response', {})
-                if response.get('type') == 'control_response' and body.get('request_id') == request_id:
-                    replies.append(body.get('subtype') == 'success')
-            elif response.get('id') == request_id and ('result' in response or 'error' in response):
+            if response.get('id') == request_id and ('result' in response or 'error' in response):
                 replies.append('result' in response and 'error' not in response)
         if replies == [True]:
             evidence['effectiveScope'] = 'native display configuration forwarded and success response handled; visual effect not asserted'

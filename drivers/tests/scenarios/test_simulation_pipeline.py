@@ -1,5 +1,4 @@
 """Current simulation flows through the single-request driver, without real Agents."""
-from dataclasses import dataclass
 import json
 from pathlib import Path
 import tempfile
@@ -18,30 +17,6 @@ class TransportClosedError(RuntimeError):
 
 
 class SimulationPipelineTests(unittest.TestCase):
-    def test_claude_unavailable_capabilities_skip_sdk_and_native_launch(self):
-        for case, reason in (('SDK-CASE-003', 'document'), ('SDK-CASE-026', '数值预算')):
-            with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp:
-                definition = case_recipes('claude', cases=case)[0]
-                root = Path(tmp)
-                plan = dict(version=4, provider='claude', story=definition['storyId'],
-                            storyId=definition['storyId'], caseId=definition['caseId'],
-                            driverProfile=definition['driverProfile'], root=tmp, project=tmp,
-                            scenario=definition, scenarioSHA256=digest(definition),
-                            prompts=definition['prompts'], model='auto/deepseek-v4.1-flash-1017[1m]')
-                with patch('record_user_story.drivers.sdk_identity',
-                           side_effect=AssertionError('unsupported case must not load the SDK')) as sdk:
-                    result = request_case(plan)
-                sdk.assert_not_called()
-                self.assertEqual(result['status'], 'unsupported')
-                self.assertIn(reason, result['message'])
-                self.assertIsNone(result['sdk'])
-                report = json.loads((root / 'report.json').read_text())
-                self.assertEqual(report['status'], 'unsupported')
-                self.assertEqual(report['branchStatus'], 'unsupported')
-                self.assertEqual(report['captureStatus'], 'not-executed')
-                self.assertEqual((report['inputs'], report['results']), (0, 0))
-                self.assertFalse((root / 'diagnostics.private.json').exists())
-
     def test_file_approval_never_accepts_shell_approval_as_file_evidence(self):
         for case, native_kind, expected, decision in (
             ('SDK-CASE-008', 'fileChange', 'passed', 'decline'),
@@ -68,42 +43,6 @@ class SimulationPipelineTests(unittest.TestCase):
                 result = self.worker(case, Client)
                 self.assertEqual(result['status'], expected)
                 self.assertEqual(decisions, [{'decision': decision}])
-
-    def test_claude_holds_permission_until_an_event_after_control_ack(self):
-        import asyncio
-        from claude_driver.adapter import claude
-        from record_user_story.scenarios import Flow
-        @dataclass
-        class ResultMessage:
-            is_error: bool = False
-        modes = []
-        class Client:
-            def __init__(self, options, **_): self.permission = options.can_use_tool
-            async def __aenter__(self): return self
-            async def __aexit__(self, *_): pass
-            async def query(self, _): pass
-            async def set_model(self, _): raise AssertionError('set_model emits no status event')
-            async def set_permission_mode(self, mode): modes.append(mode)
-            async def receive_response(self):
-                yield {'type': 'system', 'subtype': 'init', 'session_id': 'root', 'permissionMode': 'default'}
-                task = asyncio.create_task(self.permission('Read', {}, None))
-                await asyncio.sleep(0)
-                yield {'type': 'system', 'subtype': 'status', 'status': None, 'permissionMode': 'plan', 'session_id': 'root', 'uuid': 'event-id'}
-                await task
-                yield ResultMessage()
-        sdk = ModuleType('claude_agent_sdk')
-        sdk.ClaudeSDKClient, sdk.ClaudeAgentOptions = Client, SimpleNamespace
-        sdk.Transport = object
-        sdk.PermissionResultAllow = sdk.PermissionResultDeny = lambda **kw: kw
-        sdk.ResultMessage = ResultMessage
-        definition = case_recipes('claude', cases='SDK-CASE-012')[0]
-        flow = Flow(definition)
-        report = dict(inputs=0, results=0, requests=0, events=0, receipts=[])
-        with patch.dict('sys.modules', {'claude_agent_sdk': sdk}):
-            asyncio.run(claude(dict(definition, project='/unused', model='fixture'), report, flow))
-        flow.finish()
-        self.assertIn('held-event', flow.requests)
-        self.assertEqual(modes, ['plan', 'default'])
 
     def worker(self, case, client_class, transport=None, expected_exit=0, raw_frames=None):
         definition = case_recipes('codex', cases=case)[0]
@@ -163,57 +102,6 @@ class SimulationPipelineTests(unittest.TestCase):
                 if identity == '2': raise EOFError('observation ended after first result')
                 return super().next_turn_notification(identity)
         self.assertEqual(self.worker('SDK-CASE-001', ClosedClient, raw_frames=frames, expected_exit=1)['status'], 'failed')
-
-    def test_claude_continuation_keeps_native_session_identity(self):
-        @dataclass
-        class ResultMessage:
-            session_id: str = 'root'
-            is_error: bool = False
-        @dataclass
-        class SystemMessage:
-            subtype: str = 'session_state_changed'
-            data: dict = None
-        class Client:
-            def __init__(self, **_): pass
-            async def __aenter__(self): return self
-            async def __aexit__(self, *_): pass
-            async def query(self, _): pass
-            async def receive_response(self): yield ResultMessage()
-            async def receive_messages(self):
-                yield SystemMessage(data={'state': 'idle', 'session_id': 'root'})
-        sdk = ModuleType('claude_agent_sdk')
-        sdk.ClaudeSDKClient, sdk.ClaudeAgentOptions = Client, lambda **kw: kw
-        sdk.Transport = object
-        sdk.PermissionResultAllow = sdk.PermissionResultDeny = lambda **kw: kw
-        sdk.ResultMessage = ResultMessage
-        definition = case_recipes('claude', cases='SDK-CASE-001')[0]
-        for terminal_session, idle_session, parent, expected in (
-            ('root', 'root', None, 'passed'),
-            ('root', 'child', None, 'untriggered'),
-            ('root', None, None, 'untriggered'),
-            ('child', 'root', None, 'untriggered'),
-            ('root', 'root', 'child-tool', 'untriggered'),
-        ):
-            with self.subTest(terminal=terminal_session, idle=idle_session, parent=parent), tempfile.TemporaryDirectory() as tmp:
-                root = Path(tmp)
-                plan = dict(version=4, provider='claude', story=definition['storyId'], storyId=definition['storyId'],
-                            caseId=definition['caseId'], driverProfile=definition['driverProfile'], root=tmp, project=tmp,
-                            model='', scenario=definition, scenarioSHA256=digest(definition), prompts=definition['prompts'])
-                path = root/'plan.json'
-                path.write_text(json.dumps(plan))
-                frames = [
-                    {'direction': 'c2s', 'wire': {'type': 'user', 'session_id': 'default', 'parent_tool_use_id': None}},
-                    {'direction': 's2c', 'wire': {'type': 'system', 'subtype': 'session_state_changed', 'session_id': 'root', 'state': 'idle'}},
-                    {'direction': 's2c', 'wire': {'type': 'result', 'session_id': terminal_session}},
-                    {'direction': 's2c', 'wire': {'type': 'system', 'subtype': 'session_state_changed',
-                     'session_id': idle_session, 'parent_tool_use_id': parent, 'state': 'idle'}},
-                    {'direction': 'c2s', 'wire': {'type': 'user', 'session_id': 'default', 'parent_tool_use_id': None}},
-                ]
-                (root/'raw').mkdir()
-                (root/'raw/raw.jsonl').write_text(''.join(json.dumps(frame)+'\n' for frame in frames))
-                with patch.dict('sys.modules', {'claude_agent_sdk': sdk}), patch('record_user_story.drivers.sdk_identity', return_value={'package': 'synthetic', 'version': '1'}):
-                    request_case(plan)
-                self.assertEqual(json.loads(next(root.glob('*report.json')).read_text())['status'], expected)
 
     def test_configuration_acknowledgement_does_not_claim_effect_or_override_turns(self):
         actions = []
@@ -365,117 +253,6 @@ class SimulationPipelineTests(unittest.TestCase):
                 if expected == 'passed':
                     self.assertEqual(report['childEvidence'], [{'childThreadId': 'child', 'parentThreadId': 'root',
                                      'completedTurnIds': ['child-turn'], 'outputObserved': True}])
-
-    def test_direct_claude_child_requires_correlated_native_lifecycle(self):
-        @dataclass
-        class ResultMessage:
-            session_id: str = 'root'
-            is_error: bool = False
-        @dataclass
-        class AssistantMessage:
-            content: list
-            parent_tool_use_id: str = 'agent-call'
-            session_id: str = 'root'
-        @dataclass
-        class TaskStartedMessage:
-            task_id: str = 'task-identity'
-            tool_use_id: str = 'agent-call'
-            session_id: str = 'root'
-        @dataclass
-        class TaskNotificationMessage:
-            task_id: str = 'task-identity'
-            tool_use_id: str = 'agent-call'
-            session_id: str = 'root'
-            status: str = 'completed'
-        for missing, expected, code in (
-            (None, 'passed', 0), ('parent', 'untriggered', 0), ('output', 'untriggered', 0),
-            ('completion', 'untriggered', 0), ('task', 'untriggered', 0),
-            ('read-context', 'untriggered', 0), ('failure', 'failed', 1),
-        ):
-            with self.subTest(missing=missing), tempfile.TemporaryDirectory() as tmp:
-                class Client:
-                    def __init__(self, options, **_): self.permission = options.can_use_tool
-                    async def __aenter__(self): return self
-                    async def __aexit__(self, *_): pass
-                    async def query(self, _):
-                        await self.permission('Agent', {}, Value(tool_use_id='agent-call', agent_id=None))
-                        await self.permission('Read', {}, Value(tool_use_id='read-call', agent_id='agent-identity'))
-                    async def receive_response(self):
-                        yield TaskStartedMessage()
-                        yield AssistantMessage([{'type': 'tool_use', 'name': 'Read',
-                                                'id': 'other-read' if missing == 'read-context' else 'read-call'}],
-                                               parent_tool_use_id='unrelated' if missing == 'parent' else 'agent-call')
-                        if missing != 'output':
-                            yield AssistantMessage([{'type': 'text', 'text': 'Read the fixture token.'}])
-                        if missing != 'completion':
-                            yield TaskNotificationMessage(task_id='other-task' if missing == 'task' else 'task-identity',
-                                                          status='failed' if missing == 'failure' else 'completed')
-                        yield ResultMessage()
-                sdk = ModuleType('claude_agent_sdk')
-                sdk.ClaudeSDKClient, sdk.ClaudeAgentOptions = Client, SimpleNamespace
-                sdk.AgentDefinition = SimpleNamespace
-                sdk.Transport = object
-                sdk.PermissionResultAllow = sdk.PermissionResultDeny = lambda **kw: kw
-                sdk.ResultMessage = ResultMessage
-                definition = case_recipes('claude', cases='SDK-CASE-016')[0]
-                plan = dict(version=4, provider='claude', story=definition['storyId'], storyId=definition['storyId'],
-                            caseId=definition['caseId'], driverProfile=definition['driverProfile'], root=tmp, project=tmp,
-                            model='', scenario=definition, scenarioSHA256=digest(definition), prompts=definition['prompts'])
-                path = Path(tmp)/'plan.json'
-                path.write_text(json.dumps(plan))
-                with patch.dict('sys.modules', {'claude_agent_sdk': sdk}), patch('record_user_story.drivers.sdk_identity', return_value={'package': 'synthetic', 'version': '1'}):
-                    request_case(plan, code)
-                report = json.loads((Path(tmp)/'report.json').read_text())
-                self.assertEqual(report['status'], expected)
-                if expected == 'passed':
-                    self.assertEqual(report['childEvidence'], {'sessionId': 'root', 'parentToolUseId': 'agent-call',
-                                     'taskId': 'task-identity', 'agentIds': ['agent-identity'],
-                                     'outputObserved': True, 'completed': True})
-
-    def test_history_discovers_then_reads_metadata_and_messages_after_close(self):
-        for metadata in (True, False):
-            with self.subTest(metadata=metadata), tempfile.TemporaryDirectory() as tmp:
-                actions = []
-                @dataclass
-                class ResultMessage:
-                    is_error: bool = False
-                class Client:
-                    def __init__(self, **_): pass
-                    async def __aenter__(self): return self
-                    async def __aexit__(self, *_): actions.append('close')
-                    async def query(self, _, session_id):
-                        self_test.assertEqual(session_id, '')
-                        actions.append('input')
-                    async def receive_response(self): yield ResultMessage()
-                self_test = self
-                sdk = ModuleType('claude_agent_sdk')
-                sdk.ClaudeSDKClient, sdk.ClaudeAgentOptions = Client, lambda **kw: SimpleNamespace(**kw)
-                sdk.Transport = object
-                sdk.PermissionResultAllow = sdk.PermissionResultDeny = lambda **kw: kw
-                sdk.ResultMessage = ResultMessage
-                def discover(**_):
-                    actions.append('list')
-                    return [Value(session_id='discovered')]
-                def info(identity, **_):
-                    actions.append('info-' + identity)
-                    return Value(session_id=identity) if metadata else None
-                def messages(identity, **_):
-                    actions.append('messages-' + identity)
-                    return [Value(type='user', message={'role': 'user', 'content': 'saved'})]
-                sdk.list_sessions, sdk.get_session_info, sdk.get_session_messages = discover, info, messages
-                definition = case_recipes('claude', cases='SDK-CASE-033')[0]
-                plan = dict(version=4, provider='claude', story=definition['storyId'], storyId=definition['storyId'],
-                            caseId=definition['caseId'], driverProfile='history', root=tmp, project=tmp, model='',
-                            scenario=definition, scenarioSHA256=digest(definition), prompts=definition['prompts'])
-                path = Path(tmp) / 'plan.json'
-                path.write_text(json.dumps(plan))
-                with patch.dict('sys.modules', {'claude_agent_sdk': sdk}), patch('record_user_story.drivers.sdk_identity', return_value={'package': 'synthetic', 'version': '1'}):
-                    request_case(plan)
-                report = json.loads((Path(tmp) / 'report.json').read_text())
-                self.assertEqual(report['status'], 'passed' if metadata else 'untriggered')
-                self.assertEqual(actions[:4], ['input', 'close', 'list', 'info-discovered'])
-                self.assertEqual('messages-discovered' in actions, metadata)
-
 
 if __name__ == '__main__':
     unittest.main()

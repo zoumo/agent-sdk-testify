@@ -28,6 +28,15 @@ jobs:
         if: matrix.task == 'checks'
         with:
           python-version: '3.x'
+      - uses: actions/setup-node@v7
+        if: matrix.task == 'checks'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: drivers/claude/typescript/package-lock.json
+      - name: Prepare Claude driver npm cache
+        if: matrix.task == 'checks'
+        run: npm ci --prefix drivers/claude/typescript --ignore-scripts --omit=optional --no-audit --no-fund
       - name: Prepare Go dependencies
         run: go mod download
       - name: Prepare Python build dependencies

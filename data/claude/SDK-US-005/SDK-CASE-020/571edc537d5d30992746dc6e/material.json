@@ -1,0 +1,16 @@
+{
+  "formatVersion": 3,
+  "sourcePlanSHA256": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195",
+  "originSHA256": "ec51d8ee9e1dee54980df85460b6e8bf13ac9a98510503dc5f198707466b1795",
+  "id": "321c0dac0009b46f7ebba6f0369f36cd",
+  "kind": "capture",
+  "action": "record",
+  "provenance": "official",
+  "planSHA256": "7e48271d3400c457cccb50b1475dea9da3af549e77eb8bd12ae99f7942ad8693",
+  "manifestSHA256": "73f46f5e7885f164adf7fe91b78d0b33235ff13554aecb4b3fe9a6a5737d6207",
+  "recordingSHA256": "0231e0b5ecaa74df0b9af6effcaafdeaa0c17f2a430a0d0877c287ac248ae2b4",
+  "connections": [
+    "main"
+  ],
+  "createdAt": "2026-11-24T16:15:28.267645Z"
+}

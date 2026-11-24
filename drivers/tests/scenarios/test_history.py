@@ -1,7 +1,7 @@
 """History acceptance rejects cursor loops, missing pages and altered slices."""
 import unittest
 
-from record_user_story.history import pages, claude_slices
+from record_user_story.history import pages
 from record_user_story.scenarios import Untriggered
 
 
@@ -26,18 +26,3 @@ class HistoryTests(unittest.TestCase):
             with self.subTest(responses=responses), self.assertRaises(error):
                 source = iter(responses)
                 pages(lambda *_: next(source), 'list', {}, require_multiple=True)
-
-    def test_slices_include_empty_tail_and_reject_reorder(self):
-        for corrupt in [False, True]:
-            source = [{'uuid': 'one'}, {'uuid': 'two'}]
-            def get_messages(identity, *, directory, limit, offset=0):
-                if corrupt and limit == 1:
-                    return list(reversed(source))[offset:offset+limit]
-                return source[offset:offset+limit]
-            report = {'receipts': []}
-            if corrupt:
-                with self.assertRaises(ValueError):
-                    claude_slices(get_messages, 'session', '/project', report)
-            else:
-                claude_slices(get_messages, 'session', '/project', report)
-                self.assertEqual(report['receipts'][-2]['history-slice']['messages'], [])
