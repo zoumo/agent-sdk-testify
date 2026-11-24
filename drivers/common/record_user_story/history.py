@@ -72,20 +72,3 @@ def codex(client, identity, plan, report, parameters):
         raise Untriggered('discovered history has no saved content')
     if any(turn.get('status') != 'completed' for turn in turns):
         raise Untriggered('saved history contains an unsuccessful or active execution')
-
-
-def claude_slices(get_messages, session_id, project, report):
-    whole = [serial(x) for x in get_messages(session_id, directory=project, limit=100)]
-    if len(whole) < 2 or len(whole) >= 100:
-        raise Untriggered('saved history cannot prove complete multi-slice coverage')
-    sliced = []
-    for offset in range(len(whole) + 1):
-        page = [serial(x) for x in get_messages(session_id, directory=project, limit=1, offset=offset)]
-        report['receipts'].append({'history-slice': {'sessionId': session_id, 'limit': 1, 'offset': offset, 'messages': page}})
-        if len(page) != (1 if offset < len(whole) else 0):
-            raise ValueError('saved history slice boundary differs')
-        sliced.extend(page)
-    ids = [item.get('uuid') for item in sliced]
-    if sliced != whole or any(not value for value in ids) or len(set(ids)) != len(ids):
-        raise ValueError('saved history slices lost, repeated or reordered content')
-    report['receipts'].append({'history-whole': {'sessionId': session_id, 'messages': whole}})

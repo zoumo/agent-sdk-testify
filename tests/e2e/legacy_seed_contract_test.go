@@ -78,11 +78,11 @@ assert json.loads(child.stdout)['result']['synthetic'] is True
 verify_seed(plan)
 report = {'provider':plan['provider'], 'caseId':plan['caseId'], 'storyId':plan['storyId'],
           'status':'passed', 'branchStatus':'passed', 'captureStatus':'complete', 'gaps':[],
-          'officialSDK':{'package':{'codex':'openai-codex','claude':'claude-agent-sdk'}[plan['provider']], 'version':'synthetic-legacy-contract-only'}}
+          'officialSDK':{'package':{'codex':'openai-codex','claude':'@anthropic-ai/claude-agent-sdk'}[plan['provider']], 'version': '0.3.293' if plan['provider']=='claude' else 'synthetic-legacy-contract-only'}}
 out = pathlib.Path(runtime['output'])
 (out / 'validated-seed.json').write_text(json.dumps(seed))
 (out / ('replay-report.json' if runtime['replay'] else 'report.json')).write_text(json.dumps(report))
-(out / 'result.json').write_text(json.dumps({'status':'passed'}))
+(out / 'result.json').write_text(json.dumps({'status':'passed','sdk':report['officialSDK']}))
 `, filepath.Join(repository, "drivers", "common"))
 	require.NoError(t, os.WriteFile(filepath.Join(drivers, "agent-sdk-testify-"+provider), []byte("#!"+python+"\n"+driverCode), 0o700))
 	fixture := prepareFixture(t, env, "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", external)

@@ -153,6 +153,7 @@ test('ordinary cases exercise the official SDK against a controlled stream', asy
             assert.equal(report.configurationEvidence.observedMode, 'enabled')],
         ['027', 'native effort preflight and runtime update', report => {
             assert.equal(report.configurationEvidence.preflightEffort, 'low');
+            assert.equal(report.configurationEvidence.preflightUltracode, true);
             assert.equal(report.configurationEvidence.targetEffort, 'high');
         }],
         ['028', 'native thinking_display and correlated success', report =>
@@ -177,9 +178,12 @@ test('negative outcomes preserve native failure, missing evidence and unsupporte
         ['021', 'native-error', 'failed', /unsuccessful result/],
         ['023', 'unchanged-model', 'untriggered', /effectiveness/],
         ['025', 'no-thinking', 'untriggered', /observed thinking/],
+        ['027', 'missing-ultracode', 'untriggered', /configured creation effort and ultracode/],
+        ['027', 'wrong-creation-effort', 'untriggered', /configured creation effort and ultracode/],
         ['028', 'reject-configuration', 'failed', /native display refusal/],
         ['030', 'interrupt-completed', 'untriggered', /without acknowledged cancellation/],
         ['037', 'bad-injection-ack', 'untriggered', /zero-output/],
+        ['038', 'wrong-injected-answer', 'untriggered', /exact injected fact/],
     ]) {
         await t.test(number + ' ' + variant, t => assert.match(run(t, number, variant, status).result.message, message));
     }

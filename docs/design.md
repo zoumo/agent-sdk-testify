@@ -1315,7 +1315,7 @@ mock 不支持的分支或协议明确失败，不搜索其他 material、不猜
 | 选择闭包与兼容资格 | installed official verify 的显式采用入口；重新 prepare 采用包后只新增本地 execution，原闭包不变 | record/verify 相同内容被当同一事实、漏 connection/receipt、复用另次 passed、review/adoption 重复库存、standalone core 缺录制业务证据仍被采用 |
 
 不使用整库精确文件数量作为门禁；比较同一受控场景的逻辑库存、必要副本和外部行为，
-并把旧 data 的原字节检查单独保留。完整测试、race、driver/wheel 和构建要求仍按开发
+并把旧 data 的原字节检查单独保留。完整测试、race、driver 安装和构建要求仍按开发
 规范执行；门禁失败不能通过修改 build identity、放松 VCS 校验或跳过原用例消除。
 
 默认测试全程离线，不启动真实 Agent、不新增录制。真实录制、官方验证、SDK 仿真和

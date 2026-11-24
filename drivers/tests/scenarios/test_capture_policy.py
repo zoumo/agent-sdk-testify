@@ -1,5 +1,4 @@
 """Exercise permissive capture with local native-process fixtures only."""
-import asyncio
 import json
 from pathlib import Path
 import tempfile
@@ -12,19 +11,10 @@ from peer_support import identity
 from record_user_story.drivers import run
 from record_user_story.environment import sdk_identity
 from record_user_story.scenarios import recipe, digest
-from record_user_story.stream import json_messages
 
 
 class CapturePolicyTests(unittest.TestCase):
 
-
-    def test_async_transport_accepts_large_json_lines(self):
-        async def receive():
-            reader = asyncio.StreamReader()
-            reader.feed_data(json.dumps({'text': 'x' * 2200000}).encode() + b'\n')
-            reader.feed_eof()
-            return [message async for message in json_messages(reader)]
-        self.assertEqual(len(asyncio.run(receive())[0]['text']), 2200000)
 
     def test_sdk_versions_are_observed_without_an_allowlist(self):
         with patch('importlib.metadata.version', return_value='99.1.2'):

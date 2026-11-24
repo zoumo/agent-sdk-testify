@@ -1,111 +1,95 @@
 # Agent SDK drivers
 
-`drivers/` 包含 `official record`、`official verify` 使用的官方 SDK driver 及其 Python wheel。
+`drivers/` 包含 `official record`、`official verify` 使用的官方 SDK driver。
 driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负责 case 选择、
 隔离环境、协议对端、进程管理和回执。
 
 `agent mock` 消费者只使用 `agent-sdk-testify` 二进制，不需要安装本目录的 driver、
-官方 SDK 或 Python。
+官方 SDK、Python 或 Node.js。
 
 ## 布局
 
 | 路径 | 内容 |
 | --- | --- |
 | `codex/official/` | Codex 官方 SDK driver |
-| `claude/official/` | Claude 官方 SDK driver |
-| `claude/typescript/` | Claude TypeScript SDK driver，支持 case 042 |
+| `claude/typescript/` | Claude 官方 TypeScript SDK driver |
 | `common/` | 场景、原生输入和共享材料读取 |
-| `tests/` | driver 的离线单元和进程测试 |
-| `pyproject.toml` | wheel 定义和两个命令入口 |
-
-两个已安装命令是 `agent-sdk-testify-codex` 和 `agent-sdk-testify-claude`。
+| `tests/` | Codex driver 和公开协议命令的离线测试 |
+| `pyproject.toml` | Codex wheel 定义和命令入口 |
 
 ## 构建与测试
 
-从仓库根目录执行：
+在仓库根目录准备 npm 依赖缓存，然后构建。Python 3.11+、pip 和 `setuptools>=68` 用于
+构建 Codex wheel。Node.js 22+ 和 npm 用于构建 Claude tarball。
 
 ```sh
+npm ci --prefix drivers/claude/typescript --ignore-scripts --omit=optional --no-audit --no-fund
 make bundle
-bash scripts/with-agent-sdk-testify.sh env \
-  PYTHONPATH=drivers/common:drivers/codex/official:drivers/claude/official \
-  python3 -m unittest discover -s drivers/tests -v
-bash scripts/with-agent-sdk-testify.sh \
-  python3 -m unittest discover -s drivers/tests/scenarios -v
+make check
 ```
 
-构建输出默认位于 `.artifacts/build/`：
+`make bundle` 从本地依赖缓存构建以下产物。默认输出路径为 `.artifacts/build/`。
+使用 `AGENT_SDK_TESTIFY_BUILD_DIR` 可指定另一个绝对目录。
 
-- `agent-sdk-testify`
-- `agent_sdk_testify_driver-*.whl`
-
-`AGENT_SDK_TESTIFY_BUILD_DIR` 可指定另一个绝对目录。Python 3.11+ 需要
-`setuptools>=68`；构建和离线测试不启动 SDK、真实 Agent 或模型。
+- Go CLI `agent-sdk-testify`
+- Codex driver `agent_sdk_testify_driver-*.whl`
+- Claude driver `agent-sdk-testify-claude-*.tgz`
 
 ## 官方 SDK 环境
 
-只有 official record/verify 需要 Python 官方 SDK；agent record/mock 只使用工具二进制。使用
-Python 3.11+、pip 和 `setuptools>=68` 构建本目录，再把 wheel 以 `--no-deps`
-安装到显式环境，并将该环境的 `bin` 放入 `PATH`。
+### 安装 Claude driver
 
-`requirements.lock` 和可选 extras 只是原始安装来源快照，不是当前可用性承诺。
-`openai-codex==0.161.0` 和 `openai-codex-cli-bin` 当前不可从 PyPI 安装；按源码
-VCS 声明解析依赖也会因 CLI-bin 版本不可用而失败。
-
-已验证的材料环境使用 Claude `0.2.174` 和 Codex `0.0.0.dev0`。后者来自官方
-源码 `rust-v0.161.0`、revision
-`979011409de0a60b52f179721948e65531d26144`，其 pyproject 声明
-`0.0.0-dev`；不要把它重新标成 `0.161.0`，也不要修改录制去匹配包名。
-
-在显式目录中复现（网络准备由操作者单独执行）：
+使用 Node.js 22 或更新版本。从同一 Testify Release 取得 Go CLI 和 Claude tarball，
+或使用 `make bundle` 的产物。tarball 已包含锁定的官方 SDK 和运行依赖。
 
 ```sh
-python3 -m venv /absolute/official-env
-/absolute/official-env/bin/python -m pip install \
+npm install --global --offline --ignore-scripts --omit=optional \
+  --prefix /absolute/claude-driver /absolute/agent-sdk-testify-claude-0.1.0.tgz
+export PATH="/absolute/claude-driver/bin:$PATH"
+command -v agent-sdk-testify-claude
+```
+
+确认输出为 `/absolute/claude-driver/bin/agent-sdk-testify-claude`。
+如果旧 wheel 曾提供同名 Python 脚本，将 Claude 安装目录放在旧环境前。
+若同一 Python 环境也运行 Codex，用新版 wheel 升级该环境。pip 升级时会移除旧 wheel
+提供的 Claude 脚本。旧安装命令中的 `[claude]` 和 `[recording]` 已退役。
+
+`official record` 仍使用 `--cmd` 指定的 Claude Code CLI。
+`official verify` 使用 Testify 的公开 mock。
+业务报告记录当前安装的官方 SDK 版本。材料的原始录制来源由材料索引保存。
+
+### 安装 Codex driver
+
+将 Codex wheel 和官方 Python SDK 安装到同一个 Python 3.11+ 环境，再将该环境的
+`bin` 加入 `PATH`。已验证的官方 SDK 来自源码 tag `rust-v0.161.0`，revision
+`979011409de0a60b52f179721948e65531d26144`，安装版本为 `0.0.0.dev0`。
+`requirements.lock` 记录原始依赖版本。对应的 `openai-codex` 和
+`openai-codex-cli-bin` 版本无法从 PyPI 直接安装。
+
+```sh
+python3 -m venv /absolute/codex-driver
+/absolute/codex-driver/bin/python -m pip install \
   'setuptools>=68' wheel 'uv_build>=0.11.19,<0.12' \
-  'pydantic>=2.12' 'packaging>=26.2' 'claude-agent-sdk==0.2.174'
+  'pydantic>=2.12' 'packaging>=26.2'
 git clone --branch rust-v0.161.0 \
   https://github.com/openai/codex.git /absolute/codex-source
 git -C /absolute/codex-source rev-parse HEAD
 # 必须输出 979011409de0a60b52f179721948e65531d26144 后再安装。
-/absolute/official-env/bin/python -m pip install \
+/absolute/codex-driver/bin/python -m pip install \
   --no-deps --no-build-isolation /absolute/codex-source/sdk/python
-/absolute/official-env/bin/python -m pip install \
+/absolute/codex-driver/bin/python -m pip install \
   --no-deps /absolute/agent_sdk_testify_driver-*.whl
+export PATH="/absolute/codex-driver/bin:$PATH"
 ```
 
-`--no-deps` 有意避免安装源码包的独立原生 CLI 依赖。agent record、official record 通过 `--cmd ABS` 和
-`--` 后的原生 argv 显式指定 executable 及其参数；`official verify` 向 driver 提供公开
-`agent mock --fixture-dir ...` 进程入口，由 driver 使用官方 SDK 启动，
-不得回落到已安装的真实 Codex 或 Claude。源码 SDK、录制中的原生 CLI 和工具自身
-是三个独立版本身份。
+`--no-deps` 跳过 SDK 声明的独立原生 CLI 依赖。
+`official record` 通过 `--cmd` 指定原生 CLI，`official verify` 使用 Testify 的公开 mock。
+源码 SDK、录制中的原生 CLI 和工具各自记录版本。
 
 Codex 审批 case 039～041 使用 `codex-cli 0.166.0` 及官方 SDK 源码
-`rust-v0.166.0`（`6ff1e1ca3b30fc8b914720681fcf5fe62e95f856`），其安装版本同为
-`openai-codex 0.0.0.dev0`。复录和验证这些 case 时使用该源码版本。039 和 040 的
-录制需要 `python3` 启动隔离的合成 stdio MCP 工具。
-
-Claude case 042 使用 `Claude Code 2.1.293` 和 `@anthropic-ai/claude-agent-sdk@0.3.293` 的
-`onElicitation`。在显式 Python 环境的根目录安装 npm 包，并将 Node.js 放入 PATH。
-安装无需 SDK 自带的原生 CLI，录制使用 `--cmd` 指定的独立 CLI，验证使用公开 mock。
-
-```sh
-npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @anthropic-ai/claude-agent-sdk@0.3.293
-```
-
-### 安装独立的 Claude TypeScript driver
-
-使用 Node.js 22 或更新版本。在 `drivers/claude/typescript/` 中构建 npm tarball。
-tarball 包含官方 SDK 和运行时依赖。公开 agent 命令提供原生进程入口。
-
-```sh
-npm ci --ignore-scripts --omit=optional
-npm pack
-npm install --offline --global --ignore-scripts --omit=optional \
-  --prefix /absolute/claude-ts /absolute/agent-sdk-testify-claude-0.1.0.tgz
-```
-
-将 `/absolute/claude-ts/bin` 放在 wheel 所在路径前。使用工具的 `prepare` 创建 Claude
-case 042 fixture，再运行 `official verify`。driver 从本次安装的 SDK 读取业务报告中的版本。
+`rust-v0.166.0`（`6ff1e1ca3b30fc8b914720681fcf5fe62e95f856`），安装版本同为
+`openai-codex 0.0.0.dev0`。复录和验证这些 case 时使用该源码版本。
+039 和 040 的录制需要 `python3` 启动隔离的合成 stdio MCP 工具。
 
 ## 按 case 录制
 

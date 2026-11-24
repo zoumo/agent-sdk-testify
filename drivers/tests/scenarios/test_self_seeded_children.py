@@ -37,19 +37,6 @@ def codex_setup():
     return rows
 
 
-def claude_setup():
-    return [
-        {'direction': 'c2s', 'wire': {'type': 'user', 'session_id': '',
-                                    'message': {'content': 'setup-prompt'}}},
-        {'direction': 's2c', 'wire': {'type': 'system', 'subtype': 'task_started',
-            'session_id': PARENT, 'task_id': 'child', 'tool_use_id': 'tool', 'run_id': 'run'}},
-        {'direction': 's2c', 'wire': {'type': 'system', 'subtype': 'task_notification',
-            'session_id': PARENT, 'task_id': 'child', 'tool_use_id': 'tool', 'run_id': 'run', 'status': 'completed'}},
-        {'direction': 's2c', 'wire': {'type': 'result', 'subtype': 'success',
-                                    'session_id': PARENT, 'is_error': False}},
-    ]
-
-
 class SelfSeededChildrenTests(unittest.TestCase):
     def test_setup_material_is_self_contained_and_hashes_native_identities(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -125,22 +112,6 @@ class SelfSeededChildrenTests(unittest.TestCase):
                 rows[4], rows[5] = rows[5], rows[4]
             if variant == 'wrong-prompt':
                 rows[5]['wire']['params']['input'][0]['text'] = 'different'
-            with self.subTest(variant=variant), self.assertRaises(ValueError):
-                require_setup_wire(plan, rows, setup)
-
-    def test_claude_requires_same_run_child_completion_before_successful_parent(self):
-        plan = {'provider': 'claude', 'scenario': {'parameters': {'setupPrompt': 'setup-prompt'}}}
-        setup = {'sessionId': PARENT, 'agentIds': ['child']}
-        require_setup_wire(plan, claude_setup(), setup)
-        for variant in ('failed', 'late', 'other-child', 'other-parent', 'other-run', 'other-tool', 'extra-input'):
-            rows = copy.deepcopy(claude_setup())
-            if variant == 'failed': rows[3]['wire']['is_error'] = True
-            if variant == 'late': rows[2], rows[3] = rows[3], rows[2]
-            if variant == 'other-child': rows[2]['wire']['task_id'] = 'another'
-            if variant == 'other-parent': rows[2]['wire']['session_id'] = CHILD
-            if variant == 'other-run': rows[2]['wire']['run_id'] = 'another'
-            if variant == 'other-tool': rows[2]['wire']['tool_use_id'] = 'another'
-            if variant == 'extra-input': rows.append(copy.deepcopy(rows[0]))
             with self.subTest(variant=variant), self.assertRaises(ValueError):
                 require_setup_wire(plan, rows, setup)
 

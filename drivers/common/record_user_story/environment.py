@@ -14,17 +14,6 @@ def recording_temp_root():
     return Path(tempfile.gettempdir()).resolve(strict=True)
 
 
-def stdin_eof_action(plan):
-    """Validate the frozen close policy without interpreting native frames."""
-    action = plan.get('stdinEOFAction', 'close')
-    if action not in ('close', 'interrupt'):
-        raise ValueError('invalid frozen stdin EOF action')
-    if action == 'interrupt' and (plan.get('provider') != 'claude'
-                                  or plan.get('driverProfile') != 'interrupt'):
-        raise ValueError('SIGINT close is restricted to the Claude interrupt profile')
-    return action
-
-
 def private_json(path, value):
     with path.open('x', encoding='utf-8') as f:
         os.chmod(path, 0o600)
@@ -202,8 +191,9 @@ def verify_recording(root):
 
 def sdk_identity(provider):
     from importlib.metadata import version
-    from .policy import SDK_VERSIONS
-    name, _ = SDK_VERSIONS[provider]
+    if provider != 'codex':
+        raise ValueError('Python SDK identity is only available for Codex')
+    name = 'openai-codex'
     actual = version(name)
     return {'package': name, 'version': actual}
 

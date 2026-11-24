@@ -30,6 +30,7 @@ class IndependentToolTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
             self.assertTrue((Path(temporary) / 'agent-sdk-testify').is_file())
             self.assertEqual(1, len(list(Path(temporary).glob('*.whl'))))
+            self.assertEqual(1, len(list(Path(temporary).glob('agent-sdk-testify-claude-*.tgz'))))
             self.assertFalse((Path(temporary) / 'sdk-driver').exists())
 
     def test_default_tests_run_without_sdk_or_binary_override(self):

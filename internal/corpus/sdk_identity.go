@@ -6,13 +6,16 @@ import (
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
 
-const claudeTypeScriptSDK = "@anthropic-ai/claude-agent-sdk"
+const (
+	claudeTypeScriptSDK        = "@anthropic-ai/claude-agent-sdk"
+	claudeTypeScriptSDKVersion = "0.3.293"
+)
 
 // RecordedSDKIdentity validates SDK identities in persisted capture, replay,
 // and publication evidence.
 func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 	if provider == "claude" && sdk["package"] == claudeTypeScriptSDK {
-		return sdk["version"] == "0.3.293"
+		return sdk["version"] == claudeTypeScriptSDKVersion
 	}
 	if provider == "claude" && caseID == "SDK-CASE-042" {
 		return false
@@ -22,8 +25,10 @@ func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 }
 
 // DriverSDKIdentity validates a new official invocation's business report.
-// The Python entry point remains usable during side-by-side qualification.
 func DriverSDKIdentity(provider, caseID string, sdk tool.Object) bool {
+	if provider == "claude" && sdk["package"] != claudeTypeScriptSDK {
+		return false
+	}
 	return RecordedSDKIdentity(provider, caseID, sdk)
 }
 

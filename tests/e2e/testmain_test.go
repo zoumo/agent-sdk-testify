@@ -156,7 +156,10 @@ func conformanceDriver(args []string) int {
 	if err != nil {
 		return 6
 	}
-	sdkPackage := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[fmt.Sprint(plan["provider"])]
+	sdk := map[string]any{"package": "openai-codex", "version": "conformance-test-only"}
+	if plan["provider"] == "claude" {
+		sdk = map[string]any{"package": "@anthropic-ai/claude-agent-sdk", "version": "0.3.293"}
+	}
 	report := map[string]any{
 		"provider":      plan["provider"],
 		"caseId":        plan["caseId"],
@@ -165,7 +168,7 @@ func conformanceDriver(args []string) int {
 		"branchStatus":  "passed",
 		"captureStatus": "complete",
 		"gaps":          []any{},
-		"officialSDK":   map[string]any{"package": sdkPackage, "version": "conformance-test-only"},
+		"officialSDK":   sdk,
 		"observed": map[string]any{
 			"cwd":       cwd,
 			"workspace": runtime.Workspace,
@@ -181,7 +184,7 @@ func conformanceDriver(args []string) int {
 	if writeJSONFile(filepath.Join(runtime.Output, name), report) != nil {
 		return 6
 	}
-	if writeJSONFile(filepath.Join(runtime.Output, "result.json"), map[string]any{"status": "passed"}) != nil {
+	if writeJSONFile(filepath.Join(runtime.Output, "result.json"), map[string]any{"status": "passed", "sdk": sdk}) != nil {
 		return 6
 	}
 	if mode == "verify-cleanup-failure" {

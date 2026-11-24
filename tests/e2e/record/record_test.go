@@ -98,10 +98,11 @@ func recordDriverSubstitute(args []string) int {
 		"config":    os.Getenv(configKey),
 		"tmp":       os.Getenv("TMPDIR"),
 	}
-	if tool.WriteJSON(filepath.Join(runtime.Output, "report.json"), tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": tool.Object{"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider], "version": "synthetic-only"}, "observed": observed}) != nil {
+	sdk := syntheticSDK(provider)
+	if tool.WriteJSON(filepath.Join(runtime.Output, "report.json"), tool.Object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": sdk, "observed": observed}) != nil {
 		return 6
 	}
-	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Result{Status: status, Message: "synthetic-only"}) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Object{"status": status, "message": "synthetic-only", "sdk": sdk}) != nil {
 		return 6
 	}
 	return 0
@@ -227,20 +228,24 @@ func recordVerifyDriverSubstitute(args []string) int {
 	if cmd.Wait() != nil {
 		status = "failed"
 	}
+	sdk := syntheticSDK(tool.Str(plan["provider"]))
 	if tool.WriteJSON(filepath.Join(runtime.Output, "replay-report.json"), tool.Object{
 		"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
-		"status": status, "branchStatus": status, "captureStatus": "complete",
-		"officialSDK": tool.Object{
-			"package": map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[tool.Str(plan["provider"])],
-			"version": "synthetic-test-only",
-		},
+		"status": status, "branchStatus": status, "captureStatus": "complete", "officialSDK": sdk,
 	}) != nil {
 		return 4
 	}
-	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Object{"status": status}) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Object{"status": status, "sdk": sdk}) != nil {
 		return 4
 	}
 	return 0
+}
+
+func syntheticSDK(provider string) tool.Object {
+	if provider == "claude" {
+		return tool.Object{"package": "@anthropic-ai/claude-agent-sdk", "version": "0.3.293"}
+	}
+	return tool.Object{"package": "openai-codex", "version": "synthetic-only"}
 }
 
 func (p *preparedRecord) installVerifyDriver(t *testing.T) {
@@ -572,14 +577,16 @@ func TestRecordTimeoutPreservesDiagnostic(t *testing.T) {
 }
 
 func TestRecordRequiresInstalledOfficialDriver(t *testing.T) {
-	fixture := recordProcess(t, "codex", "passed", "passed")
-	for _, name := range []string{"agent-sdk-testify-codex", "agent-sdk-testify-claude"} {
-		_ = os.Remove(filepath.Join(filepath.Dir(fixture.cli), name))
+	for provider, hint := range map[string]string{"codex": "install the Codex driver wheel", "claude": "install the Claude driver npm tarball"} {
+		t.Run(provider, func(t *testing.T) {
+			fixture := recordProcess(t, provider, "passed", "passed")
+			require.NoError(t, os.Remove(filepath.Join(filepath.Dir(fixture.cli), "agent-sdk-testify-"+provider)))
+			cmd := fixture.command(t, recordExecutionTimeout)
+			data, err := cmd.CombinedOutput()
+			require.Error(t, err, "%s", data)
+			require.Contains(t, string(data), hint)
+		})
 	}
-	cmd := fixture.command(t, recordExecutionTimeout)
-	data, err := cmd.CombinedOutput()
-	require.Error(t, err, "%s", data)
-	require.Contains(t, string(data), "install the driver wheel")
 }
 
 func (p *preparedRecord) officialRoot(t *testing.T) string {
