@@ -26,13 +26,14 @@ func ScanCaptureCredentials(root string) (string, error) {
 // environment is already represented by a descriptor and must not be copied
 // into material as a private native.env file.
 func ScanCaptureCredentialsWithEnvironment(root string, env map[string]string) (string, error) {
-	return scanCaptureCredentials(root, env, nil)
+	return scanCaptureCredentials(root, env, nil, nil)
 }
 
 // ScanPiCaptureCredentials also checks saved session history for credentials
 // from the isolated Pi auth and model stores.
 func ScanPiCaptureCredentials(root, config string, env map[string]string) (string, error) {
 	var secrets []string
+	var modelAliases []string
 	appendSecret := func(value any) {
 		if text := tool.Str(value); text != "" {
 			secrets = append(secrets, text)
@@ -57,9 +58,18 @@ func ScanPiCaptureCredentials(root, config string, env map[string]string) (strin
 				appendSecret(value)
 			}
 		}
-		for _, value := range tool.Obj(models["providers"]) {
+		for name, value := range tool.Obj(models["providers"]) {
 			provider := tool.Obj(value)
-			addModelCredentials(provider)
+			if name != "" && tool.Str(provider["apiKey"]) == name {
+				// Some model routes use the provider name as the API key. The
+				// name also appears in Pi's typed routing metadata.
+				modelAliases = append(modelAliases, name)
+				for _, header := range tool.Obj(provider["headers"]) {
+					appendSecret(header)
+				}
+			} else {
+				addModelCredentials(provider)
+			}
 			for _, model := range tool.Array(provider["models"]) {
 				addModelCredentials(tool.Obj(model))
 			}
@@ -70,7 +80,7 @@ func ScanPiCaptureCredentials(root, config string, env map[string]string) (strin
 	} else if !os.IsNotExist(err) {
 		return "unavailable", err
 	}
-	scan, err := scanCaptureCredentials(root, env, secrets)
+	scan, err := scanCaptureCredentials(root, env, secrets, modelAliases)
 	if err != nil {
 		return scan, err
 	}
@@ -82,7 +92,7 @@ func ScanPiCaptureCredentials(root, config string, env map[string]string) (strin
 		if err != nil || !entry.Type().IsRegular() {
 			return err
 		}
-		return checkCredentialValues(path, secrets)
+		return checkCredentialValues(path, root, secrets, modelAliases)
 	})
 	if errors.Is(err, errCaptureCredentials) {
 		return "quarantined", err
@@ -93,7 +103,7 @@ func ScanPiCaptureCredentials(root, config string, env map[string]string) (strin
 	return "pass", nil
 }
 
-func scanCaptureCredentials(root string, env map[string]string, secrets []string) (string, error) {
+func scanCaptureCredentials(root string, env map[string]string, secrets, modelAliases []string) (string, error) {
 	for key, value := range env {
 		if value != "" && (strings.Contains(key, "TOKEN") || strings.Contains(key, "KEY")) {
 			secrets = append(secrets, value)
@@ -154,7 +164,7 @@ func scanCaptureCredentials(root string, env map[string]string, secrets []string
 			return "unavailable", err
 		}
 		for _, path := range paths {
-			if err := checkCredentialValues(path, secrets); errors.Is(err, errCaptureCredentials) {
+			if err := checkCredentialValues(path, root, secrets, modelAliases); errors.Is(err, errCaptureCredentials) {
 				return "quarantined", err
 			} else if err != nil {
 				return "unavailable", err
@@ -166,13 +176,22 @@ func scanCaptureCredentials(root string, env map[string]string, secrets []string
 
 var errCaptureCredentials = errors.New("capture contains selected credentials; private evidence quarantined")
 
-func checkCredentialValues(path string, secrets []string) error {
+func checkCredentialValues(path, root string, secrets, modelAliases []string) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
 	for _, secret := range secrets {
 		if bytes.Contains(data, []byte(secret)) {
+			return errCaptureCredentials
+		}
+	}
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		return err
+	}
+	for _, alias := range modelAliases {
+		if count := bytes.Count(data, []byte(alias)); count > 0 && count != piModelAliasMetadata(filepath.ToSlash(rel), data, alias) {
 			return errCaptureCredentials
 		}
 	}

@@ -1,6 +1,6 @@
 # agent-sdk-testify
 
-Testify 录制原生 Agent 协议，并用录制回放协议，供 SDK 测试使用。仓库维护 Codex 和 Claude 的 case、官方 driver、录制材料与内置快照。消费者用自己的 SDK 执行业务操作和断言。
+Testify 录制原生 Agent 协议，并用录制回放协议，供 SDK 测试使用。仓库支持 Codex、Claude 和 Pi 的录制与回放。Pi 的首个官方用例 SDK-CASE-001 在同一会话中验证两轮输入。各用例的内置材料状态见[固定索引](data/index.json)。消费者用自己的 SDK 执行业务操作和断言。
 
 <a id="文档"></a>
 

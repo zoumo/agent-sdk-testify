@@ -1,4 +1,4 @@
-"""One native Python SDK case per request; Go owns environment and processes.
+"""One native SDK case per request; Go owns environment and processes.
 
 Run directly with an installed SDK environment:
     python /absolute/record_user_story/driver.py --request request.json

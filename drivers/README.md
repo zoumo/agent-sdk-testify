@@ -13,11 +13,12 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 | --- | --- |
 | `codex/official/` | Codex 官方 SDK driver |
 | `claude/official/` | Claude 官方 SDK driver |
+| `pi/official/` | Pi 官方 TypeScript RpcClient driver（SDK-CASE-001） |
 | `common/` | 场景、原生输入和共享材料读取 |
 | `tests/` | driver 的离线单元和进程测试 |
-| `pyproject.toml` | wheel 定义和两个命令入口 |
+| `pyproject.toml` | wheel 定义和命令入口 |
 
-两个已安装命令是 `agent-sdk-testify-codex` 和 `agent-sdk-testify-claude`。
+wheel 安装 `agent-sdk-testify-codex`、`agent-sdk-testify-claude` 和 `agent-sdk-testify-pi`。
 
 ## 构建与测试
 
@@ -42,7 +43,7 @@ bash scripts/with-agent-sdk-testify.sh \
 
 ## 官方 SDK 环境
 
-只有 official record/verify 需要 Python 官方 SDK；agent record/mock 只使用工具二进制。使用
+official record/verify 通过 Python driver 启动对应的官方 SDK。agent record/mock 只使用工具二进制。使用
 Python 3.11+、pip 和 `setuptools>=68` 构建本目录，再把 wheel 以 `--no-deps`
 安装到显式环境，并将该环境的 `bin` 放入 `PATH`。
 
@@ -89,6 +90,17 @@ Claude case 042 使用 `Claude Code 2.1.293` 和 `@anthropic-ai/claude-agent-sdk
 
 ```sh
 npm install --prefix /absolute/official-env --ignore-scripts --omit=optional @anthropic-ai/claude-agent-sdk@0.3.293
+```
+
+### Pi 1.6.0
+
+Pi 的 SDK-CASE-001 使用官方 TypeScript RpcClient。将 Node.js 放入 PATH，在 driver 的
+Python 环境根目录安装 SDK。录制时用 `--cmd` 指定 Pi 1.6.0 CLI，在 `--` 后传入
+`--mode rpc`。prepare 的 `--model` 接受 Pi 模型目录中的 `provider/model`。
+离线验证使用同一个 RpcClient 连接 Testify mock。
+
+```sh
+	npm install --prefix /absolute/official-env @earendil-works/pi-coding-agent@1.6.0
 ```
 
 ## 按 case 录制
