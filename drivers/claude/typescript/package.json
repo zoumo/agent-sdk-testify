@@ -1,0 +1,35 @@
+{
+  "name": "agent-sdk-testify-claude",
+  "version": "0.1.0",
+  "description": "Claude official SDK driver for agent-sdk-testify",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "agent-sdk-testify-claude": "dist/cli.js"
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepack": "npm run build && cp ../../../LICENSE dist/LICENSE"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.293",
+    "@anthropic-ai/sdk": "1.13.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
+  },
+  "bundleDependencies": [
+    "@anthropic-ai/claude-agent-sdk",
+    "@anthropic-ai/sdk",
+    "@modelcontextprotocol/sdk",
+    "zod"
+  ],
+  "devDependencies": {
+    "@types/node": "22.19.15",
+    "typescript": "5.9.3"
+  }
+}
