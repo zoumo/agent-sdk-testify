@@ -10,7 +10,7 @@ use codex_app_server_protocol::{
     RequestId, ServerNotification, TurnStartResponse, TurnStatus,
 };
 use codex_app_server_remote_client::{
-    AppServerEvent, RemoteAppServerClient, decode_typed_response,
+    AppServerEvent, RemoteAppServerClient, TypedRequestError, decode_typed_response,
 };
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
@@ -18,6 +18,7 @@ use serde_json::{Value, json};
 use tokio::process::{Child, Command};
 use tokio::time::timeout;
 
+mod interactions;
 mod sandbox_permissions;
 
 const CONTINUATION_CASE: &str = "SDK-CASE-001";
@@ -72,7 +73,8 @@ struct Plan {
     initial_model: Option<String>,
     prompts: Vec<String>,
     cli_version: Option<String>,
-    scenario: Option<sandbox_permissions::Scenario>,
+    #[serde(default)]
+    scenario: Value,
 }
 
 #[derive(Deserialize, PartialEq)]
@@ -211,7 +213,7 @@ async fn request<T: DeserializeOwned>(
     id: i64,
     method: &str,
     params: Value,
-) -> Result<T> {
+) -> std::result::Result<T, TypedRequestError> {
     // Use the upstream raw request API for the case's native parameters.
     let response = client
         .request_handle()
@@ -222,7 +224,7 @@ async fn request<T: DeserializeOwned>(
             trace: None,
         })
         .await;
-    Ok(decode_typed_response(method, response)?)
+    decode_typed_response(method, response)
 }
 
 async fn open_thread(
@@ -230,7 +232,10 @@ async fn open_thread(
     plan: &Plan,
     workspace: &Path,
 ) -> Result<(String, Value)> {
-    let sandbox = if plan.case_id == sandbox_permissions::CASE_ID {
+    let sandbox = if matches!(
+        plan.driver_profile.as_str(),
+        "approval" | "sandbox-permissions"
+    ) {
         "read-only"
     } else {
         "workspace-write"
@@ -246,6 +251,7 @@ async fn open_thread(
     if !plan.model.is_empty() {
         params["model"] = json!(plan.initial_model.as_deref().unwrap_or(&plan.model));
     }
+    interactions::configure_thread_start(plan, &mut params)?;
     let thread: Value = request(client, 1, "thread/start", params).await?;
     let thread_id = thread["thread"]["id"]
         .as_str()
@@ -268,6 +274,7 @@ async fn start_turn(
         json!({"threadId": thread_id, "input": [{"type": "text", "text": prompt}]}),
     )
     .await
+    .map_err(Into::into)
 }
 
 async fn exercise_continuation(
@@ -345,14 +352,25 @@ async fn exercise(
     client: &mut RemoteAppServerClient,
     plan: &Plan,
     workspace: &Path,
+    execution_workspace: &Path,
     report: &mut Value,
 ) -> Result<()> {
     let (thread_id, thread) = open_thread(client, plan, workspace).await?;
     record_receipt(report, json!({"thread/start": thread}));
     if plan.case_id == sandbox_permissions::CASE_ID {
         sandbox_permissions::exercise(client, plan, workspace, &thread_id, report).await
-    } else {
+    } else if plan.case_id == CONTINUATION_CASE {
         exercise_continuation(client, plan, &thread_id, report).await
+    } else {
+        interactions::exercise(
+            client,
+            plan,
+            workspace,
+            execution_workspace,
+            &thread_id,
+            report,
+        )
+        .await
     }
 }
 
@@ -385,10 +403,12 @@ async fn run(runtime: &Runtime, plan: &Plan, report: &mut Value) -> Result<()> {
     .await
     {
         Ok(mut client) => {
-            let result = exercise(&mut client, plan, workspace, report).await;
+            let result = exercise(&mut client, plan, workspace, &runtime.workspace, report).await;
+            let handle =
+                (plan.case_id == "SDK-CASE-031" && result.is_ok()).then(|| client.request_handle());
             let shutdown = client.shutdown().await.context("close SDK connection");
             report["sdkClosed"] = json!(shutdown.is_ok());
-            result.and(shutdown)
+            result.and(shutdown).map(|()| handle)
         }
         Err(error) => Err(error).context("initialize SDK connection"),
     };
@@ -403,10 +423,35 @@ async fn run(runtime: &Runtime, plan: &Plan, report: &mut Value) -> Result<()> {
     if let Ok(connection) = &connection {
         report["connection"] = connection.clone();
     }
-    result?;
+    let closed_handle = result?;
     let status = status?;
     ensure!(status.success(), "Testify peer exited with {status}");
     connection?;
+    if let Some(handle) = closed_handle {
+        let rejected = handle
+            .request_json_rpc(JSONRPCRequest {
+                id: RequestId::Integer(100),
+                method: "turn/start".into(),
+                params: Some(
+                    json!({"threadId": report["receipts"][0]["thread/start"]["thread"]["id"],
+                    "input": [{"type": "text", "text": "Reply Ready."}]}),
+                ),
+                trace: None,
+            })
+            .await;
+        ensure!(
+            handle.is_closed() && rejected.is_err(),
+            "closed SDK accepted subsequent input"
+        );
+        report["sessionClose"] = json!({
+            "interactionClosed": true, "processClosed": true, "postCloseRejected": true
+        });
+        record_receipt(
+            report,
+            json!({"post-close-submit": {"rejected": true,
+            "reason": rejected.unwrap_err().to_string()}}),
+        );
+    }
     Ok(())
 }
 
@@ -423,15 +468,16 @@ async fn main() -> Result<()> {
     let runtime: Runtime = read_json(&request.runtime)?;
     runtime.validate()?;
 
-    let (story_id, driver_profile, prompt_count) = match request.case.as_str() {
-        CONTINUATION_CASE => ("SDK-US-001", "continuation", 2),
-        sandbox_permissions::CASE_ID => ("SDK-US-003", "sandbox-permissions", 3),
-        _ => {
-            return write_json(
-                &runtime.output.join("result.json"),
-                &json!({"status": "unsupported", "message": "Rust candidate supports SDK-CASE-001 and SDK-CASE-041"}),
-            );
-        }
+    let spec = match request.case.as_str() {
+        CONTINUATION_CASE => Some(("SDK-US-001", "continuation", 2)),
+        sandbox_permissions::CASE_ID => Some(("SDK-US-003", "sandbox-permissions", 3)),
+        _ => interactions::case_spec(&request.case),
+    };
+    let Some((story_id, driver_profile, prompt_count)) = spec else {
+        return write_json(
+            &runtime.output.join("result.json"),
+            &json!({"status": "unsupported", "message": "case is outside the Rust candidate scope"}),
+        );
     };
     let sdk = json!({
         "package": "codex-app-server-remote-client",

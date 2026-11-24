@@ -48,7 +48,8 @@ struct Parameters {
 }
 
 pub(crate) fn validate(plan: &Plan) -> Result<()> {
-    let scenario = plan.scenario.as_ref().context("missing 041 scenario")?;
+    let scenario: Scenario =
+        serde_json::from_value(plan.scenario.clone()).context("invalid 041 scenario")?;
     ensure!(
         scenario.parameters.approval_scopes == [Decision::Turn, Decision::Session, Decision::Deny],
         "041 requires the turn, session, and deny decisions in order"
@@ -147,7 +148,8 @@ pub(crate) async fn exercise(
     thread_id: &str,
     report: &mut Value,
 ) -> Result<()> {
-    let scenario = plan.scenario.as_ref().context("missing 041 scenario")?;
+    let scenario: Scenario =
+        serde_json::from_value(plan.scenario.clone()).context("invalid 041 scenario")?;
     let mut turn_ids = HashSet::new();
     let mut request_ids = HashSet::new();
     let mut item_ids = HashSet::new();
