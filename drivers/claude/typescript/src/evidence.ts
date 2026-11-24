@@ -10,6 +10,29 @@ function jsonLines(text: string): JsonObject[] {
     return text.trimEnd().split('\n').map(line => object(JSON.parse(line)));
 }
 
+export function readWire(raw: string) {
+    return jsonLines(readFileSync(join(raw, 'raw.jsonl'), 'utf8')).map((frame, index) => ({
+        index, direction: frame.direction, wire: object(frame.wire),
+    }));
+}
+
+export function requirePeerClose(runtime: DriverRuntime, main: ReturnType<typeof currentPeer>, interrupt: boolean) {
+    const receipt = runtime.replay
+        ? readObject(join(runtime.fixtureDir!, 'packages', main.materialId, 'executions', main.executionId, 'receipts', 'main.json'))
+        : readObject(join(main.raw, 'transport.json'));
+    const complete = runtime.replay
+        ? receipt.fullConsumption === true && receipt.clientEOF === true
+            && receipt.nativeLaunched === false && receipt.cleanupComplete === true
+        : receipt.captureStatus === 'complete' && receipt.nativeLaunched === true
+            && receipt.reaped === true && receipt.cleanupComplete === true
+            && (!interrupt || (receipt.reason === 'EOF' && receipt.clientEOF === true
+                && receipt.stdinEOFAction === 'interrupt' && receipt.stdinEOFSignal === 'SIGINT'
+                && receipt.nativeExitCode === 0 && !receipt.nativeSignal));
+    if (!complete) {
+        throw new Error('public agent receipt does not prove session process cleanup');
+    }
+}
+
 function packageID(value: unknown): value is string {
     return typeof value === 'string' && value !== '.' && value !== '..' && /^[a-zA-Z0-9._-]+$/.test(value);
 }

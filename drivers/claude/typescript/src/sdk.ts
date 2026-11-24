@@ -1,9 +1,9 @@
 import { spawn, type ChildProcessByStdio } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
-import type { Readable, Writable } from 'node:stream';
-import type { SpawnOptions } from '@anthropic-ai/claude-agent-sdk';
-import { readObject, type DriverRuntime, type Peer } from './runtime.js';
+import { type Readable, Writable } from 'node:stream';
+import type { Query, SpawnedProcess, SpawnOptions } from '@anthropic-ai/claude-agent-sdk';
+import { object, readObject, type DriverRuntime, type JsonObject, type Peer } from './runtime.js';
 
 const SDK_PACKAGE = '@anthropic-ai/claude-agent-sdk';
 const SDK_VERSION = '0.3.293';
@@ -25,11 +25,11 @@ interface PeerExit {
     error?: Error;
 }
 
-export function sdkPeer(runtime: DriverRuntime, peer: Peer = runtime.peer) {
+export function sdkPeer(runtime: DriverRuntime, peer: Peer = runtime.peer, onWrite?: (line: string) => void) {
     let stopped: Promise<PeerExit> | undefined;
     let child: ChildProcessByStdio<Writable, Readable, null> | undefined;
     return {
-        spawn({ signal }: SpawnOptions) {
+        spawn({ signal }: SpawnOptions): SpawnedProcess {
             if (child) {
                 throw new Error('official SDK attempted to launch the same peer twice');
             }
@@ -57,7 +57,28 @@ export function sdkPeer(runtime: DriverRuntime, peer: Peer = runtime.peer) {
                 });
                 processPeer.once('close', (exitCode, signal) => resolve({ exitCode, signal }));
             });
-            return processPeer;
+            if (!onWrite) {
+                return processPeer;
+            }
+            return {
+                stdin: observeInput(processPeer.stdin, onWrite),
+                stdout: processPeer.stdout,
+                get killed() { return processPeer.killed; },
+                get exitCode() { return processPeer.exitCode; },
+                get signalCode() { return processPeer.signalCode; },
+                kill: processPeer.kill.bind(processPeer),
+                on: processPeer.on.bind(processPeer),
+                once: processPeer.once.bind(processPeer),
+                off: processPeer.off.bind(processPeer),
+            };
+        },
+        abort() {
+            if (child?.exitCode === null && child.signalCode === null) {
+                child.kill('SIGTERM');
+            }
+        },
+        async settled() {
+            return stopped;
         },
         async wait() {
             if (!stopped) {
@@ -66,4 +87,37 @@ export function sdkPeer(runtime: DriverRuntime, peer: Peer = runtime.peer) {
             return stopped;
         },
     };
+}
+
+function observeInput(input: Writable, onWrite: (line: string) => void): Writable {
+    let pending = '';
+    const writer = new Writable({
+        decodeStrings: false,
+        write(chunk: string, encoding, afterWrite) {
+            input.write(chunk, encoding, error => {
+                if (!error) {
+                    const lines = (pending + chunk).split('\n');
+                    pending = lines.pop()!;
+                    for (const line of lines) {
+                        onWrite(line);
+                    }
+                }
+                afterWrite(error);
+            });
+        },
+        final(done) {
+            input.end(done);
+        },
+    });
+    input.on('error', error => writer.destroy(error));
+    return writer;
+}
+
+export async function getSettings(session: Query): Promise<JsonObject> {
+    // The pinned SDK implements this control, but omits it from Query's declarations.
+    const query = session as Query & { getSettings?: () => Promise<unknown> };
+    if (typeof query.getSettings !== 'function') {
+        throw new Error('installed Claude SDK does not expose getSettings');
+    }
+    return object(await query.getSettings());
 }
