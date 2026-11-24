@@ -18,8 +18,9 @@ use serde_json::{Value, json};
 use tokio::process::{Child, Command};
 use tokio::time::timeout;
 
-const CASE_ID: &str = "SDK-CASE-001";
-const STORY_ID: &str = "SDK-US-001";
+mod sandbox_permissions;
+
+const CONTINUATION_CASE: &str = "SDK-CASE-001";
 const REVISION: &str = include_str!("../upstream-revision");
 
 #[derive(Deserialize)]
@@ -69,8 +70,9 @@ struct Plan {
     project: PathBuf,
     model: String,
     initial_model: Option<String>,
-    prompts: [String; 2],
+    prompts: Vec<String>,
     cli_version: Option<String>,
+    scenario: Option<sandbox_permissions::Scenario>,
 }
 
 #[derive(Deserialize, PartialEq)]
@@ -115,7 +117,7 @@ impl Runtime {
         require_absolute("main agentResult", self.main_result()?)?;
         ensure!(
             self.agent_results.len() == 1,
-            "001 requires a single main connection"
+            "case requires a single main connection"
         );
         Ok(())
     }
@@ -197,6 +199,13 @@ fn write_json(path: &Path, value: &Value) -> Result<()> {
     Ok(())
 }
 
+fn record_receipt(report: &mut Value, receipt: Value) {
+    report["receipts"]
+        .as_array_mut()
+        .expect("initialized receipts")
+        .push(receipt);
+}
+
 async fn request<T: DeserializeOwned>(
     client: &RemoteAppServerClient,
     id: i64,
@@ -216,44 +225,63 @@ async fn request<T: DeserializeOwned>(
     Ok(decode_typed_response(method, response)?)
 }
 
-async fn exercise(
-    client: &mut RemoteAppServerClient,
-    plan: Plan,
+async fn open_thread(
+    client: &RemoteAppServerClient,
+    plan: &Plan,
     workspace: &Path,
-    report: &mut Value,
-) -> Result<()> {
-    let thread: Value = request(
-        client,
-        1,
-        "thread/start",
-        json!({
-            "cwd": workspace,
-            "model": plan.initial_model.as_deref().unwrap_or(&plan.model),
-            "sandbox": "workspace-write",
-            "approvalPolicy": "on-request",
-            "ephemeral": true,
-            "baseInstructions": "Complete the supplied synthetic task in the working directory. Be concise.",
-            "developerInstructions": "Complete the supplied task in the synthetic project.",
-        }),
-    )
-    .await?;
+) -> Result<(String, Value)> {
+    let sandbox = if plan.case_id == sandbox_permissions::CASE_ID {
+        "read-only"
+    } else {
+        "workspace-write"
+    };
+    let mut params = json!({
+        "cwd": workspace,
+        "sandbox": sandbox,
+        "approvalPolicy": "on-request",
+        "ephemeral": true,
+        "baseInstructions": "Complete the supplied synthetic task in the working directory. Be concise.",
+        "developerInstructions": "Complete the supplied task in the synthetic project.",
+    });
+    if !plan.model.is_empty() {
+        params["model"] = json!(plan.initial_model.as_deref().unwrap_or(&plan.model));
+    }
+    let thread: Value = request(client, 1, "thread/start", params).await?;
     let thread_id = thread["thread"]["id"]
         .as_str()
         .filter(|id| !id.is_empty())
-        .context("missing opened thread ID")?;
+        .context("missing opened thread ID")?
+        .to_owned();
+    Ok((thread_id, thread))
+}
+
+async fn start_turn(
+    client: &RemoteAppServerClient,
+    id: i64,
+    thread_id: &str,
+    prompt: &str,
+) -> Result<TurnStartResponse> {
+    request(
+        client,
+        id,
+        "turn/start",
+        json!({"threadId": thread_id, "input": [{"type": "text", "text": prompt}]}),
+    )
+    .await
+}
+
+async fn exercise_continuation(
+    client: &mut RemoteAppServerClient,
+    plan: &Plan,
+    thread_id: &str,
+    report: &mut Value,
+) -> Result<()> {
     let receipts = report["receipts"]
         .as_array_mut()
         .expect("initialized receipts");
-    receipts.push(json!({"thread/start": thread}));
     let mut last_turn = String::new();
     for (index, prompt) in plan.prompts.iter().enumerate() {
-        let accepted: TurnStartResponse = request(
-            client,
-            index as i64 + 2,
-            "turn/start",
-            json!({"threadId": thread_id, "input": [{"type": "text", "text": prompt}]}),
-        )
-        .await?;
+        let accepted = start_turn(client, index as i64 + 2, thread_id, prompt).await?;
         let turn_id = &accepted.turn.id;
         ensure!(
             !turn_id.is_empty() && turn_id != &last_turn,
@@ -313,13 +341,27 @@ async fn reap(child: &mut Child) -> Result<ExitStatus> {
     }
 }
 
-async fn run(runtime: &Runtime, plan: Plan, report: &mut Value) -> Result<()> {
+async fn exercise(
+    client: &mut RemoteAppServerClient,
+    plan: &Plan,
+    workspace: &Path,
+    report: &mut Value,
+) -> Result<()> {
+    let (thread_id, thread) = open_thread(client, plan, workspace).await?;
+    record_receipt(report, json!({"thread/start": thread}));
+    if plan.case_id == sandbox_permissions::CASE_ID {
+        sandbox_permissions::exercise(client, plan, workspace, &thread_id, report).await
+    } else {
+        exercise_continuation(client, plan, &thread_id, report).await
+    }
+}
+
+async fn run(runtime: &Runtime, plan: &Plan, report: &mut Value) -> Result<()> {
     let workspace = runtime
         .recorded_workspace
         .as_deref()
         .unwrap_or(&plan.project);
     require_absolute("protocol workspace", workspace)?;
-    let workspace = workspace.to_path_buf();
     let mut child = runtime.spawn_peer()?;
     let pid = child.id();
     let stdin = child.stdin.take().expect("piped stdin");
@@ -343,7 +385,7 @@ async fn run(runtime: &Runtime, plan: Plan, report: &mut Value) -> Result<()> {
     .await
     {
         Ok(mut client) => {
-            let result = exercise(&mut client, plan, &workspace, report).await;
+            let result = exercise(&mut client, plan, workspace, report).await;
             let shutdown = client.shutdown().await.context("close SDK connection");
             report["sdkClosed"] = json!(shutdown.is_ok());
             result.and(shutdown)
@@ -381,35 +423,43 @@ async fn main() -> Result<()> {
     let runtime: Runtime = read_json(&request.runtime)?;
     runtime.validate()?;
 
-    if request.case != CASE_ID {
-        write_json(
-            &runtime.output.join("result.json"),
-            &json!({"status": "unsupported", "message": "Rust candidate supports SDK-CASE-001"}),
-        )?;
-        return Ok(());
-    }
+    let (story_id, driver_profile, prompt_count) = match request.case.as_str() {
+        CONTINUATION_CASE => ("SDK-US-001", "continuation", 2),
+        sandbox_permissions::CASE_ID => ("SDK-US-003", "sandbox-permissions", 3),
+        _ => {
+            return write_json(
+                &runtime.output.join("result.json"),
+                &json!({"status": "unsupported", "message": "Rust candidate supports SDK-CASE-001 and SDK-CASE-041"}),
+            );
+        }
+    };
     let sdk = json!({
         "package": "codex-app-server-remote-client",
         "version": "0.0.0",
         "revision": REVISION.trim(),
     });
     let mut report = json!({
-        "provider": "codex", "storyId": STORY_ID, "caseId": CASE_ID, "officialSDK": sdk,
+        "provider": "codex", "storyId": story_id, "caseId": request.case, "officialSDK": sdk,
         "receipts": [], "inputs": 0, "results": 0,
     });
     let result = async {
         let plan: Plan = read_json(&request.materials.join("case.json"))?;
         ensure!(
             plan.case_id == request.case
-                && plan.story_id == STORY_ID
+                && plan.story_id == story_id
                 && plan.provider == "codex"
-                && plan.driver_profile == "continuation"
-                && !plan.model.is_empty()
+                && plan.driver_profile == driver_profile
+                && (plan.case_id != CONTINUATION_CASE || !plan.model.is_empty())
+                && plan.prompts.len() == prompt_count
                 && plan.prompts.iter().all(|p| !p.trim().is_empty()),
-            "invalid Codex 001 case projection"
+            "invalid Codex {} case projection",
+            request.case
         );
+        if plan.case_id == sandbox_permissions::CASE_ID {
+            sandbox_permissions::validate(&plan)?;
+        }
         report["cliVersion"] = json!(plan.cli_version);
-        run(&runtime, plan, &mut report).await
+        run(&runtime, &plan, &mut report).await
     }
     .await;
     let (status, capture, message) = match result {

@@ -23,7 +23,7 @@ printf '%s  %s\n' "$archive_sha" "$archive" | shasum -a 256 -c -
 tar -xzf "$archive" -C "$build_dir/upstream" --strip-components=1
 patch -d "$build_dir/upstream" -p1 < "$source_dir/stdio.patch"
 cp "$source_dir/Cargo.toml" "$source_dir/Cargo.lock" "$source_dir/upstream-revision" "$build_dir/"
-cp "$source_dir/src/main.rs" "$build_dir/src/"
+cp -R "$source_dir/src/." "$build_dir/src/"
 cargo +1.99.1 build --locked --manifest-path "$build_dir/Cargo.toml" --target-dir "$build_dir/target"
 install -d "$prefix/bin"
 install -m 755 "$build_dir/target/debug/agent-sdk-testify-codex" "$prefix/bin/agent-sdk-testify-codex"

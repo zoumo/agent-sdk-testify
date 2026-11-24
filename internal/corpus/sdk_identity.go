@@ -24,7 +24,7 @@ func OfficialExecutionSDKIdentity(provider, caseID string, outcome, report tool.
 		return false
 	}
 	if sdk["package"] == "codex-app-server-remote-client" {
-		return present && provider == "codex" && caseID == "SDK-CASE-001" &&
+		return present && provider == "codex" && (caseID == "SDK-CASE-001" || caseID == "SDK-CASE-041") &&
 			len(sdk) == 3 && sdk["version"] == "0.0.0" &&
 			sdk["revision"] == "108730843ae4303ae79e9b6b936343f0b7c483bb"
 	}

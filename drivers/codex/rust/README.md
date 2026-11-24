@@ -1,6 +1,6 @@
-# Codex Rust 001 候选入口
+# Codex Rust 候选入口
 
-候选实现 `SDK-CASE-001`。使用 Rust 1.99.1 和锁定的
+候选实现 `SDK-CASE-001` 和 `SDK-CASE-041`。使用 Rust 1.99.1 和锁定的
 `codex-app-server-remote-client` 0.0.0。解包固定提交后，`stdio.patch` 为上游
 client 增加子进程管道接入。上游 client 管理握手、请求关联、事件、服务端请求和
 关闭。driver 启动并等待 Testify 提供的 launcher。
@@ -25,5 +25,6 @@ agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
 agent-sdk-testify official verify --fixture-dir /tmp/testify-rust-001 --timeout 45s
 ```
 
-已采用的 001 材料保存了 Python client 的 `initialize` 帧。Rust client 的
-握手字段不同，该验证在严格匹配的第一帧失败。
+已采用的 001 和 041 材料保存了 Python client 的 `initialize` 帧。Rust client
+的握手字段不同，严格回放在第一帧失败。041 按原生请求 ID 应答，只允许 case
+指定目录的写权限，并分别核对本轮、会话和拒绝三种决定的处理结果。
