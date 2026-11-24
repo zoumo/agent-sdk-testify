@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/023-a4/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/glm-5.3"
+    ],
+    "cwd": "/private/tmp/tq04.C2PTPG/fixtures/023-a4/runtime/executions/ee99fa8640afae51323c9ea2c808baae/workspace",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "files": {
+    "raw.jsonl": "8b509896ba86ba75c1d3324df4d70a0e8f41f1c2bd7d3cf8fd3643dbdc0c3952",
+    "stderr.raw": "5f66c4a02d246a4121f8961968a6e4b23d3afae2caca4de368469c0b7bd3a35d",
+    "transport.json": "6a10543af1ba726d8194ce66521ace0b6c6722c76cf0759ffe701d8ab64af957"
+  }
+}

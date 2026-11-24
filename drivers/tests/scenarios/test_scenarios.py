@@ -1,7 +1,5 @@
 """Offline branch/order tests; native SDK substitutes never launch a process."""
-import asyncio
 from copy import deepcopy
-from dataclasses import dataclass
 import json
 from pathlib import Path
 import tempfile
@@ -13,7 +11,6 @@ from support import BOOTSTRAP
 from record_user_story.scenarios import Flow, Untriggered, recipe as native_recipe, digest, validate_recipe, scenario_directory, select_story_groups, case_recipes
 from record_user_story.drivers import run
 from codex_driver.adapter import codex
-from claude_driver.adapter import claude
 from record_user_story.environment import private_json, verify_recording
 
 
@@ -167,35 +164,6 @@ class ScenarioTests(unittest.TestCase):
         self.assertEqual(definition['requiredRequests'], ['approval_answer'])
         self.assertEqual(len(definition['prompts']), 1)
         self.assertIn('denied.txt', definition['prompts'][0])
-
-    def test_claude_denied_write_case_never_needs_an_allowed_write(self):
-        @dataclass
-        class ResultMessage:
-            is_error: bool = False
-        class Client:
-            def __init__(self, options, **_): self.permission = options['can_use_tool']
-            async def __aenter__(self): return self
-            async def __aexit__(self, *_): pass
-            async def query(self, _): pass
-            async def receive_response(self):
-                decision = await self.permission('Write', {'file_path': 'denied.txt', 'content': 'denied\n'}, None)
-                self_test.assertEqual(decision['message'], 'Synthetic denial; do not retry')
-                yield ResultMessage()
-        self_test = self
-        sdk = ModuleType('claude_agent_sdk')
-        sdk.ClaudeSDKClient = Client
-        sdk.ClaudeAgentOptions = lambda **kw: kw
-        sdk.Transport = object
-        sdk.PermissionResultAllow = sdk.PermissionResultDeny = lambda **kw: kw
-        sdk.ResultMessage = ResultMessage
-        definition = recipe('claude', 'approval')
-        flow, saved = Flow(definition), report()
-        with patch.dict('sys.modules', {'claude_agent_sdk': sdk}):
-            asyncio.run(claude(dict(definition, project='/unused', model='fixture'), saved, flow))
-        flow.finish()
-        self.assertEqual(saved['requests'], 1)
-        self.assertEqual(saved['inputs'], 1)
-        self.assertEqual(saved['results'], 1)
 
     def test_configuration_changes_inputs_and_workflow_without_python_changes(self):
         import shutil
@@ -427,107 +395,6 @@ class ScenarioTests(unittest.TestCase):
                     self.assertLess(actions.index('submit-2'), actions.index('turn/completed-1'))
                 if number == 'interrupt' and progress:
                     self.assertEqual(actions.count('interrupt'), 1)
-
-    def test_claude_interrupt_result_requires_acknowledged_cancellation(self):
-        cases = [
-            ('stream-aborted', 'interrupt', True, True, 'error_during_execution', 'aborted_streaming', None, False),
-            ('tools-aborted', 'interrupt', True, True, 'error_during_execution', 'aborted_tools', None, False),
-            ('no-progress', 'interrupt', False, True, 'error_during_execution', 'aborted_streaming', None, True),
-            ('interrupt-rejected', 'interrupt', True, False, 'error_during_execution', 'aborted_streaming', None, True),
-            ('ordinary-task', 'continuation', True, True, 'error_during_execution', 'aborted_streaming', None, True),
-            ('unrelated-error', 'interrupt', True, True, 'error_during_execution', 'completed', None, True),
-            ('missing-reason', 'interrupt', True, True, 'error_during_execution', None, None, True),
-            ('wrong-subtype', 'interrupt', True, True, 'error_max_turns', 'aborted_streaming', None, True),
-            ('api-error', 'interrupt', True, True, 'error_during_execution', 'aborted_streaming', 500, True),
-        ]
-        for name, number, progress, accepted, result_subtype, reason, api_status, fails in cases:
-            with self.subTest(name=name):
-                @dataclass
-                class ResultMessage:
-                    is_error: bool = True
-                    terminal_reason: str = reason
-                    subtype: str = result_subtype
-                    api_error_status: int = api_status
-                class StreamEvent: pass
-                class Client:
-                    def __init__(self, **_): pass
-                    async def __aenter__(self): return self
-                    async def __aexit__(self, *_): pass
-                    async def query(self, _): pass
-                    async def interrupt(self):
-                        if not accepted:
-                            raise ValueError('interrupt rejected')
-                    async def receive_response(self):
-                        if progress:
-                            yield StreamEvent()
-                        yield ResultMessage()
-                sdk = ModuleType('claude_agent_sdk')
-                sdk.ClaudeSDKClient = Client
-                sdk.ClaudeAgentOptions = lambda **kw: kw
-                sdk.Transport = object
-                sdk.PermissionResultAllow = sdk.PermissionResultDeny = lambda **kw: kw
-                sdk.ResultMessage = ResultMessage
-                definition = recipe('claude', number)
-                flow, saved = Flow(definition), report()
-                with patch.dict('sys.modules', {'claude_agent_sdk': sdk}):
-                    call = claude(dict(definition, project='/unused', model='fixture'), saved, flow)
-                    if fails:
-                        with self.assertRaises(ValueError):
-                            asyncio.run(call)
-                    else:
-                        asyncio.run(call)
-                        flow.finish()
-                        self.assertEqual(saved['results'], 1)
-                        self.assertTrue(saved['receipts'][-2]['result']['is_error'])
-                        self.assertEqual(saved['receipts'][-1], {'interrupted-result': {'terminalReason': reason}})
-
-    def test_claude_native_adapter_uses_barrier_once(self):
-        for number, progress in [('continuation', True), ('active-input', True), ('active-input', False), ('interrupt', True), ('interrupt', False)]:
-            with self.subTest(number=number, progress=progress):
-                actions = []
-                launch_cwds = []
-                @dataclass
-                class ResultMessage:
-                    is_error: bool = False
-                    session_id: str = 'root'
-                class StreamEvent: pass
-                class Client:
-                    def __init__(self, **kwargs): launch_cwds.append(kwargs['options']['cwd'])
-                    async def __aenter__(self): return self
-                    async def __aexit__(self, *_): actions.append('closed')
-                    async def query(self, _): actions.append('submit')
-                    async def receive_messages(self):
-                        yield {'subtype': 'session_state_changed', 'state': 'idle', 'session_id': 'root'}
-                    async def interrupt(self): actions.append('interrupt')
-                    async def receive_response(self):
-                        if progress:
-                            actions.append('progress')
-                            yield StreamEvent()
-                        actions.append('result')
-                        yield ResultMessage()
-                sdk = ModuleType('claude_agent_sdk')
-                sdk.ClaudeSDKClient = Client
-                sdk.ClaudeAgentOptions = lambda **kw: kw
-                sdk.Transport = object
-                sdk.PermissionResultAllow = sdk.PermissionResultDeny = lambda **kw: kw
-                sdk.ResultMessage = ResultMessage
-                definition = recipe('claude', number)
-                flow = Flow(definition)
-                with patch.dict('sys.modules', {'claude_agent_sdk': sdk}):
-                    asyncio.run(claude(dict(definition, project='/unused', _fixtureProject='/runtime-project', model='fixture'), report(), flow))
-                self.assertEqual(['/runtime-project'], launch_cwds)
-                if not progress and number in ('active-input', 'interrupt'):
-                    with self.assertRaises(Untriggered): flow.finish()
-                    self.assertEqual(actions.count('submit'), 1)
-                else:
-                    flow.finish()
-                if number == 'continuation':
-                    self.assertEqual(actions, ['submit', 'progress', 'result', 'submit', 'progress', 'result', 'closed'])
-                if number == 'active-input' and progress:
-                    self.assertEqual(actions[:4], ['submit', 'progress', 'submit', 'result'])
-                if number == 'interrupt' and progress:
-                    self.assertEqual(actions.count('interrupt'), 1)
-
 
 if __name__ == '__main__':
     unittest.main()

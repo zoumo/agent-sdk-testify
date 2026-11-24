@@ -1,0 +1,59 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-018-b7-runtime-executions-1991aabbf6eab41416775872651a9c61-workspace/f4adda9b-1fd7-4261-8f55-987bda38817b/subagents/agent-a6bcde7c67b7beaa2.meta.json": "2ce478ba467e4355084c8430e182936082bad74b9986529696da2ab27c5c978a",
+    "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-018-b7-runtime-executions-1991aabbf6eab41416775872651a9c61-workspace/f4adda9b-1fd7-4261-8f55-987bda38817b/subagents/agent-afd7bb74c01489100.meta.json": "d967529c092122a7ba42898cb169b7e701ad78e9151527bddf9bbe00a3475bc8",
+    "official-origin.json": "3144d0f42b363b86e71418ea00ebe8d7baef3112585ad3bc6c5448104132dd84",
+    "origin/main.json": "36b0f7cc927147be141e04a785fe033ecfa96ca784fffead47184f456641093b",
+    "plan.json": "2eb0e1407320bcd4ade4c209cb3fac29fa93cf3089162bb94e4b8a8832003188",
+    "raw/manifest.json": "d49d921a59297c298cf838d339a720ec8a60fc7a1102f0b5dad63c7899f0e774",
+    "raw/raw.jsonl": "f8cdb0dfb09a3a80766421a34d0ac02c7ef0fbedd7da0d5608b7fdd86901fd1a",
+    "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+    "raw/transport.json": "4f1392e75428bd1178aa854bbeddc6fe7e4e459923f877e8e95f382b70e370c7",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "cf105dd803bc95332597d1328cfe2409cc6000250c160b2eb43608691d6176b0"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/018-b7/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--forward-subagent-text",
+      "--append-system-prompt",
+      "Issue both Agent calls in one response with run_in_background set explicitly to false. In each child prompt, ask for the answer and its marker in ordinary assistant text before any handback.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/private/tmp/tq04.C2PTPG/fixtures/018-b7/runtime/executions/1991aabbf6eab41416775872651a9c61/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "2eb0e1407320bcd4ade4c209cb3fac29fa93cf3089162bb94e4b8a8832003188",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "4f1392e75428bd1178aa854bbeddc6fe7e4e459923f877e8e95f382b70e370c7",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "cf105dd803bc95332597d1328cfe2409cc6000250c160b2eb43608691d6176b0",
+  "status": "captured"
+}

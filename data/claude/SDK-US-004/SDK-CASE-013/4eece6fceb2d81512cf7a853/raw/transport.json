@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "captureStatus": "complete",
+  "reason": "EOF",
+  "frames": 69,
+  "protocolBytes": 27904,
+  "stderrBytes": 100,
+  "milliseconds": 3966,
+  "nativeLaunched": true,
+  "nativeExitCode": 0,
+  "clientEOF": true,
+  "stdinEOFAction": "close",
+  "reaped": true,
+  "cleanupComplete": true
+}

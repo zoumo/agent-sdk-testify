@@ -41,7 +41,9 @@ def main():
         files.append({'path':name,'sha256':digest(output/name),'binarySHA256':digest(binary),'target':target})
         binary.unlink(); directory.rmdir()
     run(os.environ.get('PYTHON','python3'),'-m','pip','wheel','--no-deps','--no-build-isolation','--wheel-dir',str(output),str(ROOT/'drivers'),env=environment)
-    for wheel in sorted(output.glob('*.whl')): files.append({'path':wheel.name,'sha256':digest(wheel)})
+    run('bash', 'scripts/build-claude-driver.sh', str(output), env=environment)
+    for package in sorted([*output.glob('*.whl'), *output.glob('*.tgz')]):
+        files.append({'path':package.name,'sha256':digest(package)})
     manifest={'schemaVersion':1,'toolVersion':version,'sourceRevision':revision,'sourceModified':bool(run('git','status','--porcelain')),'bundleSourceRevision':bundle['sourceRevision'],'bundleManifestSHA256':digest(ROOT/'data/builtin/manifest.json'),'bundleArchiveSHA256':bundle['archiveSHA256'],'materials':len(bundle['materials']),'coverage':len(bundle['coverage']),'goVersion':run('go','env','GOVERSION'),'publication':'Git tag release; SDK release pin not updated','files':files}
     (output/'manifest.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
     checks=sorted([*files,{'path':'manifest.json','sha256':digest(output/'manifest.json')}],key=lambda x:x['path'])

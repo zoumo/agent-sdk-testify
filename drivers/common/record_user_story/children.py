@@ -1,16 +1,15 @@
 """Official SDK execution of the explicitly authorized single synthetic child case."""
-import asyncio
 import json
 from pathlib import Path
 import sys
 import threading
 from contextlib import contextmanager
 
-from .child_policy import CHILD_FILE, CHILD_ROLE, CHILD_TEXT, child_task, role_file
+from .child_policy import CHILD_FILE, role_file
 from .adapters.common import proxy_command, serial
 from .environment import read_regular
 from .policy import driver_profile
-from .runtime_config import execution_workspace, protocol_project
+from .runtime_config import execution_workspace
 
 
 def limitation(report, message):
@@ -210,180 +209,3 @@ def assess_codex_background_order(plan, report, root_id, root_turn, tool_turns):
                     reads.add((caller, child_turn))
     if not reads or reads != {(child, turn) for child, turns in tool_turns.items() for turn in turns}:
         report['gaps'].append('native post-root fixture read wire evidence is absent')
-
-
-async def claude(plan, report):
-    from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions, AgentDefinition, Transport, PermissionResultAllow, PermissionResultDeny, ResultMessage
-    limitations(report)
-    used = set()
-    agent_tool_id = None
-    child_completed = False
-    child_tasks = {}
-    events = []
-    read_requests = {}
-    background = driver_profile(plan) == 'background-children'
-    strict = plan.get('scenario', {}).get('parameters', {}).get('backgroundReadBarrier') is True
-    root_session = None
-    root_released = asyncio.Event()
-    aborted = False
-    read_pending = False
-
-    class RawTransport(Transport):
-        def __init__(self): self.proc = None
-        async def connect(self):
-            self.proc = await asyncio.create_subprocess_exec(*proxy_command(plan), stdin=asyncio.subprocess.PIPE,
-                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
-        async def write(self, data):
-            self.proc.stdin.write(data.encode()); await self.proc.stdin.drain()
-        async def read_messages(self):
-            from .stream import json_messages
-            async for message in json_messages(self.proc.stdout):
-                yield message
-        async def end_input(self):
-            if self.proc and self.proc.stdin: self.proc.stdin.close()
-        def is_ready(self): return self.proc is not None and self.proc.returncode is None
-        async def close(self):
-            await self.end_input()
-            if self.proc and self.proc.returncode is None:
-                try: await asyncio.wait_for(self.proc.wait(),5)
-                except asyncio.TimeoutError:
-                    self.proc.terminate(); await asyncio.wait_for(self.proc.wait(),5)
-
-    async def permission(tool, values, context):
-        nonlocal agent_tool_id, read_pending
-        report['requests'] += 1
-        if strict:
-            allowed_agent = (tool == 'Agent' and not getattr(context, 'agent_id', None) and not agent_tool_id
-                             and getattr(context, 'tool_use_id', None)
-                             and values.get('subagent_type') == CHILD_ROLE and values.get('run_in_background') is True
-                             and values.get('prompt') == child_task('claude', strict=True))
-            path = values.get('file_path')
-            recorded_project = protocol_project(plan)
-            allowed_read = (tool == 'Read' and getattr(context, 'agent_id', None)
-                            and getattr(context, 'tool_use_id', None) and agent_tool_id
-                            and isinstance(path, str)
-                            and (recorded_project / path).resolve() == (recorded_project / CHILD_FILE).resolve()
-                            and not read_requests and not read_pending)
-            if not allowed_agent and not allowed_read:
-                report['gaps'].append('unauthorized or repeated child tool request: ' + tool)
-                return PermissionResultDeny(message='Only one fixture_reader child and its fixture Read are authorized.')
-            if allowed_read:
-                read_pending = True
-                try:
-                    await asyncio.wait_for(root_released.wait(), 60)
-                except asyncio.TimeoutError:
-                    report['gaps'].append('root result did not release the child Read')
-                    return PermissionResultDeny(message='Root completion barrier timed out.')
-                if aborted:
-                    return PermissionResultDeny(message='Root execution ended without successful completion.')
-        if tool == 'Agent' and getattr(context, 'agent_id', None) is None:
-            used.add('Agent')
-            agent_tool_id = context.tool_use_id
-            report['receipts'].append({'allow-Agent': {'toolUseId': context.tool_use_id}})
-        if tool == 'Read' and getattr(context, 'agent_id', None):
-            used.add('Read')
-            read_requests[context.tool_use_id] = context.agent_id
-            report['receipts'].append({'allow-child-Read': {'toolUseId': context.tool_use_id, 'nativeAgentId': context.agent_id}})
-        return PermissionResultAllow(updated_input=values)
-
-    def observe(event):
-        nonlocal root_session
-        report['events'] += 1
-        kind, native = type(event).__name__, serial(event)
-        events.append({'kind': kind, 'native': native})
-        report['receipts'].append({'native-child/event': {'kind': kind, 'native': native}})
-        if (kind == 'TaskStartedMessage' or native.get('subtype') == 'task_started') and native.get('tool_use_id') == agent_tool_id:
-            if agent_tool_id and native.get('task_id') and native.get('session_id'):
-                child_tasks[native['task_id']] = native['session_id']
-                if root_session is not None and root_session != native['session_id']:
-                    raise ValueError('native child task changed root session')
-                root_session = native['session_id']
-        if kind == 'TaskNotificationMessage' or native.get('subtype') == 'task_notification':
-            if (agent_tool_id and native.get('tool_use_id') == agent_tool_id
-                    and native.get('task_id') in child_tasks
-                    and native.get('session_id') == child_tasks[native['task_id']]):
-                if native.get('status') == 'failed':
-                    raise RuntimeError('native child task failed')
-                return native.get('status') == 'completed'
-        return False
-
-    definition = AgentDefinition(description='Read the synthetic child-fixture.txt and return its token.',
-                 prompt=(child_task('claude', strict=strict)
-                         + ' Before completing the child task, send the read result in an assistant text message.'
-                         + ' Do not provide the result only as a tool-call argument.'),
-                 background=background, model='inherit',
-                 **({'tools': ['Read']} if strict else {}))
-    options = ClaudeAgentOptions(cwd=str(execution_workspace(plan)), can_use_tool=permission,
-               agents={CHILD_ROLE: definition}, include_partial_messages=True)
-    async with ClaudeSDKClient(options=options, transport=RawTransport()) as client:
-        try:
-            await client.query(plan['prompts'][0]); report['inputs'] += 1
-            async for event in client.receive_response():
-                child_completed = observe(event) or child_completed
-                if isinstance(event,ResultMessage):
-                    report['results'] += 1; report['receipts'].append({'root/result':serial(event)})
-                    if event.is_error: raise ValueError('native root child-case result is_error')
-                    if strict:
-                        native = serial(event)
-                        if not root_session or native.get('session_id') != root_session or native.get('parent_tool_use_id'):
-                            raise ValueError('native root result has no matching child task session')
-                        root_released.set()
-            if background and agent_tool_id and not child_completed:
-                async def observe_background():
-                    async for event in client.receive_messages():
-                        if observe(event):
-                            report['receipts'].append({'post-root-native-task':serial(event)})
-                            return True
-                if not await observe_background():
-                    report['gaps'].append('no native post-root child completion observed')
-            elif background:
-                report['gaps'].append('native child did not complete after the root result')
-        finally:
-            aborted = True
-            root_released.set()
-    if 'Agent' not in used: report['gaps'].append('no authorized root Agent permission request observed; child creation is not inferred')
-    if 'Read' not in used: report['gaps'].append('no authorized child Read permission observed; no fixed-file read was fabricated')
-    assess_claude_child(report, events, agent_tool_id, read_requests, background)
-
-
-def assess_claude_child(report, events, parent_tool_id, read_requests, background):
-    """Relate native task, tool request, output and completion without ID aliases."""
-    root = next((item['root/result'].get('session_id') for item in report['receipts'] if 'root/result' in item), None)
-    starts = [(index, event['native']) for index, event in enumerate(events)
-              if (event['kind'] == 'TaskStartedMessage' or event['native'].get('subtype') == 'task_started')
-              and parent_tool_id and event['native'].get('tool_use_id') == parent_tool_id
-              and root and event['native'].get('session_id') == root and event['native'].get('task_id')]
-    if len({native['task_id'] for _, native in starts}) != 1:
-        report['gaps'].append('native child task identity and parent request association are not established')
-        return
-    started, task = starts[0]
-    finished, output, agents = None, [], set()
-    root_result = None
-    for index, event in enumerate(events):
-        kind, native = event['kind'], event['native']
-        if kind == 'ResultMessage' and native.get('session_id') == root and root_result is None:
-            root_result = index
-        if index <= started or native.get('session_id') != root:
-            continue
-        if kind == 'AssistantMessage' and native.get('parent_tool_use_id') == parent_tool_id:
-            for block in native.get('content', []):
-                if block.get('name') == 'Read' and block.get('id') in read_requests:
-                    agents.add(read_requests[block['id']])
-                if block.get('type', 'text') == 'text' and block.get('text'):
-                    output.append(index)
-        if ((kind == 'TaskNotificationMessage' or native.get('subtype') == 'task_notification')
-                and native.get('tool_use_id') == parent_tool_id and native.get('task_id') == task['task_id']
-                and native.get('status') == 'completed'):
-            finished = index
-    if not agents:
-        report['gaps'].append('native child Read identity has no correlated parent tool-use context')
-    if finished is None:
-        report['gaps'].append('native child task completion is not established')
-    if not any(finished is not None and index < finished for index in output):
-        report['gaps'].append('native child output before its completion is not established')
-    if background and (root_result is None or finished is None or finished <= root_result):
-        report['gaps'].append('native post-root child completion is not established')
-    if not report['gaps']:
-        report['childEvidence'] = {'sessionId': root, 'parentToolUseId': parent_tool_id,
-                                  'taskId': task['task_id'], 'agentIds': sorted(agents),
-                                  'outputObserved': True, 'completed': True}

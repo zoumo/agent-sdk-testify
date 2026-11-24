@@ -1,6 +1,4 @@
 """Child driver regressions with synthetic SDK dispatch, never real agents."""
-import asyncio
-from dataclasses import dataclass
 import json
 from pathlib import Path
 import tempfile
@@ -11,9 +9,8 @@ from unittest.mock import patch
 
 from support import BOOTSTRAP
 from record_user_story import children
-from record_user_story.child_policy import CHILD_FILE, CHILD_TEXT, child_task
+from record_user_story.child_policy import CHILD_FILE, CHILD_TEXT
 from record_user_story.scenarios import case_recipes
-from record_user_story.runtime_config import apply_runtime
 from test_runtime_config import runtime
 from test_scenarios import Value
 
@@ -134,113 +131,3 @@ class CodexChildTests(unittest.TestCase):
                         else:
                             self.assertTrue(result['gaps'])
                 self.assertFalse(marker.exists())
-
-
-class ClaudeChildTests(unittest.TestCase):
-    def test_background_barrier_identity_policy_and_failure_cleanup(self):
-        @dataclass
-        class ResultMessage:
-            session_id: str = 'root'
-            is_error: bool = False
-        @dataclass
-        class TaskStartedMessage:
-            tool_use_id: str = 'agent-call'
-            task_id: str = 'child-task'
-            session_id: str = 'root'
-        @dataclass
-        class AssistantMessage:
-            content: list
-            parent_tool_use_id: str = 'agent-call'
-            session_id: str = 'root'
-        @dataclass
-        class TaskNotificationMessage:
-            tool_use_id: str = 'agent-call'
-            task_id: str = 'child-task'
-            session_id: str = 'root'
-            status: str = 'completed'
-        for mode in ('success', 'replay-workspace', 'replay-wrong-path', 'early-completion', 'wrong-root', 'root-error', 'cancel',
-                     'wrong-path', 'root-read', 'other-tool', 'duplicate', 'child-error'):
-            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
-                current, result, test, answers = plan('claude', tmp), report(), self, []
-                if mode in ('replay-workspace', 'replay-wrong-path'):
-                    config = Path(tmp) / 'runtime.json'
-                    config.write_text(json.dumps(runtime(Path(tmp), recordedWorkspace='/recorded/native-workspace')))
-                    apply_runtime(current, {'runtime': str(config)})
-                class Client:
-                    def __init__(self, options, **_):
-                        self.permission = options.can_use_tool
-                        test.assertEqual(options.agents['fixture_reader'].tools, ['Read'])
-                    async def __aenter__(self): return self
-                    async def __aexit__(self, *_):
-                        answers.append(await asyncio.wait_for(self.pending, 1))
-                    async def query(self, _):
-                        await self.permission('Agent', dict(subagent_type='fixture_reader', run_in_background=True,
-                                              prompt=child_task('claude', strict=True)),
-                                              Value(tool_use_id='agent-call', agent_id=None))
-                    async def receive_response(self):
-                        yield TaskStartedMessage()
-                        if mode == 'replay-wrong-path':
-                            invalid = await self.permission('Read',
-                                {'file_path': '/unrelated/native-workspace/' + CHILD_FILE},
-                                Value(tool_use_id='invalid-read', agent_id='child-agent'))
-                            test.assertEqual(invalid['behavior'], 'deny')
-                        if mode in ('wrong-path', 'root-read', 'other-tool'):
-                            invalid = await self.permission('Bash' if mode == 'other-tool' else 'Read',
-                                {'file_path': '../other' if mode == 'wrong-path' else CHILD_FILE},
-                                Value(tool_use_id='invalid-read', agent_id=None if mode == 'root-read' else 'child-agent'))
-                            test.assertEqual(invalid['behavior'], 'deny')
-                        path = '/recorded/native-workspace/' + CHILD_FILE if mode.startswith('replay-') else CHILD_FILE
-                        self.pending = asyncio.create_task(self.permission('Read', {'file_path': path},
-                                               Value(tool_use_id='child-read', agent_id='child-agent')))
-                        await asyncio.sleep(0)
-                        test.assertFalse(self.pending.done())
-                        test.assertFalse(any('allow-child-Read' in r for r in result['receipts']))
-                        if mode == 'duplicate':
-                            invalid = await self.permission('Read', {'file_path': CHILD_FILE},
-                                                    Value(tool_use_id='other-read', agent_id='child-agent'))
-                            test.assertEqual(invalid['behavior'], 'deny')
-                        if mode == 'early-completion':
-                            yield TaskNotificationMessage()
-                        if mode == 'child-error':
-                            yield TaskNotificationMessage(status='failed')
-                        if mode == 'cancel':
-                            raise asyncio.CancelledError()
-                        yield ResultMessage(session_id='other' if mode == 'wrong-root' else 'root',
-                                            is_error=mode == 'root-error')
-                    async def receive_messages(self):
-                        await self.pending
-                        yield AssistantMessage([{'type': 'tool_use', 'name': 'Read', 'id': 'child-read'}])
-                        yield AssistantMessage([{'type': 'text', 'text': CHILD_TEXT}])
-                        yield TaskNotificationMessage()
-                sdk = ModuleType('claude_agent_sdk')
-                sdk.ClaudeSDKClient, sdk.ClaudeAgentOptions, sdk.AgentDefinition = Client, SimpleNamespace, SimpleNamespace
-                sdk.Transport, sdk.ResultMessage = object, ResultMessage
-                sdk.PermissionResultAllow = lambda **kw: dict(behavior='allow', **kw)
-                sdk.PermissionResultDeny = lambda **kw: dict(behavior='deny', **kw)
-                with patch.dict('sys.modules', {'claude_agent_sdk': sdk}):
-                    if mode in ('wrong-root', 'root-error', 'child-error', 'cancel'):
-                        with self.assertRaises((ValueError, RuntimeError, asyncio.CancelledError)):
-                            asyncio.run(children.claude(current, result))
-                        self.assertEqual(answers[0]['behavior'], 'deny')
-                    else:
-                        asyncio.run(children.claude(current, result))
-                        if mode in ('success', 'replay-workspace'):
-                            self.assertEqual(result['gaps'], [])
-                            self.assertTrue(result['childEvidence'])
-                        else:
-                            self.assertTrue(result['gaps'])
-                        self.assertEqual(answers[0]['behavior'], 'allow' if mode != 'early-completion' else 'deny')
-
-    def test_first_root_result_defines_background_boundary(self):
-        result = report()
-        result['receipts'] = [{'root/result': {'session_id': 'root'}}]
-        events = [
-            {'kind': 'TaskStartedMessage', 'native': dict(session_id='root', tool_use_id='agent', task_id='child')},
-            {'kind': 'ResultMessage', 'native': dict(session_id='root')},
-            {'kind': 'AssistantMessage', 'native': dict(session_id='root', parent_tool_use_id='agent', content=[
-                {'name': 'Read', 'id': 'read'}, {'type': 'text', 'text': CHILD_TEXT}])},
-            {'kind': 'TaskNotificationMessage', 'native': dict(session_id='root', tool_use_id='agent', task_id='child', status='completed')},
-            {'kind': 'ResultMessage', 'native': dict(session_id='root')},
-        ]
-        children.assess_claude_child(result, events, 'agent', {'read': 'native-child'}, True)
-        self.assertEqual(result['gaps'], [])

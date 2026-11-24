@@ -136,3 +136,47 @@ func TestPackageQualificationRejectsMissingMaterialDescriptor(t *testing.T) {
 	_, err = VerifyAdoptedFiles(root)
 	require.ErrorContains(t, err, "material descriptor")
 }
+
+func TestPackageBusinessPreservesClaudeCaptureAndDriverSDKIdentities(t *testing.T) {
+	for _, tc := range []struct {
+		name, kind, pkg, version string
+		resultHasSDK, valid      bool
+	}{
+		{"legacy capture", "record", "claude-agent-sdk", "0.2.174", false, true},
+		{"TS capture", "record", claudeTypeScriptSDK, "0.3.293", true, true},
+		{"TS verification", "verify", claudeTypeScriptSDK, "0.3.293", true, true},
+		{"missing TS result identity", "verify", claudeTypeScriptSDK, "0.3.293", false, false},
+		{"unknown SDK capture", "record", "another-sdk", "0.3.293", true, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			material := filepath.Join(root, "material")
+			domain := filepath.Join(root, tc.kind, "attempt")
+			require.NoError(t, os.MkdirAll(material, 0o700))
+			require.NoError(t, os.MkdirAll(domain, 0o700))
+			plan := tool.Object{"provider": "claude", "caseId": "SDK-CASE-037", "storyId": "SDK-US-001"}
+			require.NoError(t, tool.WriteJSON(filepath.Join(material, "plan.json"), plan))
+			sdk := tool.Object{"package": tc.pkg, "version": tc.version}
+			report := tool.Object{
+				"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"],
+				"status": "passed", "branchStatus": "passed", "captureStatus": "complete", "officialSDK": sdk,
+			}
+			outcome := tool.Object{"status": "passed"}
+			if tc.resultHasSDK {
+				outcome["sdk"] = sdk
+			}
+			reportFile := "report.json"
+			if tc.kind == "verify" {
+				reportFile = "replay-report.json"
+			}
+			require.NoError(t, tool.WriteJSON(filepath.Join(domain, reportFile), report))
+			require.NoError(t, tool.WriteJSON(filepath.Join(domain, "driver-result.json"), outcome))
+			err := validatePackageBusiness(root, tc.kind, "attempt")
+			if tc.valid {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, "official SDK business evidence")
+			}
+		})
+	}
+}
