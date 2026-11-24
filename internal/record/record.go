@@ -210,7 +210,7 @@ func packageNative(run lifecycle.RecordContext) (*corpus.Material, error) {
 	if provenance == "official" {
 		provenance = "capture"
 	}
-	manifest, err := writeCaptureManifest(run.ArtifactRoot(), execution.RuntimeEnv, provenance, nil)
+	manifest, err := writeCaptureManifest(run.ArtifactRoot(), fixture.AgentType, execution.Config, execution.RuntimeEnv, provenance, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func captureArtifact(run lifecycle.RecordContext, execution lifecycle.Execution)
 	return &artifact, nil
 }
 
-func writeCaptureManifest(root string, env map[string]string, provenance string, captureErr error) (map[string]any, error) {
+func writeCaptureManifest(root, provider, config string, env map[string]string, provenance string, captureErr error) (map[string]any, error) {
 	files := map[string]any{}
 	entries, err := os.ReadDir(filepath.Join(root, "raw"))
 	if err != nil {
@@ -373,7 +373,13 @@ func writeCaptureManifest(root string, env map[string]string, provenance string,
 	if err := tool.ReadJSON(filepath.Join(root, "raw", "manifest.json"), &rawManifest); err != nil {
 		return nil, err
 	}
-	scan, scanErr := corpus.ScanCaptureCredentialsWithEnvironment(root, env)
+	scanCredentials := corpus.ScanCaptureCredentialsWithEnvironment
+	if provider == "pi" {
+		scanCredentials = func(root string, env map[string]string) (string, error) {
+			return corpus.ScanPiCaptureCredentials(root, config, env)
+		}
+	}
+	scan, scanErr := scanCredentials(root, env)
 	if scanErr != nil {
 		return nil, scanErr
 	}

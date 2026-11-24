@@ -60,6 +60,9 @@ func prepareHistorySeed(source, root string, plan tool.Object) error {
 		}
 	}
 	provider := tool.Str(plan["provider"])
+	if provider == "pi" {
+		return errors.New("pi does not provide saved child-agent history seeds")
+	}
 	if previous["provider"] != provider || previous["driverProfile"] != "history" || tool.Obj(tool.Obj(previous["scenario"])["parameters"])["historyTarget"] != "child-messages" || report["status"] != "passed" {
 		return errors.New("seed must be a completed, passed child-history capture for this Agent")
 	}

@@ -63,7 +63,7 @@ func ValidateChildSetup(root string, plan tool.Object) error {
 		if err != nil {
 			return err
 		}
-		identity, err := history.Identify(binding.NativeTarget, data, binding.Project)
+		identity, err := history.Identify(tool.Str(plan["provider"]), binding.NativeTarget, data, binding.Project)
 		if err != nil || identity.SessionID != binding.SessionID || identity.ParentSessionID != binding.ParentSessionID ||
 			identity.ChildSessionID != binding.ChildSessionID || identity.Project != binding.Project {
 			return errors.New("existing-child setup differs from native saved identity")

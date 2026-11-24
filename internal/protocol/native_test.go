@@ -21,6 +21,8 @@ func TestNativeArgumentContract(t *testing.T) {
 		{"claude", []string{"--input-format", "stream-json", "--output-format=stream-json", "--permission-prompt-tool", "stdio", "--verbose", "--include-partial-messages", "--model=x", "--resume=y"}, true},
 		{"claude", []string{"--input-format", "stream-json", "--output-format=stream-json", "--input-format", "stream-json", "--output-format=stream-json"}, false},
 		{"claude", nil, true},
+		{"pi", []string{"--mode", "rpc"}, true},
+		{"pi", []string{"--mode", "json"}, false},
 		{"unknown", nil, false},
 		{"codex", []string{"app-server", "--listen", "stdio://"}, true},
 		{"claude", []string{"--output-format", "stream-json", "--input-format=stream-json", "--permission-prompt-tool", "stdio", "--verbose", "--include-partial-messages", "--model=x", "--resume=y"}, true},

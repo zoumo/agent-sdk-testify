@@ -3,6 +3,7 @@ package corpus
 import (
 	"bytes"
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +26,74 @@ func ScanCaptureCredentials(root string) (string, error) {
 // environment is already represented by a descriptor and must not be copied
 // into material as a private native.env file.
 func ScanCaptureCredentialsWithEnvironment(root string, env map[string]string) (string, error) {
+	return scanCaptureCredentials(root, env, nil)
+}
+
+// ScanPiCaptureCredentials also checks saved session history for credentials
+// from the isolated Pi auth and model stores.
+func ScanPiCaptureCredentials(root, config string, env map[string]string) (string, error) {
 	var secrets []string
+	appendSecret := func(value any) {
+		if text := tool.Str(value); text != "" {
+			secrets = append(secrets, text)
+		}
+	}
+	var auth tool.Object
+	if err := tool.ReadJSON(filepath.Join(config, "auth.json"), &auth); err == nil {
+		for _, value := range auth {
+			credential := tool.Obj(value)
+			for _, key := range []string{"key", "access", "refresh"} {
+				appendSecret(credential[key])
+			}
+		}
+	} else if !os.IsNotExist(err) {
+		return "unavailable", err
+	}
+	var models tool.Object
+	if err := tool.ReadJSON(filepath.Join(config, "models.json"), &models); err == nil {
+		addModelCredentials := func(settings tool.Object) {
+			appendSecret(settings["apiKey"])
+			for _, value := range tool.Obj(settings["headers"]) {
+				appendSecret(value)
+			}
+		}
+		for _, value := range tool.Obj(models["providers"]) {
+			provider := tool.Obj(value)
+			addModelCredentials(provider)
+			for _, model := range tool.Array(provider["models"]) {
+				addModelCredentials(tool.Obj(model))
+			}
+			for _, override := range tool.Obj(provider["modelOverrides"]) {
+				addModelCredentials(tool.Obj(override))
+			}
+		}
+	} else if !os.IsNotExist(err) {
+		return "unavailable", err
+	}
+	scan, err := scanCaptureCredentials(root, env, secrets)
+	if err != nil {
+		return scan, err
+	}
+	history := filepath.Join(root, "history")
+	err = filepath.WalkDir(history, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil && path == history && os.IsNotExist(err) {
+			return nil
+		}
+		if err != nil || !entry.Type().IsRegular() {
+			return err
+		}
+		return checkCredentialValues(path, secrets)
+	})
+	if errors.Is(err, errCaptureCredentials) {
+		return "quarantined", err
+	}
+	if err != nil {
+		return "unavailable", err
+	}
+	return "pass", nil
+}
+
+func scanCaptureCredentials(root string, env map[string]string, secrets []string) (string, error) {
 	for key, value := range env {
 		if value != "" && (strings.Contains(key, "TOKEN") || strings.Contains(key, "KEY")) {
 			secrets = append(secrets, value)
@@ -86,16 +154,27 @@ func ScanCaptureCredentialsWithEnvironment(root string, env map[string]string) (
 			return "unavailable", err
 		}
 		for _, path := range paths {
-			data, err := os.ReadFile(path)
-			if err != nil {
+			if err := checkCredentialValues(path, secrets); errors.Is(err, errCaptureCredentials) {
+				return "quarantined", err
+			} else if err != nil {
 				return "unavailable", err
-			}
-			for _, secret := range secrets {
-				if bytes.Contains(data, []byte(secret)) {
-					return "quarantined", errors.New("capture contains selected credentials; private evidence quarantined")
-				}
 			}
 		}
 	}
 	return "pass", nil
+}
+
+var errCaptureCredentials = errors.New("capture contains selected credentials; private evidence quarantined")
+
+func checkCredentialValues(path string, secrets []string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	for _, secret := range secrets {
+		if bytes.Contains(data, []byte(secret)) {
+			return errCaptureCredentials
+		}
+	}
+	return nil
 }

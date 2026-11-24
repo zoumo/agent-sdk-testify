@@ -100,9 +100,12 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 	}
 	args := tool.Strings(plan["args"])
 	if len(args) == 0 {
-		if provider == "codex" {
+		switch provider {
+		case "codex":
 			args = codexNativeArgs(profile, params)
-		} else {
+		case "pi":
+			args = []string{"--mode", "rpc"}
+		default:
 			args, err = claudeNativeArgs(profile, params)
 			if err != nil {
 				return err
@@ -122,6 +125,9 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 		if err != nil {
 			return err
 		}
+	}
+	if provider == "pi" && tool.Str(plan["model"]) != "" {
+		args = append(args, "--model", tool.Str(plan["model"]))
 	}
 	plan["args"] = args
 	plan["stdinEOFAction"] = "close"
@@ -148,7 +154,7 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 			}
 		}
 	}
-	if o.Config != "" {
+	if o.Config != "" && provider != "pi" {
 		files := []string{"config.toml", "auth.json"}
 		if provider == "claude" {
 			files = []string{"settings.json", ".credentials.json"}
@@ -212,6 +218,9 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 // callers cannot inject an arbitrary configuration path. Generated catalog
 // references name publishedDestination even when destination is still staging.
 func CopyNativeConfig(provider, destination, publishedDestination, privateDestination string, env map[string]string) error {
+	if provider == "pi" {
+		return copyPiConfig(destination, privateDestination, env)
+	}
 	if provider != "codex" && provider != "claude" {
 		return errors.New("unsupported provider")
 	}
@@ -305,6 +314,8 @@ func nativeEnvironmentNames(provider string) []string {
 		names = append(names,
 			"OPENAI_API_KEY", "OPENAI_BASE_URL", "CODEX_API_KEY",
 		)
+	case "pi":
+		names = append(names, "OPENAI_API_KEY", "OPENAI_BASE_URL", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "DEEPSEEK_API_KEY")
 	case "claude":
 		names = append(names,
 			"ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",

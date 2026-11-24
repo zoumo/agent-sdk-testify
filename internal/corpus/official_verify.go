@@ -125,7 +125,7 @@ func (v *Validation) validateMockIsolation(root string, plan, evidence tool.Obje
 	for key, relative := range map[string]string{"HOME": "home", "TMPDIR": "tmp", "XDG_CONFIG_HOME": "home/.config", "XDG_CACHE_HOME": "home/.cache", "XDG_DATA_HOME": "home/.local/share"} {
 		v.Check(env[key] == filepath.Join(overlay, relative), "current mock environment escapes isolation: "+key)
 	}
-	configKey := map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[tool.Str(plan["provider"])]
+	configKey := map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR", "pi": "PI_CODING_AGENT_DIR"}[tool.Str(plan["provider"])]
 	v.Check(configKey != "" && env[configKey] == filepath.Join(overlay, "config"), "current mock native config escapes isolation")
 	v.Check(isolation["home"] == filepath.Join(overlay, "home") && isolation["config"] == filepath.Join(overlay, "config") && isolation["tmp"] == filepath.Join(overlay, "tmp"), "current mock directory relationships differ")
 }

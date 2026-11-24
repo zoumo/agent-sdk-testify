@@ -11,7 +11,7 @@ import (
 
 func checkConsumerAgent(agent string) error {
 	switch agent {
-	case "codex", "claude":
+	case "codex", "claude", "pi":
 		return nil
 	default:
 		return fmt.Errorf("unsupported agent type %q", agent)

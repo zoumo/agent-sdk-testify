@@ -20,6 +20,8 @@ func newAdapter(provider string) (adapter, error) {
 	switch provider {
 	case "codex":
 		return &codexAdapter{requests: newRequests(), threads: map[id]string{}}, nil
+	case "pi":
+		return newPiAdapter(), nil
 	case "claude":
 		return &claudeAdapter{requests: newRequests()}, nil
 	default:
