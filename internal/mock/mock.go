@@ -208,9 +208,6 @@ func loadMockPhase(sourceRoot, provider, phase string) (tool.Object, *recording.
 			}
 		}
 	}
-	if provider != "codex" && provider != "claude" {
-		return nil, nil, errors.New("materials must identify codex or claude")
-	}
 	return manifest, document, nil
 }
 

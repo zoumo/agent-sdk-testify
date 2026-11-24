@@ -72,7 +72,7 @@ func DefaultLimits(provider string) (Limits, error) {
 	switch provider {
 	case "codex":
 		return Limits{8 << 20, 2 << 20, 10000}, nil
-	case "claude":
+	case "claude", "pi":
 		return Limits{16 << 20, 2 << 20, 10000}, nil
 	default:
 		return Limits{}, fmt.Errorf("unsupported native protocol adapter %q", provider)
@@ -168,7 +168,7 @@ func Read(r io.Reader, provider string, limits Limits) (*Document, error) {
 		if e != nil {
 			return nil, fmt.Errorf("frame %d: %w", i+1, e)
 		}
-		if frame.Ordinal <= last || (provider == "claude" && frame.Ordinal != int64(i+1)) {
+		if frame.Ordinal <= last || (provider != "codex" && frame.Ordinal != int64(i+1)) {
 			return nil, fmt.Errorf("frame %d: invalid ordinal order", i+1)
 		}
 		last = frame.Ordinal

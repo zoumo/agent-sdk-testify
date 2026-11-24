@@ -1475,6 +1475,384 @@
       "storyId": "SDK-US-004",
       "verification": "unsupported",
       "verificationReason": "本 case 使用 Claude 原生 control_request/elicitation。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-001",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 已提供此路径，尚未采纳原生录制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-002",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-003",
+      "provider": "pi",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "unsupported",
+      "verificationReason": "Pi RPC 1.6 的 prompt 支持文本和图片，缺少原生文档输入。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-004",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-005",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-037",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "unsupported",
+      "verificationReason": "Pi 原生 RPC 缺少不唤醒执行的上下文注入命令。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-038",
+      "provider": "pi",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "unsupported",
+      "verificationReason": "Pi 原生 RPC 缺少无唤醒上下文注入与实际消费边界。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-006",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-007",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "unsupported",
+      "verificationReason": "原生 RPC 缺少面向宿主的应用工具回调；扩展实现需要独立验证。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-008",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-009",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-010",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-011",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-012",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "当前 Pi driver 缺少原生审批请求与持有期间控制的验证路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-039",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Codex 根 Thread 的原生 MCP 审批。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-040",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Codex 子 Thread 的原生 MCP 审批。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-041",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Codex additional permissions 三种原生决定。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-013",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-014",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-015",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-042",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Claude 原生 form 与 URL elicitation。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-016",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少可观测的子 Agent 协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-017",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少嵌套子 Agent 身份和关系协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-018",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少并行子 Agent 生命周期协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-019",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少后台子 Agent 生命周期协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-020",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少子 Agent 详情策略协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-021",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-022",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-023",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-024",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-025",
+      "provider": "pi",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-026",
+      "provider": "pi",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "Pi RPC 的 set_thinking_level 设置离散等级，无法声明数值预算生效。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-027",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-028",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "Pi RPC 缺少该用例要求的思考展示控制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-029",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少可核对配置继承关系的子 Agent。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-030",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-031",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-032",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "unsupported",
+      "verificationReason": "Pi 1.6 RPC 采用本地进程 stdio，缺少独立远端连接。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-033",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-034",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少具备子 Agent 身份和关系的持久历史。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-035",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少可供晚加入观察者发现的子 Agent。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-036",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
     }
   ],
   "version": 1

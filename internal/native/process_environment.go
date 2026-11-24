@@ -19,6 +19,8 @@ func nativeEnvironment(o Options, plan tool.Object) ([]string, error) {
 	env := map[string]string{"PATH": os.Getenv("PATH"), "HOME": tool.Str(plan["home"]), "TMPDIR": filepath.Join(tool.Str(plan["root"]), "tmp"), "LANG": "C.UTF-8"}
 	if tool.Str(plan["provider"]) == "codex" {
 		env["CODEX_HOME"] = tool.Str(plan["config"])
+	} else if plan["provider"] == "pi" {
+		env["PI_CODING_AGENT_DIR"] = tool.Str(plan["config"])
 	} else {
 		env["CLAUDE_CONFIG_DIR"] = tool.Str(plan["config"])
 		env["CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS"] = "1"

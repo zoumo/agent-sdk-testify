@@ -39,7 +39,7 @@ def recording_mapping(root):
     directory = root / 'data/scenarios'
     index = json.loads((directory / 'index.json').read_text())
     stories = [json.loads((directory / (name + '.json')).read_text()) for name in index['stories']]
-    providers = {p: json.loads((directory / 'bindings' / (p + '.json')).read_text()) for p in ('codex', 'claude')}
+    providers = {p: json.loads((directory / 'bindings' / (p + '.json')).read_text()) for p in ('codex', 'claude', 'pi')}
     cases, rows = [], []
     for story in stories:
         for case in story['cases']:
@@ -118,7 +118,7 @@ def check(root):
     index = json.loads((directory / 'index.json').read_text())
     if set(index['stories']) != common or len(index['stories']) != len(common):
         errors.append('Simulation catalog must contain exactly the eight user stories')
-    for provider in ('codex', 'claude'):
+    for provider in ('codex', 'claude', 'pi'):
         bindings = json.loads((directory / 'bindings' / (provider + '.json')).read_text())['cases']
         if set(bindings) != case_ids:
             errors.append(provider + ': bindings must cover exactly the current cases')

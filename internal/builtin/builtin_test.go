@@ -11,7 +11,7 @@ import (
 func TestBuiltinCatalogCoverage(t *testing.T) {
 	manifest, _, err := Read()
 	require.NoError(t, err)
-	require.Len(t, manifest.Coverage, 84)
+	require.Len(t, manifest.Coverage, 126)
 	available := 0
 	for _, row := range manifest.Coverage {
 		assert.Contains(t, []string{"required", "optional"}, row["requirement"])

@@ -10,17 +10,19 @@ import (
 )
 
 type agentProfile struct {
-	binding     string
-	configKey   string
-	authFiles   []string
-	environment func(root string) map[string]string
-	writeConfig func(root string, plan tool.Object) error
-	protocolCWD func(plan tool.Object, workspace string) string
+	binding       string
+	configKey     string
+	authFiles     []string
+	copyAuthFiles bool
+	environment   func(root string) map[string]string
+	writeConfig   func(root string, plan tool.Object) error
+	protocolCWD   func(plan tool.Object, workspace string) string
 }
 
 var agentProfiles = map[string]agentProfile{
 	"codex":  codexAgentProfile,
 	"claude": claudeAgentProfile,
+	"pi":     piAgentProfile,
 }
 
 func agentProfileFor(agentType string) (agentProfile, error) {
