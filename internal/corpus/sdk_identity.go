@@ -2,6 +2,7 @@ package corpus
 
 import (
 	"reflect"
+	"slices"
 
 	"github.com/zoumo/agent-sdk-testify/internal/tool"
 )
@@ -24,7 +25,11 @@ func OfficialExecutionSDKIdentity(provider, caseID string, outcome, report tool.
 		return false
 	}
 	if sdk["package"] == "codex-app-server-remote-client" {
-		return present && provider == "codex" && (caseID == "SDK-CASE-001" || caseID == "SDK-CASE-041") &&
+		return present && provider == "codex" && slices.Contains([]string{
+			"SDK-CASE-001", "SDK-CASE-016", "SDK-CASE-017", "SDK-CASE-018", "SDK-CASE-019",
+			"SDK-CASE-020", "SDK-CASE-029", "SDK-CASE-032", "SDK-CASE-033", "SDK-CASE-034",
+			"SDK-CASE-035", "SDK-CASE-036", "SDK-CASE-041",
+		}, caseID) &&
 			len(sdk) == 3 && sdk["version"] == "0.0.0" &&
 			sdk["revision"] == "108730843ae4303ae79e9b6b936343f0b7c483bb"
 	}

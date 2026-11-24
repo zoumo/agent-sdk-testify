@@ -20,6 +20,7 @@ func TestOfficialExecutionSDKIdentity(t *testing.T) {
 		valid              bool
 	}{
 		{"pinned Rust", "codex", caseID, tool.Object{"sdk": rust}, rust, true},
+		{"pinned Rust history", "codex", "SDK-CASE-035", tool.Object{"sdk": rust}, rust, true},
 		{"pinned Rust permissions", "codex", "SDK-CASE-041", tool.Object{"sdk": rust}, rust, true},
 		{"wrong Rust revision for permissions", "codex", "SDK-CASE-041", tool.Object{"sdk": wrongRevision}, wrongRevision, false},
 		{"wrong Rust revision", "codex", caseID, tool.Object{"sdk": wrongRevision}, wrongRevision, false},
