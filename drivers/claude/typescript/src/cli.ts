@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { runElicitation } from './elicitation.js';
 import { Untriggered } from './evidence.js';
+import { runHistoryCase, supportsHistoryCase } from './history.js';
 import { absolutePath, readObject, readRuntime, type JsonObject } from './runtime.js';
 import { sdkIdentity } from './sdk.js';
 
@@ -19,7 +20,7 @@ async function run(requestPath: string): Promise<void> {
         if (plan.provider !== 'claude' || plan.caseId !== request.case) {
             throw new Error('request identity differs from supplied materials');
         }
-        if (plan.caseId !== 'SDK-CASE-042') {
+        if (plan.caseId !== 'SDK-CASE-042' && !supportsHistoryCase(plan.caseId)) {
             status = 'unsupported';
             throw new Error('case is not implemented by this driver');
         }
@@ -31,7 +32,11 @@ async function run(requestPath: string): Promise<void> {
             scenarioSHA256: plan.scenarioSHA256,
             officialSDK: sdkIdentity(),
         });
-        await runElicitation(plan, runtime, report);
+        if (plan.caseId === 'SDK-CASE-042') {
+            await runElicitation(plan, runtime, report);
+        } else {
+            await runHistoryCase(plan, runtime, report);
+        }
     } catch (error) {
         if (status === 'passed') {
             status = error instanceof Untriggered ? 'untriggered' : 'failed';
