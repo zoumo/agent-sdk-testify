@@ -27,6 +27,7 @@ func TestLibraryPiRecordMockExport(t *testing.T) {
 	writeFile(t, filepath.Join(hostConfig, "auth.json"), hostAuth)
 	writeFile(t, filepath.Join(hostConfig, "models.json"), hostModels)
 	writeFile(t, filepath.Join(hostConfig, "settings.json"), "{}")
+	hostHashes := treeHashes(t, hostConfig)
 
 	plan := filepath.Join(root, "pi-plan.json")
 	writeFile(t, plan, `{"version":1,"agentType":"pi","caseId":"synthetic-pi","driverProfile":"consumer","project":"`+root+`"}`)
@@ -82,7 +83,7 @@ printf '%s\n' ` + shellQuote(command) + ` ` + shellQuote(stdout) + `
 	historyBytes := readFile(t, filepath.Join(material.Path, historyPath))
 	require.Contains(t, string(historyBytes), entry+"\n")
 	require.NoFileExists(t, filepath.Join(filepath.Dir(saved["project"].(string)), "config", "auth.json"))
-	require.Equal(t, []byte(hostAuth), readFile(t, filepath.Join(hostConfig, "auth.json")))
+	require.Equal(t, hostHashes, treeHashes(t, hostConfig))
 
 	exported := filepath.Join(root, "export")
 	require.NoError(t, agenttestify.Export(agenttestify.ExportOptions{FixtureDir: fixture.FixtureDir, Output: exported}))
