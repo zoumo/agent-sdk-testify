@@ -5,7 +5,8 @@ import { parseArgs } from 'node:util';
 import { runElicitation } from './elicitation.js';
 import { Untriggered } from './evidence.js';
 import { runHistoryCase, supportsHistoryCase } from './history.js';
-import { absolutePath, readObject, readRuntime, type JsonObject } from './runtime.js';
+import { runInteraction, supportsInteraction } from './interactions.js';
+import { absolutePath, object, readObject, readRuntime, type JsonObject } from './runtime.js';
 import { sdkIdentity } from './sdk.js';
 
 async function run(requestPath: string): Promise<void> {
@@ -20,22 +21,29 @@ async function run(requestPath: string): Promise<void> {
         if (plan.provider !== 'claude' || plan.caseId !== request.case) {
             throw new Error('request identity differs from supplied materials');
         }
-        if (plan.caseId !== 'SDK-CASE-042' && !supportsHistoryCase(plan.caseId)) {
-            status = 'unsupported';
-            throw new Error('case is not implemented by this driver');
-        }
+        const scenario = object(plan.scenario);
         Object.assign(report, {
             story: plan.story,
             storyId: plan.storyId,
             case: plan.case,
             cliVersion: plan.cliVersion,
             scenarioSHA256: plan.scenarioSHA256,
-            officialSDK: sdkIdentity(),
         });
+        if (scenario.mode !== 'live-selected-path') {
+            status = 'unsupported';
+            throw new Error(typeof scenario.reason === 'string' && scenario.reason
+                ? scenario.reason : 'case binding has no live path');
+        }
+        report.officialSDK = sdkIdentity();
         if (plan.caseId === 'SDK-CASE-042') {
             await runElicitation(plan, runtime, report);
-        } else {
+        } else if (supportsHistoryCase(plan.caseId)) {
             await runHistoryCase(plan, runtime, report);
+        } else if (supportsInteraction(plan)) {
+            await runInteraction(plan, runtime, report);
+        } else {
+            status = 'unsupported';
+            throw new Error('case is not implemented by this driver');
         }
     } catch (error) {
         if (status === 'passed') {
