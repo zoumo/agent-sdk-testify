@@ -32,6 +32,9 @@ func claudeCaseArgs(profile string, params tool.Object) ([]string, error) {
 	if profile == "children" || profile == "background-children" || params["topology"] != nil {
 		args = append(args, "--forward-subagent-text")
 	}
+	if profile == "topology" && params["topology"] == "parallel" {
+		args = append(args, "--append-system-prompt", "Issue both Agent calls in one response with run_in_background set explicitly to false. In each child prompt, ask for the answer and its marker in ordinary assistant text before any handback.")
+	}
 	var ask []string
 	switch profile {
 	case "fixture-tools":

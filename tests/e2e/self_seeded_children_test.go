@@ -66,11 +66,11 @@ for phase in ['main', 'probe']:
     assert json.loads(child.stdout)['result']['synthetic'] is True
 report = {'provider': plan['provider'], 'caseId': plan['caseId'], 'storyId': plan['storyId'],
     'status': 'passed', 'branchStatus': 'passed', 'captureStatus': 'complete', 'gaps': [],
-    'officialSDK': {'package': {'codex': 'openai-codex', 'claude': 'claude-agent-sdk'}[plan['provider']],
-                    'version': 'synthetic-self-seed-only'}}
+    'officialSDK': {'package': {'codex': 'openai-codex', 'claude': '@anthropic-ai/claude-agent-sdk'}[plan['provider']],
+                    'version': '0.3.293' if plan['provider']=='claude' else 'synthetic-self-seed-only'}}
 out = pathlib.Path(runtime['output'])
 (out / ('replay-report.json' if runtime['replay'] else 'report.json')).write_text(json.dumps(report))
-(out / 'result.json').write_text(json.dumps({'status': 'passed'}))
+(out / 'result.json').write_text(json.dumps({'status': 'passed', 'sdk': report['officialSDK']}))
 `)
 			require.NoError(t, err)
 			require.NoError(t, file.Close())

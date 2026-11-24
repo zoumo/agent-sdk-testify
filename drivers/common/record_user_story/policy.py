@@ -1,7 +1,5 @@
 """Driver profiles, SDK identities and shared task instructions."""
 
-SDK_VERSIONS = {'codex': ('openai-codex', '0.161.0'),
-                'claude': ('claude-agent-sdk', '0.2.174')}
 SYSTEM = 'Complete the supplied synthetic task in the working directory. Be concise.'
 
 DRIVER_PROFILES = frozenset((

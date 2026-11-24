@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the checked tool binary and official driver wheel; no SDK, network or recording.
+# Build the checked tool binary and the official driver packages from local dependencies.
 set -euo pipefail
 source=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 if [[ $# != 0 ]]; then
@@ -19,3 +19,4 @@ go -C "$source" run -tags builtin_generate ./cmd/agent-sdk-testify --check
 go -C "$source" build -ldflags="$ldflags" -o "$output/agent-sdk-testify" ./cmd/agent-sdk-testify
 AGENT_SDK_TESTIFY_VERSION="$version" \
   "${PYTHON:-python3}" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$output" "$source/drivers"
+bash "$source/scripts/build-claude-driver.sh" "$output"
