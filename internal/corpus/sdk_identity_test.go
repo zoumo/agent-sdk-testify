@@ -20,6 +20,7 @@ func TestOfficialExecutionSDKIdentity(t *testing.T) {
 		valid              bool
 	}{
 		{"pinned Rust", "codex", caseID, tool.Object{"sdk": rust}, rust, true},
+		{"pinned Rust history", "codex", "SDK-CASE-035", tool.Object{"sdk": rust}, rust, true},
 		{"pinned Rust permissions", "codex", "SDK-CASE-041", tool.Object{"sdk": rust}, rust, true},
 		{"pinned Rust structured input", "codex", "SDK-CASE-002", tool.Object{"sdk": rust}, rust, true},
 		{"wrong Rust revision for permissions", "codex", "SDK-CASE-041", tool.Object{"sdk": wrongRevision}, wrongRevision, false},
@@ -28,7 +29,7 @@ func TestOfficialExecutionSDKIdentity(t *testing.T) {
 		{"Rust result and report disagree", "codex", caseID, tool.Object{"sdk": python}, rust, false},
 		{"Python result and report disagree", "codex", caseID, tool.Object{"sdk": rust}, python, false},
 		{"Rust unsupported case", "codex", "SDK-CASE-012", tool.Object{"sdk": rust}, rust, false},
-		{"Rust history case", "codex", "SDK-CASE-032", tool.Object{"sdk": rust}, rust, false},
+		{"pinned Rust multi-connection", "codex", "SDK-CASE-032", tool.Object{"sdk": rust}, rust, true},
 		{"Rust wrong provider", "claude", caseID, tool.Object{"sdk": rust}, rust, false},
 		{"Python", "codex", caseID, tool.Object{"sdk": python}, python, true},
 		{"historical Python without result identity", "codex", caseID, tool.Object{}, python, true},

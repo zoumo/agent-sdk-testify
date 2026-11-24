@@ -10,7 +10,8 @@ use codex_app_server_protocol::{
     RequestId, ServerNotification, TurnStartResponse, TurnStatus,
 };
 use codex_app_server_remote_client::{
-    AppServerEvent, RemoteAppServerClient, TypedRequestError, decode_typed_response,
+    AppServerEvent, RemoteAppServerClient, RemoteAppServerRequestHandle, TypedRequestError,
+    decode_typed_response,
 };
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
@@ -18,6 +19,7 @@ use serde_json::{Value, json};
 use tokio::process::{Child, Command};
 use tokio::time::timeout;
 
+mod history;
 mod interactions;
 mod sandbox_permissions;
 
@@ -59,6 +61,7 @@ struct Peer {
     args: Vec<String>,
     #[serde(default)]
     env: BTreeMap<String, String>,
+    probe: Option<Box<Peer>>,
 }
 
 #[derive(Deserialize)]
@@ -75,9 +78,11 @@ struct Plan {
     cli_version: Option<String>,
     #[serde(default)]
     scenario: Value,
+    #[serde(flatten)]
+    history: history::Projection,
 }
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Deserialize, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct PeerNotice {
     schema_version: u32,
@@ -104,7 +109,7 @@ impl Runtime {
             ("tmp", &self.tmp),
             ("output", &self.output),
             ("fixtureDir", &self.fixture_dir),
-            ("peer command", &self.peer.command),
+            ("main peer command", &self.peer.command),
         ] {
             require_absolute(name, path)?;
         }
@@ -116,26 +121,38 @@ impl Runtime {
                 require_absolute(name, path)?;
             }
         }
-        require_absolute("main agentResult", self.main_result()?)?;
+        if let Some(peer) = &self.peer.probe {
+            ensure!(peer.probe.is_none(), "nested probe launcher");
+            require_absolute("probe peer command", &peer.command)?;
+        }
+        for path in self.agent_results.values() {
+            require_absolute("agentResult", path)?;
+        }
+        Ok(())
+    }
+
+    fn validate_connections(&self, probe: bool) -> Result<()> {
         ensure!(
-            self.agent_results.len() == 1,
-            "case requires a single main connection"
+            self.peer.probe.is_some() == probe
+                && self.agent_results.contains_key("main")
+                && self.agent_results.contains_key("probe") == probe
+                && self.agent_results.len() == if probe { 2 } else { 1 },
+            "runtime connections differ from case"
         );
         Ok(())
     }
 
-    fn main_result(&self) -> Result<&Path> {
-        self.agent_results
-            .get("main")
-            .map(PathBuf::as_path)
-            .context("missing main agentResult")
-    }
-
-    fn spawn_peer(&self) -> Result<Child> {
-        Command::new(&self.peer.command)
-            .args(&self.peer.args)
+    fn spawn_peer(&self, id: &str) -> Result<Child> {
+        let peer = match id {
+            "main" => Some(&self.peer),
+            "probe" => self.peer.probe.as_deref(),
+            _ => None,
+        }
+        .context("missing Testify peer launcher")?;
+        Command::new(&peer.command)
+            .args(&peer.args)
             .current_dir(&self.workspace)
-            .envs(&self.peer.env)
+            .envs(&peer.env)
             .env("HOME", &self.home)
             .env("CODEX_HOME", &self.config)
             .env("TMPDIR", &self.tmp)
@@ -144,11 +161,11 @@ impl Runtime {
             .stderr(Stdio::inherit())
             .kill_on_drop(true)
             .spawn()
-            .context("start Testify peer")
+            .with_context(|| format!("start Testify {id} peer"))
     }
 
-    fn connection(&self) -> Result<Value> {
-        let path = self.main_result()?;
+    fn connection(&self, id: &str) -> Result<PeerNotice> {
+        let path = self.agent_results.get(id).context("missing agentResult")?;
         let data = fs::read_to_string(path).context("read Testify peer notifications")?;
         let mut notices = data.lines();
         let mut started: PeerNotice = serde_json::from_str(
@@ -162,26 +179,29 @@ impl Runtime {
             data.ends_with('\n')
                 && notices.next().is_none()
                 && started.schema_version == 3
-                && started.connection_id == "main"
+                && started.connection_id == id
                 && started.command == if self.replay { "mock" } else { "record" }
                 && started.status == "running"
-                && finished.status == "passed"
+                && matches!(finished.status.as_str(), "passed" | "failed")
                 && !started.fixture_id.is_empty()
-                && !started.material_id.is_empty()
-                && !started.execution_id.is_empty(),
+                && safe_id(&started.material_id)
+                && safe_id(&started.execution_id),
             "incomplete Testify peer notifications"
         );
-        started.status = "passed".into();
+        started.status.clone_from(&finished.status);
         ensure!(
             started == finished,
             "Testify peer notification identity changed"
         );
-        Ok(json!({
-            "materialId": finished.material_id,
-            "executionId": finished.execution_id,
-            "connectionId": finished.connection_id,
-        }))
+        Ok(finished)
     }
+}
+
+fn safe_id(id: &str) -> bool {
+    !id.is_empty()
+        && id
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
 }
 
 fn require_absolute(name: &str, path: &Path) -> Result<()> {
@@ -374,13 +394,13 @@ async fn exercise(
     }
 }
 
-async fn run(runtime: &Runtime, plan: &Plan, report: &mut Value) -> Result<()> {
-    let workspace = runtime
-        .recorded_workspace
-        .as_deref()
-        .unwrap_or(&plan.project);
-    require_absolute("protocol workspace", workspace)?;
-    let mut child = runtime.spawn_peer()?;
+async fn run_connection<T>(
+    runtime: &Runtime,
+    id: &str,
+    report: &mut Value,
+    exercise: impl AsyncFnOnce(&mut RemoteAppServerClient, &mut Value) -> Result<T>,
+) -> Result<(T, PeerNotice, RemoteAppServerRequestHandle)> {
+    let mut child = runtime.spawn_peer(id)?;
     let pid = child.id();
     let stdin = child.stdin.take().expect("piped stdin");
     let stdout = child.stdout.take().expect("piped stdout");
@@ -403,31 +423,61 @@ async fn run(runtime: &Runtime, plan: &Plan, report: &mut Value) -> Result<()> {
     .await
     {
         Ok(mut client) => {
-            let result = exercise(&mut client, plan, workspace, &runtime.workspace, report).await;
-            let handle =
-                (plan.case_id == "SDK-CASE-031" && result.is_ok()).then(|| client.request_handle());
+            let handle = client.request_handle();
+            let result = exercise(&mut client, report).await;
             let shutdown = client.shutdown().await.context("close SDK connection");
-            report["sdkClosed"] = json!(shutdown.is_ok());
-            result.and(shutdown).map(|()| handle)
+            report["sdkConnectionsClosed"][id] = json!(shutdown.is_ok());
+            if id == "main" {
+                report["sdkClosed"] = json!(shutdown.is_ok());
+            }
+            result.and_then(|value| shutdown.map(|()| (value, handle)))
         }
         Err(error) => Err(error).context("initialize SDK connection"),
     };
     let status = reap(&mut child).await;
-    report["peerProcess"] = json!({
+    let process = json!({
         "pid": pid,
         "reaped": child.id().is_none(),
         "exitCode": status.as_ref().ok().and_then(ExitStatus::code),
         "success": status.as_ref().is_ok_and(ExitStatus::success),
     });
-    let connection = runtime.connection();
-    if let Ok(connection) = &connection {
-        report["connection"] = connection.clone();
+    report["peerProcesses"][id] = process.clone();
+    if id == "main" {
+        report["peerProcess"] = process;
     }
-    let closed_handle = result?;
+    let connection = runtime.connection(id);
+    if let Ok(connection) = &connection {
+        report["connections"][id] = json!(connection);
+        if id == "main" {
+            report["connection"] = json!(connection);
+        }
+    }
+    let (value, handle) = result?;
     let status = status?;
-    ensure!(status.success(), "Testify peer exited with {status}");
-    connection?;
-    if let Some(handle) = closed_handle {
+    ensure!(status.success(), "Testify {id} peer exited with {status}");
+    let connection = connection.with_context(|| format!("read Testify {id} connection"))?;
+    ensure!(
+        connection.status == "passed",
+        "Testify {id} connection failed"
+    );
+    Ok((value, connection, handle))
+}
+
+async fn run(runtime: &Runtime, plan: &Plan, report: &mut Value) -> Result<()> {
+    let workspace = runtime
+        .recorded_workspace
+        .as_deref()
+        .unwrap_or(&plan.project);
+    require_absolute("protocol workspace", workspace)?;
+    if history::case(&plan.case_id).is_some() {
+        return history::run(runtime, plan, workspace, report).await;
+    }
+    runtime.validate_connections(false)?;
+    let ((), _, handle) = run_connection(runtime, "main", report, async |client, report| {
+        exercise(client, plan, workspace, &runtime.workspace, report).await
+    })
+    .await?;
+    if plan.case_id == "SDK-CASE-031" {
         let rejected = handle
             .request_json_rpc(JSONRPCRequest {
                 id: RequestId::Integer(100),
@@ -471,7 +521,7 @@ async fn main() -> Result<()> {
     let spec = match request.case.as_str() {
         CONTINUATION_CASE => Some(("SDK-US-001", "continuation", 2)),
         sandbox_permissions::CASE_ID => Some(("SDK-US-003", "sandbox-permissions", 3)),
-        _ => interactions::case_spec(&request.case),
+        id => interactions::case_spec(id).or_else(|| history::case(id)),
     };
     let Some((story_id, driver_profile, prompt_count)) = spec else {
         return write_json(

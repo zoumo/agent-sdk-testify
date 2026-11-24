@@ -1,7 +1,7 @@
 # Codex Rust 候选入口
 
-候选实现 26 个 Codex 交互 case，包括结构化输入、执行期提交和中断、fixture 工具、
-问答、审批、配置、上下文注入与本地关闭。使用 Rust 1.99.1 和锁定的
+候选实现 37 个 Codex case，包括输入、工具、审批、配置、上下文注入、子会话、历史和
+连接关闭。使用 Rust 1.99.1 和锁定的
 `codex-app-server-remote-client` 0.0.0。解包固定提交后，`stdio.patch` 为上游
 client 增加子进程管道接入。上游 client 管理握手、请求关联、事件、服务端请求和
 关闭。driver 启动并等待 Testify 提供的 launcher。
@@ -16,17 +16,16 @@ drivers/codex/rust/install.sh /tmp/testify-rust-build /tmp/testify-rust-install
 首次构建下载固定源码和 Cargo 依赖。已有缓存时，通过 `CODEX_SOURCE_ARCHIVE`
 传入固定源码归档的绝对路径，并设置 `CARGO_NET_OFFLINE=true`。
 
-在临时工作目录运行公开验证。Testify 从 `PATH` 选择候选入口，并保留实际二进制
-和 SDK 身份。
+在临时工作目录对 Rust 形状的合成材料运行公开验证。Testify 从 `PATH` 选择候选入口，
+并保留实际二进制和 SDK 身份。
 
 ```sh
 export PATH="/tmp/testify-rust-install/bin:$PATH"
-agent-sdk-testify prepare --agent codex --case SDK-CASE-001 \
+agent-sdk-testify prepare --recording /absolute/synthetic-rust-material \
 	--fixture-dir /tmp/testify-rust-001
 agent-sdk-testify official verify --fixture-dir /tmp/testify-rust-001 --timeout 45s
 ```
 
-已采用的交互材料保存了 Python client 的 `initialize` 帧。Rust client 的握手字段
-不同，严格回放在第一帧失败。离线验证可通过 `prepare --recording` 导入各自的
-合成材料，由同一公开 mock 严格回放。候选以 case 投影和运行时环境执行业务请求，
-服务端审批通过原生请求 ID 应答。
+已采用材料保存了 Python client 的 `initialize` 帧。Rust client 的握手字段不同，
+对这些材料的严格回放在第一帧失败。候选以 case 投影和运行时环境执行业务请求，
+服务端审批通过原生请求 ID 应答。真实录制和已采用材料的迁移仍待验证。
