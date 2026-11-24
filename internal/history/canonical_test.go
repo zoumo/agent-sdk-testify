@@ -335,7 +335,7 @@ func TestPiSessionHistoryRoundTrip(t *testing.T) {
 	verified, err := CanonicalBindings(core, plan, manifest)
 	require.NoError(t, err)
 	require.Equal(t, bindings, verified)
-	require.Equal(t, data, string(readHistory(t, filepath.Join(core, b.Source))))
+	require.Equal(t, []byte(data), readHistory(t, filepath.Join(core, b.Source)))
 
 	_, err = Identify("pi", target, []byte(header+"\n"+`{"type":"message"`), "")
 	require.ErrorContains(t, err, "invalid pi history entry on line 2")

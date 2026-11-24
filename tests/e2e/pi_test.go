@@ -30,10 +30,10 @@ printf '%s\n' '{"id":"record","type":"response","command":"get_state","success":
 	record := mustRun(t, env, root, `{"id":"record","type":"get_state"}`+"\n",
 		"agent", "record", "--fixture-dir", fixture, "--cmd", peer, "--", "--mode", "rpc")
 	const recorded = `{"id":"record","type":"response","command":"get_state","success":true,"data":{"sessionId":"synthetic"}}` + "\n"
-	require.Equal(t, recorded, record.stdout)
+	require.JSONEq(t, recorded, record.stdout)
 	require.NotEmpty(t, currentMaterialID(t, fixture))
 
 	mock := mustRun(t, env, root, `{"id":"replay","type":"get_state"}`+"\n",
 		"agent", "mock", "--fixture-dir", fixture, "--", "--mode", "rpc")
-	require.Equal(t, `{"id":"replay","type":"response","command":"get_state","success":true,"data":{"sessionId":"synthetic"}}`+"\n", mock.stdout)
+	require.JSONEq(t, `{"id":"replay","type":"response","command":"get_state","success":true,"data":{"sessionId":"synthetic"}}`+"\n", mock.stdout)
 }

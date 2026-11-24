@@ -82,7 +82,7 @@ printf '%s\n' ` + shellQuote(command) + ` ` + shellQuote(stdout) + `
 	historyBytes := readFile(t, filepath.Join(material.Path, historyPath))
 	require.Contains(t, string(historyBytes), entry+"\n")
 	require.NoFileExists(t, filepath.Join(filepath.Dir(saved["project"].(string)), "config", "auth.json"))
-	require.Equal(t, hostAuth, string(readFile(t, filepath.Join(hostConfig, "auth.json"))))
+	require.Equal(t, []byte(hostAuth), readFile(t, filepath.Join(hostConfig, "auth.json")))
 
 	exported := filepath.Join(root, "export")
 	require.NoError(t, agenttestify.Export(agenttestify.ExportOptions{FixtureDir: fixture.FixtureDir, Output: exported}))
@@ -97,7 +97,7 @@ printf '%s\n' ` + shellQuote(command) + ` ` + shellQuote(stdout) + `
 	output := &testWriteCloser{}
 	run, err := replay.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
 		NativeArgs: []string{"--mode", "rpc"}, Timeout: 10 * time.Second,
-	}, agenttestify.StartMockAgentStreams{Reader: io.NopCloser(strings.NewReader(mockInput)), Writer: output})
+	}, agenttestify.StartMockAgentStreams{Reader: io.NopCloser(strings.NewReader(mockInput)), Writer: output, Stderr: io.Discard})
 	require.NoError(t, err)
 	start := run.Start
 	result, err := run.Wait(t.Context())
