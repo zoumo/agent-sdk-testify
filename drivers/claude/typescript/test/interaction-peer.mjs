@@ -43,7 +43,9 @@ function mcp(id, method, params = {}) {
 }
 
 function assistant(content) {
-    event('assistant', { parent_tool_use_id: null, message: { model: modelInUse, content } });
+    const reportedModel = variant.startsWith('magpie-') && modelInUse === model
+        ? 'group/auto-deepseek-v4-1-flash-1017' : modelInUse;
+    event('assistant', { parent_tool_use_id: null, message: { model: reportedModel, content } });
 }
 
 function init() {
@@ -60,7 +62,9 @@ function idle() {
 
 function finish(text, queued = 0) {
     assistant([{ type: 'text', text }]);
-    event('result', { subtype: 'success', is_error: false, num_turns: 1, result: text, queued_turn_count: queued });
+    const usageModel = variant === 'magpie-wrong-usage' ? initialModel : modelInUse;
+    event('result', { subtype: 'success', is_error: false, num_turns: 1, result: text, queued_turn_count: queued,
+        ...(variant.startsWith('magpie-') && { modelUsage: { [usageModel]: { outputTokens: 2 } } }) });
     if (!queued) {
         idle();
     }
