@@ -24,7 +24,7 @@ function run(t, number, variant, expectedStatus) {
     const paths = { root, workspace: root, home: root, config: root, output: root, tmp: root,
         raw: join(root, 'packages', 'controlled-material', 'material', 'raw') };
     const parameters = { ...original.parameters, ...binding.parameters };
-    const model = 'synthetic-target';
+    const model = variant.startsWith('magpie-') ? 'auto/deepseek-v4.1-flash-1017[1m]' : 'synthetic-target';
     let initialModel;
     const args = ['--model', model];
     if (['022', '023', '024'].includes(number)) {
@@ -190,6 +190,12 @@ test('024 retains a native configuration rejection and the original execution re
     assert.equal(report.configurationEvidence.requests[0].acknowledged, false);
     assert.equal(report.configurationEvidence.nativeRejection, 'native refusal');
     assert.equal(report.results, 1);
+});
+
+test('023 corroborates a Magpie assistant model alias with usage from the changed execution', t => {
+    const { report } = run(t, '023', 'magpie-alias', 'passed');
+    assert.deepEqual(report.configurationEvidence.observedModels, ['group/auto-deepseek-v4-1-flash-1017']);
+    assert.match(run(t, '023', 'magpie-wrong-usage', 'untriggered').result.message, /effectiveness/);
 });
 
 test('005 retains a native rejection tied to the supplemental input and the original result', t => {

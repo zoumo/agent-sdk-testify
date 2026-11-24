@@ -18,6 +18,19 @@ function flag(args: unknown, name: string): unknown[] {
         : typeof value === 'string' && value.startsWith(name + '=') ? [value.slice(name.length + 1)] : []);
 }
 
+function observedModelMatches(observed: string, model: string, usage: JsonObject): boolean {
+    if (observed === model || (model.startsWith('theta/') && observed === model.slice('theta/'.length))) {
+        return true;
+    }
+    // Magpie reports auto routes as group slugs in assistant messages.
+    // The same execution's native usage must name the exact requested route.
+    if (!model.startsWith('auto/') || !Object.hasOwn(usage, model)) {
+        return false;
+    }
+    const slug = model.replace(/\[1m\]$/i, '').replace(/[^a-z0-9]+/g, '-');
+    return observed === 'group/' + slug;
+}
+
 export function configurationFor(plan: JsonObject, report: JsonObject, trace: JsonObject[]) {
     const scenario = fields(plan.scenario);
     const params = fields(scenario.parameters);
@@ -139,14 +152,15 @@ export function configurationFor(plan: JsonObject, report: JsonObject, trace: Js
                 throw new Untriggered('native launch arguments do not prove the initial model');
             }
             const after = timing === 'between-inputs' ? inputs[1].index : inputs[0].index;
+            const result = results.at(-1);
             const observedModels = assistants.filter(f => f.index > (timing === 'during-execution' ? request.index : after)
-                && f.wire.session_id === results.at(-1)?.wire.session_id)
+                && f.wire.session_id === result?.wire.session_id)
                 .map(f => fields(f.wire.message).model).filter(model => typeof model === 'string');
             Object.assign(evidence, { initialModel: plan.initialModel, targetModel: plan.model, observedModels });
             if (timing !== 'during-execution') {
                 const model = plan.model as string;
-                if (!observedModels.some(observed => observed === model
-                    || (model.startsWith('theta/') && observed === model.slice('theta/'.length)))) {
+                const usage = fields(result?.wire.modelUsage);
+                if (!observedModels.some(observed => observedModelMatches(observed, model, usage))) {
                     throw new Untriggered('target model effectiveness is not established by native assistant messages');
                 }
                 evidence.effectiveScope = 'assistant-message model after change';
