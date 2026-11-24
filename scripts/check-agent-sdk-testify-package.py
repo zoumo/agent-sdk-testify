@@ -68,16 +68,17 @@ def check_claude(tarball, binary, root):
     tools.mkdir()
     (tools / 'node').symlink_to(Path(node).resolve(strict=True))
     prefix = root / 'claude'
-    env = {'PATH': str(tools), 'HOME': str(root), 'npm_config_cache': str(root / 'cache'),
+    env = {'PATH': str(tools) + os.pathsep + os.defpath, 'HOME': str(root), 'npm_config_cache': str(root / 'cache'),
            'npm_config_update_notifier': 'false'}
-    run(root, env, npm, 'install', '--offline', '--global', '--ignore-scripts',
+    run(root, env, npm, 'install', '--offline', '--ignore-scripts',
         '--omit=optional', '--no-audit', '--no-fund', '--prefix', prefix, tarball)
 
-    env['PATH'] = str(prefix / 'bin') + os.pathsep + str(tools)
+    bin_dir = prefix / 'node_modules/.bin'
+    env['PATH'] = str(bin_dir) + os.pathsep + str(tools)
     command = 'agent-sdk-testify-claude'
-    entry = prefix / 'bin' / command
+    entry = bin_dir / command
     assert shutil.which(command, path=env['PATH']) == str(entry)
-    installed = prefix / 'lib/node_modules' / command
+    installed = prefix / 'node_modules' / command
     assert entry.resolve(strict=True) == installed / 'dist/cli.js'
     sdk = installed / 'node_modules/@anthropic-ai/claude-agent-sdk'
     package = json.loads((sdk / 'package.json').read_text())

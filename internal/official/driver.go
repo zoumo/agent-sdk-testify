@@ -28,7 +28,7 @@ func ResolveDriver(provider string) (string, error) {
 	path, err := tool.AbsoluteExecutable(name)
 	if err != nil {
 		if provider == "claude" {
-			return "", fmt.Errorf("official driver %s is not available; install the Claude driver npm tarball with Node.js 22+ and add its bin directory to PATH: %w", name, err)
+			return "", fmt.Errorf("official driver %s is not available; install the Claude driver npm tarball with Node.js 22+ and add its executable directory to PATH: %w", name, err)
 		}
 		return "", fmt.Errorf("official driver %s is not available; install the Codex driver wheel and Python SDK and add the environment's bin directory to PATH: %w", name, err)
 	}

@@ -43,13 +43,13 @@ make check
 或使用 `make bundle` 的产物。tarball 已包含锁定的官方 SDK 和运行依赖。
 
 ```sh
-npm install --global --offline --ignore-scripts --omit=optional \
+npm install --offline --ignore-scripts --omit=optional \
   --prefix /absolute/claude-driver /absolute/agent-sdk-testify-claude-0.1.0.tgz
-export PATH="/absolute/claude-driver/bin:$PATH"
+export PATH="/absolute/claude-driver/node_modules/.bin:$PATH"
 command -v agent-sdk-testify-claude
 ```
 
-确认输出为 `/absolute/claude-driver/bin/agent-sdk-testify-claude`。
+确认输出为 `/absolute/claude-driver/node_modules/.bin/agent-sdk-testify-claude`。
 如果旧 wheel 曾提供同名 Python 脚本，将 Claude 安装目录放在旧环境前。
 若同一 Python 环境也运行 Codex，用新版 wheel 升级该环境。pip 升级时会移除旧 wheel
 提供的 Claude 脚本。旧安装命令中的 `[claude]` 和 `[recording]` 已退役。
