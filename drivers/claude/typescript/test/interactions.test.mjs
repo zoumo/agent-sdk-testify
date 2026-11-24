@@ -28,7 +28,7 @@ function run(t, number, variant, expectedStatus) {
     let initialModel;
     const args = ['--model', model];
     if (['022', '023', '024'].includes(number)) {
-        initialModel = 'synthetic-initial';
+        initialModel = variant === 'magpie-same-model' ? model.replace('[1m]', '') : 'synthetic-initial';
         args[1] = initialModel;
     }
     if (parameters.setting === 'thinking') {
@@ -193,6 +193,7 @@ test('024 retains a native configuration rejection and the original execution re
 });
 
 test('023 corroborates a Magpie assistant model alias with usage from the changed execution', t => {
+    assert.match(run(t, '023', 'magpie-same-model', 'untriggered').result.message, /distinct explicit/);
     const { report } = run(t, '023', 'magpie-alias', 'passed');
     assert.deepEqual(report.configurationEvidence.observedModels, ['group/auto-deepseek-v4-1-flash-1017']);
     assert.match(run(t, '023', 'magpie-wrong-usage', 'untriggered').result.message, /effectiveness/);

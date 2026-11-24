@@ -52,7 +52,7 @@ export function configurationFor(plan: JsonObject, report: JsonObject, trace: Js
         case 'model': {
             const model = plan.model;
             if (typeof model !== 'string' || !model || typeof plan.initialModel !== 'string'
-                || !plan.initialModel || plan.initialModel === model) {
+                || !plan.initialModel || plan.initialModel.replace(/\[1m\]$/i, '') === model.replace(/\[1m\]$/i, '')) {
                 throw new Untriggered('model change requires distinct explicit initial and target models');
             }
             requested = { subtype: 'set_model', model };
