@@ -21,8 +21,8 @@ type Request struct {
 // Recorded paths and caller-selected SDK drivers are never executable inputs.
 // Shared by the record and official verification entry points.
 func ResolveDriver(provider string) (string, error) {
-	if provider != "codex" && provider != "claude" {
-		return "", fmt.Errorf("unsupported provider %q: expected codex or claude", provider)
+	if provider != "codex" && provider != "claude" && provider != "pi" {
+		return "", fmt.Errorf("unsupported provider %q: expected codex, claude or pi", provider)
 	}
 	name := "agent-sdk-testify-" + provider
 	path, err := tool.AbsoluteExecutable(name)

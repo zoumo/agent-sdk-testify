@@ -1,4 +1,4 @@
-"""Native interactions driven exclusively by the selected official Python SDKs."""
+"""Native interactions through the selected official SDK."""
 import asyncio
 import json
 from pathlib import Path
@@ -16,7 +16,7 @@ def run(plan):
     replay = bool(plan.get('_replay'))
     report = {'provider': plan['provider'], 'story': plan['story'], 'status': 'passed',
               'inputs': 0, 'results': 0, 'events': 0, 'requests': 0, 'receipts': [],
-              'facts': ['driver uses official Python SDK; raw bytes captured at native process boundary'],
+              'facts': ['driver uses official SDK; raw bytes captured at native process boundary'],
               'case': definition['case'], 'gaps': [], 'captureStatus': 'complete',
               'cliVersion': plan.get('cliVersion')}
     report['scenarioSHA256'] = plan.get('scenarioSHA256')
@@ -29,7 +29,7 @@ def run(plan):
         report['gaps'].append(definition['reason'])
     else:
         try:
-            if definition['driverProfile'] != 'standalone-elicitation':
+            if plan['provider'] != 'pi' and definition['driverProfile'] != 'standalone-elicitation':
                 report['officialSDK'] = sdk_identity(plan['provider'])
             if definition['driverProfile'] == 'standalone-elicitation':
                 from claude_driver.elicitation import run as run_elicitation
@@ -50,11 +50,14 @@ def run(plan):
             elif plan['provider'] == 'codex':
                 from codex_driver.adapter import codex
                 codex(plan, report, flow)
+            elif plan['provider'] == 'pi':
+                from pi_driver.continuation import run as run_pi
+                run_pi(plan, report, flow)
             elif plan['provider'] == 'claude':
                 from claude_driver.adapter import claude
                 asyncio.run(claude(plan, report, flow))
             else:
-                raise ValueError('no Python native adapter for provider')
+                raise ValueError('no native adapter for provider')
             if flow.active:
                 raise RuntimeError('native response ended without a terminal result')
             flow.finish()

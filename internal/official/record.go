@@ -129,7 +129,7 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 			plan["args"] = append(tool.Strings(plan["args"]), "--resume", tool.Str(tool.Obj(plan["historySeed"])["sessionId"]))
 		}
 	}
-	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(root, "raw"), filepath.Join(private, "tmp"), seedRoot, false)
+	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[driverConfigKey[fixture.AgentType]], filepath.Join(root, "raw"), filepath.Join(private, "tmp"), seedRoot, false)
 	var service interface {
 		URL() string
 		TokenFile() string

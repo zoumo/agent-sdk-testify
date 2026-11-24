@@ -22,11 +22,11 @@ def check(wheel):
         run(python, '-I', '-m', 'pip', 'install', '--no-index', '--no-deps', wheel)
         run(python, '-I', '-c', "from importlib.metadata import distribution; "
             "d=distribution('agent-sdk-testify-driver'); "
-            "assert {e.name for e in d.entry_points} == {'agent-sdk-testify-codex', 'agent-sdk-testify-claude'}; "
+            "assert {e.name for e in d.entry_points} == {'agent-sdk-testify-codex', 'agent-sdk-testify-claude', 'agent-sdk-testify-pi'}; "
             "assert all('extra ==' in r for r in d.requires or [])")
         materials, output = root / 'materials', root / 'output'
         materials.mkdir(); output.mkdir()
-        for provider in ('codex', 'claude'):
+        for provider in ('codex', 'claude', 'pi'):
             (materials / 'case.json').write_text(json.dumps({'caseId': 'not-implemented', 'provider': provider, 'scenario': {}}))
             runtime = {'schemaVersion': 1, 'root': str(root), 'workspace': str(root),
                        'home': str(root / 'home'), 'config': str(root / 'config'),
