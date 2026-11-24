@@ -321,7 +321,7 @@ func checkRecordCapture(t *testing.T, provider string) {
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "raw", "transport.json"), &transport))
 	require.Equal(t, true, transport["cleanupComplete"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(fixture.officialRoot(t), "report.json"), &report))
-	require.Equal(t, "synthetic-only", tool.Obj(report["officialSDK"])["version"])
+	require.Equal(t, syntheticSDK(provider), tool.Obj(report["officialSDK"]))
 	raw, err := os.ReadFile(filepath.Join(output, "raw", "raw.jsonl"))
 	require.NoError(t, err)
 	require.Contains(t, string(raw), "9007199254740993")

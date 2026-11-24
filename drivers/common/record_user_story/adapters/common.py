@@ -29,6 +29,3 @@ def observe_configuration(report, source, native):
     if source == 'thread/settings/updated':
         # This is an observed thread setting, not proof of which execution used it.
         evidence['observed'].append({'source': source, 'scope': 'thread-settings', 'native': native})
-    elif source == 'assistant' and isinstance(native.get('message'), dict) and native['message'].get('model'):
-        evidence['observed'].append({'source': source, 'scope': 'assistant-message',
-                                     'model': native['message']['model']})

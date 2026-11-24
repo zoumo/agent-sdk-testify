@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from support import BOOTSTRAP
 from record_user_story import children
-from record_user_story.child_policy import CHILD_FILE, CHILD_TEXT, child_task
+from record_user_story.child_policy import CHILD_FILE, CHILD_TEXT
 from record_user_story.scenarios import case_recipes
 from test_runtime_config import runtime
 from test_scenarios import Value
