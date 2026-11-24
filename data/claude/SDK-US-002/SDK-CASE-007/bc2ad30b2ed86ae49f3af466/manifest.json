@@ -1,0 +1,58 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "02e7c25bf922cf6a44f3a714886f925f578619d8b4e0bfa3d2524d5026b6613c",
+    "origin/main.json": "8235791964b63a90b7212fdd133506e3d3c19689092d03126a0010ea33089a7a",
+    "plan.json": "2b954fc4184f1aac6613f0a79594caeaa306e74cff581d319b449e0a17f66fbd",
+    "raw/manifest.json": "d050bcaffd0b8b1c3450efab4f26387d3ccfc0fb99af56e74d68fba4fe9cbca2",
+    "raw/raw.jsonl": "58935e1a8422ba4f868b3eea4f33f38a75253b13f62df26a1b72d64451b4e837",
+    "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+    "raw/transport.json": "fddef449dd2e7598b3fc48015c07436debcaeb32616695f8f3a8cf310fe29cb0",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "7e489f38babc0d1e58dfe0ced0d73214d1334c1ed7ab296d1713629eceb68949"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/007-a3/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--no-session-persistence",
+      "--settings",
+      "{\"permissions\":{\"ask\":[\"Read\",\"Write\"]}}",
+      "--mcp-config",
+      "{\"mcpServers\":{\"fixture\":{\"type\":\"sdk\",\"name\":\"fixture\"}}}",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/private/tmp/tq04.C2PTPG/fixtures/007-a3/runtime/executions/c7bca8a85d7649f3b8503374ba2077f3/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "2b954fc4184f1aac6613f0a79594caeaa306e74cff581d319b449e0a17f66fbd",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "fddef449dd2e7598b3fc48015c07436debcaeb32616695f8f3a8cf310fe29cb0",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "7e489f38babc0d1e58dfe0ced0d73214d1334c1ed7ab296d1713629eceb68949",
+  "status": "captured"
+}

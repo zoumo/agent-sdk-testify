@@ -1,0 +1,48 @@
+{
+  "case": {
+    "id": "SDK-CASE-029",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-029",
+  "driverProfile": "history",
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "prompts": [
+    "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "claude",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-029",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-029",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "childConfiguration": "model",
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

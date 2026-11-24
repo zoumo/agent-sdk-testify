@@ -2,18 +2,18 @@
   "cases": [
     {
       "adoption": "admitted",
-      "adoptionSHA256": "1c3d0f619065d470f7d37f3e829569816f0f6d297f18821cae8ee946ad75e874",
+      "adoptionSHA256": "1deeea12745ab4682fcefe235dcfc76b51e062205ff1d4f0fa5465b828938490",
       "caseId": "SDK-CASE-037",
-      "materialSHA256": "14667557000a82a7627c3099a005b877838afebce2fde9f66633dad15bc3d276",
-      "materials": "claude/SDK-US-001/SDK-CASE-037/51915e4f55b0ad1ca63cd1d1",
+      "materialSHA256": "6adf690a005a4109dc7d94325e42a23c9f376713acc5a6ce7632a0257f74e481",
+      "materials": "claude/SDK-US-001/SDK-CASE-037/7bb542e44f3f4b2a2c2a674f",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:52.787862Z"
+        "qualifiedAt": "2026-11-24T16:32:13.496876Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-001",
@@ -21,18 +21,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "62fa0a929d666bd3dee923de510735fc33f98aa449ba282f67ed56d45866e7ac",
+      "adoptionSHA256": "f6e933b240318e3999a7b3cea7872b94350fb17691de2dc7b345f4083b1d0493",
       "caseId": "SDK-CASE-038",
-      "materialSHA256": "2df0081afc4df39ed86491d5f82feb661f09dc3de15ac36d7139c17f0043e186",
-      "materials": "claude/SDK-US-001/SDK-CASE-038/eaf518b7afcc602347bfd296",
+      "materialSHA256": "427f723a4e5014e815337777801c95e0284e2fe7662cb40d05632786af3f53e9",
+      "materials": "claude/SDK-US-001/SDK-CASE-038/d97e7f81e5e5186cb753f4dd",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:57:02.823125Z"
+        "qualifiedAt": "2026-11-24T16:32:15.956553Z"
       },
       "requirement": "optional",
       "storyId": "SDK-US-001",
@@ -78,18 +78,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "b0b117924785bf83a90a079bf7b2afb77ef833dbe88430afc17944c0bce757ab",
+      "adoptionSHA256": "127423322e3c63674d7b88da3adde429ac4eeb5b0d85dd396adcf80bf8711e11",
       "caseId": "SDK-CASE-001",
-      "materialSHA256": "166573ee92e392ef72b1307ab0cc5dd04421be1324df46e1977ec19c92e7f30c",
-      "materials": "claude/SDK-US-001/SDK-CASE-001/83b04aa5ea681a87b6814d05",
+      "materialSHA256": "13f982ace2711720920b35c64a093c90ae3471fb9a52e1cbe6a8558f51044af4",
+      "materials": "claude/SDK-US-001/SDK-CASE-001/a20a91079e61b0c328b17d36",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:54:42.026516Z"
+        "qualifiedAt": "2026-11-24T16:29:37.859836Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-001",
@@ -97,18 +97,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "6119970348e0b4fd24d93d2a49494228d96018f686f9148c7d1c153317fa9903",
+      "adoptionSHA256": "1a599e4192e84f6993e06e85deb8d285e8b6af0f050c38fc61f581966d111304",
       "caseId": "SDK-CASE-002",
-      "materialSHA256": "67224ed2ea82e5eef2ee6cfca6655459e4c9cb269d7b8d9ba6b5173fdd6ecb0b",
-      "materials": "claude/SDK-US-001/SDK-CASE-002/f26c6a7fc58d384dd134b68c",
+      "materialSHA256": "c22941dd7db614f8d981843deb5104f899745f0c669308f58ffb191cba5dc109",
+      "materials": "claude/SDK-US-001/SDK-CASE-002/3e2869621b23eabca164f040",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:54:48.800152Z"
+        "qualifiedAt": "2026-11-24T16:30:13.478871Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-001",
@@ -125,18 +125,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "ef9c7c0c5c756d73697c8af1bfbe57355713c966582ab213b7f5f29389e30bad",
+      "adoptionSHA256": "c140ef7872559d0d6dbc052eeb74de865d48c5cb54163fceea5fecf3a7ec7223",
       "caseId": "SDK-CASE-004",
-      "materialSHA256": "9b207059aa668dc85a65d496c70846b1a0f9e90cdf1436ae527fd9279b6a6a4c",
-      "materials": "claude/SDK-US-001/SDK-CASE-004/cd2f8ec13098ce104243b444",
+      "materialSHA256": "25625b4ed35e3b5f3e0a1d4a0167a973c3389938e07af86f19c1928398e04305",
+      "materials": "claude/SDK-US-001/SDK-CASE-004/1bbd8afa1ed796829c8963e0",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:54:53.018384Z"
+        "qualifiedAt": "2026-11-24T16:30:16.817038Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-001",
@@ -144,18 +144,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "7ef1502587725edc856e84116d5e5924dfc70ba4e3f2274e8108ea4828a09ab5",
+      "adoptionSHA256": "c9eb57bf9f44fb97ccec937deb8cbece0d20ade019e09122325ccfa35149028f",
       "caseId": "SDK-CASE-005",
-      "materialSHA256": "bc4b21d58a57633b98a738083108629ea88caf70b4f5f165f7102d5d12bfb919",
-      "materials": "claude/SDK-US-001/SDK-CASE-005/adf1352ba2b1914382c3c30a",
+      "materialSHA256": "d8882a33cd12f4a909eddc112d64a870c7422979f6a85489d86e8885ba10bd13",
+      "materials": "claude/SDK-US-001/SDK-CASE-005/e3ad25e581dc982700c751af",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:54:56.74349Z"
+        "qualifiedAt": "2026-11-24T16:30:20.384258Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-001",
@@ -163,18 +163,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "266e1c488c378964664e496ed0a9073fac293dab5e7078fef572f04412f009b4",
+      "adoptionSHA256": "35bccf594ac7a77ab2d5b94ec33c673ecbfb4b14d646452132e44c6075f4d7ca",
       "caseId": "SDK-CASE-006",
-      "materialSHA256": "3d17e525bd489842a7c34c290e25396e616d90c92b9474ac59f9c3ce63cf5ab9",
-      "materials": "claude/SDK-US-002/SDK-CASE-006/71c70fd2aacc6c75440de3b1",
+      "materialSHA256": "aa0d704225e475eed43ebd5bab39edb37e7dd2d1adeadaa0583ccae54ee9ae04",
+      "materials": "claude/SDK-US-002/SDK-CASE-006/bc01733ebcda2e3db2273a7a",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:54:59.271028Z"
+        "qualifiedAt": "2026-11-24T16:30:25.204622Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-002",
@@ -182,18 +182,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "7004a309613ada6083dba4d4d3c69439d4bedda1c9730196f17aeeada942c52d",
+      "adoptionSHA256": "bfe5dc7399511004671df88d5b6ef78d26ece716796cdb36a4c5a5d9cfcd88b6",
       "caseId": "SDK-CASE-007",
-      "materialSHA256": "24c481fd84ecb140d2e773bdf1d177a0a0a378781fb65c632af72c209f2dd58c",
-      "materials": "claude/SDK-US-002/SDK-CASE-007/a2a64565e1bab3dffe9b6081",
+      "materialSHA256": "2450d8ef6d25ac6292ffb4465e26627f8390ff657ce90d4ad47ba6cd4220c48a",
+      "materials": "claude/SDK-US-002/SDK-CASE-007/bc2ad30b2ed86ae49f3af466",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:08.212687Z"
+        "qualifiedAt": "2026-11-24T16:30:34.350675Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-002",
@@ -201,18 +201,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "2d90162ae89f771875386b7d82bc87fe861ce5b6b69ce2d8d263f28d02f730b1",
+      "adoptionSHA256": "36a105222d707167627bb020bd4bc02c63a0a9700efda7d510ebd0320fe2a67a",
       "caseId": "SDK-CASE-008",
-      "materialSHA256": "06f39dae5a5e1a12aca56e92279176e4844d251bcf0b69d35f2bdfb6d4d5c9fa",
-      "materials": "claude/SDK-US-003/SDK-CASE-008/602c65d91ed5282f34013b87",
+      "materialSHA256": "32d1fae6abdadb68eb145c08a6ae456aaf084a87f28b72fddf1476c357553a5c",
+      "materials": "claude/SDK-US-003/SDK-CASE-008/873f4b09c2a3d28caf0169e7",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:10.572216Z"
+        "qualifiedAt": "2026-11-24T16:30:43.395446Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-003",
@@ -220,18 +220,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "7c6a581b5a6699c9c99aa4821f6e05253cf1bdb4a5d050042ecb1ef2d930fd73",
+      "adoptionSHA256": "5ea7b268ef126600ceb7abdda9d1f79221716eefda3d9abab5b7a29481f0f1bd",
       "caseId": "SDK-CASE-009",
-      "materialSHA256": "09366ff1ccfe11390ef94ef68ab0f1d76acc63ff4719db071b4eba396fc1276a",
-      "materials": "claude/SDK-US-003/SDK-CASE-009/a0467817a7f4cba3b15e67ef",
+      "materialSHA256": "4571131815c32cebca5787a18ca51c18eb55ace623a735eeac7ea250e8015eb0",
+      "materials": "claude/SDK-US-003/SDK-CASE-009/e0772b24c0ed954645be74b7",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:15.298446Z"
+        "qualifiedAt": "2026-11-24T16:30:47.466253Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-003",
@@ -239,18 +239,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "72eb0f9de03b27b12583e3d469873b40aa339f399820c67bddf8e78fe6a44a87",
+      "adoptionSHA256": "d3e1e55a2a1983f2ac487d5373e75f5865f132d3acd13a092e0430e9f64ad9c0",
       "caseId": "SDK-CASE-010",
-      "materialSHA256": "c827d1852a4752883045c64115aff3c4d8e00e6bfa1d70190f3f56e17f0d3b44",
-      "materials": "claude/SDK-US-003/SDK-CASE-010/d4543d07a404b32d8ba6ef0d",
+      "materialSHA256": "1dca40db0bc53669e6b5c94e4a489951ff5ca49b05f2b9adca1e58bd1e5110d2",
+      "materials": "claude/SDK-US-003/SDK-CASE-010/c14c23c2de64af094a7e6fe5",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:12.928855Z"
+        "qualifiedAt": "2026-11-24T16:30:51.426706Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-003",
@@ -258,18 +258,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "8f288e46f58836c426daba760eb02af143cd6f24c43aae80f4ceaee2a93f8221",
+      "adoptionSHA256": "a5a502aea3b1e76ea499b50bb09b61cd5c9240ec45029a29649bfebbbcbb3ec1",
       "caseId": "SDK-CASE-011",
-      "materialSHA256": "529c149dac0513f24aa2196aef365330c4b6d9a544a0a12d7c453e470a9c8c29",
-      "materials": "claude/SDK-US-003/SDK-CASE-011/1d164dd501bcf2c0664ac7d9",
+      "materialSHA256": "735046b5244f1510b7d8d5ab1951bfbc4719d577af1aaa76bb478a41d412dc2b",
+      "materials": "claude/SDK-US-003/SDK-CASE-011/a55555b22ff4b63cc78839a0",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:21.607513Z"
+        "qualifiedAt": "2026-11-24T16:30:55.707779Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-003",
@@ -277,18 +277,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "0331a96fc4fe596d865292c7966c6b5e9d0df62f99d72bac4c327ed64f8711f6",
+      "adoptionSHA256": "f6ddbe27e51ee612d06abe8efe528fb20c452fe4ba916c69d359dc2a932c941a",
       "caseId": "SDK-CASE-012",
-      "materialSHA256": "4aba1f9f472e781a15484dff08a0e7a358f9feaef2f7f97123d18721d60ed215",
-      "materials": "claude/SDK-US-003/SDK-CASE-012/b70ad19afcdf6e99b67b4c86",
+      "materialSHA256": "9648dc98bdc6fc5e9425cb649822b41e56b6c7b88a1ff2393148bcfdc56a977b",
+      "materials": "claude/SDK-US-003/SDK-CASE-012/c4d67b732b69f8e2f41c6d22",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:24.539173Z"
+        "qualifiedAt": "2026-11-24T16:30:58.970387Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-003",
@@ -296,18 +296,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "221d3cb604162c6de236c1e8e4de7a80900027d55257b260a4c94ba17079eb34",
+      "adoptionSHA256": "ea39f8cc63c8bdd0b850066a1c7d48d80e6fcdc4dc3cbcd1868840e8af892d4f",
       "caseId": "SDK-CASE-013",
-      "materialSHA256": "1f5313ffbaf6724ac50bf91e3f59e1fe8e26b25258a67317e4f9ca32ec3138d8",
-      "materials": "claude/SDK-US-004/SDK-CASE-013/5bc5e391d73f17a4dd842afd",
+      "materialSHA256": "3017f44b5e422ee4945dbaa19cd18c9081e67b53de1a2b4e4eafae1a30054201",
+      "materials": "claude/SDK-US-004/SDK-CASE-013/4eece6fceb2d81512cf7a853",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:26.987847Z"
+        "qualifiedAt": "2026-11-24T16:31:02.597942Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-004",
@@ -315,18 +315,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "dc2255e1fcf8c2355bda41d7ddcb9a7635a307b9bee5649a9e94c99296a4f6ac",
+      "adoptionSHA256": "af019a835cfbc3e8db141373ad5d59b51c36569c5a72b8a0df89292f2cbbfb45",
       "caseId": "SDK-CASE-014",
-      "materialSHA256": "44971c9436ddc7f882e526596897f162558cb771fc176bccd90e63df460f609a",
-      "materials": "claude/SDK-US-004/SDK-CASE-014/0410f1c3b997ad4344b7ac0b",
+      "materialSHA256": "364869926021ebfb4505a6141e8f7d483d7d0cd217ba85e1f7448b1258096ab7",
+      "materials": "claude/SDK-US-004/SDK-CASE-014/2be37168a41ac1486104ccdb",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:29.558679Z"
+        "qualifiedAt": "2026-11-24T16:31:04.903047Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-004",
@@ -334,18 +334,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "56b5c7e21129da39104c08fdd96471c7632759223272259444dba6959cf743ed",
+      "adoptionSHA256": "ddb9fc0415eeccf291d3dadfe289def9f0d2f16fd65f672f4c0f5d3ef71b9646",
       "caseId": "SDK-CASE-015",
-      "materialSHA256": "e9c6e2292358dc703e4ccb8468dffe40fdb63153abd6999702af9a8537cb8cae",
-      "materials": "claude/SDK-US-004/SDK-CASE-015/5715db881b23b02cdd5ff7c7",
+      "materialSHA256": "728f13ca9ae120f33bda9c3575ff6f8f28a12b38f800a622d8ff057e2a942137",
+      "materials": "claude/SDK-US-004/SDK-CASE-015/243688f854b8b5e800c0964a",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:55:32.733592Z"
+        "qualifiedAt": "2026-11-24T16:31:07.776228Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-004",
@@ -353,18 +353,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "780531e4d19faeaf37f3432ec22f6e4190e859d7ee851ad70ede34ade097bd4d",
+      "adoptionSHA256": "14d0b5797eb562210a9b428b9ac5e12d199adfea588a1e62f41df4744cdce09b",
       "caseId": "SDK-CASE-016",
-      "materialSHA256": "2ff7eee781df65c7b61785b0c9398d06ed1c68cb4145a199e1c77bed4ec9cc47",
-      "materials": "claude/SDK-US-005/SDK-CASE-016/79bf7c7c0187b35059e6853a",
+      "materialSHA256": "924b7e3b920a44511e7ea7951217573c1ac8251ba9cf9b639cca60a4129c70cc",
+      "materials": "claude/SDK-US-005/SDK-CASE-016/0b4ef56d138a32e290f36e14",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:31:04.145246Z"
+        "qualifiedAt": "2026-11-24T16:31:10.579199Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-005",
@@ -381,18 +381,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "61a999e0438d225e8a6a9913de7bc0f75f98f48022045827598d2c79266190bb",
+      "adoptionSHA256": "e37b2c80c01898193db74fdcde9d5f4a232e21468029b9e4e159a42bbf19fc71",
       "caseId": "SDK-CASE-018",
-      "materialSHA256": "1f1f8eca8c7eb9eb6452b81951f822557cdbb5e4f74e5028103a7c572664dfa2",
-      "materials": "claude/SDK-US-005/SDK-CASE-018/bbf6e70474ab6bcd295fbb1f",
+      "materialSHA256": "21af814047755ce120d3ccc50ed1a9152ad754e6c9d85d65815d1386680c3508",
+      "materials": "claude/SDK-US-005/SDK-CASE-018/c76b752cc65a1650be4ca9cd",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:30:52.445221Z"
+        "qualifiedAt": "2026-11-24T16:31:13.740217Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-005",
@@ -400,18 +400,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "01c847e4e23d7c8939b079f61578e54c3363c20fd915a0bd3c7633909f9766a0",
+      "adoptionSHA256": "ab14a50bfcd91f16ed395310010b75866e8923ab013ab6288e6e6841273ecb83",
       "caseId": "SDK-CASE-019",
-      "materialSHA256": "1f719a9ca075a6be7c21f5db74985e79ee7ca7912dfef246c81238741b7de1d2",
-      "materials": "claude/SDK-US-005/SDK-CASE-019/0d291b601e5394381f2eda9b",
+      "materialSHA256": "78c2a5338b9eceacda4a19b6e1437ef46bd45779394892d6a18665eabfdac983",
+      "materials": "claude/SDK-US-005/SDK-CASE-019/36977e175f38f78a11369e1a",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:40:55.770336Z"
+        "qualifiedAt": "2026-11-24T16:31:17.38665Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-005",
@@ -419,18 +419,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "b67ff8fa09c7648c5c0f4a2567954fef240509abf4cdf29a0405d1f607971ebe",
+      "adoptionSHA256": "dea91bf4c638a898e2e5dbfdf3f0eaf299f2bcd691e1958eff6f188f6b473f5b",
       "caseId": "SDK-CASE-020",
-      "materialSHA256": "fc6df6f3e83869e28cdeb1df02810d6df263ae705c94b92d9487708e8446c52f",
-      "materials": "claude/SDK-US-005/SDK-CASE-020/b16d3ecbd94925d7a3900d72",
+      "materialSHA256": "9bfa732b0181b917d50483e17e3262f41291fe0c0f230207438a7459187b1cfb",
+      "materials": "claude/SDK-US-005/SDK-CASE-020/571edc537d5d30992746dc6e",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:24.942503Z"
+        "qualifiedAt": "2026-11-24T16:31:21.431634Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-005",
@@ -438,18 +438,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "1c7449f233edfd59e5f116eb4c3e8baa98b8665be44e8ae37d817f37f7449659",
+      "adoptionSHA256": "7235725e905edc4a1a784664bf42475a783c5b815f9433f5c8468d8783d33312",
       "caseId": "SDK-CASE-021",
-      "materialSHA256": "c59a405a8be2b52405434103011dcb3754c15d084ef9a47fbb51c8b965565446",
-      "materials": "claude/SDK-US-006/SDK-CASE-021/88ce5a193cdb989567f184f9",
+      "materialSHA256": "2937035d353a27fbbaaa42be63caa2668133783ec00b99906bcf6e06e3e485b8",
+      "materials": "claude/SDK-US-006/SDK-CASE-021/87282b3e4cf60e63e6bb33ca",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:05.924199Z"
+        "qualifiedAt": "2026-11-24T16:31:25.591003Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -457,18 +457,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "4467fe9415bf6d4545f6155bad0c7f4c78ae1023a04657f2b051b5b058b9cebf",
+      "adoptionSHA256": "d906729cc32e4ece1329faaac2f3d48695006b688791ec7988c37059e896858d",
       "caseId": "SDK-CASE-022",
-      "materialSHA256": "ff4232bf55f874639e55357a50112788edd617d0192a347a77e607dd19cd67fb",
-      "materials": "claude/SDK-US-006/SDK-CASE-022/93ff7e5dfe99417a72a3a831",
+      "materialSHA256": "b76a4d787281f93bb8d15405d921e41ce8525bba533f21f8ffb99af63681c202",
+      "materials": "claude/SDK-US-006/SDK-CASE-022/2692904463c68f2c8a4441b0",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:11.608386Z"
+        "qualifiedAt": "2026-11-24T16:31:29.212456Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -476,18 +476,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "b7bc7bdc35d17309b2928cb6fccad1c965f7f4ef921c302e7fe868bdef1d4dfb",
+      "adoptionSHA256": "9899da828e31d163b7a13f4eba6eba33d9297ba97d1fcf5b0caceb833f49bda0",
       "caseId": "SDK-CASE-023",
-      "materialSHA256": "405a9f03fd499684a80c358286aae0333d619c7ebf96d2a91b89c3004e15f5c6",
-      "materials": "claude/SDK-US-006/SDK-CASE-023/5f37e9d62a49ba6e5b957b25",
+      "materialSHA256": "79d31cd5177d8147831564693a6e464e7b68ca2cffeee4f850c9584e64dc5000",
+      "materials": "claude/SDK-US-006/SDK-CASE-023/9cacb23b3f16cb4a7816e0b8",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:15.660922Z"
+        "qualifiedAt": "2026-11-24T16:31:32.831559Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -495,18 +495,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "00c0afde350f570b816df40dc1a943019891fee439f40df15d0c53de5e284ad1",
+      "adoptionSHA256": "ddf99f4a1294c0325405f3129cb2f8d20a7337a930d0eb9450d510e3b4729507",
       "caseId": "SDK-CASE-024",
-      "materialSHA256": "642c3b04fca2994ebcfe6f4f82ec8cd6c75bd83f758178207059500a5c473867",
-      "materials": "claude/SDK-US-006/SDK-CASE-024/198c4259bab758295b06d6a7",
+      "materialSHA256": "e967a54e07c7deecaa20d254c423b9af7d05f24aa84d245e927db04c617d50a1",
+      "materials": "claude/SDK-US-006/SDK-CASE-024/16e09820f70762fb5a478d08",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:19.702015Z"
+        "qualifiedAt": "2026-11-24T16:31:36.235715Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -514,18 +514,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "806830bcae1313a260316fb2147f37ba06286b8880fca38a3b34991d1fce49bb",
+      "adoptionSHA256": "971decd234f63f01c365b2e7a12bea7e13033f04cec13f929bd50753b032d9eb",
       "caseId": "SDK-CASE-025",
-      "materialSHA256": "396af14d4b80b985b6b290e5491c2b63b987aa73f5fda83f526fa2eab5f2eacd",
-      "materials": "claude/SDK-US-006/SDK-CASE-025/15fed8758c8c3eb3cf11a45a",
+      "materialSHA256": "0db3214fbe8031171768293d4cc229a7786976e4aaf39b8a2e63dcd6445a009d",
+      "materials": "claude/SDK-US-006/SDK-CASE-025/c8a8fd56c03720f286989e48",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:22.281137Z"
+        "qualifiedAt": "2026-11-24T16:31:39.42247Z"
       },
       "requirement": "optional",
       "storyId": "SDK-US-006",
@@ -542,18 +542,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "a7ef2fdea22ad1367ee62abc94d06296f366bf1b98f4373be0d4ee1dcfb0b157",
+      "adoptionSHA256": "1242d7b8e2c452637e40d04f43ae24f0434adbb2855ac55637fc68dabd64bea3",
       "caseId": "SDK-CASE-027",
-      "materialSHA256": "05010ce2402ac3f0fce4e42aae9fe2315d76a54f83d6219bcc20462fb025de31",
-      "materials": "claude/SDK-US-006/SDK-CASE-027/70a0d201536c505824f0b1f5",
+      "materialSHA256": "f02e74769cf52fd66f1d62c090da4d9be590f80ea8bd196f757134bb9f4bd4f1",
+      "materials": "claude/SDK-US-006/SDK-CASE-027/cbbc6c6c79ec31a9a0972dd7",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:29.638561Z"
+        "qualifiedAt": "2026-11-24T16:31:42.257234Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -561,18 +561,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "0505a7d732bfdb1ee5bd55b223698f5ab8015639a74204be86b8b928f48317fa",
+      "adoptionSHA256": "a014188fbfb43d5a1cacda8cb95607cbc7a504f40749e07a5acd12ed8bb8031c",
       "caseId": "SDK-CASE-028",
-      "materialSHA256": "90bc54593ffa9fab577a4b7aef71ba87a4a5161d4916a5339528fcd1f5271141",
-      "materials": "claude/SDK-US-006/SDK-CASE-028/120a0b7bba335cd488fe2294",
+      "materialSHA256": "143c6c4a06090b2952fe6ca024d89811e5cfe617de1e17fb9c950a8be86400af",
+      "materials": "claude/SDK-US-006/SDK-CASE-028/d04cd2579efa0081c49e6bb0",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:31.757225Z"
+        "qualifiedAt": "2026-11-24T16:31:46.342487Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -580,18 +580,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "06bcc149628a04de226183a8a2a2452f061532fcd615b1c9815691210c27eb7a",
+      "adoptionSHA256": "9784cd60e6964cca379feee2a056dd73501a11564b3f84a929c7c436086da493",
       "caseId": "SDK-CASE-029",
-      "materialSHA256": "e3d3d2b5d9bb2e16e2cf7db6897b1e8961423e74abbc37c06614882fa8dcb95a",
-      "materials": "claude/SDK-US-006/SDK-CASE-029/399514e7268a7d6506dd90c1",
+      "materialSHA256": "02b7175fa748d7c77e3d68faf45821d64cb213afe6709eef9053786dfb2fa415",
+      "materials": "claude/SDK-US-006/SDK-CASE-029/96e0996bbdd5d4cfcbc9ebe1",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:57:00.372986Z"
+        "qualifiedAt": "2026-11-24T16:31:50.454708Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-006",
@@ -599,18 +599,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "923856d02567acb3df8b962a0014d0607c6d37a17d653b96d18fffb5690ecd08",
+      "adoptionSHA256": "ad02e8332c04010dacbe472e78d77cecf6a72b270c3ab1ac59a4e76470b9ea1d",
       "caseId": "SDK-CASE-030",
-      "materialSHA256": "43dce56f9bf98d07b5315321798a17553d906689548be96b796b71ecd7aba61c",
-      "materials": "claude/SDK-US-007/SDK-CASE-030/b56a7ae3b3692fd8fe7a98dd",
+      "materialSHA256": "ef06847d3a6ab7c7d651d9bd503b3a27ad0044cd423dd37ded60d62661d8c942",
+      "materials": "claude/SDK-US-007/SDK-CASE-030/284068ce66dcddb14a8223bc",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:34.007739Z"
+        "qualifiedAt": "2026-11-24T16:31:53.308499Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-007",
@@ -618,18 +618,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "f7658d5e1c77ed26d21c1796c4633249d2b333046490df7639257604a716c7cf",
+      "adoptionSHA256": "d9d6b35d60ccbaa133032abb6c6aae790a64189e2b08b7bd09b546f5c0260865",
       "caseId": "SDK-CASE-031",
-      "materialSHA256": "2c9fd6ddd1700b05576a4f380a48e13a471c5bb541a3f1c796083ef9870ebd40",
-      "materials": "claude/SDK-US-007/SDK-CASE-031/37d270f0942a468031a78696",
+      "materialSHA256": "f1f9994f98f1b052b924ddbb9185ad813619f50e0ab7d4d7f4680ad0c8009063",
+      "materials": "claude/SDK-US-007/SDK-CASE-031/59e0c9450522088ea6ac9b86",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:43.728461Z"
+        "qualifiedAt": "2026-11-24T16:31:56.930458Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-007",
@@ -646,18 +646,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "cfe44f9ada8424f23438bfcf09035953b6a6779002baf97c5eb7705573b045f2",
+      "adoptionSHA256": "f042c5e1629be0f19e97c005a26f70f15c5fd193945124861a2a374792bdd983",
       "caseId": "SDK-CASE-033",
-      "materialSHA256": "2686276798b22188800d38a9dcee67959c650af3744c0f0bb4547088c84e8e9d",
-      "materials": "claude/SDK-US-008/SDK-CASE-033/8b081b0c3dfc512f8d01cefa",
+      "materialSHA256": "ebd6c24295bb02b755337807d61f1e073e56e63770b634c71391d36674e30302",
+      "materials": "claude/SDK-US-008/SDK-CASE-033/0225970af900c648652c9653",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:41.190859Z"
+        "qualifiedAt": "2026-11-24T16:31:59.825258Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -665,18 +665,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "9484001e1534dd9d385afb22d9eecb5841d0cc51320bc1dee2f21285eabfeb15",
+      "adoptionSHA256": "c32ae4b551ddea25dda1573e8aac931e70bd156c5bd73a798a9a791a02bf264c",
       "caseId": "SDK-CASE-034",
-      "materialSHA256": "dd07827aa2d466292d4d807c417daf53fddbc07142ca1cfa3e1e60514d8216b4",
-      "materials": "claude/SDK-US-008/SDK-CASE-034/2adbb8b675acd84d35a978fd",
+      "materialSHA256": "a4c4895b74a2bd2448568957d4f8c2f765cdc037b54d01ea6e8723d6dcee4273",
+      "materials": "claude/SDK-US-008/SDK-CASE-034/dd396749457d10de92e75470",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T20:26:05.582403Z"
+        "qualifiedAt": "2026-11-24T16:32:03.032642Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -684,18 +684,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "5b2768e32fb2987858734f595c0735d522d21da8165ea020542d5aae56c72179",
+      "adoptionSHA256": "99ce08ce73671370205b802477efdce728db2071c4e4e772b80bf95c27e5d365",
       "caseId": "SDK-CASE-035",
-      "materialSHA256": "afd5d8c9053e5426c0ec71c608d469316f9f66b4c3f6340a36e5ff400a13fa14",
-      "materials": "claude/SDK-US-008/SDK-CASE-035/b4b026feac023e908929f911",
+      "materialSHA256": "8e3beeaded682f77030b1d252a15c761c2be7d6c846d2b9e56a247a84f194f5c",
+      "materials": "claude/SDK-US-008/SDK-CASE-035/433a4c4ba905c9e773648573",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-13T04:30:02.679789Z"
+        "qualifiedAt": "2026-11-24T16:32:07.52119Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-008",
@@ -703,18 +703,18 @@
     },
     {
       "adoption": "admitted",
-      "adoptionSHA256": "20aa2890a28cd295d7262da7e9a6d08352202083149d5317d736e9d13a2fc8fe",
+      "adoptionSHA256": "8cb49109610ef0d08038b5650e63ba2eb5d654151661802bfc8f72e2f8752ed6",
       "caseId": "SDK-CASE-036",
-      "materialSHA256": "92c99e5290f716be5f4c9a2afcf7344e72e0ff6533b4d472328edbd1bb9f7107",
-      "materials": "claude/SDK-US-008/SDK-CASE-036/5d8dee264c985200fdf6e75f",
+      "materialSHA256": "409f5c32822a72bcc2a7e956546f0c0b421d7dbb0a79f1c934af63b5ad7614ad",
+      "materials": "claude/SDK-US-008/SDK-CASE-036/8e48ed3e95b3b85170e42681",
       "officialSDK": {
-        "package": "claude-agent-sdk",
-        "version": "0.2.174"
+        "package": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.293"
       },
       "provider": "claude",
       "qualification": {
         "method": "official-sdk",
-        "qualifiedAt": "2026-11-12T19:56:50.588197Z"
+        "qualifiedAt": "2026-11-24T16:32:10.635419Z"
       },
       "requirement": "required",
       "storyId": "SDK-US-008",

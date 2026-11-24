@@ -1,0 +1,54 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-033-a3-runtime-executions-c9eaddd61cd834046c8bad591c17ab36-workspace/5c95121d-80db-4f64-be65-6196f274f4a6.jsonl": "7794914d83fd44e87e55c6bcc8876621702dd605e3261da348f7c7426334d1c8",
+    "official-origin.json": "27d029ee09a9e1638cfeb400ea77d4253d4eae6aee3972ff89b203c00da01d6d",
+    "origin/main.json": "f4b75ce84a02539c69e9299dd0ba8b6c1c4dc79868ff7daace923f46d424ccbb",
+    "plan.json": "98796996d3b4e466f8f29f3606fbb95c745ad1992d20a62ce450f2ff863b561e",
+    "raw/manifest.json": "db71d8d9e2f9e4c633244c168da250e3983a860b0863e5394be784f09b33e422",
+    "raw/raw.jsonl": "48d6b9846fde2eba56e71f51910e4e23fd974cd9512aabb6aeff2f5b7b542695",
+    "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+    "raw/transport.json": "65904680497e527f44b003f3407743e71462b2eb76faac679eb99256c1a94bfd",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "41d1815515809b2be6a51b0d5267877af3155033bf2cc6dcdc4c095c5be60736"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/033-a3/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/private/tmp/tq04.C2PTPG/fixtures/033-a3/runtime/executions/c9eaddd61cd834046c8bad591c17ab36/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "98796996d3b4e466f8f29f3606fbb95c745ad1992d20a62ce450f2ff863b561e",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "65904680497e527f44b003f3407743e71462b2eb76faac679eb99256c1a94bfd",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "41d1815515809b2be6a51b0d5267877af3155033bf2cc6dcdc4c095c5be60736",
+  "status": "captured"
+}
