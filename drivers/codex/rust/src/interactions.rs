@@ -5,7 +5,7 @@ use std::time::Duration;
 use anyhow::{Context, Result, bail, ensure};
 use codex_app_server_protocol::{
     JSONRPCErrorError, ServerNotification, ServerRequest, ThreadItemPayload, TurnStartResponse,
-    TurnStatus,
+    TurnStatus, UserInput,
 };
 use codex_app_server_remote_client::{AppServerEvent, RemoteAppServerClient, TypedRequestError};
 use serde::de::DeserializeOwned;
@@ -277,6 +277,8 @@ pub(crate) async fn exercise(
         flow.record("input-submitted", serde_json::to_value(accepted)?);
         let mut root = Turn::default();
         let mut extra: Option<(String, Turn)> = None;
+        let mut supplemental_turn = None;
+        let mut supplemental_observed = false;
         let mut acted = false;
         let needs_progress = supplemental
             || interrupt
@@ -390,6 +392,7 @@ pub(crate) async fn exercise(
                                                 );
                                                 extra = Some((id.clone(), Turn::default()));
                                             }
+                                            supplemental_turn = Some(id.clone());
                                             flow.record(
                                                 "supplemental-accepted",
                                                 serde_json::to_value(result)?,
@@ -426,7 +429,7 @@ pub(crate) async fn exercise(
                             }
                         }
                         ServerNotification::ItemCompleted(item) if item.thread_id == thread => {
-                            if let ThreadItemPayload::AgentMessage { text, .. } = item.item.payload
+                            if let ThreadItemPayload::AgentMessage { text, .. } = &item.item.payload
                             {
                                 let turn = if item.turn_id == root_turn {
                                     &mut root
@@ -444,7 +447,19 @@ pub(crate) async fn exercise(
                                     turn.started && !turn.complete,
                                     "assistant message outside an active turn"
                                 );
-                                turn.output.push_str(&text);
+                                turn.output.push_str(text);
+                            } else if supplemental
+                                && let ThreadItemPayload::UserMessage { content, .. } =
+                                    &item.item.payload
+                                && matches!(content.as_slice(), [UserInput::Text { text, .. }] if text == &plan.prompts[1])
+                            {
+                                ensure!(
+                                    supplemental_turn.as_ref() == Some(&item.turn_id)
+                                        && !supplemental_observed,
+                                    "supplemental input was observed on an unaccepted or repeated turn"
+                                );
+                                supplemental_observed = true;
+                                flow.record("supplemental-observed", serde_json::to_value(item)?);
                             }
                         }
                         ServerNotification::AgentMessageDelta(delta)
@@ -482,6 +497,10 @@ pub(crate) async fn exercise(
                 None => bail!("app-server closed before the turn terminal"),
             }
         }
+        ensure!(
+            supplemental_turn.is_none() || supplemental_observed,
+            "accepted supplemental input has no native item on its turn"
+        );
         outputs.push(root.output);
     }
     approval.finish()?;
