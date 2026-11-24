@@ -29,6 +29,6 @@ func DriverSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 
 // SDKOutcomeMatches binds the TypeScript driver's result to its business report.
 // Python and Codex evidence retain their original SDK report contract.
-func SDKOutcomeMatches(sdk tool.Object, outcome tool.Object) bool {
+func SDKOutcomeMatches(sdk, outcome tool.Object) bool {
 	return sdk["package"] != claudeTypeScriptSDK || reflect.DeepEqual(sdk, tool.Obj(outcome["sdk"]))
 }
