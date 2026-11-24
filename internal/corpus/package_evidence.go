@@ -53,7 +53,7 @@ func validatePackageBusiness(root, kind, id string) error {
 		story = plan["story"]
 	}
 	sdk := tool.Obj(report["officialSDK"])
-	if report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["provider"] != plan["provider"] || report["caseId"] != plan["caseId"] || report["storyId"] != story || outcome["status"] != "passed" || !RecordedSDKIdentity(tool.Str(plan["provider"]), tool.Str(plan["caseId"]), sdk) {
+	if report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["provider"] != plan["provider"] || report["caseId"] != plan["caseId"] || report["storyId"] != story || outcome["status"] != "passed" || !RecordedSDKIdentity(tool.Str(plan["provider"]), tool.Str(plan["caseId"]), sdk) || !SDKOutcomeMatches(sdk, outcome) {
 		return errors.New("official SDK business evidence is absent, failed or untriggered")
 	}
 	return nil
