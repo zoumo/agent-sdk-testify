@@ -25,8 +25,14 @@ func TestBuiltinCatalogCoverage(t *testing.T) {
 			assert.Equal(t, "unsupported", row["verification"])
 			assert.Equal(t, false, row["available"])
 		}
+		if row["provider"] == "codex" && row["caseId"] == "SDK-CASE-012" {
+			assert.Equal(t, "required", row["requirement"])
+			assert.Equal(t, "admitted", row["adoption"])
+			assert.Equal(t, "passed", row["verification"])
+			assert.Equal(t, true, row["available"])
+		}
 	}
-	assert.Equal(t, 72, available)
+	assert.Equal(t, 73, available)
 }
 
 func TestBuiltinContainsOnlyPublishedReplayCores(t *testing.T) {
