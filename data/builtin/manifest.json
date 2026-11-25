@@ -1,25 +1,25 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "b27ef5485861414780bb9165564cdb996ae1bc82",
+  "sourceRevision": "21a8238ce2cc60888e101a4e7d36c7035f2d96fb",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "f60081bd88753f36f1a364b6ae20a0091c5c66d8b52c09e45f35e2baf032d613",
+  "indexSHA256": "e83e036e360a8ed3b14ee8d22a704073166dc13dfb35d482007f0d07b24c29e5",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
     "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-    "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+    "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
     "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
     "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
     "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
     "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
     "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
-    "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd",
+    "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
   },
-  "archiveSHA256": "d0798d716915b067ac5b14c4ea5d103167ec7d8f6494d2fafb41a987ce9dee5d",
+  "archiveSHA256": "a75c5d76a71cfe2976488cf6256fb059ae841ab2323b33aec0ecc09ffb8b9dce",
   "coverage": [
     {
       "adoption": "admitted",
@@ -1630,15 +1630,25 @@
       "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "beafa6b111a2170c5367e47bdbb9854933cf5ae34061034f429115698829531c",
+      "available": true,
       "caseId": "SDK-CASE-042",
-      "missingReason": "本 case 使用 Claude 原生 control_request/elicitation。",
+      "materialSHA256": "672f676fdbbfd1dfcfba5e5258e25794424ddff6326ba7362531da3acf52db37",
+      "materials": "codex/SDK-US-004/SDK-CASE-042/b1d8f963fe5a0b529fb4f77d",
+      "officialSDK": {
+        "package": "codex-app-server-remote-client",
+        "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb",
+        "version": "0.0.0"
+      },
       "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T09:05:11.060007Z"
+      },
       "requirement": "optional",
       "storyId": "SDK-US-004",
-      "verification": "unsupported",
-      "verificationReason": "本 case 使用 Claude 原生 control_request/elicitation。"
+      "verification": "passed"
     }
   ],
   "materials": [
@@ -2886,7 +2896,7 @@
         "source-plan.json": "edc071c60e88aca49b0f11c541b6b2835fe98f425c0d9f3bc8ec9fa133aa3144"
       },
       "contracts": {
-        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
         "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
@@ -3004,7 +3014,7 @@
         "source-plan.json": "0e8a63cc6fdb5b9575a1a61304b6e172aeea1f613e5a8e0dca94e72bfd1b4299"
       },
       "contracts": {
-        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
         "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
@@ -3119,7 +3129,7 @@
         "source-plan.json": "648776d980374a8bdae802c9f4b48f933ed8b76730d5c82c3ce09ee42fd20cfe"
       },
       "contracts": {
-        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
         "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
@@ -5666,7 +5676,7 @@
         "source-plan.json": "6b3300519ab314755c788f82e4a8df2ffb8ec7503c4498f77816d61a67d3044f"
       },
       "contracts": {
-        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
         "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0"
       },
       "officialSDK": {
@@ -5771,7 +5781,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -5873,7 +5883,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -5973,7 +5983,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6073,7 +6083,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6173,7 +6183,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6274,7 +6284,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6376,7 +6386,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6484,7 +6494,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6592,7 +6602,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6697,7 +6707,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6803,7 +6813,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6913,8 +6923,8 @@
         "source-plan.json": "027390e0a68b67eeb3ef041461dc3d093a692034688fc9d45623e60e604c42bc"
       },
       "contracts": {
-        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7023,8 +7033,8 @@
         "source-plan.json": "33d20efc1173cd4b1667fe69f9bb7f77f020e2522df386d8c9514dde54b69fab"
       },
       "contracts": {
-        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7130,8 +7140,8 @@
         "source-plan.json": "3876d2f1cd113ee62053cdd990a452bc09c1762c0f3a445e5199071960587dc1"
       },
       "contracts": {
-        "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7243,7 +7253,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7380,7 +7390,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7516,7 +7526,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7651,7 +7661,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7787,7 +7797,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7909,7 +7919,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8010,7 +8020,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8118,7 +8128,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8222,7 +8232,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8324,7 +8334,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8431,7 +8441,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8536,7 +8546,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8658,7 +8668,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8756,7 +8766,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8860,7 +8870,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8968,7 +8978,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9079,7 +9089,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9210,7 +9220,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9360,7 +9370,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9471,7 +9481,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9574,7 +9584,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9677,7 +9687,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9775,7 +9785,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9877,7 +9887,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "08b5d41955dd7eb56fea74b86ebc6ebd789152b4766b1aea7b5d0ecc98e135dd"
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9970,6 +9980,104 @@
         "stdinEOFAction": "close",
         "story": "SDK-US-003",
         "storyId": "SDK-US-003"
+      }
+    },
+    {
+      "provider": "codex",
+      "caseId": "SDK-CASE-042",
+      "storyId": "SDK-US-004",
+      "attempt": "b1d8f963fe5a0b529fb4f77d",
+      "path": "codex/SDK-US-004/SDK-CASE-042/b1d8f963fe5a0b529fb4f77d",
+      "files": {
+        "manifest.json": "a01365b9a2bad24a2e6da12e1aa67ba7053f10f7c43858e6eda69c3fd530fcac",
+        "material.json": "672f676fdbbfd1dfcfba5e5258e25794424ddff6326ba7362531da3acf52db37",
+        "official-origin.json": "f356db022afc3a596253f654d21911bc1914e6ba503f4b73dc7f63f8df68916e",
+        "origin/main.json": "a2f53d4d89743e9bf98e272bb2abb80f11cde5b682eaee6792e12c7384759c1d",
+        "plan.json": "f3a4aff4cbcfbe47847fae93b232e2ece353163656b091f10454daa3949aab6d",
+        "raw/manifest.json": "b5ef5c43dc67fc31895b497f5dbd13343fa1cac3d9b530790d8164375428840d",
+        "raw/raw.jsonl": "82be82588b14002e63bff749820e8d396c71e151bd599729528cfb5e70460ee2",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "85cc2d472df118a72fdff97a899d7932f1e56fbbaff868a16c3eae6724e58c81",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "d3873fbc7a23b31c1d5fbdb246e7f6942ed3df7e769be43d75940f4f31a7b83b"
+      },
+      "contracts": {
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
+        "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34"
+      },
+      "officialSDK": {
+        "package": "codex-app-server-remote-client",
+        "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb",
+        "version": "0.0.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T09:05:11.060007Z"
+      },
+      "plan": {
+        "args": [
+          "app-server",
+          "--listen",
+          "stdio://",
+          "-c",
+          "features.default_mode_request_user_input=true",
+          "-c",
+          "features.shell_tool=false",
+          "-c",
+          "project_root_markers=[]",
+          "-c",
+          "project_doc_max_bytes=0"
+        ],
+        "case": {
+          "id": "SDK-CASE-042",
+          "outOfScope": [
+            "外部 URL 访问"
+          ],
+          "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+          "storyId": "SDK-US-004"
+        },
+        "caseId": "SDK-CASE-042",
+        "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+        "cliVersion": "codex-cli 0.166.0",
+        "driverProfile": "standalone-elicitation",
+        "historyBindings": [],
+        "model": "auto/gpt-6.2-sol",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/codex-rust-driver/evidence/07-codex-042.UCCwvfVU/attempt-01/runtime/routes/record/workspace",
+        "prompts": [
+          "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+        ],
+        "provider": "codex",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-042",
+            "outOfScope": [
+              "外部 URL 访问"
+            ],
+            "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+            "storyId": "SDK-US-004"
+          },
+          "caseId": "SDK-CASE-042",
+          "configuration": {},
+          "driverProfile": "standalone-elicitation",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {},
+          "prompts": [
+            "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+          ],
+          "provider": "codex",
+          "reason": "",
+          "requiredRequests": [
+            "standalone-elicitation"
+          ],
+          "storyId": "SDK-US-004"
+        },
+        "sourcePlanSHA256": "d3873fbc7a23b31c1d5fbdb246e7f6942ed3df7e769be43d75940f4f31a7b83b",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-004",
+        "storyId": "SDK-US-004"
       }
     }
   ]

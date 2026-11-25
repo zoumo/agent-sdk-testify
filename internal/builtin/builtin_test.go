@@ -12,6 +12,7 @@ func TestBuiltinCatalogCoverage(t *testing.T) {
 	manifest, _, err := Read()
 	require.NoError(t, err)
 	require.Len(t, manifest.Coverage, 84)
+	codexRequirements := map[string]string{"SDK-CASE-012": "required", "SDK-CASE-042": "optional"}
 	available := 0
 	for _, row := range manifest.Coverage {
 		assert.Contains(t, []string{"required", "optional"}, row["requirement"])
@@ -25,14 +26,15 @@ func TestBuiltinCatalogCoverage(t *testing.T) {
 			assert.Equal(t, "unsupported", row["verification"])
 			assert.Equal(t, false, row["available"])
 		}
-		if row["provider"] == "codex" && row["caseId"] == "SDK-CASE-012" {
-			assert.Equal(t, "required", row["requirement"])
+		caseID, _ := row["caseId"].(string)
+		if requirement, ok := codexRequirements[caseID]; row["provider"] == "codex" && ok {
+			assert.Equal(t, requirement, row["requirement"])
 			assert.Equal(t, "admitted", row["adoption"])
 			assert.Equal(t, "passed", row["verification"])
 			assert.Equal(t, true, row["available"])
 		}
 	}
-	assert.Equal(t, 73, available)
+	assert.Equal(t, 74, available)
 }
 
 func TestBuiltinContainsOnlyPublishedReplayCores(t *testing.T) {
