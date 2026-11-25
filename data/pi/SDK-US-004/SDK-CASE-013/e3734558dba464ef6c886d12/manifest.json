@@ -1,0 +1,47 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-013-recording-runtime-executions-a1e7a7d9f9a7c0bb25f1e421a61cb8e8-workspace--/2026-11-25T14-38-35-097Z_01a21324-e657-77cd-bb4d-854c4151d929.jsonl": "dffb50653527c65a48c960e89705d1155bc265011c2969b7b08c5e4aad9e4afb",
+    "official-origin.json": "01045a9df1ef92bbcc3b8c85b53e70d083286db5226c0518dd73a87c85d23dc8",
+    "origin/main.json": "0dd251b16c8f1f33559ebae1df87e1c555bf270350672006d5971058b2f98b8c",
+    "plan.json": "9602df022332d3edbc6ef36fe824254a1dbded4f7c4364909424e04a31546396",
+    "raw/manifest.json": "5707172beb9eac9db5d5f5ffd4cc8d8b54df0e38aa45cb8f1259f29235d3c9f1",
+    "raw/raw.jsonl": "314048d71c2c51f85e6c81a4fd6895ef585460ac1fe8c0588a4911b57a84f992",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "23722e5d35960f69ba8a80a9524d30f174b40203654189f5cd4d86295542125b",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "55e2d7dab046bb2139f6a466d376494d5efc27076dd1926fa73fdc874a49627e"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--mode",
+      "rpc",
+      "--model",
+      "magpie/auto/deepseek-v4.1-flash-1017",
+      "--no-extensions",
+      "--no-skills",
+      "--no-context-files",
+      "--no-prompt-templates",
+      "-e",
+      "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/013/recording/runtime/official/6ddaef43a7f01196a1f7ccaf3d6cd6ea/pi-extension/session.ts"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/013/recording/runtime/executions/a1e7a7d9f9a7c0bb25f1e421a61cb8e8/workspace",
+    "executable": "/opt/zerobrew/Cellar/pi-coding-agent/1.6.0/bin/pi",
+    "sha256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+    "version": "1.6.0"
+  },
+  "planSHA256": "9602df022332d3edbc6ef36fe824254a1dbded4f7c4364909424e04a31546396",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "23722e5d35960f69ba8a80a9524d30f174b40203654189f5cd4d86295542125b",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "55e2d7dab046bb2139f6a466d376494d5efc27076dd1926fa73fdc874a49627e",
+  "status": "captured"
+}

@@ -1611,22 +1611,48 @@
       "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "a169e23a2afc872b8e6a4daecd3a8c86e4c5ca7f1562ec74a0fc8ef137e46d59",
       "caseId": "SDK-CASE-037",
+      "materialSHA256": "98dc711b8176db36548f5a0e538bb8839d88ab733ada789c5462a7f7a0ff751b",
+      "materials": "pi/SDK-US-001/SDK-CASE-037/7d838ec4f320d43554e53f34",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:11.116632Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "1764fb94eba3c66a3afb6d4dd440987950b9caf50309d16650098c9ee50bf5f9",
       "caseId": "SDK-CASE-038",
+      "materialSHA256": "c41900411ccc5115bc69172715df5b4641e26d4693ed3d30042f492d3214ccad",
+      "materials": "pi/SDK-US-001/SDK-CASE-038/71b0798e3b966412f72ce218",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:12.303208Z"
+      },
       "requirement": "optional",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1719,22 +1745,48 @@
       "verificationReason": "该用例要求 Codex additional permissions 三种原生决定。"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "89a8f4435c44aae937ccb7e925017f2a3cd5b911aee58d451f96106657fab895",
       "caseId": "SDK-CASE-013",
+      "materialSHA256": "8b2fffa8ed4fd362f1b76ab76b1e72159c876f43c8eb3ee0934f078cf9c63da6",
+      "materials": "pi/SDK-US-004/SDK-CASE-013/e3734558dba464ef6c886d12",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:08.31498Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-004",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "8ece7ea5781cb3ec72d28aa388f31c05f38069ed2be4eef9d92c6d28eb4560b5",
       "caseId": "SDK-CASE-014",
+      "materialSHA256": "40e913eb6e946d3cc158cbed2660e6745aa8e2d92d46c7b8bb6a2e5bec2ff3d6",
+      "materials": "pi/SDK-US-004/SDK-CASE-014/8ee11f36c044929df9543b1f",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:09.891928Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-004",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
