@@ -16,7 +16,9 @@ mkdir -p "$output"
 version=$(git -C "$source" describe --tags --exact-match 2>/dev/null || printf devel)
 ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"
 go -C "$source" run -tags builtin_generate ./cmd/agent-sdk-testify --check
-go -C "$source" build -ldflags="$ldflags" -o "$output/agent-sdk-testify" ./cmd/agent-sdk-testify
-AGENT_SDK_TESTIFY_VERSION="$version" \
-  "${PYTHON:-python3}" -m pip wheel --no-deps --no-build-isolation --wheel-dir "$output" "$source/drivers"
+go -C "$source" build -trimpath -ldflags="$ldflags" -o "$output/agent-sdk-testify" ./cmd/agent-sdk-testify
+work=$(mktemp -d "${TMPDIR:-/tmp}/testify-codex.XXXXXXXX")
+trap 'rm -rf "$work"' EXIT
+bash "$source/drivers/codex/rust/install.sh" "$work/build" "$work/prefix"
+install -m 755 "$work/prefix/bin/agent-sdk-testify-codex" "$output/agent-sdk-testify-codex"
 bash "$source/scripts/build-claude-driver.sh" "$output"

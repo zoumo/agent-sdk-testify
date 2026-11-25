@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import unittest
 
-from record_user_story.existing_children import verify_seed
+from seed import verify_seed
 
 
 def digest(path):

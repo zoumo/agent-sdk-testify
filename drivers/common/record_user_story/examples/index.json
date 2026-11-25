@@ -1,7 +1,0 @@
-{
-  "format": "agent-recording-scenarios",
-  "version": 2,
-  "stories": [
-    "conversation"
-  ]
-}

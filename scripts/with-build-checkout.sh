@@ -7,7 +7,7 @@ if (( $# == 0 )); then
   exit 2
 fi
 cd "$source_root"
-export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off PIP_NO_INDEX=1
+export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
 
 check_source() {

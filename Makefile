@@ -56,7 +56,7 @@ release:
 endif
 
 bundle:
-	PYTHON="$(PYTHON)" bash scripts/build.sh
+	bash scripts/build.sh
 
 check: fmt-check lint
 	PYTHON="$(PYTHON)" bash scripts/check-offline.sh

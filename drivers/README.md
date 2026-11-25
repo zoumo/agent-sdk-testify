@@ -11,29 +11,28 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 
 | 路径 | 内容 |
 | --- | --- |
-| `codex/official/` | Codex 官方 SDK driver |
+| `codex/rust/` | Codex 官方 Rust SDK driver、上游源码 pin 和安装器 |
 | `claude/typescript/` | Claude 官方 TypeScript SDK driver |
-| `common/` | 场景、原生输入和共享材料读取 |
-| `tests/` | Codex driver 和公开协议命令的离线测试 |
-| `pyproject.toml` | Codex wheel 定义和命令入口 |
 
 ## 构建与测试
 
-在仓库根目录准备 npm 依赖缓存，然后构建。Python 3.11+、pip 和 `setuptools>=68` 用于
-构建 Codex wheel。Node.js 22+ 和 npm 用于构建 Claude tarball。
+准备 Go、Rust 1.99.1、C/C++ 工具链、Node.js 22+ 和 npm。Python 3.11+ 运行仓库测试和打包脚本。首次联网准备时，在仓库根目录运行以下命令。将固定源码归档留给离线构建。[Rust 构建依赖](codex/rust/README.md)
 
 ```sh
+go mod download
+rustup toolchain install 1.99.1 --profile minimal
+drivers/codex/rust/install.sh /absolute/new-source-cache --fetch
+export CODEX_SOURCE_ARCHIVE=/absolute/new-source-cache/codex.tar.gz
+export CARGO_NET_OFFLINE=true
 npm ci --prefix drivers/claude/typescript --ignore-scripts --omit=optional --no-audit --no-fund
 make bundle
 make check
 ```
 
-`make bundle` 从本地依赖缓存构建以下产物。默认输出路径为 `.artifacts/build/`。
-使用 `AGENT_SDK_TESTIFY_BUILD_DIR` 可指定另一个绝对目录。
-
-- Go CLI `agent-sdk-testify`
-- Codex driver `agent_sdk_testify_driver-*.whl`
-- Claude driver `agent-sdk-testify-claude-*.tgz`
+`make bundle` 在 `.artifacts/build/` 生成当前平台的 `agent-sdk-testify`、
+`agent-sdk-testify-codex` 和 Claude npm tarball。可用 `AGENT_SDK_TESTIFY_BUILD_DIR`
+指定绝对输出目录。构建使用一个临时 Cargo target，结束后清理。设置
+`CARGO_TARGET_DIR` 为平台专用的绝对路径可在多次本机构建间保留编译缓存。
 
 ## 官方 SDK 环境
 
@@ -50,9 +49,7 @@ command -v agent-sdk-testify-claude
 ```
 
 确认输出为 `/absolute/claude-driver/node_modules/.bin/agent-sdk-testify-claude`。
-如果旧 wheel 曾提供同名 Python 脚本，将 Claude 安装目录放在旧环境前。
-若同一 Python 环境也运行 Codex，用新版 wheel 升级该环境。pip 升级时会移除旧 wheel
-提供的 Claude 脚本。旧安装命令中的 `[claude]` 和 `[recording]` 已退役。
+如果 PATH 上还有同名旧脚本，将上述安装目录放在它前面。
 
 `official record` 仍使用 `--cmd` 指定的 Claude Code CLI。
 `official verify` 使用 Testify 的公开 mock。
@@ -60,36 +57,26 @@ command -v agent-sdk-testify-claude
 
 ### 安装 Codex driver
 
-将 Codex wheel 和官方 Python SDK 安装到同一个 Python 3.11+ 环境，再将该环境的
-`bin` 加入 `PATH`。已验证的官方 SDK 来自源码 tag `rust-v0.161.0`，revision
-`979011409de0a60b52f179721948e65531d26144`，安装版本为 `0.0.0.dev0`。
-`requirements.lock` 记录原始依赖版本。对应的 `openai-codex` 和
-`openai-codex-cli-bin` 版本无法从 PyPI 直接安装。
+从同一 Release 下载当前系统和架构的 `agent-sdk-testify_<version>_<os>_<arch>.tar.gz`，
+按 `SHA256SUMS` 核对归档哈希。将其中两个可执行文件安装到同一前缀。
+以下示例使用已下载的 macOS arm64 归档和新的私有目录。
 
 ```sh
-python3 -m venv /absolute/codex-driver
-/absolute/codex-driver/bin/python -m pip install \
-  'setuptools>=68' wheel 'uv_build>=0.11.19,<0.12' \
-  'pydantic>=2.12' 'packaging>=26.2'
-git clone --branch rust-v0.161.0 \
-  https://github.com/openai/codex.git /absolute/codex-source
-git -C /absolute/codex-source rev-parse HEAD
-# 必须输出 979011409de0a60b52f179721948e65531d26144 后再安装。
-/absolute/codex-driver/bin/python -m pip install \
-  --no-deps --no-build-isolation /absolute/codex-source/sdk/python
-/absolute/codex-driver/bin/python -m pip install \
-  --no-deps /absolute/agent_sdk_testify_driver-*.whl
-export PATH="/absolute/codex-driver/bin:$PATH"
+mkdir -p /absolute/testify/bin
+tar -xzf "agent-sdk-testify_<version>_darwin_arm64.tar.gz" -C /absolute/testify/bin \
+  agent-sdk-testify agent-sdk-testify-codex
+export PATH="/absolute/testify/bin:$PATH"
+command -v agent-sdk-testify-codex
 ```
 
-`--no-deps` 跳过 SDK 声明的独立原生 CLI 依赖。
-`official record` 通过 `--cmd` 指定原生 CLI，`official verify` 使用 Testify 的公开 mock。
-源码 SDK、录制中的原生 CLI 和工具各自记录版本。
+将文件名中的 `<version>` 换成发布 tag。确认命令输出为
+`/absolute/testify/bin/agent-sdk-testify-codex`，以免使用旧 Python 环境的同名脚本。
+本地 bundle 可直接复制这两个可执行文件。回滚时将上一版工具和配套 driver
+所在的前缀恢复到 PATH 首位。
 
-Codex 审批 case 039～041 使用 `codex-cli 0.166.0` 及官方 SDK 源码
-`rust-v0.166.0`（`6ff1e1ca3b30fc8b914720681fcf5fe62e95f856`），安装版本同为
-`openai-codex 0.0.0.dev0`。复录和验证这些 case 时使用该源码版本。
-039 和 040 的录制需要 `python3` 启动隔离的合成 stdio MCP 工具。
+Rust driver 已链接锁定的官方 client。`official record` 通过 `--cmd` 启动原生 Codex；
+`official verify` 启动公开 mock。019、039、040 的真实录制用 `python3` 运行原生
+MCP 夹具，042 的真实录制用 `node`。[SDK 版本与构建方法](codex/rust/README.md)
 
 ## 按 case 录制
 

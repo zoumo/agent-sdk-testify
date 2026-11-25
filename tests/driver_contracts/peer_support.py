@@ -5,7 +5,6 @@ from pathlib import Path
 import re
 import subprocess
 
-from record_user_story.environment import read_regular
 
 
 class IdentityError(ValueError):
@@ -20,7 +19,7 @@ def identity(value=None, expected=None):
         path = Path(value).resolve(strict=True)
         if not path.is_file() or not os.access(path, os.X_OK):
             raise IdentityError('Go agent-sdk-testify executable unavailable')
-        digest = hashlib.sha256(read_regular(path)).hexdigest()
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
     except OSError as exc:
         raise IdentityError('Go agent-sdk-testify executable unavailable') from exc
     # Reject changed bytes before executing even the version probe.

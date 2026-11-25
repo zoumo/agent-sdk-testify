@@ -156,7 +156,7 @@ func conformanceDriver(args []string) int {
 	if err != nil {
 		return 6
 	}
-	sdk := map[string]any{"package": "openai-codex", "version": "conformance-test-only"}
+	sdk := map[string]any{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}
 	if plan["provider"] == "claude" {
 		sdk = map[string]any{"package": "@anthropic-ai/claude-agent-sdk", "version": "0.3.293"}
 	}

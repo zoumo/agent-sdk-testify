@@ -9,10 +9,10 @@ fi
 python=${PYTHON:-python3}
 task=${1:-all}
 if (( $# > 1 )); then
-  echo "usage: $0 [all|parallel-checks|lint|quality|test|race|e2e|build]" >&2
+  echo "usage: $0 [all|parallel-checks|lint|quality|test|race|e2e|build|package]" >&2
   exit 2
 fi
-export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off PIP_NO_INDEX=1 npm_config_offline=true npm_config_update_notifier=false
+export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOWORK=off CARGO_NET_OFFLINE=true npm_config_offline=true npm_config_update_notifier=false
 export GORACE="${GORACE:-} atexit_sleep_ms=0"
 version=$(git describe --tags --exact-match 2>/dev/null || printf devel)
 ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"
@@ -26,10 +26,6 @@ phase() {
   shift
   "$@"
   printf '%s\t%s\n' "$name" "$((SECONDS-started))" >> "$artifact_dir/phase-times.tsv"
-}
-
-check_environment() {
-  "$python" -c "import setuptools; assert tuple(map(int, setuptools.__version__.split('.')[:2])) >= (68, 0)"
 }
 
 quality_checks() {
@@ -78,15 +74,17 @@ build_and_package_checks() {
   }
   phase build-checks go test -buildvcs=true -json -count=1 -timeout=5m ./tests/build/... > "$artifact_dir/build.jsonl"
   export AGENT_SDK_TESTIFY_BIN="$AGENT_SDK_TESTIFY_NORMAL_BIN"
-  export PYTHONPATH="$PWD/drivers/common:$PWD/drivers/codex/official"
   phase scripts "$python" -m unittest discover -s scripts -p 'test_*.py'
-  phase drivers "$python" -m unittest discover -s drivers/tests -p 'test_*.py'
-  phase scenarios "$python" -m unittest discover -s drivers/tests/scenarios -p 'test_*.py'
+  phase contracts "$python" -m unittest discover -s tests/driver_contracts
+  package_checks
+}
+
+package_checks() {
   rm -rf "$artifact_dir/dist"
   phase release "$python" scripts/release.py --allow-untagged --output "$artifact_dir/dist"
   phase claude-driver npm --prefix drivers/claude/typescript test
   phase packages "$python" scripts/check-agent-sdk-testify-package.py \
-    "$artifact_dir"/dist/*.whl "$artifact_dir"/dist/*.tgz "$AGENT_SDK_TESTIFY_NORMAL_BIN"
+    "$artifact_dir"/dist/*.tar.gz "$artifact_dir"/dist/*.tgz
 }
 
 summarize_tasks() {
@@ -150,7 +148,6 @@ parallel_checks() {
 
 case "$task" in
   all)
-    check_environment
     quality_checks
     normal_tests
     race_tests
@@ -159,19 +156,15 @@ case "$task" in
     build_and_package_checks
     ;;
   parallel-checks)
-    check_environment
     parallel_checks
     ;;
   lint)
-    check_environment
     make fmt-check lint
     ;;
   quality)
-    check_environment
     quality_checks
     ;;
   test)
-    check_environment
     normal_tests
     ;;
   race)
@@ -182,13 +175,15 @@ case "$task" in
     export AGENT_SDK_TESTIFY_RACE_BIN="$artifact_dir/agent-sdk-testify-race"
     e2e_tests
     ;;
+  package)
+    package_checks
+    ;;
   build)
-    check_environment
     build_binaries
     build_and_package_checks
     ;;
   *)
-    echo "usage: $0 [all|parallel-checks|lint|quality|test|race|e2e|build]" >&2
+    echo "usage: $0 [all|parallel-checks|lint|quality|test|race|e2e|build|package]" >&2
     exit 2
     ;;
 esac

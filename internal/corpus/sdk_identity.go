@@ -16,8 +16,8 @@ const (
 // RecordedSDKIdentity validates SDK identities in persisted capture, replay,
 // and publication evidence.
 func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
-	if sdk["package"] == codexRustSDK {
-		return provider == "codex" && codexRustCase(caseID) && len(sdk) == 3 &&
+	if provider == "codex" {
+		return sdk["package"] == codexRustSDK && codexRustCase(caseID) && len(sdk) == 3 &&
 			sdk["version"] == "0.0.0" && sdk["revision"] == codexRustSDKRevision
 	}
 	if provider == "claude" && sdk["package"] == claudeTypeScriptSDK {
@@ -26,8 +26,7 @@ func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 	if provider == "claude" && caseID == "SDK-CASE-042" {
 		return false
 	}
-	name := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider]
-	return name != "" && sdk["package"] == name && tool.Str(sdk["version"]) != ""
+	return provider == "claude" && sdk["package"] == "claude-agent-sdk" && tool.Str(sdk["version"]) != ""
 }
 
 // DriverSDKIdentity validates a new official invocation's business report.
@@ -43,7 +42,7 @@ func DriverSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 func SDKOutcomeMatches(sdk, outcome tool.Object) bool {
 	reported, present := outcome["sdk"]
 	if !present {
-		return sdk["package"] != claudeTypeScriptSDK && sdk["package"] != codexRustSDK
+		return sdk["package"] == "claude-agent-sdk"
 	}
 	return reflect.DeepEqual(sdk, tool.Obj(reported))
 }

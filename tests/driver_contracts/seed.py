@@ -1,10 +1,81 @@
-"""Observe a resumed session whose recorded children predate this connection."""
+"""Check frozen seed files in the controlled history peers."""
 import hashlib
 import json
+import os
 import re
+import stat
 from pathlib import Path
 
-from .environment import read_regular, recording_temp_root, verify_recording, recording_path as _seed_path
+
+def read_regular(path, limit=None):
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode) or (limit is not None and info.st_size > limit):
+            raise ValueError('regular file required; requested read limit must not be exceeded')
+        with os.fdopen(fd, 'rb', closefd=False) as source:
+            return source.read() if limit is None else source.read(limit + 1)
+    finally:
+        os.close(fd)
+
+
+def _seed_path(root, reference):
+    if (not isinstance(reference, str) or not reference or "\\" in reference
+            or "\x00" in reference or str(Path(reference)) != reference
+            or Path(reference).is_absolute() or any(x in ('.', '..') for x in reference.split('/'))):
+        raise ValueError('invalid frozen seed reference')
+    current = root
+    for part in reference.split('/'):
+        current = current / part
+        if current.is_symlink():
+            raise ValueError('frozen seed reference traverses symlink')
+    return current
+
+
+def verify_recording(root):
+    item = json.loads(read_regular(root / 'manifest.json'))
+    if item.get('materialFormatVersion') == 3:
+        files = item.get('files')
+        if not isinstance(files, dict) or not files:
+            raise ValueError('material inventory required')
+        actual = {}
+        for path in root.rglob('*'):
+            if path.is_symlink():
+                raise ValueError('material inventory traverses symlink')
+            if path.is_dir():
+                continue
+            if not path.is_file():
+                raise ValueError('material inventory has an unsupported entry')
+            name = path.relative_to(root).as_posix()
+            if name not in ('manifest.json', 'material.json'):
+                actual[name] = hashlib.sha256(read_regular(_seed_path(root, name), None)).hexdigest()
+        if actual != files:
+            raise ValueError('material inventory changed')
+        if hashlib.sha256(read_regular(root / 'plan.json')).hexdigest() != item.get('planSHA256'):
+            raise ValueError('recording plan changed')
+        return
+    if item.get('remotePhaseFiles'):
+        raise ValueError('unexpected remote phases in child history fixture')
+    if item.get('planSHA256') and hashlib.sha256(read_regular(root / 'plan.json')).hexdigest() != item['planSHA256']:
+        raise ValueError('recording plan changed')
+    for name, digest in item['files'].items():
+        path = root / 'raw' / name
+        if Path(name).name != name or path.is_symlink() or hashlib.sha256(read_regular(path, None)).hexdigest() != digest:
+            raise ValueError('recording changed')
+    for name, digest in item.get('caseFiles', {}).items():
+        if name not in ['project/child-fixture.txt', 'config/agents/fixture_reader.toml'] or hashlib.sha256(read_regular(root / name)).hexdigest() != digest:
+            raise ValueError('synthetic child case file changed')
+    for name, digest in item.get('driverFiles', {}).items():
+        path = root / name
+        if not name.startswith('driver/') or '..' in Path(name).parts or path.is_symlink() or hashlib.sha256(read_regular(path)).hexdigest() != digest:
+            raise ValueError('recording driver snapshot changed')
+    for name, digest in item.get('savedFiles', {}).items():
+        path = root / name
+        if not name.startswith(('config/projects/', 'config/sessions/')) or '..' in Path(name).parts or path.is_symlink() or hashlib.sha256(read_regular(path)).hexdigest() != digest:
+            raise ValueError('saved recording source changed')
+
+
+
 
 
 def sha(path):
@@ -83,7 +154,8 @@ def _legacy_seed_bindings(source, manifest, provider, project):
     return bindings
 
 
-def _verify_canonical_seed(plan, seed):
+def verify_seed(plan):
+    seed = plan["historySeed"]
     runtime = plan.get('_runtime', {})
     root = Path(runtime.get('seedRoot', ''))
     if not root.is_absolute() or not isinstance(runtime.get('replay'), bool):
@@ -214,47 +286,3 @@ def _verify_canonical_seed(plan, seed):
     # binding map as its only owner of native file references.
     return dict(seed, files={b['nativeTarget']: {'source': prefix + b['source'], 'sha256': b['sha256']}
                              for b in primary})
-
-
-def verify_seed(plan, *, check_source=True):
-    seed = plan.get('historySeed')
-    if isinstance(seed, dict) and 'materialPlan' in seed:
-        return _verify_canonical_seed(plan, seed)
-    if not isinstance(seed, dict) or seed.get('provider') not in ('claude', 'codex') or not seed.get('files'):
-        raise ValueError('frozen existing-child seed required')
-    if seed.get('projectSnapshot') not in (None, 'history-seed/project'):
-        raise ValueError('invalid seed project snapshot')
-    root = Path(plan.get('_seedRoot') or plan['root'])
-    project = Path(seed.get('sourceProject', ''))
-    temp_root = Path(plan['tempRoot']) if 'tempRoot' in plan else recording_temp_root()
-    legacy_source = 'sourceRoot' in seed
-    source_reference = seed.get('sourceRootRef')
-    if not legacy_source and (not isinstance(source_reference, str) or Path(source_reference).is_absolute()
-                              or '..' in Path(source_reference).parts):
-        raise ValueError('frozen seed source reference is missing or invalid')
-    if (plan.get('historyProject') != str(project) or not project.is_absolute()
-            or (legacy_source and not seed.get('projectSnapshot')
-                and project != Path(seed.get('sourceRoot', '')) / 'project')
-            or (legacy_source and not plan.get('_nativeCase') and not project.is_relative_to(temp_root))):
-        raise ValueError('history scope differs from the frozen source project')
-    for name, value in seed['files'].items():
-        path = Path(name)
-        prefixes = ('history-seed/config/sessions',) if seed['provider'] == 'codex' else ('config/projects', 'history-seed/config/projects')
-        if not any(path.is_relative_to(prefix) for prefix in prefixes) or '..' in path.parts or sha(root / path) != value['sha256']:
-            raise ValueError('existing-child seed copy changed')
-    snapshot = root / seed['projectSnapshot'] if seed.get('projectSnapshot') else project
-    if seed.get('projectSnapshot') and project_files(snapshot) != seed.get('projectFiles'):
-        raise ValueError('source project changed during read-only observation')
-    if legacy_source and check_source and not seed.get('projectSnapshot') and project.resolve(strict=True) != project:
-        raise ValueError('source project changed during read-only observation')
-    if not legacy_source or check_source:
-        source = root / source_reference if not legacy_source else Path(seed['sourceRoot'])
-        verify_recording(source)
-        for name, digest in seed['sourceFiles'].items():
-            if sha(source / name) != digest:
-                raise ValueError('source recording identity changed')
-        for value in seed['files'].values():
-            source_path = root / value['source'] if not legacy_source else source / value['source']
-            if sha(source_path) != value['sha256']:
-                raise ValueError('source recording saved data changed')
-    return seed

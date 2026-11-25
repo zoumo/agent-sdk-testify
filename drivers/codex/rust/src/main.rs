@@ -526,7 +526,7 @@ async fn main() -> Result<()> {
     let Some((story_id, driver_profile, prompt_count)) = spec else {
         return write_json(
             &runtime.output.join("result.json"),
-            &json!({"status": "unsupported", "message": "case is outside the Rust candidate scope"}),
+            &json!({"status": "unsupported", "message": "case is unsupported by the Codex Rust driver"}),
         );
     };
     let sdk = json!({

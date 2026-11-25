@@ -19,7 +19,7 @@ import (
 // Synthetic installed peers exercise the production execution/publication seam.
 func TestOfficialPackageSettlement(t *testing.T) {
 	agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
-	setControlledOfficialDriver(t, drivers, "rust-source")
+	setControlledOfficialDriver(t, drivers, "passed")
 	fixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
 	recorded := runTool(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixture, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	require.Zero(t, recorded.code, recorded.stderr)
