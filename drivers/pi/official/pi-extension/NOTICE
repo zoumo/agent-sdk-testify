@@ -1,0 +1,6 @@
+The session extension is reproduced from github.com/zoumo/agent-sdk-go
+under the Apache License, Version 2.0.
+
+The Go Pi client implements the RPC protocol of @earendil-works/pi-coding-agent 1.6.0.
+Protocol source: https://github.com/earendil-works/pi/blob/v1.6.0/packages/coding-agent/docs/rpc.md
+Upstream revision: faac585884ae2c013a6b1400f3e9e77f10b34bac

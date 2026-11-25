@@ -61,11 +61,7 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "Pi 原生 RPC 缺少无唤醒上下文注入与实际消费边界。"
-      }
+      "progressBarrier": "message_update with assistant text_delta"
     },
     "SDK-CASE-006": {
       "files": {},
@@ -133,15 +129,16 @@
       }
     },
     "SDK-CASE-012": {
+      "inputs": ["Use the bash tool exactly once to run printf 'approved controlled command'. After the command returns, report the result briefly."],
       "files": {},
-      "requests": {},
+      "requests": {
+        "permission.read": "extension_ui_request confirm for bash",
+        "permission.held-control": "set_model",
+        "permission.held-event": "thinking_level_changed"
+      },
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "当前 Pi driver 缺少原生审批请求与持有期间控制的验证路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-039": {
       "files": {},

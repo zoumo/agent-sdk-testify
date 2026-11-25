@@ -24,11 +24,14 @@ func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 		return sdk["version"] == claudeTypeScriptSDKVersion
 	}
 	if provider == "pi" {
+		if IsPiExtensionCase(provider, caseID) {
+			return reflect.DeepEqual(sdk, PiExtensionIdentity())
+		}
 		switch caseID {
 		case "SDK-CASE-001", "SDK-CASE-002", "SDK-CASE-005", "SDK-CASE-006",
 			"SDK-CASE-021", "SDK-CASE-022", "SDK-CASE-023", "SDK-CASE-024", "SDK-CASE-027",
 			"SDK-CASE-030", "SDK-CASE-031", "SDK-CASE-033", "SDK-CASE-036":
-			return sdk["package"] == "@earendil-works/pi-coding-agent" && sdk["version"] == "1.6.0"
+			return len(sdk) == 2 && sdk["package"] == piPackage && sdk["version"] == PiVersion
 		default:
 			return false
 		}

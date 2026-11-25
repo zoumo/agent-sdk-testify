@@ -19,7 +19,7 @@ func saveMockPreparation(fixtureDir string, fixture *Fixture, execution Executio
 	}
 
 	env := tool.Object{}
-	for _, name := range []string{"HOME", "CODEX_HOME", "CLAUDE_CONFIG_DIR", "TMPDIR", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME"} {
+	for _, name := range []string{"HOME", "CODEX_HOME", "CLAUDE_CONFIG_DIR", "PI_CODING_AGENT_DIR", "TMPDIR", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME"} {
 		if value, ok := execution.RuntimeEnv[name]; ok {
 			env[name] = value
 		}

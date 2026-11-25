@@ -103,6 +103,9 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if err := tool.ReadJSON(filepath.Join(material.Path, "plan.json"), &plan); err != nil {
 		return err
 	}
+	if err := corpus.ValidatePiExtensionPlan(plan); err != nil {
+		return err
+	}
 	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: fixture.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
 	if err != nil {
 		return err

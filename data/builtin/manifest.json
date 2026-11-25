@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "9c2c41db4445f1b0811bf3ed3032ebc0c4fbbb25",
+  "sourceRevision": "56c847f8b96ce93be9ff3bc0c9476b419714ed2c",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "f07ddb94d0badbb69d12748c03c262638b1aec0bbc86ca6e6e6d9c5e99f03074",
+  "indexSHA256": "303fab6dc01c9e5a92669832116d8d8a3a3489523d4bf99c5c61608c437002e4",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -15,7 +15,7 @@
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
     "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
     "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34",
-    "bindings/pi.json": "115dc8e42b19e9f571455da1cfe9429390c5ffb03d137ec7b6ca0b0002bc5a87",
+    "bindings/pi.json": "da4fabd3b474996d5ad63694b57e36902671afa3b29adc8f2fb7aa162f843870",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
@@ -1776,12 +1776,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-012",
-      "missingReason": "当前 Pi driver 缺少原生审批请求与持有期间控制的验证路径。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "当前 Pi driver 缺少原生审批请求与持有期间控制的验证路径。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -2062,12 +2062,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-038",
-      "missingReason": "Pi 原生 RPC 缺少无唤醒上下文注入与实际消费边界。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "optional",
       "storyId": "SDK-US-001",
-      "verification": "unsupported",
-      "verificationReason": "Pi 原生 RPC 缺少无唤醒上下文注入与实际消费边界。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",

@@ -109,6 +109,14 @@ func Record(ctx context.Context, o RecordOptions) (runErr error) {
 	if err := os.MkdirAll(filepath.Join(private, "tmp"), 0o700); err != nil {
 		return err
 	}
+	if caseID := tool.Str(plan["caseId"]); corpus.IsPiExtensionCase(fixture.AgentType, caseID) {
+		if o.URL != "" {
+			return errors.New("recording a Pi extension requires a local executable")
+		}
+		if err := stagePiExtension(driver, private, caseID); err != nil {
+			return err
+		}
+	}
 	env, err := lifecycle.RecordEnvironment(fixture)
 	if err != nil {
 		return err

@@ -13,7 +13,7 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 | --- | --- |
 | `codex/rust/` | Codex 官方 Rust SDK driver、上游源码 pin 和安装器 |
 | `claude/typescript/` | Claude 官方 TypeScript SDK driver |
-| `pi/official/` | Pi 官方 TypeScript RpcClient driver |
+| `pi/official/` | Pi 官方 TypeScript RpcClient 与原生 stdio 扩展 driver |
 
 ## 构建与测试
 
@@ -95,10 +95,11 @@ command -v agent-sdk-testify-pi
 独立历史用例使用 Pi 的 `SessionManager` 读取本次录制保存的原生会话文件。
 [Pi 用例绑定](../data/scenarios/bindings/pi.json)
 
-Pi 1.6.0 的 RpcClient 公开了扩展 UI 请求的监听接口。发送 `extension_ui_response` 需要原生 stdio 客户端。
-验证扩展交互时，用消费方计划准备 fixture，再通过 `agent record` 和 `agent mock`
-连接可收发这些帧的原生 stdio 客户端。客户端用原生对话 ID 回答，命令回执用各自的请求 ID 匹配。
-材料归属消费方计划。用例证据标明所用的原生 stdio 客户端和 Pi 版本。
+Pi 1.6.0 的 RpcClient 公开了扩展 UI 请求的监听接口。扩展用例使用原生 stdio 客户端发送
+`extension_ui_response`。先用目录中的 case 准备 fixture，再用 `official record` 和
+`official verify` 录放。driver 用原生对话 ID 回答，按各自的命令 ID 匹配控制回执。
+录制时 Testify 加载固定的 Go SDK 扩展，业务报告保留 Pi 版本、扩展修订和哈希。
+[扩展来源](pi/official/pi-extension/SOURCE.md)
 
 ## 按 case 录制
 

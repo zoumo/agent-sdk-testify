@@ -98,8 +98,11 @@ def check_pi(tarball, root):
     driver = prefix / 'node_modules/.bin/agent-sdk-testify-pi'
     package = prefix / 'node_modules/agent-sdk-testify-pi'
     assert driver.resolve() == package / 'cli.mjs'
-    for name in ('base.mjs', 'continuation.mjs', 'peer.mjs', 'wire.mjs', 'evidence.mjs', 'LICENSE'):
+    for name in ('base.mjs', 'continuation.mjs', 'extension.mjs', 'peer.mjs', 'wire.mjs', 'evidence.mjs', 'LICENSE',
+                 'pi-extension/SOURCE.md', 'pi-extension/NOTICE'):
         assert (package / name).is_file()
+    extension = package / 'pi-extension/session.ts'
+    assert hashlib.sha256(extension.read_bytes()).hexdigest() == '298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b'
     launched = subprocess.run([str(driver)], cwd=root, env=env, capture_output=True, timeout=10, text=True)
     assert launched.returncode == 2 and 'usage: agent-sdk-testify-pi --request FILE' in launched.stderr, launched.stderr
     print('Pi driver installed and launched outside the source checkout', flush=True)

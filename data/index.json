@@ -1595,8 +1595,8 @@
       "provider": "pi",
       "requirement": "optional",
       "storyId": "SDK-US-001",
-      "verification": "unsupported",
-      "verificationReason": "Pi 原生 RPC 缺少无唤醒上下文注入与实际消费边界。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1658,8 +1658,8 @@
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "当前 Pi driver 缺少原生审批请求与持有期间控制的验证路径。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",

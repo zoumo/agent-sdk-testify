@@ -5,6 +5,7 @@ import { readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { currentCapture, readJSON } from './evidence.mjs';
+import { probeExtension, requireExtensionWire, supportsExtension } from './extension.mjs';
 import { requireWire } from './wire.mjs';
 
 const sdkName = '@earendil-works/pi-coding-agent';
@@ -74,7 +75,7 @@ function probe(plan, runtime, code) {
     return { observed: JSON.parse(completed.stdout), images };
 }
 
-function execute(request) {
+async function execute(request) {
     if (typeof request.materials !== 'string' || !isAbsolute(request.materials)) {
         throw new Error('official Pi driver requires an absolute materials path');
     }
@@ -92,17 +93,22 @@ function execute(request) {
             story: plan.story, storyId: plan.storyId, case: plan.case,
             scenarioSHA256: plan.scenarioSHA256, cliVersion: plan.cliVersion,
         });
-        if (!cases.has(code) || plan.scenario.mode !== 'live-selected-path') {
+        const extension = supportsExtension(code);
+        if ((!cases.has(code) && !extension) || plan.scenario.mode !== 'live-selected-path') {
             status = 'unsupported';
             throw new Error(plan.scenario.reason || 'no official Pi driver for this case');
         }
         if (!Array.isArray(plan.prompts) || !plan.prompts.length || plan.prompts.some(prompt => typeof prompt !== 'string')) {
             throw new Error('Pi case requires text prompts selected from the catalog');
         }
-        const { observed, images } = probe(plan, runtime, code);
+        const { observed, images } = extension ? { observed: await probeExtension(plan, runtime, code) } : probe(plan, runtime, code);
         const evidence = currentCapture(runtime);
         const frames = readFileSync(join(evidence.raw, 'raw.jsonl'), 'utf8').trimEnd().split('\n').map(line => JSON.parse(line));
-        requireWire(code, frames, observed, images);
+        if (extension) {
+            requireExtensionWire(frames, observed, evidence.receipt, runtime.replay);
+        } else {
+            requireWire(code, frames, observed, images);
+        }
         if (code === '031') {
             const receipt = evidence.receipt;
             const complete = runtime.replay
@@ -113,10 +119,12 @@ function execute(request) {
             observed.sessionClose.processClosed = true;
         }
         Object.assign(report, {
-            officialSDK: { package: sdkName, version: sdkVersion },
+            officialSDK: extension ? observed.sdk : { package: sdkName, version: sdkVersion },
             sessionId: observed.sessionId, receipts: observed.turns, inputs: observed.turns.length,
-            results: observed.turns.length, events: observed.turns.reduce((count, turn) => count + turn.events, 0),
-            requests: observed.requests?.length ?? 0, windows: observed.windows, sessionClose: observed.sessionClose,
+            results: observed.turns.length,
+            events: extension ? observed.wires.length : observed.turns.reduce((count, turn) => count + turn.events, 0),
+            requests: extension ? observed.requests : observed.requests?.length ?? 0,
+            piExtension: observed.facts, windows: observed.windows, sessionClose: observed.sessionClose,
             savedHistory: observed.savedHistory,
             piConfiguration: observed.configuration?.length ? observed.configuration : undefined,
         });
@@ -137,7 +145,7 @@ function execute(request) {
 try {
     const [, , flag, request, ...extra] = process.argv;
     if (flag !== '--request' || !request || extra.length) throw new Error('usage: agent-sdk-testify-pi --request FILE');
-    execute(readJSON(request));
+    await execute(readJSON(request));
 } catch (error) {
     process.stderr.write(error.message + '\n');
     process.exitCode = 2;
