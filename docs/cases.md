@@ -45,6 +45,7 @@ User story 表达完整使用目标，使用 `SDK-US-NNN`；验证 case 表达�
 
 必需能力须有通过的业务证据；`planned`、`unsupported`、未触发或缺材料均不豁免。
 012 对两个 provider 均为必需能力。Codex 使用独立安装的 Rust driver 录制和验证，对等待审批的原 Thread 接收原生通知并核对控制回执。
+042 的 Codex 路径使用 Rust driver 回应 `mcpServer/elicitation/request`。两个 provider 均核对原请求 ID 和 MCP 工具结果。
 可选能力不阻断必需能力验收，但必须如实报告失败、未知和不支持；已有材料的来源与完整性校验不能省略。
 
 录制目录中的“可执行”只表示驱动提供该路径，不表示已经录制、通过或每次必然触发。原生能力还受实际 CLI/SDK 版本影响。录制冻结版本、配置、原生数据及流程结果；回放只能断言捕获材料实际支持的行为。

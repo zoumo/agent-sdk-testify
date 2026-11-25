@@ -1,0 +1,65 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "features.shell_tool=false",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-042",
+    "outOfScope": [
+      "外部 URL 访问"
+    ],
+    "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+    "storyId": "SDK-US-004"
+  },
+  "caseId": "SDK-CASE-042",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "standalone-elicitation",
+  "historyBindings": [],
+  "model": "auto/gpt-6.2-sol",
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/codex-rust-driver/evidence/07-codex-042.UCCwvfVU/attempt-01/runtime/routes/record/workspace",
+  "prompts": [
+    "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-042",
+      "outOfScope": [
+        "外部 URL 访问"
+      ],
+      "scope": "分别核对 form 和 URL 的三个决定、原始请求 ID 及 MCP 工具结果。",
+      "storyId": "SDK-US-004"
+    },
+    "caseId": "SDK-CASE-042",
+    "configuration": {},
+    "driverProfile": "standalone-elicitation",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Call the elicitation_fixture MCP tool roundtrip exactly once. Report the result. Do not use other tools."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "standalone-elicitation"
+    ],
+    "storyId": "SDK-US-004"
+  },
+  "sourcePlanSHA256": "d3873fbc7a23b31c1d5fbdb246e7f6942ed3df7e769be43d75940f4f31a7b83b",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-004",
+  "storyId": "SDK-US-004"
+}

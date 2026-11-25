@@ -1,0 +1,47 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "f356db022afc3a596253f654d21911bc1914e6ba503f4b73dc7f63f8df68916e",
+    "origin/main.json": "a2f53d4d89743e9bf98e272bb2abb80f11cde5b682eaee6792e12c7384759c1d",
+    "plan.json": "f3a4aff4cbcfbe47847fae93b232e2ece353163656b091f10454daa3949aab6d",
+    "raw/manifest.json": "b5ef5c43dc67fc31895b497f5dbd13343fa1cac3d9b530790d8164375428840d",
+    "raw/raw.jsonl": "82be82588b14002e63bff749820e8d396c71e151bd599729528cfb5e70460ee2",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "85cc2d472df118a72fdff97a899d7932f1e56fbbaff868a16c3eae6724e58c81",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "d3873fbc7a23b31c1d5fbdb246e7f6942ed3df7e769be43d75940f4f31a7b83b"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "features.shell_tool=false",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/codex-rust-driver/evidence/07-codex-042.UCCwvfVU/attempt-01/runtime/executions/67cbcbe8ef630387591239e57774e5e7/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "f3a4aff4cbcfbe47847fae93b232e2ece353163656b091f10454daa3949aab6d",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "85cc2d472df118a72fdff97a899d7932f1e56fbbaff868a16c3eae6724e58c81",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "d3873fbc7a23b31c1d5fbdb246e7f6942ed3df7e769be43d75940f4f31a7b83b",
+  "status": "captured"
+}

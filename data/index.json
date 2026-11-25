@@ -1516,13 +1516,24 @@
       "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "beafa6b111a2170c5367e47bdbb9854933cf5ae34061034f429115698829531c",
       "caseId": "SDK-CASE-042",
+      "materialSHA256": "672f676fdbbfd1dfcfba5e5258e25794424ddff6326ba7362531da3acf52db37",
+      "materials": "codex/SDK-US-004/SDK-CASE-042/b1d8f963fe5a0b529fb4f77d",
+      "officialSDK": {
+        "package": "codex-app-server-remote-client",
+        "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb",
+        "version": "0.0.0"
+      },
       "provider": "codex",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T09:05:11.060007Z"
+      },
       "requirement": "optional",
       "storyId": "SDK-US-004",
-      "verification": "unsupported",
-      "verificationReason": "本 case 使用 Claude 原生 control_request/elicitation。"
+      "verification": "passed"
     }
   ],
   "version": 1
