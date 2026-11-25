@@ -18,8 +18,14 @@ func TestPiCLIPrepareRecordMock(t *testing.T) {
 	root := t.TempDir()
 	_, _, env := isolatedCommands(t, root, "codex")
 	env = append(env, "PI_CODING_AGENT_DIR="+filepath.Join(root, "isolated-pi"))
-	caseFixture := prepareFixture(t, env, "--agent", "pi", "--case", "SDK-CASE-001", "--model", "example/synthetic")
-	require.Empty(t, currentMaterialID(t, caseFixture))
+	builtinFixture := prepareFixture(t, env, "--agent", "pi", "--case", "SDK-CASE-001")
+	builtinRoot := fixtureMaterialRoot(t, builtinFixture, latestCapture(t, builtinFixture))
+	builtinPlan := readJSON(t, filepath.Join(builtinRoot, "plan.json"))
+	require.Equal(t, "pi", builtinPlan["provider"])
+	require.Equal(t, "SDK-CASE-001", builtinPlan["caseId"])
+
+	unadoptedFixture := prepareFixture(t, env, "--agent", "pi", "--case", "SDK-CASE-003", "--model", "example/synthetic")
+	require.Empty(t, currentMaterialID(t, unadoptedFixture))
 
 	plan := filepath.Join(root, "plan.json")
 	writeJSON(t, plan, object{
