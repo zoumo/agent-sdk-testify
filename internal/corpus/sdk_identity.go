@@ -21,7 +21,14 @@ func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 		return false
 	}
 	if provider == "pi" {
-		return caseID == "SDK-CASE-001" && sdk["package"] == "@earendil-works/pi-coding-agent" && sdk["version"] == "1.6.0"
+		switch caseID {
+		case "SDK-CASE-001", "SDK-CASE-002", "SDK-CASE-005", "SDK-CASE-006",
+			"SDK-CASE-021", "SDK-CASE-022", "SDK-CASE-023", "SDK-CASE-024", "SDK-CASE-027",
+			"SDK-CASE-030", "SDK-CASE-031", "SDK-CASE-033", "SDK-CASE-036":
+			return sdk["package"] == "@earendil-works/pi-coding-agent" && sdk["version"] == "1.6.0"
+		default:
+			return false
+		}
 	}
 	name := map[string]string{"codex": "openai-codex", "claude": "claude-agent-sdk"}[provider]
 	return name != "" && sdk["package"] == name && tool.Str(sdk["version"]) != ""
