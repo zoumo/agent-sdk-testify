@@ -126,8 +126,17 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 			return err
 		}
 	}
-	if provider == "pi" && tool.Str(plan["model"]) != "" {
-		args = append(args, "--model", tool.Str(plan["model"]))
+	if provider == "pi" {
+		model := tool.Str(plan["model"])
+		if initial := tool.Str(plan["initialModel"]); initial != "" {
+			model = initial
+		}
+		if model != "" {
+			args = append(args, "--model", model)
+		}
+		if plan["caseId"] == "SDK-CASE-027" {
+			args = append(args, "--thinking", tool.Str(params["effort"]))
+		}
 	}
 	plan["args"] = args
 	plan["stdinEOFAction"] = "close"

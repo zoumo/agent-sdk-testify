@@ -13,7 +13,7 @@ SDK_PACKAGE = '@earendil-works/pi-coding-agent'
 SDK_VERSION = '1.6.0'
 
 
-def run(plan, report, flow):
+def probe(plan, report, script, arguments):
     sdk = Path(sys.prefix) / 'node_modules' / SDK_PACKAGE
     manifest_path = sdk / 'package.json'
     if not manifest_path.is_file():
@@ -22,18 +22,22 @@ def run(plan, report, flow):
     if (manifest.get('name'), manifest.get('version')) != (SDK_PACKAGE, SDK_VERSION):
         raise ValueError(f'expected {SDK_PACKAGE}@{SDK_VERSION}')
     report['officialSDK'] = {'package': SDK_PACKAGE, 'version': SDK_VERSION}
-    first, second = flow.inputs()
     completed = subprocess.run(
-        ['node', str(Path(__file__).with_suffix('.mjs'))],
+        ['node', str(Path(__file__).with_name(script))],
         check=True, text=True, stdout=subprocess.PIPE,
         input=json.dumps({
             'sdk': str(sdk / manifest['main']),
             'cwd': str(execution_workspace(plan)),
             'peer': proxy_command(plan),
-            'prompts': [first, second],
+            **arguments,
         }),
     )
-    observed = json.loads(completed.stdout)
+    return json.loads(completed.stdout)
+
+
+def run(plan, report, flow):
+    first, second = flow.inputs()
+    observed = probe(plan, report, 'continuation.mjs', {'prompts': [first, second]})
     report['sessionId'] = observed['sessionId']
     for turn in observed['turns']:
         flow.submit()

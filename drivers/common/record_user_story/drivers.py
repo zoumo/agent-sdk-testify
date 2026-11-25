@@ -30,7 +30,10 @@ def run(plan):
             if plan['provider'] != 'pi':
                 report['officialSDK'] = sdk_identity(plan['provider'])
             if plan['provider'] == 'pi':
-                from pi_driver.continuation import run as run_pi
+                if plan['caseId'] == 'SDK-CASE-001':
+                    from pi_driver.continuation import run as run_pi
+                else:
+                    from pi_driver.base import run as run_pi
                 run_pi(plan, report, flow)
             elif definition['driverProfile'] == 'existing-children':
                 if definition.get('parameters', {}).get('selfSeed') and not plan.get('historySeed'):
@@ -103,6 +106,8 @@ def observe_wire(plan, report):
     from .adapters.common import observe_configuration
     path = capture_root(plan) / 'raw/raw.jsonl'
     if not path.exists():
+        if plan['provider'] == 'pi':
+            raise Untriggered('Pi native protocol capture is absent')
         if plan.get('driverProfile') in ('mcp-tool-approval', 'sandbox-permissions'):
             raise Untriggered('native approval capture is absent')
         if plan.get('driverProfile') == 'context-injection':
@@ -115,7 +120,10 @@ def observe_wire(plan, report):
         return
     frames = [json.loads(line) for line in path.read_bytes().splitlines()]
     if plan['provider'] == 'pi':
-        from pi_driver.continuation import require_wire
+        if plan['caseId'] == 'SDK-CASE-001':
+            from pi_driver.continuation import require_wire
+        else:
+            from pi_driver.base import require_wire
         require_wire(frames, report)
         return
     if plan.get('driverProfile') == 'mcp-tool-approval':

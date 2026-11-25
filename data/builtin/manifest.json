@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "9b915dba466445bc67f7a8d7e9fefd231c02cf39",
+  "sourceRevision": "2f8bd814587aaa287fc0f87b0d2e65c9477a5f0f",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "df5ccd53cc6d2b3efc3909d6fceec5398e78bfc1f412f0e4ebeb9cb2068d772a",
+  "indexSHA256": "7f9fa6861568645046d9aa7942750fea66b14a040cadcf8712d56320bb314ef5",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -15,7 +15,7 @@
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
     "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
     "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e",
-    "bindings/pi.json": "d0e07fad0eb78000cc8e48ec31425af248527bdace69c3b59049cc3367ec883e",
+    "bindings/pi.json": "2a9eedb0fe8a6b09c42e3fce917ea75ec1d06e7a6e01d28bfd0af92c34a97cbc",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
@@ -1609,12 +1609,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-002",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-001",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
@@ -1631,34 +1631,34 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-004",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-001",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-005",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-001",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-006",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-002",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
@@ -1818,56 +1818,56 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-021",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-022",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-023",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-024",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-025",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "Pi RPC 1.6 仅公开离散 thinking level，缺少独立思考模式。",
       "provider": "pi",
       "requirement": "optional",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "Pi RPC 1.6 仅公开离散 thinking level，缺少独立思考模式。"
     },
     {
       "adoption": "missing",
@@ -1884,12 +1884,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-027",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
@@ -1917,23 +1917,23 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-030",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-007",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-031",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-007",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
@@ -1950,12 +1950,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-033",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-008",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",
@@ -1983,12 +1983,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-036",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-008",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
     },
     {
       "adoption": "missing",

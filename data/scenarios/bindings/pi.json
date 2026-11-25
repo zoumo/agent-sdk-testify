@@ -14,11 +14,7 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-003": {
       "files": {},
@@ -38,8 +34,8 @@
       "configuration": {},
       "progressBarrier": null,
       "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+        "mode": "unsupported",
+        "reason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。"
       }
     },
     "SDK-CASE-005": {
@@ -47,11 +43,7 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": "assistant message_update with text_delta"
     },
     "SDK-CASE-037": {
       "files": {},
@@ -77,14 +69,13 @@
     },
     "SDK-CASE-006": {
       "files": {},
-      "requests": {},
+      "requests": {
+        "fixture.read": "read",
+        "fixture.write": "write"
+      },
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-007": {
       "files": {},
@@ -289,44 +280,33 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-022": {
       "files": {},
       "requests": {},
       "answers": {},
-      "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "configuration": {
+        "timing": "before-first-input",
+        "modelSource": "session",
+        "thinking": null,
+        "effectiveValue": "unknown-unless-observed"
+      },
+      "progressBarrier": null
     },
     "SDK-CASE-023": {
       "files": {},
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-024": {
       "files": {},
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-025": {
       "files": {},
@@ -335,8 +315,8 @@
       "configuration": {},
       "progressBarrier": null,
       "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+        "mode": "unsupported",
+        "reason": "Pi RPC 1.6 仅公开离散 thinking level，缺少独立思考模式。"
       }
     },
     "SDK-CASE-026": {
@@ -356,9 +336,9 @@
       "answers": {},
       "configuration": {},
       "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "parameters": {
+        "effort": "low",
+        "targetEffort": "medium"
       }
     },
     "SDK-CASE-028": {
@@ -388,22 +368,14 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": "assistant message_update with text_delta"
     },
     "SDK-CASE-031": {
       "files": {},
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-032": {
       "files": {},
@@ -421,11 +393,7 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-034": {
       "files": {},
@@ -454,11 +422,7 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     }
   }
 }
