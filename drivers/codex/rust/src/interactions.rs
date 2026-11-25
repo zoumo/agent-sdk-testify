@@ -15,6 +15,7 @@ use tokio::time::timeout;
 use crate::{Plan, record_receipt, request};
 
 mod approvals;
+mod elicitation;
 mod fixture_tools;
 mod settings;
 
@@ -35,6 +36,7 @@ pub(crate) fn case_spec(case_id: &str) -> Option<(&'static str, &'static str, us
         "SDK-CASE-031" => ("SDK-US-007", "session-close", 1),
         "SDK-CASE-037" | "SDK-CASE-038" => ("SDK-US-001", "context-injection", 2),
         "SDK-CASE-039" | "SDK-CASE-040" => ("SDK-US-003", "mcp-tool-approval", 1),
+        "SDK-CASE-042" => ("SDK-US-004", "standalone-elicitation", 1),
         _ => return None,
     })
 }
@@ -277,6 +279,9 @@ pub(crate) async fn exercise(
         report,
         next_id: 2,
     };
+    if plan.driver_profile == "standalone-elicitation" {
+        return elicitation::exercise(&mut flow, plan).await;
+    }
     let parameters = &plan.scenario["parameters"];
     let media = match plan.case_id.as_str() {
         "SDK-CASE-002" => Some("image"),

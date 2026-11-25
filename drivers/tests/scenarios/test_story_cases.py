@@ -37,6 +37,7 @@ class StoryCaseTests(unittest.TestCase):
             for case_id in ('SDK-CASE-039', 'SDK-CASE-040', 'SDK-CASE-041'):
                 self.assertEqual(cases[case_id]['required'], provider == 'codex')
             self.assertEqual(cases['SDK-CASE-042']['required'], provider == 'claude')
+            self.assertEqual(cases['SDK-CASE-042']['mode'], 'live-selected-path')
             self.assertTrue(cases['SDK-CASE-028']['required'])
             self.assertIn('不作为门禁条件', cases['SDK-CASE-028']['scope'])
 

@@ -92,7 +92,7 @@ User story 表达完整使用目标，使用 `SDK-US-NNN`；验证 case 表达�
 | SDK-CASE-039 | SDK-US-003 | required (claude optional) | 批准根 Thread 的默认 MCP 工具调用并读取结果 |
 | SDK-CASE-040 | SDK-US-003 | required (claude optional) | 批准已确认的子 Thread 的默认 MCP 工具调用并读取结果 |
 | SDK-CASE-041 | SDK-US-003 | required (claude optional) | 回应本轮、本会话及拒绝三种额外沙箱权限决定 |
-| SDK-CASE-042 | SDK-US-004 | required (codex optional) | 回应 Claude 独立 form 和 URL elicitation 的六种决定 |
+| SDK-CASE-042 | SDK-US-004 | required (codex optional) | 回应独立 form 和 URL elicitation 的六种决定 |
 
 ## 流程语义
 

@@ -58,7 +58,7 @@ func codexRustCase(caseID string) bool {
 		"SDK-CASE-023", "SDK-CASE-024", "SDK-CASE-027", "SDK-CASE-028",
 		"SDK-CASE-029", "SDK-CASE-030", "SDK-CASE-031", "SDK-CASE-032",
 		"SDK-CASE-033", "SDK-CASE-034", "SDK-CASE-035", "SDK-CASE-036",
-		"SDK-CASE-037", "SDK-CASE-038", "SDK-CASE-039", "SDK-CASE-040", "SDK-CASE-041":
+		"SDK-CASE-037", "SDK-CASE-038", "SDK-CASE-039", "SDK-CASE-040", "SDK-CASE-041", "SDK-CASE-042":
 		return true
 	default:
 		return false

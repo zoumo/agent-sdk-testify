@@ -461,12 +461,7 @@
       "answers": {},
       "configuration": {},
       "progressBarrier": null,
-      "required": false,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "本 case 使用 Claude 原生 control_request/elicitation。"
-      },
-      "inputs": []
+      "required": false
     }
   }
 }

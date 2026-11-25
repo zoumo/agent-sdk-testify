@@ -48,7 +48,7 @@ func TestCodexRustIdentity(t *testing.T) {
 	python := tool.Object{"package": "openai-codex", "version": "0.0.0.dev0"}
 	for n := 1; n <= 42; n++ {
 		caseID := fmt.Sprintf("SDK-CASE-%03d", n)
-		qualified := n != 3 && n != 25 && n != 26 && n != 42
+		qualified := n != 3 && n != 25 && n != 26
 		require.Equal(t, qualified, RecordedSDKIdentity("codex", caseID, sdk), caseID)
 		require.Equal(t, qualified, DriverSDKIdentity("codex", caseID, sdk), caseID)
 	}

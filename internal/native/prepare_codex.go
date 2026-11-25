@@ -122,7 +122,7 @@ func codexCaseArgs(profile string, params tool.Object) []string {
 	if params["approvalKind"] == "command" {
 		args = append(args, "-c", `sandbox_mode="read-only"`)
 	}
-	if params["nativeFileTool"] == "apply_patch" {
+	if params["nativeFileTool"] == "apply_patch" || profile == "standalone-elicitation" {
 		args = append(args, "-c", "features.shell_tool=false")
 	}
 	if params["childTools"] == "inherited-dynamic-v2" {
@@ -182,6 +182,18 @@ func prepareCodexMCPApprovalFixture(root string) error {
 	return prepareCodexMCPFixture(root, "approval_fixture", tool.Object{
 		"command": "python3", "args": []string{"-u", "-c", codexMCPFixture},
 		"default_tools_approval_mode": "prompt", "required": true,
+	})
+}
+
+//go:embed mcp_elicitation_fixture.cjs
+var mcpElicitationFixture string
+
+func prepareCodexMCPElicitationFixture(root string) error {
+	return prepareCodexMCPFixture(root, "elicitation_fixture", tool.Object{
+		"command": "node", "args": []string{"-e", mcpElicitationFixture},
+		"enabled_tools": []string{"roundtrip"}, "required": true,
+		"omit_tools_from": []string{"deferred", "code_mode"},
+		"tools":           tool.Object{"roundtrip": tool.Object{"approval_mode": "approve"}},
 	})
 }
 

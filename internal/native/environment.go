@@ -200,8 +200,13 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 				return err
 			}
 		}
-		if profile == "mcp-tool-approval" {
+		switch profile {
+		case "mcp-tool-approval":
 			if err := prepareCodexMCPApprovalFixture(root); err != nil {
+				return err
+			}
+		case "standalone-elicitation":
+			if err := prepareCodexMCPElicitationFixture(root); err != nil {
 				return err
 			}
 		}

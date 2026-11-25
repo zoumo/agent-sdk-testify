@@ -254,7 +254,7 @@ async fn open_thread(
 ) -> Result<(String, Value)> {
     let sandbox = if matches!(
         plan.driver_profile.as_str(),
-        "approval" | "deferred-approval" | "sandbox-permissions"
+        "approval" | "deferred-approval" | "sandbox-permissions" | "standalone-elicitation"
     ) {
         "read-only"
     } else {
