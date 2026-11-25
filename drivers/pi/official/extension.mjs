@@ -100,10 +100,10 @@ class Client {
     }
 }
 
-function contentMatches(frame, fact) {
+function contentMatches(frame, text) {
     return frame.type === 'message_end' && frame.message?.role === 'custom'
         && frame.message?.customType === 'agent-sdk-inject' && frame.message?.display === false
-        && messagesText(frame.message.content) === fact;
+        && messagesText(frame.message.content) === text;
 }
 
 async function approvalRequest(client, start, expected) {
@@ -233,6 +233,7 @@ async function injectContext(client, plan, state, _runtime, code) {
     const fact = plan.scenario.parameters?.contextValue;
     ensure(typeof fact === 'string' && fact.length > 0 && plan.prompts.length === 2, 'Pi injection requires a catalog fact and two prompts');
     const active = code === '038';
+    const injectedText = active ? fact : 'The stored vault code is ' + fact + '.';
     const first = await client.prompt(plan.prompts[0]);
     let original;
     if (active) {
@@ -240,18 +241,18 @@ async function injectContext(client, plan, state, _runtime, code) {
     } else {
         original = await client.settled(first.start);
     }
-    const injected = await client.prompt(injectCommand + ' ' + JSON.stringify([{ type: 'text', text: fact }]), 'handled');
+    const injected = await client.prompt(injectCommand + ' ' + JSON.stringify([{ type: 'text', text: injectedText }]), 'handled');
     if (active) {
         original = await client.settled(first.start);
         const turnEnd = client.wires.findIndex((wire, index) => index >= first.start && wire.type === 'turn_end');
-        const appended = client.wires.findIndex((wire, index) => index >= first.start && contentMatches(wire, fact));
+        const appended = client.wires.findIndex((wire, index) => index >= first.start && contentMatches(wire, injectedText));
         ensure(injected.index < turnEnd && turnEnd < appended && appended < original.index,
             'Pi did not append the injected context after the active turn and before settlement');
     } else {
         const barrier = await client.command('get_state');
         const quiet = client.wires.slice(original.index + 1, barrier.index);
         ensure(barrier.data?.sessionId === state.sessionId && barrier.data?.isStreaming === false
-            && quiet.some(wire => contentMatches(wire, fact))
+            && quiet.some(wire => contentMatches(wire, injectedText))
             && !quiet.some(wire => wire.type === 'agent_start' || wire.type === 'message_update' || wire.message?.role === 'assistant'),
         'Pi idle injection did not append context silently before the control barrier');
     }
@@ -261,7 +262,7 @@ async function injectContext(client, plan, state, _runtime, code) {
     const final = await client.command('get_state');
     ensure(final.data?.sessionId === state.sessionId, 'Pi switched sessions during injection');
     ensure(client.wires.filter(wire => wire.type === 'agent_start').length === 2
-        && client.wires.filter(wire => contentMatches(wire, fact)).length === 1, 'Pi inject triggered unexpected work or appended more than once');
+        && client.wires.filter(wire => contentMatches(wire, injectedText)).length === 1, 'Pi inject triggered unexpected work or appended more than once');
     return {
         turns: [original, followUp], requests: 0,
         facts: { timing: active ? 'during-execution' : 'idle', disposition: 'handled', appendedAfterTurn: true,
