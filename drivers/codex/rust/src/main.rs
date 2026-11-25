@@ -254,7 +254,7 @@ async fn open_thread(
 ) -> Result<(String, Value)> {
     let sandbox = if matches!(
         plan.driver_profile.as_str(),
-        "approval" | "sandbox-permissions"
+        "approval" | "deferred-approval" | "sandbox-permissions"
     ) {
         "read-only"
     } else {
@@ -264,7 +264,7 @@ async fn open_thread(
         "cwd": workspace,
         "sandbox": sandbox,
         "approvalPolicy": "on-request",
-        "ephemeral": true,
+        "ephemeral": plan.driver_profile != "deferred-approval",
         "baseInstructions": "Complete the supplied synthetic task in the working directory. Be concise.",
         "developerInstructions": "Complete the supplied task in the synthetic project.",
     });

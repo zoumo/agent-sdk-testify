@@ -143,16 +143,14 @@
     },
     "SDK-CASE-012": {
       "required": false,
-      "execution": {
-        "mode": "planned",
-        "reason": "Codex 侧暂为 optional：现有官方 Python SDK 0.161.0 与 0.163.0 在唯一读取线程同步执行审批回调，持有审批会阻塞控制回执和事件，公开 API 无延后回答机制。先回答再观察不满足本 case；待官方驱动支持持有审批期间的并发控制与事件后再恢复 required。这是语言驱动限制，不是 Codex 原生协议不支持，也不是 Go SDK 已验证失败。"
-      },
-      "inputs": [],
+      "inputs": [
+        "Run exactly one shell command, cat numbers.txt, in the working directory. Request execution outside the sandbox for this one read so the application can approve it. Report the two integers briefly. Do not run any other command or tool."
+      ],
       "files": {
         "numbers.txt": "17\n25\n"
       },
       "requests": {
-        "permission.read": "Read",
+        "permission.read": "approval_answer",
         "permission.held-control": "held-control",
         "permission.held-event": "held-event"
       },

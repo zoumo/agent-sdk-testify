@@ -31,8 +31,7 @@ class StoryCaseTests(unittest.TestCase):
             cases = {case['caseId']: case for case in case_recipes(provider)}
             self.assertEqual(sum(case['required'] for case in cases.values()), 33 if provider == 'claude' else 36)
             self.assertEqual(cases['SDK-CASE-012']['required'], provider == 'claude')
-            self.assertEqual(cases['SDK-CASE-012']['mode'],
-                             'live-selected-path' if provider == 'claude' else 'planned')
+            self.assertEqual(cases['SDK-CASE-012']['mode'], 'live-selected-path')
             for case_id in ('SDK-CASE-017', 'SDK-CASE-032'):
                 self.assertEqual(cases[case_id]['required'], provider == 'codex')
             for case_id in ('SDK-CASE-039', 'SDK-CASE-040', 'SDK-CASE-041'):
@@ -63,7 +62,7 @@ class StoryCaseTests(unittest.TestCase):
             shutil.copytree(scenario_directory(), directory)
             binding_path = directory / 'bindings/codex.json'
             binding = json.loads(binding_path.read_text())
-            binding['cases']['SDK-CASE-012']['required'] = True
+            binding['cases']['SDK-CASE-025']['required'] = True
             binding_path.write_text(json.dumps(binding))
             for provider in ('codex', 'claude'):
                 checked = 0

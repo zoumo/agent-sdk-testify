@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use anyhow::{Context, Result, bail, ensure};
 use codex_app_server_protocol::{
-    JSONRPCErrorError, ServerNotification, ServerRequest, ThreadItemPayload, TurnStartResponse,
-    TurnStatus, UserInput,
+    JSONRPCErrorError, ServerNotification, ServerRequest, ThreadActiveFlag, ThreadItemPayload,
+    ThreadReadResponse, ThreadStatus, TurnStartResponse, TurnStatus, UserInput,
 };
 use codex_app_server_remote_client::{AppServerEvent, RemoteAppServerClient, TypedRequestError};
 use serde::de::DeserializeOwned;
@@ -26,6 +26,7 @@ pub(crate) fn case_spec(case_id: &str) -> Option<(&'static str, &'static str, us
         "SDK-CASE-008" | "SDK-CASE-009" | "SDK-CASE-010" | "SDK-CASE-011" => {
             ("SDK-US-003", "approval", 1)
         }
+        "SDK-CASE-012" => ("SDK-US-003", "deferred-approval", 1),
         "SDK-CASE-013" | "SDK-CASE-014" | "SDK-CASE-015" => ("SDK-US-004", "questions", 1),
         "SDK-CASE-021" | "SDK-CASE-024" | "SDK-CASE-028" => ("SDK-US-006", "structured-input", 1),
         "SDK-CASE-022" => ("SDK-US-006", "configuration-timing", 2),
@@ -105,6 +106,63 @@ impl Interaction<'_> {
                 return Err(error);
             }
         }
+        Ok(())
+    }
+
+    async fn observe_held_approval(&mut self, approval: &ServerRequest, turn: &str) -> Result<()> {
+        const NAME: &str = "SDK-CASE-012 pending approval";
+        self.record("approval-held", json!(approval));
+        let params = json!({"threadId": self.thread, "name": NAME});
+        let ack: Value = self.request("thread/name/set", params.clone()).await?;
+        ensure!(
+            ack == json!({}),
+            "thread/name/set did not acknowledge the change"
+        );
+        self.record(
+            "thread/name/set",
+            json!({"requested":params, "response":ack}),
+        );
+
+        // The name change emits a separate native notification on this connection.
+        // No answer is sent until the event and an independent thread/read both arrive.
+        loop {
+            match self.client.next_event().await {
+                Some(AppServerEvent::ServerNotification(event)) => match *event {
+                    ServerNotification::ThreadNameUpdated(updated) => {
+                        ensure!(
+                            updated.thread_id == self.thread
+                                && updated.thread_name.as_deref() == Some(NAME),
+                            "unexpected thread name notification while approval was pending"
+                        );
+                        self.record("held-event", json!(updated));
+                        break;
+                    }
+                    ServerNotification::Error(_)
+                    | ServerNotification::ServerRequestResolved(_)
+                    | ServerNotification::TurnCompleted(_)
+                    | ServerNotification::ItemCompleted(_) => {
+                        bail!("turn advanced before the deferred approval answer")
+                    }
+                    _ => {}
+                },
+                event => bail!("unexpected event while holding approval: {event:?}"),
+            }
+        }
+        let params = json!({"threadId": self.thread, "includeTurns": true});
+        let control_id = self.next_id;
+        let read: ThreadReadResponse = self.request("thread/read", params.clone()).await?;
+        ensure!(
+            read.thread.id == self.thread
+                && matches!(&read.thread.status, ThreadStatus::Active { active_flags } if active_flags.contains(&ThreadActiveFlag::WaitingOnApproval))
+                && read.thread.turns.iter().any(|active| active.id == turn
+                    && active.status == TurnStatus::InProgress
+                    && active.error.is_none()),
+            "thread/read did not confirm the original turn waiting on approval"
+        );
+        self.record(
+            "held-control",
+            json!({"method":"thread/read", "id":control_id, "requested":params, "response":read}),
+        );
         Ok(())
     }
 
@@ -296,6 +354,9 @@ pub(crate) async fn exercise(
                         .as_ref()
                         .ok()
                         .map(|response| json!({"request": &request, "response": response}));
+                    if plan.driver_profile == "deferred-approval" && answer.is_ok() {
+                        flow.observe_held_approval(&request, &root_turn).await?;
+                    }
                     flow.server_request(&request, answer).await?;
                     if let Some(receipt) = receipt {
                         flow.record("server-request", receipt);
