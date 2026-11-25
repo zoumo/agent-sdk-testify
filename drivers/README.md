@@ -95,10 +95,11 @@ command -v agent-sdk-testify-pi
 独立历史用例使用 Pi 的 `SessionManager` 读取本次录制保存的原生会话文件。
 [Pi 用例绑定](../data/scenarios/bindings/pi.json)
 
-Pi 1.6.0 的 RpcClient 公开了扩展 UI 请求的监听接口。扩展用例使用原生 stdio 客户端发送
-`extension_ui_response`。先用目录中的 case 准备 fixture，再用 `official record` 和
-`official verify` 录放。driver 用原生对话 ID 回答，按各自的命令 ID 匹配控制回执。
-录制时 Testify 加载固定的 Go SDK 扩展，业务报告保留 Pi 版本、扩展修订和哈希。
+扩展用例 `008–014`、`037` 和 `038` 使用原生 stdio 客户端。用目录中的 case
+准备 fixture，再用 `official record` 和 `official verify` 录放。driver 使用原生
+对话 ID 回答，使用命令 ID 匹配控制回执。录制时 Testify 加载固定的 Go SDK 扩展，
+业务报告保留 Pi 版本、扩展修订和哈希。运行 `012` 时，在 `prepare` 中设置两个
+支持思考等级的不同模型，分别传给 `--initial-model` 和 `--model`。
 [扩展来源](pi/official/pi-extension/SOURCE.md)
 
 ## 按 case 录制

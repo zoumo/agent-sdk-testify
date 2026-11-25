@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "56c847f8b96ce93be9ff3bc0c9476b419714ed2c",
+  "sourceRevision": "5b7534b1882e377e58ee3b07f3b49dd432ecbe2a",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "303fab6dc01c9e5a92669832116d8d8a3a3489523d4bf99c5c61608c437002e4",
+  "indexSHA256": "da9d16f97859d7335e54b3ec3d7db288cb10376d4c0cc68036fce801f318433e",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -15,7 +15,7 @@
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
     "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
     "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34",
-    "bindings/pi.json": "da4fabd3b474996d5ad63694b57e36902671afa3b29adc8f2fb7aa162f843870",
+    "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
@@ -1732,45 +1732,45 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-008",
-      "missingReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-009",
-      "missingReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-010",
-      "missingReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-011",
-      "missingReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1787,23 +1787,23 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-013",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-004",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-014",
-      "missingReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-004",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -2051,12 +2051,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-037",
-      "missingReason": "Pi 原生 RPC 缺少不唤醒执行的上下文注入命令。",
+      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unsupported",
-      "verificationReason": "Pi 原生 RPC 缺少不唤醒执行的上下文注入命令。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",

@@ -19,7 +19,7 @@ const (
 )
 
 func IsPiExtensionCase(provider, caseID string) bool {
-	return provider == "pi" && (caseID == "SDK-CASE-012" || caseID == "SDK-CASE-038")
+	return provider == "pi" && PiExtensionConfig(caseID) != nil
 }
 
 // PiExtensionIdentity describes the native stdio client and the exact extension
@@ -33,9 +33,11 @@ func PiExtensionIdentity() tool.Object {
 
 func PiExtensionConfig(caseID string) tool.Object {
 	switch caseID {
-	case "SDK-CASE-012":
+	case "SDK-CASE-008", "SDK-CASE-009", "SDK-CASE-010", "SDK-CASE-011", "SDK-CASE-012":
 		return tool.Object{"toolApproval": true, "interactionTimeoutMs": float64(30000)}
-	case "SDK-CASE-038":
+	case "SDK-CASE-013", "SDK-CASE-014":
+		return tool.Object{"agentQuestions": true, "interactionTimeoutMs": float64(30000)}
+	case "SDK-CASE-037", "SDK-CASE-038":
 		return tool.Object{"inject": true}
 	default:
 		return nil

@@ -50,11 +50,7 @@
       "requests": {},
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "Pi 原生 RPC 缺少不唤醒执行的上下文注入命令。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-038": {
       "files": {},
@@ -85,48 +81,44 @@
       }
     },
     "SDK-CASE-008": {
+      "inputs": ["Use the write tool exactly once to create sdk-test-marker.txt with the text reject this controlled marker followed by a newline. If denied, finish without retrying."],
       "files": {},
-      "requests": {},
+      "requests": {
+        "approval.deny": "extension_ui_request confirm for write"
+      },
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-009": {
+      "inputs": ["Use the write tool exactly once to create sdk-test-marker.txt with the text approved controlled marker followed by a newline. After approval, finish without retrying."],
       "files": {},
-      "requests": {},
+      "requests": {
+        "approval.answer": "extension_ui_request confirm for write"
+      },
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-010": {
+      "inputs": ["Use the bash tool exactly once to run printf 'approved controlled command'. After approval, finish without retrying."],
       "files": {},
-      "requests": {},
+      "requests": {
+        "approval.answer": "extension_ui_request confirm for bash"
+      },
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-011": {
+      "inputs": ["Use the bash tool exactly once to run printf 'rejected controlled command'. If denied, finish without retrying."],
       "files": {},
-      "requests": {},
+      "requests": {
+        "approval.answer": "extension_ui_request confirm for bash"
+      },
       "answers": {},
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "unsupported",
-        "reason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-012": {
       "inputs": ["Use the bash tool exactly once to run printf 'approved controlled command'. After the command returns, report the result briefly."],
@@ -174,26 +166,32 @@
       }
     },
     "SDK-CASE-013": {
+      "inputs": ["Use agent_sdk_ask exactly once. Ask Choose a color with choices Red and Green in that order. Wait for the answer, then finish briefly."],
       "files": {},
-      "requests": {},
-      "answers": {},
+      "requests": {
+        "question.answer": "extension_ui_request select"
+      },
+      "answers": {
+        "question": "Choose a color",
+        "options": ["Red", "Green"],
+        "choice": "Green"
+      },
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-014": {
+      "inputs": ["Use agent_sdk_ask exactly once. Ask Enter a short phrase without choices. Wait for the answer, then finish briefly."],
       "files": {},
-      "requests": {},
-      "answers": {},
+      "requests": {
+        "question.answer": "extension_ui_request input"
+      },
+      "answers": {
+        "question": "Enter a short phrase",
+        "options": [],
+        "choice": "controlled response"
+      },
       "configuration": {},
-      "progressBarrier": null,
-      "execution": {
-        "mode": "planned",
-        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
-      }
+      "progressBarrier": null
     },
     "SDK-CASE-015": {
       "files": {},
