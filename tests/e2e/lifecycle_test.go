@@ -190,7 +190,7 @@ func TestOfficialLifecycleConformance(t *testing.T) {
 	require.Equal(t, "passed", evidence["status"])
 	require.Equal(t, capture["id"], evidence["materialId"])
 	require.NotContains(t, evidence, "admission")
-	require.Equal(t, "synthetic-official-driver", obj(readJSON(t, filepath.Join(verificationRoot, "replay-report.json"))["officialSDK"])["version"])
+	require.Equal(t, controlledCodexSDK(), readJSON(t, filepath.Join(verificationRoot, "replay-report.json"))["officialSDK"])
 	assertFileHashes(t, filepath.Dir(captureRoot), obj(evidence["files"]))
 	admitted := admissionSummary(t, fixtureDir, verificationRoot)
 	require.Equal(t, "admitted", admitted["status"])

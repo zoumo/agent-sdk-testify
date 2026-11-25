@@ -53,7 +53,7 @@ func controlledOfficialDriver(args []string) int {
 		waitDriverCancellation()
 		return 0
 	}
-	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "captureStatus": "complete", "officialSDK": object{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}}
+	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "captureStatus": "complete", "officialSDK": controlledCodexSDK()}
 	if mode == "python-sdk" {
 		report["officialSDK"] = object{"package": "openai-codex", "version": "0.0.0.dev0"}
 	}
