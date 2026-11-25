@@ -57,6 +57,9 @@ func validatePackageBusiness(root, kind, id string, envelope tool.Object) error 
 	if envelope["mode"] != kind || envelope[providerField] != provider || envelope["case"] != caseID {
 		return errors.New("official envelope differs from material provider, case or action")
 	}
+	if err := ValidatePiExtensionPlan(plan); err != nil {
+		return err
+	}
 	validSDK := RecordedSDKIdentity(provider, caseID, sdk)
 	if report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["provider"] != plan["provider"] || report["caseId"] != plan["caseId"] || report["storyId"] != story || outcome["status"] != "passed" || !validSDK || !SDKOutcomeMatches(sdk, outcome) {
 		return errors.New("official SDK business evidence is absent, failed or untriggered")
@@ -360,6 +363,9 @@ func validatePackagePreparation(root, executionID string, material Material) err
 	}
 	if tool.Obj(isolation["native"])["sha256"] != plan["cliSHA256"] || !reflect.DeepEqual(tool.Obj(isolation["native"])["args"], plan["args"]) || prepared["cliSHA256"] != plan["cliSHA256"] || !reflect.DeepEqual(prepared["args"], plan["args"]) {
 		return errors.New("native preparation invocation differs")
+	}
+	if !reflect.DeepEqual(prepared["piExtension"], plan["piExtension"]) {
+		return errors.New("record prepared Pi extension differs from sealed plan")
 	}
 	overlay := tool.Str(prepared["root"])
 	if !filepath.IsAbs(overlay) || filepath.Clean(overlay) != overlay || filepath.Base(overlay) != executionID || filepath.Base(filepath.Dir(overlay)) != "executions" || isolation["cwd"] != filepath.Join(overlay, "workspace") {

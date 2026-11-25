@@ -11,7 +11,7 @@ import (
 func SaveNativePreparation(fixtureDir string, fixture *Fixture, execution Execution, runtimePlan tool.Object, planPath, materialPlanPath string) error {
 	dir := ExecutionDir(fixtureDir, execution.ExecutionID)
 	prepared := tool.Object{"schemaVersion": 3, "fixtureId": fixture.FixtureID, "executionId": execution.ExecutionID, "sourcePlanSHA256": fixture.Source.SHA256}
-	for _, name := range []string{"project", "_fixtureProject", "root", "home", "config", "tmp", "provider", "caseId", "storyId", "driverProfile", "model", "reasoningEffort", "cliSHA256", "args", "recordingIsolation", "stdinEOFAction", "limits"} {
+	for _, name := range []string{"project", "_fixtureProject", "root", "home", "config", "tmp", "provider", "caseId", "storyId", "driverProfile", "model", "reasoningEffort", "cliSHA256", "args", "recordingIsolation", "stdinEOFAction", "limits", "piExtension"} {
 		if value, ok := runtimePlan[name]; ok {
 			prepared[name] = value
 		}
@@ -40,7 +40,7 @@ func SaveNativePreparation(fixtureDir string, fixture *Fixture, execution Execut
 	// This is an observed preparation receipt, separate from the sealed material.
 	// It is emitted only after native isolation preparation has actually passed.
 	env := tool.Object{}
-	for _, name := range []string{"HOME", "CODEX_HOME", "CLAUDE_CONFIG_DIR", "TMPDIR", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME"} {
+	for _, name := range []string{"HOME", "CODEX_HOME", "CLAUDE_CONFIG_DIR", "PI_CODING_AGENT_DIR", "TMPDIR", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME"} {
 		if value, ok := execution.RuntimeEnv[name]; ok {
 			env[name] = value
 		}

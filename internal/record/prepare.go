@@ -69,6 +69,11 @@ func prepareOfficialCapture(ctx context.Context, run lifecycle.RecordContext, co
 		if err := native.PrepareNative(ctx, &o, plan, run.OverlayRoot()); err != nil {
 			return nil, err
 		}
+		if corpus.IsPiExtensionCase(fixture.AgentType, tool.Str(plan["caseId"])) {
+			if err := preparePiExtension(run, plan); err != nil {
+				return nil, err
+			}
+		}
 	}
 	if plan["driverProfile"] == "existing-children" && plan["historySeed"] == nil && !corpus.SelfSeededChildren(plan) {
 		if fixture.HistorySeed == "" {

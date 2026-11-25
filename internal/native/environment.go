@@ -95,7 +95,8 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 		if timing == "" && tool.Str(configuration["modelSource"]) != "" {
 			timing, modelSetting = tool.Str(configuration["timing"]), true
 		}
-		if !modelSetting || (timing != "before-first-input" && timing != "between-inputs" && timing != "during-execution") {
+		heldPiApproval := provider == "pi" && plan["caseId"] == "SDK-CASE-012"
+		if !heldPiApproval && (!modelSetting || (timing != "before-first-input" && timing != "between-inputs" && timing != "during-execution")) {
 			return errors.New("initial model is only valid for model-change recordings")
 		}
 	}

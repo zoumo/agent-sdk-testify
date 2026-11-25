@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "bin": {"agent-sdk-testify-pi": "cli.mjs"},
-  "files": ["*.mjs", "LICENSE"],
+  "files": ["*.mjs", "LICENSE", "pi-extension"],
   "engines": {"node": ">=22"},
   "scripts": {
     "prepack": "cp ../../../LICENSE LICENSE"
