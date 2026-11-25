@@ -1,0 +1,10 @@
+{
+  "connectionId": "probe",
+  "executionId": "88fe5aa9acdc77eaf876f4ee16aaa4ca",
+  "originSHA256": "94ba48e295c38e3bf548e8a4cd62750fc57f860a4a5392dbb04c0b19203d5802",
+  "protocolPid": 60272,
+  "runId": "7fb9a74236264c36415013cd359c6440",
+  "schemaVersion": 2,
+  "supervisorPid": 60266,
+  "toolSHA256": "8813fb937c6f16e7c5214ff3cf4a5ee3afe984d820050e896be9564173ce4435"
+}

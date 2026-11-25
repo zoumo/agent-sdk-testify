@@ -1,0 +1,65 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-039",
+    "outOfScope": [
+      "持久授权"
+    ],
+    "scope": "确认 root Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-039",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "mcp-tool-approval",
+  "historyBindings": [],
+  "model": "auto/gpt-6.2-sol",
+  "project": "/private/tmp/testify-codex-full.gCPdjCnO/039-01/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Call the approval_fixture MCP tool token exactly once. Report its returned token. Do not use any other tool."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-039",
+      "outOfScope": [
+        "持久授权"
+      ],
+      "scope": "确认 root Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-039",
+    "configuration": {},
+    "driverProfile": "mcp-tool-approval",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalThread": "root"
+    },
+    "prompts": [
+      "Call the approval_fixture MCP tool token exactly once. Report its returned token. Do not use any other tool."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "mcp-tool-approval"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "sourcePlanSHA256": "6a177d6931894695ca146a10e61e48d8fdde02120cdf90c625c824b997c8ed3d",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

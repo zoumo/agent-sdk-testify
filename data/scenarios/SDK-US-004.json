@@ -210,7 +210,7 @@
     {
       "id": "SDK-CASE-042",
       "storyId": "SDK-US-004",
-      "goal": "回答 Claude 独立 form 和 URL elicitation 的接受、拒绝、取消",
+      "goal": "回答独立 form 和 URL elicitation 的接受、拒绝、取消",
       "required": true,
       "implementation": "implemented",
       "name": "simulation-042",

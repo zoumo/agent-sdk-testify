@@ -110,7 +110,10 @@ func verifyDriverSubstitute(args []string) int {
 	if err != nil {
 		return 5
 	}
-	sdk := tool.Object{"package": "openai-codex", "version": "synthetic-test-only"}
+	sdk := tool.Object{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}
+	if plan["provider"] == "claude" {
+		sdk = tool.Object{"package": "@anthropic-ai/claude-agent-sdk", "version": "0.3.293"}
+	}
 	observed := tool.Object{
 		"cwd":       cwd,
 		"workspace": runtime.Workspace,
@@ -122,22 +125,22 @@ func verifyDriverSubstitute(args []string) int {
 	if tool.WriteJSON(filepath.Join(runtime.Output, "replay-report.json"), report) != nil {
 		return 4
 	}
-	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Result{Status: status}) != nil {
+	if tool.WriteJSON(filepath.Join(runtime.Output, "result.json"), tool.Object{"status": status, "sdk": sdk}) != nil {
 		return 4
 	}
 	return 0
 }
 
 func verifyFixture(t *testing.T, mode string) (*exec.Cmd, string, string) {
-	return verifyFixtureWithMutation(t, mode, nil)
+	return verifyFixtureWithMutation(t, "codex", mode, nil)
 }
 
-func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T, string)) (*exec.Cmd, string, string) {
+func verifyFixtureWithMutation(t *testing.T, provider, mode string, mutate func(*testing.T, string)) (*exec.Cmd, string, string) {
 	t.Helper()
 	s := &corpusSuite{}
 	s.SetT(t)
 	s.SetupTest()
-	s.evidence()
+	s.evidence(provider)
 	canonicalVerifyFixture(t, s.source, "SDK-CASE-001")
 	raw := filepath.Join(s.source, "raw", "raw.jsonl")
 	file, e := os.OpenFile(raw, os.O_APPEND|os.O_WRONLY, 0o600)
@@ -165,7 +168,7 @@ func verifyFixtureWithMutation(t *testing.T, mode string, mutate func(*testing.T
 	self, err := os.Executable()
 	require.NoError(t, err)
 	script := fmt.Sprintf("#!/bin/sh\n%sexec %q verify-driver-substitute %q \"$@\"\n", testutil.RaceShellExport(), self, mode)
-	require.NoError(t, os.WriteFile(filepath.Join(bin, "agent-sdk-testify-codex"), []byte(script), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(bin, "agent-sdk-testify-"+provider), []byte(script), 0o700))
 	if mutate != nil {
 		mutate(t, s.source)
 	}
@@ -198,7 +201,7 @@ func prepareVerifyFixture(t *testing.T, source string, env []string) string {
 	var plan tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &plan))
 	prepare := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"),
-		"prepare", "--agent", "codex", "--case", tool.Str(plan["caseId"]), "--fixture-dir", fixtureDir)
+		"prepare", "--agent", tool.Str(plan["provider"]), "--case", tool.Str(plan["caseId"]), "--fixture-dir", fixtureDir)
 	prepare.Dir = t.TempDir()
 	prepare.Env = env
 	data, err := prepare.CombinedOutput()
@@ -266,7 +269,7 @@ func TestVerifyOfficialExecutionKeepsSource(t *testing.T) {
 	var evidence, summary tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "verification.json"), &evidence))
 	require.Equal(t, "passed", evidence["status"])
-	require.Equal(t, "synthetic-test-only", tool.Obj(readObject(t, filepath.Join(output, "replay-report.json"))["officialSDK"])["version"])
+	require.Equal(t, "0.0.0", tool.Obj(readObject(t, filepath.Join(output, "replay-report.json"))["officialSDK"])["version"])
 	require.NotEmpty(t, tool.Obj(evidence["tool"])["sha256"])
 	require.NotEmpty(t, evidence["contracts"])
 	require.NoError(t, tool.ReadJSON(filepath.Join(output, "result.json"), &summary))
@@ -376,7 +379,7 @@ func TestVerifyCorruptSourceRetainsDiagnostic(t *testing.T) {
 func TestVerifyAllSelectedPeers(t *testing.T) {
 	for _, mode := range []string{"passed", "omit-probe"} {
 		t.Run(mode, func(t *testing.T) {
-			cmd, _, fixtureDir := verifyFixtureWithMutation(t, mode, func(t *testing.T, source string) {
+			cmd, _, fixtureDir := verifyFixtureWithMutation(t, "codex", mode, func(t *testing.T, source string) {
 				require.NoError(t, tool.CopyTree(filepath.Join(source, "raw"), filepath.Join(source, "remote-probe", "raw")))
 				probeRoot := filepath.Join(source, "remote-probe", "raw")
 				raw, err := os.ReadFile(filepath.Join(probeRoot, "raw.jsonl"))
@@ -445,7 +448,7 @@ func TestVerifyAllSelectedPeers(t *testing.T) {
 }
 
 func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
-	cmd, source, fixtureDir := verifyFixture(t, "passed")
+	cmd, source, fixtureDir := verifyFixtureWithMutation(t, "claude", "passed", nil)
 	s := &corpusSuite{}
 	s.SetT(t)
 	s.SetupTest()
@@ -501,11 +504,11 @@ func TestVerifyQualifiesAndAdoptsWithoutCorpusCommand(t *testing.T) {
 }
 
 func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
-	cmd, _, _ := verifyFixture(t, "passed")
+	cmd, _, _ := verifyFixtureWithMutation(t, "claude", "passed", nil)
 	s := &corpusSuite{}
 	s.SetT(t)
 	s.SetupTest()
-	s.evidence()
+	s.evidence("claude")
 	canonicalVerifyFixture(t, s.source, "SDK-CASE-001")
 	s.bindReplay()
 	source := s.adopt(s.qualify())
@@ -527,11 +530,11 @@ func TestVerifyRejectsAdoptedEvidenceDrift(t *testing.T) {
 }
 
 func TestVerifyRejectsAdmissionAndPreservesPrevious(t *testing.T) {
-	cmd, source, fixtureDir := verifyFixture(t, "failed")
+	cmd, source, fixtureDir := verifyFixtureWithMutation(t, "claude", "failed", nil)
 	s := &corpusSuite{}
 	s.SetT(t)
 	s.SetupTest()
-	s.evidence()
+	s.evidence("claude")
 	previous := s.adopt(s.qualify())
 	indexBefore, err := os.ReadFile(s.c.Index)
 	require.NoError(t, err)
@@ -575,7 +578,7 @@ func canonicalVerifyFixture(t *testing.T, source, caseID string) {
 	var previous tool.Object
 	require.NoError(t, tool.ReadJSON(filepath.Join(source, "plan.json"), &previous))
 	fixtureDir := filepath.Join(t.TempDir(), "canonical")
-	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "prepare", "--agent", "codex", "--case", caseID, "--fixture-dir", fixtureDir)
+	cmd := exec.CommandContext(t.Context(), os.Getenv("AGENT_SDK_TESTIFY_BIN"), "prepare", "--agent", tool.Str(previous["provider"]), "--case", caseID, "--fixture-dir", fixtureDir)
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", output)
 	var descriptor, plan tool.Object

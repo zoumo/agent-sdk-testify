@@ -1,0 +1,31 @@
+{
+  "agentIds": [
+    "01a21093-9281-72d2-896d-44e6dada4ba4"
+  ],
+  "completedAt": "2026-11-25T02:40:39.137982Z",
+  "historyBindings": [
+    {
+      "role": "seed",
+      "sessionId": "01a21093-55f2-75a3-bf18-7c99cf78a9a8",
+      "project": "/private/tmp/testify-codex-live.UiCAQsmf/035-a/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/25/rollout-2026-11-25T10-40-21-01a21093-55f2-75a3-bf18-7c99cf78a9a8.jsonl",
+      "source": "history/seed/config/sessions/2026/11/25/rollout-2026-11-25T10-40-21-01a21093-55f2-75a3-bf18-7c99cf78a9a8.jsonl",
+      "sha256": "1b44a182137868f039549538106ac5c600e038c951c4491b98a0fd759b452a23"
+    },
+    {
+      "role": "seed",
+      "sessionId": "01a21093-9281-72d2-896d-44e6dada4ba4",
+      "parentSessionId": "01a21093-55f2-75a3-bf18-7c99cf78a9a8",
+      "childSessionId": "01a21093-9281-72d2-896d-44e6dada4ba4",
+      "project": "/private/tmp/testify-codex-live.UiCAQsmf/035-a/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/25/rollout-2026-11-25T10-40-36-01a21093-9281-72d2-896d-44e6dada4ba4.jsonl",
+      "source": "history/seed/config/sessions/2026/11/25/rollout-2026-11-25T10-40-36-01a21093-9281-72d2-896d-44e6dada4ba4.jsonl",
+      "sha256": "5fca0e48695fff5a99334722ae8581c36b0be45eb2fb360809c08224d5f37b6b"
+    }
+  ],
+  "provider": "codex",
+  "rawSHA256": "6c247b0c2e584ea2e532ff8d11557e711780ab3a7aafb91627f91ba80cafb511",
+  "schemaVersion": 1,
+  "sessionId": "01a21093-55f2-75a3-bf18-7c99cf78a9a8",
+  "transportSHA256": "2cc7b1e1e0081432767f832dc917840d2111f6368e4a928fc0320748e2beb42a"
+}

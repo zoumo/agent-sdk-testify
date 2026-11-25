@@ -30,7 +30,7 @@ func ResolveDriver(provider string) (string, error) {
 		if provider == "claude" {
 			return "", fmt.Errorf("official driver %s is not available; install the Claude driver npm tarball with Node.js 22+ and add its executable directory to PATH: %w", name, err)
 		}
-		return "", fmt.Errorf("official driver %s is not available; install the Codex driver wheel and Python SDK and add the environment's bin directory to PATH: %w", name, err)
+		return "", fmt.Errorf("official driver %s is not available; install the Codex Rust driver from the matching platform archive and add its directory to PATH: %w", name, err)
 	}
 	// npm links the executable into PATH. Hash and execute the same target.
 	return tool.ValidateCommand(path)

@@ -171,11 +171,55 @@ func TestPackageBusinessPreservesClaudeCaptureAndDriverSDKIdentities(t *testing.
 			}
 			require.NoError(t, tool.WriteJSON(filepath.Join(domain, reportFile), report))
 			require.NoError(t, tool.WriteJSON(filepath.Join(domain, "driver-result.json"), outcome))
-			err := validatePackageBusiness(root, tc.kind, "attempt")
+			envelope := tool.Object{"case": plan["caseId"], "mode": tc.kind}
+			if tc.kind == "verify" {
+				envelope["provider"] = plan["provider"]
+			} else {
+				envelope["agentType"] = plan["provider"]
+			}
+			err := validatePackageBusiness(root, tc.kind, "attempt", envelope)
 			if tc.valid {
 				require.NoError(t, err)
 			} else {
 				require.ErrorContains(t, err, "official SDK business evidence")
+			}
+		})
+	}
+}
+
+func TestRecordExecutionBindsSealedSource(t *testing.T) {
+	root := t.TempDir()
+	material := Material{
+		Kind: "capture", Action: "record", Provenance: "official",
+		OfficialOrigin: &OfficialOrigin{CaseID: "SDK-CASE-001", RecordSourceSHA256: "frozen-input", SourceSHA256: "original-plan"},
+	}
+	dir := filepath.Join(root, "material")
+	require.NoError(t, os.MkdirAll(dir, 0o700))
+	path := filepath.Join(dir, "official-origin.json")
+	require.NoError(t, tool.WriteJSON(path, material.OfficialOrigin))
+	for _, fault := range []string{"", "consumer plan", "other case", "source plan hash", "other driver", "external artifact"} {
+		t.Run(fault, func(t *testing.T) {
+			launch, err := Read(path)
+			require.NoError(t, err)
+			source := tool.Object{"kind": "recording", "provenance": "official", "id": "SDK-CASE-001", "sha256": "frozen-input"}
+			artifact := tool.Object{"kind": "capture", "action": "record", "provenance": "official", "officialOrigin": launch}
+			switch fault {
+			case "consumer plan":
+				source["kind"], source["provenance"] = "plan", "consumer"
+			case "other case":
+				source["id"] = "SDK-CASE-002"
+			case "source plan hash":
+				source["sha256"] = material.OfficialOrigin.SourceSHA256
+			case "other driver":
+				launch["driverSHA256"] = "other"
+			case "external artifact":
+				artifact["provenance"] = "external"
+			}
+			err = validateRecordSource(root, material, tool.Object{"provenance": "official", "source": source, "artifact": artifact})
+			if fault == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, "sealed capture")
 			}
 		})
 	}

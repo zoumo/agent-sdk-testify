@@ -1,0 +1,49 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "c38b25898bcf092dafb0c4766c67dd5844ece9ea1b8bc6cff424415dee1d0196",
+    "origin/main.json": "81857832fb2dbf5d5cf20c6cfdbd767de4d1d6d9b5a81a4dd57e7ba1ade34aef",
+    "plan.json": "2c578a72bfe8628b302ea3b3eed5a56abd96e89ed2ad32210b7aa3488e6219b2",
+    "raw/manifest.json": "c9ccf8bfcc9a7b0fd413428ddb1da540e0a3b6766979f630e28c5654bac3a536",
+    "raw/raw.jsonl": "6ba5c8af38f7859fe54684192616be7de6687cb6462b0d9bbbf24fa6ab64a260",
+    "raw/stderr.raw": "a9000a60553cec6fcc4fb6d7f07b8444e7518975466d279e17f53527c045e7c0",
+    "raw/transport.json": "fefe23aea15bed30e404cd8ab75bf0094e4cbeb71dc0fec712ea547b157e7a86",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "d99afdcce1fee1e6ce14bbe6a9663f7d19adb43500d6855cd821f8401fb030bd"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "features.shell_tool=false",
+      "-c",
+      "model_catalog_json=\"/private/tmp/testify-codex-full.gCPdjCnO/009-01/fixture/runtime/executions/c201dbb1c516b255804635654176f8f9/config/file-tool-model.json\"",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/tmp/testify-codex-full.gCPdjCnO/009-01/fixture/runtime/executions/c201dbb1c516b255804635654176f8f9/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "2c578a72bfe8628b302ea3b3eed5a56abd96e89ed2ad32210b7aa3488e6219b2",
+  "provenance": "capture",
+  "proxyVersion": "v0.3.1-0.20261124182051-ab197aac9d67",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "fefe23aea15bed30e404cd8ab75bf0094e4cbeb71dc0fec712ea547b157e7a86",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "d99afdcce1fee1e6ce14bbe6a9663f7d19adb43500d6855cd821f8401fb030bd",
+  "status": "captured"
+}

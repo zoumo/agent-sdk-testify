@@ -1,0 +1,78 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-036",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "使用原生分页或切片连续读取至少两个窗口，核对顺序和边界；不伪造 cursor、total 或原子快照。",
+    "storyId": "SDK-US-008"
+  },
+  "caseId": "SDK-CASE-036",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "history",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a210ac-a885-71f1-a1c9-37996fa02e87",
+      "project": "/private/tmp/testify-codex-full.gCPdjCnO/036-01/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/25/rollout-2026-11-25T11-08-00-01a210ac-a885-71f1-a1c9-37996fa02e87.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-08-00-01a210ac-a885-71f1-a1c9-37996fa02e87.jsonl",
+      "sha256": "ec9f6c84f83b46475c8fce01f74ddc6febeba98d5a9332ca1068fa3f6b1c1a96"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/private/tmp/testify-codex-full.gCPdjCnO/036-01/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply with the word SYNTHETIC_SAVED.",
+    "Reply with the word SYNTHETIC_SECOND_SAVED."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-036",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "使用原生分页或切片连续读取至少两个窗口，核对顺序和边界；不伪造 cursor、total 或原子快照。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-036",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "historyTarget": "pagination"
+    },
+    "prompts": [
+      "Reply with the word SYNTHETIC_SAVED.",
+      "Reply with the word SYNTHETIC_SECOND_SAVED."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-008"
+  },
+  "sourcePlanSHA256": "88882b92a3e2a4e6a321dbb1281909a205e13752fa732037468b86e4cb0bb08c",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-008",
+  "storyId": "SDK-US-008"
+}

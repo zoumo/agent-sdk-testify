@@ -1,0 +1,237 @@
+--- a/codex-rs/app-server-remote-client/Cargo.toml
++++ b/codex-rs/app-server-remote-client/Cargo.toml
+@@ -20,9 +20,9 @@
+ futures = { workspace = true }
+ serde = { workspace = true }
+ serde_json = { workspace = true }
+-tokio = { workspace = true, features = ["sync", "time", "rt"] }
++tokio = { workspace = true, features = ["io-util", "process", "sync", "time", "rt"] }
+ tokio-tungstenite = { workspace = true }
+-tokio-util = { workspace = true, features = ["rt"] }
++tokio-util = { workspace = true, features = ["codec", "rt"] }
+ tracing = { workspace = true }
+ url = { workspace = true }
+ zstd = { workspace = true }
+--- a/codex-rs/app-server-remote-client/src/remote.rs
++++ b/codex-rs/app-server-remote-client/src/remote.rs
+@@ -2,15 +2,14 @@
+ //!
+ //! It owns the remote connection lifecycle, including the initialize/initialized
+ //! handshake, JSON-RPC request/response routing, server-request resolution, and
+-//! notification streaming. Remote connections always carry WebSocket frames, over
+-//! either TCP WebSocket URLs or local Unix sockets. The rest of the crate uses the
+-//! same `AppServerEvent` surface for both in-process and remote transports, so
+-//! callers such as the TUI can switch between them without changing their
+-//! higher-level session logic.
++//! notification streaming. Remote connections carry WebSocket frames over TCP or
++//! Unix sockets, or newline-delimited messages over child-process pipes.
++//! Remote clients share the in-process client's `AppServerEvent` API.
+ //! Dropping the client or cancelling shutdown aborts its owned transport worker.
+
+ use std::collections::HashMap;
+ use std::collections::VecDeque;
++use std::future::Future;
+ use std::io::Error as IoError;
+ use std::io::ErrorKind;
+ use std::io::Result as IoResult;
+@@ -43,10 +42,14 @@
+ use codex_uds::UnixStream;
+ use codex_utils_absolute_path::AbsolutePathBuf;
+ use codex_utils_rustls_provider::ensure_rustls_crypto_provider;
++use futures::StreamExt;
+ use serde::de::DeserializeOwned;
+ use tokio::io::AsyncRead;
+ use tokio::io::AsyncWrite;
++use tokio::io::AsyncWriteExt;
+ use tokio::net::TcpStream;
++use tokio::process::ChildStdin;
++use tokio::process::ChildStdout;
+ use tokio::sync::mpsc;
+ use tokio::sync::oneshot;
+ use tokio::time::timeout;
+@@ -60,6 +63,8 @@
+ use tokio_tungstenite::tungstenite::http::HeaderValue;
+ use tokio_tungstenite::tungstenite::http::header::AUTHORIZATION;
+ use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
++use tokio_util::codec::FramedRead;
++use tokio_util::codec::LinesCodec;
+ use tokio_util::task::AbortOnDropHandle;
+ use tracing::warn;
+ use url::Url;
+@@ -186,11 +191,86 @@
+     NonElevatedCurrentUser,
+ }
+
++// Adapt the pipe framing to the messages consumed by the existing worker.
++trait RemoteTransport: Send {
++    fn next(&mut self) -> impl Future<Output = Option<Result<Message, TungsteniteError>>> + Send;
++    fn send_text(
++        &mut self,
++        text: String,
++    ) -> impl Future<Output = Result<(), TungsteniteError>> + Send;
++    fn close(&mut self) -> impl Future<Output = Result<(), TungsteniteError>> + Send;
++}
++
++impl<S: AsyncRead + AsyncWrite + Unpin + Send> RemoteTransport for RemoteWebSocket<S> {
++    async fn next(&mut self) -> Option<Result<Message, TungsteniteError>> {
++        Self::next(self).await
++    }
++
++    async fn send_text(&mut self, text: String) -> Result<(), TungsteniteError> {
++        Self::send_text(self, text).await
++    }
++
++    async fn close(&mut self) -> Result<(), TungsteniteError> {
++        Self::close(self).await
++    }
++}
++
++struct StdioTransport {
++    stdin: Option<ChildStdin>,
++    stdout: FramedRead<ChildStdout, LinesCodec>,
++}
++
++impl RemoteTransport for StdioTransport {
++    async fn next(&mut self) -> Option<Result<Message, TungsteniteError>> {
++        self.stdout.next().await.map(|line| {
++            line.map(|text| Message::Text(text.into()))
++                .map_err(|err| TungsteniteError::Io(IoError::new(ErrorKind::InvalidData, err)))
++        })
++    }
++
++    async fn send_text(&mut self, mut text: String) -> Result<(), TungsteniteError> {
++        let stdin = self.stdin.as_mut().ok_or(TungsteniteError::AlreadyClosed)?;
++        text.push('\n');
++        stdin
++            .write_all(text.as_bytes())
++            .await
++            .map_err(TungsteniteError::Io)
++    }
++
++    async fn close(&mut self) -> Result<(), TungsteniteError> {
++        drop(self.stdin.take());
++        Ok(())
++    }
++}
++
+ impl RemoteAppServerClient {
+     pub async fn connect(args: RemoteAppServerConnectArgs) -> IoResult<Self> {
+         Self::connect_with_policy(args, SocketPeerPolicy::ExplicitEndpoint).await
+     }
+
++    /// Connects to the stdio pipes of an app-server child. The caller owns and reaps the child.
++    pub async fn connect_stdio(
++        stdin: ChildStdin,
++        stdout: ChildStdout,
++        initialize_params: InitializeParams,
++        channel_capacity: usize,
++    ) -> IoResult<Self> {
++        let stream = StdioTransport {
++            stdin: Some(stdin),
++            stdout: FramedRead::new(
++                stdout,
++                LinesCodec::new_with_max_length(REMOTE_APP_SERVER_MAX_WEBSOCKET_MESSAGE_SIZE),
++            ),
++        };
++        Self::connect_with_transport(
++            channel_capacity.max(1),
++            "stdio".to_string(),
++            stream,
++            initialize_params,
++        )
++        .await
++    }
++
+     /// Connects to an implicitly discovered Windows daemon, verifying its peer
+     /// token before the WebSocket handshake or any session requests.
+     #[cfg(windows)]
+@@ -254,8 +334,17 @@
+     where
+         S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
+     {
+-        let mut stream =
++        let stream =
+             RemoteWebSocket::from_handshake(stream, REMOTE_APP_SERVER_MAX_WEBSOCKET_MESSAGE_SIZE)?;
++        Self::connect_with_transport(channel_capacity, endpoint, stream, initialize_params).await
++    }
++
++    async fn connect_with_transport(
++        channel_capacity: usize,
++        endpoint: String,
++        mut stream: impl RemoteTransport + 'static,
++        initialize_params: InitializeParams,
++    ) -> IoResult<Self> {
+         let (pending_events, metadata) = initialize_remote_connection(
+             &mut stream,
+             &endpoint,
+@@ -357,11 +446,11 @@
+                             }
+                             RemoteClientCommand::Shutdown { response_tx } => {
+                                 let close_result = stream.close().await.or_else(|err| {
+-                                    if websocket_close_error_is_already_closed(&err) {
++                                    if close_error_is_already_closed(&err) {
+                                         Ok(())
+                                     } else {
+                                         Err(IoError::other(format!(
+-                                            "failed to close websocket app server `{endpoint}`: {err}"
++                                            "failed to close remote app server `{endpoint}`: {err}"
+                                         )))
+                                     }
+                                 });
+@@ -632,7 +721,7 @@
+             worker_handle.abort();
+             let _ = worker_handle.await;
+         }
+-        // Keep events deliverable until the worker has closed the websocket.
++        // Keep events deliverable until the worker has closed the transport.
+         drop(event_rx);
+         Ok(())
+     }
+@@ -867,15 +956,12 @@
+         .max_message_size(Some(REMOTE_APP_SERVER_MAX_WEBSOCKET_MESSAGE_SIZE))
+ }
+
+-async fn initialize_remote_connection<S>(
+-    stream: &mut RemoteWebSocket<S>,
++async fn initialize_remote_connection(
++    stream: &mut impl RemoteTransport,
+     endpoint: &str,
+     params: InitializeParams,
+     initialize_timeout: Duration,
+-) -> IoResult<(Vec<AppServerEvent>, RemoteServerMetadata)>
+-where
+-    S: AsyncRead + AsyncWrite + Unpin,
+-{
++) -> IoResult<(Vec<AppServerEvent>, RemoteServerMetadata)> {
+     let initialize_request_id = RequestId::String("initialize".to_string());
+     let mut pending_events = Vec::new();
+     let mut metadata = RemoteServerMetadata::default();
+@@ -1058,23 +1144,20 @@
+     }
+ }
+
+-async fn write_jsonrpc_message<S>(
+-    stream: &mut RemoteWebSocket<S>,
++async fn write_jsonrpc_message(
++    stream: &mut impl RemoteTransport,
+     message: JSONRPCMessage,
+     endpoint: &str,
+-) -> IoResult<()>
+-where
+-    S: AsyncRead + AsyncWrite + Unpin,
+-{
++) -> IoResult<()> {
+     let payload = serde_json::to_string(&message).map_err(IoError::other)?;
+     stream.send_text(payload).await.map_err(|err| {
+         IoError::other(format!(
+-            "failed to write websocket message to `{endpoint}`: {err}"
++            "failed to write remote message to `{endpoint}`: {err}"
+         ))
+     })
+ }
+
+-fn websocket_close_error_is_already_closed(err: &TungsteniteError) -> bool {
++fn close_error_is_already_closed(err: &TungsteniteError) -> bool {
+     match err {
+         TungsteniteError::ConnectionClosed | TungsteniteError::AlreadyClosed => true,
+         TungsteniteError::Io(err) => matches!(

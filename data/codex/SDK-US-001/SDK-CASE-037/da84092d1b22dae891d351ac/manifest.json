@@ -1,0 +1,45 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "2515ed9242391b6c676b75df3bb389af5bf5125549f9f3dfa7b19538acce2122",
+    "origin/main.json": "62e7060a7605068ba43e644c937f1d4b3d2ad619ee5b7bf27383593b85278295",
+    "plan.json": "6969a648d15f0e035a95a61bcdd251b14b91f99ba93c8691d6c5f10d9513b6d4",
+    "raw/manifest.json": "11ffbdbb861f7e051daf34449bf7f2856fad3d4bac8779e3e618d52772889ced",
+    "raw/raw.jsonl": "035692b477640657103d271ffb089a2de8bc42edc45117bdf8dbe9a2dec26a61",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "e4c005756780f0cf6d7f572bf479c9a547fdbf3bced53e827deb94206ba649ce",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "f48426ba68fd6922e2703f6776cc5a5274daf7be8d1f4e8e1f0c506fca3098ca"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/tmp/testify-codex-full.gCPdjCnO/037-01/fixture/runtime/executions/52349742213f75afb8c6fcb277a252c1/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "6969a648d15f0e035a95a61bcdd251b14b91f99ba93c8691d6c5f10d9513b6d4",
+  "provenance": "capture",
+  "proxyVersion": "v0.3.1-0.20261124182051-ab197aac9d67",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "e4c005756780f0cf6d7f572bf479c9a547fdbf3bced53e827deb94206ba649ce",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "f48426ba68fd6922e2703f6776cc5a5274daf7be8d1f4e8e1f0c506fca3098ca",
+  "status": "captured"
+}

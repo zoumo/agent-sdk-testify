@@ -1,0 +1,47 @@
+{
+  "case": {
+    "id": "SDK-CASE-039",
+    "outOfScope": [
+      "持久授权"
+    ],
+    "scope": "确认 root Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-039",
+  "driverProfile": "mcp-tool-approval",
+  "model": "auto/gpt-6.2-sol",
+  "prompts": [
+    "Call the approval_fixture MCP tool token exactly once. Report its returned token. Do not use any other tool."
+  ],
+  "provider": "codex",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-039",
+      "outOfScope": [
+        "持久授权"
+      ],
+      "scope": "确认 root Thread 的一次默认 MCP 工具审批、原始请求 ID 及工具结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-039",
+    "configuration": {},
+    "driverProfile": "mcp-tool-approval",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalThread": "root"
+    },
+    "prompts": [
+      "Call the approval_fixture MCP tool token exactly once. Report its returned token. Do not use any other tool."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "mcp-tool-approval"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

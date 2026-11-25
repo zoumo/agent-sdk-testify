@@ -53,7 +53,10 @@ func controlledOfficialDriver(args []string) int {
 		waitDriverCancellation()
 		return 0
 	}
-	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "captureStatus": "complete", "officialSDK": object{"package": "openai-codex", "version": "synthetic-official-driver"}}
+	report := object{"provider": plan["provider"], "caseId": plan["caseId"], "storyId": plan["storyId"], "status": "passed", "branchStatus": "passed", "gaps": []any{}, "captureStatus": "complete", "officialSDK": controlledCodexSDK()}
+	if mode == "python-sdk" {
+		report["officialSDK"] = object{"package": "openai-codex", "version": "0.0.0.dev0"}
+	}
 	if mode == "busy" && runtime.Replay {
 		report["verifyBefore"] = driverAction(runtime.Output, args[1], "official", "verify")
 		report["recordBefore"] = driverAction(runtime.Output, args[1], "agent", "record", "--cmd", "/usr/bin/false", "--", "app-server", "--listen", "stdio://")
@@ -299,7 +302,7 @@ func officialRunResult(t *testing.T, fixtureDir string) object {
 
 func TestOfficialRecordInstalledChain(t *testing.T) {
 	for _, mode := range []string{
-		"local", "busy", "business-failed", "incomplete-capture",
+		"local", "busy", "business-failed", "incomplete-capture", "python-sdk",
 		"no-trigger", "wrong-ref", "process-not-started",
 		"cancel-before", "cancel-during", "startup-failed",
 	} {

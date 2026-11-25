@@ -143,7 +143,7 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 				require.Equal(t, filepath.Join(mockRoute, "config"), host["config"])
 				require.Equal(t, filepath.Join(mockRoute, "workspace"), host["workspace"])
 
-				require.Equal(t, "synthetic-official-driver", obj(report["officialSDK"])["version"])
+				require.Equal(t, controlledCodexSDK(), report["officialSDK"])
 				if mode == "busy" {
 					for _, field := range []string{"verifyBefore", "recordBefore", "officialRecordBefore"} {
 						require.EqualValues(t, 1, report[field])
@@ -299,7 +299,7 @@ func TestOfficialVerifyPrerequisites(t *testing.T) {
 // The SDK substitute is synthetic; this proves adoption plumbing and evidence
 // requirements, never a live Agent or official SDK business pass.
 func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
-	for _, fault := range []string{"complete", "missing-isolation", "changed-isolation", "missing-business", "business-failed", "wrong-record-reference", "changed-native-plan", "missing-parent-scan", "credential-leak", "missing-preparation-binding"} {
+	for _, fault := range []string{"complete", "wrong-source-hash", "wrong-record-case", "wrong-record-sdk", "missing-isolation", "changed-isolation", "missing-business", "business-failed", "wrong-record-reference", "changed-native-plan", "missing-parent-scan", "credential-leak", "missing-preparation-binding"} {
 		t.Run(fault, func(t *testing.T) {
 			agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
 			setControlledOfficialDriver(t, drivers, "local")
@@ -341,6 +341,29 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 				receipt := readJSON(t, isolation)
 				delete(receipt, "preparedPlan")
 				writeJSON(t, isolation, receipt)
+			case "wrong-record-sdk":
+				// Keep the record domain inventory valid so admission reaches the SDK comparison.
+				reportPath := filepath.Join(recordRoot, "report.json")
+				report := readJSON(t, reportPath)
+				report["officialSDK"] = object{"package": "openai-codex", "version": "0.0.0.dev0"}
+				writeJSON(t, reportPath, report)
+				driverResult := filepath.Join(recordRoot, "driver-result.json")
+				outcome := readJSON(t, driverResult)
+				outcome["sdk"] = report["officialSDK"]
+				writeJSON(t, driverResult, outcome)
+				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
+				for _, file := range []string{reportPath, driverResult} {
+					obj(result["files"])["record/"+str(origin["runId"])+"/"+filepath.Base(file)] = digestFile(t, file)
+				}
+				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
+			case "wrong-source-hash", "wrong-record-case":
+				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
+				if fault == "wrong-source-hash" {
+					result["sourcePlanSHA256"] = result["planSHA256"]
+				} else {
+					result["case"] = "SDK-CASE-002"
+				}
+				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
 			case "missing-parent-scan":
 				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
 				delete(result, "credentialScan")

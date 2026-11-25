@@ -122,7 +122,7 @@ func codexCaseArgs(profile string, params tool.Object) []string {
 	if params["approvalKind"] == "command" {
 		args = append(args, "-c", `sandbox_mode="read-only"`)
 	}
-	if params["nativeFileTool"] == "apply_patch" {
+	if params["nativeFileTool"] == "apply_patch" || profile == "standalone-elicitation" {
 		args = append(args, "-c", "features.shell_tool=false")
 	}
 	if params["childTools"] == "inherited-dynamic-v2" {
@@ -179,6 +179,43 @@ func prepareCodexFileTool(root string, plan tool.Object) error {
 var codexMCPFixture string
 
 func prepareCodexMCPApprovalFixture(root string) error {
+	return prepareCodexMCPFixture(root, "approval_fixture", tool.Object{
+		"command": "python3", "args": []string{"-u", "-c", codexMCPFixture},
+		"default_tools_approval_mode": "prompt", "required": true,
+	})
+}
+
+//go:embed mcp_elicitation_fixture.cjs
+var mcpElicitationFixture string
+
+func prepareCodexMCPElicitationFixture(root string) error {
+	return prepareCodexMCPFixture(root, "elicitation_fixture", tool.Object{
+		"command": "node", "args": []string{"-e", mcpElicitationFixture},
+		"enabled_tools": []string{"roundtrip"}, "required": true,
+		"omit_tools_from": []string{"deferred", "code_mode"},
+		"tools":           tool.Object{"roundtrip": tool.Object{"approval_mode": "approve"}},
+	})
+}
+
+//go:embed codex_child_gate.py
+var codexChildGate string
+
+func prepareCodexChildGate(root string) error {
+	marker := filepath.Join(root, "tmp", "child-root-completed")
+	if _, err := os.Lstat(marker); !os.IsNotExist(err) {
+		return fmt.Errorf("019 child gate release marker must be absent: %s", marker)
+	}
+	// The bound prompt calls the gate first. Expose it up front on models with tool search.
+	return prepareCodexMCPFixture(root, "child_gate", tool.Object{
+		"command": "python3", "args": []string{"-u", "-c", codexChildGate, marker},
+		"enabled_tools": []string{"wait_for_root"}, "tool_timeout_sec": 70, "required": true,
+		"omit_tools_from": []string{"deferred", "code_mode"},
+		"tools":           tool.Object{"wait_for_root": tool.Object{"approval_mode": "approve"}},
+	})
+}
+
+// Add only case-owned integrations after personal configuration has been filtered.
+func prepareCodexMCPFixture(root, name string, server tool.Object) error {
 	path := filepath.Join(root, "config", "config.toml")
 	config := tool.Object{}
 	data, err := os.ReadFile(path)
@@ -189,10 +226,7 @@ func prepareCodexMCPApprovalFixture(root string) error {
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	config["mcp_servers"] = tool.Object{"approval_fixture": tool.Object{
-		"command": "python3", "args": []string{"-u", "-c", codexMCPFixture},
-		"default_tools_approval_mode": "prompt", "required": true,
-	}}
+	config["mcp_servers"] = tool.Object{name: server}
 	data, err = toml.Marshal(config)
 	if err != nil {
 		return err
@@ -200,8 +234,12 @@ func prepareCodexMCPApprovalFixture(root string) error {
 	return os.WriteFile(path, data, 0o600)
 }
 
-func prepareCodexChildFixture(root string) error {
+func prepareCodexChildFixture(root string, backgroundGate bool) error {
 	prompt := "Use fixture_read exactly once to read only child-fixture.txt in the inherited working directory. Return exactly SYNTHETIC_CHILD_TOKEN. Do not create agents or descendants. Do not use shell, network, search, writes, or any other file or tool."
+	if backgroundGate {
+		prompt = "First call mcp__child_gate__wait_for_root with no arguments and wait for its success. " +
+			strings.Replace(prompt, "Return exactly SYNTHETIC_CHILD_TOKEN.", "Return exactly the text returned by that read.", 1)
+	}
 	b, err := json.Marshal(prompt)
 	if err != nil {
 		return fmt.Errorf("encode child fixture prompt: %w", err)

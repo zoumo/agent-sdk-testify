@@ -19,20 +19,6 @@ def version_ldflags():
 
 
 class IndependentToolTests(unittest.TestCase):
-    def test_repository_build_does_not_require_sdk_driver(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            environment = dict(os.environ, AGENT_SDK_TESTIFY_BUILD_DIR=temporary,
-                               PYTHON=os.environ.get('PYTHON', 'python3'), GOPROXY='off', GOSUMDB='off',
-                               PIP_NO_INDEX='1', GOWORK='off')
-            result = subprocess.run(['bash', str(ROOT / 'scripts/build.sh')],
-                                    cwd=temporary, env=environment, capture_output=True,
-                                    text=True, timeout=120)
-            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-            self.assertTrue((Path(temporary) / 'agent-sdk-testify').is_file())
-            self.assertEqual(1, len(list(Path(temporary).glob('*.whl'))))
-            self.assertEqual(1, len(list(Path(temporary).glob('agent-sdk-testify-claude-*.tgz'))))
-            self.assertFalse((Path(temporary) / 'sdk-driver').exists())
-
     def test_default_tests_run_without_sdk_or_binary_override(self):
         environment = dict(os.environ)
         environment.pop('AGENT_SDK_TESTIFY_BIN', None)

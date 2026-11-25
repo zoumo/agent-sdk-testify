@@ -7,6 +7,10 @@ on:
         description: Runner label for the platform
         required: true
         type: string
+      release-target:
+        description: Native OS-ARCH distribution to upload
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -17,31 +21,43 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task: [checks, race, e2e]
+        task: ${{ fromJSON((inputs.release-target == '' || inputs.release-target == 'linux-amd64') && '["checks","race","e2e"]' || '["package"]') }}
     runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v7
         with:
           go-version: '1.26.10'
       - uses: actions/setup-python@v7
-        if: matrix.task == 'checks'
+        if: matrix.task == 'checks' || matrix.task == 'package'
         with:
           python-version: '3.x'
       - uses: actions/setup-node@v7
-        if: matrix.task == 'checks'
+        if: matrix.task == 'checks' || matrix.task == 'package'
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: drivers/claude/typescript/package-lock.json
       - name: Prepare Claude driver npm cache
-        if: matrix.task == 'checks'
+        if: matrix.task == 'checks' || matrix.task == 'package'
         run: npm ci --prefix drivers/claude/typescript --ignore-scripts --omit=optional --no-audit --no-fund
       - name: Prepare Go dependencies
         run: go mod download
-      - name: Prepare Python build dependencies
-        if: matrix.task == 'checks'
-        run: python3 -m pip install 'setuptools>=68' wheel
+      - name: Prepare pinned Rust source and dependencies
+        if: matrix.task == 'checks' || matrix.task == 'package'
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y libdbus-1-dev libssl-dev pkg-config
+          fi
+          rustup toolchain install 1.99.1 --profile minimal
+          drivers/codex/rust/install.sh "$RUNNER_TEMP/codex-fetch" --fetch
+          mv "$RUNNER_TEMP/codex-fetch/codex.tar.gz" "$RUNNER_TEMP/codex-source.tar.gz"
+          rm -rf "$RUNNER_TEMP/codex-fetch"
+          echo "CODEX_SOURCE_ARCHIVE=$RUNNER_TEMP/codex-source.tar.gz" >> "$GITHUB_ENV"
       - name: Install golangci-lint
         if: matrix.task == 'checks'
         shell: bash
@@ -67,7 +83,7 @@ jobs:
         env:
           GOPROXY: 'off'
           GOSUMDB: 'off'
-          PIP_NO_INDEX: '1'
+          CARGO_NET_OFFLINE: 'true'
           GOTOOLCHAIN: local
           GOENV: 'off'
         run: |
@@ -75,11 +91,26 @@ jobs:
             bash scripts/check-offline.sh parallel-checks
           elif [[ "${{ matrix.task }}" == "race" ]]; then
             bash scripts/check-offline.sh race
+          elif [[ "${{ matrix.task }}" == "package" ]]; then
+            bash scripts/check-offline.sh package
           else
             bash scripts/check-offline.sh e2e
           fi
+      - name: Stage tested release assets
+        if: inputs.release-target != '' && (matrix.task == 'checks' || matrix.task == 'package')
+        run: |
+          test "$(go env GOHOSTOS)-$(go env GOHOSTARCH)" = "${{ inputs.release-target }}"
+          dist=.artifacts/acceptance/dist
+          if [[ "${{ matrix.task }}" == checks ]]; then dist=.artifacts/acceptance/build/dist; fi
+          mv "$dist" "$RUNNER_TEMP/release"
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: inputs.release-target != '' && (matrix.task == 'checks' || matrix.task == 'package')
+        with:
+          name: ${{ inputs.release-target }}
+          path: ${{ runner.temp }}/release
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: always() && matrix.task != 'package'
         with:
           name: standalone-${{ matrix.task }}-${{ inputs.runner }}
           path: .artifacts/acceptance

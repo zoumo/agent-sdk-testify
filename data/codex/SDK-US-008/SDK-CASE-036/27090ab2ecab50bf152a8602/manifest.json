@@ -1,0 +1,46 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-08-00-01a210ac-a885-71f1-a1c9-37996fa02e87.jsonl": "ec9f6c84f83b46475c8fce01f74ddc6febeba98d5a9332ca1068fa3f6b1c1a96",
+    "official-origin.json": "7606d4a779ae320879d7ec93cab37a9d35b6aae60ef7f5a8ea10aea5c921a05a",
+    "origin/main.json": "1e088d9cad583f13066dc4e5637754f5ac45c62b653edd40b57e3c73b6d99be4",
+    "plan.json": "47081d3f145f24a8e6c1d3135718e59d4da4f14e86e8b28e49d47a7817b18ca6",
+    "raw/manifest.json": "307716f16ab73f77f98aeb8a5b6eb6dedcb12cf7a697bfe8a18609d3d6c8f3e7",
+    "raw/raw.jsonl": "a3e0163d08fdba22aae21fceea4caea7c8ef1b00c18287982e752787bd4f8620",
+    "raw/stderr.raw": "ce9235330e71a2a754ccb507668f5e4afc3d870751ad392a192d692b563402e5",
+    "raw/transport.json": "fee0f05cefb2c352d1c851279d3c97809150f45b9397e1c8eb6d5525cbc16bb6",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "88882b92a3e2a4e6a321dbb1281909a205e13752fa732037468b86e4cb0bb08c"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/tmp/testify-codex-full.gCPdjCnO/036-01/fixture/runtime/executions/2b95cd0c51f927da0e4c3ab2324d28c9/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "47081d3f145f24a8e6c1d3135718e59d4da4f14e86e8b28e49d47a7817b18ca6",
+  "provenance": "capture",
+  "proxyVersion": "v0.3.1-0.20261124182051-ab197aac9d67",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "fee0f05cefb2c352d1c851279d3c97809150f45b9397e1c8eb6d5525cbc16bb6",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "88882b92a3e2a4e6a321dbb1281909a205e13752fa732037468b86e4cb0bb08c",
+  "status": "captured"
+}

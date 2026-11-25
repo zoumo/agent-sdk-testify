@@ -86,7 +86,7 @@ func (s *corpusSuite) bindReplay() {
 
 func (s *corpusSuite) evidence() tool.Object {
 	plan := tool.Object{
-		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001",
+		"provider": "claude", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001",
 		"driverProfile": "continuation", "project": "/original/project", "recordingIsolation": "personal-skills-v1",
 		"scenario": tool.Object{"files": tool.Object{"numbers.txt": "7\n11\n"}},
 	}
@@ -106,10 +106,10 @@ func (s *corpusSuite) evidence() tool.Object {
 		"native":          tool.Object{"executable": "/observed/native", "sha256": strings.Repeat("a", 64), "cwd": "/original/project"},
 		"recordingFormat": tool.Object{"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl"},
 	})
-	sdk := tool.Object{"package": "openai-codex", "version": "synthetic-test-only"}
+	sdk := tool.Object{"package": "claude-agent-sdk", "version": "synthetic-test-only"}
 	business := tool.Object{
 		"status": "passed", "branchStatus": "passed", "captureStatus": "complete",
-		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "officialSDK": sdk,
+		"provider": "claude", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "officialSDK": sdk,
 	}
 	s.write(s.source, "report.json", business)
 	s.write(s.replay, "replay-report.json", business)
@@ -121,16 +121,20 @@ func (s *corpusSuite) evidence() tool.Object {
 	})
 	hash := s.hash(s.source, "raw/raw.jsonl")
 	s.write(s.source, "summary.json", tool.Object{
-		"provider": "codex", "case": "SDK-CASE-001", "mode": "record",
+		"provider": "claude", "case": "SDK-CASE-001", "mode": "record",
 		"result": tool.Object{"status": "passed"}, "recordingSHA256": hash,
 	})
 	s.write(s.replay, "summary.json", tool.Object{
-		"provider": "codex", "case": "SDK-CASE-001", "mode": "replay",
+		"provider": "claude", "case": "SDK-CASE-001", "mode": "replay",
 		"result": tool.Object{"status": "passed"}, "recordingSHA256": hash,
 	})
+	s.write(s.replay, "materialization.json", tool.Object{"originalProject": plan["project"], "executionProject": "/synthetic/replay/project", "transformations": []any{}})
+	summary := s.read(s.replay, "summary.json")
+	summary["output"], summary["materializationSHA256"] = "/synthetic/replay", s.hash(s.replay, "materialization.json")
+	s.write(s.replay, "summary.json", summary)
 	s.bindReplay()
 	s.write(s.replay, "replay-peer.json", tool.Object{
-		"provider": "codex", "recordingSHA256": hash,
+		"provider": "claude", "recordingSHA256": hash,
 		"fullConsumption": true, "clientEOF": true, "nativeLaunched": false, "frames": 1,
 	})
 	return tool.Object{
@@ -173,7 +177,7 @@ func (s *corpusSuite) TestFixedCoverageCannotShrink() {
 	for _, value := range tool.Array(index["cases"]) {
 		counts[tool.Str(tool.Obj(value)["requirement"])]++
 	}
-	s.Equal(map[string]int{"required": 69, "optional": 15}, counts)
+	s.Equal(map[string]int{"required": 70, "optional": 14}, counts)
 	for _, change := range []string{"empty", "omit", "downgrade", "duplicate", "verification", "reason", "unbacked-pass"} {
 		s.Run(change, func() {
 			bad := s.read(filepath.Dir(s.c.Index), "index.json")
@@ -218,15 +222,13 @@ func (s *corpusSuite) TestInventoryRetainsPrivateOriginalsAndRejectsSymlinks() {
 func (s *corpusSuite) TestRequirementsAreIndependentOfRoutes() {
 	catalog, err := s.c.Catalog()
 	s.Require().NoError(err)
-	for _, key := range []string{"codex/SDK-CASE-012"} {
-		s.Equal("optional", tool.Obj(catalog[key])["requirement"], key)
-		s.NotEqual("live-selected-path", tool.Obj(catalog[key])["route"], key)
-	}
 	for _, id := range []string{"SDK-CASE-017", "SDK-CASE-032"} {
 		s.Equal("optional", tool.Obj(catalog["claude/"+id])["requirement"])
 		s.Equal("required", tool.Obj(catalog["codex/"+id])["requirement"])
 	}
 	for _, provider := range []string{"codex", "claude"} {
+		s.Equal("required", tool.Obj(catalog[provider+"/SDK-CASE-012"])["requirement"])
+		s.Equal("live-selected-path", tool.Obj(catalog[provider+"/SDK-CASE-012"])["route"])
 		for _, id := range []string{"SDK-CASE-003", "SDK-CASE-025", "SDK-CASE-026"} {
 			s.Equal("optional", tool.Obj(catalog[provider+"/"+id])["requirement"])
 		}
@@ -478,7 +480,7 @@ func (s *corpusSuite) TestLegacyReplacementClearsPublishedMaterialReceipt() {
 	index := s.read(filepath.Dir(s.c.Index), "index.json")
 	for _, value := range tool.Array(s.read(repository, "data/index.json")["cases"]) {
 		published := tool.Obj(value)
-		if published["provider"] != "codex" || published["caseId"] != "SDK-CASE-001" {
+		if published["provider"] != "claude" || published["caseId"] != "SDK-CASE-001" {
 			continue
 		}
 		for _, row := range tool.Array(index["cases"]) {
@@ -520,13 +522,17 @@ func (s *corpusSuite) TestPublishedLegacyMaterialPreservesStoryAlias() {
 		"recordingSHA256": s.hash(s.source, "raw/raw.jsonl"), "connections": []string{"main"}, "files": s.inventory(s.source),
 	})
 	entry := tool.Object{
-		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "requirement": "required",
+		"provider": "claude", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "requirement": "required",
 		"adoption": "admitted", "verification": "passed", "adoptionSHA256": strings.Repeat("a", 64),
 		"materialSHA256": s.hash(s.source, "material.json"),
-		"officialSDK":    tool.Object{"package": "openai-codex", "version": "synthetic-legacy"},
+		"officialSDK":    tool.Object{"package": "claude-agent-sdk", "version": "synthetic-legacy"},
 		"qualification":  tool.Object{"method": "official-sdk", "qualifiedAt": "2026-11-13T00:00:00Z"},
 	}
 	s.Require().NoError(s.c.verifyPublishedMaterial(s.source, entry))
+	relabeled := maps.Clone(entry)
+	relabeled["provider"] = "codex"
+	relabeled["officialSDK"] = tool.Object{"package": codexRustSDK, "version": "0.0.0", "revision": codexRustSDKRevision}
+	s.Require().ErrorContains(s.c.verifyPublishedMaterial(s.source, relabeled), "format 3")
 	entry["storyId"] = "SDK-US-002"
 	s.Require().ErrorContains(s.c.verifyPublishedMaterial(s.source, entry), "identity differs")
 }

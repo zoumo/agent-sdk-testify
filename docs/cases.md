@@ -41,11 +41,11 @@ User story 表达完整使用目标，使用 `SDK-US-NNN`；验证 case 表达�
 
 以下 42 条完整流程分为 38 条必需能力与 4 条可选能力（003、025、026、038）。能力要求由共享 case 的
 `required` 布尔字段定义；agent binding 可用同名布尔字段显式覆盖。Claude 的 017、032 可选，
-Codex 的 012 暂为可选。039～041 为 Codex 必需、Claude 可选。042 为 Claude 必需、Codex 可选。合计 69 个必需、15 个可选槽位。要求与实现路径、采用状态及验证状态独立。
+039～041 为 Codex 必需、Claude 可选。042 为 Claude 必需、Codex 可选。合计 70 个必需、14 个可选槽位。要求与实现路径、采用状态及验证状态独立。
 
 必需能力须有通过的业务证据；`planned`、`unsupported`、未触发或缺材料均不豁免。
-Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在持有审批期间继续分发控制／事件，
-暂设为可选并保留 blocked 状态，不能当作原生协议不支持或验收通过，待上游支持后恢复必需。
+012 对两个 provider 均为必需能力。Codex 使用独立安装的 Rust driver 录制和验证，对等待审批的原 Thread 接收原生通知并核对控制回执。
+042 的 Codex 路径使用 Rust driver 回应 `mcpServer/elicitation/request`。两个 provider 均核对原请求 ID 和 MCP 工具结果。
 可选能力不阻断必需能力验收，但必须如实报告失败、未知和不支持；已有材料的来源与完整性校验不能省略。
 
 录制目录中的“可执行”只表示驱动提供该路径，不表示已经录制、通过或每次必然触发。原生能力还受实际 CLI/SDK 版本影响。录制冻结版本、配置、原生数据及流程结果；回放只能断言捕获材料实际支持的行为。
@@ -63,7 +63,7 @@ Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在
 | SDK-CASE-009 | SDK-US-003 | required | 批准文件写入审批并观察后续结果 |
 | SDK-CASE-010 | SDK-US-003 | required | 批准命令审批并观察后续结果 |
 | SDK-CASE-011 | SDK-US-003 | required | 拒绝命令审批并观察后续结果 |
-| SDK-CASE-012 | SDK-US-003 | required (codex optional) | 持有审批期间观察事件与控制回执 |
+| SDK-CASE-012 | SDK-US-003 | required | 持有审批期间观察事件与控制回执 |
 | SDK-CASE-013 | SDK-US-004 | required | 回答选择题并继续任务 |
 | SDK-CASE-014 | SDK-US-004 | required | 提供自由文本答案并继续任务 |
 | SDK-CASE-015 | SDK-US-004 | required | 回答一个请求中的多道问题 |
@@ -93,7 +93,7 @@ Claude 的 012 仍为必需能力；Codex 的 012 因官方语言驱动无法在
 | SDK-CASE-039 | SDK-US-003 | required (claude optional) | 批准根 Thread 的默认 MCP 工具调用并读取结果 |
 | SDK-CASE-040 | SDK-US-003 | required (claude optional) | 批准已确认的子 Thread 的默认 MCP 工具调用并读取结果 |
 | SDK-CASE-041 | SDK-US-003 | required (claude optional) | 回应本轮、本会话及拒绝三种额外沙箱权限决定 |
-| SDK-CASE-042 | SDK-US-004 | required (codex optional) | 回应 Claude 独立 form 和 URL elicitation 的六种决定 |
+| SDK-CASE-042 | SDK-US-004 | required (codex optional) | 回应独立 form 和 URL elicitation 的六种决定 |
 
 ## 流程语义
 

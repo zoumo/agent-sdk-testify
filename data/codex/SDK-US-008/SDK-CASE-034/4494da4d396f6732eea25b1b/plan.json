@@ -1,0 +1,88 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "agents.enabled=true",
+    "-c",
+    "features.multi_agent=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-034",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "独立发现并读取保存的子 Agent 内容。",
+    "storyId": "SDK-US-008"
+  },
+  "caseId": "SDK-CASE-034",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "history",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a210ac-7e01-7ec2-8daf-8c1e4ed15c6f",
+      "project": "/private/tmp/testify-codex-full.gCPdjCnO/034-01/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/25/rollout-2026-11-25T11-07-49-01a210ac-7e01-7ec2-8daf-8c1e4ed15c6f.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-07-49-01a210ac-7e01-7ec2-8daf-8c1e4ed15c6f.jsonl",
+      "sha256": "21da5a08eb85267cff43e55a29fb652caf66f487453b650ed9ba8f02fc008855"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "01a210ac-90c7-7a41-9d2f-b2ee5109f6cc",
+      "parentSessionId": "01a210ac-7e01-7ec2-8daf-8c1e4ed15c6f",
+      "childSessionId": "01a210ac-90c7-7a41-9d2f-b2ee5109f6cc",
+      "project": "/private/tmp/testify-codex-full.gCPdjCnO/034-01/fixture/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/25/rollout-2026-11-25T11-07-54-01a210ac-90c7-7a41-9d2f-b2ee5109f6cc.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-07-54-01a210ac-90c7-7a41-9d2f-b2ee5109f6cc.jsonl",
+      "sha256": "03266ccf4455c5f3059380d8c7a3abef0b3957c39947e6a521c41ad3d7589a28"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/private/tmp/testify-codex-full.gCPdjCnO/034-01/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-034",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "独立发现并读取保存的子 Agent 内容。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-034",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use spawn_agent exactly once. Ask the child to reply SYNTHETIC_SAVED_CHILD without tools. Wait for it to finish, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-008"
+  },
+  "sourcePlanSHA256": "4951224e7a95bb859407d5dbc8cb5db3126219a7c94ae27b48639eaafdd66d08",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-008",
+  "storyId": "SDK-US-008"
+}

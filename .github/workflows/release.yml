@@ -12,13 +12,22 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {target: linux-amd64, runner: ubuntu-24.04}
+          - {target: linux-arm64, runner: ubuntu-24.04-arm}
+          - {target: darwin-amd64, runner: macos-15-intel}
+          - {target: darwin-arm64, runner: macos-15}
     uses: ./.github/workflows/offline-platform.yml
     with:
-      runner: ubuntu-latest
+      runner: ${{ matrix.runner }}
+      release-target: ${{ matrix.target }}
 
   publish:
-    needs: validate
+    needs: native
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,38 +38,15 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: '1.26.10'
-      - uses: actions/setup-python@v7
+      - uses: actions/download-artifact@v8
         with:
-          python-version: '3.x'
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: drivers/claude/typescript/package-lock.json
-      - name: Prepare Claude driver npm cache
-        run: npm ci --prefix drivers/claude/typescript --ignore-scripts --omit=optional --no-audit --no-fund
-      - name: Prepare build dependencies
+          pattern: '*-*64'
+          path: ${{ runner.temp }}/platforms
+      - name: Verify and collect native distributions
         run: |
-          go mod download
-          python3 -m pip install 'setuptools>=68' wheel
-      - name: Build and verify release artifacts
-        env:
-          GOTOOLCHAIN: local
-          GOENV: 'off'
-          GOPROXY: 'off'
-          GOSUMDB: 'off'
-          PIP_NO_INDEX: '1'
-        run: |
-          set -euo pipefail
-          make release OUTPUT="$RUNNER_TEMP/release"
+          python3 scripts/release.py --collect "$RUNNER_TEMP/platforms" --output "$RUNNER_TEMP/release"
           cd "$RUNNER_TEMP/release"
           sha256sum --check SHA256SUMS
-          mkdir "$RUNNER_TEMP/release-smoke"
-          tar -xzf "agent-sdk-testify_${GITHUB_REF_NAME}_linux_amd64.tar.gz" -C "$RUNNER_TEMP/release-smoke"
-          test "$("$RUNNER_TEMP/release-smoke/agent-sdk-testify" version)" = "agent-sdk-testify $GITHUB_REF_NAME"
-          python3 "$GITHUB_WORKSPACE/scripts/check-agent-sdk-testify-package.py" \
-            ./*.whl ./*.tgz "$RUNNER_TEMP/release-smoke/agent-sdk-testify"
-          test -z "$(git -C "$GITHUB_WORKSPACE" status --porcelain)"
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}

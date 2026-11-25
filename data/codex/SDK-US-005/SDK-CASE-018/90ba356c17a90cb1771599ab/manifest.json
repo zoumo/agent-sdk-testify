@@ -1,0 +1,54 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-05-50-01a210aa-acfc-7c90-9214-090fe60c101f.jsonl": "c618846df553e1dbd5037e54f0b58f1efe4be561255c4cacb0234bb6ee19cdb9",
+    "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-05-59-01a210aa-d0fe-70b2-9783-1e609dcddf8e.jsonl": "a320c492a39a39d09e8268e57ec0ffa2b7f81cea01d3560be66a8c624212a70d",
+    "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-06-00-01a210aa-d359-76d3-bdad-63242501c51e.jsonl": "6a22fb9b7bb586e4895b36dcc0e87c0fbb8d5753f6c850561369883b71fd1e18",
+    "official-origin.json": "056ed462ac4abc246ac637798c80fa33a97ae7815476291e4a681f5949aa91e4",
+    "origin/main.json": "57cec9b52b937c27246e69b9666191f90bba73558b55aea1295c7d417fefb0da",
+    "plan.json": "a8ba82fbc5e963d35c15e29b2f83bdec66ea5422778a2c984c5304a5d9114c19",
+    "raw/manifest.json": "a3951be52e6b4a2b027ae88d10236001251fd7b82cd6ce2b8da40c14821e1311",
+    "raw/raw.jsonl": "576bf202961d2910e043ebd46f03593c1207e6424af42670ac6fba41f0c7ab87",
+    "raw/stderr.raw": "ffb02530df6357bfe626c98f057f14a52f620719c36228fc745a7cebe484cbde",
+    "raw/transport.json": "bb6d6ec64dcfe272d04b6a1fc727c50f53b8fb023dd6c504a0e91bc354d87417",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "3446c3237bd3137d6303feca26863ba15ccc55f027b7ca788796c42a297b0823"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "agents.enabled=true",
+      "-c",
+      "features.multi_agent=true",
+      "-c",
+      "agents.max_depth=2",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/tmp/testify-codex-full.gCPdjCnO/018-01/fixture/runtime/executions/be775c798d6d43a06a5335cb737d87d9/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "a8ba82fbc5e963d35c15e29b2f83bdec66ea5422778a2c984c5304a5d9114c19",
+  "provenance": "capture",
+  "proxyVersion": "v0.3.1-0.20261124182051-ab197aac9d67",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "bb6d6ec64dcfe272d04b6a1fc727c50f53b8fb023dd6c504a0e91bc354d87417",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "3446c3237bd3137d6303feca26863ba15ccc55f027b7ca788796c42a297b0823",
+  "status": "captured"
+}

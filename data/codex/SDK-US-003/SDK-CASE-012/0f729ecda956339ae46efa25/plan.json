@@ -1,0 +1,78 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-012",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "审批未回答期间，既接收独立原生事件，也发出控制操作并收到关联回执；随后回答审批并观察结束。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-012",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "deferred-approval",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a211dd-2e4a-7ff3-93b3-6659fe48692d",
+      "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/codex-rust-driver/evidence/06-deferred-approval/runtime.UdwOwNCC/case/runtime/routes/record/workspace",
+      "nativeTarget": "config/sessions/2026/11/25/rollout-2026-11-25T16-40-38-01a211dd-2e4a-7ff3-93b3-6659fe48692d.jsonl",
+      "source": "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T16-40-38-01a211dd-2e4a-7ff3-93b3-6659fe48692d.jsonl",
+      "sha256": "2ea577fda41f9410ebe7d3ea79ee0d44a0d46d4f47a91b50794478a6b5a8f52f"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/codex-rust-driver/evidence/06-deferred-approval/runtime.UdwOwNCC/case/runtime/routes/record/workspace",
+  "prompts": [
+    "Run exactly one shell command, cat numbers.txt, in the working directory. Request execution outside the sandbox for this one read so the application can approve it. Report the two integers briefly. Do not run any other command or tool."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-012",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "审批未回答期间，既接收独立原生事件，也发出控制操作并收到关联回执；随后回答审批并观察结束。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-012",
+    "configuration": {},
+    "driverProfile": "deferred-approval",
+    "files": {
+      "numbers.txt": "17\n25\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Run exactly one shell command, cat numbers.txt, in the working directory. Request execution outside the sandbox for this one read so the application can approve it. Report the two integers briefly. Do not run any other command or tool."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "approval_answer",
+      "held-control",
+      "held-event"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "sourcePlanSHA256": "814513c5774bf4060cd3adb91b84f930bc0acb6b706a1ea906c209ca7f70a0d1",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

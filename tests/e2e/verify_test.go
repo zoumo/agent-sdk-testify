@@ -48,7 +48,7 @@ func TestVerifyCurrentEvidenceAndAdmissionRetry(t *testing.T) {
 	assertFileHashes(t, filepath.Dir(materialRoot), obj(evidence["files"]))
 	require.NotEmpty(t, obj(evidence["tool"])["sha256"])
 	require.NotEmpty(t, obj(evidence["driver"])["sha256"])
-	require.Equal(t, "conformance-test-only", obj(readJSON(t, filepath.Join(evidenceRoot, "replay-report.json"))["officialSDK"])["version"])
+	require.Equal(t, controlledCodexSDK(), readJSON(t, filepath.Join(evidenceRoot, "replay-report.json"))["officialSDK"])
 	require.NotEmpty(t, evidence["contracts"])
 	// The index lock fails adoption after successful verification and archival.
 	lock := strings.TrimSuffix(corpus.index, filepath.Ext(corpus.index)) + ".lock"

@@ -96,6 +96,10 @@ func (c *Corpus) ValidateAdmission(source, replay string, review tool.Object) (t
 			business = v.Read(item[0], item[1])
 		}
 		sdk := tool.Obj(business["officialSDK"])
+		if sdk["package"] == codexRustSDK {
+			// A current verifier can replay a legacy capture under its own SDK.
+			v.Check(packageVerification && item[0] == replay, "Codex Rust evidence requires a sealed package domain")
+		}
 		v.Check(business["status"] == "passed" && business["branchStatus"] == "passed" && business["captureStatus"] == "complete" && len(tool.Array(business["gaps"])) == 0 && business["provider"] == plan["provider"] && business["caseId"] == plan["caseId"] && business["storyId"] == story && RecordedSDKIdentity(tool.Str(plan["provider"]), tool.Str(plan["caseId"]), sdk), "official SDK business evidence is absent, untriggered or incomplete")
 		if item[1] == "report.json" {
 			v.Check(reflect.DeepEqual(sdk, review["officialSDK"]), "review SDK identity differs from capture")
@@ -394,6 +398,9 @@ func (c *Corpus) verifyPublishedMaterial(root string, entry tool.Object) error {
 	}
 	if material == nil {
 		return errors.New("published material requires a descriptor")
+	}
+	if material.FormatVersion != 3 && sdk["package"] == codexRustSDK {
+		return errors.New("recorded Codex Rust SDK requires format 3 capture evidence")
 	}
 	inspection, err := InspectMaterial(*material)
 	if err != nil {

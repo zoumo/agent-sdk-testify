@@ -87,6 +87,7 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 	provider := tool.Str(plan["provider"])
 	profile := tool.Str(plan["driverProfile"])
 	params := tool.Obj(tool.Obj(plan["scenario"])["parameters"])
+	backgroundGate := plan["caseId"] == "SDK-CASE-019" && profile == "background-children" && params["childTools"] == "inherited-dynamic-v2"
 	if o.InitialModel != "" {
 		configuration := tool.Obj(tool.Obj(plan["scenario"])["configuration"])
 		timing := tool.Str(params["configurationTiming"])
@@ -133,7 +134,7 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 			return err
 		}
 		if provider == "codex" {
-			if err := prepareCodexChildFixture(root); err != nil {
+			if err := prepareCodexChildFixture(root, backgroundGate); err != nil {
 				return err
 			}
 		}
@@ -194,8 +195,18 @@ func PrepareNative(ctx context.Context, o *Options, plan tool.Object, root strin
 		if err := prepareCodexIsolation(root, plan); err != nil {
 			return err
 		}
-		if profile == "mcp-tool-approval" {
+		if backgroundGate {
+			if err := prepareCodexChildGate(root); err != nil {
+				return err
+			}
+		}
+		switch profile {
+		case "mcp-tool-approval":
 			if err := prepareCodexMCPApprovalFixture(root); err != nil {
+				return err
+			}
+		case "standalone-elicitation":
+			if err := prepareCodexMCPElicitationFixture(root); err != nil {
 				return err
 			}
 		}

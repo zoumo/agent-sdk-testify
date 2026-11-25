@@ -16,15 +16,20 @@ import (
 
 // Byte transcripts are transport probes, not official SDK/business verification.
 func TestBuiltinAndExternalStrictReplay(t *testing.T) {
-	for _, provider := range []string{"codex", "claude"} {
-		t.Run(provider, func(t *testing.T) {
-			input, root := builtinTranscript(t, provider, "SDK-CASE-001")
+	for _, test := range []struct{ provider, id string }{
+		{"codex", "SDK-CASE-001"},
+		{"claude", "SDK-CASE-001"},
+		{"codex", "SDK-CASE-012"},
+		{"codex", "SDK-CASE-042"},
+	} {
+		t.Run(test.provider+"/"+test.id, func(t *testing.T) {
+			input, root := builtinTranscript(t, test.provider, test.id)
 			var good []byte
 			for _, mode := range []string{"builtin", "external"} {
 				t.Run(mode, func(t *testing.T) {
 					args := []string{"prepare", "--recording", root}
 					if mode == "builtin" {
-						args = []string{"prepare", "--agent", provider, "--case", "SDK-CASE-001"}
+						args = []string{"prepare", "--agent", test.provider, "--case", test.id}
 					}
 					fixtureDir, env := preparedFixtureWithArgs(t, args...)
 					cmd := fixtureTool(t, env, "agent", "mock", "--fixture-dir", fixtureDir)
@@ -53,7 +58,7 @@ func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 
 func TestBuiltinMissingAndUnsupported(t *testing.T) {
 	for _, test := range []struct{ provider, id string }{
-		{"codex", "SDK-CASE-003"}, {"codex", "SDK-CASE-012"}, {"claude", "SDK-CASE-003"}, {"claude", "SDK-CASE-026"},
+		{"codex", "SDK-CASE-003"}, {"claude", "SDK-CASE-003"}, {"claude", "SDK-CASE-026"},
 	} {
 		t.Run(test.provider+test.id, func(t *testing.T) {
 			fixtureDir, env := preparedFixtureWithArgs(t, "prepare", "--agent", test.provider, "--case", test.id)

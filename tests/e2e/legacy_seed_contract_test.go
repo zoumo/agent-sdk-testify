@@ -59,11 +59,11 @@ for line in sys.stdin:
 import json, pathlib, subprocess, sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, %q)
-from record_user_story.runtime_config import apply_runtime
-from record_user_story.existing_children import verify_seed
+from seed import verify_seed
 request = json.loads(pathlib.Path(sys.argv[2]).read_text())
 plan = json.loads((pathlib.Path(request['materials']) / 'case.json').read_text())
-runtime = apply_runtime(plan, request)
+runtime = json.loads(pathlib.Path(request["runtime"]).read_text())
+plan["_runtime"] = runtime
 seed = verify_seed(plan)
 assert len(seed['files']) == 2
 if runtime['replay']:
@@ -78,12 +78,13 @@ assert json.loads(child.stdout)['result']['synthetic'] is True
 verify_seed(plan)
 report = {'provider':plan['provider'], 'caseId':plan['caseId'], 'storyId':plan['storyId'],
           'status':'passed', 'branchStatus':'passed', 'captureStatus':'complete', 'gaps':[],
-          'officialSDK':{'package':{'codex':'openai-codex','claude':'@anthropic-ai/claude-agent-sdk'}[plan['provider']], 'version': '0.3.293' if plan['provider']=='claude' else 'synthetic-legacy-contract-only'}}
+          'officialSDK':({'package': '@anthropic-ai/claude-agent-sdk', 'version': '0.3.293'}
+                          if plan['provider'] == 'claude' else {'package': 'codex-app-server-remote-client', 'version': '0.0.0', 'revision': '108730843ae4303ae79e9b6b936343f0b7c483bb'})}
 out = pathlib.Path(runtime['output'])
 (out / 'validated-seed.json').write_text(json.dumps(seed))
 (out / ('replay-report.json' if runtime['replay'] else 'report.json')).write_text(json.dumps(report))
 (out / 'result.json').write_text(json.dumps({'status':'passed','sdk':report['officialSDK']}))
-`, filepath.Join(repository, "drivers", "common"))
+`, filepath.Join(repository, "tests", "driver_contracts"))
 	require.NoError(t, os.WriteFile(filepath.Join(drivers, "agent-sdk-testify-"+provider), []byte("#!"+python+"\n"+driverCode), 0o700))
 	fixture := prepareFixture(t, env, "--agent", provider, "--case", "SDK-CASE-035", "--history-seed", external)
 	require.Equal(t, inventory, officialInventory(t, filepath.Join(fixture, "source", "history-seed", "source")))
