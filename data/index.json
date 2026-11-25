@@ -932,13 +932,24 @@
       "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "0684961534611c5dc81757878bf5ac3123e8ba661a5878e6c5004b719e5c922a",
       "caseId": "SDK-CASE-012",
+      "materialSHA256": "6b4aa278de80d7219f71735159ba4b8a9a46cd30ed3931f68a16eea9b0b9461c",
+      "materials": "codex/SDK-US-003/SDK-CASE-012/0f729ecda956339ae46efa25",
+      "officialSDK": {
+        "package": "codex-app-server-remote-client",
+        "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb",
+        "version": "0.0.0"
+      },
       "provider": "codex",
-      "requirement": "optional",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T08:45:37.841666Z"
+      },
+      "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "blocked",
-      "verificationReason": "Codex 侧暂为 optional：现有官方 Python SDK 0.161.0 与 0.163.0 在唯一读取线程同步执行审批回调，持有审批会阻塞控制回执和事件，公开 API 无延后回答机制。先回答再观察不满足本 case；待官方驱动支持持有审批期间的并发控制与事件后再恢复 required。这是语言驱动限制，不是 Codex 原生协议不支持，也不是 Go SDK 已验证失败。"
+      "verification": "passed"
     },
     {
       "adoption": "admitted",

@@ -218,15 +218,13 @@ func (s *corpusSuite) TestInventoryRetainsPrivateOriginalsAndRejectsSymlinks() {
 func (s *corpusSuite) TestRequirementsAreIndependentOfRoutes() {
 	catalog, err := s.c.Catalog()
 	s.Require().NoError(err)
-	for _, key := range []string{"codex/SDK-CASE-012"} {
-		s.Equal("optional", tool.Obj(catalog[key])["requirement"], key)
-		s.Equal("live-selected-path", tool.Obj(catalog[key])["route"], key)
-	}
 	for _, id := range []string{"SDK-CASE-017", "SDK-CASE-032"} {
 		s.Equal("optional", tool.Obj(catalog["claude/"+id])["requirement"])
 		s.Equal("required", tool.Obj(catalog["codex/"+id])["requirement"])
 	}
 	for _, provider := range []string{"codex", "claude"} {
+		s.Equal("required", tool.Obj(catalog[provider+"/SDK-CASE-012"])["requirement"])
+		s.Equal("live-selected-path", tool.Obj(catalog[provider+"/SDK-CASE-012"])["route"])
 		for _, id := range []string{"SDK-CASE-003", "SDK-CASE-025", "SDK-CASE-026"} {
 			s.Equal("optional", tool.Obj(catalog[provider+"/"+id])["requirement"])
 		}

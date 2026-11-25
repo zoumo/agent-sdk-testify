@@ -19,16 +19,15 @@ drivers/codex/rust/install.sh /tmp/testify-rust-build /tmp/testify-rust-install
 019 的真实录制需要 PATH 上的 `python3` 运行 Testify 提供的合成 MCP gate。
 Testify 在单次录制 overlay 安装 gate，Rust 从根 Turn 的成功终态释放它。离线回放不启动 gate。
 
-在临时工作目录对 Rust 形状的合成材料运行公开验证。Testify 从 `PATH` 选择候选入口，
+从临时工作目录验证内置的 012 延迟审批材料。Testify 从 `PATH` 选择 Rust 入口，
 并保留实际二进制和 SDK 身份。
 
 ```sh
 export PATH="/tmp/testify-rust-install/bin:$PATH"
-agent-sdk-testify prepare --recording /absolute/synthetic-rust-material \
-	--fixture-dir /tmp/testify-rust-001
-agent-sdk-testify official verify --fixture-dir /tmp/testify-rust-001 --timeout 45s
+agent-sdk-testify prepare --agent codex --case SDK-CASE-012 \
+	--fixture-dir /tmp/testify-rust-012
+agent-sdk-testify official verify --fixture-dir /tmp/testify-rust-012 --timeout 45s
 ```
 
-已采用材料保存了 Python client 的 `initialize` 帧。Rust client 的握手字段不同，
-对这些材料的严格回放在第一帧失败。候选以 case 投影和运行时环境执行业务请求，
-服务端审批通过原生请求 ID 应答。真实录制和已采用材料的迁移仍待验证。
+严格回放使用与录制匹配的 client。内置 Codex 材料使用 Rust client。已有的 Python
+来源归档使用原 Python SDK 复验。

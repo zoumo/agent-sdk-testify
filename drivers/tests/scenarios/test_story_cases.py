@@ -29,8 +29,8 @@ class StoryCaseTests(unittest.TestCase):
     def test_provider_optional_requirements_only_override_target_provider(self):
         for provider in ('claude', 'codex'):
             cases = {case['caseId']: case for case in case_recipes(provider)}
-            self.assertEqual(sum(case['required'] for case in cases.values()), 33 if provider == 'claude' else 36)
-            self.assertEqual(cases['SDK-CASE-012']['required'], provider == 'claude')
+            self.assertEqual(sum(case['required'] for case in cases.values()), 33 if provider == 'claude' else 37)
+            self.assertTrue(cases['SDK-CASE-012']['required'])
             self.assertEqual(cases['SDK-CASE-012']['mode'], 'live-selected-path')
             for case_id in ('SDK-CASE-017', 'SDK-CASE-032'):
                 self.assertEqual(cases[case_id]['required'], provider == 'codex')
@@ -151,10 +151,10 @@ class StoryCaseTests(unittest.TestCase):
         summary = summarize_story('codex', 'SDK-US-003', results, 'go-sdk')
         self.assertEqual(summary['status'], 'passed')
         self.assertNotIn('SDK-CASE-012', summary['missingCases'])
-        del results['SDK-CASE-011']
+        del results['SDK-CASE-012']
         summary = summarize_story('codex', 'SDK-US-003', results, 'go-sdk')
         self.assertEqual(summary['status'], 'partial')
-        self.assertIn('SDK-CASE-011', summary['missingCases'])
+        self.assertIn('SDK-CASE-012', summary['missingCases'])
 
     def test_multiple_executable_cases_in_one_story_do_not_select_a_default(self):
         with tempfile.TemporaryDirectory() as tmp:
