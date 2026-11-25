@@ -28,6 +28,8 @@ def check_codex(archive, root):
             path.chmod(entry.mode)
         manifest = json.load(tar.extractfile('builtin-manifest.json'))
     environment = {'PATH': str(prefix), 'HOME': str(root)}
+    version = run(root, environment, binary, 'version').stdout.strip().split()[-1]
+    assert archive.name.startswith(f'agent-sdk-testify_{version}_')
     driver_hash = hashlib.sha256(driver.read_bytes()).hexdigest()
     cases = [row for row in manifest['coverage'] if row['provider'] == 'codex' and row['available']]
     assert cases

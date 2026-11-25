@@ -81,6 +81,15 @@ out = pathlib.Path(runtime['output'])
 	require.EqualValues(t, 3, verification["schemaVersion"])
 	admission := readJSON(t, filepath.Join(fixture, "runtime", "official", filepath.Base(verifyRoot), "admission-summary.json"))
 	require.Equal(t, "admitted", admission["status"])
+	captureSDK := readJSON(t, filepath.Join(core, "report.json"))["officialSDK"]
+	require.NotEqual(t, captureSDK, readJSON(t, filepath.Join(verifyRoot, "replay-report.json"))["officialSDK"])
+	var publishedSDK any
+	for _, value := range array(readJSON(t, corpus.index)["cases"]) {
+		if row := obj(value); row["provider"] == "claude" && row["caseId"] == "SDK-CASE-001" {
+			publishedSDK = row["officialSDK"]
+		}
+	}
+	require.Equal(t, captureSDK, publishedSDK)
 	attempt := str(admission["materials"])
 	archived := filepath.Join(corpus.archive, filepath.Base(attempt))
 	require.Equal(t, before, officialInventory(t, attempt))

@@ -12,6 +12,13 @@ if [[ -f "$source/.git" ]]; then
   export AGENT_SDK_TESTIFY_BUILD_DIR="$output"
   exec bash "$source/scripts/with-build-checkout.sh" bash scripts/build.sh
 fi
+platform=$(go env GOOS)-$(go env GOARCH)
+host=$(rustc +1.99.1 -vV | sed -n 's/^host: //p')
+case "$platform:$host" in
+  linux-amd64:x86_64-unknown-linux-gnu|linux-arm64:aarch64-unknown-linux-gnu|\
+  darwin-amd64:x86_64-apple-darwin|darwin-arm64:aarch64-apple-darwin) ;;
+  *) echo "expected matching native Go and Rust targets, got $platform and $host" >&2; exit 1 ;;
+esac
 mkdir -p "$output"
 version=$(git -C "$source" describe --tags --exact-match 2>/dev/null || printf devel)
 ldflags="-X=github.com/zoumo/agent-sdk-testify/internal/version.buildVersion=$version"

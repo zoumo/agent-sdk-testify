@@ -28,12 +28,13 @@ tar -xzf "$archive" -C "$build_dir/upstream" --strip-components=1
 patch -d "$build_dir/upstream" -p1 < "$source_dir/stdio.patch"
 cp "$source_dir/Cargo.toml" "$source_dir/Cargo.lock" "$source_dir/upstream-revision" "$build_dir/"
 cp -R "$source_dir/src/." "$build_dir/src/"
+host=$(rustc +1.99.1 -vV | sed -n 's/^host: //p')
 if [[ $prefix == --fetch ]]; then
-  exec cargo +1.99.1 fetch --target "$(rustc +1.99.1 -vV | sed -n 's/^host: //p')" --locked --manifest-path "$build_dir/Cargo.toml"
+  exec cargo +1.99.1 fetch --target "$host" --locked --manifest-path "$build_dir/Cargo.toml"
 fi
 target_dir=${CARGO_TARGET_DIR:-"$build_dir/target"}
-options=(--release --locked --manifest-path "$build_dir/Cargo.toml" --target-dir "$target_dir")
+options=(--target "$host" --release --locked --manifest-path "$build_dir/Cargo.toml" --target-dir "$target_dir")
 cargo +1.99.1 test "${options[@]}"
 cargo +1.99.1 build "${options[@]}"
 install -d "$prefix/bin"
-install -m 755 "$target_dir/release/agent-sdk-testify-codex" "$prefix/bin/agent-sdk-testify-codex"
+install -m 755 "$target_dir/$host/release/agent-sdk-testify-codex" "$prefix/bin/agent-sdk-testify-codex"
