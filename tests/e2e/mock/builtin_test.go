@@ -17,7 +17,9 @@ import (
 // Byte transcripts are transport probes, not official SDK/business verification.
 func TestBuiltinAndExternalStrictReplay(t *testing.T) {
 	for _, test := range []struct{ provider, id string }{
-		{"codex", "SDK-CASE-001"}, {"claude", "SDK-CASE-001"}, {"codex", "SDK-CASE-012"},
+		{"codex", "SDK-CASE-001"},
+		{"claude", "SDK-CASE-001"},
+		{"codex", "SDK-CASE-012"},
 		{"codex", "SDK-CASE-042"},
 	} {
 		t.Run(test.provider+"/"+test.id, func(t *testing.T) {
