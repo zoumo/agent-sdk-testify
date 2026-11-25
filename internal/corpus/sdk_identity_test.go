@@ -1,6 +1,7 @@
 package corpus
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -41,17 +42,27 @@ func TestSDKOutcomeMatches(t *testing.T) {
 	require.True(t, SDKOutcomeMatches(tool.Object{"package": "claude-agent-sdk"}, tool.Object{}))
 }
 
-func TestCodexRustCandidateIdentity(t *testing.T) {
-	sdk := tool.Object{"package": codexRustSDK, "version": "0.0.0", "revision": codexRustSDKRevision}
+func TestCodexRustIdentity(t *testing.T) {
+	sdk := tool.Object{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}
 	wrongRevision := tool.Object{"package": codexRustSDK, "version": "0.0.0", "revision": "different"}
 	python := tool.Object{"package": "openai-codex", "version": "0.0.0.dev0"}
-	for _, caseID := range []string{"SDK-CASE-001", "SDK-CASE-002", "SDK-CASE-032", "SDK-CASE-035", "SDK-CASE-041"} {
-		require.True(t, DriverSDKIdentity("codex", caseID, sdk))
-		require.False(t, DriverSDKIdentity("codex", caseID, wrongRevision))
-		require.False(t, RecordedSDKIdentity("codex", caseID, sdk))
+	for n := 1; n <= 42; n++ {
+		caseID := fmt.Sprintf("SDK-CASE-%03d", n)
+		qualified := n != 3 && n != 12 && n != 25 && n != 26 && n != 42
+		require.Equal(t, qualified, RecordedSDKIdentity("codex", caseID, sdk), caseID)
+		require.Equal(t, qualified, DriverSDKIdentity("codex", caseID, sdk), caseID)
 	}
-	require.False(t, DriverSDKIdentity("codex", "SDK-CASE-012", sdk))
-	require.False(t, DriverSDKIdentity("claude", "SDK-CASE-041", sdk))
+	require.False(t, RecordedSDKIdentity("codex", "SDK-CASE-043", sdk))
+	require.False(t, RecordedSDKIdentity("claude", "SDK-CASE-041", sdk))
+	for _, invalid := range []tool.Object{
+		wrongRevision,
+		{"package": codexRustSDK, "version": "0.0.0"},
+		{"package": codexRustSDK, "version": "1.0.0", "revision": codexRustSDKRevision},
+		{"package": codexRustSDK, "version": "0.0.0", "revision": codexRustSDKRevision, "extra": true},
+	} {
+		require.False(t, RecordedSDKIdentity("codex", "SDK-CASE-001", invalid))
+		require.False(t, DriverSDKIdentity("codex", "SDK-CASE-001", invalid))
+	}
 	require.True(t, SDKOutcomeMatches(sdk, tool.Object{"sdk": sdk}))
 	require.False(t, SDKOutcomeMatches(sdk, tool.Object{}))
 	require.False(t, SDKOutcomeMatches(sdk, tool.Object{"sdk": wrongRevision}))

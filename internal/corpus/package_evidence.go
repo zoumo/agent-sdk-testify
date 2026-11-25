@@ -33,10 +33,10 @@ func packageEnvelope(root, kind, id string, material Material) (tool.Object, err
 	return result, nil
 }
 
-func validatePackageBusiness(root, kind, id string) error {
-	name := "report.json"
+func validatePackageBusiness(root, kind, id string, envelope tool.Object) error {
+	name, providerField := "report.json", "agentType"
 	if kind == "verify" {
-		name = "replay-report.json"
+		name, providerField = "replay-report.json", "provider"
 	}
 	var report, outcome, plan tool.Object
 	for path, target := range map[string]*tool.Object{
@@ -54,7 +54,10 @@ func validatePackageBusiness(root, kind, id string) error {
 	}
 	sdk := tool.Obj(report["officialSDK"])
 	provider, caseID := tool.Str(plan["provider"]), tool.Str(plan["caseId"])
-	validSDK := RecordedSDKIdentity(provider, caseID, sdk) || DriverSDKIdentity(provider, caseID, sdk)
+	if envelope["mode"] != kind || envelope[providerField] != provider || envelope["case"] != caseID {
+		return errors.New("official envelope differs from material provider, case or action")
+	}
+	validSDK := RecordedSDKIdentity(provider, caseID, sdk)
 	if report["status"] != "passed" || report["branchStatus"] != "passed" || report["captureStatus"] != "complete" || len(tool.Array(report["gaps"])) != 0 || report["provider"] != plan["provider"] || report["caseId"] != plan["caseId"] || report["storyId"] != story || outcome["status"] != "passed" || !validSDK || !SDKOutcomeMatches(sdk, outcome) {
 		return errors.New("official SDK business evidence is absent, failed or untriggered")
 	}
@@ -93,8 +96,18 @@ func validateOfficialExecutions(root, kind, id string, material Material, result
 	if aggregate["status"] != "passed" || declaration["command"] != action || declaration["fixtureId"] != result["fixtureId"] || aggregate["fixtureId"] != result["fixtureId"] || aggregate["executionSHA256"] != ref["executionSHA256"] || !reflect.DeepEqual(ref["connections"], aggregate["connections"]) {
 		return errors.New("official execution identity, status or connections differ")
 	}
-	if kind == "record" && (result["executionId"] != executionID || aggregate["publicationCommitted"] != true) {
-		return errors.New("official record did not commit its execution")
+	if kind == "record" {
+		if result["executionId"] != executionID || aggregate["publicationCommitted"] != true || result["publicationCommitted"] != true {
+			return errors.New("official record did not commit its execution")
+		}
+		for _, key := range []string{"material", "materialSHA256", "manifestSHA256", "sourcePlanSHA256", "planSHA256"} {
+			if result[key] != aggregate[key] {
+				return errors.New("official record differs from execution " + key)
+			}
+		}
+		if err := validateRecordSource(root, material, declaration); err != nil {
+			return err
+		}
 	}
 	connections := tool.Array(declaration["connections"])
 	if len(connections) != len(material.Connections) {
@@ -152,6 +165,31 @@ func validateOfficialExecutions(root, kind, id string, material Material, result
 	}
 	if kind == "verify" {
 		return validatePackageMockIsolation(root, executionID, material, declaration)
+	}
+	return nil
+}
+
+// The execution keeps the record-time source and launch origin. Its source hash
+// identifies the prepared input, which can differ from the source plan hash.
+func validateRecordSource(root string, material Material, declaration tool.Object) error {
+	source := tool.Obj(declaration["source"])
+	artifact := tool.Obj(declaration["artifact"])
+	origin := material.OfficialOrigin
+	if material.Kind != "capture" || material.Action != "record" || material.Provenance != "official" || declaration["provenance"] != material.Provenance ||
+		artifact["kind"] != material.Kind || artifact["action"] != material.Action || artifact["provenance"] != material.Provenance {
+		return errors.New("official record execution artifact differs from sealed capture")
+	}
+	if (source["kind"] != "case" && source["kind"] != "recording") ||
+		(source["provenance"] != "official" && source["provenance"] != "builtin" && source["provenance"] != "external") ||
+		source["id"] != origin.CaseID || origin.RecordSourceSHA256 == "" || source["sha256"] != origin.RecordSourceSHA256 {
+		return errors.New("official record execution source differs from sealed capture")
+	}
+	sealed, err := Read(filepath.Join(root, "material", "official-origin.json"))
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(artifact["officialOrigin"], sealed) {
+		return errors.New("official record execution launch origin differs from sealed capture")
 	}
 	return nil
 }
@@ -290,7 +328,7 @@ func validatePackageRecord(root string, material Material) error {
 	if process["started"] != true || process["reaped"] != true || process["cleanupComplete"] != true || process["exitCode"] != float64(0) {
 		return errors.New("record driver did not exit cleanly")
 	}
-	if err := validatePackageBusiness(root, "record", id); err != nil {
+	if err := validatePackageBusiness(root, "record", id, result); err != nil {
 		return err
 	}
 	if err := validateOfficialExecutions(root, "record", id, material, result); err != nil {
@@ -357,10 +395,10 @@ func ValidateOfficialVerification(root, id string, material Material) error {
 		return err
 	}
 	process := tool.Obj(processResult["driverProcess"])
-	if processResult["schemaVersion"] != float64(3) || processResult["id"] != id || processResult["materialId"] != material.ID || process["started"] != true || process["reaped"] != true || process["cleanupComplete"] != true || process["exitCode"] != float64(0) {
+	if processResult["schemaVersion"] != float64(3) || processResult["id"] != id || processResult["fixtureId"] != result["fixtureId"] || processResult["materialId"] != material.ID || process["started"] != true || process["reaped"] != true || process["cleanupComplete"] != true || process["exitCode"] != float64(0) {
 		return errors.New("verification driver did not exit cleanly")
 	}
-	if err := validatePackageBusiness(root, "verify", id); err != nil {
+	if err := validatePackageBusiness(root, "verify", id, result); err != nil {
 		return err
 	}
 	return validateOfficialExecutions(root, "verify", id, material, result)
