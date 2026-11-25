@@ -1555,7 +1555,7 @@
       "requirement": "required",
       "storyId": "SDK-US-002",
       "verification": "unsupported",
-      "verificationReason": "原生 RPC 缺少面向宿主的应用工具回调；扩展实现需要独立验证。"
+      "verificationReason": "Pi 1.6 RPC 缺少应用工具的原生请求和回答句柄。通过 MCP 调用应用工具不产生该 RPC 回调。"
     },
     {
       "adoption": "missing",
