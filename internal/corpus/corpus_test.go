@@ -527,6 +527,9 @@ func (s *corpusSuite) TestPublishedLegacyMaterialPreservesStoryAlias() {
 		"qualification":  tool.Object{"method": "official-sdk", "qualifiedAt": "2026-11-13T00:00:00Z"},
 	}
 	s.Require().NoError(s.c.verifyPublishedMaterial(s.source, entry))
+	relabeled := maps.Clone(entry)
+	relabeled["officialSDK"] = tool.Object{"package": codexRustSDK, "version": "0.0.0", "revision": codexRustSDKRevision}
+	s.Require().ErrorContains(s.c.verifyPublishedMaterial(s.source, relabeled), "format 3")
 	entry["storyId"] = "SDK-US-002"
 	s.Require().ErrorContains(s.c.verifyPublishedMaterial(s.source, entry), "identity differs")
 }

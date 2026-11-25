@@ -19,7 +19,7 @@ import (
 // Synthetic installed peers exercise the production execution/publication seam.
 func TestOfficialPackageSettlement(t *testing.T) {
 	agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
-	setControlledOfficialDriver(t, drivers, "local")
+	setControlledOfficialDriver(t, drivers, "rust-source")
 	fixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
 	recorded := runTool(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixture, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	require.Zero(t, recorded.code, recorded.stderr)
@@ -38,6 +38,7 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	require.FileExists(t, filepath.Join(recordRoot, "driver-result.json"))
 	require.NoDirExists(t, filepath.Join(fixture, "runtime", "official", runID, "staging"))
 	before := officialInventory(t, core)
+	setControlledOfficialDriver(t, drivers, "local")
 	mustRun(t, env, t.TempDir(), "", "official", "verify", "--fixture-dir", fixture)
 	verifyRoots, err := filepath.Glob(filepath.Join(packageRoot, "verify", "*"))
 	require.NoError(t, err)
@@ -63,6 +64,9 @@ func TestOfficialPackageSettlement(t *testing.T) {
 		}
 	}
 	require.Equal(t, "admitted", admitted["adoption"])
+	recordSDK := readJSON(t, filepath.Join(recordRoot, "report.json"))["officialSDK"]
+	require.Equal(t, recordSDK, admitted["officialSDK"])
+	require.NotEqual(t, recordSDK, readJSON(t, filepath.Join(verifyRoots[0], "replay-report.json"))["officialSDK"])
 	attempt := filepath.Join(filepath.Dir(corpus.index), str(admitted["materials"]))
 	archived := filepath.Join(corpus.archive, filepath.Base(attempt))
 	review := readJSON(t, filepath.Join(archived, "review.json"))

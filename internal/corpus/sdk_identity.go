@@ -16,6 +16,10 @@ const (
 // RecordedSDKIdentity validates SDK identities in persisted capture, replay,
 // and publication evidence.
 func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
+	if sdk["package"] == codexRustSDK {
+		return provider == "codex" && codexRustCase(caseID) && len(sdk) == 3 &&
+			sdk["version"] == "0.0.0" && sdk["revision"] == codexRustSDKRevision
+	}
 	if provider == "claude" && sdk["package"] == claudeTypeScriptSDK {
 		return sdk["version"] == claudeTypeScriptSDKVersion
 	}
@@ -28,10 +32,6 @@ func RecordedSDKIdentity(provider, caseID string, sdk tool.Object) bool {
 
 // DriverSDKIdentity validates a new official invocation's business report.
 func DriverSDKIdentity(provider, caseID string, sdk tool.Object) bool {
-	if sdk["package"] == codexRustSDK {
-		return provider == "codex" && codexRustCase(caseID) && len(sdk) == 3 &&
-			sdk["version"] == "0.0.0" && sdk["revision"] == codexRustSDKRevision
-	}
 	if provider == "claude" && sdk["package"] != claudeTypeScriptSDK {
 		return false
 	}
