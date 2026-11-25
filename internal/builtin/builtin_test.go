@@ -44,8 +44,9 @@ func TestBuiltinCatalogCoverage(t *testing.T) {
 	assert.Equal(t, 74, availableCore)
 	assert.ElementsMatch(t, []string{
 		"SDK-CASE-001", "SDK-CASE-002", "SDK-CASE-005", "SDK-CASE-013", "SDK-CASE-014",
-		"SDK-CASE-021", "SDK-CASE-022", "SDK-CASE-023", "SDK-CASE-024", "SDK-CASE-030",
-		"SDK-CASE-031", "SDK-CASE-033", "SDK-CASE-036", "SDK-CASE-037", "SDK-CASE-038",
+		"SDK-CASE-021", "SDK-CASE-022", "SDK-CASE-023", "SDK-CASE-024", "SDK-CASE-027",
+		"SDK-CASE-030", "SDK-CASE-031", "SDK-CASE-033", "SDK-CASE-036", "SDK-CASE-037",
+		"SDK-CASE-038",
 	}, availablePi)
 }
 

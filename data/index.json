@@ -1946,13 +1946,23 @@
       "verificationReason": "Pi RPC 的 set_thinking_level 设置离散等级，无法声明数值预算生效。"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "ad49d9fb52f8931325279d7713873aa3c73594311bbc39ddd2b482309c9f22ab",
       "caseId": "SDK-CASE-027",
+      "materialSHA256": "575279fd59de809fc4529ab568525bdb06f5c6826baa0c7bd4fff4566f887ff7",
+      "materials": "pi/SDK-US-006/SDK-CASE-027/33b2c11c164b9caeece27d12",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:56:48.45457Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "已配置的 DeepSeek 和 GLM 路由只公布 max。请求 high 后 Pi 仍读回 max。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",

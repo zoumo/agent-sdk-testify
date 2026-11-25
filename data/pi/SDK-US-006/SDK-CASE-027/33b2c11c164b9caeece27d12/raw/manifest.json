@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/opt/zerobrew/Cellar/pi-coding-agent/1.6.0/bin/pi",
+    "sha256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+    "args": [
+      "--mode",
+      "rpc",
+      "--model",
+      "magpie/auto/deepseek-v4.1-flash-1017",
+      "--thinking",
+      "low"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/027-real/fixture/runtime/executions/58ae30ad9b3ea0915fd65c44e016f50d/workspace",
+    "version": "1.6.0"
+  },
+  "files": {
+    "raw.jsonl": "f2c77a2cccc0b9c5c025ab44e204a91840e082e98288df20681d0481f8bead8c",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "4692a2dd69ab15c488c203e863372f479a25c9caca481bc383145b8bff36bae9"
+  }
+}
