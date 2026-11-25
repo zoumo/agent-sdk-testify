@@ -1,0 +1,41 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-022-fixed-snapshot-fixture-runtime-executions-178dd1363d5e854c2b7fbdcf7d533fdb-workspace--/2026-11-25T14-46-13-822Z_01a2132b-e63d-77b6-850b-f099f333c9f7.jsonl": "35997bd60363c45956276bd429ab27c0a090aec3c3865a94a9f46bec6bbc9e77",
+    "official-origin.json": "17f12efd28572444a564bb3be5b9764099e8d9df8ad186a05d9f6b53f29e9176",
+    "origin/main.json": "91752f6fe8e94e36ec65a4bb891104571e7a1e65792f6a74dafa5dad590afdcc",
+    "plan.json": "40adbdb1d4dbd6faa7b1716e5b8a3e94cad66ed75944c25e304cc6dab11c4f3d",
+    "raw/manifest.json": "66a9c125bd94e0d5c3c6eb10d2214b0fee2c7e46566841b7c141cccb3f8671b2",
+    "raw/raw.jsonl": "fec2a2d4f363902558743058547d780fcb44cfc1482842c812958ecb55a6b24d",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "7a3eccde73b62be8f1af16a5a5a07188b99a6d720e82ab00869f87954bb3fa75",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "f4d53884a6dda5dbd6f8e92bfb370f7665eaf845eb8a1a3f4441fd8dcadaafe3"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--mode",
+      "rpc",
+      "--model",
+      "magpie/auto/deepseek-v4.1-flash-1017"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/022-fixed-snapshot/fixture/runtime/executions/178dd1363d5e854c2b7fbdcf7d533fdb/workspace",
+    "executable": "/opt/zerobrew/Cellar/pi-coding-agent/1.6.0/bin/pi",
+    "sha256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+    "version": "1.6.0"
+  },
+  "planSHA256": "40adbdb1d4dbd6faa7b1716e5b8a3e94cad66ed75944c25e304cc6dab11c4f3d",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "7a3eccde73b62be8f1af16a5a5a07188b99a6d720e82ab00869f87954bb3fa75",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "f4d53884a6dda5dbd6f8e92bfb370f7665eaf845eb8a1a3f4441fd8dcadaafe3",
+  "status": "captured"
+}

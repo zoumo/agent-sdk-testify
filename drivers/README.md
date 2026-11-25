@@ -13,6 +13,7 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 | --- | --- |
 | `codex/rust/` | Codex 官方 Rust SDK driver、上游源码 pin 和安装器 |
 | `claude/typescript/` | Claude 官方 TypeScript SDK driver |
+| `pi/official/` | Pi 官方 TypeScript RpcClient 与原生 stdio 扩展 driver |
 
 ## 构建与测试
 
@@ -30,7 +31,7 @@ make check
 ```
 
 `make bundle` 在 `.artifacts/build/` 生成当前平台的 `agent-sdk-testify`、
-`agent-sdk-testify-codex` 和 Claude npm tarball。可用 `AGENT_SDK_TESTIFY_BUILD_DIR`
+`agent-sdk-testify-codex` 和 Claude、Pi npm tarball。可用 `AGENT_SDK_TESTIFY_BUILD_DIR`
 指定绝对输出目录。构建使用一个临时 Cargo target，结束后清理。设置
 `CARGO_TARGET_DIR` 为平台专用的绝对路径可在多次本机构建间保留编译缓存。
 
@@ -77,6 +78,29 @@ command -v agent-sdk-testify-codex
 Rust driver 已链接锁定的官方 client。`official record` 通过 `--cmd` 启动原生 Codex；
 `official verify` 启动公开 mock。019、039、040 的真实录制用 `python3` 运行原生
 MCP 夹具，042 的真实录制用 `node`。[SDK 版本与构建方法](codex/rust/README.md)
+
+### 安装 Pi driver
+
+使用 Node.js 22 或更新版本。在同一安装前缀安装 Pi driver tarball 和 Pi 1.6.0 SDK，将 `node_modules/.bin` 加入 PATH。
+
+```sh
+npm install --prefix /absolute/pi-driver /absolute/agent-sdk-testify-pi-0.1.0.tgz   @earendil-works/pi-coding-agent@1.6.0
+export PATH="/absolute/pi-driver/node_modules/.bin:$PATH"
+command -v agent-sdk-testify-pi
+```
+
+录制时用 `--cmd` 指定 Pi 1.6.0 CLI，在 `--` 后传入 `--mode rpc`。
+`prepare` 的 `--model` 接受 `provider/model`。模型切换用例需要另外指定不同的
+`--initial-model`。离线验证通过同一个 RpcClient 连接 Testify mock。
+独立历史用例使用 Pi 的 `SessionManager` 读取本次录制保存的原生会话文件。
+[Pi 用例绑定](../data/scenarios/bindings/pi.json)
+
+扩展用例 `008–014`、`037` 和 `038` 使用原生 stdio 客户端。用目录中的 case
+准备 fixture，再用 `official record` 和 `official verify` 录放。driver 使用原生
+对话 ID 回答，使用命令 ID 匹配控制回执。录制时 Testify 加载固定的 Go SDK 扩展，
+业务报告保留 Pi 版本、扩展修订和哈希。运行 `012` 时，在 `prepare` 中设置两个
+支持思考等级的不同模型，分别传给 `--initial-model` 和 `--model`。
+[扩展来源](pi/official/pi-extension/SOURCE.md)
 
 ## 按 case 录制
 

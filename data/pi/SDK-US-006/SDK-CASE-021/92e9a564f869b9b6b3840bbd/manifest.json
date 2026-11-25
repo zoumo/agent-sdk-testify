@@ -1,0 +1,41 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-021-real-fixture-runtime-executions-661c0531a28d1da7277cd62796048325-workspace--/2026-11-25T14-39-44-265Z_01a21325-f488-7330-a4b7-d7299c262e0d.jsonl": "6d265f93bcf4d95354229f2ba07cb070d6b2d950dda35f00cada22aeb35d895f",
+    "official-origin.json": "e74604c588360ba3c857627cdbc3d48765c4806e014b774ed9480700cf7104fc",
+    "origin/main.json": "8f1cc80ad67dde75ceec43f854e003540912462c0f90c6cb11fbe11233f0e854",
+    "plan.json": "e63d87acb39a4892f4c60608123261ad1a71358b68f92e930d460beca3d941a2",
+    "raw/manifest.json": "eea55bbb0c789b88f409ba14465ee28ceb2d0bfe88bb04c9f08e1d831cb59591",
+    "raw/raw.jsonl": "4fa39b1b2884bb61c39601a08a5641c55bd268e63bdafc124e4c9c38abcd8d0d",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "61af17d389c93c6d4814b278cf762f430fe77b86a0270fcc9a9d9e81855eb555",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "3fb785ff166b6b9341cdd08802e492f9430d4e1687cab4b9e24c3a20ee52f885"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--mode",
+      "rpc",
+      "--model",
+      "magpie/auto/deepseek-v4.1-flash-1017"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/021-real/fixture/runtime/executions/661c0531a28d1da7277cd62796048325/workspace",
+    "executable": "/opt/zerobrew/Cellar/pi-coding-agent/1.6.0/bin/pi",
+    "sha256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+    "version": "1.6.0"
+  },
+  "planSHA256": "e63d87acb39a4892f4c60608123261ad1a71358b68f92e930d460beca3d941a2",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "61af17d389c93c6d4814b278cf762f430fe77b86a0270fcc9a9d9e81855eb555",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "3fb785ff166b6b9341cdd08802e492f9430d4e1687cab4b9e24c3a20ee52f885",
+  "status": "captured"
+}

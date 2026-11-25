@@ -249,13 +249,26 @@ func (c *Corpus) Catalog() (tool.Object, error) {
 	v := &Validation{}
 	index := v.Read(c.Scenarios, "index.json")
 	out := tool.Object{}
+	// An external catalog may predate the Pi binding. Each declared provider
+	// contributes its own complete set of identities to the accompanying index.
+	providers := []string{"codex", "claude"}
+	_, err := os.Stat(filepath.Join(c.Scenarios, "bindings", "pi.json"))
+	if err == nil {
+		providers = append(providers, "pi")
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
+	bindings := map[string]tool.Object{}
+	for _, name := range providers {
+		bindings[name] = v.Read(c.Scenarios, "bindings/"+name+".json")
+	}
 	for _, story := range tool.Strings(index["stories"]) {
 		s := v.Read(c.Scenarios, story+".json")
 		for _, item := range tool.Array(s["cases"]) {
 			definition := tool.Obj(item)
 			id := tool.Str(definition["id"])
-			for _, provider := range []string{"codex", "claude"} {
-				binding := v.Read(c.Scenarios, "bindings/"+provider+".json")
+			for _, provider := range providers {
+				binding := bindings[provider]
 				mode := tool.Str(tool.Obj(definition["execution"])["mode"])
 				if x := tool.Str(tool.Obj(tool.Obj(tool.Obj(binding["cases"])[id])["execution"])["mode"]); x != "" {
 					mode = x

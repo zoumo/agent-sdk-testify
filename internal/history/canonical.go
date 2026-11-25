@@ -91,7 +91,7 @@ func CanonicalBindings(root string, plan, manifest tool.Object) ([]Binding, erro
 		if err != nil {
 			return nil, err
 		}
-		actual, err := Identify(b.NativeTarget, data, b.Project)
+		actual, err := Identify(historyProvider(plan), b.NativeTarget, data, b.Project)
 		if err != nil {
 			return nil, err
 		}
@@ -104,14 +104,73 @@ func CanonicalBindings(root string, plan, manifest tool.Object) ([]Binding, erro
 			return nil, fmt.Errorf("unbound runtime history: %s", name)
 		}
 	}
+	if err := validatePiHistoryIdentities(historyProvider(plan), bindings); err != nil {
+		return nil, err
+	}
 	return bindings, nil
 }
 
+func validatePiHistoryIdentities(provider string, bindings []Binding) error {
+	if provider != "pi" {
+		return nil
+	}
+	targets := map[[2]string]string{}
+	for _, b := range bindings {
+		key := [2]string{b.Project, b.SessionID}
+		if target, ok := targets[key]; ok {
+			return fmt.Errorf("ambiguous pi session history: %s and %s", target, b.NativeTarget)
+		}
+		targets[key] = b.NativeTarget
+	}
+	return nil
+}
+
+func historyProvider(plan tool.Object) string {
+	if provider := tool.Str(plan["provider"]); provider != "" {
+		return provider
+	}
+	return tool.Str(plan["agentType"])
+}
+
+// Pi records a SessionHeader as the first JSONL row. A fork's parentSession
+// is a source file path, not the identity of a spawned child Agent.
+func identifyPi(target string, data []byte) (Binding, error) {
+	line, entries, _ := bytes.Cut(data, []byte{'\n'})
+	var header struct {
+		Type      string `json:"type"`
+		ID        string `json:"id"`
+		CWD       string `json:"cwd"`
+		Timestamp string `json:"timestamp"`
+	}
+	if err := json.Unmarshal(line, &header); err != nil {
+		return Binding{}, err
+	}
+	if header.Type != "session" || header.ID == "" || !filepath.IsAbs(header.CWD) || header.Timestamp == "" {
+		return Binding{}, errors.New("pi history lacks session metadata")
+	}
+	if !strings.HasPrefix(target, "config/sessions/") || !strings.HasSuffix(path.Base(target), "_"+header.ID+".jsonl") {
+		return Binding{}, errors.New("pi native filename differs from session identity")
+	}
+	for i := 2; len(entries) != 0; i++ {
+		line, entries, _ = bytes.Cut(entries, []byte{'\n'})
+		var entry struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(line, &entry); err != nil || entry.Type == "" || entry.Type == "session" {
+			return Binding{}, fmt.Errorf("invalid pi history entry on line %d", i)
+		}
+	}
+	return Binding{SessionID: header.ID, Project: header.CWD, NativeTarget: target}, nil
+}
+
 // Identify extracts only native identity; raw history is never re-encoded.
-func Identify(target string, data []byte, project string) (Binding, error) {
+func Identify(provider, target string, data []byte, project string) (Binding, error) {
 	b := Binding{NativeTarget: target, Project: project}
 	if !nativeTarget(target) {
 		return b, errors.New("invalid native history target")
+	}
+	if provider == "pi" {
+		return identifyPi(target, data)
 	}
 	if strings.HasPrefix(target, "config/sessions/") {
 		line, _, _ := bytes.Cut(data, []byte{'\n'})
@@ -235,7 +294,7 @@ func CaptureCanonical(seed, overlay, core string, plan tool.Object, startupDeriv
 			if err != nil {
 				return nil, err
 			}
-			b, err := identifyCaptured(seedRoot, name, target, data, historyProject(plan))
+			b, err := identifyCaptured(historyProvider(plan), seedRoot, name, target, data, historyProject(plan))
 			if err != nil {
 				return nil, err
 			}
@@ -294,7 +353,7 @@ func CaptureCanonical(seed, overlay, core string, plan tool.Object, startupDeriv
 					project = original.Project
 				}
 			}
-			b, err := identifyCaptured(overlay, target, target, data, project)
+			b, err := identifyCaptured(historyProvider(plan), overlay, target, target, data, project)
 			if err != nil {
 				return nil, fmt.Errorf("identify native history %s: %w", target, err)
 			}
@@ -319,14 +378,17 @@ func CaptureCanonical(seed, overlay, core string, plan tool.Object, startupDeriv
 	for _, name := range names {
 		result = append(result, bindings[name])
 	}
+	if err := validatePiHistoryIdentities(historyProvider(plan), result); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
-func identifyCaptured(root, name, target string, data []byte, project string) (Binding, error) {
+func identifyCaptured(provider, root, name, target string, data []byte, project string) (Binding, error) {
 	if stem, ok := strings.CutSuffix(name, ".meta.json"); ok {
 		sibling := stem + ".jsonl"
 		if siblingData, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(sibling))); err == nil {
-			identity, err := Identify(strings.TrimSuffix(target, ".meta.json")+".jsonl", siblingData, project)
+			identity, err := Identify(provider, strings.TrimSuffix(target, ".meta.json")+".jsonl", siblingData, project)
 			if err != nil {
 				return Binding{}, err
 			}
@@ -335,7 +397,7 @@ func identifyCaptured(root, name, target string, data []byte, project string) (B
 			return Binding{}, err
 		}
 	}
-	return Identify(target, data, project)
+	return Identify(provider, target, data, project)
 }
 
 // StartupDerived identifies the sealed startup copies. Record may subsequently

@@ -1534,6 +1534,556 @@
       "requirement": "optional",
       "storyId": "SDK-US-004",
       "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "b09f876e58cbae0c6312ac8700df5946b15339d5dd355c4e596dcfdb1a6f0d28",
+      "caseId": "SDK-CASE-001",
+      "materialSHA256": "4586a6440dd71d3376396d55acb7d82d5984fa7de13d0621d15b69bab83911f6",
+      "materials": "pi/SDK-US-001/SDK-CASE-001/16dc121daeb0d80d04c843a7",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:39:13.304029Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "fcf6573de617814fc7ca5dfbda5feb59bf33658bccb763468063a831bf60498d",
+      "caseId": "SDK-CASE-002",
+      "materialSHA256": "91cb4ccda241cb3aa8092ceb45b8406c28a435719e9821c984fcaf50ec04663e",
+      "materials": "pi/SDK-US-001/SDK-CASE-002/01ec3806f0afc8afc6b48f49",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:29.387393Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-003",
+      "provider": "pi",
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "unsupported",
+      "verificationReason": "Pi RPC 1.6 的 prompt 支持文本和图片，缺少原生文档输入。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-004",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "unverified",
+      "verificationReason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "d714fcb2c96c23ee15a971cc91a4c4ed4cab9804010c21ba82374466c54f337b",
+      "caseId": "SDK-CASE-005",
+      "materialSHA256": "27511544ac4edc9267dfd729540e7489cb923d54118515c0cb8112e3dd5576b5",
+      "materials": "pi/SDK-US-001/SDK-CASE-005/d17f631d68a45e2d12e8af01",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:32.323688Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "a169e23a2afc872b8e6a4daecd3a8c86e4c5ca7f1562ec74a0fc8ef137e46d59",
+      "caseId": "SDK-CASE-037",
+      "materialSHA256": "98dc711b8176db36548f5a0e538bb8839d88ab733ada789c5462a7f7a0ff751b",
+      "materials": "pi/SDK-US-001/SDK-CASE-037/7d838ec4f320d43554e53f34",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:11.116632Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "1764fb94eba3c66a3afb6d4dd440987950b9caf50309d16650098c9ee50bf5f9",
+      "caseId": "SDK-CASE-038",
+      "materialSHA256": "c41900411ccc5115bc69172715df5b4641e26d4693ed3d30042f492d3214ccad",
+      "materials": "pi/SDK-US-001/SDK-CASE-038/71b0798e3b966412f72ce218",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:12.303208Z"
+      },
+      "requirement": "optional",
+      "storyId": "SDK-US-001",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-006",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "unverified",
+      "verificationReason": "Pi 1.6.0 和 DeepSeek 的录制未观察到包含规定末尾换行的写入参数。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-007",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-002",
+      "verification": "unsupported",
+      "verificationReason": "Pi 1.6 RPC 缺少应用工具的原生请求和回答句柄。通过 MCP 调用应用工具不产生该 RPC 回调。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-008",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-009",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-010",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-011",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-012",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-039",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Codex 根 Thread 的原生 MCP 审批。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-040",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Codex 子 Thread 的原生 MCP 审批。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-041",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-003",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Codex additional permissions 三种原生决定。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "89a8f4435c44aae937ccb7e925017f2a3cd5b911aee58d451f96106657fab895",
+      "caseId": "SDK-CASE-013",
+      "materialSHA256": "8b2fffa8ed4fd362f1b76ab76b1e72159c876f43c8eb3ee0934f078cf9c63da6",
+      "materials": "pi/SDK-US-004/SDK-CASE-013/e3734558dba464ef6c886d12",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:08.31498Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "8ece7ea5781cb3ec72d28aa388f31c05f38069ed2be4eef9d92c6d28eb4560b5",
+      "caseId": "SDK-CASE-014",
+      "materialSHA256": "40e913eb6e946d3cc158cbed2660e6745aa8e2d92d46c7b8bb6a2e5bec2ff3d6",
+      "materials": "pi/SDK-US-004/SDK-CASE-014/8ee11f36c044929df9543b1f",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:09.891928Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-015",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "unverified",
+      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-042",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-004",
+      "verification": "unsupported",
+      "verificationReason": "该用例要求 Claude 原生 form 与 URL elicitation。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-016",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少可观测的子 Agent 协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-017",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少嵌套子 Agent 身份和关系协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-018",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少并行子 Agent 生命周期协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-019",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少后台子 Agent 生命周期协议。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-020",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-005",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少子 Agent 详情策略协议。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "d33a96288ed93c15596c7a76c20f1e24f505a5ce987309795e69b16916cb152c",
+      "caseId": "SDK-CASE-021",
+      "materialSHA256": "1f4e05d7b489b709257e545f0a0ac7d7712d263ce38c3e9b8b1d3aa9693ca746",
+      "materials": "pi/SDK-US-006/SDK-CASE-021/92e9a564f869b9b6b3840bbd",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:34.804914Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "603e06b9ee9c86cba1e687d211a9f0b47e06662c4a3e0d1a639fdd79636dea54",
+      "caseId": "SDK-CASE-022",
+      "materialSHA256": "37a4eee20acd765dfb8835cd379daadad51daf0a095127594b83b03ad341576c",
+      "materials": "pi/SDK-US-006/SDK-CASE-022/651f370a9fc2ab8d4bd24f2f",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:51:36.172335Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "707f51567e20a176e4b622dd4727a1b8609a66c9091470168ccdabe759cb05ec",
+      "caseId": "SDK-CASE-023",
+      "materialSHA256": "add90cfab5c22684c435270f424db11dd564f03db2a3eb617a1cb0beda5de7f6",
+      "materials": "pi/SDK-US-006/SDK-CASE-023/e4545f981c016683c020fb02",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:21.845089Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "e4869b94b83e080b06a25da8b3bf185dcdf12093cfe3a3c4498b9fe25345fa02",
+      "caseId": "SDK-CASE-024",
+      "materialSHA256": "5778de2f194a72655d56454f5683fb06a0be0d57636fd31d22ff2d8f6446ac28",
+      "materials": "pi/SDK-US-006/SDK-CASE-024/75b8d6291abdb47d5dc6f279",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:23.359798Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-025",
+      "provider": "pi",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "unverified",
+      "verificationReason": "Pi RPC 1.6 仅公开离散 thinking level，缺少独立思考模式。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-026",
+      "provider": "pi",
+      "requirement": "optional",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "Pi RPC 的 set_thinking_level 设置离散等级，无法声明数值预算生效。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "ad49d9fb52f8931325279d7713873aa3c73594311bbc39ddd2b482309c9f22ab",
+      "caseId": "SDK-CASE-027",
+      "materialSHA256": "575279fd59de809fc4529ab568525bdb06f5c6826baa0c7bd4fff4566f887ff7",
+      "materials": "pi/SDK-US-006/SDK-CASE-027/33b2c11c164b9caeece27d12",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:56:48.45457Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-028",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "Pi RPC 缺少该用例要求的思考展示控制。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-029",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-006",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少可核对配置继承关系的子 Agent。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "7302c836df503381a8a391696a813a67c664ca832f3eff29f93f9c898300119c",
+      "caseId": "SDK-CASE-030",
+      "materialSHA256": "f6098247e24a4a82d8de3aefd03fc767bfe76a4ff7bd380002661cb1aa0b53c0",
+      "materials": "pi/SDK-US-007/SDK-CASE-030/b4a9b2efed66accc7d7d722d",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:36.472046Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "passed"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "2cbbdbcf432616ae7027176492793a9ce3e5e1a1a8f4153ecc2c33b5c859e967",
+      "caseId": "SDK-CASE-031",
+      "materialSHA256": "217dbb756387e411e14b8ed0fb0d2709e66bf78f1fb0fac9fad695a200cf2f44",
+      "materials": "pi/SDK-US-007/SDK-CASE-031/52defbda84888d9bfd6bd066",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:38.807919Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-032",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-007",
+      "verification": "unsupported",
+      "verificationReason": "Pi 1.6 RPC 采用本地进程 stdio，缺少独立远端连接。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "5a315e1ac6344bfed0c41d5d1f29d3459831d73016fa7b76667b45ae9b23b96f",
+      "caseId": "SDK-CASE-033",
+      "materialSHA256": "b416184e62efdb0abc335095ae4111a99d4f960ad2fe3f3de653d7e30e432ade",
+      "materials": "pi/SDK-US-008/SDK-CASE-033/a3024f11edf15be3106334c7",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:40.630145Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-034",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少具备子 Agent 身份和关系的持久历史。"
+    },
+    {
+      "adoption": "missing",
+      "caseId": "SDK-CASE-035",
+      "provider": "pi",
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "unsupported",
+      "verificationReason": "Pi 默认运行时缺少可供晚加入观察者发现的子 Agent。"
+    },
+    {
+      "adoption": "admitted",
+      "adoptionSHA256": "6c0e28d91c47faf9eb35601da42a770d29ef6c96455193146020bfd3ccac5a9e",
+      "caseId": "SDK-CASE-036",
+      "materialSHA256": "a02a81f22482c373ec823bb19a56f8189968c130f29a089a1ab950a418b93d24",
+      "materials": "pi/SDK-US-008/SDK-CASE-036/d1f239e3fb1221b9a29f1980",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:25.027435Z"
+      },
+      "requirement": "required",
+      "storyId": "SDK-US-008",
+      "verification": "passed"
     }
   ],
   "version": 1

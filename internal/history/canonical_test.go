@@ -269,7 +269,7 @@ func TestRecordClaudeMaterializationRetainsFailureSourceAndRebindsSuccess(t *tes
 }
 
 func TestClaudeMetadataUsesNativeChildIdentity(t *testing.T) {
-	b, err := Identify("config/projects/-original/parent/subagents/agent-child.meta.json", []byte("{\"agentType\":\"general-purpose\"}\n"), "/original")
+	b, err := Identify("claude", "config/projects/-original/parent/subagents/agent-child.meta.json", []byte("{\"agentType\":\"general-purpose\"}\n"), "/original")
 	require.NoError(t, err)
 	require.Equal(t, "parent", b.ParentSessionID)
 	require.Equal(t, "child", b.ChildSessionID)
@@ -315,4 +315,45 @@ func TestCaptureClaudeMetadataUsesExecutionProject(t *testing.T) {
 			require.Equal(t, project, binding.Project)
 		}
 	}
+}
+
+func TestPiSessionHistoryRoundTrip(t *testing.T) {
+	overlay, core := t.TempDir(), t.TempDir()
+	const target = "config/sessions/--work-project--/2026-11-24T15-00-00-000Z_session-a.jsonl"
+	const header = `{"type":"session","version":3,"id":"session-a","timestamp":"2026-11-24T15:00:00.000Z","cwd":"/work/project","parentSession":"/work/older.jsonl"}`
+	const data = header + "\n" + `{"type":"message","id":"entry1","parentId":null,"unknown":9007199254740993}` + "\n"
+	writeHistory(t, overlay, target, data)
+	bindings, err := CaptureCanonical("", overlay, core, tool.Object{"agentType": "pi"}, nil)
+	require.NoError(t, err)
+	require.Len(t, bindings, 1)
+	b := bindings[0]
+	require.Equal(t, "session-a", b.SessionID)
+	require.Equal(t, "/work/project", b.Project)
+	require.Empty(t, b.ChildSessionID)
+	plan, manifest := canonicalObjects(t, core, bindings)
+	plan["provider"] = "pi"
+	verified, err := CanonicalBindings(core, plan, manifest)
+	require.NoError(t, err)
+	require.Equal(t, bindings, verified)
+	require.Equal(t, tool.DigestBytes([]byte(data)), tool.DigestBytes(readHistory(t, filepath.Join(core, b.Source))))
+
+	_, err = Identify("pi", target, []byte(header+"\n"+`{"type":"message"`), "")
+	require.ErrorContains(t, err, "invalid pi history entry on line 2")
+	_, err = Identify("pi", target, nil, "")
+	require.Error(t, err)
+	_, err = Identify("pi", target, []byte(`{"type":"session","id":"other","cwd":"/work/project","timestamp":"2026-11-24T15:00:00.000Z"}`), "")
+	require.Error(t, err)
+	_, err = Identify("codex", target, []byte(data), "")
+	require.Error(t, err)
+	_, err = Identify("pi", target, []byte(`{"type":"session_meta","payload":{"id":"session-a","cwd":"/work/project"}}`), "")
+	require.Error(t, err)
+}
+
+func TestPiSessionHistoryRejectsAmbiguousFiles(t *testing.T) {
+	overlay, core := t.TempDir(), t.TempDir()
+	const header = `{"type":"session","version":3,"id":"same","timestamp":"2026-11-24T15:00:00.000Z","cwd":"/work/project"}` + "\n"
+	writeHistory(t, overlay, "config/sessions/--work-project--/2026-11-24T15-00-00-000Z_same.jsonl", header)
+	writeHistory(t, overlay, "config/sessions/--work-project--/2026-11-24T16-00-00-000Z_same.jsonl", header)
+	_, err := CaptureCanonical("", overlay, core, tool.Object{"provider": "pi"}, nil)
+	require.ErrorContains(t, err, "ambiguous pi session history")
 }

@@ -86,15 +86,37 @@ def check_claude(tarball, binary, root):
     print(f'Claude tarball: installed case 042 strictly replayed with {package["name"]}@{package["version"]}.')
 
 
+
+def check_pi(tarball, root):
+    node, npm = shutil.which('node'), shutil.which('npm')
+    assert node and npm, 'Node.js and npm are required'
+    prefix = root / 'pi'
+    env = {'PATH': str(Path(node).parent) + os.pathsep + os.defpath, 'HOME': str(root),
+           'npm_config_cache': str(root / 'cache'), 'npm_config_update_notifier': 'false'}
+    run(root, env, npm, 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund',
+        '--prefix', prefix, tarball)
+    driver = prefix / 'node_modules/.bin/agent-sdk-testify-pi'
+    package = prefix / 'node_modules/agent-sdk-testify-pi'
+    assert driver.resolve() == package / 'cli.mjs'
+    for name in ('base.mjs', 'continuation.mjs', 'extension.mjs', 'peer.mjs', 'wire.mjs', 'evidence.mjs', 'LICENSE',
+                 'pi-extension/SOURCE.md', 'pi-extension/NOTICE'):
+        assert (package / name).is_file()
+    extension = package / 'pi-extension/session.ts'
+    assert hashlib.sha256(extension.read_bytes()).hexdigest() == '298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b'
+    launched = subprocess.run([str(driver)], cwd=root, env=env, capture_output=True, timeout=10, text=True)
+    assert launched.returncode == 2 and 'usage: agent-sdk-testify-pi --request FILE' in launched.stderr, launched.stderr
+    print('Pi driver installed and launched outside the source checkout', flush=True)
+
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        raise SystemExit('usage: check-agent-sdk-testify-package.py NATIVE_ARCHIVE CLAUDE_TARBALL')
-    archive, tarball = (Path(arg).resolve(strict=True) for arg in sys.argv[1:])
+    if len(sys.argv) != 4:
+        raise SystemExit('usage: check-agent-sdk-testify-package.py NATIVE_ARCHIVE CLAUDE_TARBALL PI_TARBALL')
+    archive, claude, pi = (Path(arg).resolve(strict=True) for arg in sys.argv[1:])
     try:
         with tempfile.TemporaryDirectory(prefix='agent-sdk-testify-installed-') as temporary:
             root = Path(temporary).resolve()
             binary = check_codex(archive, root)
             (root / 'npm').mkdir()
-            check_claude(tarball, binary, root / 'npm')
+            check_claude(claude, binary, root / 'npm')
+            check_pi(pi, root)
     except subprocess.CalledProcessError as exc:
         raise SystemExit(f'{exc}\n{exc.stdout}{exc.stderr}') from exc

@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/opt/zerobrew/Cellar/pi-coding-agent/1.6.0/bin/pi",
+    "sha256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+    "args": [
+      "--mode",
+      "rpc",
+      "--model",
+      "magpie/auto/deepseek-v4.1-flash-1017",
+      "--no-extensions",
+      "--no-skills",
+      "--no-context-files",
+      "--no-prompt-templates",
+      "-e",
+      "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/official/a05991745c428c5a604c8462db32428d/pi-extension/session.ts"
+    ],
+    "cwd": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/executions/667867900b6c91c8f70670f41df98427/workspace",
+    "version": "1.6.0"
+  },
+  "files": {
+    "raw.jsonl": "a08a74a815b3ea30866baf64c88960b8a5e0fceb296037972d6ea5c8dbc42bc6",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "a8b0eab108609154eb67975a8ab9ed8a725362853526346159ba07e2a3f6d8e4"
+  }
+}

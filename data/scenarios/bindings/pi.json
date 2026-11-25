@@ -1,0 +1,423 @@
+{
+  "version": 3,
+  "provider": "pi",
+  "cases": {
+    "SDK-CASE-001": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-002": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-003": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 1.6 的 prompt 支持文本和图片，缺少原生文档输入。"
+      }
+    },
+    "SDK-CASE-004": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。"
+      }
+    },
+    "SDK-CASE-005": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "assistant message_update with text_delta"
+    },
+    "SDK-CASE-037": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-038": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "message_update with assistant text_delta"
+    },
+    "SDK-CASE-006": {
+      "files": {},
+      "requests": {
+        "fixture.read": "read",
+        "fixture.write": "write"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-007": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 1.6 RPC 缺少应用工具的原生请求和回答句柄。通过 MCP 调用应用工具不产生该 RPC 回调。"
+      }
+    },
+    "SDK-CASE-008": {
+      "inputs": ["Use the write tool exactly once to create sdk-test-marker.txt with the text reject this controlled marker followed by a newline. If denied, finish without retrying."],
+      "files": {},
+      "requests": {
+        "approval.deny": "extension_ui_request confirm for write"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-009": {
+      "inputs": ["Use the write tool exactly once to create sdk-test-marker.txt with the text approved controlled marker followed by a newline. After approval, finish without retrying."],
+      "files": {},
+      "requests": {
+        "approval.answer": "extension_ui_request confirm for write"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-010": {
+      "inputs": ["Use the bash tool exactly once to run printf 'approved controlled command'. After approval, finish without retrying."],
+      "files": {},
+      "requests": {
+        "approval.answer": "extension_ui_request confirm for bash"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-011": {
+      "inputs": ["Use the bash tool exactly once to run printf 'rejected controlled command'. If denied, finish without retrying."],
+      "files": {},
+      "requests": {
+        "approval.answer": "extension_ui_request confirm for bash"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-012": {
+      "inputs": ["Use the bash tool exactly once to run printf 'approved controlled command'. After the command returns, report the result briefly."],
+      "files": {},
+      "requests": {
+        "permission.read": "extension_ui_request confirm for bash",
+        "permission.held-control": "set_model",
+        "permission.held-event": "thinking_level_changed"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-039": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Codex 根 Thread 的原生 MCP 审批。"
+      }
+    },
+    "SDK-CASE-040": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Codex 子 Thread 的原生 MCP 审批。"
+      }
+    },
+    "SDK-CASE-041": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Codex additional permissions 三种原生决定。"
+      }
+    },
+    "SDK-CASE-013": {
+      "inputs": ["Use agent_sdk_ask exactly once. Ask Choose a color with choices Red and Green in that order. Wait for the answer, then finish briefly."],
+      "files": {},
+      "requests": {
+        "question.answer": "extension_ui_request select"
+      },
+      "answers": {
+        "question": "Choose a color",
+        "options": ["Red", "Green"],
+        "choice": "Green"
+      },
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-014": {
+      "inputs": ["Use agent_sdk_ask exactly once. Ask Enter a short phrase without choices. Wait for the answer, then finish briefly."],
+      "files": {},
+      "requests": {
+        "question.answer": "extension_ui_request input"
+      },
+      "answers": {
+        "question": "Enter a short phrase",
+        "options": [],
+        "choice": "controlled response"
+      },
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-015": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "planned",
+        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      }
+    },
+    "SDK-CASE-042": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Claude 原生 form 与 URL elicitation。"
+      }
+    },
+    "SDK-CASE-016": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少可观测的子 Agent 协议。"
+      }
+    },
+    "SDK-CASE-017": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少嵌套子 Agent 身份和关系协议。"
+      }
+    },
+    "SDK-CASE-018": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少并行子 Agent 生命周期协议。"
+      }
+    },
+    "SDK-CASE-019": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少后台子 Agent 生命周期协议。"
+      }
+    },
+    "SDK-CASE-020": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少子 Agent 详情策略协议。"
+      }
+    },
+    "SDK-CASE-021": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-022": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {
+        "timing": "before-first-input",
+        "modelSource": "session",
+        "thinking": null,
+        "effectiveValue": "unknown-unless-observed"
+      },
+      "progressBarrier": null
+    },
+    "SDK-CASE-023": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-024": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-025": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 1.6 仅公开离散 thinking level，缺少独立思考模式。"
+      }
+    },
+    "SDK-CASE-026": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 的 set_thinking_level 设置离散等级，无法声明数值预算生效。"
+      }
+    },
+    "SDK-CASE-027": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "parameters": {
+        "effort": "low",
+        "targetEffort": "high"
+      }
+    },
+    "SDK-CASE-028": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 缺少该用例要求的思考展示控制。"
+      }
+    },
+    "SDK-CASE-029": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少可核对配置继承关系的子 Agent。"
+      }
+    },
+    "SDK-CASE-030": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "assistant message_update with text_delta"
+    },
+    "SDK-CASE-031": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-032": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 1.6 RPC 采用本地进程 stdio，缺少独立远端连接。"
+      }
+    },
+    "SDK-CASE-033": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-034": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少具备子 Agent 身份和关系的持久历史。"
+      }
+    },
+    "SDK-CASE-035": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少可供晚加入观察者发现的子 Agent。"
+      }
+    },
+    "SDK-CASE-036": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    }
+  }
+}

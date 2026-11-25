@@ -15,7 +15,7 @@ import (
 
 var ErrDisconnected = errors.New("scripted disconnect")
 
-// play keeps transport mechanics separate from the two native ID contracts.
+// play keeps transport mechanics separate from native ID contracts.
 // Run supplies cancelable owned files; tests may supply finite in-memory streams.
 func play(ctx context.Context, document *recording.Document, limits recording.Limits, handshakes string, input io.Reader, output io.Writer, complete func() error) (err error) {
 	a, err := newAdapter(document.Provider)

@@ -103,6 +103,9 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if err := tool.ReadJSON(filepath.Join(material.Path, "plan.json"), &plan); err != nil {
 		return err
 	}
+	if err := corpus.ValidatePiExtensionPlan(plan); err != nil {
+		return err
+	}
 	bound, err := catalog.Load(data.Scenarios(), catalog.Selection{Provider: fixture.AgentType, Case: tool.Str(plan["caseId"]), Model: tool.Str(plan["model"])})
 	if err != nil {
 		return err
@@ -175,7 +178,7 @@ func Verify(ctx context.Context, o VerifyOptions) (runErr error) {
 	if corpus.SelfSeededChildren(plan) || (plan["driverProfile"] == "existing-children" && tool.Obj(plan["historySeed"])["materialPlan"] != nil) {
 		seedRoot = material.Path
 	}
-	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[fixture.AgentType]], filepath.Join(material.Path, "raw"), env["TMPDIR"], seedRoot, true)
+	runtime := newDriverRuntime(root, route.Workspace, env["HOME"], env[driverConfigKey[fixture.AgentType]], filepath.Join(material.Path, "raw"), env["TMPDIR"], seedRoot, true)
 	if err := bindRecordedWorkspace(runtime, *material, fixture.AgentType); err != nil {
 		return err
 	}

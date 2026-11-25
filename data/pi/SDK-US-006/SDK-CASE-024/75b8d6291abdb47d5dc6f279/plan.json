@@ -1,0 +1,73 @@
+{
+  "args": [
+    "--mode",
+    "rpc",
+    "--model",
+    "magpie/auto/deepseek-v4.1-flash-1017"
+  ],
+  "case": {
+    "id": "SDK-CASE-024",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-024",
+  "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+  "cliVersion": "1.6.0",
+  "driverProfile": "structured-input",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a2132c-02b0-710b-81a0-57a353b24caa",
+      "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/024-fixed-snapshot/fixture/runtime/executions/68273565b3e780cd46953c986d63152e/workspace",
+      "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-024-fixed-snapshot-fixture-runtime-executions-68273565b3e780cd46953c986d63152e-workspace--/2026-11-25T14-46-21-105Z_01a2132c-02b0-710b-81a0-57a353b24caa.jsonl",
+      "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-024-fixed-snapshot-fixture-runtime-executions-68273565b3e780cd46953c986d63152e-workspace--/2026-11-25T14-46-21-105Z_01a2132c-02b0-710b-81a0-57a353b24caa.jsonl",
+      "sha256": "1d9acef0a2eabfc088922fa355a76aa205a290523bd9eb87dcd9e6c6d52941bd"
+    }
+  ],
+  "initialModel": "magpie/auto/deepseek-v4.1-flash-1017",
+  "model": "magpie/auto/glm-5.3",
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/024-fixed-snapshot/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Explain in two sentences how addition works."
+  ],
+  "provider": "pi",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-024",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-024",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "during-execution",
+      "setting": "model"
+    },
+    "prompts": [
+      "Explain in two sentences how addition works."
+    ],
+    "provider": "pi",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "sourcePlanSHA256": "4aaee9613ec0f77b853c13089e42acd959a4feab7b75b04dd8cc536352b54a94",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

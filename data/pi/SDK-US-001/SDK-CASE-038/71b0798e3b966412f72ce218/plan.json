@@ -1,0 +1,87 @@
+{
+  "args": [
+    "--mode",
+    "rpc",
+    "--model",
+    "magpie/auto/deepseek-v4.1-flash-1017",
+    "--no-extensions",
+    "--no-skills",
+    "--no-context-files",
+    "--no-prompt-templates",
+    "-e",
+    "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/official/a05991745c428c5a604c8462db32428d/pi-extension/session.ts"
+  ],
+  "case": {
+    "id": "SDK-CASE-038",
+    "outOfScope": [
+      "保证当前执行消费注入",
+      "通用队列或调度器",
+      "人工构造的精确竞态"
+    ],
+    "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+    "storyId": "SDK-US-001"
+  },
+  "caseId": "SDK-CASE-038",
+  "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+  "cliVersion": "1.6.0",
+  "driverProfile": "context-injection",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a21324-fdde-72bf-ade0-0eb468091597",
+      "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/executions/667867900b6c91c8f70670f41df98427/workspace",
+      "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-038-recording-runtime-executions-667867900b6c91c8f70670f41df98427-workspace--/2026-11-25T14-38-41-120Z_01a21324-fdde-72bf-ade0-0eb468091597.jsonl",
+      "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-038-recording-runtime-executions-667867900b6c91c8f70670f41df98427-workspace--/2026-11-25T14-38-41-120Z_01a21324-fdde-72bf-ade0-0eb468091597.jsonl",
+      "sha256": "14067668688eb804b6e4049fd0aa72c6a785271a031554177b7ac158bcc37009"
+    }
+  ],
+  "model": "magpie/auto/deepseek-v4.1-flash-1017",
+  "piExtension": {
+    "client": "native-stdio",
+    "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+    "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+    "package": "@earendil-works/pi-coding-agent",
+    "version": "1.6.0"
+  },
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/routes/record/workspace",
+  "prompts": [
+    "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+    "What is the stored vault code? Reply only with its exact value. Do not use tools."
+  ],
+  "provider": "pi",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-038",
+      "outOfScope": [
+        "保证当前执行消费注入",
+        "通用队列或调度器",
+        "人工构造的精确竞态"
+      ],
+      "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+      "storyId": "SDK-US-001"
+    },
+    "caseId": "SDK-CASE-038",
+    "configuration": {},
+    "driverProfile": "context-injection",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "contextValue": "6e0b8164b401e3b2e4589ae22adbc263",
+      "injectionTiming": "during-execution"
+    },
+    "prompts": [
+      "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+      "What is the stored vault code? Reply only with its exact value. Do not use tools."
+    ],
+    "provider": "pi",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-001"
+  },
+  "sourcePlanSHA256": "8ca3b8ae693fa8ebdda12b6e6eae099084907118514992e0b187e12a42dc955b",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-001",
+  "storyId": "SDK-US-001"
+}

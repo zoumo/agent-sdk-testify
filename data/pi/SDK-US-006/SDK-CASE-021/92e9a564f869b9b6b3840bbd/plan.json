@@ -1,0 +1,72 @@
+{
+  "args": [
+    "--mode",
+    "rpc",
+    "--model",
+    "magpie/auto/deepseek-v4.1-flash-1017"
+  ],
+  "case": {
+    "id": "SDK-CASE-021",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "创建会话时选择模型并执行任务。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-021",
+  "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+  "cliVersion": "1.6.0",
+  "driverProfile": "structured-input",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a21325-f488-7330-a4b7-d7299c262e0d",
+      "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/021-real/fixture/runtime/executions/661c0531a28d1da7277cd62796048325/workspace",
+      "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-021-real-fixture-runtime-executions-661c0531a28d1da7277cd62796048325-workspace--/2026-11-25T14-39-44-265Z_01a21325-f488-7330-a4b7-d7299c262e0d.jsonl",
+      "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-021-real-fixture-runtime-executions-661c0531a28d1da7277cd62796048325-workspace--/2026-11-25T14-39-44-265Z_01a21325-f488-7330-a4b7-d7299c262e0d.jsonl",
+      "sha256": "6d265f93bcf4d95354229f2ba07cb070d6b2d950dda35f00cada22aeb35d895f"
+    }
+  ],
+  "model": "magpie/auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/021-real/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Explain in two sentences how addition works."
+  ],
+  "provider": "pi",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-021",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "创建会话时选择模型并执行任务。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-021",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "creation",
+      "setting": "model"
+    },
+    "prompts": [
+      "Explain in two sentences how addition works."
+    ],
+    "provider": "pi",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "sourcePlanSHA256": "3fb785ff166b6b9341cdd08802e492f9430d4e1687cab4b9e24c3a20ee52f885",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}
