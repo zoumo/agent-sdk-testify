@@ -108,10 +108,6 @@ pub(super) async fn run(
     if parameters.self_seed {
         return seeds::self_seeded(runtime, plan, workspace, &parameters, report).await;
     }
-    ensure!(
-        plan.case_id != "SDK-CASE-019" || runtime.replay,
-        "019 live child-gate fixture is unavailable in the Rust driver"
-    );
     let ((root, submitted, saved_child), main, closed) =
         run_connection(runtime, "main", report, async |client, report| {
             let mut query = Query::new(client, report);

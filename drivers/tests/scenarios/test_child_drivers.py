@@ -2,7 +2,6 @@
 import json
 from pathlib import Path
 import tempfile
-import tomllib
 from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -42,7 +41,6 @@ class CodexChildTests(unittest.TestCase):
         for mode in ('inProgress', 'completed', 'early-read', 'root-read', 'wrong-path', 'duplicate',
                      'wrong-completion', 'failed-root', 'replay-ahead'):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
-                (Path(tmp) / CHILD_FILE).write_text(CHILD_TEXT)
                 current = plan('codex', tmp)
                 result, observed, test = report(), [], self
                 if mode == 'replay-ahead':
@@ -56,7 +54,12 @@ class CodexChildTests(unittest.TestCase):
                             {'threadId': 'child', 'turnId': 'child-turn', 'tool': 'fixture_read'}}},
                     ]
                     (Path(current['raw']) / 'raw.jsonl').write_text(''.join(json.dumps(f) + '\n' for f in frames))
-                marker = Path(tmp) / 'tmp/child-root-completed'
+                # Unit stub for the public record peer's bound workspace.
+                current["_executionWorkspace"] = str(Path(tmp) / "workspace")
+                Path(current["_executionWorkspace"]).mkdir()
+                (Path(current["_executionWorkspace"]) / CHILD_FILE).write_text(CHILD_TEXT)
+                marker = Path(tmp) / "tmp/child-root-completed"
+                marker.parent.mkdir()
                 class Client:
                     def __init__(self, approval_handler, **_): self.answer, self.event, self.completed = approval_handler, 0, False
                     def register_turn_notifications(self, identity):
@@ -64,20 +67,7 @@ class CodexChildTests(unittest.TestCase):
                         observed.append('subscribed')
                     def __enter__(self): return self
                     def __exit__(self, *_): pass
-                    def initialize(self):
-                        if mode == 'replay-ahead':
-                            return {}
-                        config = tomllib.loads((Path(tmp) / 'config/config.toml').read_text())
-                        gate = config['mcp_servers']['child_gate']
-                        test.assertEqual(gate['enabled_tools'], ['wait_for_root'])
-                        test.assertEqual(gate.get('tools'), {'wait_for_root': {'approval_mode': 'approve'}})
-                        test.assertNotIn('default_tools_approval_mode', gate)
-                        test.assertTrue(Path(gate['args'][0]).is_file())
-                        test.assertEqual(gate['args'][1], str(marker))
-                        role = tomllib.loads((Path(tmp) / 'config/agents/fixture_reader.toml').read_text())
-                        test.assertNotIn(CHILD_TEXT.strip(), role['developer_instructions'])
-                        test.assertIn('mcp__child_gate__wait_for_root', role['developer_instructions'])
-                        return {}
+                    def initialize(self): return {}
                     def thread_start(self, params):
                         test.assertEqual(params['dynamicTools'][0]['name'], 'fixture_read')
                         return Value(thread=Value(id='root'))

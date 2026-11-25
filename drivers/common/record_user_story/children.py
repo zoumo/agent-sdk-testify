@@ -1,7 +1,6 @@
 """Official SDK execution of the explicitly authorized single synthetic child case."""
 import json
 from pathlib import Path
-import sys
 import threading
 from contextlib import contextmanager
 
@@ -24,27 +23,26 @@ def limitations(report):
 
 @contextmanager
 def codex_child_environment(plan, strict, background):
-    marker = Path(plan['root']) / 'tmp' / 'child-root-completed'
-    if strict and not plan.get('_replay'):
+    if strict and not background and not plan.get('_replay'):
         config = Path(plan.get('config', Path(plan['root']) / 'config'))
         (config / 'agents').mkdir(parents=True, exist_ok=True)
-        (config / 'agents' / 'fixture_reader.toml').write_text(role_file(strict=True, background=background))
-        if background:
-            marker.parent.mkdir(parents=True, exist_ok=True)
-            if marker.exists():
-                raise ValueError('stale child completion barrier')
-            script = marker.parent / 'child_gate.py'
-            script.write_bytes(Path(__file__).with_name('child_gate.py').read_bytes())
-            with (config / 'config.toml').open('a') as target:
-                target.write('\n[mcp_servers.child_gate]\ncommand=' + json.dumps(sys.executable)
-                             + '\nargs=' + json.dumps([str(script), str(marker)])
-                             + '\ntool_timeout_sec=70\nenabled_tools=["wait_for_root"]\n'
-                             + '[mcp_servers.child_gate.tools.wait_for_root]\napproval_mode="approve"\n')
+        (config / 'agents' / 'fixture_reader.toml').write_text(role_file(strict=True))
+    # The public record peer installs the gate in its own execution overlay.
+    # Resolve the route after the peer binds it, once the root result arrives.
+    released = None
+
+    def release():
+        nonlocal released
+        marker = execution_workspace(plan).resolve(strict=True).parent / 'tmp' / 'child-root-completed'
+        marker.touch(exist_ok=False)
+        released = marker
+        return marker
+
     try:
-        yield marker
+        yield release
     finally:
-        if strict and background:
-            marker.unlink(missing_ok=True)
+        if released is not None:
+            released.unlink(missing_ok=True)
 
 
 def codex(plan, report):
@@ -57,6 +55,7 @@ def codex(plan, report):
     background = driver_profile(plan) == 'background-children'
     strict = plan.get('scenario', {}).get('parameters', {}).get('childTools') == 'inherited-dynamic-v2'
     root_done = False
+    marker = None
     limitations(report)
 
     def answer(method, params):
@@ -73,7 +72,7 @@ def codex(plan, report):
         if strict and (not caller or caller == root_id or not params.get('turnId')
                        or params.get('arguments') != {'path': CHILD_FILE}
                        or caller in tool_callers or (background and not plan.get('_replay')
-                                                    and (not root_done or not marker.is_file()))):
+                                                    and (not root_done or marker is None or not marker.is_file()))):
             report['gaps'].append('unauthorized, repeated or pre-root fixture_read')
             return {'contentItems': [{'type': 'inputText', 'text': 'Fixture read is not authorized.'}], 'success': False}
         # The callback reads only the newly generated synthetic file. Native
@@ -91,7 +90,7 @@ def codex(plan, report):
 
     config = CodexConfig(launch_args_override=tuple(proxy_command(plan)), cwd=str(execution_workspace(plan)),
                          client_name='official-python-child-case', client_title='Synthetic child read case')
-    with codex_child_environment(plan, strict, background) as marker, CodexClient(config=config, approval_handler=answer) as client:
+    with codex_child_environment(plan, strict, background) as release, CodexClient(config=config, approval_handler=answer) as client:
         report['receipts'].append({'initialize': serial(client.initialize())})
         params = {'cwd': plan['project'], 'sandbox': 'workspace-write', 'approvalPolicy': 'on-request', 'ephemeral': False,
                   'baseInstructions': 'Complete the supplied synthetic child task.',
@@ -126,7 +125,7 @@ def codex(plan, report):
                     raise ValueError('native root child-case completion identity or status mismatch')
                 root_done = True
                 if strict and background and not plan.get('_replay'):
-                    marker.touch(exist_ok=False)
+                    marker = release()
                 break
         post_root_complete = False
         for child in sorted(child_ids):

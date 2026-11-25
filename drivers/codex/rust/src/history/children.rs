@@ -1,12 +1,14 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
+use std::fs::{self, OpenOptions};
+use std::os::unix::fs::OpenOptionsExt;
+use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail, ensure};
 use codex_app_server_protocol::{
     CollabAgentTool, CollabAgentToolCallStatus, DynamicToolCallOutputContentItem,
-    DynamicToolCallParams, DynamicToolCallResponse, DynamicToolSpec, JSONRPCErrorError, RequestId,
-    ServerNotification, SubAgentActivityKind, ThreadItemPayload, TurnCompletedNotification,
-    TurnStatus,
+    DynamicToolCallParams, DynamicToolCallResponse, DynamicToolSpec, JSONRPCErrorError,
+    McpToolCallStatus, RequestId, ServerNotification, SubAgentActivityKind, ThreadItemPayload,
+    TurnCompletedNotification, TurnStatus,
 };
 use serde_json::json;
 
@@ -50,6 +52,7 @@ pub(super) struct Observed {
     turns: BTreeMap<(String, String), TurnObservation>,
     pub(super) child_deltas: BTreeMap<String, usize>,
     fixture_read: Option<(String, String, String)>,
+    gate_completed: Option<(String, String, String, usize)>,
 }
 
 impl Observed {
@@ -125,6 +128,39 @@ impl Observed {
                     for child in receiver_thread_ids {
                         self.spawn(&completed.thread_id, &completed.turn_id, child, None)?;
                     }
+                }
+                ThreadItemPayload::McpToolCall {
+                    id,
+                    server,
+                    tool,
+                    status,
+                    arguments,
+                    result,
+                    error,
+                    ..
+                } if server == "child_gate" && tool == "wait_for_root" => {
+                    ensure!(
+                        matches!(status, McpToolCallStatus::Completed)
+                            && arguments == &json!({})
+                            && error.is_none()
+                            && result.as_ref().is_some_and(|result| {
+                                matches!(result.content.as_slice(), [item]
+                                    if item["type"] == "text"
+                                        && item["text"] == "Root completed; read the fixture now.")
+                            }),
+                        "native child gate did not complete successfully"
+                    );
+                    ensure!(
+                        self.gate_completed
+                            .replace((
+                                completed.thread_id.clone(),
+                                completed.turn_id.clone(),
+                                id.clone(),
+                                self.ordinal,
+                            ))
+                            .is_none(),
+                        "repeated native child gate completion"
+                    );
                 }
                 ThreadItemPayload::AgentMessage { text, .. } if !text.trim().is_empty() => {
                     self.turn(&completed.thread_id, &completed.turn_id)?.output = true;
@@ -264,6 +300,19 @@ impl Observed {
         let observed_turn = self
             .turns
             .get(&(params.thread_id.clone(), params.turn_id.clone()));
+        let gate = self.gate_completed.as_ref();
+        let gate_ordered = gate.is_some_and(|(child, turn, _, gate_event)| {
+            self.edges.get(child).is_some_and(|edge| {
+                child == &params.thread_id
+                    && turn == &params.turn_id
+                    && edge.parent == root
+                    && self
+                        .turns
+                        .get(&(root.to_owned(), edge.parent_turn.clone()))
+                        .and_then(|turn| turn.completed)
+                        .is_some_and(|root_event| root_event < *gate_event)
+            })
+        });
         let authorized = params.tool == FIXTURE_TOOL
             && params.namespace.is_none()
             && !params.call_id.is_empty()
@@ -275,7 +324,8 @@ impl Observed {
                 .get(&params.thread_id)
                 .is_some_and(|edge| edge.parent == root)
             && observed_turn.is_some_and(|turn| turn.started.is_some() && turn.completed.is_none())
-            && post_root == background;
+            && post_root == background
+            && (!background || (gate.is_none() && runtime.replay) || gate_ordered);
         if !authorized {
             query
                 .client
@@ -289,6 +339,15 @@ impl Observed {
                 )
                 .await?;
             bail!("unauthorized child fixture_read request");
+        }
+        if gate_ordered {
+            let (thread, turn, item, ordinal) = gate.context("missing child gate evidence")?;
+            record_receipt(
+                query.report,
+                json!({"child-gate/completed": {
+                    "threadId": thread, "turnId": turn, "itemId": item, "observedEvent": ordinal,
+                }}),
+            );
         }
         let path = runtime.workspace.join(FIXTURE);
         ensure!(
@@ -335,7 +394,19 @@ pub(super) async fn check_live(
             .iter()
             .find(|turn| turn.status == TurnStatus::InProgress)
             .context("background child was not active after root result")?;
-        query
+        let gate = if runtime.replay {
+            None
+        } else {
+            let marker = GateMarker::release(runtime)?;
+            record_receipt(
+                query.report,
+                json!({"child-gate/released": {
+                    "rootThreadId": root, "childThreadId": child, "childTurnId": active_turn.id,
+                }}),
+            );
+            Some(marker)
+        };
+        let completion = query
             .until_completion(
                 &child,
                 &active_turn.id,
@@ -343,7 +414,15 @@ pub(super) async fn check_live(
                 Some((runtime, root)),
                 true,
             )
-            .await?;
+            .await;
+        let cleanup = gate.map(|marker| marker.remove()).transpose();
+        completion?;
+        if cleanup?.is_some() {
+            record_receipt(
+                query.report,
+                json!({"child-gate/cleanup": {"markerRemoved": true}}),
+            );
+        }
     }
 
     let ids: Vec<_> = observed.edges.keys().cloned().collect();
@@ -420,4 +499,35 @@ pub(super) async fn check_live(
         );
     }
     Ok(())
+}
+
+// Resolve the bound route only after main has claimed and started its execution.
+struct GateMarker(PathBuf);
+
+impl GateMarker {
+    fn release(runtime: &Runtime) -> Result<Self> {
+        let workspace = fs::canonicalize(&runtime.workspace)?;
+        let overlay = workspace.parent().context("missing record overlay")?;
+        let fixture = fs::canonicalize(&runtime.fixture_dir)?;
+        ensure!(
+            workspace
+                .file_name()
+                .is_some_and(|name| name == "workspace")
+                && overlay.parent() == Some(fixture.join("runtime/executions").as_path())
+                && fs::canonicalize(&runtime.config)? == overlay.join("config"),
+            "child gate must use the current record overlay"
+        );
+        let marker = overlay.join("tmp/child-root-completed");
+        OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(0o600)
+            .open(&marker)
+            .context("release 019 child gate")?;
+        Ok(Self(marker))
+    }
+
+    fn remove(&self) -> Result<()> {
+        fs::remove_file(&self.0).context("remove 019 child gate release marker")
+    }
 }
