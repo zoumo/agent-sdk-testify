@@ -1,0 +1,56 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc.jsonl": "b83d4a3da337da540732f3de9151209f22c02ac46b00e8e527ecfbf4115a8069",
+    "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc/subagents/agent-a191dac3797f736a1.jsonl": "95faf9a0755b5f121c8c190ed666a9f1baea35cbdf2f1743922e054ad86c2ef4",
+    "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-020-a4-runtime-executions-485f9f5701b2461ba413162192c1a6ab-workspace/ed65f550-5f4a-4195-98bb-c12ce5d440fc/subagents/agent-a191dac3797f736a1.meta.json": "3011de84beeb8186e3e6006827ebec14ca62739775890cf0f32c51f901ed46d0",
+    "official-origin.json": "ec51d8ee9e1dee54980df85460b6e8bf13ac9a98510503dc5f198707466b1795",
+    "origin/main.json": "9af1fb3ea17745468ee5eb88840576b1fac5801d20c8ccd643411d0df3a8dca6",
+    "plan.json": "7e48271d3400c457cccb50b1475dea9da3af549e77eb8bd12ae99f7942ad8693",
+    "raw/manifest.json": "1e56d39dbe009664d74ed86f6a20f81a318a89ec86d8349a12c904a8baadf1ff",
+    "raw/raw.jsonl": "0231e0b5ecaa74df0b9af6effcaafdeaa0c17f2a430a0d0877c287ac248ae2b4",
+    "raw/stderr.raw": "a3e5c0ea281d47276957c8ac092518c30a2f8b1b63a3a9c9da6cb668ee9a6906",
+    "raw/transport.json": "7dc54bc14d43f3580ba57a43cb98e830821b3fe60675336f6d36d02037578047",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/020-a4/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]"
+    ],
+    "cwd": "/private/tmp/tq04.C2PTPG/fixtures/020-a4/runtime/executions/485f9f5701b2461ba413162192c1a6ab/workspace",
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "planSHA256": "7e48271d3400c457cccb50b1475dea9da3af549e77eb8bd12ae99f7942ad8693",
+  "provenance": "capture",
+  "proxyVersion": "devel",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "7dc54bc14d43f3580ba57a43cb98e830821b3fe60675336f6d36d02037578047",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "6ca7dc28400e3282d839a495cd9cc13d3bd42576c2e4462f22c27e004d7fb195",
+  "status": "captured"
+}

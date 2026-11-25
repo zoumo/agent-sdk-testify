@@ -1,0 +1,103 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/029-a3/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-029",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-029",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "history",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/029-a3/runtime/executions/f9d32db0b51cf33c500b1cf821d0620a/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-029-a3-runtime-executions-f9d32db0b51cf33c500b1cf821d0620a-workspace/2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0.jsonl",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-029-a3-runtime-executions-f9d32db0b51cf33c500b1cf821d0620a-workspace/2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0.jsonl",
+      "sha256": "dc885831c2781d6478d6a213edc2976945f9884b51b4398328cfea92d62d6e7f"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "abb4c9449140346b8",
+      "parentSessionId": "2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0",
+      "childSessionId": "abb4c9449140346b8",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/029-a3/runtime/executions/f9d32db0b51cf33c500b1cf821d0620a/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-029-a3-runtime-executions-f9d32db0b51cf33c500b1cf821d0620a-workspace/2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0/subagents/agent-abb4c9449140346b8.jsonl",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-029-a3-runtime-executions-f9d32db0b51cf33c500b1cf821d0620a-workspace/2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0/subagents/agent-abb4c9449140346b8.jsonl",
+      "sha256": "cb72af50bf285be8caa2c974a91b89afd4af0fe2e6b1a4d2bb7711cfff2acdd5"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "abb4c9449140346b8",
+      "parentSessionId": "2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0",
+      "childSessionId": "abb4c9449140346b8",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/029-a3/runtime/executions/f9d32db0b51cf33c500b1cf821d0620a/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-029-a3-runtime-executions-f9d32db0b51cf33c500b1cf821d0620a-workspace/2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0/subagents/agent-abb4c9449140346b8.meta.json",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-029-a3-runtime-executions-f9d32db0b51cf33c500b1cf821d0620a-workspace/2fb8ebd5-3b3f-4df7-9930-2b5d58ea2ca0/subagents/agent-abb4c9449140346b8.meta.json",
+      "sha256": "d17ef77fc6bf19ff3525d0e04417d21e43604a558f633afd12bb01be3a52e790"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/private/tmp/tq04.C2PTPG/fixtures/029-a3/runtime/routes/record/workspace",
+  "prompts": [
+    "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-029",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "仅观察根会话模型配置与子 Agent 原生模型事实之间的继承、默认或覆盖关系；不推断思考配置继承。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-029",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "childConfiguration": "model",
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "sourcePlanSHA256": "ae7020aeffec2cac25c02bdd004bdc6501e466e14881111e513e888685bfb71a",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

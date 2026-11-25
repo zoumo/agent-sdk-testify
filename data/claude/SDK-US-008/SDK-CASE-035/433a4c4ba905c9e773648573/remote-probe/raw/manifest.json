@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "devel",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/.local/share/claude/versions/2.1.223",
+    "sha256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+    "args": [
+      "--input-format",
+      "stream-json",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--include-partial-messages",
+      "--permission-prompt-tool",
+      "stdio",
+      "--print",
+      "--system-prompt",
+      "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/035-a3/runtime/routes/record/workspace\". Use paths relative to this directory.",
+      "--setting-sources",
+      "user",
+      "--disable-slash-commands",
+      "--strict-mcp-config",
+      "--model",
+      "auto/deepseek-v4.1-flash-1017[1m]",
+      "--forward-subagent-text",
+      "--resume",
+      "a2306f20-1cb8-45f3-ac15-40d98d6ff372"
+    ],
+    "cwd": "/private/tmp/tq04.C2PTPG/fixtures/035-a3/runtime/executions/f4e6f59a70ebdee08dceaf6a57d0e9fc/workspace",
+    "version": "2.1.293 (Claude Code)"
+  },
+  "files": {
+    "raw.jsonl": "bcd8f79a3925e44456a6361a89f6ea786d0306a277a02b5425ef828d06a09aae",
+    "stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transport.json": "162dbb48e3c2d9854f34c4f91eb553b8680de76754ffe7b9b11614cabe356fce"
+  }
+}

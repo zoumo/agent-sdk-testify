@@ -1,0 +1,41 @@
+{
+  "agentIds": [
+    "aeb628b4992a8fe8d"
+  ],
+  "completedAt": "2026-11-24T16:12:39.498189Z",
+  "historyBindings": [
+    {
+      "role": "seed",
+      "sessionId": "a2306f20-1cb8-45f3-ac15-40d98d6ff372",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/035-a3/runtime/executions/f4e6f59a70ebdee08dceaf6a57d0e9fc/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-035-a3-runtime-executions-f4e6f59a70ebdee08dceaf6a57d0e9fc-workspace/a2306f20-1cb8-45f3-ac15-40d98d6ff372.jsonl",
+      "source": "history/seed/config/projects/-private-tmp-tq04-C2PTPG-fixtures-035-a3-runtime-executions-f4e6f59a70ebdee08dceaf6a57d0e9fc-workspace/a2306f20-1cb8-45f3-ac15-40d98d6ff372.jsonl",
+      "sha256": "a9f71404b87b33b61780212a382a64975fc5b7021b5dd48c620ec8d90369d37b"
+    },
+    {
+      "role": "seed",
+      "sessionId": "aeb628b4992a8fe8d",
+      "parentSessionId": "a2306f20-1cb8-45f3-ac15-40d98d6ff372",
+      "childSessionId": "aeb628b4992a8fe8d",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/035-a3/runtime/executions/f4e6f59a70ebdee08dceaf6a57d0e9fc/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-035-a3-runtime-executions-f4e6f59a70ebdee08dceaf6a57d0e9fc-workspace/a2306f20-1cb8-45f3-ac15-40d98d6ff372/subagents/agent-aeb628b4992a8fe8d.jsonl",
+      "source": "history/seed/config/projects/-private-tmp-tq04-C2PTPG-fixtures-035-a3-runtime-executions-f4e6f59a70ebdee08dceaf6a57d0e9fc-workspace/a2306f20-1cb8-45f3-ac15-40d98d6ff372/subagents/agent-aeb628b4992a8fe8d.jsonl",
+      "sha256": "d8b05f903e68cfaccc6fc59eb5043d28ebb94f57ea966c37a4597517fcbf908d"
+    },
+    {
+      "role": "seed",
+      "sessionId": "aeb628b4992a8fe8d",
+      "parentSessionId": "a2306f20-1cb8-45f3-ac15-40d98d6ff372",
+      "childSessionId": "aeb628b4992a8fe8d",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/035-a3/runtime/executions/f4e6f59a70ebdee08dceaf6a57d0e9fc/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-035-a3-runtime-executions-f4e6f59a70ebdee08dceaf6a57d0e9fc-workspace/a2306f20-1cb8-45f3-ac15-40d98d6ff372/subagents/agent-aeb628b4992a8fe8d.meta.json",
+      "source": "history/seed/config/projects/-private-tmp-tq04-C2PTPG-fixtures-035-a3-runtime-executions-f4e6f59a70ebdee08dceaf6a57d0e9fc-workspace/a2306f20-1cb8-45f3-ac15-40d98d6ff372/subagents/agent-aeb628b4992a8fe8d.meta.json",
+      "sha256": "956fc51273c8b1d553e8fd505947a8f86bcffc10e7c28dd6a90ac54581afc5c8"
+    }
+  ],
+  "provider": "claude",
+  "rawSHA256": "df75e08c0d56f84fac394bbb4341ca782e10f4845e9b618c811ea7bc4773200e",
+  "schemaVersion": 1,
+  "sessionId": "a2306f20-1cb8-45f3-ac15-40d98d6ff372",
+  "transportSHA256": "b1c198bdc147e3fe318937c4ddd579a46c95b6d7b8bba57d0085a320ead68a87"
+}

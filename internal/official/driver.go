@@ -17,7 +17,7 @@ type Request struct {
 	Runtime   string `json:"runtime"`
 }
 
-// Resolve only the console scripts shipped by the official-driver wheel.
+// Resolve the installed entry point for the selected official driver.
 // Recorded paths and caller-selected SDK drivers are never executable inputs.
 // Shared by the record and official verification entry points.
 func ResolveDriver(provider string) (string, error) {
@@ -27,7 +27,11 @@ func ResolveDriver(provider string) (string, error) {
 	name := "agent-sdk-testify-" + provider
 	path, err := tool.AbsoluteExecutable(name)
 	if err != nil {
-		return "", fmt.Errorf("official driver %s is not available; install the driver wheel and %s SDK extra in the recording/verification environment: %w", name, provider, err)
+		if provider == "claude" {
+			return "", fmt.Errorf("official driver %s is not available; install the Claude driver npm tarball with Node.js 22+ and add its executable directory to PATH: %w", name, err)
+		}
+		return "", fmt.Errorf("official driver %s is not available; install the Codex driver wheel and Python SDK and add the environment's bin directory to PATH: %w", name, err)
 	}
-	return path, nil
+	// npm links the executable into PATH. Hash and execute the same target.
+	return tool.ValidateCommand(path)
 }

@@ -14,18 +14,6 @@ def proxy_command(plan):
     return [peer['command'], *peer.get('args', [])]
 
 
-def effort_keeps_ultracode(level, current):
-    """Mirror the SDK's effort/ultracode merge rule."""
-    if level is None:
-        return False
-    level = level.strip().lower()
-    if level == 'ultracode':
-        return True
-    if level == 'xhigh':
-        return current
-    return False
-
-
 def configuration_acknowledged(report, flow, requested, timing):
     evidence = report.setdefault('configurationEvidence', {'requests': [], 'observed': [], 'effectiveScope': 'unknown'})
     evidence['requests'].append({'requested': requested, 'acknowledged': True,
@@ -41,6 +29,3 @@ def observe_configuration(report, source, native):
     if source == 'thread/settings/updated':
         # This is an observed thread setting, not proof of which execution used it.
         evidence['observed'].append({'source': source, 'scope': 'thread-settings', 'native': native})
-    elif source == 'assistant' and isinstance(native.get('message'), dict) and native['message'].get('model'):
-        evidence['observed'].append({'source': source, 'scope': 'assistant-message',
-                                     'model': native['message']['model']})

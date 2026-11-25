@@ -1,0 +1,102 @@
+{
+  "args": [
+    "--input-format",
+    "stream-json",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--include-partial-messages",
+    "--permission-prompt-tool",
+    "stdio",
+    "--print",
+    "--system-prompt",
+    "Complete the supplied synthetic task in the working directory. Be concise. Working directory: \"/private/tmp/tq04.C2PTPG/fixtures/034-a3/runtime/routes/record/workspace\". Use paths relative to this directory.",
+    "--setting-sources",
+    "user",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--model",
+    "auto/deepseek-v4.1-flash-1017[1m]"
+  ],
+  "case": {
+    "id": "SDK-CASE-034",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "独立发现并读取保存的子 Agent 内容。",
+    "storyId": "SDK-US-008"
+  },
+  "caseId": "SDK-CASE-034",
+  "cliSHA256": "27d4e9aeb2335156c7859edb6e13f35c884fa09915fea2f9b8305f4b52aeaaa0",
+  "cliVersion": "2.1.293 (Claude Code)",
+  "driverProfile": "history",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "b1c9360a-759c-42e3-8beb-3cfa215a4c0f",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/034-a3/runtime/executions/b838f815ab2b2aa68ea19274968edd8b/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-034-a3-runtime-executions-b838f815ab2b2aa68ea19274968edd8b-workspace/b1c9360a-759c-42e3-8beb-3cfa215a4c0f.jsonl",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-034-a3-runtime-executions-b838f815ab2b2aa68ea19274968edd8b-workspace/b1c9360a-759c-42e3-8beb-3cfa215a4c0f.jsonl",
+      "sha256": "4c8ef557090f0e84ce9a602b6d34a358abf31f9f9d5f4ef2a99e333abb53685a"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "a545843c43e101eb2",
+      "parentSessionId": "b1c9360a-759c-42e3-8beb-3cfa215a4c0f",
+      "childSessionId": "a545843c43e101eb2",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/034-a3/runtime/executions/b838f815ab2b2aa68ea19274968edd8b/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-034-a3-runtime-executions-b838f815ab2b2aa68ea19274968edd8b-workspace/b1c9360a-759c-42e3-8beb-3cfa215a4c0f/subagents/agent-a545843c43e101eb2.jsonl",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-034-a3-runtime-executions-b838f815ab2b2aa68ea19274968edd8b-workspace/b1c9360a-759c-42e3-8beb-3cfa215a4c0f/subagents/agent-a545843c43e101eb2.jsonl",
+      "sha256": "583eb7d50bcaf7dea6b249e1542734fe4dd713b85c235af8d1d366d531695d94"
+    },
+    {
+      "role": "runtime",
+      "sessionId": "a545843c43e101eb2",
+      "parentSessionId": "b1c9360a-759c-42e3-8beb-3cfa215a4c0f",
+      "childSessionId": "a545843c43e101eb2",
+      "project": "/private/tmp/tq04.C2PTPG/fixtures/034-a3/runtime/executions/b838f815ab2b2aa68ea19274968edd8b/workspace",
+      "nativeTarget": "config/projects/-private-tmp-tq04-C2PTPG-fixtures-034-a3-runtime-executions-b838f815ab2b2aa68ea19274968edd8b-workspace/b1c9360a-759c-42e3-8beb-3cfa215a4c0f/subagents/agent-a545843c43e101eb2.meta.json",
+      "source": "history/runtime/config/projects/-private-tmp-tq04-C2PTPG-fixtures-034-a3-runtime-executions-b838f815ab2b2aa68ea19274968edd8b-workspace/b1c9360a-759c-42e3-8beb-3cfa215a4c0f/subagents/agent-a545843c43e101eb2.meta.json",
+      "sha256": "ea7f125592371784c249d4ae5daf2c5b6f4ec61517161b6e63ae1309ef24ce39"
+    }
+  ],
+  "model": "auto/deepseek-v4.1-flash-1017[1m]",
+  "project": "/private/tmp/tq04.C2PTPG/fixtures/034-a3/runtime/routes/record/workspace",
+  "prompts": [
+    "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+  ],
+  "provider": "claude",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-034",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "独立发现并读取保存的子 Agent 内容。",
+      "storyId": "SDK-US-008"
+    },
+    "caseId": "SDK-CASE-034",
+    "configuration": {},
+    "driverProfile": "history",
+    "files": {},
+    "mode": "live-selected-path",
+    "parameters": {
+      "historyTarget": "child-messages"
+    },
+    "prompts": [
+      "Use Agent exactly once with subagent_type general-purpose. Ask it to reply with SYNTHETIC_SAVED_CHILD and no tool calls. Wait for it, report its output and finish. Use no other tools, files or network."
+    ],
+    "provider": "claude",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-008"
+  },
+  "sourcePlanSHA256": "daceda7d6d49f8851cc2550f486792d4d721711bb17dd290df2165f414da7088",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-008",
+  "storyId": "SDK-US-008"
+}

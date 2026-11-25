@@ -32,6 +32,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: drivers/claude/typescript/package-lock.json
+      - name: Prepare Claude driver npm cache
+        run: npm ci --prefix drivers/claude/typescript --ignore-scripts --omit=optional --no-audit --no-fund
       - name: Prepare build dependencies
         run: |
           go mod download
@@ -48,10 +55,11 @@ jobs:
           make release OUTPUT="$RUNNER_TEMP/release"
           cd "$RUNNER_TEMP/release"
           sha256sum --check SHA256SUMS
-          python3 "$GITHUB_WORKSPACE/scripts/check-agent-sdk-testify-package.py" ./*.whl
           mkdir "$RUNNER_TEMP/release-smoke"
           tar -xzf "agent-sdk-testify_${GITHUB_REF_NAME}_linux_amd64.tar.gz" -C "$RUNNER_TEMP/release-smoke"
           test "$("$RUNNER_TEMP/release-smoke/agent-sdk-testify" version)" = "agent-sdk-testify $GITHUB_REF_NAME"
+          python3 "$GITHUB_WORKSPACE/scripts/check-agent-sdk-testify-package.py" \
+            ./*.whl ./*.tgz "$RUNNER_TEMP/release-smoke/agent-sdk-testify"
           test -z "$(git -C "$GITHUB_WORKSPACE" status --porcelain)"
       - name: Publish GitHub Release
         env:
