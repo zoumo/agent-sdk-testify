@@ -60,6 +60,9 @@
       "progressBarrier": "message_update with assistant text_delta"
     },
     "SDK-CASE-006": {
+      "inputs": [
+        "Use the read tool on numbers.txt. Then use the write tool to create summary.txt. Pass the JSON content argument \"total=18\\n\" with exactly one trailing newline after the 18. Use no other tools."
+      ],
       "files": {},
       "requests": {
         "fixture.read": "read",
