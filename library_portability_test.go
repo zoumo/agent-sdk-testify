@@ -121,6 +121,7 @@ func TestLibraryExportReprepareAfterDeletingOriginalSources(t *testing.T) {
 
 func TestLibraryCallerCoordinatesBeforeClaimThroughHostShutdown(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
+	frames := mainClientFrames(t, prepared)
 	var usage sync.Mutex
 	// An old route remains readable. The caller owns SDK/discovery admission,
 	// beginning before route reads and ending after all its host/peer work.
@@ -151,7 +152,7 @@ func TestLibraryCallerCoordinatesBeforeClaimThroughHostShutdown(t *testing.T) {
 			finished <- err
 			return
 		}
-		input := newControlledInput(libraryMockInput)
+		input := newControlledInput(frames)
 		run, err := fixture.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{}, agenttestify.StartMockAgentStreams{
 			Reader: input, Writer: &testWriteCloser{}, Stderr: &bytes.Buffer{},
 		})
@@ -180,7 +181,7 @@ func TestLibraryCallerCoordinatesBeforeClaimThroughHostShutdown(t *testing.T) {
 	assertWaiting()
 	require.Equal(t, templateBefore, treeHashes(t, filepath.Join(prepared.FixtureDir, "runtime", "templates")))
 	sourceBefore := treeHashes(t, filepath.Join(prepared.FixtureDir, "source"))
-	input := newControlledInput(libraryMockInput)
+	input := newControlledInput(frames)
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{}, agenttestify.StartMockAgentStreams{
 		Reader: input, Writer: &testWriteCloser{}, Stderr: &bytes.Buffer{},
 	})

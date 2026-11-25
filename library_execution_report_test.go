@@ -491,7 +491,7 @@ func TestLibraryExecutionReportRejectsPackageReferenceEscapes(t *testing.T) {
 
 func TestLibraryMockWaitFailsClosedWhenReportCannotBeBuilt(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
-	input := newControlledInput(libraryMockInput)
+	input := newControlledInput(mainClientFrames(t, prepared))
 	var stderr strings.Builder
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
@@ -524,7 +524,7 @@ func completedLibraryMockReport(t *testing.T) (*agenttestify.Fixture, *agenttest
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
 	result, _, stderr, err := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
-	}, libraryMockInput)
+	}, mainClientFrames(t, prepared))
 	require.NoError(t, err, stderr)
 	require.NotNil(t, result)
 	return prepared, result
