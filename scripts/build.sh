@@ -29,3 +29,4 @@ trap 'rm -rf "$work"' EXIT
 bash "$source/drivers/codex/rust/install.sh" "$work/build" "$work/prefix"
 install -m 755 "$work/prefix/bin/agent-sdk-testify-codex" "$output/agent-sdk-testify-codex"
 bash "$source/scripts/build-claude-driver.sh" "$output"
+npm --prefix "$source/drivers/pi/official" pack --offline --loglevel=error --pack-destination "$output"

@@ -1,0 +1,428 @@
+{
+  "version": 3,
+  "provider": "pi",
+  "cases": {
+    "SDK-CASE-001": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-002": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-003": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 1.6 的 prompt 支持文本和图片，缺少原生文档输入。"
+      }
+    },
+    "SDK-CASE-004": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。"
+      }
+    },
+    "SDK-CASE-005": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "assistant message_update with text_delta"
+    },
+    "SDK-CASE-037": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 原生 RPC 缺少不唤醒执行的上下文注入命令。"
+      }
+    },
+    "SDK-CASE-038": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 原生 RPC 缺少无唤醒上下文注入与实际消费边界。"
+      }
+    },
+    "SDK-CASE-006": {
+      "files": {},
+      "requests": {
+        "fixture.read": "read",
+        "fixture.write": "write"
+      },
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-007": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 1.6 RPC 缺少应用工具的原生请求和回答句柄。通过 MCP 调用应用工具不产生该 RPC 回调。"
+      }
+    },
+    "SDK-CASE-008": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+      }
+    },
+    "SDK-CASE-009": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+      }
+    },
+    "SDK-CASE-010": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+      }
+    },
+    "SDK-CASE-011": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+      }
+    },
+    "SDK-CASE-012": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "当前 Pi driver 缺少原生审批请求与持有期间控制的验证路径。"
+      }
+    },
+    "SDK-CASE-039": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Codex 根 Thread 的原生 MCP 审批。"
+      }
+    },
+    "SDK-CASE-040": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Codex 子 Thread 的原生 MCP 审批。"
+      }
+    },
+    "SDK-CASE-041": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Codex additional permissions 三种原生决定。"
+      }
+    },
+    "SDK-CASE-013": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "planned",
+        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      }
+    },
+    "SDK-CASE-014": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "planned",
+        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      }
+    },
+    "SDK-CASE-015": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "planned",
+        "reason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      }
+    },
+    "SDK-CASE-042": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "该用例要求 Claude 原生 form 与 URL elicitation。"
+      }
+    },
+    "SDK-CASE-016": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少可观测的子 Agent 协议。"
+      }
+    },
+    "SDK-CASE-017": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少嵌套子 Agent 身份和关系协议。"
+      }
+    },
+    "SDK-CASE-018": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少并行子 Agent 生命周期协议。"
+      }
+    },
+    "SDK-CASE-019": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少后台子 Agent 生命周期协议。"
+      }
+    },
+    "SDK-CASE-020": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少子 Agent 详情策略协议。"
+      }
+    },
+    "SDK-CASE-021": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-022": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {
+        "timing": "before-first-input",
+        "modelSource": "session",
+        "thinking": null,
+        "effectiveValue": "unknown-unless-observed"
+      },
+      "progressBarrier": null
+    },
+    "SDK-CASE-023": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-024": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-025": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 1.6 仅公开离散 thinking level，缺少独立思考模式。"
+      }
+    },
+    "SDK-CASE-026": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 的 set_thinking_level 设置离散等级，无法声明数值预算生效。"
+      }
+    },
+    "SDK-CASE-027": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "parameters": {
+        "effort": "low",
+        "targetEffort": "medium"
+      }
+    },
+    "SDK-CASE-028": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi RPC 缺少该用例要求的思考展示控制。"
+      }
+    },
+    "SDK-CASE-029": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少可核对配置继承关系的子 Agent。"
+      }
+    },
+    "SDK-CASE-030": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": "assistant message_update with text_delta"
+    },
+    "SDK-CASE-031": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-032": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 1.6 RPC 采用本地进程 stdio，缺少独立远端连接。"
+      }
+    },
+    "SDK-CASE-033": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    },
+    "SDK-CASE-034": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少具备子 Agent 身份和关系的持久历史。"
+      }
+    },
+    "SDK-CASE-035": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null,
+      "execution": {
+        "mode": "unsupported",
+        "reason": "Pi 默认运行时缺少可供晚加入观察者发现的子 Agent。"
+      }
+    },
+    "SDK-CASE-036": {
+      "files": {},
+      "requests": {},
+      "answers": {},
+      "configuration": {},
+      "progressBarrier": null
+    }
+  }
+}

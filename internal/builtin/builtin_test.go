@@ -11,7 +11,7 @@ import (
 func TestBuiltinCatalogCoverage(t *testing.T) {
 	manifest, _, err := Read()
 	require.NoError(t, err)
-	require.Len(t, manifest.Coverage, 84)
+	require.Len(t, manifest.Coverage, 126)
 	codexRequirements := map[string]string{"SDK-CASE-012": "required", "SDK-CASE-042": "optional"}
 	available := 0
 	for _, row := range manifest.Coverage {

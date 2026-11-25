@@ -44,7 +44,7 @@ func manifestAgentType(manifest, rawManifest tool.Object) (string, error) {
 				return "", errors.New("material manifest contains conflicting agent identities")
 			}
 		}
-		if agent != "codex" && agent != "claude" {
+		if agent != "codex" && agent != "claude" && agent != "pi" {
 			return "", fmt.Errorf("unsupported agent type %q", agent)
 		}
 		return agent, nil
@@ -83,7 +83,7 @@ func RecordingAgentType(plan, manifest, rawManifest tool.Object) (string, error)
 	if agent == "" {
 		return "", errors.New("recording does not identify an agent type")
 	}
-	if agent != "codex" && agent != "claude" {
+	if agent != "codex" && agent != "claude" && agent != "pi" {
 		return "", fmt.Errorf("unsupported agent type %q", agent)
 	}
 	return agent, nil

@@ -305,7 +305,7 @@ func validateIsolationEnvironment(overlay, provider string, env tool.Object) err
 			return errors.New("native preparation environment escapes overlay")
 		}
 	}
-	configKey := map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR"}[provider]
+	configKey := map[string]string{"codex": "CODEX_HOME", "claude": "CLAUDE_CONFIG_DIR", "pi": "PI_CODING_AGENT_DIR"}[provider]
 	if configKey == "" || env[configKey] != filepath.Join(overlay, "config") {
 		return errors.New("native preparation config escapes overlay")
 	}

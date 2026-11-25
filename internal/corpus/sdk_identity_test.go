@@ -23,6 +23,9 @@ func TestSDKIdentityAfterClaudeCutover(t *testing.T) {
 		{"wrong Claude package for elicitation", "claude", "SDK-CASE-042", "claude-agent-sdk", "0.2.174", false, false},
 		{"missing TS version", "claude", "SDK-CASE-042", "@anthropic-ai/claude-agent-sdk", "", false, false},
 		{"unknown package", "claude", "SDK-CASE-042", "another-sdk", "0.3.293", false, false},
+		{"Pi stock history", "pi", "SDK-CASE-033", "@earendil-works/pi-coding-agent", "1.6.0", true, true},
+		{"Pi wrong SDK version", "pi", "SDK-CASE-033", "@earendil-works/pi-coding-agent", "1.5.0", false, false},
+		{"Pi UI reply unavailable in RpcClient", "pi", "SDK-CASE-008", "@earendil-works/pi-coding-agent", "1.6.0", false, false},
 		{"Codex", "codex", "SDK-CASE-001", "openai-codex", "0.0.0.dev0", false, false},
 		{"Claude package submitted by Codex", "codex", "SDK-CASE-042", "@anthropic-ai/claude-agent-sdk", "0.3.293", false, false},
 	} {
