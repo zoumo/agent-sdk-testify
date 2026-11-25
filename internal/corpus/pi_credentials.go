@@ -11,17 +11,34 @@ type piModelAliasMessage struct {
 	Provider json.RawMessage `json:"provider"`
 }
 
+type piModelAliasEntry struct {
+	Type     string              `json:"type"`
+	Provider json.RawMessage     `json:"provider"`
+	Message  piModelAliasMessage `json:"message"`
+}
+
+type piModelAliasTreeNode struct {
+	Entry    piModelAliasEntry      `json:"entry"`
+	Children []piModelAliasTreeNode `json:"children"`
+}
+
 type piModelAliasEvent struct {
 	Type     string                `json:"type"`
 	Command  string                `json:"command"`
 	Success  bool                  `json:"success"`
 	Provider json.RawMessage       `json:"provider"`
+	ModelID  string                `json:"modelId"`
 	Message  piModelAliasMessage   `json:"message"`
 	Messages []piModelAliasMessage `json:"messages"`
 	Data     struct {
-		Model struct {
+		ID       string          `json:"id"`
+		Provider json.RawMessage `json:"provider"`
+		Model    struct {
 			Provider json.RawMessage `json:"provider"`
 		} `json:"model"`
+		Entries  []piModelAliasEntry    `json:"entries"`
+		Messages []piModelAliasMessage  `json:"messages"`
+		Tree     []piModelAliasTreeNode `json:"tree"`
 	} `json:"data"`
 }
 
@@ -55,10 +72,15 @@ func piModelAliasMetadata(path string, data []byte, alias string) int {
 		return count
 	case path == "raw/raw.jsonl":
 		return countPiModelAliasLines(data, alias, func(frame piModelAliasFrame, literal string) int {
-			if frame.Direction != "s2c" {
-				return 0
+			switch frame.Direction {
+			case "c2s":
+				if frame.Wire.Type == "set_model" && frame.Wire.ModelID != "" && string(frame.Wire.Provider) == literal {
+					return 1
+				}
+			case "s2c":
+				return piWireModelAliasCount(frame.Wire, literal)
 			}
-			return piWireModelAliasCount(frame.Wire, literal)
+			return 0
 		})
 	case strings.HasPrefix(path, "history/") && strings.HasSuffix(path, ".jsonl"):
 		return countPiModelAliasLines(data, alias, piHistoryModelAliasCount)
@@ -86,22 +108,38 @@ func countPiModelAliasLines[T any](data []byte, alias string, count func(T, stri
 func piWireModelAliasCount(wire piModelAliasEvent, literal string) int {
 	switch wire.Type {
 	case "response":
-		if wire.Command == "get_state" && wire.Success && string(wire.Data.Model.Provider) == literal {
-			return 1
+		if !wire.Success {
+			return 0
+		}
+		switch wire.Command {
+		case "get_state":
+			if string(wire.Data.Model.Provider) == literal {
+				return 1
+			}
+		case "set_model":
+			if wire.Data.ID != "" && string(wire.Data.Provider) == literal {
+				return 1
+			}
+		case "get_entries":
+			count := 0
+			for _, entry := range wire.Data.Entries {
+				count += piHistoryModelAliasCount(entry, literal)
+			}
+			return count
+		case "get_messages":
+			return piMessagesModelAliasCount(wire.Data.Messages, literal)
+		case "get_tree":
+			return piTreeModelAliasCount(wire.Data.Tree, literal)
 		}
 	case "message_start", "message_update", "message_end", "turn_end":
 		return piMessageModelAliasCount(wire.Message, literal)
 	case "agent_end":
-		count := 0
-		for _, message := range wire.Messages {
-			count += piMessageModelAliasCount(message, literal)
-		}
-		return count
+		return piMessagesModelAliasCount(wire.Messages, literal)
 	}
 	return 0
 }
 
-func piHistoryModelAliasCount(entry piModelAliasEvent, literal string) int {
+func piHistoryModelAliasCount(entry piModelAliasEntry, literal string) int {
 	switch entry.Type {
 	case "model_change":
 		if string(entry.Provider) == literal {
@@ -111,6 +149,23 @@ func piHistoryModelAliasCount(entry piModelAliasEvent, literal string) int {
 		return piMessageModelAliasCount(entry.Message, literal)
 	}
 	return 0
+}
+
+func piTreeModelAliasCount(nodes []piModelAliasTreeNode, literal string) int {
+	count := 0
+	for _, node := range nodes {
+		count += piHistoryModelAliasCount(node.Entry, literal)
+		count += piTreeModelAliasCount(node.Children, literal)
+	}
+	return count
+}
+
+func piMessagesModelAliasCount(messages []piModelAliasMessage, literal string) int {
+	count := 0
+	for _, message := range messages {
+		count += piMessageModelAliasCount(message, literal)
+	}
+	return count
 }
 
 func piMessageModelAliasCount(message piModelAliasMessage, literal string) int {
