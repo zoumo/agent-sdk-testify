@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "2f8bd814587aaa287fc0f87b0d2e65c9477a5f0f",
+  "sourceRevision": "2699f6deefbf1c791977b007f8c69e9608a1ddf0",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "7f9fa6861568645046d9aa7942750fea66b14a040cadcf8712d56320bb314ef5",
+  "indexSHA256": "753dde14b8365fb5ce0ce5ceaf3ee66a76b54645d1a4fef428f4d901e27955f2",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -15,7 +15,7 @@
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
     "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
     "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e",
-    "bindings/pi.json": "2a9eedb0fe8a6b09c42e3fce917ea75ec1d06e7a6e01d28bfd0af92c34a97cbc",
+    "bindings/pi.json": "115dc8e42b19e9f571455da1cfe9429390c5ffb03d137ec7b6ca0b0002bc5a87",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
@@ -1664,12 +1664,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-007",
-      "missingReason": "原生 RPC 缺少面向宿主的应用工具回调；扩展实现需要独立验证。",
+      "missingReason": "Pi 1.6 RPC 缺少应用工具的原生请求和回答句柄。通过 MCP 调用应用工具不产生该 RPC 回调。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-002",
       "verification": "unsupported",
-      "verificationReason": "原生 RPC 缺少面向宿主的应用工具回调；扩展实现需要独立验证。"
+      "verificationReason": "Pi 1.6 RPC 缺少应用工具的原生请求和回答句柄。通过 MCP 调用应用工具不产生该 RPC 回调。"
     },
     {
       "adoption": "missing",

@@ -107,6 +107,11 @@ npm install --prefix /absolute/codex-driver @earendil-works/pi-coding-agent@1.6.
 独立历史用例使用 Pi 的 `SessionManager` 读取本次录制保存的原生会话文件。
 [Pi 用例绑定](../data/scenarios/bindings/pi.json)
 
+Pi 1.6.0 的 RpcClient 公开了扩展 UI 请求的监听接口。发送 `extension_ui_response` 需要原生 stdio 客户端。
+验证扩展交互时，用消费方计划准备 fixture，再通过 `agent record` 和 `agent mock`
+连接可收发这些帧的原生 stdio 客户端。客户端用原生对话 ID 回答，命令回执用各自的请求 ID 匹配。
+材料归属消费方计划。用例证据标明所用的原生 stdio 客户端和 Pi 版本。
+
 ## 按 case 录制
 
 前置条件是已安装工具、官方 driver 和所选官方 SDK。将官方环境的 `bin` 加入 `PATH`。
