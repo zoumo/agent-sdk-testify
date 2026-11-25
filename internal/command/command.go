@@ -100,7 +100,7 @@ func prepareCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 	}
 	c.Flags().StringVar(&o.FixtureDir, "fixture-dir", "", "new persistent fixture directory")
-	c.Flags().StringVar(&o.Agent, "agent", "", "agent type: codex or claude")
+	c.Flags().StringVar(&o.Agent, "agent", "", "agent type: codex, claude, or pi")
 	c.Flags().StringVar(&o.Case, "case", "", "official case ID")
 	c.Flags().StringVar(&o.Plan, "plan", "", "consumer plan file")
 	c.Flags().StringVar(&o.Recording, "recording", "", "existing recording directory")

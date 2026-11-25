@@ -66,7 +66,13 @@ func prepareExecutionAuthentication(fixture *Fixture, action, root string) error
 		if err := os.MkdirAll(config, 0o700); err != nil {
 			return err
 		}
-		if err := os.Symlink(source, filepath.Join(config, name)); err != nil {
+		target := filepath.Join(config, name)
+		if profile.copyAuthFiles {
+			// Pi can update its auth store. Keep those writes in this execution.
+			if err := tool.CopyFile(source, target); err != nil {
+				return err
+			}
+		} else if err := os.Symlink(source, target); err != nil {
 			return err
 		}
 	}

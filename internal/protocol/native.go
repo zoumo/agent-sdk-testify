@@ -63,6 +63,7 @@ type nativeArgumentSpec struct {
 var nativeArgumentSpecs = map[string]nativeArgumentSpec{
 	"codex":  codexNativeArguments,
 	"claude": claudeNativeArguments,
+	"pi":     {values: map[string]string{"--mode": "rpc"}},
 }
 
 func validateNativeArguments(spec nativeArgumentSpec, args []string) error {

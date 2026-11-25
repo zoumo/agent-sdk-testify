@@ -1,0 +1,14 @@
+{
+  "name": "agent-sdk-testify-pi",
+  "version": "0.1.0",
+  "description": "Pi official SDK driver for agent-sdk-testify",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "bin": {"agent-sdk-testify-pi": "cli.mjs"},
+  "files": ["*.mjs", "LICENSE"],
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "prepack": "cp ../../../LICENSE LICENSE"
+  }
+}

@@ -10,6 +10,12 @@ import (
 
 const driverRuntimeSchemaVersion = 1
 
+var driverConfigKey = map[string]string{
+	"codex":  "CODEX_HOME",
+	"claude": "CLAUDE_CONFIG_DIR",
+	"pi":     "PI_CODING_AGENT_DIR",
+}
+
 func newDriverRuntime(root, workspace, home, config, raw, tmp, seedRoot string, replay bool) tool.Object {
 	runtime := tool.Object{
 		"schemaVersion": float64(driverRuntimeSchemaVersion),

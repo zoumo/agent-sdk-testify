@@ -58,11 +58,13 @@ def native_distribution(output, version):
                     info.size = len(data)
                     info.mode = 0o755 if name in (TOOL, DRIVER) else 0o644
                     tar.addfile(info, io.BytesIO(data))
-        claude, = bundle.glob('agent-sdk-testify-claude-*.tgz')
-        shutil.copyfile(claude, output / claude.name)
-        return [{'path': archive.name, 'sha256': digest(archive), 'target': f'{system}/{arch}',
-                 'binarySHA256': digest(bundle / TOOL), 'codexSHA256': digest(bundle / DRIVER)},
-                {'path': claude.name, 'sha256': digest(claude)}]
+        files = [{'path': archive.name, 'sha256': digest(archive), 'target': f'{system}/{arch}',
+                  'binarySHA256': digest(bundle / TOOL), 'codexSHA256': digest(bundle / DRIVER)}]
+        for provider in ('claude', 'pi'):
+            driver, = bundle.glob(f'{TOOL}-{provider}-*.tgz')
+            shutil.copyfile(driver, output / driver.name)
+            files.append({'path': driver.name, 'sha256': digest(driver)})
+        return files
 
 
 def collect(output, inputs, metadata):
@@ -72,11 +74,11 @@ def collect(output, inputs, metadata):
         manifest = json.loads((root / 'manifest.json').read_text())
         if any(manifest[key] != value for key, value in metadata.items()):
             raise SystemExit(f'{target} release metadata differs from checkout')
-        archive, claude = manifest['files']
+        archive, claude, pi = manifest['files']
         expected = f"{TOOL}_{metadata['toolVersion']}_{target.replace('-', '_')}.tar.gz"
         if archive['target'] != target.replace('-', '/') or archive['path'] != expected:
             raise SystemExit(f'{target} archive does not match target')
-        for entry in [archive, claude] if target == 'linux-amd64' else [archive]:
+        for entry in [archive, claude, pi] if target == 'linux-amd64' else [archive]:
             path = root / entry['path']
             if path.parent != root or digest(path) != entry['sha256']:
                 raise SystemExit(f'{target} invalid artifact: {path}')
