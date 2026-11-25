@@ -79,9 +79,9 @@ func (s *corpusSuite) bindReplay() {
 	s.write(s.replay, "summary.json", summary)
 }
 
-func (s *corpusSuite) evidence() tool.Object {
+func (s *corpusSuite) evidence(provider string) tool.Object {
 	plan := tool.Object{
-		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001",
+		"provider": provider, "caseId": "SDK-CASE-001", "storyId": "SDK-US-001",
 		"driverProfile": "continuation", "project": "/original/project", "recordingIsolation": "personal-skills-v1",
 		"scenario": tool.Object{"files": tool.Object{"numbers.txt": "7\n11\n"}},
 	}
@@ -101,10 +101,13 @@ func (s *corpusSuite) evidence() tool.Object {
 		"native":          tool.Object{"executable": "/observed/native", "sha256": strings.Repeat("a", 64), "cwd": "/original/project"},
 		"recordingFormat": tool.Object{"name": "agent-mock-jsonl", "version": 1, "transport": "stdio-jsonl"},
 	})
-	sdk := tool.Object{"package": "openai-codex", "version": "synthetic-test-only"}
+	sdk := tool.Object{"package": "claude-agent-sdk", "version": "synthetic-test-only"}
+	if provider == "codex" {
+		sdk = tool.Object{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}
+	}
 	business := tool.Object{
 		"status": "passed", "branchStatus": "passed", "captureStatus": "complete",
-		"provider": "codex", "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "officialSDK": sdk,
+		"provider": provider, "caseId": "SDK-CASE-001", "storyId": "SDK-US-001", "officialSDK": sdk,
 	}
 	s.write(s.source, "report.json", business)
 	s.write(s.replay, "replay-report.json", business)
@@ -116,16 +119,22 @@ func (s *corpusSuite) evidence() tool.Object {
 	})
 	hash := s.hash(s.source, "raw/raw.jsonl")
 	s.write(s.source, "summary.json", tool.Object{
-		"provider": "codex", "case": "SDK-CASE-001", "mode": "record",
+		"provider": provider, "case": "SDK-CASE-001", "mode": "record",
 		"result": tool.Object{"status": "passed"}, "recordingSHA256": hash,
 	})
 	s.write(s.replay, "summary.json", tool.Object{
-		"provider": "codex", "case": "SDK-CASE-001", "mode": "replay",
+		"provider": provider, "case": "SDK-CASE-001", "mode": "replay",
 		"result": tool.Object{"status": "passed"}, "recordingSHA256": hash,
 	})
+	if provider == "claude" {
+		s.write(s.replay, "materialization.json", tool.Object{"originalProject": plan["project"], "executionProject": "/synthetic/replay/project", "transformations": []any{}})
+		summary := s.read(s.replay, "summary.json")
+		summary["output"], summary["materializationSHA256"] = "/synthetic/replay", s.hash(s.replay, "materialization.json")
+		s.write(s.replay, "summary.json", summary)
+	}
 	s.bindReplay()
 	s.write(s.replay, "replay-peer.json", tool.Object{
-		"provider": "codex", "recordingSHA256": hash,
+		"provider": provider, "recordingSHA256": hash,
 		"fullConsumption": true, "clientEOF": true, "nativeLaunched": false, "frames": 1,
 	})
 	return tool.Object{

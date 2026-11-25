@@ -7,7 +7,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import venv
+import hashlib
+import tarfile
 
 
 def run(root, environment, *args):
@@ -15,50 +16,39 @@ def run(root, environment, *args):
                           capture_output=True, check=True, timeout=90, text=True)
 
 
-def check_codex(wheel, root):
-    venv.EnvBuilder(with_pip=True, symlinks=True).create(root / 'env')
-    python = root / 'env/bin/python'
-    environment = {'PATH': str(python.parent) + os.pathsep + os.defpath, 'HOME': str(root),
-                   'PIP_CONFIG_FILE': os.devnull}
-    run(root, environment, python, '-I', '-m', 'pip', 'install', '--no-index', '--no-deps', wheel)
-    run(root, environment, python, '-I', '-c', """
-from importlib.metadata import distribution
-from importlib.util import find_spec
-
-driver = distribution('agent-sdk-testify-driver')
-assert {entry.name for entry in driver.entry_points} == {'agent-sdk-testify-codex'}
-assert driver.metadata.get_all('Provides-Extra') == ['codex']
-assert all('extra ==' in requirement and 'claude' not in requirement
-           for requirement in driver.requires or [])
-assert all(find_spec(name) is None for name in ('claude_driver', 'claude_agent_sdk'))
-assert all(find_spec('record_user_story.' + name) is None
-           for name in ('proxy', 'remote_proxy', 'peer'))
-""")
-    materials, output = root / 'materials', root / 'output'
-    materials.mkdir()
-    output.mkdir()
-    (materials / 'case.json').write_text(json.dumps({
-        'caseId': 'not-implemented', 'provider': 'codex', 'scenario': {},
-    }))
-    runtime = root / 'runtime.json'
-    runtime.write_text(json.dumps({
-        'schemaVersion': 1, 'root': str(root), 'workspace': str(root),
-        'home': str(root / 'home'), 'config': str(root / 'config'),
-        'raw': str(root / 'raw'), 'tmp': str(root / 'tmp'),
-        'output': str(output), 'replay': False,
-        'peer': {'command': '/must-not-launch', 'args': []},
-    }))
-    request = root / 'request.json'
-    request.write_text(json.dumps({
-        'case': 'not-implemented', 'materials': str(materials), 'runtime': str(runtime),
-    }))
-    run(root, environment, python.parent / 'agent-sdk-testify-codex', '--request', request)
-    assert json.loads((output / 'result.json').read_text())['status'] == 'unsupported'
-    help_result = run(root, environment, python, '-I', '-m', 'record_user_story.bootstrap', '--help')
-    assert '{catalog}' in help_result.stdout
-    for command in ('agent-sdk-testify-claude', 'record-user-story'):
-        assert not (python.parent / command).exists()
-    print('Codex wheel: installed request/result and catalog contracts passed.')
+def check_codex(archive, root):
+    prefix = root / 'bin'
+    prefix.mkdir()
+    binary, driver = prefix / 'agent-sdk-testify', prefix / 'agent-sdk-testify-codex'
+    with tarfile.open(archive) as tar:
+        for path in (binary, driver):
+            entry = tar.getmember(path.name)
+            assert entry.isfile() and entry.mode == 0o755
+            path.write_bytes(tar.extractfile(entry).read())
+            path.chmod(entry.mode)
+        manifest = json.load(tar.extractfile('builtin-manifest.json'))
+    environment = {'PATH': str(prefix), 'HOME': str(root)}
+    version = run(root, environment, binary, 'version').stdout.strip().split()[-1]
+    assert archive.name.startswith(f'agent-sdk-testify_{version}_')
+    driver_hash = hashlib.sha256(driver.read_bytes()).hexdigest()
+    cases = [row for row in manifest['coverage'] if row['provider'] == 'codex' and row['available']]
+    assert cases
+    for row in cases:
+        with tempfile.TemporaryDirectory(dir=root) as work:
+            fixture = Path(work) / 'fixture'
+            run(work, environment, binary, 'prepare', '--agent', 'codex', '--case', row['caseId'],
+                '--fixture-dir', fixture)
+            run(work, environment, binary, 'official', 'verify', '--fixture-dir', fixture, '--timeout', '60s')
+            verification, = fixture.glob('packages/*/verify/*/verification.json')
+            result = json.loads(verification.read_text())
+            assert result['status'] == 'passed' and result['cleanupComplete']
+            assert result['driver'] == {'path': str(driver), 'sha256': driver_hash}
+            assert result['material']['sha256'] == row['materialSHA256']
+            report = json.loads(verification.with_name('replay-report.json').read_text())
+            outcome = json.loads(verification.with_name('driver-result.json').read_text())
+            assert report['officialSDK'] == outcome['sdk'] == row['officialSDK']
+            print(f"{row['caseId']} passed with {driver.name}", flush=True)
+    return binary
 
 
 def check_claude(tarball, binary, root):
@@ -97,15 +87,14 @@ def check_claude(tarball, binary, root):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        raise SystemExit('usage: check-agent-sdk-testify-package.py CODEX_WHEEL CLAUDE_TARBALL TOOL_BINARY')
-    wheel, tarball, binary = (Path(arg).resolve(strict=True) for arg in sys.argv[1:])
+    if len(sys.argv) != 3:
+        raise SystemExit('usage: check-agent-sdk-testify-package.py NATIVE_ARCHIVE CLAUDE_TARBALL')
+    archive, tarball = (Path(arg).resolve(strict=True) for arg in sys.argv[1:])
     try:
         with tempfile.TemporaryDirectory(prefix='agent-sdk-testify-installed-') as temporary:
             root = Path(temporary).resolve()
-            for name in ('wheel', 'npm'):
-                (root / name).mkdir()
-            check_codex(wheel, root / 'wheel')
+            binary = check_codex(archive, root)
+            (root / 'npm').mkdir()
             check_claude(tarball, binary, root / 'npm')
     except subprocess.CalledProcessError as exc:
         raise SystemExit(f'{exc}\n{exc.stdout}{exc.stderr}') from exc

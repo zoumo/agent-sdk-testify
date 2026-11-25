@@ -25,14 +25,15 @@ func TestOfficialBusinessEvidenceRequiresExactCompleteSDKSuccess(t *testing.T) {
 		{name: "wrong story", report: tool.Object{"storyId": "other"}},
 		{name: "wrong provider", report: tool.Object{"provider": "claude"}},
 		{name: "wrong SDK package", report: tool.Object{"officialSDK": tool.Object{"package": "arbitrary-sdk", "version": "synthetic-only"}}},
-		{name: "no SDK version", report: tool.Object{"officialSDK": tool.Object{"package": "openai-codex"}}},
+		{name: "no SDK version", report: tool.Object{"officialSDK": tool.Object{"package": "codex-app-server-remote-client"}}},
 		{name: "gaps", report: tool.Object{"gaps": []any{"not executed"}}},
 		{name: "no business", report: tool.Object{"status": nil, "officialSDK": nil}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			plan, bound := tool.Object{"caseId": "case"}, tool.Object{"storyId": "story"}
-			outcome := tool.Object{"status": "passed"}
-			report := tool.Object{"status": "passed", "branchStatus": "passed", "captureStatus": "complete", "gaps": []any{}, "caseId": "case", "storyId": "story", "provider": "codex", "officialSDK": tool.Object{"package": "openai-codex", "version": "synthetic-test-only"}}
+			plan, bound := tool.Object{"caseId": "SDK-CASE-001"}, tool.Object{"storyId": "story"}
+			sdk := tool.Object{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}
+			outcome := tool.Object{"status": "passed", "sdk": sdk}
+			report := tool.Object{"status": "passed", "branchStatus": "passed", "captureStatus": "complete", "gaps": []any{}, "caseId": "SDK-CASE-001", "storyId": "story", "provider": "codex", "officialSDK": sdk}
 			maps.Copy(outcome, tc.outcome)
 			maps.Copy(report, tc.report)
 			err := validateBusinessEvidence("codex", plan, bound, outcome, report)

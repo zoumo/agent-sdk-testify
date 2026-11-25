@@ -5,6 +5,3 @@ coverage.out
 __pycache__/
 /.artifacts/
 /bin/
-
-/drivers/build/
-/drivers/*.egg-info/

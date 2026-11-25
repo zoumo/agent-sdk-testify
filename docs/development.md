@@ -223,7 +223,7 @@ case/索引身份、全部录制字节、来源哈希和政策检查不得弱化
 
 ## 从源码构建与验证
 
-在仓库根目录运行命令。使用 Go 1.26.10 和 golangci-lint 2.12.2。脚本测试和 Codex wheel 构建需要 Python 3.11+、pip 和 `setuptools>=68`。Claude driver 需要 Node.js 22+ 和 npm。先准备 Go module 和 npm 依赖缓存。常规验证使用受控进程和内置录制。[构建依赖准备](../drivers/README.md#构建与测试)
+在仓库根目录运行命令。使用 Go 1.26.10 和 golangci-lint 2.12.2。脚本测试和归档需要 Python 3.11+。Codex driver 使用 Rust 1.99.1 与固定上游源码。Claude driver 需要 Node.js 22+ 和 npm。先准备 Go module、Cargo 和 npm 依赖缓存。常规验证使用受控进程和内置录制。[构建依赖准备](../drivers/README.md#构建与测试)
 
 | 任务 | 命令 | 结果 |
 | --- | --- | --- |
@@ -235,7 +235,7 @@ case/索引身份、全部录制字节、来源哈希和政策检查不得弱化
 | 验证构建和打包 | `make test-build` | 生成器、产物和发布冒烟检查 |
 | 执行完整离线门禁 | `make check` | 格式、lint、构建、测试和打包检查 |
 | 单独执行格式、lint 或 vet | `make fmt`、`make lint`、`make vet` | 对应命令的检查结果 |
-| 构建 CLI 和官方 driver | `make bundle` | `.artifacts/build/` 中的 CLI、Codex wheel 和 Claude tarball |
+| 构建 CLI 和官方 driver | `make bundle` | `.artifacts/build/` 中的 CLI、原生 Codex driver 和 Claude tarball |
 
 聚焦测试要求源 checkout 干净。`scripts/with-build-checkout.sh` 为测试保留 Go 构建身份。
 
@@ -264,7 +264,7 @@ case/索引身份、全部录制字节、来源哈希和政策检查不得弱化
 	git tag -a v0.2.0 -m 'v0.2.0'
 	```
 
-2. 如需在本地打包，指定尚不存在的输出目录。发布归档覆盖 Linux 和 macOS 的 amd64 与 arm64，另有 Codex wheel、Claude npm tarball、`manifest.json` 和 `SHA256SUMS`。
+2. 如需在本地打包，指定尚不存在的输出目录。本地命令生成当前平台的 Go CLI 与 Codex Rust driver 联合归档、Claude npm tarball、`manifest.json` 和 `SHA256SUMS`。发布工作流在 Linux 和 macOS 的 amd64、arm64 runner 分别打包和验证，再汇总四份归档及通用 Claude tarball。
 
 	```sh
 	make release OUTPUT=/absolute/new-dist

@@ -64,9 +64,8 @@ request = json.loads(pathlib.Path(sys.argv[2]).read_text())
 runtime = json.loads(pathlib.Path(request['runtime']).read_text())
 plan = json.loads((pathlib.Path(request['materials']) / 'case.json').read_text())
 if plan['caseId'] == 'SDK-CASE-035':
-    from record_user_story.runtime_config import apply_runtime
-    from record_user_story.existing_children import verify_seed
-    apply_runtime(plan, request)
+    from seed import verify_seed
+    plan["_runtime"] = runtime
     seed = verify_seed(plan)
     import copy
     for key, value in [('sessionId','wrong-parent'), ('provider','wrong-provider')]:
@@ -101,7 +100,8 @@ if child.returncode: sys.exit(child.returncode)
 assert json.loads(child.stdout)['result']['synthetic'] is True
 report = {'provider':plan['provider'], 'caseId':plan['caseId'], 'storyId':plan['storyId'],
           'status':'passed', 'branchStatus':'passed', 'captureStatus':'complete', 'gaps':[],
-          'officialSDK':{'package':{'codex':'openai-codex','claude':'@anthropic-ai/claude-agent-sdk'}[plan['provider']], 'version': '0.3.293' if plan['provider']=='claude' else 'synthetic-contract-only'},
+          'officialSDK':({'package': '@anthropic-ai/claude-agent-sdk', 'version': '0.3.293'}
+                          if plan['provider'] == 'claude' else {'package': 'codex-app-server-remote-client', 'version': '0.0.0', 'revision': '108730843ae4303ae79e9b6b936343f0b7c483bb'}),
           'receipts':[{'history-query':{'method':'thread/list','params':{'parentThreadId':'parent'},
                       'response':{'data':[{'id':'child','parentThreadId':'parent'}]}}}]}
 if plan['provider']=='claude':
@@ -114,7 +114,7 @@ out = pathlib.Path(runtime['output'])
 	require.NoError(t, err)
 	contents, err := os.ReadFile(driver)
 	require.NoError(t, err)
-	contents = []byte(strings.Replace(string(contents), "import json, pathlib, subprocess, sys", fmt.Sprintf("import json, pathlib, subprocess, sys\nsys.dont_write_bytecode = True\nsys.path.insert(0, %q)", filepath.Join(repository, "drivers", "common")), 1))
+	contents = []byte(strings.Replace(string(contents), "import json, pathlib, subprocess, sys", fmt.Sprintf("import json, pathlib, subprocess, sys\nsys.dont_write_bytecode = True\nsys.path.insert(0, %q)", filepath.Join(repository, "tests", "driver_contracts")), 1))
 	require.NoError(t, os.WriteFile(driver, contents, 0o700))
 	nativeArgs := []string{"app-server", "--listen", "stdio://"}
 	if provider == "claude" {

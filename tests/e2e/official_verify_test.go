@@ -143,7 +143,7 @@ func TestOfficialVerifyInstalledChain(t *testing.T) {
 				require.Equal(t, filepath.Join(mockRoute, "config"), host["config"])
 				require.Equal(t, filepath.Join(mockRoute, "workspace"), host["workspace"])
 
-				require.Equal(t, "synthetic-official-driver", obj(report["officialSDK"])["version"])
+				require.Equal(t, controlledCodexSDK(), report["officialSDK"])
 				if mode == "busy" {
 					for _, field := range []string{"verifyBefore", "recordBefore", "officialRecordBefore"} {
 						require.EqualValues(t, 1, report[field])
@@ -345,10 +345,16 @@ func TestOfficialVerifyNewCaptureAdmission(t *testing.T) {
 				// Keep the record domain inventory valid so admission reaches the SDK comparison.
 				reportPath := filepath.Join(recordRoot, "report.json")
 				report := readJSON(t, reportPath)
-				report["officialSDK"] = object{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}
+				report["officialSDK"] = object{"package": "openai-codex", "version": "0.0.0.dev0"}
 				writeJSON(t, reportPath, report)
+				driverResult := filepath.Join(recordRoot, "driver-result.json")
+				outcome := readJSON(t, driverResult)
+				outcome["sdk"] = report["officialSDK"]
+				writeJSON(t, driverResult, outcome)
 				result := readJSON(t, filepath.Join(recordRoot, "result.json"))
-				obj(result["files"])["record/"+str(origin["runId"])+"/report.json"] = digestFile(t, reportPath)
+				for _, file := range []string{reportPath, driverResult} {
+					obj(result["files"])["record/"+str(origin["runId"])+"/"+filepath.Base(file)] = digestFile(t, file)
+				}
 				writeJSON(t, filepath.Join(recordRoot, "result.json"), result)
 			case "wrong-source-hash", "wrong-record-case":
 				result := readJSON(t, filepath.Join(recordRoot, "result.json"))

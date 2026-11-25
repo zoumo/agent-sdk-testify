@@ -245,7 +245,7 @@ func syntheticSDK(provider string) tool.Object {
 	if provider == "claude" {
 		return tool.Object{"package": "@anthropic-ai/claude-agent-sdk", "version": "0.3.293"}
 	}
-	return tool.Object{"package": "openai-codex", "version": "synthetic-only"}
+	return tool.Object{"package": "codex-app-server-remote-client", "version": "0.0.0", "revision": "108730843ae4303ae79e9b6b936343f0b7c483bb"}
 }
 
 func (p *preparedRecord) installVerifyDriver(t *testing.T) {
@@ -577,7 +577,7 @@ func TestRecordTimeoutPreservesDiagnostic(t *testing.T) {
 }
 
 func TestRecordRequiresInstalledOfficialDriver(t *testing.T) {
-	for provider, hint := range map[string]string{"codex": "install the Codex driver wheel", "claude": "install the Claude driver npm tarball"} {
+	for provider, hint := range map[string]string{"codex": "install the Codex Rust driver", "claude": "install the Claude driver npm tarball"} {
 		t.Run(provider, func(t *testing.T) {
 			fixture := recordProcess(t, provider, "passed", "passed")
 			require.NoError(t, os.Remove(filepath.Join(filepath.Dir(fixture.cli), "agent-sdk-testify-"+provider)))

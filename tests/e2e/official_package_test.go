@@ -19,7 +19,7 @@ import (
 // Synthetic installed peers exercise the production execution/publication seam.
 func TestOfficialPackageSettlement(t *testing.T) {
 	agent, drivers, env := isolatedCommands(t, t.TempDir(), "codex")
-	setControlledOfficialDriver(t, drivers, "rust-source")
+	setControlledOfficialDriver(t, drivers, "passed")
 	fixture := prepareFixture(t, env, "--agent", "codex", "--case", "SDK-CASE-001", "--model", "synthetic-model")
 	recorded := runTool(t, env, t.TempDir(), "", "official", "record", "--fixture-dir", fixture, "--cmd", agent, "--", "app-server", "--listen", "stdio://")
 	require.Zero(t, recorded.code, recorded.stderr)
@@ -66,7 +66,7 @@ func TestOfficialPackageSettlement(t *testing.T) {
 	require.Equal(t, "admitted", admitted["adoption"])
 	recordSDK := readJSON(t, filepath.Join(recordRoot, "report.json"))["officialSDK"]
 	require.Equal(t, recordSDK, admitted["officialSDK"])
-	require.NotEqual(t, recordSDK, readJSON(t, filepath.Join(verifyRoots[0], "replay-report.json"))["officialSDK"])
+	require.Equal(t, recordSDK, readJSON(t, filepath.Join(verifyRoots[0], "replay-report.json"))["officialSDK"])
 	attempt := filepath.Join(filepath.Dir(corpus.index), str(admitted["materials"]))
 	archived := filepath.Join(corpus.archive, filepath.Base(attempt))
 	review := readJSON(t, filepath.Join(archived, "review.json"))

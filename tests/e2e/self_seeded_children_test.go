@@ -66,8 +66,8 @@ for phase in ['main', 'probe']:
     assert json.loads(child.stdout)['result']['synthetic'] is True
 report = {'provider': plan['provider'], 'caseId': plan['caseId'], 'storyId': plan['storyId'],
     'status': 'passed', 'branchStatus': 'passed', 'captureStatus': 'complete', 'gaps': [],
-    'officialSDK': {'package': {'codex': 'openai-codex', 'claude': '@anthropic-ai/claude-agent-sdk'}[plan['provider']],
-                    'version': '0.3.293' if plan['provider']=='claude' else 'synthetic-self-seed-only'}}
+    'officialSDK': ({'package': '@anthropic-ai/claude-agent-sdk', 'version': '0.3.293'}
+                          if plan['provider'] == 'claude' else {'package': 'codex-app-server-remote-client', 'version': '0.0.0', 'revision': '108730843ae4303ae79e9b6b936343f0b7c483bb'})}
 out = pathlib.Path(runtime['output'])
 (out / ('replay-report.json' if runtime['replay'] else 'report.json')).write_text(json.dumps(report))
 (out / 'result.json').write_text(json.dumps({'status': 'passed', 'sdk': report['officialSDK']}))

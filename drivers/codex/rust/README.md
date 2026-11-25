@@ -1,13 +1,13 @@
-# Codex Rust 候选入口
+# Codex Rust 入口
 
-候选实现 39 个 Codex case，包括输入、工具、审批、MCP elicitation、配置、上下文注入、子会话、历史和
+入口支持 39 个 Codex case，包括输入、工具、审批、MCP elicitation、配置、上下文注入、子会话、历史和
 连接关闭。使用 Rust 1.99.1 和锁定的
 `codex-app-server-remote-client` 0.0.0。解包固定提交后，`stdio.patch` 为上游
 client 增加子进程管道接入。上游 client 管理握手、请求关联、事件、服务端请求和
 关闭。driver 启动并等待 Testify 提供的 launcher。
 
-准备 Rust 1.99.1、C/C++ 构建工具、`curl`、`tar`、`shasum` 和 `patch`。
-在仓库根运行以下命令，在独立前缀安装候选入口。构建目录必须是新目录。
+准备 Rust 1.99.1、C/C++ 构建工具（Linux 上含 pkg-config、OpenSSL 和 D-Bus 开发包）、`curl`、`tar`、`shasum` 和 `patch`。
+在仓库根运行以下命令，在独立前缀安装入口。构建目录必须是新目录。
 
 ```sh
 drivers/codex/rust/install.sh /tmp/testify-rust-build /tmp/testify-rust-install
@@ -31,5 +31,4 @@ agent-sdk-testify prepare --agent codex --case SDK-CASE-012 \
 agent-sdk-testify official verify --fixture-dir /tmp/testify-rust-012 --timeout 45s
 ```
 
-严格回放使用与录制匹配的 client。内置 Codex 材料使用 Rust client。已有的 Python
-来源归档使用原 Python SDK 复验。
+严格回放使用与录制匹配的 client。内置 Codex 材料使用 Rust client。
