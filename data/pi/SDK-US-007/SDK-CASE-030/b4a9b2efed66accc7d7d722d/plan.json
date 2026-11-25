@@ -1,0 +1,69 @@
+{
+  "args": [
+    "--mode",
+    "rpc",
+    "--model",
+    "magpie/auto/deepseek-v4.1-flash-1017"
+  ],
+  "case": {
+    "id": "SDK-CASE-030",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "在执行进度后中断并读取确认及终态。",
+    "storyId": "SDK-US-007"
+  },
+  "caseId": "SDK-CASE-030",
+  "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+  "cliVersion": "1.6.0",
+  "driverProfile": "interrupt",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a21326-0442-73dc-92c2-ddcc3bfc8dc5",
+      "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/030-real/fixture/runtime/executions/1e57d6387ec280c495c334820539d0b0/workspace",
+      "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-030-real-fixture-runtime-executions-1e57d6387ec280c495c334820539d0b0-workspace--/2026-11-25T14-39-48-291Z_01a21326-0442-73dc-92c2-ddcc3bfc8dc5.jsonl",
+      "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-030-real-fixture-runtime-executions-1e57d6387ec280c495c334820539d0b0-workspace--/2026-11-25T14-39-48-291Z_01a21326-0442-73dc-92c2-ddcc3bfc8dc5.jsonl",
+      "sha256": "ce2f58943203c83fc26f6dac411a460b51e3cd742aae955ff2e62fe76e13a82c"
+    }
+  ],
+  "model": "magpie/auto/deepseek-v4.1-flash-1017",
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/030-real/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Produce a numbered list from one to twenty."
+  ],
+  "provider": "pi",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-030",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "在执行进度后中断并读取确认及终态。",
+      "storyId": "SDK-US-007"
+    },
+    "caseId": "SDK-CASE-030",
+    "configuration": {},
+    "driverProfile": "interrupt",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {},
+    "prompts": [
+      "Produce a numbered list from one to twenty."
+    ],
+    "provider": "pi",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-007"
+  },
+  "sourcePlanSHA256": "978238c16cb5847c6f5c5d532ab532a1e52ae13b6ea27383201ebcd28800ce15",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-007",
+  "storyId": "SDK-US-007"
+}

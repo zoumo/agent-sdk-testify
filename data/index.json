@@ -1536,22 +1536,42 @@
       "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "b09f876e58cbae0c6312ac8700df5946b15339d5dd355c4e596dcfdb1a6f0d28",
       "caseId": "SDK-CASE-001",
+      "materialSHA256": "4586a6440dd71d3376396d55acb7d82d5984fa7de13d0621d15b69bab83911f6",
+      "materials": "pi/SDK-US-001/SDK-CASE-001/16dc121daeb0d80d04c843a7",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:39:13.304029Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 已提供此路径，尚未采纳原生录制。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "fcf6573de617814fc7ca5dfbda5feb59bf33658bccb763468063a831bf60498d",
       "caseId": "SDK-CASE-002",
+      "materialSHA256": "91cb4ccda241cb3aa8092ceb45b8406c28a435719e9821c984fcaf50ec04663e",
+      "materials": "pi/SDK-US-001/SDK-CASE-002/01ec3806f0afc8afc6b48f49",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:29.387393Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1572,13 +1592,23 @@
       "verificationReason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "d714fcb2c96c23ee15a971cc91a4c4ed4cab9804010c21ba82374466c54f337b",
       "caseId": "SDK-CASE-005",
+      "materialSHA256": "27511544ac4edc9267dfd729540e7489cb923d54118515c0cb8112e3dd5576b5",
+      "materials": "pi/SDK-US-001/SDK-CASE-005/d17f631d68a45e2d12e8af01",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:32.323688Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1770,13 +1800,23 @@
       "verificationReason": "Pi 默认运行时缺少子 Agent 详情策略协议。"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "d33a96288ed93c15596c7a76c20f1e24f505a5ce987309795e69b16916cb152c",
       "caseId": "SDK-CASE-021",
+      "materialSHA256": "1f4e05d7b489b709257e545f0a0ac7d7712d263ce38c3e9b8b1d3aa9693ca746",
+      "materials": "pi/SDK-US-006/SDK-CASE-021/92e9a564f869b9b6b3840bbd",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:34.804914Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1851,22 +1891,42 @@
       "verificationReason": "Pi 默认运行时缺少可核对配置继承关系的子 Agent。"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "7302c836df503381a8a391696a813a67c664ca832f3eff29f93f9c898300119c",
       "caseId": "SDK-CASE-030",
+      "materialSHA256": "f6098247e24a4a82d8de3aefd03fc767bfe76a4ff7bd380002661cb1aa0b53c0",
+      "materials": "pi/SDK-US-007/SDK-CASE-030/b4a9b2efed66accc7d7d722d",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:36.472046Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-007",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "2cbbdbcf432616ae7027176492793a9ce3e5e1a1a8f4153ecc2c33b5c859e967",
       "caseId": "SDK-CASE-031",
+      "materialSHA256": "217dbb756387e411e14b8ed0fb0d2709e66bf78f1fb0fac9fad695a200cf2f44",
+      "materials": "pi/SDK-US-007/SDK-CASE-031/52defbda84888d9bfd6bd066",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:38.807919Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-007",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1878,13 +1938,23 @@
       "verificationReason": "Pi 1.6 RPC 采用本地进程 stdio，缺少独立远端连接。"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "5a315e1ac6344bfed0c41d5d1f29d3459831d73016fa7b76667b45ae9b23b96f",
       "caseId": "SDK-CASE-033",
+      "materialSHA256": "b416184e62efdb0abc335095ae4111a99d4f960ad2fe3f3de653d7e30e432ade",
+      "materials": "pi/SDK-US-008/SDK-CASE-033/a3024f11edf15be3106334c7",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:40.630145Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-008",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",

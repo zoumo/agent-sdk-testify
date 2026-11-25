@@ -1,0 +1,12 @@
+{
+  "runId": "6b5b4dec754cbaef1a80fa7d28ca6071",
+  "fixtureId": "b8af9518524a289aa78c6bc322803d24",
+  "caseId": "SDK-CASE-021",
+  "agentType": "pi",
+  "recordSourceSHA256": "3fb785ff166b6b9341cdd08802e492f9430d4e1687cab4b9e24c3a20ee52f885",
+  "sourceSHA256": "3fb785ff166b6b9341cdd08802e492f9430d4e1687cab4b9e24c3a20ee52f885",
+  "driverSHA256": "0cddfbfe494204952a4b623a3ee392adeef942759f314c66babefade04ac3d33",
+  "connections": [
+    "main"
+  ]
+}
