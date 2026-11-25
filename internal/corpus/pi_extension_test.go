@@ -10,7 +10,10 @@ import (
 )
 
 func TestPiExtensionIdentity(t *testing.T) {
-	for _, caseID := range []string{"SDK-CASE-012", "SDK-CASE-038"} {
+	for _, caseID := range []string{
+		"SDK-CASE-008", "SDK-CASE-009", "SDK-CASE-010", "SDK-CASE-011", "SDK-CASE-012",
+		"SDK-CASE-013", "SDK-CASE-014", "SDK-CASE-037", "SDK-CASE-038",
+	} {
 		t.Run(caseID, func(t *testing.T) {
 			sdk := PiExtensionIdentity()
 			require.True(t, RecordedSDKIdentity("pi", caseID, sdk))

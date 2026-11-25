@@ -1586,8 +1586,8 @@
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unsupported",
-      "verificationReason": "Pi 原生 RPC 缺少不唤醒执行的上下文注入命令。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1622,8 +1622,8 @@
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1631,8 +1631,8 @@
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少文件写入审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1640,8 +1640,8 @@
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1649,8 +1649,8 @@
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-003",
-      "verification": "unsupported",
-      "verificationReason": "默认 Pi RPC 缺少命令审批；扩展 UI 的确认语义需要独立验证。"
+      "verification": "unverified",
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1695,7 +1695,7 @@
       "requirement": "required",
       "storyId": "SDK-US-004",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
@@ -1704,7 +1704,7 @@
       "requirement": "required",
       "storyId": "SDK-US-004",
       "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 尚未实现此用例的业务断言与录制路径。"
+      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
       "adoption": "missing",
