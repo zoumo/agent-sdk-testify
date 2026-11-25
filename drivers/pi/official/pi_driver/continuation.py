@@ -6,6 +6,7 @@ import sys
 
 from record_user_story.adapters.common import proxy_command
 from record_user_story.runtime_config import execution_workspace
+from record_user_story.scenarios import Untriggered
 
 
 SDK_PACKAGE = '@earendil-works/pi-coding-agent'
@@ -41,3 +42,38 @@ def run(plan, report, flow):
         report['receipts'].append(turn)
         flow.result()
         report['results'] += 1
+
+
+def require_wire(frames, report):
+    """Correlate both prompt results and the surrounding native state reads."""
+    steps = []
+    active = None
+    for frame in frames:
+        wire = frame['wire']
+        kind = wire.get('type')
+        if frame['direction'] == 'c2s' and kind in ('get_state', 'prompt'):
+            if active is not None:
+                raise Untriggered('Pi submitted another command before the current step settled')
+            active = {'type': kind, 'id': wire.get('id')}
+        elif frame['direction'] == 's2c' and kind == 'response' and active is not None:
+            if (not active['id'] or wire.get('id') != active['id']
+                    or wire.get('command') != active['type'] or wire.get('success') is not True):
+                raise Untriggered('Pi response did not acknowledge the active command')
+            data = wire.get('data', {})
+            if active['type'] == 'get_state':
+                steps.append(('get_state', data.get('sessionId')))
+                active = None
+            elif data.get('disposition') == 'started':
+                active['started'] = True
+        elif frame['direction'] == 's2c' and kind == 'agent_settled':
+            if not active or not active.get('started') or wire.get('aborted') is not False:
+                raise Untriggered('Pi has a terminal event without a successful prompt')
+            steps.append(('prompt', 'agent_settled'))
+            active = None
+
+    session_id = report.get('sessionId')
+    if not session_id or active is not None or steps != [
+        ('get_state', session_id), ('prompt', 'agent_settled'),
+        ('prompt', 'agent_settled'), ('get_state', session_id),
+    ]:
+        raise Untriggered('Pi wire evidence does not show two settled prompts in the same session')

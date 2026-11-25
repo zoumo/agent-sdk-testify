@@ -14,7 +14,7 @@ def run(plan):
     replay = bool(plan.get('_replay'))
     report = {'provider': plan['provider'], 'story': plan['story'], 'status': 'passed',
               'inputs': 0, 'results': 0, 'events': 0, 'requests': 0, 'receipts': [],
-              'facts': ['driver uses official Python SDK; raw bytes captured at native process boundary'],
+              'facts': ['driver uses official SDK; raw bytes captured at native process boundary'],
               'case': definition['case'], 'gaps': [], 'captureStatus': 'complete',
               'cliVersion': plan.get('cliVersion')}
     report['scenarioSHA256'] = plan.get('scenarioSHA256')
@@ -114,6 +114,10 @@ def observe_wire(plan, report):
             raise Untriggered('continuous session raw evidence is absent')
         return
     frames = [json.loads(line) for line in path.read_bytes().splitlines()]
+    if plan['provider'] == 'pi':
+        from pi_driver.continuation import require_wire
+        require_wire(frames, report)
+        return
     if plan.get('driverProfile') == 'mcp-tool-approval':
         from .mcp_approval_evidence import assess
         assess(plan, frames, report)
