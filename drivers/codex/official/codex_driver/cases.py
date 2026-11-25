@@ -15,7 +15,6 @@ CASES = {
     'SDK-CASE-009': 'approval',
     'SDK-CASE-010': 'approval',
     'SDK-CASE-011': 'approval',
-    'SDK-CASE-012': 'deferred-approval',
     'SDK-CASE-013': 'questions',
     'SDK-CASE-014': 'questions',
     'SDK-CASE-015': 'questions',

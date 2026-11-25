@@ -220,7 +220,7 @@ func (s *corpusSuite) TestRequirementsAreIndependentOfRoutes() {
 	s.Require().NoError(err)
 	for _, key := range []string{"codex/SDK-CASE-012"} {
 		s.Equal("optional", tool.Obj(catalog[key])["requirement"], key)
-		s.NotEqual("live-selected-path", tool.Obj(catalog[key])["route"], key)
+		s.Equal("live-selected-path", tool.Obj(catalog[key])["route"], key)
 	}
 	for _, id := range []string{"SDK-CASE-017", "SDK-CASE-032"} {
 		s.Equal("optional", tool.Obj(catalog["claude/"+id])["requirement"])

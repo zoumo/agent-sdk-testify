@@ -1,6 +1,6 @@
 # Codex Rust 候选入口
 
-候选实现 37 个 Codex case，包括输入、工具、审批、配置、上下文注入、子会话、历史和
+候选实现 38 个 Codex case，包括输入、工具、审批、配置、上下文注入、子会话、历史和
 连接关闭。使用 Rust 1.99.1 和锁定的
 `codex-app-server-remote-client` 0.0.0。解包固定提交后，`stdio.patch` 为上游
 client 增加子进程管道接入。上游 client 管理握手、请求关联、事件、服务端请求和

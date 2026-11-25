@@ -19,6 +19,7 @@ use crate::Plan;
 use super::fixture_tools;
 
 const COMMAND: &str = "printf SYNTHETIC_COMMAND";
+const READ_COMMAND: &str = "cat numbers.txt";
 const MCP_TOKEN: &str = "SYNTHETIC_MCP_APPROVED";
 
 #[derive(Clone, Copy, PartialEq)]
@@ -68,6 +69,7 @@ impl<'a> Approvals<'a> {
             "fixture-tools" if plan.case_id == "SDK-CASE-006" => &["fixture_read", "fixture_write"],
             "fixture-tools" => &["fixture_read"],
             "approval" => &["approval_answer"],
+            "deferred-approval" => &["approval_answer", "held-control", "held-event"],
             "questions" => &["question"],
             "mcp-tool-approval" => &["mcp-tool-approval"],
             _ => &[],
@@ -80,6 +82,16 @@ impl<'a> Approvals<'a> {
                     .all(|(name, required)| name == required),
             "native request binding differs from the selected case"
         );
+        // The control and notification are observed separately from native server requests.
+        let expected = if plan.driver_profile == "deferred-approval" {
+            ensure!(
+                plan.scenario["files"] == json!({"numbers.txt":"17\n25\n"}),
+                "unexpected deferred read fixture"
+            );
+            vec![expected[0].clone()]
+        } else {
+            expected
+        };
         Ok(Self {
             plan,
             workspace,
@@ -179,12 +191,14 @@ impl<'a> Approvals<'a> {
                 )
             }
             ServerRequest::CommandExecutionRequestApproval { params, .. }
-                if profile == "approval" =>
+                if matches!(profile, "approval" | "deferred-approval") =>
             {
                 check_turn(root, root_turn, &params.thread_id, &params.turn_id)?;
                 self.check_request(request, "approval_answer", &params.item_id)?;
+                let deferred = profile == "deferred-approval";
+                let expected_command = if deferred { READ_COMMAND } else { COMMAND };
                 ensure!(
-                    self.parameters()["approvalKind"] == "command"
+                    (deferred || self.parameters()["approvalKind"] == "command")
                         && params.kind == CommandExecutionApprovalKind::Command
                         && params.approval_id.is_none()
                         && params.additional_permissions.is_none()
@@ -194,7 +208,10 @@ impl<'a> Approvals<'a> {
                             .as_ref()
                             .is_none_or(Vec::is_empty)
                         && params.cwd.as_ref().map(|path| path.as_str()) == self.workspace.to_str()
-                        && params.command.as_deref().is_some_and(allowed_command),
+                        && params
+                            .command
+                            .as_deref()
+                            .is_some_and(|command| allowed_command(command, expected_command)),
                     "command approval is outside the synthetic command and workspace"
                 );
                 let Some(ThreadItemPayload::CommandExecution {
@@ -215,7 +232,7 @@ impl<'a> Approvals<'a> {
                         && *status == CommandExecutionStatus::InProgress,
                     "command approval differs from its native item"
                 );
-                let decision = if self.allow()? {
+                let decision = if deferred || self.allow()? {
                     ensure!(
                         params
                             .available_decisions
@@ -460,7 +477,7 @@ impl<'a> Approvals<'a> {
         ) {
             ("fixture-tools", _) => kind == Kind::Fixture,
             ("approval", Some("file")) => kind == Kind::File,
-            ("approval", Some("command")) => kind == Kind::Command,
+            ("approval", Some("command")) | ("deferred-approval", _) => kind == Kind::Command,
             ("mcp-tool-approval", _) => kind == Kind::Mcp,
             _ => false,
         }
@@ -588,11 +605,11 @@ fn check_turn(root: &str, root_turn: &str, thread: &str, turn: &str) -> Result<(
     Ok(())
 }
 
-fn allowed_command(command: &str) -> bool {
-    command == COMMAND
-        || command == format!("/bin/zsh -c '{COMMAND}'")
-        || command == format!("/bin/zsh -lc '{COMMAND}'")
-        || command == format!("/bin/bash -lc '{COMMAND}'")
+fn allowed_command(command: &str, expected: &str) -> bool {
+    command == expected
+        || command == format!("/bin/zsh -c '{expected}'")
+        || command == format!("/bin/zsh -lc '{expected}'")
+        || command == format!("/bin/bash -lc '{expected}'")
 }
 
 fn tool_kind(payload: &ThreadItemPayload) -> Option<Kind> {
@@ -667,7 +684,12 @@ fn check_tool_result(
                 if reply.response["decision"] == "accept" {
                     *status == CommandExecutionStatus::Completed
                         && *exit_code == Some(0)
-                        && aggregated_output.as_deref() == Some("SYNTHETIC_COMMAND")
+                        && aggregated_output.as_deref()
+                            == Some(if allowed_command(command, READ_COMMAND) {
+                                "17\n25\n"
+                            } else {
+                                "SYNTHETIC_COMMAND"
+                            })
                 } else {
                     *status == CommandExecutionStatus::Declined && exit_code.is_none()
                 },
@@ -699,15 +721,31 @@ fn check_tool_result(
 
 #[cfg(test)]
 mod tests {
-    use super::allowed_command;
+    use super::{COMMAND, READ_COMMAND, allowed_command};
 
     #[test]
     fn permits_exact_native_non_login_shell_command() {
-        assert!(allowed_command("/bin/zsh -c 'printf SYNTHETIC_COMMAND'"));
-        assert!(allowed_command("/bin/zsh -lc 'printf SYNTHETIC_COMMAND'"));
-        assert!(!allowed_command(
-            "/bin/zsh -c 'printf SYNTHETIC_COMMAND; printf EXTRA'"
+        assert!(allowed_command(
+            "/bin/zsh -lc 'cat numbers.txt'",
+            READ_COMMAND
         ));
-        assert!(!allowed_command("/bin/zsh -c 'printf OTHER'"));
+        assert!(!allowed_command(
+            "cat numbers.txt; cat extra.txt",
+            READ_COMMAND
+        ));
+        assert!(!allowed_command("cat numbers.txt", COMMAND));
+        assert!(allowed_command(
+            "/bin/zsh -c 'printf SYNTHETIC_COMMAND'",
+            COMMAND
+        ));
+        assert!(allowed_command(
+            "/bin/zsh -lc 'printf SYNTHETIC_COMMAND'",
+            COMMAND
+        ));
+        assert!(!allowed_command(
+            "/bin/zsh -c 'printf SYNTHETIC_COMMAND; printf EXTRA'",
+            COMMAND
+        ));
+        assert!(!allowed_command("/bin/zsh -c 'printf OTHER'", COMMAND));
     }
 }

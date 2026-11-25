@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "229f63fa15e3a2622b2658b46e32ba2d5e909831",
+  "sourceRevision": "2423a1357d4eb77c5f53a727fa9615465cf94683",
   "scope": "local technical candidates; public release not authorized",
   "indexSHA256": "42a7f585e9ec60a336e2d817eb43391802c7c191d30dc01661f06bb66e503ff4",
   "catalog": {
@@ -14,7 +14,7 @@
     "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
     "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
-    "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e",
+    "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
@@ -5761,7 +5761,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -5863,7 +5863,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -5963,7 +5963,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6063,7 +6063,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6163,7 +6163,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6264,7 +6264,7 @@
       },
       "contracts": {
         "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6366,7 +6366,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6474,7 +6474,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6582,7 +6582,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6687,7 +6687,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6792,7 +6792,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -6902,7 +6902,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7009,7 +7009,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "5f5f6cbeed47f3807625e313b8e220e5b9aa96598f5fb85d2d9f26614b02aced",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7121,7 +7121,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7258,7 +7258,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7394,7 +7394,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7529,7 +7529,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7665,7 +7665,7 @@
       },
       "contracts": {
         "SDK-US-005.json": "c6a3f255d378b7435fd82374c759be95b1dd949af6bd9ac372d3ac9405922aed",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7787,7 +7787,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7888,7 +7888,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -7996,7 +7996,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8100,7 +8100,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8202,7 +8202,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8309,7 +8309,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8414,7 +8414,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8536,7 +8536,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8634,7 +8634,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8738,7 +8738,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8846,7 +8846,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -8957,7 +8957,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9088,7 +9088,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9238,7 +9238,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9349,7 +9349,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9452,7 +9452,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9555,7 +9555,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9653,7 +9653,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
@@ -9755,7 +9755,7 @@
       },
       "contracts": {
         "SDK-US-003.json": "256d06580176923303ca67c3078da40b9df362f49ac2ed9c212e73222796eb7e",
-        "bindings/codex.json": "208f260b48523f31965f8bb8ee3319dd0802b1e85f0c73b602ccd200ffedfd3e"
+        "bindings/codex.json": "36683afcc30b855c3b2a839e45c0f4156fb7d09043935a09336244d43ce375ef"
       },
       "officialSDK": {
         "package": "codex-app-server-remote-client",
