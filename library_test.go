@@ -24,14 +24,6 @@ const (
 	libraryModuleSum = "h1:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 )
 
-// Exact client frames from the builtin Codex SDK-CASE-001 recording.
-const libraryMockInput = `{"id":"bdda38b2-f26f-4634-a09e-0f5695b3637b","method":"initialize","params":{"clientInfo":{"name":"official-python-story-recorder","title":"Protocol recording","version":"0.0.0.dev0"},"capabilities":{"experimentalApi":true}}}
-{"method":"initialized"}
-{"id":"d2ac3f7c-2823-443f-8605-0deae33d1aa9","method":"thread/start","params":{"cwd":"/Users/jim/.worktrees/agent-sdk-testify/portable-framework-paths/integration/.scratch/full-rerecord-20261113/codex/SDK-CASE-001/fixture/runtime/routes/record/workspace","sandbox":"workspace-write","approvalPolicy":"on-request","ephemeral":true,"baseInstructions":"Complete the supplied synthetic task in the working directory. Be concise.","developerInstructions":"Complete the supplied task in the synthetic project.","model":"auto/deepseek-v4.1-flash-1017"}}
-{"id":"802942e6-3ab1-447e-a74f-de993822063c","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Ready."}],"threadId":"01a1d151-90c5-7102-9289-223acaae6eee"}}
-{"id":"f64b316c-dcc2-4879-ac14-1a033f42b62b","method":"turn/start","params":{"input":[{"type":"text","text":"Reply with the word Done."}],"threadId":"01a1d151-90c5-7102-9289-223acaae6eee"}}
-`
-
 func TestLibraryPrepareOpenExportWithoutCLI(t *testing.T) {
 	root := t.TempDir()
 	isolateLibraryTest(t, root)
@@ -209,7 +201,7 @@ func TestLibraryMockWithoutCLI(t *testing.T) {
 
 	mockResult, stdout, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
-	}, libraryMockInput)
+	}, mainClientFrames(t, prepared))
 	require.NoError(t, mockErr, stderr)
 	require.Empty(t, stderr)
 	requireJSONLines(t, stdout)
@@ -306,7 +298,7 @@ func TestLibraryMockOmitsProcessEvidenceAndPreservesCallerCWD(t *testing.T) {
 	t.Chdir(callerCWD)
 	mockResult, _, stderr, mockErr := runLibraryMock(t, prepared, agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
-	}, libraryMockInput)
+	}, mainClientFrames(t, prepared))
 	require.NoError(t, mockErr, stderr)
 	require.Equal(t, callerCWD, workingDirectory(t))
 
@@ -367,6 +359,7 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 
 	type call struct {
 		fixture *agenttestify.Fixture
+		input   string
 	}
 	var calls []call
 	for index := range 2 {
@@ -379,6 +372,7 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 		require.NoError(t, err)
 		calls = append(calls, call{
 			fixture: prepared,
+			input:   mainClientFrames(t, prepared),
 		})
 	}
 
@@ -392,7 +386,7 @@ func TestLibraryConcurrentMockDoesNotChangeWorkingDirectory(t *testing.T) {
 		go func() {
 			<-start
 			run, err := configured.fixture.StartMockAgent(t.Context(), options, agenttestify.StartMockAgentStreams{
-				Reader: io.NopCloser(strings.NewReader(libraryMockInput)),
+				Reader: io.NopCloser(strings.NewReader(configured.input)),
 				Writer: &testWriteCloser{},
 				Stderr: &bytes.Buffer{},
 			})
@@ -711,6 +705,12 @@ func readLibraryJSON(t *testing.T, path string) map[string]any {
 	var value map[string]any
 	require.NoError(t, json.Unmarshal(readFile(t, path), &value))
 	return value
+}
+
+func mainClientFrames(t *testing.T, fixture *agenttestify.Fixture) string {
+	t.Helper()
+	require.NotNil(t, fixture.Current)
+	return clientFrames(t, filepath.Join(fixture.Current.Path, "raw", "raw.jsonl"))
 }
 
 func clientFrames(t *testing.T, path string) string {

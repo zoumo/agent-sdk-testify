@@ -362,7 +362,7 @@ func TestLibraryProcessMockRejectsEmbeddedFixture(t *testing.T) {
 	indexPath := filepath.Join(fixtureDir, "executions", "index.json")
 	indexBefore := readFile(t, indexPath)
 	executionsBefore := executionDirectoryCount(t, fixtureDir)
-	streams := newLibraryStreams(t, root, libraryMockInput)
+	streams := newLibraryStreams(t, root, mainClientFrames(t, prepared))
 
 	result, err := prepared.MockAgent(t.Context(), agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
@@ -376,7 +376,7 @@ func TestLibraryProcessMockRejectsEmbeddedFixture(t *testing.T) {
 func TestLibraryStartMockAgentDoesNotLeakRunGoroutines(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
 	for range 3 {
-		input := newControlledInput(libraryMockInput)
+		input := newControlledInput(mainClientFrames(t, prepared))
 		run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
 			NativeArgs: []string{"app-server", "--listen", "stdio://"},
 		}, agenttestify.StartMockAgentStreams{

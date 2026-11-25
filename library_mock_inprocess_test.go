@@ -36,7 +36,7 @@ func TestLibraryStartMockAgentFullConsumptionAndReport(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	input := newControlledInput(libraryMockInput)
+	input := newControlledInput(mainClientFrames(t, prepared))
 	output := &testWriteCloser{}
 	var stderr bytes.Buffer
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
@@ -131,7 +131,7 @@ func TestLibraryStartMockAgentFullConsumptionAndReport(t *testing.T) {
 
 func TestLibraryStartMockAgentPostSettleFailureReport(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
-	input := newControlledInput(libraryMockInput)
+	input := newControlledInput(mainClientFrames(t, prepared))
 	var stderr bytes.Buffer
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
@@ -179,12 +179,24 @@ func TestLibraryStartMockAgentFullConsumptionOrdering(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, output.String(), "protocol output must not precede the start snapshot")
 
-	lines := strings.SplitAfter(libraryMockInput, "\n")
-	lines = slices.DeleteFunc(lines, func(line string) bool { return line == "" })
-	require.Len(t, lines, 5)
+	frames := mainClientFrames(t, prepared)
+	requests := strings.SplitAfter(frames, "\n")
+	var turns []int
+	for i, line := range requests[:len(requests)-1] {
+		var request struct {
+			Method string `json:"method"`
+		}
+		require.NoError(t, json.Unmarshal([]byte(line), &request))
+		if request.Method == "turn/start" {
+			turns = append(turns, i)
+		}
+	}
+	require.Len(t, turns, 2)
+	beforeSecondTurn := strings.Join(requests[:turns[1]], "")
+	fromSecondTurn := strings.Join(requests[turns[1]:], "")
 	prefixDone := make(chan error, 1)
 	go func() {
-		_, writeErr := client.Write([]byte(strings.Join(lines[:len(lines)-1], "")))
+		_, writeErr := client.Write([]byte(beforeSecondTurn))
 		prefixDone <- writeErr
 	}()
 	require.NoError(t, <-prefixDone)
@@ -197,7 +209,7 @@ func TestLibraryStartMockAgentFullConsumptionOrdering(t *testing.T) {
 	default:
 	}
 
-	_, err = client.Write([]byte(lines[len(lines)-1]))
+	_, err = client.Write([]byte(fromSecondTurn))
 	require.NoError(t, err)
 	select {
 	case <-run.FullConsumption():
@@ -219,7 +231,7 @@ func TestLibraryStartMockAgentFullConsumptionOrdering(t *testing.T) {
 
 func TestLibraryStartMockAgentFullConsumptionPrecedesExtraByteFailure(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
-	input := newControlledInput(libraryMockInput + "unexpected\n")
+	input := newControlledInput(mainClientFrames(t, prepared) + "unexpected\n")
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 	}, agenttestify.StartMockAgentStreams{
@@ -449,7 +461,7 @@ func TestLibraryStartMockAgentFailureClasses(t *testing.T) {
 	t.Run("short write", func(t *testing.T) {
 		prepared := prepareStartMockFixture(t, "SDK-CASE-001")
 		run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{}, agenttestify.StartMockAgentStreams{
-			Reader: newControlledInput(libraryMockInput),
+			Reader: newControlledInput(mainClientFrames(t, prepared)),
 			Writer: &shortWriteCloser{},
 			Stderr: &bytes.Buffer{},
 		})
@@ -463,7 +475,7 @@ func TestLibraryStartMockAgentFailureClasses(t *testing.T) {
 
 	t.Run("cleanup", func(t *testing.T) {
 		prepared := prepareStartMockFixture(t, "SDK-CASE-001")
-		input := newControlledInput(libraryMockInput)
+		input := newControlledInput(mainClientFrames(t, prepared))
 		output := &testWriteCloser{closeErr: errors.New("synthetic close failure")}
 		run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{}, agenttestify.StartMockAgentStreams{
 			Reader: input,
@@ -653,7 +665,7 @@ func TestLibraryStartMockAgentAbortAndCancellation(t *testing.T) {
 
 func TestLibraryStartMockAgentAbortDuringFinalizeFails(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
-	input := newControlledInput(libraryMockInput)
+	input := newControlledInput(mainClientFrames(t, prepared))
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{}, agenttestify.StartMockAgentStreams{
 		Reader: input,
 		Writer: &testWriteCloser{},
@@ -706,7 +718,7 @@ func TestLibraryStartMockAgentAbortDuringFinalizeFails(t *testing.T) {
 
 func TestLibraryStartMockAgentWaitIsRepeatableAndConcurrent(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
-	input := newControlledInput(libraryMockInput)
+	input := newControlledInput(mainClientFrames(t, prepared))
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 	}, agenttestify.StartMockAgentStreams{
@@ -787,7 +799,7 @@ func TestLibraryStartMockAgentDoesNotJoinOpenExecution(t *testing.T) {
 
 func TestLibraryStartMockAgentExecutionStartIsDefensiveCopy(t *testing.T) {
 	prepared := prepareStartMockFixture(t, "SDK-CASE-001")
-	input := newControlledInput(libraryMockInput)
+	input := newControlledInput(mainClientFrames(t, prepared))
 	run, err := prepared.StartMockAgent(t.Context(), agenttestify.MockAgentOptions{
 		NativeArgs: []string{"app-server", "--listen", "stdio://"},
 	}, agenttestify.StartMockAgentStreams{
