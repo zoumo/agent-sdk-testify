@@ -73,8 +73,10 @@ func TestPrepareNativeBackgroundChildGateIsScoped(t *testing.T) {
 			require.NoError(t, os.WriteFile(cli, []byte("#!/bin/sh\nprintf 'codex-cli test\\n'\n"), 0o700))
 			configPath := filepath.Join(root, "config", "config.toml")
 			require.NoError(t, tool.WriteFiles(root, tool.Object{"config/config.toml": "model = \"synthetic-model\"\n"}))
-			plan := tool.Object{"provider": "codex", "caseId": tc.id, "driverProfile": tc.profile,
-				"project": project, "scenario": tool.Object{"parameters": tool.Object{"childTools": "inherited-dynamic-v2"}}}
+			plan := tool.Object{
+				"provider": "codex", "caseId": tc.id, "driverProfile": tc.profile,
+				"project": project, "scenario": tool.Object{"parameters": tool.Object{"childTools": "inherited-dynamic-v2"}},
+			}
 			require.NoError(t, PrepareNative(context.Background(), &Options{CLI: cli}, plan, root))
 			var config tool.Object
 			data, err := os.ReadFile(configPath)
