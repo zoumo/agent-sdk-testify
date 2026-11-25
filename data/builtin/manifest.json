@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "d152f7c8862bcadfb2d1a91cedbcd828fe102361",
+  "sourceRevision": "3315db0bd69763fbeab59ddd0df97d9166be9190",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "99585d8e5848f3b48f2b3bf9d21b45a6dadad2440b9396e8482efce75b9b30b9",
+  "indexSHA256": "d8abe2f5e7a9b7dd5bfdfbd1b3307bacdd7e963150ec27ce44c7cf20380c5012",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -15,12 +15,12 @@
     "bindings.schema.json": "20a63e0d651dc0e6da77a47fa529da16e4a36285b6ae61110cdeffd4766f91c6",
     "bindings/claude.json": "fb007ec99f9eac0135c1b157f4e17a969b3697d57abd70cad3e4d74bde8d07d0",
     "bindings/codex.json": "d2f5cfe33b5a2b2ae119dce3564a88d4de951c4b8d7ee3952780febef9bc1b34",
-    "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8",
+    "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db",
     "index.json": "b37c77de991ac96c93fa8bcda5a823eae8d735f14a7b30716aed2c674c7ff698",
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
   },
-  "archiveSHA256": "6060e54e7aa43a60772b1c8832359d0fbacfd31e7b05bd832eaae5567352c103",
+  "archiveSHA256": "965b9242aefc7f796160026e2e427b32e4036d10ed053a1511036234ada8d090",
   "coverage": [
     {
       "adoption": "admitted",
@@ -2025,15 +2025,24 @@
       "verificationReason": "Pi RPC 的 set_thinking_level 设置离散等级，无法声明数值预算生效。"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "ad49d9fb52f8931325279d7713873aa3c73594311bbc39ddd2b482309c9f22ab",
+      "available": true,
       "caseId": "SDK-CASE-027",
-      "missingReason": "已配置的 DeepSeek 和 GLM 路由只公布 max。请求 high 后 Pi 仍读回 max。",
+      "materialSHA256": "575279fd59de809fc4529ab568525bdb06f5c6826baa0c7bd4fff4566f887ff7",
+      "materials": "pi/SDK-US-006/SDK-CASE-027/33b2c11c164b9caeece27d12",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:56:48.45457Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "已配置的 DeepSeek 和 GLM 路由只公布 max。请求 high 后 Pi 仍读回 max。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -10712,7 +10721,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -10818,7 +10827,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -10922,7 +10931,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -11026,7 +11035,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "client": "native-stdio",
@@ -11156,7 +11165,7 @@
       },
       "contracts": {
         "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "client": "native-stdio",
@@ -11283,7 +11292,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -11388,7 +11397,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -11498,7 +11507,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -11606,7 +11615,7 @@
       },
       "contracts": {
         "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -11692,6 +11701,119 @@
     },
     {
       "provider": "pi",
+      "caseId": "SDK-CASE-027",
+      "storyId": "SDK-US-006",
+      "attempt": "33b2c11c164b9caeece27d12",
+      "path": "pi/SDK-US-006/SDK-CASE-027/33b2c11c164b9caeece27d12",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-027-real-fixture-runtime-executions-58ae30ad9b3ea0915fd65c44e016f50d-workspace--/2026-11-25T14-56-45-705Z_01a21335-8a88-775d-a434-e3c0798b0d0b.jsonl": "b427b5422ec3e85b6a9f9fbbc2c92fc5c53c44e3bf707239abc5473853165f84",
+        "manifest.json": "aee15923a58c776ecda16314309a0afa1179a8d285fa6132af2ac2f9277314b8",
+        "material.json": "575279fd59de809fc4529ab568525bdb06f5c6826baa0c7bd4fff4566f887ff7",
+        "official-origin.json": "454f35012e1dd438f76a8b425224aa1b45f5b2f46f5b77f4d0570c0e3c72ecb7",
+        "origin/main.json": "3039478f8940af40628ed53d52bee84770e87e4b5655c98f4cb18c9c217fa6d4",
+        "plan.json": "5e44254257114199a538001e8de0cfd59c61321792de8f02ebd7b10f878e7a15",
+        "raw/manifest.json": "0844b4c5db3dc3b7780b4b25272342d79a70913af3bd06f780e10ccf1ebc2d52",
+        "raw/raw.jsonl": "f2c77a2cccc0b9c5c025ab44e204a91840e082e98288df20681d0481f8bead8c",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "4692a2dd69ab15c488c203e863372f479a25c9caca481bc383145b8bff36bae9",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "24b02facf8c5f82053c65366ce10ca7f99e9361ae1df3c9fe996ab9453a31720"
+      },
+      "contracts": {
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:56:48.45457Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017",
+          "--thinking",
+          "low"
+        ],
+        "case": {
+          "id": "SDK-CASE-027",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态",
+            "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
+          ],
+          "scope": "创建时显式选择原生 effort A，首次结果后先读取原生 applied 状态，再请求修改为不同 effort B 并提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+          "storyId": "SDK-US-006"
+        },
+        "caseId": "SDK-CASE-027",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "structured-input",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21335-8a88-775d-a434-e3c0798b0d0b",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/027-real/fixture/runtime/executions/58ae30ad9b3ea0915fd65c44e016f50d/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-027-real-fixture-runtime-executions-58ae30ad9b3ea0915fd65c44e016f50d-workspace--/2026-11-25T14-56-45-705Z_01a21335-8a88-775d-a434-e3c0798b0d0b.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-027-real-fixture-runtime-executions-58ae30ad9b3ea0915fd65c44e016f50d-workspace--/2026-11-25T14-56-45-705Z_01a21335-8a88-775d-a434-e3c0798b0d0b.jsonl",
+            "sha256": "b427b5422ec3e85b6a9f9fbbc2c92fc5c53c44e3bf707239abc5473853165f84"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/027-real/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply with the word Ready.",
+          "Reply with the word Done."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-027",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态",
+              "不保证当前执行立即切换，也不从任务文本、耗时或思考 token 数推断 effort"
+            ],
+            "scope": "创建时显式选择原生 effort A，首次结果后先读取原生 applied 状态，再请求修改为不同 effort B 并提交第二次输入；分阶段核对确切原生请求、接受与观察证据，并如实记录生效范围。",
+            "storyId": "SDK-US-006"
+          },
+          "caseId": "SDK-CASE-027",
+          "configuration": {},
+          "driverProfile": "structured-input",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "configurationTiming": "between-inputs",
+            "effort": "low",
+            "setting": "effort",
+            "targetEffort": "high"
+          },
+          "prompts": [
+            "Reply with the word Ready.",
+            "Reply with the word Done."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-006"
+        },
+        "sourcePlanSHA256": "24b02facf8c5f82053c65366ce10ca7f99e9361ae1df3c9fe996ab9453a31720",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-006",
+        "storyId": "SDK-US-006"
+      }
+    },
+    {
+      "provider": "pi",
       "caseId": "SDK-CASE-030",
       "storyId": "SDK-US-007",
       "attempt": "b4a9b2efed66accc7d7d722d",
@@ -11712,7 +11834,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -11814,7 +11936,7 @@
       },
       "contracts": {
         "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -11916,7 +12038,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -12020,7 +12142,7 @@
       },
       "contracts": {
         "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "package": "@earendil-works/pi-coding-agent",
@@ -12126,7 +12248,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "client": "native-stdio",
@@ -12249,7 +12371,7 @@
       },
       "contracts": {
         "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
-        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+        "bindings/pi.json": "d872f601f7aff3ebe2161392546001b7f3fd29108847d715c6b3c8f2aa0172db"
       },
       "officialSDK": {
         "client": "native-stdio",
