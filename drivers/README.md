@@ -13,7 +13,7 @@ driver 通过官方 SDK 执行一个 case 并给出业务断言；Go 工具负�
 | --- | --- |
 | `codex/official/` | Codex 官方 SDK driver |
 | `claude/typescript/` | Claude 官方 TypeScript SDK driver |
-| `pi/official/` | Pi 官方 TypeScript RpcClient driver（SDK-CASE-001） |
+| `pi/official/` | Pi 官方 TypeScript RpcClient driver |
 | `common/` | 场景、原生输入和共享材料读取 |
 | `tests/` | Codex driver 和公开协议命令的离线测试 |
 | `pyproject.toml` | Codex 和 Pi wheel 定义及命令入口 |
@@ -101,9 +101,11 @@ Pi 1.6.0 SDK，将 Node.js 加入 PATH。
 npm install --prefix /absolute/codex-driver @earendil-works/pi-coding-agent@1.6.0
 ```
 
-Pi 的 SDK-CASE-001 使用官方 TypeScript RpcClient。录制时用 `--cmd` 指定
-Pi 1.6.0 CLI，在 `--` 后传入 `--mode rpc`。prepare 的 `--model` 接受
-`provider/model`。离线验证通过同一个 RpcClient 连接 Testify mock。
+录制时用 `--cmd` 指定 Pi 1.6.0 CLI，在 `--` 后传入 `--mode rpc`。
+`prepare` 的 `--model` 接受 `provider/model`。模型切换用例需要另外指定不同的
+`--initial-model`。离线验证通过同一个 RpcClient 连接 Testify mock。
+独立历史用例使用 Pi 的 `SessionManager` 读取本次录制保存的原生会话文件。
+[Pi 用例绑定](../data/scenarios/bindings/pi.json)
 
 ## 按 case 录制
 
