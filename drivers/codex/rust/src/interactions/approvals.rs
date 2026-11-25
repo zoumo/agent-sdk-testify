@@ -590,6 +590,7 @@ fn check_turn(root: &str, root_turn: &str, thread: &str, turn: &str) -> Result<(
 
 fn allowed_command(command: &str) -> bool {
     command == COMMAND
+        || command == format!("/bin/zsh -c '{COMMAND}'")
         || command == format!("/bin/zsh -lc '{COMMAND}'")
         || command == format!("/bin/bash -lc '{COMMAND}'")
 }
@@ -694,4 +695,19 @@ fn check_tool_result(
         _ => bail!("unexpected native tool result"),
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::allowed_command;
+
+    #[test]
+    fn permits_exact_native_non_login_shell_command() {
+        assert!(allowed_command("/bin/zsh -c 'printf SYNTHETIC_COMMAND'"));
+        assert!(allowed_command("/bin/zsh -lc 'printf SYNTHETIC_COMMAND'"));
+        assert!(!allowed_command(
+            "/bin/zsh -c 'printf SYNTHETIC_COMMAND; printf EXTRA'"
+        ));
+        assert!(!allowed_command("/bin/zsh -c 'printf OTHER'"));
+    }
 }
