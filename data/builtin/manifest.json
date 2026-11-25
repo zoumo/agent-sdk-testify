@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "6bc3ea1c71d61d4a5f6aef4ec1533b8383790bc0",
+  "sourceRevision": "d152f7c8862bcadfb2d1a91cedbcd828fe102361",
   "scope": "local technical candidates; public release not authorized",
-  "indexSHA256": "da9d16f97859d7335e54b3ec3d7db288cb10376d4c0cc68036fce801f318433e",
+  "indexSHA256": "99585d8e5848f3b48f2b3bf9d21b45a6dadad2440b9396e8482efce75b9b30b9",
   "catalog": {
     "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
     "SDK-US-002.json": "29a04ff4ef2a6d38c33a0d2e8dc72183e72da177afda0d77c1e6aa17e85d6b30",
@@ -20,7 +20,7 @@
     "index.schema.json": "50dbe38d89a79bbd6e72cee235a3afec4c7720b4783cb374fa96f8b2463916af",
     "scenario.schema.json": "95f3973752b157819e6fecd286a5faccfe4d476381c1dc9dc1611f9b211c4c0c"
   },
-  "archiveSHA256": "a75c5d76a71cfe2976488cf6256fb059ae841ab2323b33aec0ecc09ffb8b9dce",
+  "archiveSHA256": "6060e54e7aa43a60772b1c8832359d0fbacfd31e7b05bd832eaae5567352c103",
   "coverage": [
     {
       "adoption": "admitted",
@@ -1652,26 +1652,44 @@
       "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "b09f876e58cbae0c6312ac8700df5946b15339d5dd355c4e596dcfdb1a6f0d28",
+      "available": true,
       "caseId": "SDK-CASE-001",
-      "missingReason": "Pi 官方 driver 已提供此路径，尚未采纳原生录制。",
+      "materialSHA256": "4586a6440dd71d3376396d55acb7d82d5984fa7de13d0621d15b69bab83911f6",
+      "materials": "pi/SDK-US-001/SDK-CASE-001/16dc121daeb0d80d04c843a7",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:39:13.304029Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "Pi 官方 driver 已提供此路径，尚未采纳原生录制。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "fcf6573de617814fc7ca5dfbda5feb59bf33658bccb763468063a831bf60498d",
+      "available": true,
       "caseId": "SDK-CASE-002",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "91cb4ccda241cb3aa8092ceb45b8406c28a435719e9821c984fcaf50ec04663e",
+      "materials": "pi/SDK-US-001/SDK-CASE-002/01ec3806f0afc8afc6b48f49",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:29.387393Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1696,26 +1714,35 @@
       "verificationReason": "该用例要求原生图片和文档块。Pi RPC 1.6 缺少原生文档输入。"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "d714fcb2c96c23ee15a971cc91a4c4ed4cab9804010c21ba82374466c54f337b",
+      "available": true,
       "caseId": "SDK-CASE-005",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "27511544ac4edc9267dfd729540e7489cb923d54118515c0cb8112e3dd5576b5",
+      "materials": "pi/SDK-US-001/SDK-CASE-005/d17f631d68a45e2d12e8af01",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:32.323688Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-006",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "missingReason": "Pi 1.6.0 和 DeepSeek 的录制未观察到包含规定末尾换行的写入参数。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-002",
       "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verificationReason": "Pi 1.6.0 和 DeepSeek 的录制未观察到包含规定末尾换行的写入参数。"
     },
     {
       "adoption": "missing",
@@ -1784,26 +1811,50 @@
       "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "89a8f4435c44aae937ccb7e925017f2a3cd5b911aee58d451f96106657fab895",
+      "available": true,
       "caseId": "SDK-CASE-013",
-      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
+      "materialSHA256": "8b2fffa8ed4fd362f1b76ab76b1e72159c876f43c8eb3ee0934f078cf9c63da6",
+      "materials": "pi/SDK-US-004/SDK-CASE-013/e3734558dba464ef6c886d12",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:08.31498Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-004",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "8ece7ea5781cb3ec72d28aa388f31c05f38069ed2be4eef9d92c6d28eb4560b5",
+      "available": true,
       "caseId": "SDK-CASE-014",
-      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
+      "materialSHA256": "40e913eb6e946d3cc158cbed2660e6745aa8e2d92d46c7b8bb6a2e5bec2ff3d6",
+      "materials": "pi/SDK-US-004/SDK-CASE-014/8ee11f36c044929df9543b1f",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:09.891928Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-004",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1872,48 +1923,84 @@
       "verificationReason": "Pi 默认运行时缺少子 Agent 详情策略协议。"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "d33a96288ed93c15596c7a76c20f1e24f505a5ce987309795e69b16916cb152c",
+      "available": true,
       "caseId": "SDK-CASE-021",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "1f4e05d7b489b709257e545f0a0ac7d7712d263ce38c3e9b8b1d3aa9693ca746",
+      "materials": "pi/SDK-US-006/SDK-CASE-021/92e9a564f869b9b6b3840bbd",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:34.804914Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "603e06b9ee9c86cba1e687d211a9f0b47e06662c4a3e0d1a639fdd79636dea54",
+      "available": true,
       "caseId": "SDK-CASE-022",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "37a4eee20acd765dfb8835cd379daadad51daf0a095127594b83b03ad341576c",
+      "materials": "pi/SDK-US-006/SDK-CASE-022/651f370a9fc2ab8d4bd24f2f",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:51:36.172335Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "707f51567e20a176e4b622dd4727a1b8609a66c9091470168ccdabe759cb05ec",
+      "available": true,
       "caseId": "SDK-CASE-023",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "add90cfab5c22684c435270f424db11dd564f03db2a3eb617a1cb0beda5de7f6",
+      "materials": "pi/SDK-US-006/SDK-CASE-023/e4545f981c016683c020fb02",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:21.845089Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "e4869b94b83e080b06a25da8b3bf185dcdf12093cfe3a3c4498b9fe25345fa02",
+      "available": true,
       "caseId": "SDK-CASE-024",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "5778de2f194a72655d56454f5683fb06a0be0d57636fd31d22ff2d8f6446ac28",
+      "materials": "pi/SDK-US-006/SDK-CASE-024/75b8d6291abdb47d5dc6f279",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:23.359798Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1941,12 +2028,12 @@
       "adoption": "missing",
       "available": false,
       "caseId": "SDK-CASE-027",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "missingReason": "已配置的 DeepSeek 和 GLM 路由只公布 max。请求 high 后 Pi 仍读回 max。",
       "provider": "pi",
       "requirement": "required",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verificationReason": "已配置的 DeepSeek 和 GLM 路由只公布 max。请求 high 后 Pi 仍读回 max。"
     },
     {
       "adoption": "missing",
@@ -1971,26 +2058,44 @@
       "verificationReason": "Pi 默认运行时缺少可核对配置继承关系的子 Agent。"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "7302c836df503381a8a391696a813a67c664ca832f3eff29f93f9c898300119c",
+      "available": true,
       "caseId": "SDK-CASE-030",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "f6098247e24a4a82d8de3aefd03fc767bfe76a4ff7bd380002661cb1aa0b53c0",
+      "materials": "pi/SDK-US-007/SDK-CASE-030/b4a9b2efed66accc7d7d722d",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:36.472046Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-007",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "2cbbdbcf432616ae7027176492793a9ce3e5e1a1a8f4153ecc2c33b5c859e967",
+      "available": true,
       "caseId": "SDK-CASE-031",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "217dbb756387e411e14b8ed0fb0d2709e66bf78f1fb0fac9fad695a200cf2f44",
+      "materials": "pi/SDK-US-007/SDK-CASE-031/52defbda84888d9bfd6bd066",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:38.807919Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-007",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -2004,15 +2109,24 @@
       "verificationReason": "Pi 1.6 RPC 采用本地进程 stdio，缺少独立远端连接。"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "5a315e1ac6344bfed0c41d5d1f29d3459831d73016fa7b76667b45ae9b23b96f",
+      "available": true,
       "caseId": "SDK-CASE-033",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "b416184e62efdb0abc335095ae4111a99d4f960ad2fe3f3de653d7e30e432ade",
+      "materials": "pi/SDK-US-008/SDK-CASE-033/a3024f11edf15be3106334c7",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:40.630145Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-008",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -2037,37 +2151,70 @@
       "verificationReason": "Pi 默认运行时缺少可供晚加入观察者发现的子 Agent。"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "6c0e28d91c47faf9eb35601da42a770d29ef6c96455193146020bfd3ccac5a9e",
+      "available": true,
       "caseId": "SDK-CASE-036",
-      "missingReason": "尚无经审核采用的 Pi 1.6.0 录制材料。",
+      "materialSHA256": "a02a81f22482c373ec823bb19a56f8189968c130f29a089a1ab950a418b93d24",
+      "materials": "pi/SDK-US-008/SDK-CASE-036/d1f239e3fb1221b9a29f1980",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:25.027435Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-008",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "a169e23a2afc872b8e6a4daecd3a8c86e4c5ca7f1562ec74a0fc8ef137e46d59",
+      "available": true,
       "caseId": "SDK-CASE-037",
-      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
+      "materialSHA256": "98dc711b8176db36548f5a0e538bb8839d88ab733ada789c5462a7f7a0ff751b",
+      "materials": "pi/SDK-US-001/SDK-CASE-037/7d838ec4f320d43554e53f34",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:11.116632Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
-      "available": false,
+      "adoption": "admitted",
+      "adoptionSHA256": "1764fb94eba3c66a3afb6d4dd440987950b9caf50309d16650098c9ee50bf5f9",
+      "available": true,
       "caseId": "SDK-CASE-038",
-      "missingReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。",
+      "materialSHA256": "c41900411ccc5115bc69172715df5b4641e26d4693ed3d30042f492d3214ccad",
+      "materials": "pi/SDK-US-001/SDK-CASE-038/71b0798e3b966412f72ce218",
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:12.303208Z"
+      },
       "requirement": "optional",
       "storyId": "SDK-US-001",
-      "verification": "unverified",
-      "verificationReason": "Pi 扩展 driver 已提供此路径，尚未采用原生录制。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -10541,6 +10688,1666 @@
         "stdinEOFAction": "close",
         "story": "SDK-US-004",
         "storyId": "SDK-US-004"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-001",
+      "storyId": "SDK-US-001",
+      "attempt": "16dc121daeb0d80d04c843a7",
+      "path": "pi/SDK-US-001/SDK-CASE-001/16dc121daeb0d80d04c843a7",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-01-fresh-runtime-executions-91c491ae3581159a6f69a1a841dcda14-workspace--/2026-11-25T14-35-42-043Z_01a21322-4258-73bd-8f85-d748d7d285cc.jsonl": "548bf4cc31b6223d7a440ea3fceb2518b1432742d71ebacb42f1ad25a881b42c",
+        "manifest.json": "cc305f7117ca3ac274479dabff32fcdd42e47cf9ffd5d09b1531ccab7a59a63b",
+        "material.json": "4586a6440dd71d3376396d55acb7d82d5984fa7de13d0621d15b69bab83911f6",
+        "official-origin.json": "6189176bc0c6b96f280f960f4c9b7958b3e962afb66332b6d8caff06e5b4b9f0",
+        "origin/main.json": "a66206fead1fb0c25e94297a2a5b7808b25a8d83725171bafcf26f672af03f4a",
+        "plan.json": "b4551ffff3155c5539c22bffd2fb2f9d8773648995cdc8e1d4360ac1a2dcdca9",
+        "raw/manifest.json": "7d44db65d21e4bde7a07a7e438a7ef78453b7834f632e363b4481370b1516682",
+        "raw/raw.jsonl": "54cdb1743b3af249e52f24e478bff839e6422e91905c25f9985d5abf7274bfd4",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "9fe1c20ae6a5dff262e5a0bdf682d4651d2d4c84298b389ab2cde9e580031804",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "7266d4fddb5da917be46a88e85032f026e61d6d7e3239134951c5368f2bab242"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:39:13.304029Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-001",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "连续提交文本输入并在结果后继续观察。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-001",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "continuation",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21322-4258-73bd-8f85-d748d7d285cc",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/01/fresh/runtime/executions/91c491ae3581159a6f69a1a841dcda14/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-01-fresh-runtime-executions-91c491ae3581159a6f69a1a841dcda14-workspace--/2026-11-25T14-35-42-043Z_01a21322-4258-73bd-8f85-d748d7d285cc.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-01-fresh-runtime-executions-91c491ae3581159a6f69a1a841dcda14-workspace--/2026-11-25T14-35-42-043Z_01a21322-4258-73bd-8f85-d748d7d285cc.jsonl",
+            "sha256": "548bf4cc31b6223d7a440ea3fceb2518b1432742d71ebacb42f1ad25a881b42c"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/01/fresh/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply with the word Ready.",
+          "Reply with the word Done."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-001",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "连续提交文本输入并在结果后继续观察。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-001",
+          "configuration": {},
+          "driverProfile": "continuation",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "requireSessionContinuation": true
+          },
+          "prompts": [
+            "Reply with the word Ready.",
+            "Reply with the word Done."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "7266d4fddb5da917be46a88e85032f026e61d6d7e3239134951c5368f2bab242",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-002",
+      "storyId": "SDK-US-001",
+      "attempt": "01ec3806f0afc8afc6b48f49",
+      "path": "pi/SDK-US-001/SDK-CASE-002/01ec3806f0afc8afc6b48f49",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-002-real-fixture-runtime-executions-486760d93805550c36e249c528c90848-workspace--/2026-11-25T14-39-38-579Z_01a21325-de52-7759-ab4b-0d69b8202b1a.jsonl": "f28739289b320ac277b42b0cfb0bee618595d740109c5c2f874f27c8ef80a0d1",
+        "manifest.json": "d1bd8750e0e3a75f8e89be1007ff91b7b8b12ef3dd0f201876437aa90e5d9565",
+        "material.json": "91cb4ccda241cb3aa8092ceb45b8406c28a435719e9821c984fcaf50ec04663e",
+        "official-origin.json": "dda87562637ce2d8b207cbc91ea7d89f3f938144c3bc318aa7a871ad264a6c7d",
+        "origin/main.json": "00f7336f2ba4a3bbd0ea42db75bf28168790f9fdbfb6faafd464447361699490",
+        "plan.json": "7c4516a6605985b795929f5d856ef3b9ea0c4e9d7f5c02f0d82c8309ecacfd6d",
+        "raw/manifest.json": "5e9249531e3add8f2b7ebfd6f0cae57b7a29d72d0849d42fa1781daa3522bfc0",
+        "raw/raw.jsonl": "d8d56443aa1bedf4af7bea5e6b44d3ad5fa189172b52f47a8a196ae6e78e6219",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "3edc590f0bd58767f92e80f98fa31284c169f8e8ea2581f77d89f70ce6127122",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "60b45546c662940e664904daa5a68d7800362ba2cbed6584f245571d5bafc9f4"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:29.387393Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-002",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "提交图片并读取结果。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-002",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "structured-input",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21325-de52-7759-ab4b-0d69b8202b1a",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/002-real/fixture/runtime/executions/486760d93805550c36e249c528c90848/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-002-real-fixture-runtime-executions-486760d93805550c36e249c528c90848-workspace--/2026-11-25T14-39-38-579Z_01a21325-de52-7759-ab4b-0d69b8202b1a.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-002-real-fixture-runtime-executions-486760d93805550c36e249c528c90848-workspace--/2026-11-25T14-39-38-579Z_01a21325-de52-7759-ab4b-0d69b8202b1a.jsonl",
+            "sha256": "f28739289b320ac277b42b0cfb0bee618595d740109c5c2f874f27c8ef80a0d1"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/002-real/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply with only the dominant color name of the supplied image. Do not use tools."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-002",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "提交图片并读取结果。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-002",
+          "configuration": {},
+          "driverProfile": "structured-input",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "inputKind": "image"
+          },
+          "prompts": [
+            "Reply with only the dominant color name of the supplied image. Do not use tools."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "60b45546c662940e664904daa5a68d7800362ba2cbed6584f245571d5bafc9f4",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-005",
+      "storyId": "SDK-US-001",
+      "attempt": "d17f631d68a45e2d12e8af01",
+      "path": "pi/SDK-US-001/SDK-CASE-005/d17f631d68a45e2d12e8af01",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-005-real-fixture-runtime-executions-a510b8a0cd771a58207b35c856c419b5-workspace--/2026-11-25T14-39-38-891Z_01a21325-df8a-761e-b798-0a6c164c709c.jsonl": "727b836a21e793c13dbe0c028b5728f9373d51b6ca65ee991ca46e39afbea7f1",
+        "manifest.json": "32c7908e1a6f917c7cd2835bbfad3af8f471350ff33a948a5054cae814caac13",
+        "material.json": "27511544ac4edc9267dfd729540e7489cb923d54118515c0cb8112e3dd5576b5",
+        "official-origin.json": "93e887f5a961af333571fa2ed751f83dcba014f59f7e0d622455d9acd1ae451e",
+        "origin/main.json": "48f443afd614afdea8488080b67e6d6b518bdcc0b922ae8fdc12fbab844ef87a",
+        "plan.json": "5dc8274425bd8b45816cd0d60055935635884a670cf8bc683df487b3dfaa6d98",
+        "raw/manifest.json": "bb134a353e387ac7dcb91792dcca2653bf0b68defda356bf4fd895ff90166f67",
+        "raw/raw.jsonl": "d9fce11ee15e37a8e382342f59eca2dae5640a6ad1b9101af369e5f3f374859a",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "4abf83e70ef8efab25ebc5d7740f925c847a75b8c3d3adb5b68d7aca953c2b97",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "3b4df4e46961e654f831b0768b8a3f86af06636e791135b3f5b11404655b8c4d"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:32.323688Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-005",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "执行中追加输入并保留原生调度结果。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-005",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "active-input",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21325-df8a-761e-b798-0a6c164c709c",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/005-real/fixture/runtime/executions/a510b8a0cd771a58207b35c856c419b5/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-005-real-fixture-runtime-executions-a510b8a0cd771a58207b35c856c419b5-workspace--/2026-11-25T14-39-38-891Z_01a21325-df8a-761e-b798-0a6c164c709c.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-005-real-fixture-runtime-executions-a510b8a0cd771a58207b35c856c419b5-workspace--/2026-11-25T14-39-38-891Z_01a21325-df8a-761e-b798-0a6c164c709c.jsonl",
+            "sha256": "727b836a21e793c13dbe0c028b5728f9373d51b6ca65ee991ca46e39afbea7f1"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/005-real/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Produce a numbered list from one to twenty.",
+          "Also include the word sample."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-005",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "执行中追加输入并保留原生调度结果。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-005",
+          "configuration": {},
+          "driverProfile": "active-input",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {},
+          "prompts": [
+            "Produce a numbered list from one to twenty.",
+            "Also include the word sample."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "3b4df4e46961e654f831b0768b8a3f86af06636e791135b3f5b11404655b8c4d",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-013",
+      "storyId": "SDK-US-004",
+      "attempt": "e3734558dba464ef6c886d12",
+      "path": "pi/SDK-US-004/SDK-CASE-013/e3734558dba464ef6c886d12",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-013-recording-runtime-executions-a1e7a7d9f9a7c0bb25f1e421a61cb8e8-workspace--/2026-11-25T14-38-35-097Z_01a21324-e657-77cd-bb4d-854c4151d929.jsonl": "dffb50653527c65a48c960e89705d1155bc265011c2969b7b08c5e4aad9e4afb",
+        "manifest.json": "964eaa169374df87243f16227c5e184ae1d237eda829f25c238ac159fc7f9cdd",
+        "material.json": "8b2fffa8ed4fd362f1b76ab76b1e72159c876f43c8eb3ee0934f078cf9c63da6",
+        "official-origin.json": "01045a9df1ef92bbcc3b8c85b53e70d083286db5226c0518dd73a87c85d23dc8",
+        "origin/main.json": "0dd251b16c8f1f33559ebae1df87e1c555bf270350672006d5971058b2f98b8c",
+        "plan.json": "9602df022332d3edbc6ef36fe824254a1dbded4f7c4364909424e04a31546396",
+        "raw/manifest.json": "5707172beb9eac9db5d5f5ffd4cc8d8b54df0e38aa45cb8f1259f29235d3c9f1",
+        "raw/raw.jsonl": "314048d71c2c51f85e6c81a4fd6895ef585460ac1fe8c0588a4911b57a84f992",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "23722e5d35960f69ba8a80a9524d30f174b40203654189f5cd4d86295542125b",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "55e2d7dab046bb2139f6a466d376494d5efc27076dd1926fa73fdc874a49627e"
+      },
+      "contracts": {
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:08.31498Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017",
+          "--no-extensions",
+          "--no-skills",
+          "--no-context-files",
+          "--no-prompt-templates",
+          "-e",
+          "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/013/recording/runtime/official/6ddaef43a7f01196a1f7ccaf3d6cd6ea/pi-extension/session.ts"
+        ],
+        "case": {
+          "id": "SDK-CASE-013",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "回答选择题并继续任务。",
+          "storyId": "SDK-US-004"
+        },
+        "caseId": "SDK-CASE-013",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "questions",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21324-e657-77cd-bb4d-854c4151d929",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/013/recording/runtime/executions/a1e7a7d9f9a7c0bb25f1e421a61cb8e8/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-013-recording-runtime-executions-a1e7a7d9f9a7c0bb25f1e421a61cb8e8-workspace--/2026-11-25T14-38-35-097Z_01a21324-e657-77cd-bb4d-854c4151d929.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-013-recording-runtime-executions-a1e7a7d9f9a7c0bb25f1e421a61cb8e8-workspace--/2026-11-25T14-38-35-097Z_01a21324-e657-77cd-bb4d-854c4151d929.jsonl",
+            "sha256": "dffb50653527c65a48c960e89705d1155bc265011c2969b7b08c5e4aad9e4afb"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "piExtension": {
+          "client": "native-stdio",
+          "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+          "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+          "package": "@earendil-works/pi-coding-agent",
+          "version": "1.6.0"
+        },
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/013/recording/runtime/routes/record/workspace",
+        "prompts": [
+          "Use agent_sdk_ask exactly once. Ask Choose a color with choices Red and Green in that order. Wait for the answer, then finish briefly."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {
+            "choice": "Green",
+            "options": [
+              "Red",
+              "Green"
+            ],
+            "question": "Choose a color"
+          },
+          "case": {
+            "id": "SDK-CASE-013",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "回答选择题并继续任务。",
+            "storyId": "SDK-US-004"
+          },
+          "caseId": "SDK-CASE-013",
+          "configuration": {},
+          "driverProfile": "questions",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "freeText": false,
+            "questionCount": 1
+          },
+          "prompts": [
+            "Use agent_sdk_ask exactly once. Ask Choose a color with choices Red and Green in that order. Wait for the answer, then finish briefly."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [
+            "extension_ui_request select"
+          ],
+          "storyId": "SDK-US-004"
+        },
+        "sourcePlanSHA256": "55e2d7dab046bb2139f6a466d376494d5efc27076dd1926fa73fdc874a49627e",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-004",
+        "storyId": "SDK-US-004"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-014",
+      "storyId": "SDK-US-004",
+      "attempt": "8ee11f36c044929df9543b1f",
+      "path": "pi/SDK-US-004/SDK-CASE-014/8ee11f36c044929df9543b1f",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-014-recording-runtime-executions-4b98c1d731a9dd01971d8acceba44251-workspace--/2026-11-25T14-38-35-374Z_01a21324-e76d-7394-95ae-06d92d1b3f53.jsonl": "0d5c87a1028c15727998c467e8c5120dec4b1743918388462daf1b934934b5b9",
+        "manifest.json": "ed3fb64443f13aaaf26730621f9575e63bd4a749befb07563639dfa3121558b3",
+        "material.json": "40e913eb6e946d3cc158cbed2660e6745aa8e2d92d46c7b8bb6a2e5bec2ff3d6",
+        "official-origin.json": "ea601cd925eff3afd9a8f101867e8bacc02f1ffc3071a0a81ab58d76a619650f",
+        "origin/main.json": "41b5d01e1af9ea2f43d914b8edf442ff837c7920b516a630d1fd20fdc5394c3e",
+        "plan.json": "eade82394b16d4262c32fce3d5eff613a6b96bf5ceff02d5b2b7161a412207d1",
+        "raw/manifest.json": "60841031291428b743cf7f77d8fe6bbe111c9eb40a26d6025a198d54e76fd8fb",
+        "raw/raw.jsonl": "b123588c6eacccf44aff606ba8f30af070691f34acf19d13dac2c602705be481",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "1a11049308f12e713ed4c1485c8fd1dce86fa5268e55ac5472a1acf13731512a",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "9bfb1537de9f1b130709e5ff617559d33c6583e86da60aa382d33ede9e3ff7fa"
+      },
+      "contracts": {
+        "SDK-US-004.json": "3a51c38bf37385734db75bdb43c99249a053b0c2b5103bd2476b5097233f5772",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:09.891928Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017",
+          "--no-extensions",
+          "--no-skills",
+          "--no-context-files",
+          "--no-prompt-templates",
+          "-e",
+          "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/014/recording/runtime/official/d1a02ff4bd55e1bf7bc0a06d936a260a/pi-extension/session.ts"
+        ],
+        "case": {
+          "id": "SDK-CASE-014",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "提供自由文本答案并继续任务。",
+          "storyId": "SDK-US-004"
+        },
+        "caseId": "SDK-CASE-014",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "questions",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21324-e76d-7394-95ae-06d92d1b3f53",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/014/recording/runtime/executions/4b98c1d731a9dd01971d8acceba44251/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-014-recording-runtime-executions-4b98c1d731a9dd01971d8acceba44251-workspace--/2026-11-25T14-38-35-374Z_01a21324-e76d-7394-95ae-06d92d1b3f53.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-014-recording-runtime-executions-4b98c1d731a9dd01971d8acceba44251-workspace--/2026-11-25T14-38-35-374Z_01a21324-e76d-7394-95ae-06d92d1b3f53.jsonl",
+            "sha256": "0d5c87a1028c15727998c467e8c5120dec4b1743918388462daf1b934934b5b9"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "piExtension": {
+          "client": "native-stdio",
+          "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+          "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+          "package": "@earendil-works/pi-coding-agent",
+          "version": "1.6.0"
+        },
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/014/recording/runtime/routes/record/workspace",
+        "prompts": [
+          "Use agent_sdk_ask exactly once. Ask Enter a short phrase without choices. Wait for the answer, then finish briefly."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {
+            "choice": "controlled response",
+            "options": [],
+            "question": "Enter a short phrase"
+          },
+          "case": {
+            "id": "SDK-CASE-014",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "提供自由文本答案并继续任务。",
+            "storyId": "SDK-US-004"
+          },
+          "caseId": "SDK-CASE-014",
+          "configuration": {},
+          "driverProfile": "questions",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "freeText": true,
+            "questionCount": 1
+          },
+          "prompts": [
+            "Use agent_sdk_ask exactly once. Ask Enter a short phrase without choices. Wait for the answer, then finish briefly."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [
+            "extension_ui_request input"
+          ],
+          "storyId": "SDK-US-004"
+        },
+        "sourcePlanSHA256": "9bfb1537de9f1b130709e5ff617559d33c6583e86da60aa382d33ede9e3ff7fa",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-004",
+        "storyId": "SDK-US-004"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-021",
+      "storyId": "SDK-US-006",
+      "attempt": "92e9a564f869b9b6b3840bbd",
+      "path": "pi/SDK-US-006/SDK-CASE-021/92e9a564f869b9b6b3840bbd",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-021-real-fixture-runtime-executions-661c0531a28d1da7277cd62796048325-workspace--/2026-11-25T14-39-44-265Z_01a21325-f488-7330-a4b7-d7299c262e0d.jsonl": "6d265f93bcf4d95354229f2ba07cb070d6b2d950dda35f00cada22aeb35d895f",
+        "manifest.json": "99a464327d9a229512f1bee7a686e61e9ce9f6695cff31fbfe0e981cee39ecf9",
+        "material.json": "1f4e05d7b489b709257e545f0a0ac7d7712d263ce38c3e9b8b1d3aa9693ca746",
+        "official-origin.json": "e74604c588360ba3c857627cdbc3d48765c4806e014b774ed9480700cf7104fc",
+        "origin/main.json": "8f1cc80ad67dde75ceec43f854e003540912462c0f90c6cb11fbe11233f0e854",
+        "plan.json": "e63d87acb39a4892f4c60608123261ad1a71358b68f92e930d460beca3d941a2",
+        "raw/manifest.json": "eea55bbb0c789b88f409ba14465ee28ceb2d0bfe88bb04c9f08e1d831cb59591",
+        "raw/raw.jsonl": "4fa39b1b2884bb61c39601a08a5641c55bd268e63bdafc124e4c9c38abcd8d0d",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "61af17d389c93c6d4814b278cf762f430fe77b86a0270fcc9a9d9e81855eb555",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "3fb785ff166b6b9341cdd08802e492f9430d4e1687cab4b9e24c3a20ee52f885"
+      },
+      "contracts": {
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:34.804914Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-021",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "创建会话时选择模型并执行任务。",
+          "storyId": "SDK-US-006"
+        },
+        "caseId": "SDK-CASE-021",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "structured-input",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21325-f488-7330-a4b7-d7299c262e0d",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/021-real/fixture/runtime/executions/661c0531a28d1da7277cd62796048325/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-021-real-fixture-runtime-executions-661c0531a28d1da7277cd62796048325-workspace--/2026-11-25T14-39-44-265Z_01a21325-f488-7330-a4b7-d7299c262e0d.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-021-real-fixture-runtime-executions-661c0531a28d1da7277cd62796048325-workspace--/2026-11-25T14-39-44-265Z_01a21325-f488-7330-a4b7-d7299c262e0d.jsonl",
+            "sha256": "6d265f93bcf4d95354229f2ba07cb070d6b2d950dda35f00cada22aeb35d895f"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/021-real/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Explain in two sentences how addition works."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-021",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "创建会话时选择模型并执行任务。",
+            "storyId": "SDK-US-006"
+          },
+          "caseId": "SDK-CASE-021",
+          "configuration": {},
+          "driverProfile": "structured-input",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "configurationTiming": "creation",
+            "setting": "model"
+          },
+          "prompts": [
+            "Explain in two sentences how addition works."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-006"
+        },
+        "sourcePlanSHA256": "3fb785ff166b6b9341cdd08802e492f9430d4e1687cab4b9e24c3a20ee52f885",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-006",
+        "storyId": "SDK-US-006"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-022",
+      "storyId": "SDK-US-006",
+      "attempt": "651f370a9fc2ab8d4bd24f2f",
+      "path": "pi/SDK-US-006/SDK-CASE-022/651f370a9fc2ab8d4bd24f2f",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-022-fixed-snapshot-fixture-runtime-executions-178dd1363d5e854c2b7fbdcf7d533fdb-workspace--/2026-11-25T14-46-13-822Z_01a2132b-e63d-77b6-850b-f099f333c9f7.jsonl": "35997bd60363c45956276bd429ab27c0a090aec3c3865a94a9f46bec6bbc9e77",
+        "manifest.json": "a68f5821ac36c08da3be3672d340c3c6e723a289e34cb6da3e178b4bd3174588",
+        "material.json": "37a4eee20acd765dfb8835cd379daadad51daf0a095127594b83b03ad341576c",
+        "official-origin.json": "17f12efd28572444a564bb3be5b9764099e8d9df8ad186a05d9f6b53f29e9176",
+        "origin/main.json": "91752f6fe8e94e36ec65a4bb891104571e7a1e65792f6a74dafa5dad590afdcc",
+        "plan.json": "40adbdb1d4dbd6faa7b1716e5b8a3e94cad66ed75944c25e304cc6dab11c4f3d",
+        "raw/manifest.json": "66a9c125bd94e0d5c3c6eb10d2214b0fee2c7e46566841b7c141cccb3f8671b2",
+        "raw/raw.jsonl": "fec2a2d4f363902558743058547d780fcb44cfc1482842c812958ecb55a6b24d",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "7a3eccde73b62be8f1af16a5a5a07188b99a6d720e82ab00869f87954bb3fa75",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "f4d53884a6dda5dbd6f8e92bfb370f7665eaf845eb8a1a3f4441fd8dcadaafe3"
+      },
+      "contracts": {
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:51:36.172335Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-022",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+          "storyId": "SDK-US-006"
+        },
+        "caseId": "SDK-CASE-022",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "configuration-timing",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a2132b-e63d-77b6-850b-f099f333c9f7",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/022-fixed-snapshot/fixture/runtime/executions/178dd1363d5e854c2b7fbdcf7d533fdb/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-022-fixed-snapshot-fixture-runtime-executions-178dd1363d5e854c2b7fbdcf7d533fdb-workspace--/2026-11-25T14-46-13-822Z_01a2132b-e63d-77b6-850b-f099f333c9f7.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-022-fixed-snapshot-fixture-runtime-executions-178dd1363d5e854c2b7fbdcf7d533fdb-workspace--/2026-11-25T14-46-13-822Z_01a2132b-e63d-77b6-850b-f099f333c9f7.jsonl",
+            "sha256": "35997bd60363c45956276bd429ab27c0a090aec3c3865a94a9f46bec6bbc9e77"
+          }
+        ],
+        "initialModel": "magpie/auto/deepseek-v4.1-flash-1017",
+        "model": "magpie/auto/glm-5.3",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/022-fixed-snapshot/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply with the word Ready.",
+          "Reply with the word Done."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-022",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "首次输入前从已知模型 A 请求修改为不同模型 B；分别记录请求、确认、输入顺序与原生观察的生效范围。",
+            "storyId": "SDK-US-006"
+          },
+          "caseId": "SDK-CASE-022",
+          "configuration": {
+            "effectiveValue": "unknown-unless-observed",
+            "modelSource": "session",
+            "thinking": null,
+            "timing": "before-first-input"
+          },
+          "driverProfile": "configuration-timing",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {},
+          "prompts": [
+            "Reply with the word Ready.",
+            "Reply with the word Done."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-006"
+        },
+        "sourcePlanSHA256": "f4d53884a6dda5dbd6f8e92bfb370f7665eaf845eb8a1a3f4441fd8dcadaafe3",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-006",
+        "storyId": "SDK-US-006"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-023",
+      "storyId": "SDK-US-006",
+      "attempt": "e4545f981c016683c020fb02",
+      "path": "pi/SDK-US-006/SDK-CASE-023/e4545f981c016683c020fb02",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-023-fixed-snapshot-fixture-runtime-executions-9287f1b854a616e56eeb2d871d5a4291-workspace--/2026-11-25T14-46-17-077Z_01a2132b-f2f4-719b-8047-fed634aeeb69.jsonl": "cd68f4f8db6d02d871fb3efd1d26a8f8e42ed8d388d216597dabc3923e570ca8",
+        "manifest.json": "246a1a976b772eeed4e21af29f8e2e8736b1bc6af0b37c6bdd1a3531e6e48a84",
+        "material.json": "add90cfab5c22684c435270f424db11dd564f03db2a3eb617a1cb0beda5de7f6",
+        "official-origin.json": "e3dd9b313fcfe52cddec6ee32f9847d01be8b187af9a9cb165290421c236e44c",
+        "origin/main.json": "fc86380982961f7191f5389797dbb635c80fa7c25d3f8a69c23e9072302b8764",
+        "plan.json": "307058dcda08cdd3440d6c29e7c5bac141e878d37e96fe191eb8714c00bf4bf5",
+        "raw/manifest.json": "d5bd24838796136c5a22018fad1c8a2870503a95b0283abdfda36b284f2030a7",
+        "raw/raw.jsonl": "a8c4d48dc7429c96b291651859c19448d8fc6b7ccd57ec4f9e5554246aa841e2",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "8aa318c04d422bf8861411accd3eb2dc87d2b12779a8aababf92a27ac8a2cd5f",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "23df6fcf4bfc3aebd40f8057d689ea449522d684e2d2df0889c06c99126d31fc"
+      },
+      "contracts": {
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:21.845089Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-023",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+          "storyId": "SDK-US-006"
+        },
+        "caseId": "SDK-CASE-023",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "structured-input",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a2132b-f2f4-719b-8047-fed634aeeb69",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/023-fixed-snapshot/fixture/runtime/executions/9287f1b854a616e56eeb2d871d5a4291/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-023-fixed-snapshot-fixture-runtime-executions-9287f1b854a616e56eeb2d871d5a4291-workspace--/2026-11-25T14-46-17-077Z_01a2132b-f2f4-719b-8047-fed634aeeb69.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-023-fixed-snapshot-fixture-runtime-executions-9287f1b854a616e56eeb2d871d5a4291-workspace--/2026-11-25T14-46-17-077Z_01a2132b-f2f4-719b-8047-fed634aeeb69.jsonl",
+            "sha256": "cd68f4f8db6d02d871fb3efd1d26a8f8e42ed8d388d216597dabc3923e570ca8"
+          }
+        ],
+        "initialModel": "magpie/auto/deepseek-v4.1-flash-1017",
+        "model": "magpie/auto/glm-5.3",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/023-fixed-snapshot/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply Ready.",
+          "Reply Done."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-023",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+            "storyId": "SDK-US-006"
+          },
+          "caseId": "SDK-CASE-023",
+          "configuration": {},
+          "driverProfile": "structured-input",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "configurationTiming": "between-inputs",
+            "setting": "model"
+          },
+          "prompts": [
+            "Reply Ready.",
+            "Reply Done."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-006"
+        },
+        "sourcePlanSHA256": "23df6fcf4bfc3aebd40f8057d689ea449522d684e2d2df0889c06c99126d31fc",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-006",
+        "storyId": "SDK-US-006"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-024",
+      "storyId": "SDK-US-006",
+      "attempt": "75b8d6291abdb47d5dc6f279",
+      "path": "pi/SDK-US-006/SDK-CASE-024/75b8d6291abdb47d5dc6f279",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-024-fixed-snapshot-fixture-runtime-executions-68273565b3e780cd46953c986d63152e-workspace--/2026-11-25T14-46-21-105Z_01a2132c-02b0-710b-81a0-57a353b24caa.jsonl": "1d9acef0a2eabfc088922fa355a76aa205a290523bd9eb87dcd9e6c6d52941bd",
+        "manifest.json": "2f1bccece802ead429cce6e69fd502289470dc5c4d92fcc44a7eda2c4affaca9",
+        "material.json": "5778de2f194a72655d56454f5683fb06a0be0d57636fd31d22ff2d8f6446ac28",
+        "official-origin.json": "58d9f14ec4cf6f5f93c51311538586cf5559a7b8e71446b2945e76f92f807f7f",
+        "origin/main.json": "38a01b8ffd7a99e5e2a94485cf4c722b2d155c7199fc57f4e9fef674262ccb42",
+        "plan.json": "6ea213f5fa59d03f6b9300d350d60777f87da458cd2d144850b32ad595f1e3ea",
+        "raw/manifest.json": "c8c1252c787349afc77ba6c3a792466181e1b59ae39cc5baf165081cde5e4895",
+        "raw/raw.jsonl": "135a036f1568302abc18de77a7721b772fe0755034768b1ac2e5566cfad0825d",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "ebfeb29ae9ec76a688d62a230d8d7b5e900e617e3527e6677935a5b01c0d9973",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "4aaee9613ec0f77b853c13089e42acd959a4feab7b75b04dd8cc536352b54a94"
+      },
+      "contracts": {
+        "SDK-US-006.json": "7ee0f4497e75e5cf7dd52fad3c3ea18de1943793940e39eb05eb4daad84fc727",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:23.359798Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-024",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+          "storyId": "SDK-US-006"
+        },
+        "caseId": "SDK-CASE-024",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "structured-input",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a2132c-02b0-710b-81a0-57a353b24caa",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/024-fixed-snapshot/fixture/runtime/executions/68273565b3e780cd46953c986d63152e/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-024-fixed-snapshot-fixture-runtime-executions-68273565b3e780cd46953c986d63152e-workspace--/2026-11-25T14-46-21-105Z_01a2132c-02b0-710b-81a0-57a353b24caa.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-024-fixed-snapshot-fixture-runtime-executions-68273565b3e780cd46953c986d63152e-workspace--/2026-11-25T14-46-21-105Z_01a2132c-02b0-710b-81a0-57a353b24caa.jsonl",
+            "sha256": "1d9acef0a2eabfc088922fa355a76aa205a290523bd9eb87dcd9e6c6d52941bd"
+          }
+        ],
+        "initialModel": "magpie/auto/deepseek-v4.1-flash-1017",
+        "model": "magpie/auto/glm-5.3",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/024-fixed-snapshot/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Explain in two sentences how addition works."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-024",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "执行期间请求不同模型，保留接受或拒绝及当前执行终态，记录可观察的生效范围；不承诺当前执行立即换模型。",
+            "storyId": "SDK-US-006"
+          },
+          "caseId": "SDK-CASE-024",
+          "configuration": {},
+          "driverProfile": "structured-input",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "configurationTiming": "during-execution",
+            "setting": "model"
+          },
+          "prompts": [
+            "Explain in two sentences how addition works."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-006"
+        },
+        "sourcePlanSHA256": "4aaee9613ec0f77b853c13089e42acd959a4feab7b75b04dd8cc536352b54a94",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-006",
+        "storyId": "SDK-US-006"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-030",
+      "storyId": "SDK-US-007",
+      "attempt": "b4a9b2efed66accc7d7d722d",
+      "path": "pi/SDK-US-007/SDK-CASE-030/b4a9b2efed66accc7d7d722d",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-030-real-fixture-runtime-executions-1e57d6387ec280c495c334820539d0b0-workspace--/2026-11-25T14-39-48-291Z_01a21326-0442-73dc-92c2-ddcc3bfc8dc5.jsonl": "ce2f58943203c83fc26f6dac411a460b51e3cd742aae955ff2e62fe76e13a82c",
+        "manifest.json": "cc75e75574e4fc2b4330910c7f1eec4c29b45d6ebc20cd89d8db44c2293bbefa",
+        "material.json": "f6098247e24a4a82d8de3aefd03fc767bfe76a4ff7bd380002661cb1aa0b53c0",
+        "official-origin.json": "6dd1802bd1537d47fad134e6acedf6159a779e6abe0b5230340492e36a1ada9e",
+        "origin/main.json": "b3389c9ddc686c4d301ea1ea9318d2cd0c78ecdd274589a01a929c4972205c41",
+        "plan.json": "d8dd9eda702c78e14e077eef677f81e9808cbbf61be1a558e0266382e2d762d6",
+        "raw/manifest.json": "9425c64725ae478887acfb662f133374a262b6fd732de1689c7d7235b9ca6efd",
+        "raw/raw.jsonl": "b9f903e9f2a19c1b7656d7a729d2906864f0c87c5f551ddde7d4f27eae41c372",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "663b2625a66131fa33aa330460a68dcb33b1069daaaa0855948a3a6d692412b9",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "978238c16cb5847c6f5c5d532ab532a1e52ae13b6ea27383201ebcd28800ce15"
+      },
+      "contracts": {
+        "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:36.472046Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-030",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "在执行进度后中断并读取确认及终态。",
+          "storyId": "SDK-US-007"
+        },
+        "caseId": "SDK-CASE-030",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "interrupt",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21326-0442-73dc-92c2-ddcc3bfc8dc5",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/030-real/fixture/runtime/executions/1e57d6387ec280c495c334820539d0b0/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-030-real-fixture-runtime-executions-1e57d6387ec280c495c334820539d0b0-workspace--/2026-11-25T14-39-48-291Z_01a21326-0442-73dc-92c2-ddcc3bfc8dc5.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-030-real-fixture-runtime-executions-1e57d6387ec280c495c334820539d0b0-workspace--/2026-11-25T14-39-48-291Z_01a21326-0442-73dc-92c2-ddcc3bfc8dc5.jsonl",
+            "sha256": "ce2f58943203c83fc26f6dac411a460b51e3cd742aae955ff2e62fe76e13a82c"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/030-real/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Produce a numbered list from one to twenty."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-030",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "在执行进度后中断并读取确认及终态。",
+            "storyId": "SDK-US-007"
+          },
+          "caseId": "SDK-CASE-030",
+          "configuration": {},
+          "driverProfile": "interrupt",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {},
+          "prompts": [
+            "Produce a numbered list from one to twenty."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-007"
+        },
+        "sourcePlanSHA256": "978238c16cb5847c6f5c5d532ab532a1e52ae13b6ea27383201ebcd28800ce15",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-007",
+        "storyId": "SDK-US-007"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-031",
+      "storyId": "SDK-US-007",
+      "attempt": "52defbda84888d9bfd6bd066",
+      "path": "pi/SDK-US-007/SDK-CASE-031/52defbda84888d9bfd6bd066",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-031-real-fixture-runtime-executions-d053f51fe4574878e5eb94faebc868fc-workspace--/2026-11-25T14-39-49-869Z_01a21326-0a6c-71e9-b349-eb3605722c14.jsonl": "e3a190912d205b23d9ae4bd3ef3dca90a5e541387818b6340840b6a822a27b94",
+        "manifest.json": "5f27dcb3a5702255bfba15f8365ffcf70e230142c9fb9fb202341501b6855345",
+        "material.json": "217dbb756387e411e14b8ed0fb0d2709e66bf78f1fb0fac9fad695a200cf2f44",
+        "official-origin.json": "27fdd2fa3cac1a5434448bde96cab459c1c370ff3926e908a275a67e0ccff2f4",
+        "origin/main.json": "10364558e693179071bb14a46ecdf7c134c547147cabb833d9eb33980c2bf745",
+        "plan.json": "110d20148b6ea195a8aae35fa609f836c0c7bdade30b68150f0c5a7f4f93b7eb",
+        "raw/manifest.json": "a63e8b7d36cf6978dca312250e96b4400c4155df8b86eb8b07bc3b6e74d88906",
+        "raw/raw.jsonl": "eeff2f745d7c6b464a26cb2a41a6c37ad8d641531f2427cb65d04db0d26ac3ea",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "58562716a05fb6f0a385fde6442fa0f7df7efa91c389a9d422d60d0491657f30",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "1c1884e234594467ce47ab4af12cc517e315c7df6e682205e09792bf90bb1240"
+      },
+      "contracts": {
+        "SDK-US-007.json": "de19356ef28705b1572453e458c63abbe1ab52f9864a821d8850016b53fd6e50",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:38.807919Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-031",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "关闭拥有的会话并确认交互与进程结束。",
+          "storyId": "SDK-US-007"
+        },
+        "caseId": "SDK-CASE-031",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "session-close",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21326-0a6c-71e9-b349-eb3605722c14",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/031-real/fixture/runtime/executions/d053f51fe4574878e5eb94faebc868fc/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-031-real-fixture-runtime-executions-d053f51fe4574878e5eb94faebc868fc-workspace--/2026-11-25T14-39-49-869Z_01a21326-0a6c-71e9-b349-eb3605722c14.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-031-real-fixture-runtime-executions-d053f51fe4574878e5eb94faebc868fc-workspace--/2026-11-25T14-39-49-869Z_01a21326-0a6c-71e9-b349-eb3605722c14.jsonl",
+            "sha256": "e3a190912d205b23d9ae4bd3ef3dca90a5e541387818b6340840b6a822a27b94"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/031-real/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply Ready."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-031",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "关闭拥有的会话并确认交互与进程结束。",
+            "storyId": "SDK-US-007"
+          },
+          "caseId": "SDK-CASE-031",
+          "configuration": {},
+          "driverProfile": "session-close",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {},
+          "prompts": [
+            "Reply Ready."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-007"
+        },
+        "sourcePlanSHA256": "1c1884e234594467ce47ab4af12cc517e315c7df6e682205e09792bf90bb1240",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-007",
+        "storyId": "SDK-US-007"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-033",
+      "storyId": "SDK-US-008",
+      "attempt": "a3024f11edf15be3106334c7",
+      "path": "pi/SDK-US-008/SDK-CASE-033/a3024f11edf15be3106334c7",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-033-real-fixture-runtime-executions-ab70e42729449d1063f7094fefa48d50-workspace--/2026-11-25T14-39-52-971Z_01a21326-168a-70d7-8eb4-19e8de00a010.jsonl": "dd068bb65fde3877e24499eb4fa1955bc1c58796a8b9124fa0a7af7d8aa11fc3",
+        "manifest.json": "0376f99409b59f25dcede6f47e750e536500a966b885ae8cac9a3aca50eada9a",
+        "material.json": "b416184e62efdb0abc335095ae4111a99d4f960ad2fe3f3de653d7e30e432ade",
+        "official-origin.json": "3afa444a54aa7bae0b68bd1771b8f05ca83215dd3bf8bcd92ed4cc4ef7d37eff",
+        "origin/main.json": "26b0cb1f57e19f7b667fc8d9d09dc8e9cfc0ad5009ea39335c23637fc784ba6e",
+        "plan.json": "49bc87acd8b6944f320875f6655be8d1efb57b78a7aec4497aa7adc8ad90ab3a",
+        "raw/manifest.json": "225caf06c8891d7bcb498691eb23b4297a0abcf84a4d8683b93c81047afa0b5f",
+        "raw/raw.jsonl": "c5d590a6fc026b74d35c92bf511f82e80566abe02c8fbb75ecd1efeb17d43c27",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "c70c7daae2630f93b1ebaf002a59123dd6c099e6d700b2cc7a4542fdd33af724",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "588361d67493df53a0efdb7f3e109a1604cbdbb7ac9502918b6fb89d8d6e241a"
+      },
+      "contracts": {
+        "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:40:40.630145Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-033",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "独立发现会话、读取元数据和主会话内容。",
+          "storyId": "SDK-US-008"
+        },
+        "caseId": "SDK-CASE-033",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "history",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21326-168a-70d7-8eb4-19e8de00a010",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/033-real/fixture/runtime/executions/ab70e42729449d1063f7094fefa48d50/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-033-real-fixture-runtime-executions-ab70e42729449d1063f7094fefa48d50-workspace--/2026-11-25T14-39-52-971Z_01a21326-168a-70d7-8eb4-19e8de00a010.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-033-real-fixture-runtime-executions-ab70e42729449d1063f7094fefa48d50-workspace--/2026-11-25T14-39-52-971Z_01a21326-168a-70d7-8eb4-19e8de00a010.jsonl",
+            "sha256": "dd068bb65fde3877e24499eb4fa1955bc1c58796a8b9124fa0a7af7d8aa11fc3"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/033-real/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply with the word SYNTHETIC_SAVED."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-033",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "独立发现会话、读取元数据和主会话内容。",
+            "storyId": "SDK-US-008"
+          },
+          "caseId": "SDK-CASE-033",
+          "configuration": {},
+          "driverProfile": "history",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "historyTarget": "messages"
+          },
+          "prompts": [
+            "Reply with the word SYNTHETIC_SAVED."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-008"
+        },
+        "sourcePlanSHA256": "588361d67493df53a0efdb7f3e109a1604cbdbb7ac9502918b6fb89d8d6e241a",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-008",
+        "storyId": "SDK-US-008"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-036",
+      "storyId": "SDK-US-008",
+      "attempt": "d1f239e3fb1221b9a29f1980",
+      "path": "pi/SDK-US-008/SDK-CASE-036/d1f239e3fb1221b9a29f1980",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-036-fixed-snapshot-fixture-runtime-executions-766748a03eae18e8c9a15f437168d5d2-workspace--/2026-11-25T14-46-10-528Z_01a2132b-d95e-7129-b67b-6ba4b8fef983.jsonl": "b33606520be18b7abc846a54c152b76d9a521eb94da2a990091c84ef8c1b3a45",
+        "manifest.json": "58a051aa6f6f5f7617a84a27b09cbca9735d8482f744b05217dc05b004c7ae31",
+        "material.json": "a02a81f22482c373ec823bb19a56f8189968c130f29a089a1ab950a418b93d24",
+        "official-origin.json": "a7bcda9d1401f9a7059507d392c874147eb6e55322feb979f65a94c2d6b36cd9",
+        "origin/main.json": "a90ff8d00e8fc719e78149f40ff62a8f2f8df6a5eb2033825525e8f1c2ff5e4a",
+        "plan.json": "248d4a6405c2901cedacef7400ec4b93a780a8c49177b63445bee9a5b262f128",
+        "raw/manifest.json": "4539235bd428e30ee934064061e727090e6ce916ab2ccab5ed31c32f083deb8f",
+        "raw/raw.jsonl": "ac6b04ad04b551f9515c3103ff87cdb362b61143f400ca9e5f625a1cfe7ef589",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "46155ea874f32eabf3e68fa5f284830834a42c8760ad1356d6c7684293246ea3",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "059b0258b750b0e29b3ddf30a4c10d51f716b2e67d1fa5b504e4a88bdc7e3fc5"
+      },
+      "contracts": {
+        "SDK-US-008.json": "7a6788df35e0f88167de5a8774b1c68a7c6d1d19a7001799947abbabf5ec2137",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:25.027435Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017"
+        ],
+        "case": {
+          "id": "SDK-CASE-036",
+          "outOfScope": [
+            "其他 case 的使用流程",
+            "人工构造的协议错误和精确竞态"
+          ],
+          "scope": "使用原生分页或切片连续读取至少两个窗口，核对顺序和边界；不伪造 cursor、total 或原子快照。",
+          "storyId": "SDK-US-008"
+        },
+        "caseId": "SDK-CASE-036",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "history",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a2132b-d95e-7129-b67b-6ba4b8fef983",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/036-fixed-snapshot/fixture/runtime/executions/766748a03eae18e8c9a15f437168d5d2/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-036-fixed-snapshot-fixture-runtime-executions-766748a03eae18e8c9a15f437168d5d2-workspace--/2026-11-25T14-46-10-528Z_01a2132b-d95e-7129-b67b-6ba4b8fef983.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-036-fixed-snapshot-fixture-runtime-executions-766748a03eae18e8c9a15f437168d5d2-workspace--/2026-11-25T14-46-10-528Z_01a2132b-d95e-7129-b67b-6ba4b8fef983.jsonl",
+            "sha256": "b33606520be18b7abc846a54c152b76d9a521eb94da2a990091c84ef8c1b3a45"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/036-fixed-snapshot/fixture/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply with the word SYNTHETIC_SAVED.",
+          "Reply with the word SYNTHETIC_SECOND_SAVED."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-036",
+            "outOfScope": [
+              "其他 case 的使用流程",
+              "人工构造的协议错误和精确竞态"
+            ],
+            "scope": "使用原生分页或切片连续读取至少两个窗口，核对顺序和边界；不伪造 cursor、total 或原子快照。",
+            "storyId": "SDK-US-008"
+          },
+          "caseId": "SDK-CASE-036",
+          "configuration": {},
+          "driverProfile": "history",
+          "files": {
+            "numbers.txt": "7\n11\n"
+          },
+          "mode": "live-selected-path",
+          "parameters": {
+            "historyTarget": "pagination"
+          },
+          "prompts": [
+            "Reply with the word SYNTHETIC_SAVED.",
+            "Reply with the word SYNTHETIC_SECOND_SAVED."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-008"
+        },
+        "sourcePlanSHA256": "059b0258b750b0e29b3ddf30a4c10d51f716b2e67d1fa5b504e4a88bdc7e3fc5",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-008",
+        "storyId": "SDK-US-008"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-037",
+      "storyId": "SDK-US-001",
+      "attempt": "7d838ec4f320d43554e53f34",
+      "path": "pi/SDK-US-001/SDK-CASE-037/7d838ec4f320d43554e53f34",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-037-labeled-recording-runtime-executions-2875cf6e76e769c64422329613fbb2c5-workspace--/2026-11-25T14-41-05-516Z_01a21327-31eb-76e8-a4c9-b50eac397fae.jsonl": "3f0214464038517f1fd20c7302647c21ec9ad92d5a9848c58096652be549287e",
+        "manifest.json": "38baff85725b7dea731f9cced722fe96b01e8fefd1fb9e9c4653eacbf938e0a0",
+        "material.json": "98dc711b8176db36548f5a0e538bb8839d88ab733ada789c5462a7f7a0ff751b",
+        "official-origin.json": "15273a3d5ca44868ece91031289a5b721d4af070d311b2eb9934c9d595fa5250",
+        "origin/main.json": "38ca3ad8b65a1b74b3c600bc6086911286bd58094ea45849a42ea658e9a581fb",
+        "plan.json": "b65f43601b11fb30805e284b3400c43895a436990cc0065ee392c31df7a9af26",
+        "raw/manifest.json": "c66ebeac7fc34e25590724aed6b03fb8394b69c75f31024c380eb05f0b4f1be0",
+        "raw/raw.jsonl": "d333269a6597ffd75e3230071c8c08413bf5a7685b6fb7ed4492e666dc8c3d8f",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "bb5e29600090b98b9ab788535641ab4535478b03a13735b61ca4bda9cea99882",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "b647b0fb54e12196e64e31c5486f51094c2dae44eaae252843a9a1deab88f0f8"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:11.116632Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017",
+          "--no-extensions",
+          "--no-skills",
+          "--no-context-files",
+          "--no-prompt-templates",
+          "-e",
+          "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/037-labeled/recording/runtime/official/f3efee75db15be322ad97e034346ca06/pi-extension/session.ts"
+        ],
+        "case": {
+          "id": "SDK-CASE-037",
+          "outOfScope": [
+            "运行中注入的消费时机",
+            "通用队列或调度器",
+            "其他 case 的使用流程"
+          ],
+          "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-037",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "context-injection",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21327-31eb-76e8-a4c9-b50eac397fae",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/037-labeled/recording/runtime/executions/2875cf6e76e769c64422329613fbb2c5/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-037-labeled-recording-runtime-executions-2875cf6e76e769c64422329613fbb2c5-workspace--/2026-11-25T14-41-05-516Z_01a21327-31eb-76e8-a4c9-b50eac397fae.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-037-labeled-recording-runtime-executions-2875cf6e76e769c64422329613fbb2c5-workspace--/2026-11-25T14-41-05-516Z_01a21327-31eb-76e8-a4c9-b50eac397fae.jsonl",
+            "sha256": "3f0214464038517f1fd20c7302647c21ec9ad92d5a9848c58096652be549287e"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "piExtension": {
+          "client": "native-stdio",
+          "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+          "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+          "package": "@earendil-works/pi-coding-agent",
+          "version": "1.6.0"
+        },
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/037-labeled/recording/runtime/routes/record/workspace",
+        "prompts": [
+          "Reply only Ready. Do not use tools.",
+          "What is the stored vault code? Reply only with its exact value. Do not use tools."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-037",
+            "outOfScope": [
+              "运行中注入的消费时机",
+              "通用队列或调度器",
+              "其他 case 的使用流程"
+            ],
+            "scope": "原生空闲注入不启动新执行或 assistant 输出；独立查询读取只经注入发送的随机事实。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-037",
+          "configuration": {},
+          "driverProfile": "context-injection",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "contextValue": "86607b6331d405f1703a8a4f726164fa",
+            "injectionTiming": "idle"
+          },
+          "prompts": [
+            "Reply only Ready. Do not use tools.",
+            "What is the stored vault code? Reply only with its exact value. Do not use tools."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "b647b0fb54e12196e64e31c5486f51094c2dae44eaae252843a9a1deab88f0f8",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
+      }
+    },
+    {
+      "provider": "pi",
+      "caseId": "SDK-CASE-038",
+      "storyId": "SDK-US-001",
+      "attempt": "71b0798e3b966412f72ce218",
+      "path": "pi/SDK-US-001/SDK-CASE-038/71b0798e3b966412f72ce218",
+      "files": {
+        "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-038-recording-runtime-executions-667867900b6c91c8f70670f41df98427-workspace--/2026-11-25T14-38-41-120Z_01a21324-fdde-72bf-ade0-0eb468091597.jsonl": "14067668688eb804b6e4049fd0aa72c6a785271a031554177b7ac158bcc37009",
+        "manifest.json": "667cac09873deaa8ee7688e4bf962fc9d00d5f60f943d685506ee56b27261ac3",
+        "material.json": "c41900411ccc5115bc69172715df5b4641e26d4693ed3d30042f492d3214ccad",
+        "official-origin.json": "f003bb7470671ce5ae384fe9d798d955d5fa6b7219da39a73eddcbc5ab72e5a5",
+        "origin/main.json": "2a685bbc40d13f403a8841a2eb993b916097824d43793a9a2670e8ac4e9c3302",
+        "plan.json": "2e33304e58aed4e05164bfd4e3791998508584eb6b345dd0bc93afc23ce5180a",
+        "raw/manifest.json": "6d9ad7aab535aa1cf7ccc1f8260b6ea9be3d31befea9e261f150fa656c71de4e",
+        "raw/raw.jsonl": "a08a74a815b3ea30866baf64c88960b8a5e0fceb296037972d6ea5c8dbc42bc6",
+        "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw/transport.json": "a8b0eab108609154eb67975a8ab9ed8a725362853526346159ba07e2a3f6d8e4",
+        "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+        "source-plan.json": "8ca3b8ae693fa8ebdda12b6e6eae099084907118514992e0b187e12a42dc955b"
+      },
+      "contracts": {
+        "SDK-US-001.json": "8bda674305d50945f85bccd4721038a53497a0a1c3cab84ac24f111ddc1247f9",
+        "bindings/pi.json": "5abe651b13a1db423e71454651d7b8d6e660bded1735ec7cdd66eda057d235a8"
+      },
+      "officialSDK": {
+        "client": "native-stdio",
+        "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+        "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:44:12.303208Z"
+      },
+      "plan": {
+        "args": [
+          "--mode",
+          "rpc",
+          "--model",
+          "magpie/auto/deepseek-v4.1-flash-1017",
+          "--no-extensions",
+          "--no-skills",
+          "--no-context-files",
+          "--no-prompt-templates",
+          "-e",
+          "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/official/a05991745c428c5a604c8462db32428d/pi-extension/session.ts"
+        ],
+        "case": {
+          "id": "SDK-CASE-038",
+          "outOfScope": [
+            "保证当前执行消费注入",
+            "通用队列或调度器",
+            "人工构造的精确竞态"
+          ],
+          "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+          "storyId": "SDK-US-001"
+        },
+        "caseId": "SDK-CASE-038",
+        "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+        "cliVersion": "1.6.0",
+        "driverProfile": "context-injection",
+        "historyBindings": [
+          {
+            "role": "runtime",
+            "sessionId": "01a21324-fdde-72bf-ade0-0eb468091597",
+            "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/executions/667867900b6c91c8f70670f41df98427/workspace",
+            "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-038-recording-runtime-executions-667867900b6c91c8f70670f41df98427-workspace--/2026-11-25T14-38-41-120Z_01a21324-fdde-72bf-ade0-0eb468091597.jsonl",
+            "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-03-038-recording-runtime-executions-667867900b6c91c8f70670f41df98427-workspace--/2026-11-25T14-38-41-120Z_01a21324-fdde-72bf-ade0-0eb468091597.jsonl",
+            "sha256": "14067668688eb804b6e4049fd0aa72c6a785271a031554177b7ac158bcc37009"
+          }
+        ],
+        "model": "magpie/auto/deepseek-v4.1-flash-1017",
+        "piExtension": {
+          "client": "native-stdio",
+          "extensionRevision": "2dfc08f88c74d5ed3e8390ffabf710e0a55ff28d",
+          "extensionSHA256": "298c12cce0fe179295cfb1c01d4ae9fa9283c1525c593c6b4dd8be82ea57683b",
+          "package": "@earendil-works/pi-coding-agent",
+          "version": "1.6.0"
+        },
+        "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/03/038/recording/runtime/routes/record/workspace",
+        "prompts": [
+          "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+          "What is the stored vault code? Reply only with its exact value. Do not use tools."
+        ],
+        "provider": "pi",
+        "recordingIsolation": "personal-skills-v1",
+        "scenario": {
+          "answers": {},
+          "case": {
+            "id": "SDK-CASE-038",
+            "outOfScope": [
+              "保证当前执行消费注入",
+              "通用队列或调度器",
+              "人工构造的精确竞态"
+            ],
+            "scope": "在原生执行进度后注入，保留接受或错误事实；后续查询读取随机事实，并记录当前执行是否已消费。",
+            "storyId": "SDK-US-001"
+          },
+          "caseId": "SDK-CASE-038",
+          "configuration": {},
+          "driverProfile": "context-injection",
+          "files": {},
+          "mode": "live-selected-path",
+          "parameters": {
+            "contextValue": "6e0b8164b401e3b2e4589ae22adbc263",
+            "injectionTiming": "during-execution"
+          },
+          "prompts": [
+            "Print the integers 1 through 50. If a stored vault code is available in your context, append its exact value; otherwise append UNKNOWN. Do not use tools.",
+            "What is the stored vault code? Reply only with its exact value. Do not use tools."
+          ],
+          "provider": "pi",
+          "reason": "",
+          "requiredRequests": [],
+          "storyId": "SDK-US-001"
+        },
+        "sourcePlanSHA256": "8ca3b8ae693fa8ebdda12b6e6eae099084907118514992e0b187e12a42dc955b",
+        "stdinEOFAction": "close",
+        "story": "SDK-US-001",
+        "storyId": "SDK-US-001"
       }
     }
   ]
