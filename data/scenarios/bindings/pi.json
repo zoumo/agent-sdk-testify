@@ -333,7 +333,7 @@
       "progressBarrier": null,
       "parameters": {
         "effort": "low",
-        "targetEffort": "medium"
+        "targetEffort": "high"
       }
     },
     "SDK-CASE-028": {
