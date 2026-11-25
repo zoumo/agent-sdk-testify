@@ -1,0 +1,75 @@
+{
+  "args": [
+    "--mode",
+    "rpc",
+    "--model",
+    "magpie/auto/deepseek-v4.1-flash-1017"
+  ],
+  "case": {
+    "id": "SDK-CASE-023",
+    "outOfScope": [
+      "其他 case 的使用流程",
+      "人工构造的协议错误和精确竞态"
+    ],
+    "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+    "storyId": "SDK-US-006"
+  },
+  "caseId": "SDK-CASE-023",
+  "cliSHA256": "231273172757a2318c97dccf6ba9f2838cb365cf3ed0e1043ff3f1fb8132cefa",
+  "cliVersion": "1.6.0",
+  "driverProfile": "structured-input",
+  "historyBindings": [
+    {
+      "role": "runtime",
+      "sessionId": "01a2132b-f2f4-719b-8047-fed634aeeb69",
+      "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/023-fixed-snapshot/fixture/runtime/executions/9287f1b854a616e56eeb2d871d5a4291/workspace",
+      "nativeTarget": "config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-023-fixed-snapshot-fixture-runtime-executions-9287f1b854a616e56eeb2d871d5a4291-workspace--/2026-11-25T14-46-17-077Z_01a2132b-f2f4-719b-8047-fed634aeeb69.jsonl",
+      "source": "history/runtime/config/sessions/--Users-jim-code-zoumo-mass-home-repo-.scratch-pi-official-materials-evidence-02-023-fixed-snapshot-fixture-runtime-executions-9287f1b854a616e56eeb2d871d5a4291-workspace--/2026-11-25T14-46-17-077Z_01a2132b-f2f4-719b-8047-fed634aeeb69.jsonl",
+      "sha256": "cd68f4f8db6d02d871fb3efd1d26a8f8e42ed8d388d216597dabc3923e570ca8"
+    }
+  ],
+  "initialModel": "magpie/auto/deepseek-v4.1-flash-1017",
+  "model": "magpie/auto/glm-5.3",
+  "project": "/Users/jim/code/zoumo/mass-home-repo/.scratch/pi-official-materials/evidence/02/023-fixed-snapshot/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Reply Ready.",
+    "Reply Done."
+  ],
+  "provider": "pi",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-023",
+      "outOfScope": [
+        "其他 case 的使用流程",
+        "人工构造的协议错误和精确竞态"
+      ],
+      "scope": "两次执行之间从模型 A 修改为不同模型 B，观察第二次输入的执行及可取得的原生配置证据。",
+      "storyId": "SDK-US-006"
+    },
+    "caseId": "SDK-CASE-023",
+    "configuration": {},
+    "driverProfile": "structured-input",
+    "files": {
+      "numbers.txt": "7\n11\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "configurationTiming": "between-inputs",
+      "setting": "model"
+    },
+    "prompts": [
+      "Reply Ready.",
+      "Reply Done."
+    ],
+    "provider": "pi",
+    "reason": "",
+    "requiredRequests": [],
+    "storyId": "SDK-US-006"
+  },
+  "sourcePlanSHA256": "23df6fcf4bfc3aebd40f8057d689ea449522d684e2d2df0889c06c99126d31fc",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-006",
+  "storyId": "SDK-US-006"
+}

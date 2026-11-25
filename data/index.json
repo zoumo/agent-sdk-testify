@@ -1661,7 +1661,7 @@
       "requirement": "required",
       "storyId": "SDK-US-002",
       "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verificationReason": "Pi 1.6.0 和 DeepSeek 的录制未观察到包含规定末尾换行的写入参数。"
     },
     {
       "adoption": "missing",
@@ -1871,31 +1871,61 @@
       "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "603e06b9ee9c86cba1e687d211a9f0b47e06662c4a3e0d1a639fdd79636dea54",
       "caseId": "SDK-CASE-022",
+      "materialSHA256": "37a4eee20acd765dfb8835cd379daadad51daf0a095127594b83b03ad341576c",
+      "materials": "pi/SDK-US-006/SDK-CASE-022/651f370a9fc2ab8d4bd24f2f",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:51:36.172335Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "707f51567e20a176e4b622dd4727a1b8609a66c9091470168ccdabe759cb05ec",
       "caseId": "SDK-CASE-023",
+      "materialSHA256": "add90cfab5c22684c435270f424db11dd564f03db2a3eb617a1cb0beda5de7f6",
+      "materials": "pi/SDK-US-006/SDK-CASE-023/e4545f981c016683c020fb02",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:21.845089Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "e4869b94b83e080b06a25da8b3bf185dcdf12093cfe3a3c4498b9fe25345fa02",
       "caseId": "SDK-CASE-024",
+      "materialSHA256": "5778de2f194a72655d56454f5683fb06a0be0d57636fd31d22ff2d8f6446ac28",
+      "materials": "pi/SDK-US-006/SDK-CASE-024/75b8d6291abdb47d5dc6f279",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:23.359798Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-006",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     },
     {
       "adoption": "missing",
@@ -1922,7 +1952,7 @@
       "requirement": "required",
       "storyId": "SDK-US-006",
       "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verificationReason": "已配置的 DeepSeek 和 GLM 路由只公布 max。请求 high 后 Pi 仍读回 max。"
     },
     {
       "adoption": "missing",
@@ -2027,13 +2057,23 @@
       "verificationReason": "Pi 默认运行时缺少可供晚加入观察者发现的子 Agent。"
     },
     {
-      "adoption": "missing",
+      "adoption": "admitted",
+      "adoptionSHA256": "6c0e28d91c47faf9eb35601da42a770d29ef6c96455193146020bfd3ccac5a9e",
       "caseId": "SDK-CASE-036",
+      "materialSHA256": "a02a81f22482c373ec823bb19a56f8189968c130f29a089a1ab950a418b93d24",
+      "materials": "pi/SDK-US-008/SDK-CASE-036/d1f239e3fb1221b9a29f1980",
+      "officialSDK": {
+        "package": "@earendil-works/pi-coding-agent",
+        "version": "1.6.0"
+      },
       "provider": "pi",
+      "qualification": {
+        "method": "official-sdk",
+        "qualifiedAt": "2026-11-25T14:52:25.027435Z"
+      },
       "requirement": "required",
       "storyId": "SDK-US-008",
-      "verification": "unverified",
-      "verificationReason": "尚无经审核采用的 Pi 1.6.0 录制材料。"
+      "verification": "passed"
     }
   ],
   "version": 1
