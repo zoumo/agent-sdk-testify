@@ -5,6 +5,14 @@ import sys
 import threading
 import time
 
+def valid_call(params):
+    # Current MCP clients attach transport metadata to tools/call. It grants
+    # no authority and is not a model argument.
+    return (isinstance(params, dict)
+            and params.keys() <= {'name', 'arguments', '_meta'}
+            and params.get('name') == 'wait_for_root'
+            and params.get('arguments', {}) == {}
+            and isinstance(params.get('_meta', {}), dict))
 
 def serve(source, sink, marker, timeout=60):
     write_lock = threading.Lock()
@@ -43,7 +51,7 @@ def serve(source, sink, marker, timeout=60):
                 send(identity, result={'tools': [{'name': 'wait_for_root',
                      'description': 'Wait until the driver observes successful root completion. Call before fixture_read.',
                      'inputSchema': {'type': 'object', 'properties': {}, 'additionalProperties': False}}]})
-            elif method == 'tools/call' and request.get('params') == {'name': 'wait_for_root', 'arguments': {}}:
+            elif method == 'tools/call' and valid_call(request.get('params')):
                 worker = threading.Thread(target=wait, args=(identity,))
                 workers.append(worker)
                 worker.start()

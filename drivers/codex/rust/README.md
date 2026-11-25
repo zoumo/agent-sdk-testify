@@ -16,6 +16,9 @@ drivers/codex/rust/install.sh /tmp/testify-rust-build /tmp/testify-rust-install
 首次构建下载固定源码和 Cargo 依赖。已有缓存时，通过 `CODEX_SOURCE_ARCHIVE`
 传入固定源码归档的绝对路径，并设置 `CARGO_NET_OFFLINE=true`。
 
+019 的真实录制需要 PATH 上的 `python3` 运行 Testify 提供的合成 MCP gate。
+Testify 在单次录制 overlay 安装 gate，Rust 从根 Turn 的成功终态释放它。离线回放不启动 gate。
+
 在临时工作目录对 Rust 形状的合成材料运行公开验证。Testify 从 `PATH` 选择候选入口，
 并保留实际二进制和 SDK 身份。
 

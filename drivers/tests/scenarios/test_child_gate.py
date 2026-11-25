@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 import queue
+import runpy
 import subprocess
 import sys
 import tempfile
@@ -9,14 +10,14 @@ import threading
 import unittest
 
 from support import BOOTSTRAP
-from record_user_story import child_gate
+GATE = Path(__file__).resolve().parents[3] / "internal/native/codex_child_gate.py"
 
 
 class ChildGateTests(unittest.TestCase):
     def test_wait_keeps_dispatch_live_and_releases_only_after_root(self):
         with tempfile.TemporaryDirectory() as tmp:
             marker = Path(tmp) / 'released'
-            proc = subprocess.Popen([sys.executable, child_gate.__file__, str(marker)],
+            proc = subprocess.Popen([sys.executable, str(GATE), str(marker)],
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             replies = queue.Queue()
             reader = threading.Thread(target=lambda: [replies.put(json.loads(line)) for line in proc.stdout])
@@ -29,10 +30,12 @@ class ChildGateTests(unittest.TestCase):
                 self.assertEqual(replies.get(timeout=2)['result']['capabilities'], {'tools': {}})
                 send(2, 'tools/list', {})
                 self.assertEqual(replies.get(timeout=2)['result']['tools'][0]['name'], 'wait_for_root')
-                send(3, 'tools/call', {'name': 'wait_for_root', 'arguments': {}})
+                send(3, 'tools/call', {'name': 'wait_for_root', '_meta': {'traceparent': 'fixture-trace'}})
                 send(4, 'ping', {})
                 self.assertEqual(replies.get(timeout=2)['id'], 4)
                 send(5, 'tools/call', {'name': 'wait_for_root', 'arguments': {'path': '../other'}})
+                self.assertEqual(replies.get(timeout=2)['error']['code'], -32602)
+                send(6, 'tools/call', {'name': 'wait_for_root', '_meta': 4})
                 self.assertEqual(replies.get(timeout=2)['error']['code'], -32602)
                 self.assertTrue(replies.empty())
                 marker.touch()
@@ -50,7 +53,7 @@ class ChildGateTests(unittest.TestCase):
 
     def test_eof_cancels_unreleased_wait(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run([sys.executable, child_gate.__file__, str(Path(tmp) / 'never')],
+            result = subprocess.run([sys.executable, str(GATE), str(Path(tmp) / 'never')],
                 input=json.dumps(dict(jsonrpc='2.0', id=1, method='tools/call',
                                       params={'name': 'wait_for_root', 'arguments': {}})) + '\n',
                 capture_output=True, text=True, timeout=2)
@@ -68,5 +71,5 @@ class ChildGateTests(unittest.TestCase):
             def flush(self): sent.set()
         source, output = Input(), Output()
         source.assert_sent = sent
-        child_gate.serve(source, output, Path('/nonexistent/child-gate'), timeout=0)
+        runpy.run_path(str(GATE))["serve"](source, output, Path('/nonexistent/child-gate'), timeout=0)
         self.assertTrue(json.loads(output.getvalue())['result']['isError'])
