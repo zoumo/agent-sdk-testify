@@ -1,0 +1,10 @@
+{
+  "connectionId": "main",
+  "executionId": "91cecb5d093faad6e42d82ac4fe06c44",
+  "originSHA256": "0eb5cc9d57d3a64abf3c8137f49ea9d41c41028a13729c51abde945a90945326",
+  "protocolPid": 8194,
+  "runId": "9a795bb24a90084f8b67411159f39cb6",
+  "schemaVersion": 2,
+  "supervisorPid": 8187,
+  "toolSHA256": "8813fb937c6f16e7c5214ff3cf4a5ee3afe984d820050e896be9564173ce4435"
+}

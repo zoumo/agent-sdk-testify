@@ -1,0 +1,45 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "official-origin.json": "aad5c86c5f0a09ecca5405b4842547f06c92466f3d6d2aa594f0da9e19322e7b",
+    "origin/main.json": "bc993dab61711ac2201a20170ad3d11631a041df8a2193477d2f1787c134a2ca",
+    "plan.json": "87d637d3b93b0ba734aaa8ec8f5f534d014dceaea94c41909fcd7c20ef76afac",
+    "raw/manifest.json": "1ecb2b0c545dc53fcb8a15c6de2693243b13df940889782514acb922a9a3a91c",
+    "raw/raw.jsonl": "dcb9540c1f1c1eab67672488674d14909cf8aea1c8c59044e471a6b99ea656d3",
+    "raw/stderr.raw": "9d1f24867e8078d00f9dbe89a97c32c27fa383280caf53845db02bd75feeb647",
+    "raw/transport.json": "4e207e18508471e1d30c60fed931fb3290a73aca8f7e42f0fb6f85c375a887a4",
+    "report.json": "9cee81ddcc480f9ee90ba90858dddeea37cede4196fafa1932d7bba66c17c5e4",
+    "source-plan.json": "0b513f5cd4cbf31f998038dc6f24462375e8a077e11b09ddbdec972b095e9b33"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/tmp/testify-codex-live.UiCAQsmf/001-a/fixture/runtime/executions/54e138a93bba3083e46660c7b85e80e6/workspace",
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "version": "codex-cli 0.166.0"
+  },
+  "planSHA256": "87d637d3b93b0ba734aaa8ec8f5f534d014dceaea94c41909fcd7c20ef76afac",
+  "provenance": "capture",
+  "proxyVersion": "v0.3.1-0.20261124182051-ab197aac9d67",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "4e207e18508471e1d30c60fed931fb3290a73aca8f7e42f0fb6f85c375a887a4",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "0b513f5cd4cbf31f998038dc6f24462375e8a077e11b09ddbdec972b095e9b33",
+  "status": "captured"
+}

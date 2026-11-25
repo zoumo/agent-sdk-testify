@@ -1,0 +1,83 @@
+{
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "features.default_mode_request_user_input=true",
+    "-c",
+    "features.request_permissions_tool=true",
+    "-c",
+    "approvals_reviewer=\"user\"",
+    "-c",
+    "project_root_markers=[]",
+    "-c",
+    "project_doc_max_bytes=0"
+  ],
+  "case": {
+    "id": "SDK-CASE-041",
+    "outOfScope": [
+      "跨轮执行权限效果"
+    ],
+    "scope": "用原生请求 ID 核对三个额外权限决定与处理结果。",
+    "storyId": "SDK-US-003"
+  },
+  "caseId": "SDK-CASE-041",
+  "cliSHA256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+  "cliVersion": "codex-cli 0.166.0",
+  "driverProfile": "sandbox-permissions",
+  "historyBindings": [],
+  "model": "auto/gpt-6.2-sol",
+  "project": "/private/tmp/testify-codex-live.UiCAQsmf/041-a/fixture/runtime/routes/record/workspace",
+  "prompts": [
+    "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-turn in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+    "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-session in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+    "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-deny in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool."
+  ],
+  "provider": "codex",
+  "recordingIsolation": "personal-skills-v1",
+  "scenario": {
+    "answers": {},
+    "case": {
+      "id": "SDK-CASE-041",
+      "outOfScope": [
+        "跨轮执行权限效果"
+      ],
+      "scope": "用原生请求 ID 核对三个额外权限决定与处理结果。",
+      "storyId": "SDK-US-003"
+    },
+    "caseId": "SDK-CASE-041",
+    "configuration": {},
+    "driverProfile": "sandbox-permissions",
+    "files": {
+      "grant-deny/fixture.txt": "SYNTHETIC\n",
+      "grant-session/fixture.txt": "SYNTHETIC\n",
+      "grant-turn/fixture.txt": "SYNTHETIC\n"
+    },
+    "mode": "live-selected-path",
+    "parameters": {
+      "approvalScopes": [
+        "turn",
+        "session",
+        "deny"
+      ]
+    },
+    "prompts": [
+      "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-turn in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+      "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-session in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool.",
+      "Call the built-in request_permissions tool exactly once requesting file_system.write for exactly the relative directory grant-deny in the current working directory. Provide a synthetic reason. Do not request read or network permissions. After the decision, acknowledge it and finish. Do not invoke any other tool."
+    ],
+    "provider": "codex",
+    "reason": "",
+    "requiredRequests": [
+      "sandbox-permissions-turn",
+      "sandbox-permissions-session",
+      "sandbox-permissions-deny"
+    ],
+    "storyId": "SDK-US-003"
+  },
+  "sourcePlanSHA256": "140d410e1bcf9002091c15268cdbfd6efdb9285a7d91d81578ecd981b43f3444",
+  "stdinEOFAction": "close",
+  "story": "SDK-US-003",
+  "storyId": "SDK-US-003"
+}

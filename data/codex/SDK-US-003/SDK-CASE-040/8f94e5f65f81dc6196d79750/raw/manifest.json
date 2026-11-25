@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "version": 1,
+    "transport": "stdio-jsonl"
+  },
+  "proxyVersion": "v0.3.1-0.20261124182051-ab197aac9d67",
+  "captureStatus": "complete",
+  "native": {
+    "executable": "/Users/jim/.bun/install/global/node_modules/@openai/codex/bin/codex.js",
+    "sha256": "e14fc83739c13c1074b12bd1acce4010c893c7f6fbfc1593b4a31d74cabb57af",
+    "args": [
+      "app-server",
+      "--listen",
+      "stdio://",
+      "-c",
+      "features.default_mode_request_user_input=true",
+      "-c",
+      "agents.enabled=true",
+      "-c",
+      "features.multi_agent=true",
+      "-c",
+      "project_root_markers=[]",
+      "-c",
+      "project_doc_max_bytes=0"
+    ],
+    "cwd": "/private/tmp/testify-codex-full.gCPdjCnO/040-01/fixture/runtime/executions/91cecb5d093faad6e42d82ac4fe06c44/workspace",
+    "version": "codex-cli 0.166.0"
+  },
+  "files": {
+    "raw.jsonl": "525d01330809619079ec054e9b49ad77615cd3e3a718a6ccff33d6d13133f72c",
+    "stderr.raw": "ea6ebbbe14c97ab0f0908eaa10a2f60ca9e8b344b3f08276a595c25f067389bc",
+    "transport.json": "9002ae91f1c6dbb9eb7b6319b0350ca75742fb7bbee34f71aa81851ff1514089"
+  }
+}

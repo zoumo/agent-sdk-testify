@@ -1,0 +1,41 @@
+{
+  "captureStatus": "complete",
+  "credentialScan": "pass",
+  "files": {
+    "history/runtime/config/sessions/2026/11/25/rollout-2026-11-25T11-03-28-01a210a8-82ca-7322-ac51-d2e0cd4e6249.jsonl": "a883d3088be63b06e6ff418bc8dec1311e7c35b549a356c7eb8a85f736a4c0e8",
+    "official-origin.json": "6af0ae0adf77f170fa63a949526639e40ede44e3b1a091d209c3571d462a45be",
+    "origin/main.json": "ad156150cceb0b755cd63c5b777afbfe424795f36e2bb56ad3a3c93763094e21",
+    "origin/probe.json": "20614aa758b358015230f8ee95ee28b8fdcd50ccd8a9a3ae5b46bddbab0c619c",
+    "plan.json": "66dbc0b5ef16b0d6a463b54b6eab1b0ccef57ef1a871e7be3d298d6da8f6db53",
+    "raw/manifest.json": "afd628ea4fa6786a11c62b033707a2d51500830e7bfa65fd787c7fb03c4eaf51",
+    "raw/raw.jsonl": "9e9600ca164ceed10f526ca80fea117ce46a6816393b4d3c6a5b00c70f6f39b8",
+    "raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "raw/transport.json": "c0fcd14852dd4914bf3e0d1b06eb9d992988018390c1bf252eb9b07e01e4a763",
+    "remote-probe/raw/manifest.json": "12931baf4bd818034fcce9b1c80d885ad66215eccf129c8f73da493f1515ba92",
+    "remote-probe/raw/raw.jsonl": "3a20f10b998595849002e09bb4a4e9ee54daeecb7b7c8b5b048498c679a5d292",
+    "remote-probe/raw/stderr.raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "remote-probe/raw/transport.json": "891b86d6157e33dd334acca7cec2fc4d9cf7e31fed87f949d65f67b6e3997928",
+    "report.json": "d9aa19fbc55ea3ad24bc816c3bdae96fcc0206f1664f59299da9a8b38f33f61b",
+    "source-plan.json": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3"
+  },
+  "materialFormatVersion": 3,
+  "native": {
+    "args": null,
+    "cwd": "",
+    "executable": "",
+    "sha256": "",
+    "transport": "websocket"
+  },
+  "planSHA256": "66dbc0b5ef16b0d6a463b54b6eab1b0ccef57ef1a871e7be3d298d6da8f6db53",
+  "provenance": "capture",
+  "proxyVersion": "v0.3.1-0.20261124182051-ab197aac9d67",
+  "recordingFormat": {
+    "name": "agent-mock-jsonl",
+    "transport": "stdio-jsonl",
+    "version": 1
+  },
+  "runSHA256": "c0fcd14852dd4914bf3e0d1b06eb9d992988018390c1bf252eb9b07e01e4a763",
+  "schemaVersion": 1,
+  "sourcePlanSHA256": "eb228ed8861739af15bc8a7312e7654316c592ca845cba50abfeddfba65679c3",
+  "status": "captured"
+}
